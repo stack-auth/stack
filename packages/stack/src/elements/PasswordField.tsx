@@ -37,6 +37,7 @@ export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttribu
         {...props}
       />
       <button
+        tabIndex={-1}
         type="button"
         className="wl_absolute wl_inset-y-0 wl_right-0 wl_flex wl_items-center wl_pr-3"
         onClick={onClickReveal}
