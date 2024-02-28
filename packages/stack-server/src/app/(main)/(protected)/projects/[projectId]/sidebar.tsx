@@ -148,10 +148,6 @@ export function Sidebar(props : SheetProps & {
                 />
               ))}
             </List>
-
-            <Button size="sm" variant="solid">
-            Upgrade plan
-            </Button>
           </Box>
 
           <Divider sx={{ mt: 1 }} />

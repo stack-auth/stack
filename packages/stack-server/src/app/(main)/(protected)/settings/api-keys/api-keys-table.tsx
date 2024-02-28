@@ -4,7 +4,6 @@ import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ApiKeySetSummary } from 'stack-shared';
 import { Box, Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
-import { deindent } from 'stack-shared/dist/utils/strings';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../projects/[projectId]/useAdminInterface';
 
