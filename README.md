@@ -1,4 +1,4 @@
-# stack
+# Stack
 
 ## Getting Started
 
@@ -34,5 +34,3 @@ You can also open Prisma Studio to see the database interface and edit data dire
 ```sh
 pnpm run prisma:server -- studio
 ```
-
-# stack
