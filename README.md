@@ -2,6 +2,10 @@
 
 ## Getting Started
 
+// TODO link docs
+
+## Self-hosting
+
 Make sure you have `pnpm` installed alongside Node v20. Next, ensure you created `.env.local` files by copying `.env` in each of the subpackages in the `packages` folder and filling out the variables. You will need to start a Postgres database; you can do this with the following command:
 
 ```sh
