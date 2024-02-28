@@ -1,10 +1,8 @@
 ![Stack Logo](/assets/logo.png)
 
-<h4 align="center" style="font-size: 1.5rem">
-  <p>
+<h3 align="center" style="font-size: 40px">
     <a href="https://weblit-docs.vercel.app/docs/setup">Documentation</a>
     <!-- | <a href="#">Demo</a> -->
-  </p>
 </h4>
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
@@ -18,8 +16,8 @@ Here is an example of the sign-up page you get out of the box:
 ## Features
 
 - OAuth (Google, Facebook, GitHub, etc.)
-- Email and password authentication (with email verification, password reset, etc.)
-- Easy to set-up with proxied providers
+- Email and password authentication (with email verification and password reset)
+- Easy to set up with proxied providers
 - User management & analytics
 - Pre-built React components & hooks
 - Support for static sites & single-page apps
