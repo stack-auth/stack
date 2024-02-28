@@ -1,0 +1,40 @@
+{
+  "name": "stack-shared",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "pnpm clean && tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "dev": "tsc -w --preserveWatchOutput --declarationMap",
+    "lint": "eslint --ext .tsx,.ts ."
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "jose": "^5.2.2",
+    "oauth4webapi": "^2.10.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/react": "^18.2.60",
+    "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8",
+    "eslint-config-next": "^14",
+    "rimraf": "^5.0.5"
+  }
+}

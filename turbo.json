@@ -1,0 +1,37 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next",
+        "dist/**",
+        "lib/**",
+        "*.js",
+        "*.d.ts",
+        "*.d.ts.map"
+      ],
+      "outputMode": "new-only"
+    },
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false
+    },
+    "lint": {
+      "cache": false
+    },
+    "codegen": {
+      "cache": false
+    },
+    "prisma": {
+      "cache": false
+    },
+    "typecheck": {
+      "cache": false
+    }
+  }
+}

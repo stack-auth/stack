@@ -1,0 +1,49 @@
+{
+  "name": "stack",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm clean && tsc && npx tailwindcss build -i src/tailwind.css -o dist/tailwind.css && postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js",
+    "clean": "rimraf dist",
+    "dev": "concurrently \"npm run watch:ts\" \"npm run watch:postcss\"",
+    "watch:ts": "tsc -w --preserveWatchOutput --declarationMap",
+    "watch:postcss": "postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js --watch",
+    "lint": "eslint --ext .tsx,.ts ."
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "js-cookie": "^3.0.5",
+    "oauth4webapi": "^2.10.3",
+    "react-icons": "^5.0.1",
+    "tailwindcss-scoped-preflight": "^2.1.0",
+    "stack-shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "next": "^14",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.53",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6.x",
+    "autoprefixer": "^10.4.17",
+    "concurrently": "^8.2.2",
+    "daisyui": "^4.7.2",
+    "eslint": "^8",
+    "eslint-config-next": "^14",
+    "next": "14.0.3-canary.1",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "postcss-nested": "^6.0.1",
+    "postcss-prefix-selector": "^1.16.0",
+    "react": "^18.2.0",
+    "rimraf": "^5.0.5",
+    "tailwindcss": "^3.4.1"
+  }
+}

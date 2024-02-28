@@ -1,0 +1,49 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "private": true,
+  "repository": "",
+  "scripts": {
+    "typecheck": "turbo typecheck",
+    "build": "turbo build",
+    "clean": "turbo run clean --no-cache",
+    "codegen": "turbo run codegen --no-cache",
+    "prisma:server": "pnpm run --filter=stack-server prisma",
+    "dev": "turbo run dev --parallel --continue",
+    "dev:app": "turbo run dev --parallel --continue --filter=dev-app...",
+    "dev:server": "turbo run dev --parallel --continue --filter=stack-server...",
+    "dev:email": "turbo run dev --parallel --continue --filter=stack-email...",
+    "lint": "turbo run lint --no-cache -- --max-warnings=0",
+    "prettier": "prettier --check .",
+    "prettier:format": "prettier --write .",
+    "release": "release",
+    "peek": "pnpm release --peek"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "8.30.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard-with-typescript": "^21.0.1",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsdoc": "^39.6.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.31.11",
+    "eslint-plugin-svelte3": "^4.0.0",
+    "prettier": "3.1.1",
+    "prettier-plugin-svelte": "^3.1.2",
+    "turbo": "^1.11.3",
+    "typescript": "5.3.3",
+    "vite": "^5.0.12",
+    "vitest": "1.2.2"
+  },
+  "engines": {
+    "node": "^20.8.0"
+  },
+  "packageManager": "pnpm@8.9.2",
+  "pnpm": {
+    "overrides": {}
+  }
+}
