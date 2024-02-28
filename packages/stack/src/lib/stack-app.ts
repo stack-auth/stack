@@ -67,6 +67,10 @@ function getSuperSecretAdminKey() {
   return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your publishable client key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
 }
 
+function getBaseUrl(required: boolean = true) {
+  return process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+}
+
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
   baseUrl?: string,
   projectId?: ProjectId,
@@ -206,7 +210,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._urlOptions = options.urls ?? {};
     } else {
       this._interface = new StackClientInterface({
-        baseUrl: options.baseUrl ?? defaultBaseUrl,
+        baseUrl: options.baseUrl ?? getBaseUrl(),
         projectId: options.projectId ?? getProjectId(),
         publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
       });
@@ -530,7 +534,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } else {
       super({
         interface: new StackServerInterface({
-          baseUrl: options.baseUrl ?? defaultBaseUrl,
+          baseUrl: options.baseUrl ?? getBaseUrl(),
           projectId: options.projectId ?? getProjectId(),
           publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
           secretServerKey: options.secretServerKey ?? getSecretServerKey(),
@@ -656,7 +660,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        baseUrl: options.baseUrl ?? defaultBaseUrl,
+        baseUrl: options.baseUrl ?? getBaseUrl(),
         projectId: options.projectId ?? getProjectId(),
         publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
         secretServerKey: options.secretServerKey ?? getSecretServerKey(),

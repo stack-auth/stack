@@ -23,9 +23,9 @@ npm install @stack/next
 1. Register an account on Stack [here](https://stack.app) if you don't already have and account. Create an project in the dashboard, and put the Project ID, publishable client key, and secret server key in the `.env.local` file in the root of your Next.js project like this:
 
     ```javascript
-    NEXT_PUBLIC_WEBLIT_PROJECT_ID=<your-project-id>
-    NEXT_PUBLIC_WEBLIT_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
-    WEBLIT_SECRET_SERVER_KEY=<your-secret-server-key>
+    NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
+    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
+    STACK_SECRET_SERVER_KEY=<your-secret-server-key>
     ```
 
 2. Create `StackServerApp` in `lib/stack.ts`:

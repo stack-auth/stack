@@ -13,7 +13,7 @@ export function AdminAppProvider(props: { projectId: string, children: React.Rea
 
   const stackAdminApp = useStrictMemo(() => {
     return new StackAdminInterface({
-      baseUrl: process.env.NEXT_PUBLIC_STACK_URL!,
+      baseUrl: process.env.NEXT_PUBLIC_STACK_URL || throwErr('missing NEXT_PUBLIC_STACK_URL environment variable'),
       projectId: props.projectId,
       internalAdminAccessToken: user.accessToken ?? throwErr("User must have an access token"),
     });
