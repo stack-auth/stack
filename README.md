@@ -1,8 +1,19 @@
-# Stack
+![Stack Logo](/assets/logo.png)
+
+<h4 align="center" style="font-size: 1.5rem">
+  <p>
+    <a href="https://weblit-docs.vercel.app/docs/setup">Documentation</a>
+    <!-- | <a href="#">Demo</a> -->
+  </p>
+</h4>
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
 
-We provide front- and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows. Think of it as Supabase Auth or `next-auth`, but better.
+We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows. Think of it as Supabase Auth or next-auth, but better.
+
+Here is an example of the sign-up page you get out of the box:
+
+![Stack Sign Up Page](/assets/signup-page.png)
 
 ## Features
 
@@ -14,9 +25,7 @@ We provide front- and backend libraries for Next.js, React, and JavaScript. You 
 - User-associated metadata with client-/server-specific permissions
 - **100% open-source!**
 
-## Getting Started
-
-### Installation
+## Installation
 
 To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
 
@@ -26,7 +35,7 @@ To get started with Stack, you need to [create a Next.js project](https://nextjs
 
 For setup, refer to [our documentation](https://weblit-docs.vercel.app/docs/setup).
 
-## Development setup
+## Development Setup
 
 This is for you if you want to contribute to the Stack project.
 
