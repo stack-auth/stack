@@ -1,0 +1,32 @@
+html[data-theme='dark'] {
+  --ifm-background-color: #030712;
+  --ifm-background-surface-color: #030712;
+}
+
+.navbar {
+  border-bottom: 1px solid #151515;
+}
+
+.menu {
+  border-right: 1px solid #151515;
+}
+
+.table-of-contents {
+  border-left: 1px solid #151515;
+}
+
+.navbar__logo img {
+  height: 80%;
+  margin-top: 4px;
+}
+
+.prism-code {
+  background-color: rgb(15,23,42,50) !important;
+}
+
+/* .navbar {
+  border-bottom: 1px solid #151515;
+  padding: 0px;
+  height: 0px;
+  visibility: hidden;
+} */
