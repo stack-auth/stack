@@ -5,18 +5,14 @@ import * as React from 'react';
 import Box from '@mui/joy/Box';
 import IconButton from '@mui/joy/IconButton';
 import { useAdminApp } from './useAdminInterface';
-import { redirect } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import { useStrictMemo } from 'stack-shared/src/hooks/use-strict-memo';
 import { useStackApp } from 'stack';
 import { Icon } from '@/components/icon';
-import { Logo } from '@/components/logo';
+import Breadcrumbs from '@mui/joy/Breadcrumbs';
 
 
-function ProjectSwitchItem({
-  label
-}: {
-  label: string,
-}) {
+function ProjectSwitchItem({ label }: { label: string }) {
   return (
     <Box sx={{
       display: 'flex',
@@ -56,7 +52,7 @@ function ProjectSwitch() {
     }
   
     return (
-      <Box sx={{ py: 0.5 }}>
+      <Box>
         <ProjectSwitchItem label={option.label} />
       </Box>
     );
@@ -64,6 +60,7 @@ function ProjectSwitch() {
 
   return (
     <Select
+      // indicator={null}
       variant="plain"
       defaultValue={project?.id}
       size="sm"
@@ -91,8 +88,19 @@ function ProjectSwitch() {
 export function Header(props: SheetProps & {
   isCompactMediaQuery: string,
   onShowSidebar: () => void,
+  navigationItems: { name: string, href: string, icon: React.ReactNode }[],
 }) {
+  const stackAdminApp = useAdminApp();
   const { isCompactMediaQuery, onShowSidebar, ...sheetProps } = props;
+  const basePath = `/projects/${stackAdminApp.projectId}`;
+  const pathname = usePathname();
+
+  const selectedItem = React.useMemo(() => {
+    return props.navigationItems.find((item) => {
+      return new URL(basePath + item.href, "https://example.com").pathname === pathname;
+    });
+  }, [pathname, basePath, props.navigationItems]);
+
   return (
     <Sheet
       variant="outlined"
@@ -131,7 +139,12 @@ export function Header(props: SheetProps & {
         >
           <Icon icon="menu" />
         </IconButton>
-        <ProjectSwitch />
+        <Stack flexDirection="row" alignItems="center">
+          <Breadcrumbs aria-label="breadcrumb">
+            <ProjectSwitch />
+            <Typography level="title-md">{selectedItem?.name}</Typography>
+          </Breadcrumbs>
+        </Stack>
       </Stack>
     </Sheet>
   );
