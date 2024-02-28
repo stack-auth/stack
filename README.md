@@ -22,6 +22,7 @@ Here is an example of the sign-up page you get out of the box:
 - Easy to set-up with proxied providers
 - User management & analytics
 - Pre-built React components & hooks
+- Support for static sites & single-page apps
 - User-associated metadata with client-/server-specific permissions
 - **100% open-source!**
 
