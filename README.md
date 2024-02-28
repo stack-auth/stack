@@ -1,5 +1,11 @@
 # Stack
 
+Open-source user authentication service for B2C and SaaS applications.
+
+## Features
+
+// TODO
+
 ## Getting Started
 
 // TODO link docs
