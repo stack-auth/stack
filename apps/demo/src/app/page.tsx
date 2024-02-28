@@ -1,47 +1,35 @@
 import Link from 'next/link';
-import CardFrame from 'stack/src/elements/CardFrame';
 import { stackServerApp } from 'src/stack';
-import ColorModeButton from 'src/components/ColorThemeButton';
-import SignOutButton from 'src/components/SignOutButton';
-import UserInfo from 'src/components/UserInfo';
-import UserInfoClient from 'src/components/UserInfoClient';
+
 
 export default async function Page() {
-  return (
-  // <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  //   <div>
-  //     <div>Server:</div>
-  //     <UserInfo />
-  //     <div style={{ marginBottom: '1rem' }}/>
-  //     <div>Client:</div>
-  //     <UserInfoClient />
-  //   </div>
-      
-  //   <div style={{ marginBottom: '1rem' }}/>
-  //   <Link href="/handler/signin">
-  //     Sign in
-  //   </Link>
-  //   <Link href="/handler/signup">
-  //     Sign up
-  //   </Link>
-  //   <div style={{ marginBottom: '1rem' }}/>
-  //   <SignOutButton />
-  //   <Link href={stackServerApp.urls['signOut']}>
-  //     Sign out (server)
-  //   </Link>
-  //   <div style={{ marginBottom: '1rem' }}/>
-  //   <ColorModeButton />
+  const user = await stackServerApp.getUser();
 
-    //   <div style={{ marginBottom: '1rem' }}/>
-    //   <Link href="/protected-client">
-    //     Protected client
-    //   </Link>
-    //   <Link href="/protected-server">
-    //     Protected server
-    //   </Link>
-    // </div>
-    <div style={{ width: '100%', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <h1>Stack Demo</h1>
+  const authButtons = (
+    <div className='flex gap-5'>
+      <Link href={stackServerApp.urls.signIn}>
+        <button  className='btn btn-primary'>
+          Sign In
+        </button>
+      </Link>
+      <Link href="/handler/signup">
+        <button  className='btn btn-primary'>
+          Sign Up
+        </button>
+      </Link>
+    </div>
+  );
+  
+  return (
+    <div className='flex flex-col items-center justify-center h-screen w-full gap-10'>
+      {user ? (
+        <div className='flex flex-col gap-5 justify-center items-center'>
+          <p className='text-lg'>Logged in as: <span className='font-bold'>{user.primaryEmail}</span></p>
+          <Link href={stackServerApp.urls.signOut} className='text-blue-500'>
+            Sign Out
+          </Link>
+        </div>
+      ) : authButtons}
     </div>
   );
 }

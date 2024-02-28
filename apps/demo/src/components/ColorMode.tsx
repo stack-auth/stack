@@ -2,7 +2,7 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-export default function ColorModeButton() {
+export default function ColorMode() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -15,10 +15,8 @@ export default function ColorModeButton() {
     return null;
   }
   return (
-    <header>
-      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-        Toggle {theme === 'light' ? 'Dark' : 'Light'}
-      </button>
-    </header>
+    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className='btn btn-ghost'>
+      {theme === 'light' ? 'Dark' : 'Light'} Mode
+    </button>
   );
 }
