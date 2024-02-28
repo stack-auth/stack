@@ -82,7 +82,7 @@ Once you have your Next.js project setup, you can install Stack by running the f
 
     The provider will provide information to the frontend functions and hooks.
 
-5. That's it! Stack is not configured in your Next.js project. If you start your Next.js app with `npm run dev`, and navigate to `http://localhost:3000/handler/signup`, you should see the Stack signup page liek this:
+5. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev`, and navigate to `http://localhost:3000/handler/signup`, you will see the Stack signup page like this:
     ![Stack sign up page](./assets/signup-page.png)
 
 
