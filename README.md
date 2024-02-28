@@ -2,6 +2,8 @@
 
 Open-source user authentication service for B2C and SaaS applications.
 
+Think of Supabase or next-auth, but better.
+
 ## Features
 
 // TODO
