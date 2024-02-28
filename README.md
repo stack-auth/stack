@@ -11,6 +11,7 @@ We provide front- and backend libraries for Next.js, React, and JavaScript. You 
 - Easy to set-up with proxied providers
 - User management & analytics
 - Pre-built React components & hooks
+- Support for static sites & single-page apps
 - User-associated metadata with client-/server-specific permissions
 - **100% open-source!**
 
