@@ -9,7 +9,7 @@ export default function CardFrame({
 }) {
   const inner = (
     <div className="stack-scope wl_container wl_mx-auto wl_max-w-md wl_font-sans">
-      <div className={`wl_py-8 wl_px-4 wl_bg-transparent wl_rounded-xl sm:wl_px-10 sm:wl_bg-base-100 sm:wl_shadow-xl`}>
+      <div className={`wl_py-8 wl_px-4 wl_bg-transparent wl_rounded-xl sm:wl_px-10 sm:wl_bg-base-200 sm:wl_shadow-xl`}>
         {children}
       </div>
     </div>
