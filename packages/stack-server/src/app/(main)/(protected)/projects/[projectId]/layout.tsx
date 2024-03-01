@@ -81,16 +81,10 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
         />
         <Stack flexGrow={1} direction="column">
           <Header
+            headerHeight={headerHeight}
             navigationItems={navigationItems}
             isCompactMediaQuery={isCompactMediaQuery}
             onShowSidebar={() => setIsSidebarOpen(true)}
-            sx={{
-              height: `${headerHeight}px`,
-              flexShrink: 0,
-              [isCompactMediaQuery]: {
-                display: "flex",
-              },
-            }}
           />
           <Stack
             paddingX={{
@@ -102,19 +96,9 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
             paddingY={2}
             minWidth={0}
           >
-            <Box
-              component="main"
-              sx={{ minHeight: "100vh" }}
-            >
+            <Box component="main">
               {props.children}
             </Box>
-            <Divider sx={{ marginY: 4 }} />
-            <Stack
-              alignItems="center"
-              component="footer"
-            >
-              <Logo full height={30} href="/projects" />
-            </Stack>
           </Stack>
         </Stack>
       </Stack>

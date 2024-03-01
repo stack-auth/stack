@@ -86,6 +86,7 @@ function ProjectSwitch() {
 }
 
 export function Header(props: SheetProps & {
+  headerHeight: number,
   isCompactMediaQuery: string,
   onShowSidebar: () => void,
   navigationItems: { name: string, href: string, icon: React.ReactNode }[],
@@ -116,6 +117,11 @@ export function Header(props: SheetProps & {
         borderRight: 'none',
         display: 'flex',
         alignItems: 'stretch',
+        height: `${props.headerHeight}px`,
+        flexShrink: 0,
+        [isCompactMediaQuery]: {
+          display: "flex",
+        },
         ...sheetProps.sx ?? {},
       }}
     >
@@ -125,7 +131,6 @@ export function Header(props: SheetProps & {
         flexGrow={1}
         gap={2}
       >
-        
         <IconButton
           size="sm"
           variant="outlined"
