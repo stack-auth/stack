@@ -9,7 +9,7 @@ import { Paragraph } from "@/components/paragraph";
 import { CopyButton } from "@/components/copy-button";
 import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
 import { ApiKeysTable } from "./api-keys-table";
-import { useAdminApp } from "../../projects/[projectId]/useAdminInterface";
+import { useAdminApp } from "../../useAdminInterface";
 import { runAsynchronously } from "stack-shared/src/utils/promises";
 
 

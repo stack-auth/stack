@@ -10,7 +10,7 @@ import { Enumeration, EnumerationItem } from "@/components/enumeration";
 import { SmartLink } from "@/components/smart-link";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../projects/[projectId]/useAdminInterface";
+import { useAdminApp } from "../../useAdminInterface";
 import { getProductionModeErrors } from "stack-shared";
 
 export default function EnvironmentClient() {
