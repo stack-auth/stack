@@ -2,11 +2,11 @@
 
 import { Box, Divider, Drawer, Stack, useTheme } from "@mui/joy";
 import { useState } from "react";
-import { Logo } from "@/components/logo";
 import { Sidebar } from "./sidebar";
 import { AdminAppProvider } from "./useAdminInterface";
 import { Header } from "./header";
 import { Icon } from '@/components/icon';
+import { OnboardingDialog } from "./onboarding-dialog";
 
 const navigationItems = [
   {
@@ -52,6 +52,7 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
 
   return (
     <AdminAppProvider projectId={props.params.projectId}>
+      <OnboardingDialog />
       <Stack
         flexGrow={1}
         direction="row"
@@ -103,7 +104,6 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
         onClose={() => setIsSidebarOpen(false)}
       >
         <Sidebar
-          // onCloseSidebar={() => setIsSidebarOpen(false)}
           headerHeight={headerHeight}
           navigationItems={navigationItems}
         />

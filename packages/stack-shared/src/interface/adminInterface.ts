@@ -167,7 +167,7 @@ export class StackAdminInterface extends StackServerInterface {
     return createApiKeySetFirstViewFromJson(await response.json());
   }
 
-  async listApiKeySets() {
+  async listApiKeySets(): Promise<ApiKeySetSummary[]> {
     const response = await this.sendAdminRequest("/api-keys", {}, null);
     const json = await response.json();
     return json.map((k: ApiKeySetSummaryJson) => createApiKeySetSummaryFromJson(k));
