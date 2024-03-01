@@ -25,6 +25,11 @@ const fullProjectInclude = {
     },
   },
   configOverride: true,
+  _count: {
+    select: {
+      users: true, // Count the users related to the project
+    },
+  },
 } as const satisfies Prisma.ProjectInclude;
 type FullProjectInclude = typeof fullProjectInclude;
 type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
@@ -259,7 +264,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
     displayName: project.displayName,
     description: project.description ?? undefined,
     createdAtMillis: project.createdAt.getTime(),
-    userCount: 0,
+    userCount: project._count.users,
     isProductionMode: project.isProductionMode,
     evaluatedConfig: {
       id: project.config.id,

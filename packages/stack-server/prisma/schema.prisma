@@ -85,6 +85,7 @@ model ProjectUser {
   projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
   projectUserOauthAccounts         ProjectUserOauthAccount[]
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
+  projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
@@ -92,9 +93,8 @@ model ProjectUser {
   displayName          String?
   passwordHash         String?
 
-  serverMetadata               Json?
-  clientMetadata               Json?
-  ProjectUserPasswordResetCode ProjectUserPasswordResetCode[]
+  serverMetadata Json?
+  clientMetadata Json?
 
   @@id([projectId, projectUserId])
 }

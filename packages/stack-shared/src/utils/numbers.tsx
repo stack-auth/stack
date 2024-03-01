@@ -1,9 +1,9 @@
 const magnitudes = [
-  [1_000, ""],
-  [1_000_000, "k"],
-  [1_000_000_000, "mm"],
-  [1_000_000_000_000, "bln"],
   [1_000_000_000_000_000, "trln"],
+  [1_000_000_000_000, "bln"],
+  [1_000_000_000, "bn"],
+  [1_000_000, "M"],
+  [1_000, "k"],
 ] as const;
 
 export function prettyPrintWithMagnitudes(num: number): string {
@@ -13,11 +13,11 @@ export function prettyPrintWithMagnitudes(num: number): string {
   if (!Number.isFinite(num)) return "∞";
 
   for (const [magnitude, suffix] of magnitudes) {
-    if (num < magnitude) {
+    if (num >= magnitude) {
       return toFixedMax(num / magnitude, 1) + suffix;
     }
   }
-  return num.toExponential(1);
+  return toFixedMax(num, 1); // Handle numbers less than 1,000 without suffix.
 }
 
 export function toFixedMax(num: number, maxDecimals: number): string {
