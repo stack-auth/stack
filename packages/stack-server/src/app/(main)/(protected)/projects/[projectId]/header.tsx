@@ -129,7 +129,6 @@ export function Header(props: SheetProps & {
         direction="row"
         alignItems="center"
         flexGrow={1}
-        gap={2}
       >
         <IconButton
           size="sm"

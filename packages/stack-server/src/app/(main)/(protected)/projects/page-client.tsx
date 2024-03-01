@@ -35,9 +35,9 @@ export default function ProjectsPageClient() {
           Create new
         </Button>
 
-        <Grid container spacing={2} sx={{ width: { xs: 250, md: 500 }}}>
+        <Grid container spacing={2}>
           {projects.map((project) => (
-            <Grid key={project.id} xs={12} md={6}>
+            <Grid key={project.id} xs={12} sm={6} md={4}>
               <ProjectCard project={project} />
             </Grid>
           ))}
@@ -138,7 +138,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void, onInvalida
             <FormLabel htmlFor="name">Name</FormLabel>
             <Input name="name" />
           </FormControl>
-          <FormControl required disabled={isCreating}>
+          <FormControl disabled={isCreating}>
             <FormLabel htmlFor="description">Description</FormLabel>
             <Textarea name="description" minRows={3} />
           </FormControl>

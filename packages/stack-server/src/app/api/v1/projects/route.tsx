@@ -40,7 +40,7 @@ const postRequestSchema = yup.object({
   }),
   body: yup.object({
     displayName: yup.string().required(),
-    description: yup.string().required(),
+    description: yup.string().default(undefined),
   }),
 });
 

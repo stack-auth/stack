@@ -87,11 +87,7 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
             onShowSidebar={() => setIsSidebarOpen(true)}
           />
           <Stack
-            paddingX={{
-              lg: 6,
-              md: 4,
-              xs: 2,
-            }}
+            paddingX={{ md: 4, xs: 2 }}
             flexGrow={1}
             paddingY={2}
             minWidth={0}
