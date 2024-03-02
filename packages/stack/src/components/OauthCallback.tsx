@@ -14,7 +14,7 @@ export default function OauthCallback () {
     if (called.current) return;
     called.current = true;
     await app.callOauthCallback();
-    await router.push(app.urls.userHome);
+    router.push(app.urls.userHome);
   }), []);
 
   return <MessageCard title='Redirecting...' fullPage />;

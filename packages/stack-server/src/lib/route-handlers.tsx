@@ -63,11 +63,16 @@ export async function parseRequest<T>(req: NextRequest, schema: yup.Schema<T>): 
 export function smartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     try {
-      console.log(`[API REQ] ${req.method} ${req.url}`);
+      const censoredUrl = new URL(req.url);
+      for (const key of censoredUrl.searchParams.keys()) {
+        censoredUrl.searchParams.set(key, "--REDACTED--");
+      }
+
+      console.log(`[API REQ] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options);
       const time = (performance.now() - timeStart);
-      console.log(`[    RES] ${req.method} ${req.url} (in ${time.toFixed(0)}ms)`);
+      console.log(`[    RES] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
       // catch some Next.js non-errors and rethrow them
