@@ -11,7 +11,7 @@ export default function StackProvider({
   app: StackClientApp<true>,
 }) {
   return (
-    <StackProviderClient appOptionsPromise={app[stackAppInternalsSymbol].getSerializableClientOptions()}>
+    <StackProviderClient appJsonPromise={app[stackAppInternalsSymbol].toClientJson()}>
       {children}
     </StackProviderClient>
   );

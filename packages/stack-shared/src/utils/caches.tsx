@@ -1,9 +1,8 @@
-import { RateLimitOptions, rateLimited, runAsynchronously } from "./promises";
-import { Result } from "./results";
+import { RateLimitOptions, ReactPromise, rateLimited } from "./promises";
 import { AsyncStore, ReadonlyAsyncStore } from "./stores";
 
-export class AsyncCache<K, T> {
-  private _map: Map<K, AsyncValueCache<T>> = new Map();
+export class AsyncCache<K extends object, T> {
+  private _map: WeakMap<K, AsyncValueCache<T>> = new Map();
 
   constructor(
     private readonly _fetcher: (key: K, isFirst: boolean) => Promise<T>,
@@ -80,8 +79,8 @@ export class AsyncValueCache<T> implements ReadonlyAsyncStore<T> {
     return this._store.get();
   }
 
-  async getOrWait(): Promise<T> {
-    return await this._store.getOrWait();
+  getOrWait(): ReactPromise<T> {
+    return this._store.getOrWait();
   }
 
   private _set(value: T): void {

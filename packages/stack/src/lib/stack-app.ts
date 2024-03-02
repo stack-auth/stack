@@ -3,7 +3,9 @@ import { OauthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, St
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "stack-shared/dist/utils/errors";
 import { AsyncValueCache } from "stack-shared/dist/utils/caches";
-import { AsyncResult, Result } from "stack-shared/dist/utils/results";
+import { generateUuid } from "stack-shared/dist/utils/uuids";
+import { AsyncResult } from "stack-shared/dist/utils/results";
+import { suspendIfSsr } from "stack-shared/dist/utils/react";
 import { AsyncStore } from "stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson } from "stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
@@ -11,9 +13,9 @@ import { callOauthCallback, signInWithCredential, signInWithOauth, signUpWithCre
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "../utils/types";
 import { constructRedirectUrl } from "../utils/url";
-import { neverResolve } from "../utils/promises";
 import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "stack-shared/dist/utils/types";
 import { filterUndefined } from "stack-shared/dist/utils/objects";
+import { neverResolve, resolved, runAsynchronously, wait } from "stack-shared/dist/utils/promises";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -51,23 +53,23 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   };
 }
 
-function getProjectId() {
+function getDefaultProjectId() {
   return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr("No project ID provided. Please copy your project ID from the Stack dashboard and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable.");
 }
 
-function getPublishableClientKey() {
+function getDefaultPublishableClientKey() {
   return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr("No publishable client key provided. Please copy your publishable client key from the Stack dashboard and put it in the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable.");
 }
 
-function getSecretServerKey() {
+function getDefaultSecretServerKey() {
   return process.env.STACK_SECRET_SERVER_KEY || throwErr("No secret server key provided. Please copy your publishable client key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable.");
 }
 
-function getSuperSecretAdminKey() {
+function getDefaultSuperSecretAdminKey() {
   return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your publishable client key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
 }
 
-function getBaseUrl(required: boolean = true) {
+function getDefaultBaseUrl() {
   return process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
 }
 
@@ -87,6 +89,10 @@ export type StackServerAppConstructorOptions<HasTokenStore extends boolean, Proj
 
 export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = StackServerAppConstructorOptions<HasTokenStore, ProjectId> & {
   superSecretAdminKey?: string,
+};
+
+export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
+  uniqueIdentifier: string,
 };
 
 const defaultBaseUrl = "https://api.stackframe.co";
@@ -171,8 +177,11 @@ function getTokenStore(tokenStoreOptions: TokenStoreOptions) {
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
 function useValueCache<T>(cache: AsyncValueCache<T>): T {
+  // we explicitly don't want to run this hook in SSR
+  suspendIfSsr();
+
   const subscribe = useCallback((cb: () => void) => {
-    const { unsubscribe } = cache.onChange((value) => cb());
+    const { unsubscribe } = cache.onChange(() => cb());
     return unsubscribe;
   }, [cache]);
   const getSnapshot = useCallback(() => {
@@ -186,38 +195,53 @@ function useValueCache<T>(cache: AsyncValueCache<T>): T {
   if (value === loadingSentinel) {
     return use(cache.getOrWait());
   } else {
-    return value;
+    // still need to call `use` because React expects the control flow to not change
+    return use(resolved(value));
   }
 }
 
 export const stackAppInternalsSymbol = Symbol.for("StackAppInternals");
 
+const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
+
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
+  protected readonly _uniqueIdentifier: string;
   protected _interface: StackClientInterface;
-  protected _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
-  protected _urlOptions: Partial<HandlerUrls>;
+  protected readonly _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
+  protected readonly _urlOptions: Partial<HandlerUrls>;
 
   constructor(options:
-    | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-    | {
-      interface: StackClientInterface,
-      tokenStore: TokenStoreOptions<HasTokenStore>,
-      urls: Partial<HandlerUrls> | undefined,
+    & {
+      uniqueIdentifier?: string,
+      checkString?: string,
     }
+    & (
+      | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
+      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls"> & {
+        interface: StackClientInterface,
+        tokenStore: TokenStoreOptions<HasTokenStore>,
+        urls: Partial<HandlerUrls> | undefined,
+      }
+    )
   ) {
     if ("interface" in options) {
       this._interface = options.interface;
-      this._urlOptions = options.urls ?? {};
     } else {
       this._interface = new StackClientInterface({
-        baseUrl: options.baseUrl ?? getBaseUrl(),
-        projectId: options.projectId ?? getProjectId(),
-        publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
+        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        projectId: options.projectId ?? getDefaultProjectId(),
+        publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
       });
-      this._urlOptions = options.urls ?? {};
     }
 
     this._tokenStoreOptions = options.tokenStore;
+    this._urlOptions = options.urls ?? {};
+
+    this._uniqueIdentifier = options.uniqueIdentifier ?? generateUuid();
+    if (allClientApps.has(this._uniqueIdentifier)) {
+      throw new Error("A Stack client app with the same unique identifier already exists");
+    }
+    allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
   }
 
   protected _ensurePersistentTokenStore(): asserts this is StackClientApp<true, ProjectId>  {
@@ -226,7 +250,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected _ensureInternalProject(): asserts this is StackClientApp<HasTokenStore, "internal"> {
+  protected _ensureInternalProject(): asserts this is { projectId: "internal" } {
     if (this.projectId !== "internal") {
       throw new Error("Cannot call this function on a Stack app with a project ID other than 'internal'.");
     }
@@ -319,16 +343,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return neverResolve();
   }
 
-  readonly redirectToHandler = () => this._redirectTo("handler");
-  readonly redirectToSignIn = () => this._redirectTo("signIn");
-  readonly redirectToSignUp = () => this._redirectTo("signUp");
-  readonly redirectToSignOut = () => this._redirectTo("signOut");
-  readonly redirectToEmailVerification = () => this._redirectTo("emailVerification");
-  readonly redirectToPasswordReset = () => this._redirectTo("passwordReset");
-  readonly redirectToForgotPassword = () => this._redirectTo("forgotPassword");
-  readonly redirectToHome = () => this._redirectTo("home");
-  readonly redirectToUserHome = () => this._redirectTo("userHome");
-  readonly redirectToOauthCallback = () => this._redirectTo("oauthCallback");
+  async redirectToHandler() { return await this._redirectTo("handler"); }
+  async redirectToSignIn() { return await this._redirectTo("signIn"); }
+  async redirectToSignUp() { return await this._redirectTo("signUp"); }
+  async redirectToSignOut() { return await this._redirectTo("signOut"); }
+  async redirectToEmailVerification() { return await this._redirectTo("emailVerification"); }
+  async redirectToPasswordReset() { return await this._redirectTo("passwordReset"); }
+  async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
+  async redirectToHome() { return await this._redirectTo("home"); }
+  async redirectToUserHome() { return await this._redirectTo("userHome"); }
+  async redirectToOauthCallback() { return await this._redirectTo("oauthCallback"); }
 
   async sendForgotPasswordEmail(email: string) {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -359,7 +383,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       switch (options?.or) {
         case 'redirect': {
           redirect(this.urls.signIn, RedirectType.replace);
-          return null;
+          throw new Error("redirect should never return!");
         }
         case 'throw': {
           throw new Error("User is not signed in");
@@ -494,12 +518,34 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._projectAdminFromJson(json);
   }
 
+  static get [stackAppInternalsSymbol]() {
+    return {
+      fromClientJson: async <HasTokenStore extends boolean, ProjectId extends string>(
+        json: StackClientAppJson<HasTokenStore, ProjectId>
+      ): Promise<StackClientApp<HasTokenStore, ProjectId>> => {
+        const existing = allClientApps.get(json.uniqueIdentifier);
+        if (existing) {
+          const [checkString, clientApp] = existing;
+          if (checkString !== JSON.stringify(json)) {
+            throw new Error("The provided app JSON does not match the configuration of the existing client app with the same unique identifier");
+          }
+          return clientApp as any;
+        }
+
+        return new _StackClientAppImpl<HasTokenStore, ProjectId>({
+          ...json,
+          checkString: JSON.stringify(json),
+        });
+      }
+    };
+  }
+
   get [stackAppInternalsSymbol]() {
     return {
-      getSerializableClientOptions: async (): Promise<StackClientAppConstructorOptions<HasTokenStore, ProjectId>> => {
+      toClientJson: async (): Promise<StackClientAppJson<HasTokenStore, ProjectId>> => {
         if (!("publishableClientKey" in this._interface.options)) {
           // TODO find a way to do this
-          throw Error("Cannot get client options from an application without a publishable client key");
+          throw Error("Cannot serialize to JSON from an application without a publishable client key");
         }
         return {
           baseUrl: this._interface.options.baseUrl,
@@ -507,6 +553,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreOptions,
           urls: this._urlOptions,
+          uniqueIdentifier: this._uniqueIdentifier,
         };
       }
     };
@@ -534,10 +581,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } else {
       super({
         interface: new StackServerInterface({
-          baseUrl: options.baseUrl ?? getBaseUrl(),
-          projectId: options.projectId ?? getProjectId(),
-          publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
-          secretServerKey: options.secretServerKey ?? getSecretServerKey(),
+          baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+          projectId: options.projectId ?? getDefaultProjectId(),
+          publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
+          secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
         }),
         tokenStore: options.tokenStore,
         urls: options.urls ?? {},
@@ -660,11 +707,11 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        baseUrl: options.baseUrl ?? getBaseUrl(),
-        projectId: options.projectId ?? getProjectId(),
-        publishableClientKey: options.publishableClientKey ?? getPublishableClientKey(),
-        secretServerKey: options.secretServerKey ?? getSecretServerKey(),
-        superSecretAdminKey: options.superSecretAdminKey ?? getSuperSecretAdminKey(),
+        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        projectId: options.projectId ?? getDefaultProjectId(),
+        publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
+        secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
+        superSecretAdminKey: options.superSecretAdminKey ?? getDefaultSuperSecretAdminKey(),
       }),
       tokenStore: options.tokenStore,
       urls: options.urls,
@@ -771,23 +818,11 @@ type AsyncStoreProperty<Name extends string, Value> =
   & { [key in `use${Capitalize<Name>}`]: () => Value }
 
 export type StackClientApp<HasTokenStore extends boolean, ProjectId extends string = string> = (
-  & Omit<
-    (HasTokenStore extends false ? unknown : AsyncStoreProperty<"user", CurrentUser | null>), 
-    "useUser" | "getUser"
-  >
-  & AsyncStoreProperty<"project", ClientProjectJson>
-  & { [K in `redirectTo${Capitalize<keyof HandlerUrls>}`]: () => Promise<never> }
   & {
     readonly projectId: ProjectId,
 
     readonly urls: Readonly<HandlerUrls>,
 
-    useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser,
-    useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser,
-    useUser(options?: GetUserOptions): CurrentUser | null,
-    getUser(options: GetUserOptions & { or: 'redirect' }): Promise<CurrentUser>,
-    getUser(options: GetUserOptions & { or: 'throw' }): Promise<CurrentUser>,
-    getUser(options?: GetUserOptions): Promise<CurrentUser | null>,
     signInWithOauth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignInErrorCode | undefined>,
     signUpWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignUpErrorCode | undefined>,
@@ -798,9 +833,22 @@ export type StackClientApp<HasTokenStore extends boolean, ProjectId extends stri
     verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined>,
 
     [stackAppInternalsSymbol]: {
-      getSerializableClientOptions(): Promise<StackClientAppConstructorOptions<HasTokenStore, ProjectId>>,
+      toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,
     },
   }
+  & AsyncStoreProperty<"project", ClientProjectJson>
+  & { [K in `redirectTo${Capitalize<keyof HandlerUrls>}`]: () => Promise<never> }
+  & (HasTokenStore extends false
+    ? {}
+    : {
+      useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser,
+      useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser,
+      useUser(options?: GetUserOptions): CurrentUser | null,
+      getUser(options: GetUserOptions & { or: 'redirect' }): Promise<CurrentUser>,
+      getUser(options: GetUserOptions & { or: 'throw' }): Promise<CurrentUser>,
+      getUser(options?: GetUserOptions): Promise<CurrentUser | null>,
+      onUserChange: AsyncStoreProperty<"user", CurrentUser | null>["onUserChange"],
+    })
   & (
     ProjectId extends "internal" ? {
       listOwnedProjects(): Promise<Project[]>,
@@ -815,6 +863,12 @@ type StackClientAppConstructor = {
     ProjectId extends string
   >(options: StackClientAppConstructorOptions<HasTokenStore, ProjectId>): StackClientApp<HasTokenStore, ProjectId>,
   new (options: StackClientAppConstructorOptions<boolean, string>): StackClientApp<boolean, string>,
+
+  [stackAppInternalsSymbol]: {
+    fromClientJson<HasTokenStore extends boolean, ProjectId extends string>(
+      json: StackClientAppJson<HasTokenStore, ProjectId>
+    ): Promise<StackClientApp<HasTokenStore, ProjectId>>,
+  },
 };
 export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 

@@ -1,6 +1,6 @@
 import { CurrentUser, GetUserOptions, StackClientApp } from "./stack-app";
 import { StackContext } from "../providers/StackProviderClient";
-import { use, useContext } from "react";
+import { useContext } from "react";
 
 /**
  * Returns the current user object. Equivalent to `useStackApp().useUser()`.

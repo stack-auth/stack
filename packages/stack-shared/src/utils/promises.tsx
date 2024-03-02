@@ -1,8 +1,67 @@
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
+import type { RejectedThenable, FulfilledThenable, PendingThenable } from "react";
 
-export async function neverResolve() {
-  return await new Promise<never>(() => {});
+export type ReactPromise<T> = Promise<T> & (
+  | RejectedThenable<T>
+  | FulfilledThenable<T>
+  | PendingThenable<T>
+);
+
+type Resolve<T> = (value: T) => void;
+type Reject = (reason: unknown) => void;
+export function createPromise<T>(callback: (resolve: Resolve<T>, reject: Reject) => void): ReactPromise<T> {
+  let status = "pending" as "fulfilled" | "rejected" | "pending";
+  let valueOrReason: T | unknown | undefined = undefined;
+  let resolve: Resolve<T> | null = null;
+  let reject: Reject | null = null;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = (value) => {
+      if (status !== "pending") return;
+      status = "fulfilled";
+      valueOrReason = value;
+      res(value);
+    };
+    reject = (reason) => {
+      if (status !== "pending") return;
+      status = "rejected";
+      valueOrReason = reason;
+      rej(reason);
+    };
+  });
+
+  callback(resolve!, reject!);
+  return Object.assign(promise, {
+    status: status,
+    ...status === "fulfilled" ? { value: valueOrReason as T } : {},
+    ...status === "rejected" ? { reason: valueOrReason } : {},
+  } as any);
+}
+
+/**
+ * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ */
+export function resolved<T>(value: T): ReactPromise<T> {
+  return Object.assign(Promise.resolve(value), {
+    status: "fulfilled",
+    value,
+  } as const);
+}
+
+/**
+ * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ */
+export function rejected<T>(reason: unknown): ReactPromise<T> {
+  return Object.assign(Promise.reject(reason), {
+    status: "rejected",
+    reason,
+  } as const);
+}
+
+export function neverResolve(): ReactPromise<never> {
+  return Object.assign(new Promise<never>(() => {}), {
+    status: "pending",
+  } as const);
 }
 
 export async function wait(ms: number) {

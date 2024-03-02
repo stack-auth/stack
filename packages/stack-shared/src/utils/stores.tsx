@@ -1,11 +1,12 @@
 import * as crypto from "crypto";
 import { AsyncResult } from "./results";
 import { generateUuid } from "./uuids";
+import { ReactPromise, rejected, resolved } from "./promises";
 
 export type ReadonlyAsyncStore<T> = {
   isAvailable(): boolean,
   get(): AsyncResult<T, unknown, void>,
-  getOrWait(): Promise<T>,
+  getOrWait(): ReactPromise<T>,
   onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
   onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
 };
@@ -50,23 +51,25 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     }
   }
 
-  async getOrWait(): Promise<T> {
+  getOrWait(): ReactPromise<T> {
     const uuid = generateUuid();
+    if (this.isRejected()) {
+      return rejected(this._rejectionError);
+    } else if (this.isAvailable()) {
+      return resolved(this._value as T);
+    }
     const promise = new Promise<T>((resolve, reject) => {
-      if (this.isRejected()) {
-        reject();
-      } else if (this.isAvailable()) {
-        resolve(this._value as T);
-      } else {
-        this.onceChange((value) => {
-          resolve(value);
-        });
-        this._waitingRejectFunctions.set(uuid, reject);
-      }
+      this.onceChange((value) => {
+        resolve(value);
+      });
+      this._waitingRejectFunctions.set(uuid, reject);
     });
-    return await promise.finally(() => {
+    const withFinally = promise.finally(() => {
       this._waitingRejectFunctions.delete(uuid);
     });
+    return Object.assign(withFinally, {
+      status: "pending",
+    } as const);
   }
 
   _setIfLatest(value: T, curCounter: number) {
