@@ -5,6 +5,4 @@ import CustomOAuthSignIn from "./custom-oauth";
 
 export default function Page() {
   return <SignIn fullPage redirectUrl={stackServerApp.urls.home} />;
-  // return <CustomCredentialSignIn />;
-  // return <CustomOAuthSignIn />;
 }
