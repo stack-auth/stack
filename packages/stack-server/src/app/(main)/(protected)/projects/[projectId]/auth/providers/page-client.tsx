@@ -1,7 +1,7 @@
 "use client";
 
-import { Accordion, AccordionDetails, AccordionGroup, AccordionSummary, AspectRatio, Box, Card, CardContent, CardOverflow, Sheet, Switch } from "@mui/joy";
-import { useState, use } from "react";
+import { AccordionGroup, Card, CardOverflow } from "@mui/joy";
+import { use } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
 import { SmartSwitch } from "@/components/smart-switch";
@@ -12,11 +12,9 @@ import { ProviderAccordion, CreationType, allCreationTypes, getCreationType } fr
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
 
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
   const projectPromise = useStrictMemo(async () => {
     return await stackAdminApp.getProject();
-    // eslint-disable-next-line
-  }, [stackAdminApp, invalidationCounter]);
+  }, [stackAdminApp]);
   const project = use(projectPromise);
 
   const oauthProviders = project.evaluatedConfig.oauthProviders;

@@ -1,6 +1,18 @@
 "use client";
 
-import { Accordion, AccordionDetails, AccordionSummary, MenuItem, Select, Option, Typography, Box, Stack, BoxProps, FormControl, FormLabel, Input } from "@mui/joy";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Select,
+  Option,
+  Box,
+  Stack,
+  BoxProps,
+  FormControl,
+  FormLabel,
+  Input,
+} from "@mui/joy";
 import { OauthProviderConfigJson } from "stack-shared";
 import { useState } from "react";
 import { typedIncludes } from "stack-shared/dist/utils/arrays";

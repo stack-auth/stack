@@ -1,13 +1,11 @@
 "use client";
 
-import { Card, Typography, IconButton, CardContent, Box, List, ListItemButton, ListItem, ListDivider, Button, Input, FormControl, FormLabel, FormHelperText } from "@mui/joy";
-import React, { cache, use, useEffect, useMemo, useState } from "react";
+import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel } from "@mui/joy";
+import React, { use, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { Dialog } from "@/components/dialog";
 import { AsyncButton } from "@/components/async-button";
-import { SmartLink } from "@/components/smart-link";
-import { InlineCode } from "@/components/inline-code";
 import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../useAdminInterface";
@@ -18,7 +16,6 @@ export default function UrlsAndCallbacksClient() {
   const [invalidationCounter, setInvalidationCounter] = useState(0);
   const projectPromise = useStrictMemo(async () => {
     return await stackAdminApp.getProject();
-    // eslint-disable-next-line
   }, [stackAdminApp, invalidationCounter]);
   const project = use(projectPromise);
   const domains = new Set(project.evaluatedConfig.domains);
