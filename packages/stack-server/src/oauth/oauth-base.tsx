@@ -1,7 +1,7 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
 import { OauthUserInfo, validateUserInfo } from "./utils";
 
-export class OAuthBaseProvider {
+export abstract class OAuthBaseProvider {
   issuer: Issuer;
   scope: string;
   oauthClient: Client;
@@ -96,7 +96,5 @@ export class OAuthBaseProvider {
     return await this.postProcessUserInfo(tokenSet);
   }
 
-  async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
-    throw new Error("Not implemented");
-  }
+  abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo>;
 }
