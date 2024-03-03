@@ -92,15 +92,15 @@ export function Header(props: SheetProps & {
   navigationItems: { name: string, href: string, icon: React.ReactNode }[],
 }) {
   const stackAdminApp = useAdminApp();
-  const { isCompactMediaQuery, onShowSidebar, ...sheetProps } = props;
+  const { isCompactMediaQuery, onShowSidebar, navigationItems, ...sheetProps } = props;
   const basePath = `/projects/${stackAdminApp.projectId}`;
   const pathname = usePathname();
 
   const selectedItem = React.useMemo(() => {
-    return props.navigationItems.find((item) => {
+    return navigationItems.find((item) => {
       return new URL(basePath + item.href, "https://example.com").pathname === pathname;
     });
-  }, [pathname, basePath, props.navigationItems]);
+  }, [pathname, basePath, navigationItems]);
 
   return (
     <Sheet
