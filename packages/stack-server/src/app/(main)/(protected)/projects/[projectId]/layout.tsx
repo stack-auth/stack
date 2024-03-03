@@ -80,7 +80,7 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
             [isCompactMediaQuery]: { display: 'none' },
           }}
         />
-        <Stack flexGrow={1} direction="column">
+        <Stack flexGrow={1} direction="column" overflow='hidden'>
           <Header
             headerHeight={headerHeight}
             navigationItems={navigationItems}
