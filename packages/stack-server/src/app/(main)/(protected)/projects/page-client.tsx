@@ -35,7 +35,7 @@ export default function ProjectsPageClient() {
           Create new
         </Button>
 
-        <Grid container spacing={2}>
+        <Grid container spacing={2} width='100%' justifyContent='center'>
           {projects.map((project) => (
             <Grid key={project.id} xs={12} sm={6} md={4}>
               <ProjectCard project={project} />
