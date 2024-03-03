@@ -60,20 +60,6 @@ function getSessionCookieName(projectId: string) {
   return "__stack-token-" + crypto.createHash("sha256").update(projectId).digest("hex");
 }
 
-async function catchAndThrowKnownError<E>(
-  fn: () => Promise<any>,
-  codes: string[],
-): Promise<Result<any, E>> {
-  try {
-    return Result.ok(await fn());
-  } catch (e) {
-    if (e instanceof KnownError && codes.includes(e.errorCode)) {
-      return Result.error(e.errorCode as E);
-    }
-    throw e;
-  }
-}
-
 export type TokenStore = AsyncStore<TokenObject>;
 
 export type TokenObject = Readonly<{
@@ -256,7 +242,11 @@ export class StackClientInterface {
     }));
   }
 
-  protected async sendClientRequest(path: string, requestOptions: RequestInit, tokenStoreOrNull: TokenStore | null) {
+  protected async sendClientRequest(
+    path: string, 
+    requestOptions: RequestInit, 
+    tokenStoreOrNull: TokenStore | null
+  ) {
     const tokenStore = tokenStoreOrNull ?? new AsyncStore<TokenObject>({
       accessToken: null,
       refreshToken: null,
@@ -269,6 +259,22 @@ export class StackClientInterface {
         { exponentialDelayBase: 1000 },
       )
     );
+  }
+
+  protected async sendClientRequestAndCatchKnownError<E>(
+    path: string, 
+    requestOptions: RequestInit, 
+    tokenStoreOrNull: TokenStore | null,
+    errorCodes: string[],
+  ) {
+    try {
+      return Result.ok(await this.sendClientRequest(path, requestOptions, tokenStoreOrNull));
+    } catch (e) {
+      if (e instanceof KnownError && errorCodes.includes(e.errorCode)) {
+        return Result.error(e.errorCode as E);
+      }
+      throw e;
+    }
   }
 
   private async sendClientRequestInner(
@@ -346,23 +352,22 @@ export class StackClientInterface {
     email: string, 
     redirectUrl: string
   ): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
-      async () => await this.sendClientRequest(
-        "/auth/forgot-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email,
-            redirectUrl,
-          }),
+    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
+      "/auth/forgot-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        null,
-      ),
+        body: JSON.stringify({
+          email,
+          redirectUrl,
+        }),
+      },
+      null,
       PasswordResetLinkErrorCodes
     );
+
 
     if (res.status === "error") {
       return res.error;
@@ -370,18 +375,16 @@ export class StackClientInterface {
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
-      async () => await this.sendClientRequest(
-        "/auth/password-reset",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(options),
+    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
+      "/auth/password-reset",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        null,
-      ),
+        body: JSON.stringify(options),
+      },
+      null,
       PasswordResetLinkErrorCodes
     );
 
@@ -391,21 +394,19 @@ export class StackClientInterface {
   }
 
   async verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
-      async () => await this.sendClientRequest(
-        "/auth/password-reset",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            code,
-            onlyVerifyCode: true,
-          }),
+    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
+      "/auth/password-reset",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        null,
-      ),
+        body: JSON.stringify({
+          code,
+          onlyVerifyCode: true,
+        }),
+      },
+      null,
       PasswordResetLinkErrorCodes
     );
 
@@ -415,22 +416,18 @@ export class StackClientInterface {
   }
 
   async verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<EmailVerificationLinkErrorCode>(
-      async () => {
-        await this.sendClientRequest(
-          "/auth/email-verification",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              code,
-            }),
-          },
-          null,
-        );
+    const res = await this.sendClientRequestAndCatchKnownError<EmailVerificationLinkErrorCode>(
+      "/auth/email-verification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code,
+        }),
       },
+      null,
       EmailVerificationLinkErrorCodes
     );
 
@@ -444,21 +441,19 @@ export class StackClientInterface {
     password: string, 
     tokenStore: TokenStore
   ): Promise<SignInErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<SignInErrorCode>(
-      async () => await this.sendClientRequest(
-        "/auth/signin",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
+    const res = await this.sendClientRequestAndCatchKnownError<SignInErrorCode>(
+      "/auth/signin",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        tokenStore,
-      ), 
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      },
+      tokenStore,
       SignInErrorCodes
     );
 
@@ -480,22 +475,20 @@ export class StackClientInterface {
     emailVerificationRedirectUrl: string,
     tokenStore: TokenStore,
   ): Promise<SignUpErrorCode | undefined> {
-    const res = await catchAndThrowKnownError<SignUpErrorCode>(
-      async () => await this.sendClientRequest(
-        "/auth/signup",
-        {
-          headers: {
-            "Content-Type": "application/json"
-          },
-          method: "POST",
-          body: JSON.stringify({
-            email,
-            password,
-            emailVerificationRedirectUrl,
-          }),
+    const res = await this.sendClientRequestAndCatchKnownError<SignUpErrorCode>(
+      "/auth/signup",
+      {
+        headers: {
+          "Content-Type": "application/json"
         },
-        tokenStore,
-      ), 
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password,
+          emailVerificationRedirectUrl,
+        }),
+      },
+      tokenStore,
       SignUpErrorCodes
     );
 
@@ -503,7 +496,7 @@ export class StackClientInterface {
       return res.error;
     }
 
-    const result = res.data.json();
+    const result = await res.data.json();
     tokenStore.set({
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
