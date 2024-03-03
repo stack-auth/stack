@@ -346,7 +346,7 @@ export class StackClientInterface {
     email: string, 
     redirectUrl: string
   ): Promise<PasswordResetLinkErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
+    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
       async () => await this.sendClientRequest(
         "/auth/forgot-password",
         {
@@ -364,13 +364,13 @@ export class StackClientInterface {
       PasswordResetLinkErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
+    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
       async () => await this.sendClientRequest(
         "/auth/password-reset",
         {
@@ -385,13 +385,13 @@ export class StackClientInterface {
       PasswordResetLinkErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
   }
 
   async verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
+    const res = await catchAndThrowKnownError<PasswordResetLinkErrorCode>(
       async () => await this.sendClientRequest(
         "/auth/password-reset",
         {
@@ -409,13 +409,13 @@ export class StackClientInterface {
       PasswordResetLinkErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
   }
 
   async verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<EmailVerificationLinkErrorCode>(
+    const res = await catchAndThrowKnownError<EmailVerificationLinkErrorCode>(
       async () => {
         await this.sendClientRequest(
           "/auth/email-verification",
@@ -434,8 +434,8 @@ export class StackClientInterface {
       EmailVerificationLinkErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
   }
 
@@ -444,7 +444,7 @@ export class StackClientInterface {
     password: string, 
     tokenStore: TokenStore
   ): Promise<SignInErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<SignInErrorCode>(
+    const res = await catchAndThrowKnownError<SignInErrorCode>(
       async () => await this.sendClientRequest(
         "/auth/signin",
         {
@@ -462,13 +462,14 @@ export class StackClientInterface {
       SignInErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
-    
+
+    const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.data.access_token,
-      refreshToken: result.data.refresh_token,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
     await this.refreshUser(tokenStore);
   }
@@ -479,7 +480,7 @@ export class StackClientInterface {
     emailVerificationRedirectUrl: string,
     tokenStore: TokenStore,
   ): Promise<SignUpErrorCode | undefined> {
-    const result = await catchAndThrowKnownError<SignUpErrorCode>(
+    const res = await catchAndThrowKnownError<SignUpErrorCode>(
       async () => await this.sendClientRequest(
         "/auth/signup",
         {
@@ -498,13 +499,14 @@ export class StackClientInterface {
       SignUpErrorCodes
     );
 
-    if (result.status === "error") {
-      return result.error;
+    if (res.status === "error") {
+      return res.error;
     }
 
+    const result = res.data.json();
     tokenStore.set({
-      accessToken: result.data.access_token,
-      refreshToken: result.data.refresh_token,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
     await this.refreshUser(tokenStore);
   }
