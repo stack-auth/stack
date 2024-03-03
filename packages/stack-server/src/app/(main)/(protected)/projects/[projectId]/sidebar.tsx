@@ -13,7 +13,7 @@ import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './useAdminInterface';
 import { usePathname } from 'next/navigation';
 import { useUser } from 'stack';
-import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Link, Sheet, SheetProps } from '@mui/joy';
+import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Logo } from '@/components/logo';
@@ -101,16 +101,36 @@ function AvatarSection() {
   );
 }
 
-export function Sidebar(props : SheetProps & { 
+export function Sidebar(props: { 
+  isCompactMediaQuery: string,
   headerHeight: number, 
   navigationItems: { name: string, href: string, icon: React.ReactNode }[],
+  mode: 'compact' | 'full',
 }) {
   const stackAdminApp = useAdminApp();
   const basePath = `/projects/${stackAdminApp.projectId}`;
 
   const { headerHeight, navigationItems, ...sheetProps} = props;
   return (
-    <Sheet {...sheetProps}>
+    <Sheet
+      variant="outlined"        
+      sx={props.mode === 'full' ? {
+        position: 'sticky',
+        top: 0,
+        height: `100vh`,
+        [props.isCompactMediaQuery]: {
+          top: `${headerHeight}px`,
+          height: `calc(100vh - ${headerHeight}px)`,
+        },
+        overflowY: 'auto',
+        borderLeft: 'none',
+        borderTop: 'none',
+        borderBottom: 'none',
+        width: '250px',
+        flexShrink: 0,
+        display: 'block',
+        [props.isCompactMediaQuery]: { display: 'none' },
+      } : {}}>
       <Stack
         sx={{
           height: '100dvh',

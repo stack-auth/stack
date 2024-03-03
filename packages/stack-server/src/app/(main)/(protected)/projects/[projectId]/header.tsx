@@ -119,9 +119,6 @@ export function Header(props: SheetProps & {
         alignItems: 'stretch',
         height: `${headerHeight}px`,
         flexShrink: 0,
-        [isCompactMediaQuery]: {
-          display: "flex",
-        },
         ...sheetProps.sx ?? {},
       }}
     >

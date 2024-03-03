@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Divider, Drawer, Stack, useTheme } from "@mui/joy";
+import { Box, Drawer, Stack, useTheme } from "@mui/joy";
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { AdminAppProvider } from "./useAdminInterface";
@@ -59,28 +59,12 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
         alignItems="flex-start"
       >
         <Sidebar
+          isCompactMediaQuery={isCompactMediaQuery}
           headerHeight={headerHeight}
           navigationItems={navigationItems}
-          variant="outlined"
-          sx={{
-            position: 'sticky',
-            top: 0,
-            height: `100vh`,
-            [isCompactMediaQuery]: {
-              top: `${headerHeight}px`,
-              height: `calc(100vh - ${headerHeight}px)`,
-            },
-            overflowY: 'auto',
-            borderLeft: 'none',
-            borderTop: 'none',
-            borderBottom: 'none',
-            width: '250px',
-            flexShrink: 0,
-            display: 'block',
-            [isCompactMediaQuery]: { display: 'none' },
-          }}
+          mode='full'
         />
-        <Stack flexGrow={1} direction="column" overflow='hidden'>
+        <Stack flexGrow={1} direction="column" sx={{ overflow: 'hidden', height: '100vh' }}>
           <Header
             headerHeight={headerHeight}
             navigationItems={navigationItems}
@@ -92,6 +76,7 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
             flexGrow={1}
             paddingY={2}
             minWidth={0}
+            overflow='auto'
           >
             <Box component="main">
               {props.children}
@@ -104,8 +89,10 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
         onClose={() => setIsSidebarOpen(false)}
       >
         <Sidebar
+          isCompactMediaQuery={isCompactMediaQuery}
           headerHeight={headerHeight}
           navigationItems={navigationItems}
+          mode='compact'
         />
       </Drawer>
     </AdminAppProvider>
