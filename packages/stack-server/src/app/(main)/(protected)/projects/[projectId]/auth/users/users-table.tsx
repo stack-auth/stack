@@ -20,9 +20,7 @@ import {
   MenuItem,
   Modal,
   ModalDialog,
-  Sheet,
   Stack,
-  Table,
 } from '@mui/joy';
 import { fromNowDetailed, getInputDatetimeLocalString } from 'stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
@@ -31,104 +29,141 @@ import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../useAdminInterface';
 import { runAsynchronously } from 'stack-shared/src/utils/promises';
 import { ServerUserJson } from 'stack-shared';
+import Table from '@/components/table';
 
 export function UsersTable(props: {
   rows: ServerUserJson[],
   onInvalidate(): void,
 }) {
-  const headerStyle = { 
-    padding: '12px 6px',
-  };
-  const cellStyle = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  };
-
   return (
-    <Sheet
-      className="OrderTableContainer"
-      variant="plain"
-      sx={{
-        display: 'initial',
-        width: '100%',
-        borderRadius: 'sm',
-        flexShrink: 1,
-        overflow: 'auto',
-        minHeight: 0,
-      }}
-    >
-      <Table
-        aria-labelledby="tableTitle"
-        stickyHeader
-        hoverRow
-        sx={{
-          '--TableCell-headBackground': 'var(--joy-palette-background-level1)',
-          '--Table-headerUnderlineThickness': '1px',
-          '--TableRow-hoverBackground': 'var(--joy-palette-background-level1)',
-          '--TableCell-paddingY': '4px',
-          '--TableCell-paddingX': '8px',
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ width: 80, ...headerStyle }}>
-              ID
-            </th>
-            <th style={{ width: 80, ...headerStyle }}>
-              Avatar
-            </th>
-            <th style={{ width: 150, ...headerStyle }}>
-              Display Name
-            </th>
-            <th style={{ width: 200, ...headerStyle }}>
-              Email
-            </th>
-            {/* <th style={{ width: 50, ...headerStyle }}>
-              Provider
-            </th> */}
-            <th style={{ width: 100, ...headerStyle }}>
-              Sign Up Time
-            </th>
-            <th style={{ width: 50, ...headerStyle }}>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map(user => (
-            <tr key={user.id} style={{}}>
-              <td style={cellStyle}>
-                {user.id}
-              </td>
-              <td>
-                <Avatar
-                  variant="outlined"
-                  size="sm"
-                  src={user.profileImageUrl || undefined}
-                />
-              </td>
-              <td style={cellStyle}>
-                {user.displayName}
-              </td>
-              <td style={cellStyle}>
-                {user.primaryEmail}
-              </td>
-              {/* <td>
-                <Chip>
+    <Table
+      headers={[
+        {
+          name: 'ID',
+          width: 80,
+        },
+        {
+          name: 'Avatar',
+          width: 80
+        },
+        {
+          name: 'Display Name',
+          width: 150
+        },
+        {
+          name: 'Email',
+          width: 200
+        },
+        {
+          name: 'Sign Up Time',
+          width: 100
+        },
+        {
+          name: '',
+          width: 50
+        }
+      ]}
+      rows={props.rows.map(user => ({
+        id: user.id,
+        row: [
+          { content: user.id },
+          { 
+            content: <Avatar
+              variant="outlined"
+              size="sm"
+              src={user.profileImageUrl || undefined}
+            />
+          },
+          { content: user.displayName },
+          { content: user.primaryEmail },
+          { content: fromNowDetailed(new Date(user.signedUpAtMillis)).result },
+          { content: <Actions key="more_actions" onInvalidate={() => props.onInvalidate()} user={user} /> }
+        ]
+      }))}
+    />
+    // <Sheet
+    //   className="OrderTableContainer"
+    //   variant="plain"
+    //   sx={{
+    //     display: 'initial',
+    //     width: '100%',
+    //     borderRadius: 'sm',
+    //     flexShrink: 1,
+    //     overflow: 'auto',
+    //     minHeight: 0,
+    //   }}
+    // >
+    //   <Table
+    //     aria-labelledby="tableTitle"
+    //     stickyHeader
+    //     hoverRow
+    //     sx={{
+    //       '--TableCell-headBackground': 'var(--joy-palette-background-level1)',
+    //       '--Table-headerUnderlineThickness': '1px',
+    //       '--TableRow-hoverBackground': 'var(--joy-palette-background-level1)',
+    //       '--TableCell-paddingY': '4px',
+    //       '--TableCell-paddingX': '8px',
+    //     }}
+    //   >
+    //     <thead>
+    //       <tr>
+    //         <th style={{ width: 80, ...headerStyle }}>
+    //           ID
+    //         </th>
+    //         <th style={{ width: 80, ...headerStyle }}>
+    //           Avatar
+    //         </th>
+    //         <th style={{ width: 150, ...headerStyle }}>
+    //           Display Name
+    //         </th>
+    //         <th style={{ width: 200, ...headerStyle }}>
+    //           Email
+    //         </th>
+    //         {/* <th style={{ width: 50, ...headerStyle }}>
+    //           Provider
+    //         </th> */}
+    //         <th style={{ width: 100, ...headerStyle }}>
+    //           Sign Up Time
+    //         </th>
+    //         <th style={{ width: 50, ...headerStyle }}>
+    //         </th>
+    //       </tr>
+    //     </thead>
+    //     <tbody>
+    //       {props.rows.map(user => (
+    //         <tr key={user.id} style={{}}>
+    //           <td style={cellStyle}>
+    //             {user.id}
+    //           </td>
+    //           <td>
+  // <Avatar
+  //   variant="outlined"
+  //   size="sm"
+  //   src={user.profileImageUrl || undefined}
+  // />
+    //           </td>
+    //           <td style={cellStyle}>
+    //             {user.displayName}
+    //           </td>
+    //           <td style={cellStyle}>
+    //             {user.primaryEmail}
+    //           </td>
+    //           {/* <td>
+    //             <Chip>
 
-                </Chip>
-              </td> */}
-              <td>
-                {fromNowDetailed(new Date(user.signedUpAtMillis)).result}
-              </td>
-              <td>
-                <Actions key="more_actions" onInvalidate={() => props.onInvalidate()} user={user} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </Sheet>
+  //             </Chip>
+  //           </td> */}
+  //           <td>
+  //             {fromNowDetailed(new Date(user.signedUpAtMillis)).result}
+  //           </td>
+  //           <td>
+  //             <Actions key="more_actions" onInvalidate={() => props.onInvalidate()} user={user} />
+  //           </td>
+  //         </tr>
+  //       ))}
+  //     </tbody>
+  //   </Table>
+  // </Sheet>
   );
 }
 
