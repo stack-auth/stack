@@ -34,10 +34,19 @@ export function suspend(): never {
  */
 export function suspendIfSsr() {
   if (typeof window === "undefined") {
-    throw new Error(deindent`
-      This code path is not supported in SSR. This error should be caught by the closest Suspense boundary, and hence never be thrown on the client. If you still see the error, make sure the component is rendered inside a Suspense boundary.
+    const error = Object.assign(
+      new Error(deindent`
+        This code path is not supported in SSR. This error should be caught by the closest Suspense boundary, and hence never be thrown on the client. If you still see the error, make sure the component is rendered inside a Suspense boundary.
 
-      See: https://react.dev/reference/react/Suspense#providing-a-fallback-for-server-errors-and-client-only-content
-    `);
+        See: https://react.dev/reference/react/Suspense#providing-a-fallback-for-server-errors-and-client-only-content
+      `),
+      {
+        // set the digest so nextjs doesn't log the error
+        // https://github.com/vercel/next.js/blob/d01d6d9c35a8c2725b3d74c1402ab76d4779a6cf/packages/next/src/shared/lib/lazy-dynamic/bailout-to-csr.ts#L14
+        digest: "BAILOUT_TO_CLIENT_SIDE_RENDERING",
+      }
+    );
+
+    throw error;
   }
 }
