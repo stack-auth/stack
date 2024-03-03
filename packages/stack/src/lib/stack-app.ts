@@ -520,9 +520,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   static get [stackAppInternalsSymbol]() {
     return {
-      fromClientJson: async <HasTokenStore extends boolean, ProjectId extends string>(
+      fromClientJson: <HasTokenStore extends boolean, ProjectId extends string>(
         json: StackClientAppJson<HasTokenStore, ProjectId>
-      ): Promise<StackClientApp<HasTokenStore, ProjectId>> => {
+      ): StackClientApp<HasTokenStore, ProjectId> => {
         const existing = allClientApps.get(json.uniqueIdentifier);
         if (existing) {
           const [checkString, clientApp] = existing;
@@ -867,7 +867,7 @@ type StackClientAppConstructor = {
   [stackAppInternalsSymbol]: {
     fromClientJson<HasTokenStore extends boolean, ProjectId extends string>(
       json: StackClientAppJson<HasTokenStore, ProjectId>
-    ): Promise<StackClientApp<HasTokenStore, ProjectId>>,
+    ): StackClientApp<HasTokenStore, ProjectId>,
   },
 };
 export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;

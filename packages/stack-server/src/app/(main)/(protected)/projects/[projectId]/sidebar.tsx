@@ -140,8 +140,6 @@ export function Sidebar(props: {
           flexDirection: 'column',
         }}
       >
-        {/* <SidebarHeader /> */}
-
         <Stack sx={{ marginLeft: 2, justifyContent: 'center', height: headerHeight - 1 }}>
           <Logo full height={24} href="/projects" />
         </Stack>

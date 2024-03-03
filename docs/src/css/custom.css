@@ -23,10 +23,3 @@ html[data-theme='dark'] {
 .prism-code {
   background-color: rgb(15,23,42,50) !important;
 }
-
-/* .navbar {
-  border-bottom: 1px solid #151515;
-  padding: 0px;
-  height: 0px;
-  visibility: hidden;
-} */

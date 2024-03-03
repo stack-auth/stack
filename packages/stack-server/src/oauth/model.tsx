@@ -143,21 +143,7 @@ export class OauthModel implements AuthorizationCodeModel {
   }
 
   async revokeToken(token: RefreshToken): Promise<boolean> {
-    // No refreshToken rotation for now
-    // try{
-    //   const deletedToken = await prismaClient.projectUserRefreshToken.delete({
-    //     where: {
-    //       refreshToken: token.refreshToken
-    //     }
-    //   });
-
-    //   return !!deletedToken;
-    // } catch (e) {
-    //   if (! (e instanceof PrismaClientKnownRequestError)) {
-    //     console.error(e); 
-    //   }
-    //   return false;
-    // }
+    // No refreshToken rotation for now (see Git history for old code)
     return true;
   }
 
