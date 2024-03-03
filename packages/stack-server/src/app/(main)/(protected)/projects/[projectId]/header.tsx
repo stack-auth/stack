@@ -92,7 +92,7 @@ export function Header(props: SheetProps & {
   navigationItems: { name: string, href: string, icon: React.ReactNode }[],
 }) {
   const stackAdminApp = useAdminApp();
-  const { isCompactMediaQuery, onShowSidebar, navigationItems, ...sheetProps } = props;
+  const { isCompactMediaQuery, onShowSidebar, navigationItems, headerHeight, ...sheetProps } = props;
   const basePath = `/projects/${stackAdminApp.projectId}`;
   const pathname = usePathname();
 
@@ -117,7 +117,7 @@ export function Header(props: SheetProps & {
         borderRight: 'none',
         display: 'flex',
         alignItems: 'stretch',
-        height: `${props.headerHeight}px`,
+        height: `${headerHeight}px`,
         flexShrink: 0,
         [isCompactMediaQuery]: {
           display: "flex",
