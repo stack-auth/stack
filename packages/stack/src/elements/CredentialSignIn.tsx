@@ -102,7 +102,7 @@ export default function CredentialSignIn({ redirectUrl }: { redirectUrl?: string
           onClick={() => runAsynchronously(onSubmit)}
           loading={loading}
         >
-          Sign Up
+          Sign In
         </Button>
       </div>
     </div>
