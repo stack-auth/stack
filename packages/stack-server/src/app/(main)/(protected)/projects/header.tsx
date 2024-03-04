@@ -1,11 +1,9 @@
-"use client";
-
+"use client";;
 import { Logo } from "@/components/logo";
-import { Sheet, SheetProps, Select, Option, SelectOption, Stack, Typography } from "@mui/joy";
-import * as React from 'react';
+import { Sheet, SheetProps, Stack } from "@mui/joy";
 
 export function Header(props: SheetProps & { headerHeight: number }) {
-  const { ...sheetProps } = props;
+  const { headerHeight, ...sheetProps } = props;
 
   return (
     <Sheet
@@ -22,11 +20,11 @@ export function Header(props: SheetProps & { headerHeight: number }) {
         borderRight: 'none',
         display: 'flex',
         alignItems: 'stretch',
-        height: `${props.headerHeight}px`,
-        ...sheetProps.sx ?? {},
+        height: `${headerHeight}px`,
+        ...(sheetProps.sx ?? {}),
       }}
     >
-      <Stack sx={{ marginLeft: 2, justifyContent: 'center', height: props.headerHeight - 1 }}>
+      <Stack sx={{ marginLeft: 2, justifyContent: 'center', height: headerHeight - 1 }}>
         <Logo full height={24} href="/projects" />
       </Stack>
     </Sheet>

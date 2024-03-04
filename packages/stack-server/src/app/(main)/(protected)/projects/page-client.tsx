@@ -124,6 +124,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void, onInvalida
                 displayName: `${formData.get('name')}`,
                 description: `${formData.get('description')}`,
               });
+              
               props.onInvalidate();
               props.onClose();
             } finally {
