@@ -73,7 +73,7 @@ function ProjectSwitch() {
       }}
       renderValue={renderValue}
       onChange={(event, newProjectId) => {
-        redirect(`/projects/${newProjectId}`);
+        redirect(`/projects/${newProjectId}/auth/users`);
       }}
     >
       {projects.map((projectInfo) => (

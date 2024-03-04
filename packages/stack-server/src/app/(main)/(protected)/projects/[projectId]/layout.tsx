@@ -10,11 +10,6 @@ import { OnboardingDialog } from "./onboarding-dialog";
 
 const navigationItems = [
   {
-    name: "Dashboard",
-    href: "",
-    icon: <Icon icon="grid_view" />,
-  },
-  {
     name: "Users",
     href: "/auth/users",
     icon: <Icon icon="people_outline" />,

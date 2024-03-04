@@ -65,7 +65,7 @@ function ProjectCard(props: {
   };
 
   return (
-    <SmartLink href={`/projects/${encodeURIComponent(props.project.id)}`} sx={{ color: "inherit" }}>
+    <SmartLink href={`/projects/${encodeURIComponent(props.project.id)}/auth/users`} sx={{ color: "inherit" }}>
       <Card variant="outlined">
         <CardContent>
           <Typography level="title-md" sx={singleLineCss}>{props.project.displayName}</Typography>
