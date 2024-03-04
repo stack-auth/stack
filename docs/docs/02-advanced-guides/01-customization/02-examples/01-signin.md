@@ -22,6 +22,17 @@ export default function DefaultSignIn() {
 You can also use `useUser` at the beginning of the sign in page to check if wether the user is already signed in and redirect them to some other page if they are.
 
 
+## Other useful components
+
+`CredentialSignIn`: A component that contains a form for signing in with email and password.
+
+`PasswordField`: password input field with show/hide password button.
+
+`OAuthGroup`: A list of available OAuth provider signin buttons components. The available provider list is fetched from the server.
+
+`OAuthButton`: A single OAuth sign in button.
+
+
 ## Custom OAuth Sign In
 
 ```tsx
