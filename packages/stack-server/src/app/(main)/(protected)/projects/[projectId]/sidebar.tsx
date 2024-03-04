@@ -13,10 +13,11 @@ import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './useAdminInterface';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
-import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet } from '@mui/joy';
+import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet, CircularProgress } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Logo } from '@/components/logo';
+import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
 
 
 function SidebarItem({
@@ -70,6 +71,7 @@ function AvatarSection() {
     whiteSpace: 'nowrap', 
     overflow: 'hidden'
   };
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
 
   return (
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -86,17 +88,30 @@ function AvatarSection() {
         <MenuButton size="sm" variant="plain" color="neutral">
           <Icon icon="more_vert" />
           <Menu sx={{ zIndex: 10001 }}>
-            <MenuItem>
-              <Button onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} variant='plain' sx={{ width: '100%'}}>
-                {mode === 'dark' ? <Icon icon="light_mode" sx={{ mr: 1 }}/> : <Icon icon="dark_mode" sx={{ mr: 1 }}/>}
-                {mode === 'dark' ? 'Light mode' : 'Dark mode'}
-              </Button>
+            <MenuItem onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} variant='plain' sx={{ width: '100%'}}>
+              <Icon icon={mode === 'dark' ? "light_mode" : "dark_mode"} sx={{ mr: 1 }}/>
+              {mode === 'dark' ? 'Light mode' : 'Dark mode'}
             </MenuItem>
-            <MenuItem>
-              <AsyncButton onClick={() => user.signOut()} variant='plain' sx={{ w: '100%'}}>
-                <Icon icon="logout" sx={{ mr: 1 }} />
-                Sign out
-              </AsyncButton>
+            <MenuItem
+              disabled={isSigningOut}
+              sx={{
+                width: '100%',
+                ...isSigningOut ? { justifyContent: "center"} : {},
+              }}
+              onClick={isSigningOut ? undefined : () => {
+                setIsSigningOut(true);
+                runAsynchronously(user.signOut().finally(() => setIsSigningOut(false)));
+              }}
+              variant='plain'
+            >
+              {isSigningOut ? (
+                <CircularProgress size="sm" />
+              ) : (
+                <>
+                  <Icon icon="logout" sx={{ mr: 1 }} />
+                  Sign out
+                </>
+              )}
             </MenuItem>
           </Menu>
         </MenuButton>
