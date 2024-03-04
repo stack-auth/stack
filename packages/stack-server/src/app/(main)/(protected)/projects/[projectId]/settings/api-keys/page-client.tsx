@@ -11,6 +11,7 @@ import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
 import { ApiKeysTable } from "./api-keys-table";
 import { useAdminApp } from "../../useAdminInterface";
 import { runAsynchronously } from "stack-shared/src/utils/promises";
+import EnvKeys from "@/components/env-keys";
 
 
 export default function ApiKeysDashboardClient() {
@@ -76,6 +77,11 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
   const [returnedApiKey, setReturnedApiKey] = useState<ApiKeySetFirstView | null>(null);
   const [confirmedOnlyOnce, setConfirmedOnlyOnce] = useState(false);
 
+  const projectPromise = useStrictMemo(() => {
+    return stackAdminApp.getProject();
+  }, []);
+  const project = use(projectPromise);
+
   const close = () => {
     if (returnedApiKey && !confirmedOnlyOnce) return;
     props.onClose();
@@ -92,55 +98,16 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
         {returnedApiKey ? (
           <>
             <DialogContent>
-              <Stack spacing={2}>
+              <Stack spacing={2} overflow='hidden'>
                 <Paragraph body>
                   Success! Your new API keys have been created. <Typography fontWeight="bold">Note that you will not be able to view this again</Typography> and you will need to create a new one if you lose it.
                 </Paragraph>
-                {returnedApiKey.publishableClientKey && (
-                  <FormControl>
-                    <FormLabel>
-                      Publishable client key
-                    </FormLabel>
-                    <Input
-                      readOnly
-                      value={returnedApiKey.publishableClientKey}
-                      endDecorator={<CopyButton content={returnedApiKey.publishableClientKey} />}
-                    />
-                    <FormHelperText>
-                      You will use this key in your client-side code. It&apos;s safe to expose it to the public.
-                    </FormHelperText>
-                  </FormControl>
-                )}
-                {returnedApiKey.secretServerKey && (
-                  <FormControl>
-                    <FormLabel>
-                      Secret server key
-                    </FormLabel>
-                    <Input
-                      readOnly
-                      value={returnedApiKey.secretServerKey}
-                      endDecorator={<CopyButton content={returnedApiKey.secretServerKey} />}
-                    />
-                    <FormHelperText>
-                      You will use this key in your server-side code. It can be used to perform actions on behalf of your users, so keep it safe.
-                    </FormHelperText>
-                  </FormControl>
-                )}
-                {returnedApiKey.superSecretAdminKey && (
-                  <FormControl>
-                    <FormLabel>
-                      Super secret admin key
-                    </FormLabel>
-                    <Input
-                      readOnly
-                      value={returnedApiKey.superSecretAdminKey}
-                      endDecorator={<CopyButton content={returnedApiKey.superSecretAdminKey} />}
-                    />
-                    <FormHelperText>
-                      This key is for administrative use only. Anyone owning this key will be able to create unlimited new keys and revoke any other keys. <Typography fontWeight="bold">Be careful!</Typography>
-                    </FormHelperText>
-                  </FormControl>
-                )}
+                <EnvKeys
+                  projectId={project.id}
+                  publishableClientKey={returnedApiKey.publishableClientKey}
+                  secretServerKey={returnedApiKey.secretServerKey}
+                  superSecretAdminKey={returnedApiKey.superSecretAdminKey}
+                />
                 <Checkbox
                   label="I understand that I won't be able to see this API key again and copied it to a safe place."
                   checked={confirmedOnlyOnce}
@@ -188,7 +155,7 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
                 <Stack spacing={2}>
                   <FormControl required>
                     <FormLabel>
-                      Description
+                      Name
                     </FormLabel>
                     <Input name="description"/>
                     <FormHelperText>

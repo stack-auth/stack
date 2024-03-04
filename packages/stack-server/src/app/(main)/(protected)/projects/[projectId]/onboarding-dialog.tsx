@@ -5,6 +5,7 @@ import { useAdminApp } from "./useAdminInterface";
 import { Box, Stack, Typography } from "@mui/joy";
 import { Paragraph } from "@/components/paragraph";
 import Link from "next/link";
+import EnvKeys from "@/components/env-keys";
 
 export function OnboardingDialog() {
   const called = useRef(false);
@@ -65,17 +66,7 @@ export function OnboardingDialog() {
         <Paragraph body>
           Here are your new API keys. Please copy this to your .env.local file. Detailed instruction can be founder <Link href="/docs/getting-started">here</Link>. 
         </Paragraph>
-        <Box p={2} bgcolor="background.paper" borderRadius={4} overflow='auto'>
-          <Typography>
-            NEXT_PUBLIC_STACK_PROJECT_ID={project.id}
-          </Typography>
-          <Typography>
-            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY={apiKey.publishableClientKey}
-          </Typography>
-          <Typography>
-            STACK_SECRET_SERVER_KEY={apiKey.secretServerKey}
-          </Typography>
-        </Box>
+        <EnvKeys projectId={project.id} publishableClientKey={apiKey.publishableClientKey} secretServerKey={apiKey.secretServerKey} />
         <Paragraph body>
           Note that the secret server key is only shown once. You need to generate a new one if you lose it.
         </Paragraph>
