@@ -6,6 +6,8 @@
   "scripts": {
     "typecheck": "turbo typecheck",
     "build": "turbo build",
+    "build:docs": "turbo run build --no-cache --filter=stack-docs...",
+    "build:server": "turbo run build --no-cache --filter=@stackframe/stack-server...",
     "clean": "turbo run clean --no-cache",
     "codegen": "turbo run codegen --no-cache",
     "prisma:server": "pnpm run --filter=@stackframe/stack-server prisma",
