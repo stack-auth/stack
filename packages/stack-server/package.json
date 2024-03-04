@@ -1,5 +1,5 @@
 {
-  "name": "stack-server",
+  "name": "@stackframe/stack-server",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -64,8 +64,8 @@
     "remark-math": "^6",
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
-    "stack": "workspace:*",
-    "stack-shared": "workspace:*",
+    "@stackframe/stack": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
     "yup": "^1.3.3"
   },
   "devDependencies": {

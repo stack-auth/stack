@@ -5,10 +5,10 @@ import {
   PasswordResetLinkInvalidErrorCode,
   PasswordResetLinkUsedErrorCode,
   PasswordResetLinkExpiredErrorCode
-} from "stack-shared/dist/utils/types";
+} from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
-import { hashPassword } from "stack-shared/dist/utils/password";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 const postSchema = yup.object({
   body: yup.object({

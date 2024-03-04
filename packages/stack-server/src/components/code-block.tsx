@@ -1,6 +1,6 @@
 import { Box } from "@mui/joy";
 import { Code } from "bright";
-import { typedIncludes } from "stack-shared/dist/utils/arrays";
+import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { CopyButton } from "./copy-button";
 
 type CodeBlockProps = Omit<React.ComponentProps<typeof Box>, "children"> & {

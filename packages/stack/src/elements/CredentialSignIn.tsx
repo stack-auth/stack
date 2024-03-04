@@ -5,8 +5,8 @@ import { validateEmail } from "../utils/email";
 import NextLink from "next/link";
 import { useStackApp } from "..";
 import Button from "./Button";
-import { runAsynchronously } from "stack-shared/dist/utils/promises";
-import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "stack-shared/dist/utils/types";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 // Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
 
 export default function CredentialSignIn({ redirectUrl }: { redirectUrl?: string }) {

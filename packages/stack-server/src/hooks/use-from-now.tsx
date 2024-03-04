@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fromNowDetailed } from "stack-shared/dist/utils/dates";
+import { fromNowDetailed } from "@stackframe/stack-shared/dist/utils/dates";
 
 export function useFromNow(date: Date): string {
   const [invalidationCounter, setInvalidationCounter] = useState(0);

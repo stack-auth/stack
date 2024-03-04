@@ -1,6 +1,6 @@
 "use client";;
 import * as React from 'react';
-import { ApiKeySetSummary } from 'stack-shared';
+import { ApiKeySetSummary } from '@stackframe/stack-shared';
 import { Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../useAdminInterface';

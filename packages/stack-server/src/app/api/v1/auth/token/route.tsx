@@ -3,7 +3,7 @@ import { InvalidGrantError, Request as OauthRequest, Response as OauthResponse, 
 import { NextRequest, NextResponse } from "next/server";
 import { oauthServer } from "@/oauth";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
-import { GrantInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, KnownError } from "stack-shared/dist/utils/types";
+import { GrantInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 
 // make this specific to each grant type later
 const postSchema = yup.object({

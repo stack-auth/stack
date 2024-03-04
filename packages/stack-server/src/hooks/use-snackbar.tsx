@@ -3,7 +3,7 @@
 import { Snackbar, SnackbarProps } from "@mui/joy";
 import { createContext, use, useCallback, useMemo, useState } from "react";
 import { Icon } from "@/components/icon";
-import { generateUuid } from "stack-shared/dist/utils/uuids";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
 export type SnackbarOptions = Omit<SnackbarProps, "open">;
 

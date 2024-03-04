@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { StatusError } from "stack-shared/dist/utils/errors";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 
 export async function parseRequest<T>(req: NextRequest, schema: yup.Schema<T>): Promise<T> {

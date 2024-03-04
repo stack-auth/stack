@@ -1,5 +1,5 @@
 'use client';
-import { useUser } from "stack";
+import { useUser } from "@stackframe/stack";
 
 export default function ProtectedPage() {
   useUser({ or: 'redirect' });

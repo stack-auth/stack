@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { PasswordFormatInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, RedirectUrlInvalidErrorCode, KnownError, UserAlreadyExistErrorCode } from "stack-shared/dist/utils/types";
-import { generateSecureRandomString } from "stack-shared/dist/utils/crypto";
-import { generateUuid } from "stack-shared/dist/utils/uuids";
-import { hashPassword } from "stack-shared/dist/utils/password";
+import { PasswordFormatInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, RedirectUrlInvalidErrorCode, KnownError, UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { encodeAccessToken } from "@/lib/access-token";
 import { sendVerificationEmail } from "@/email";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
-import { getPasswordError } from "stack-shared/src/helpers/password";
+import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 
 const postSchema = yup.object({

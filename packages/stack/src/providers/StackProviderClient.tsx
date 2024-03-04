@@ -3,7 +3,7 @@
 import { cache, use } from "react";
 import { StackClientApp, StackClientAppJson, stackAppInternalsSymbol } from "../lib/stack-app";
 import React from "react";
-import { useStrictMemo } from "stack-shared/dist/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/dist/hooks/use-strict-memo";
 
 export const StackContext = React.createContext<null | {
   app: StackClientApp<true>,

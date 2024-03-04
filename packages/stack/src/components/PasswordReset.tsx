@@ -4,8 +4,8 @@ import MessageCard from "../elements/MessageCard";
 import { useStackApp } from "..";
 import { use } from "react";
 import PasswordResetInner from "../elements/PasswordResetInner";
-import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "stack-shared/dist/utils/types";
-import { useStrictMemo } from "stack-shared/dist/hooks/use-strict-memo";
+import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { useStrictMemo } from "@stackframe/stack-shared/dist/hooks/use-strict-memo";
 
 export default function PasswordReset({
   searchParams,

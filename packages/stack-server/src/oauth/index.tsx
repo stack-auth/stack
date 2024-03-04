@@ -1,6 +1,6 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import { OauthProviderConfigJson } from "stack-shared";
-import { getEnvVariable } from "stack-shared/dist/utils/env";
+import { OauthProviderConfigJson } from "@stackframe/stack-shared";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { GithubProvider } from "./github";
 import { OauthModel } from "./model";
 import { OauthUserInfo } from "./utils";

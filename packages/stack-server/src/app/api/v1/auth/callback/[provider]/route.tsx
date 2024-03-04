@@ -2,14 +2,14 @@ import * as yup from "yup";
 import { cookies } from "next/headers";
 import { Request as OauthRequest, Response as OauthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
-import { StatusError } from "stack-shared/dist/utils/errors";
-import { decryptJWT } from "stack-shared/dist/utils/jwt";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { smartRouteHandler, parseRequest as parseRequest } from "@/lib/route-handlers";
 import { getAuthorizationCallback, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "stack-shared/dist/utils/types";
+import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 
 const getSchema = yup.object({
   query: yup.object({

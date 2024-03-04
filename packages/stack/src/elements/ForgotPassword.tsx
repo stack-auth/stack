@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FormWarningText } from "./FormWarning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
-import { runAsynchronously } from "stack-shared/dist/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Button from "./Button";
 
 

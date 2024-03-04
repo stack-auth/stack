@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { StatusError } from "stack-shared/dist/utils/errors";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin, updateProject } from "@/lib/projects";
-import { ClientProjectJson } from "stack-shared/dist/interface/clientInterface";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "stack-shared/dist/utils/types";
+import { ClientProjectJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 
 const putOrGetSchema = yup.object({
   headers: yup.object({

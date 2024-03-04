@@ -1,5 +1,5 @@
 import { use } from "react";
-import { neverResolve } from "stack-shared/dist/utils/promises";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
 export function suspend(): never {
   use(neverResolve());

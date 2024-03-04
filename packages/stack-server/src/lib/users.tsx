@@ -1,4 +1,4 @@
-import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJson } from "stack-shared";
+import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJson } from "@stackframe/stack-shared";
 import { ProjectUser } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 

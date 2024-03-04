@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 'use client';
-import { useStackApp } from "stack";
+import { useStackApp } from "@stackframe/stack";
 
 export default function CustomOAuthSignIn() {
   const app = useStackApp();

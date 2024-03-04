@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 'use client';
-import { useStackApp, validateEmail } from "stack";
+import { useStackApp, validateEmail } from "@stackframe/stack";
 import { useState } from "react";
 
 export default function CustomCredentialSignIn() {

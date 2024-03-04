@@ -1,10 +1,10 @@
 import * as yup from 'yup';
-import { ApiKeySetFirstViewJson, ApiKeySetSummaryJson } from 'stack-shared';
+import { ApiKeySetFirstViewJson, ApiKeySetSummaryJson } from '@stackframe/stack-shared';
 import { ApiKeySet } from '@prisma/client';
-import { generateSecureRandomString } from 'stack-shared/dist/utils/crypto';
+import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import * as crypto from 'node:crypto';
 import { prismaClient } from '@/prisma-client';
-import { generateUuid } from 'stack-shared/dist/utils/uuids';
+import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 
 export const publishableClientKeyHeaderSchema = yup.string().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;

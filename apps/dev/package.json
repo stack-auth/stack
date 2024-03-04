@@ -16,8 +16,8 @@
     "next-themes": "^0.2.1",
     "react": "^18",
     "react-dom": "^18",
-    "stack": "workspace:*",
-    "stack-shared": "workspace:*"
+    "@stackframe/stack": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.2.23",

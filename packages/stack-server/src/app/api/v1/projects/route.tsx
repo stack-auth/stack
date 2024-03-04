@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { StatusError } from "stack-shared/dist/utils/errors";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { smartRouteHandler, parseRequest } from "@/lib/route-handlers";
 import { createProject, listProjects } from "@/lib/projects";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/access-token";

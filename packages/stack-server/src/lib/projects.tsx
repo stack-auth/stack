@@ -1,10 +1,10 @@
-import { OauthProviderConfigJson, ProjectJson, ServerUserJson } from "stack-shared";
+import { OauthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./access-token";
 import { getServerUser } from "./users";
-import { generateUuid } from "stack-shared/dist/utils/uuids";
-import { EmailConfigJson } from "stack-shared/dist/interface/clientInterface";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 const fullProjectInclude = {
   config: {

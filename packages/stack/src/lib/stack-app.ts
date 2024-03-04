@@ -1,21 +1,21 @@
 import React, { use, useCallback } from "react";
-import { OauthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "stack-shared";
+import { OauthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
-import { throwErr } from "stack-shared/dist/utils/errors";
-import { AsyncValueCache } from "stack-shared/dist/utils/caches";
-import { generateUuid } from "stack-shared/dist/utils/uuids";
-import { AsyncResult } from "stack-shared/dist/utils/results";
-import { suspendIfSsr } from "stack-shared/dist/utils/react";
-import { AsyncStore } from "stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson } from "stack-shared/dist/interface/clientInterface";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { AsyncValueCache } from "@stackframe/stack-shared/dist/utils/caches";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { AsyncResult } from "@stackframe/stack-shared/dist/utils/results";
+import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
+import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
+import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOauthCallback, signInWithCredential, signInWithOauth, signUpWithCredential } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "../utils/types";
 import { constructRedirectUrl } from "../utils/url";
-import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "stack-shared/dist/utils/types";
-import { filterUndefined } from "stack-shared/dist/utils/objects";
-import { neverResolve, resolved, runAsynchronously, wait } from "stack-shared/dist/utils/promises";
+import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =

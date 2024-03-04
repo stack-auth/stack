@@ -1,6 +1,6 @@
 import { Dialog } from "@/components/dialog";
 import { use, useId, useRef, useState } from "react";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { useAdminApp } from "./useAdminInterface";
 import { Box, Stack, Typography } from "@mui/joy";
 import { Paragraph } from "@/components/paragraph";

@@ -22,13 +22,13 @@ import {
   ModalDialog,
   Stack,
 } from '@mui/joy';
-import { fromNowDetailed, getInputDatetimeLocalString } from 'stack-shared/dist/utils/dates';
+import { fromNowDetailed, getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../useAdminInterface';
-import { runAsynchronously } from 'stack-shared/src/utils/promises';
-import { ServerUserJson } from 'stack-shared';
+import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
+import { ServerUserJson } from '@stackframe/stack-shared';
 import Table from '@/components/table';
 
 export function UsersTable(props: {

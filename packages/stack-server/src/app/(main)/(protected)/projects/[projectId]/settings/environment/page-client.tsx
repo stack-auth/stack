@@ -4,14 +4,14 @@ import { Typography } from "@mui/joy";
 import React, { use, useState } from "react";
 import { InlineCode } from "@/components/inline-code";
 import { Paragraph } from "@/components/paragraph";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { IconAlert } from "@/components/icon-alert";
 import { Enumeration, EnumerationItem } from "@/components/enumeration";
 import { SmartLink } from "@/components/smart-link";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../useAdminInterface";
-import { getProductionModeErrors } from "stack-shared";
+import { getProductionModeErrors } from "@stackframe/stack-shared";
 
 export default function EnvironmentClient() {
   const stackAdminApp = useAdminApp();

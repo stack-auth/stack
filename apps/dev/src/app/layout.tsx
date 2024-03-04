@@ -1,4 +1,4 @@
-import { StackProvider } from "stack";
+import { StackProvider } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
 import Provider from "src/components/Provider";
 

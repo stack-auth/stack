@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { UsersTable } from "./users-table";
 import { useAdminApp } from "../../useAdminInterface";
 

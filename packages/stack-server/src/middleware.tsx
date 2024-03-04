@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { wait } from 'stack-shared/dist/utils/promises';
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 const allowedCorsHeaders = [
   'authorization',

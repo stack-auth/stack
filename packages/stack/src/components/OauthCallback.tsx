@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useEffect } from "react";
 import { useStackApp } from "..";
-import { runAsynchronously } from "stack-shared/dist/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import MessageCard from "../elements/MessageCard";
 import { useRouter } from "next/navigation";
 

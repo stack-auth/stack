@@ -12,7 +12,7 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './useAdminInterface';
 import { usePathname } from 'next/navigation';
-import { useUser } from 'stack';
+import { useUser } from '@stackframe/stack';
 import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';

@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { generators } from "openid-client";
 import { cookies } from "next/headers";
-import { encryptJWT } from "stack-shared/dist/utils/jwt";
-import { StatusError } from "stack-shared/dist/utils/errors";
+import { encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { smartRouteHandler, parseRequest } from "@/lib/route-handlers";
 import { getAuthorizationUrl } from "@/oauth";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "stack-shared/dist/utils/types";
+import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 
 const getSchema = yup.object({
   query: yup.object({

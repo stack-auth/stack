@@ -13,9 +13,9 @@ import {
   FormLabel,
   Input,
 } from "@mui/joy";
-import { OauthProviderConfigJson } from "stack-shared";
+import { OauthProviderConfigJson } from "@stackframe/stack-shared";
 import { useState } from "react";
-import { typedIncludes } from "stack-shared/dist/utils/arrays";
+import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { Paragraph } from "@/components/paragraph";
 import { AsyncButton } from "@/components/async-button";
 

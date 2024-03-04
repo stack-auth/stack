@@ -1,10 +1,10 @@
 "use client";
 
-import { StackAdminInterface } from "stack-shared";
+import { StackAdminInterface } from "@stackframe/stack-shared";
 import React from "react";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
-import { useUser } from "stack";
-import { throwErr } from "stack-shared/dist/utils/errors";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
+import { useUser } from "@stackframe/stack";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 const StackAdminInterfaceContext = React.createContext<StackAdminInterface | null>(null);
 

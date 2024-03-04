@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { getPasswordError } from "stack-shared/src/helpers/password";
+import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
 import { useStackApp } from "..";
 import { PasswordField } from "./PasswordField";
 import { FormWarningText } from "./FormWarning";

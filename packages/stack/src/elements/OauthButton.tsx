@@ -2,7 +2,7 @@
 
 import { FaGoogle, FaGithub, FaFacebook, FaApple, FaMicrosoft } from 'react-icons/fa';
 import { useStackApp } from '..';
-import { runAsynchronously } from "stack-shared/dist/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Button from './Button';
 
 const iconSize = 24;

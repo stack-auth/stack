@@ -2,15 +2,15 @@
 
 import { use, useId, useState } from "react";
 import { Box, Button, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
-import { ApiKeySetFirstView } from "stack-shared";
+import { ApiKeySetFirstView } from "@stackframe/stack-shared";
 import { AsyncButton } from "@/components/async-button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
 import { CopyButton } from "@/components/copy-button";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { ApiKeysTable } from "./api-keys-table";
 import { useAdminApp } from "../../useAdminInterface";
-import { runAsynchronously } from "stack-shared/src/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
 import EnvKeys from "@/components/env-keys";
 import Link from "next/link";
 

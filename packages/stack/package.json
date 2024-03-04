@@ -1,5 +1,5 @@
 {
-  "name": "stack",
+  "name": "@stackframe/stack",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -21,7 +21,7 @@
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
-    "stack-shared": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
     "tailwindcss-scoped-preflight": "^2.1.0",
     "server-only": "^0.0.1"
   },

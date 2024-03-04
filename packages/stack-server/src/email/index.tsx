@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
 import VerificationEmail from './templates/verification';
 import { prismaClient } from '@/prisma-client';
-import { getEnvVariable } from 'stack-shared/dist/utils/env';
-import { generateSecureRandomString } from 'stack-shared/dist/utils/crypto';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
 import { render } from '@react-email/render';
-import { UserJson, ProjectJson } from 'stack-shared';
+import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
 

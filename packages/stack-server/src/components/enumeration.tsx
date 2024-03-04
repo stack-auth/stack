@@ -2,7 +2,7 @@
 
 import React, { use } from "react";
 import { Box, Checkbox, Stack, Typography } from "@mui/joy";
-import { typedIncludes } from "stack-shared/dist/utils/arrays";
+import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 
 const enumerationContext = React.createContext<{ type: EnumerationProps["type"] } | null>(null);
 

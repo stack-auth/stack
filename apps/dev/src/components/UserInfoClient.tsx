@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from "stack";
+import { useUser } from "@stackframe/stack";
 
 export default function UserInfoClient() {
   const user = useUser();

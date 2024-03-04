@@ -3,7 +3,7 @@
 import { AccordionGroup, Card, CardOverflow } from "@mui/joy";
 import { use } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../useAdminInterface";

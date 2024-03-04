@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError, UserNotExistErrorCode, EmailPasswordMissMatchErrorCode } from "stack-shared/dist/utils/types";
-import { generateSecureRandomString } from "stack-shared/dist/utils/crypto";
-import { comparePassword } from "stack-shared/dist/utils/password";
+import { ProjectIdOrKeyInvalidErrorCode, KnownError, UserNotExistErrorCode, EmailPasswordMissMatchErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { encodeAccessToken } from "@/lib/access-token";

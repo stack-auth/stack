@@ -1,7 +1,7 @@
 import { Box } from "@mui/joy";
 import { useCallback, useRef, useState } from "react";
-import { throwErr } from "stack-shared/dist/utils/errors";
-import { deepPlainEquals } from "stack-shared/dist/utils/objects";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { useMutationObserver } from "@/hooks/use-mutation-observer";
 
 type Level = 1 | 2 | 3 | 4 | 5 | 6;

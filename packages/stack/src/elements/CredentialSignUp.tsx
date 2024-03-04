@@ -4,11 +4,11 @@ import { useState } from "react";
 import { PasswordField } from "./PasswordField";
 import { FormWarningText } from "./FormWarning";
 import { validateEmail } from "../utils/email";
-import { getPasswordError } from "stack-shared/src/helpers/password";
+import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
 import { useStackApp } from "..";
-import { runAsynchronously } from "stack-shared/dist/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Button from "./Button";
-import { UserAlreadyExistErrorCode } from "stack-shared/dist/utils/types";
+import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 export default function CredentialSignUp({ redirectUrl }: { redirectUrl?: string }) {
   const [email, setEmail] = useState('');

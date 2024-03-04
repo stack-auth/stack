@@ -2,10 +2,10 @@
 
 import { Typography, TypographyProps } from "@mui/joy";
 import { MouseEvent } from "react";
-import { hasClickableParent } from "stack-shared/dist/utils/dom";
+import { hasClickableParent } from "@stackframe/stack-shared/dist/utils/dom";
 import { getNodeText } from "@/utils/react";
 import { useSnackbar } from "@/hooks/use-snackbar";
-import { runAsynchronously } from "stack-shared/src/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
 
 export function InlineCode(props: TypographyProps<"code">) {
   const { onClick, style, ...typographyProps } = props;

@@ -1,6 +1,6 @@
 import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, OAuth2Server, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { generateSecureRandomString } from "stack-shared/dist/utils/crypto";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken, encodeAccessToken } from "@/lib/access-token";
 import { validateUrl } from "@/utils/url";

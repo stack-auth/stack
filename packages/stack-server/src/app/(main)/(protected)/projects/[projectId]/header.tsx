@@ -6,8 +6,8 @@ import Box from '@mui/joy/Box';
 import IconButton from '@mui/joy/IconButton';
 import { useAdminApp } from './useAdminInterface';
 import { redirect, usePathname } from 'next/navigation';
-import { useStrictMemo } from 'stack-shared/src/hooks/use-strict-memo';
-import { useStackApp } from 'stack';
+import { useStrictMemo } from '@stackframe/stack-shared/src/hooks/use-strict-memo';
+import { useStackApp } from '@stackframe/stack';
 import { Icon } from '@/components/icon';
 import Breadcrumbs from '@mui/joy/Breadcrumbs';
 

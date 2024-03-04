@@ -1,8 +1,8 @@
-import { StackClientInterface } from "stack-shared";
+import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
-import { TokenStore } from "stack-shared/dist/interface/clientInterface";
-import { SignInErrorCode, SignUpErrorCode } from "stack-shared/dist/utils/types";
+import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 export async function signInWithOauth(
   iface: StackClientInterface,

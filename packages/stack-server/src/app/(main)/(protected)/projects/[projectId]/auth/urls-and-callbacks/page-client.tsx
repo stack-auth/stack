@@ -6,7 +6,7 @@ import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { Dialog } from "@/components/dialog";
 import { AsyncButton } from "@/components/async-button";
-import { useStrictMemo } from "stack-shared/src/hooks/use-strict-memo";
+import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../useAdminInterface";
 
