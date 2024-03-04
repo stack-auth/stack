@@ -1,7 +1,7 @@
 ![Stack Logo](/assets/logo.png)
 
 <h3 align="center" style="font-size: 40px">
-    <a href="https://weblit-docs.vercel.app/docs/getting-started/setup">Documentation</a>
+    <a href="https://docs.stackframe.co">Documentation</a>
     <!-- | <a href="#">Demo</a> -->
 </h4>
 
