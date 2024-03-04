@@ -418,9 +418,6 @@ importers:
       oauth4webapi:
         specifier: ^2.10.3
         version: 2.10.3
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -446,6 +443,9 @@ importers:
       eslint-config-next:
         specifier: ^14
         version: 14.1.0(eslint@8.30.0)(typescript@5.3.3)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
