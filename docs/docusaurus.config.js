@@ -81,7 +81,7 @@ const config = {
             position: "left",
           },
           {
-            href: "https://github.com/facebook/docusaurus",
+            href: "https://github.com/stackframe-projects/stack",
             label: "GitHub",
             position: "right",
           },
