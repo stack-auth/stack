@@ -59,12 +59,6 @@ pnpm run prisma:server -- db reset
 pnpm run dev
 ```
 
-To do linting and typechecking:
-
-```sh
-pnpm run codegen
-```
-
 You can also open Prisma Studio to see the database interface and edit data directly:
 
 ```sh
