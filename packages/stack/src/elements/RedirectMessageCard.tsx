@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useStackApp } from "..";
 import MessageCard from "./MessageCard";
@@ -19,35 +21,35 @@ export default function RedirectMessageCard({
   switch (type) {
     case 'signedIn': {
       title = "You are already signed in";
-      message = 'You are already signed in. You can click the buttont below to sign out if you want to sign in with a different account.';
+      message = 'You are already signed in. You can click the button below to sign out.';
       url = stackApp.urls.signOut;
       buttonText = "Sign Out";
       break;
     }
     case 'signedOut': {
-      title = "You are already signed out";
+      title = "You are not currently signed in.";
       url = stackApp.urls.home;
       buttonText = "Go to Home";
       break;
     }
     case 'emailSent': {
-      title = "Email Sent";
-      message = 'Please check your inbox. If you do not receive the email, please check your spam folder.';
+      title = "Email sent!";
+      message = 'Please check your inbox. Make sure to check your spam folder.';
       url = stackApp.urls.home;
       buttonText = "Go to Home";
       break;
     }
     case 'passwordReset': {
-      title = "Password Reset";
+      title = "Password reset successfully!";
       message = 'Your password has been reset. You can now sign in with your new password.';
       url = stackApp.urls.signIn;
       buttonText = "Go to Sign In";
       break;
     }
     case 'emailVerified': {
-      title = "Email Verified";
-      message = 'Your have successfully verified your email';
-      url = stackApp.urls.signIn;
+      title = "Email verified!";
+      message = 'Your have successfully verified your email.';
+      url = stackApp.urls.home;
       buttonText = "Go to Home";
       break;
     }
