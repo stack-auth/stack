@@ -2,10 +2,11 @@ import { Dialog } from "@/components/dialog";
 import { use, useId, useRef, useState } from "react";
 import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { useAdminApp } from "./useAdminInterface";
-import { Box, Stack, Typography } from "@mui/joy";
+import { Box, Stack } from "@mui/joy";
 import { Paragraph } from "@/components/paragraph";
-import Link from "next/link";
 import EnvKeys from "@/components/env-keys";
+import { SmartLink } from "@/components/smart-link";
+import { InlineCode } from "@/components/inline-code";
 
 export function OnboardingDialog() {
   const called = useRef(false);
@@ -32,7 +33,7 @@ export function OnboardingDialog() {
         hasSecretServerKey: true,
         hasSuperSecretAdminKey: false,
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 200), // 200 years, effectively never
-        description: 'Onboarding'
+        description: 'Automatically created during onboarding.'
       }),
       stackAdminApp.getProject()
     ]);
@@ -48,7 +49,7 @@ export function OnboardingDialog() {
   return (
     <Dialog
       titleIcon="library_add"
-      title="Create new project"
+      title="Onboarding"
       cancelButton
       okButton={{
         label: "Continue",
@@ -64,11 +65,11 @@ export function OnboardingDialog() {
       {/* TODO: Add document link */}
       <Stack spacing={1}>
         <Paragraph body>
-          Here are your new API keys. Please copy this to your .env.local file. Detailed instruction can be found <Link rel="noopener noreferrer"  target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>here</Link>. 
+          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file; please see the  <SmartLink rel="noopener noreferrer"  target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>Getting Started guide</SmartLink>.
         </Paragraph>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey.publishableClientKey} secretServerKey={apiKey.secretServerKey} />
         <Paragraph body>
-          Note that the secret server key is only shown once. You need to generate a new one if you lose it.
+          Note that these keys will only be shown right now, so copy them to a safe place. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
         </Paragraph>
       </Stack>
     </Dialog>

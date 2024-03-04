@@ -48,13 +48,13 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
       update,
     );
     return NextResponse.json(project);
-  } else if (pkValid) {
+  } else if (asValid || pkValid) {
     if (Object.entries(update).length !== 0) {
-      throw new StatusError(StatusError.Forbidden);
+      throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
     }
     const project = await updateProject(projectId, {});
     if (!project) {
-      throw new Error("Project not found"); // This should never happen, make typescript happy
+      throw new Error("Project not found but the API key was valid? Something weird happened");
     }
     const clientProject: ClientProjectJson = {
       id: project.id,
@@ -64,13 +64,13 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
         }),
       ),
     };
-
+ 
     return NextResponse.json(clientProject);
   } else {
     if (projectId.length !== 0 && publishableClientKey.length !== 0) {
       throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
     }
-    throw new StatusError(StatusError.Forbidden);
+    throw new StatusError(StatusError.Forbidden, "Invalid API key");
   }
 });
 export const GET = handler;

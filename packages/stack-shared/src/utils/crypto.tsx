@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
+import { encodeBase32 } from "./bytes";
 
-export function generateSecureRandomString(minBitsOfEntropy: number = 196) {
+const characters = "23456789abcdefghjkmnopqrstuvwxyz";
+if (characters.length !== 32) throw new Error("Invalid characters length");
+
+export function generateSecureRandomString(minBitsOfEntropy: number = 224) {
   const randomBytes = crypto.randomBytes(Math.ceil(minBitsOfEntropy / 8));
-  return randomBytes.toString("hex");
+  return encodeBase32(randomBytes).toLowerCase();
 }
