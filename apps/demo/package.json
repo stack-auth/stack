@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .next",
+    "clean": "rimraf .next && rimraf node_modules",
     "dev": "next dev --port 8103",
     "build": "next build",
     "start": "next start",
@@ -25,6 +25,7 @@
     "autoprefixer": "^10.4.17",
     "daisyui": "^4.7.2",
     "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "rimraf": "^5.0.5"
   }
 }

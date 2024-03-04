@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "docusaurus": "dotenv -c -- docusaurus",
+    "clean": "pnpm docusaurus clear && rimraf node_modules",
     "dev": "pnpm docusaurus start --port 8104 --no-open",
     "start": "pnpm docusaurus start",
     "build": "pnpm docusaurus build",
@@ -27,7 +28,8 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.1.1",
-    "@docusaurus/types": "3.1.1"
+    "@docusaurus/types": "3.1.1",
+    "rimraf": "^5.0.5"
   },
   "browserslist": {
     "production": [

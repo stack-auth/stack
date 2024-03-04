@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "pnpm clean && tsc && npx tailwindcss build -i src/tailwind.css -o dist/tailwind.css && postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf node_modules",
     "dev": "concurrently \"npm run watch:ts\" \"npm run watch:postcss\"",
     "watch:ts": "tsc -w --preserveWatchOutput --declarationMap",
     "watch:postcss": "postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js --watch",

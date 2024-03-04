@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .next",
+    "clean": "rimraf .next && rimraf node_modules",
     "dev": "next dev --port 8102",
     "build": "next build",
     "start": "next start",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.2.23",
-    "@types/react-dom": "^18.2.8"
+    "@types/react-dom": "^18.2.8",
+    "rimraf": "^5.0.5"
   }
 }

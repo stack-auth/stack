@@ -8,7 +8,7 @@
     "build": "turbo build",
     "build:docs": "turbo run build --no-cache --filter=stack-docs...",
     "build:server": "turbo run build --no-cache --filter=@stackframe/stack-server...",
-    "clean": "turbo run clean --no-cache",
+    "clean": "turbo run clean --no-cache && rimraf node_modules",
     "codegen": "turbo run codegen --no-cache",
     "prisma:server": "pnpm run --filter=@stackframe/stack-server prisma",
     "dev": "turbo run dev --parallel --continue",
@@ -32,7 +32,6 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard-with-typescript": "^21.0.1",
     "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jsdoc": "^39.6.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.31.11",
@@ -42,7 +41,8 @@
     "turbo": "^1.11.3",
     "typescript": "5.3.3",
     "vite": "^5.0.12",
-    "vitest": "1.2.2"
+    "vitest": "1.2.2",
+    "rimraf": "^5.0.5"
   },
   "engines": {
     "node": "^20.8.0"

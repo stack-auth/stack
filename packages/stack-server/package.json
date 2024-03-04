@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "clean": "rimraf .next",
+    "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -c --",
     "with-env:dev": "dotenv -c development --",
