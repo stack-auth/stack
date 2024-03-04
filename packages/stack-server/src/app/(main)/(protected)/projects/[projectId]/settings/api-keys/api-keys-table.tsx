@@ -1,71 +1,123 @@
-"use client";;
+"use client";
+
 import * as React from 'react';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { ApiKeySetSummary } from '@stackframe/stack-shared';
-import { Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
+import { Box, Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../useAdminInterface';
-import Table from '@/components/table';
 
 export function ApiKeysTable(props: {
   rows: ApiKeySetSummary[],
   onInvalidate(): void,
 }) {
   const stackAdminApp = useAdminApp();
+
   const [revokeDialogApiKeySet, setRevokeDialogApiKeySet] = React.useState<ApiKeySetSummary | null>(null);
+
+  const columns: GridColDef[] = [
+    {
+      field: 'description',
+      headerName: 'Description',
+      width: 250,
+      flex: 1,
+    },
+    {
+      field: 'availableKeys',
+      headerName: 'Key values',
+      width: 200,
+      filterable: false,
+      sortable: false,
+      valueGetter: (params) => {
+        return [
+          ["Client", params.row.publishableClientKey?.lastFour],
+          ["Server", params.row.secretServerKey?.lastFour],
+          ["Admin", params.row.superSecretAdminKey?.lastFour],
+        ].filter(([, value]) => value).map(([key, value]) => `${key}: ${value}`).join("\n");
+      },
+      renderCell: (params) => {
+        return (
+          <Tooltip title="Full API keys cannot be viewed after creation.">
+            <Stack spacing={0}>
+              {params.row.publishableClientKey && (
+                <Box>
+                  Client: ••••••••••{params.row.publishableClientKey.lastFour}
+                </Box>
+              )}
+              {params.row.secretServerKey && (
+                <Box>
+                  Server: ••••••••••{params.row.secretServerKey.lastFour}
+                </Box>
+              )}
+              {params.row.superSecretAdminKey && (
+                <Box>
+                  Admin: •••••••••••{params.row.superSecretAdminKey.lastFour}
+                </Box>
+              )}
+            </Stack>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created',
+      width: 200,
+    },
+    {
+      field: 'expiresAt',
+      headerName: 'Expires',
+      width: 200,
+      type: 'dateTime',
+    },
+    {
+      field: 'isValid',
+      headerName: 'Is Valid',
+      width: 100,
+      type: 'boolean',
+      valueGetter: (params) => params.row.isValid(),
+      renderCell: (params) => {
+        const invalidReason = params.row.whyInvalid();
+        if (invalidReason) {
+          return (
+            <Typography sx={{ color: "red" }}>
+              {{
+                "expired": "Expired",
+                "manually-revoked": "Revoked",
+              }[invalidReason as string] ?? "Invalid"}
+            </Typography>
+          );
+        } else {
+          return (
+            <Tooltip title={"Click to revoke"}>
+              <Checkbox checked={true} onChange={() => setRevokeDialogApiKeySet(params.row)} />
+            </Tooltip>
+          );
+        }
+      },
+    },
+  ];
 
   return (
     <>
-      <Table
-        headers={[
-          {
-            name: 'Name',
-            width: 200,
+      <DataGrid
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        autoHeight
+        rows={props.rows}
+        columns={columns}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 15 } },
+          columns: {
+            columnVisibilityModel: {
+              createdAt: false,
+            },
           },
-          {
-            name: 'Keys',
-            width: 150
-          },
-          {
-            name: 'Created',
-            width: 150,
-          },
-          {
-            name: 'Expires',
-            width: 150
-          },
-          {
-            name: 'Valid',
-            width: 60
-          }
-        ]}
-        rows={props.rows.map(key => ({
-          id: key.id,
-          row: [
-            { content: key.description },
-            { content: <Stack sx={{ direction: 'column' }}>
-              {[
-                ["Client", key.publishableClientKey?.lastFour],
-                ["Server", key.secretServerKey?.lastFour],
-                ["Admin", key.superSecretAdminKey?.lastFour],
-              ].filter(([, value]) => value).map(([key, value]) => (<Typography key={key}>{key}: •••••••••{value}</Typography>))}
-            </Stack> },
-            { content: key.createdAt.toLocaleString() },
-            { content: key.expiresAt.toLocaleString() },
-            { content: key.whyInvalid() ? (
-              <Typography sx={{ color: "red" }}>
-                {{
-                  "expired": "Expired",
-                  "manually-revoked": "Revoked",
-                }[key.whyInvalid() as string] ?? "Invalid"}
-              </Typography>
-            ) : (
-              <Tooltip title={"Click to revoke"}>
-                <Checkbox size='sm' checked={true} onChange={() => setRevokeDialogApiKeySet(key)} />
-              </Tooltip>
-            )}
-          ]
-        }))}
+        }}
+        pageSizeOptions={[5, 15, 25]}
       />
+
       <Dialog
         title
         danger

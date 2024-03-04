@@ -73,9 +73,9 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
             minWidth={0}
             overflow='auto'
           >
-            <Box component="main">
+            <Stack spacing={2} component="main">
               {props.children}
-            </Box>
+            </Stack>
           </Stack>
         </Stack>
       </Stack>

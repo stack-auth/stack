@@ -1,173 +1,132 @@
-"use client";;
+"use client";
+
 import * as React from 'react';
-import {
-  Avatar,
-  Box,
-  Checkbox,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Dropdown,
-  FormControl,
-  FormLabel,
-  IconButton,
-  Input,
-  ListDivider,
-  ListItemDecorator,
-  Menu,
-  MenuButton,
-  MenuItem,
-  Modal,
-  ModalDialog,
-  Stack,
-} from '@mui/joy';
-import { fromNowDetailed, getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
+import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../useAdminInterface';
 import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
 import { ServerUserJson } from '@stackframe/stack-shared';
-import Table from '@/components/table';
 
 export function UsersTable(props: {
   rows: ServerUserJson[],
   onInvalidate(): void,
 }) {
-  return (
-    <Table
-      headers={[
-        {
-          name: 'ID',
-          width: 80,
-        },
-        {
-          name: 'Avatar',
-          width: 80
-        },
-        {
-          name: 'Display Name',
-          width: 150
-        },
-        {
-          name: 'Email',
-          width: 200
-        },
-        {
-          name: 'Sign Up Time',
-          width: 100
-        },
-        {
-          name: '',
-          width: 50
-        }
-      ]}
-      rows={props.rows.map(user => ({
-        id: user.id,
-        row: [
-          { content: user.id },
-          { 
-            content: <Avatar
-              variant="outlined"
-              size="sm"
-              src={user.profileImageUrl || undefined}
-            />
-          },
-          { content: user.displayName },
-          { content: user.primaryEmail },
-          { content: fromNowDetailed(new Date(user.signedUpAtMillis)).result },
-          { content: <Actions key="more_actions" onInvalidate={() => props.onInvalidate()} user={user} /> }
-        ]
-      }))}
-    />
-    // <Sheet
-    //   className="OrderTableContainer"
-    //   variant="plain"
-    //   sx={{
-    //     display: 'initial',
-    //     width: '100%',
-    //     borderRadius: 'sm',
-    //     flexShrink: 1,
-    //     overflow: 'auto',
-    //     minHeight: 0,
-    //   }}
-    // >
-    //   <Table
-    //     aria-labelledby="tableTitle"
-    //     stickyHeader
-    //     hoverRow
-    //     sx={{
-    //       '--TableCell-headBackground': 'var(--joy-palette-background-level1)',
-    //       '--Table-headerUnderlineThickness': '1px',
-    //       '--TableRow-hoverBackground': 'var(--joy-palette-background-level1)',
-    //       '--TableCell-paddingY': '4px',
-    //       '--TableCell-paddingX': '8px',
-    //     }}
-    //   >
-    //     <thead>
-    //       <tr>
-    //         <th style={{ width: 80, ...headerStyle }}>
-    //           ID
-    //         </th>
-    //         <th style={{ width: 80, ...headerStyle }}>
-    //           Avatar
-    //         </th>
-    //         <th style={{ width: 150, ...headerStyle }}>
-    //           Display Name
-    //         </th>
-    //         <th style={{ width: 200, ...headerStyle }}>
-    //           Email
-    //         </th>
-    //         {/* <th style={{ width: 50, ...headerStyle }}>
-    //           Provider
-    //         </th> */}
-    //         <th style={{ width: 100, ...headerStyle }}>
-    //           Sign Up Time
-    //         </th>
-    //         <th style={{ width: 50, ...headerStyle }}>
-    //         </th>
-    //       </tr>
-    //     </thead>
-    //     <tbody>
-    //       {props.rows.map(user => (
-    //         <tr key={user.id} style={{}}>
-    //           <td style={cellStyle}>
-    //             {user.id}
-    //           </td>
-    //           <td>
-  // <Avatar
-  //   variant="outlined"
-  //   size="sm"
-  //   src={user.profileImageUrl || undefined}
-  // />
-    //           </td>
-    //           <td style={cellStyle}>
-    //             {user.displayName}
-    //           </td>
-    //           <td style={cellStyle}>
-    //             {user.primaryEmail}
-    //           </td>
-    //           {/* <td>
-    //             <Chip>
+  const stackAdminApp = useAdminApp();
 
-  //             </Chip>
-  //           </td> */}
-  //           <td>
-  //             {fromNowDetailed(new Date(user.signedUpAtMillis)).result}
-  //           </td>
-  //           <td>
-  //             <Actions key="more_actions" onInvalidate={() => props.onInvalidate()} user={user} />
-  //           </td>
-  //         </tr>
-  //       ))}
-  //     </tbody>
-  //   </Table>
-  // </Sheet>
+  const columns: (GridColDef & {
+    stackOnProcessUpdate?: (updatedRow: ServerUserJson, oldRow: ServerUserJson) => Promise<void>,
+  })[] = [
+    {
+      field: 'profilePicture',
+      headerName: 'Profile picture',
+      renderHeader: () => <></>,
+      width: 50,
+      filterable: false,
+      sortable: false,
+      renderCell: (params) => params.row.profileImageUrl ? (
+        <Avatar size='sm' src={params.row.profileImageUrl} alt={`${params.row.displayName}'s profile picture`} />
+      ) : (
+        <Avatar size='sm'>{
+          params.row.displayName
+            ?.split(/\s/)
+            .map((x: string) => x[0])
+            .filter((x: string) => x)
+            .join("")
+        }</Avatar>
+      ),
+    },
+    {
+      field: 'id',
+      headerName: 'ID',
+      width: 100,
+    },
+    {
+      field: 'displayName',
+      headerName: 'Display name',
+      width: 150,
+      flex: 1,
+      editable: true,
+      stackOnProcessUpdate: async (updatedRow, originalRow) => {
+        await stackAdminApp.setServerUserCustomizableData(originalRow.id, { displayName: updatedRow.displayName });
+      },
+    },
+    {
+      field: 'primaryEmail',
+      headerName: 'E-Mail',
+      width: 200,
+      editable: true,
+      stackOnProcessUpdate: async (updatedRow, originalRow) => {
+        await stackAdminApp.setServerUserCustomizableData(originalRow.id, { primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
+      },
+      renderCell: (params) => (
+        <>
+          <Box display="block" minWidth={0} overflow="hidden" textOverflow="ellipsis">
+            {params.row.primaryEmail}
+          </Box>
+          {!params.row.primaryEmailVerified && (
+            <>
+              <Box width={4} flexGrow={0} />
+              <Tooltip title="Unverified e-mail">
+                <Stack>
+                  <Icon icon='error' color="red" size={18} />
+                </Stack>
+              </Tooltip>
+              <Box width={0} flexGrow={1} />
+            </>
+          )}
+        </>
+      ),
+    },
+    {
+      field: 'signedUpAtMillis',
+      headerName: 'Signed up',
+      type: 'dateTime',
+      valueFormatter: (params) => new Date(params.value as number).toLocaleString(),
+      width: 200,
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      renderHeader: () => <></>,
+      type: 'actions',
+      width: 48,
+      getActions: (params) => [
+        <Actions key="more_actions" params={params} onInvalidate={() => props.onInvalidate()} />
+      ],
+    },
+  ];
+
+  return (
+    <DataGrid
+      slots={{
+        toolbar: GridToolbar,
+      }}
+      autoHeight
+      rows={props.rows}
+      columns={columns}
+      initialState={{
+        pagination: { paginationModel: { pageSize: 15 } },
+      }}
+      
+      processRowUpdate={async (updatedRow, originalRow) => {
+        for (const column of columns) {
+          if (column.editable && column.stackOnProcessUpdate) {
+            await column.stackOnProcessUpdate(updatedRow, originalRow);
+          }
+        }
+        props.onInvalidate();
+        return originalRow;
+      }}
+      pageSizeOptions={[5, 15, 25]}
+    />
   );
 }
 
-function Actions(props: { user: ServerUserJson, onInvalidate: () => void }) {
+function Actions(props: { params: any, onInvalidate: () => void}) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -199,7 +158,7 @@ function Actions(props: { user: ServerUserJson, onInvalidate: () => void }) {
       </Dropdown>
 
       <EditUserModal
-        user={props.user}
+        user={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onInvalidate={() => props.onInvalidate()}
@@ -213,13 +172,13 @@ function Actions(props: { user: ServerUserJson, onInvalidate: () => void }) {
         okButton={{
           label: "Delete user",
           onClick: async () => {
-            await stackAdminApp.deleteServerUser(props.user.id);
+            await stackAdminApp.deleteServerUser(props.params.row.id);
             props.onInvalidate();
           }
         }}
         cancelButton={true}
       >
-        Are you sure you want to delete the user &apos;{props.user.displayName}&apos; with ID {props.user.id}? This action cannot be undone.
+        Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
       </Dialog>
     </>
   );
@@ -266,7 +225,7 @@ function EditUserModal(props: { user: ServerUserJson, open: boolean, onClose: ()
           >
             <Stack spacing={2}>
               <Box>
-                ID: {props.user.id}
+                    ID: {props.user.id}
               </Box>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="displayName">Display name</FormLabel>
