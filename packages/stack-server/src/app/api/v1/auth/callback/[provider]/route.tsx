@@ -135,6 +135,8 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
               projectUser: {
                 create: {
                   projectId,
+                  displayName: userInfo.displayName,
+                  profileImageUrl: userInfo.profileImageUrl,
                   primaryEmail: userInfo.email,
                   primaryEmailVerified: true,
                 },

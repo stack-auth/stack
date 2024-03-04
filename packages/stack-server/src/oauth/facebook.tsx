@@ -26,12 +26,15 @@ export class FacebookProvider extends OAuthBaseProvider {
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
     const url = new URL('https://graph.facebook.com/v3.2/me');
     url.searchParams.append('access_token', tokenSet.access_token || "");
-    url.searchParams.append('fields', 'id,name,email,picture');
+    url.searchParams.append('fields', 'id,name,email');
     const rawUserInfo = await fetch(url).then((res) => res.json());
+
+    console.log(rawUserInfo);
     return validateUserInfo({
       accountId: rawUserInfo.id,
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
+      profileImageUrl: `https://graph.facebook.com/v19.0/${rawUserInfo.id}/picture`,
       accessToken: tokenSet.access_token,
       refreshToken: tokenSet.refresh_token,
     });

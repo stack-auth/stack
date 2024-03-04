@@ -33,12 +33,13 @@ export class MicrosoftProvider extends OAuthBaseProvider {
           Authorization: `Bearer ${tokenSet.access_token}`,
         },
       }
-    ).then((res) => {return res.json();});
+    ).then(res => res.json());
 
     return validateUserInfo({
       accountId: rawUserInfo.id,
       displayName: rawUserInfo.displayName,
       email: rawUserInfo.mail,
+      profileImageUrl: undefined, // Microsoft Graph API does not return profile image URL
       accessToken: tokenSet.access_token,
       refreshToken: tokenSet.refresh_token,
     });

@@ -1,24 +1,23 @@
-export type OauthUserInfo = {
+import * as yup from 'yup';
+
+export interface OauthUserInfo {
   accountId: string,
   displayName: string,
   email: string,
+  profileImageUrl?: string,
   accessToken?: string,
   refreshToken?: string,
 }
 
-export type OauthCallback = {
-  oauthProviderConfigId: string,
-} & OauthUserInfo;
+const OauthUserInfoSchema = yup.object().shape({
+  accountId: yup.string().required(),
+  displayName: yup.string().required(),
+  email: yup.string().required(),
+  profileImageUrl: yup.string().optional(),
+  accessToken: yup.string().optional(),
+  refreshToken: yup.string().optional(),
+});
 
 export function validateUserInfo(userInfo: any): OauthUserInfo {
-  if (!userInfo.accountId || !userInfo.displayName || !userInfo.email) {
-    throw new Error("Invalid user info: ", userInfo);
-  }
-  return {
-    accountId: userInfo.accountId,
-    displayName: userInfo.displayName,
-    email: userInfo.email,
-    accessToken: userInfo.accessToken,
-    refreshToken: userInfo.refreshToken,
-  };
+  return OauthUserInfoSchema.validateSync(userInfo);
 }

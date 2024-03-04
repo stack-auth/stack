@@ -109,7 +109,7 @@ model ProjectUserOauthAccount {
   updatedAt DateTime @updatedAt
 
   providerConfig OauthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
-  projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId])
+  projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   email                String?
   providerAccountId    String

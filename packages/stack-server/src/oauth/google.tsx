@@ -30,6 +30,7 @@ export class GoogleProvider extends OAuthBaseProvider {
       accountId: rawUserInfo.sub,
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
+      profileImageUrl: rawUserInfo.picture,
       accessToken: tokenSet.access_token,
       refreshToken: tokenSet.refresh_token,
     });
