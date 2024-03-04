@@ -5,6 +5,7 @@ import { decodeAccessToken } from "./access-token";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 const fullProjectInclude = {
   config: {
@@ -113,6 +114,19 @@ export async function createProject(
         config: {
           create: {
             allowLocalhost: projectOptions.allowLocalhost,
+            oauthProviderConfigs: {
+              create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
+                id,
+                proxiedOauthConfig: {
+                  create: {                
+                    type: typedToUppercase(id),
+                  }
+                },
+                projectUserOauthAccounts: {
+                  create: []
+                }
+              })),
+            },
           },
         },
       },

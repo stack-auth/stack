@@ -5,8 +5,8 @@
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
-    "with-env": "dotenv -c --",
-    "with-env:dev": "dotenv -c development --",
+    "with-env": "dotenv -c development --",
+    "with-env:prod": "dotenv -c --",
     "keygen": "node scripts/generateKey.js",
     "postinstall": "npm run todo",
     "dev": "npm run todo; next dev --port 8101",
