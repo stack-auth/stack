@@ -76,6 +76,11 @@ const config = {
             label: "Documentation",
           },
           {
+            href: process.env.STACKFRAME_URL,
+            label: "Stackframe",
+            position: "left",
+          },
+          {
             href: "https://github.com/facebook/docusaurus",
             label: "GitHub",
             position: "right",
