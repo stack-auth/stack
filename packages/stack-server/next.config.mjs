@@ -22,13 +22,24 @@ const withBundleAnalyzer = createBundleAnalyzer({
 const nextConfig = {
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
 
-  output: "standalone",
+  // we're open-source, so we can provide source maps
+  productionBrowserSourceMaps: true,
 
   poweredByHeader: false,
 
   experimental: {
     optimizePackageImports: ["@mui/joy"],
   },
+
+  // uncomment below to disable bundle minimization (useful for debugging prod builds)
+  /*webpack(webpackConfig) {
+    return {
+      ...webpackConfig,
+      optimization: {
+        minimize: false
+      }
+    };
+  },*/
 
   async headers() {
     return [

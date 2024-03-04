@@ -21,6 +21,9 @@
     "dev": {
       "cache": false
     },
+    "start": {
+      "cache": false
+    },
     "lint": {
       "cache": false
     },
