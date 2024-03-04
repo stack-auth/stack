@@ -111,9 +111,6 @@ export function UsersTable(props: {
       initialState={{
         pagination: { paginationModel: { pageSize: 15 } },
       }}
-      sx={{
-        fontFamily: "inherit",
-      }}
       
       processRowUpdate={async (updatedRow, originalRow) => {
         for (const column of columns) {
