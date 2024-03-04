@@ -9,7 +9,7 @@ sidebar_position: 1
 To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
   
 ```bash
-npx create-next-app@latest -app stack-example
+npx create-next-app@latest --app stack-example
 ```
 
 Once that's done, you can install Stack with npm or yarn:
