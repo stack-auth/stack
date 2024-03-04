@@ -151,12 +151,12 @@ export function Sidebar(props: {
             sx={{
               minHeight: 0,
               overflow: 'hidden auto',
-              flexGrow: 1,
               display: 'flex',
+              flexGrow: 1,
               flexDirection: 'column',
             }}
           >
-            <List size="sm" sx={{ gap: 0.25 }}>
+            <List size="sm" sx={{ gap: 0.25  }}>
               {navigationItems.map((item) => (
                 <SidebarItem 
                   key={item.name} 
@@ -165,6 +165,12 @@ export function Sidebar(props: {
                   href={basePath + item.href}
                 />
               ))}
+              <Box style={{ flexGrow: 1 }}/>
+              <SidebarItem
+                title='Documentation'
+                icon={<Icon icon="help_outline" />}
+                href={process.env.NEXT_PUBLIC_DOC_URL || ''}
+              />
             </List>
           </Box>
 

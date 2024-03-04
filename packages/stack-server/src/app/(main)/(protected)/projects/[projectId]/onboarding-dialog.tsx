@@ -64,7 +64,7 @@ export function OnboardingDialog() {
       {/* TODO: Add document link */}
       <Stack spacing={1}>
         <Paragraph body>
-          Here are your new API keys. Please copy this to your .env.local file. Detailed instruction can be founder <Link href="/docs/getting-started">here</Link>. 
+          Here are your new API keys. Please copy this to your .env.local file. Detailed instruction can be found <Link rel="noopener noreferrer"  target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>here</Link>. 
         </Paragraph>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey.publishableClientKey} secretServerKey={apiKey.secretServerKey} />
         <Paragraph body>
