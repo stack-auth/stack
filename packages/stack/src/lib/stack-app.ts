@@ -95,7 +95,7 @@ export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends 
   uniqueIdentifier: string,
 };
 
-const defaultBaseUrl = "https://api.stackframe.co";
+const defaultBaseUrl = "https://app.stackframe.co";
 
 function createEmptyTokenStore() {
   const store = new AsyncStore<TokenObject>();

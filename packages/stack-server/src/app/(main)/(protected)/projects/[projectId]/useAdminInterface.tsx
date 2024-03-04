@@ -15,6 +15,8 @@ export function AdminAppProvider(props: { projectId: string, children: React.Rea
     return new StackAdminInterface({
       baseUrl: process.env.NEXT_PUBLIC_STACK_URL || throwErr('missing NEXT_PUBLIC_STACK_URL environment variable'),
       projectId: props.projectId,
+
+      // TODO refresh the access token
       internalAdminAccessToken: user.accessToken ?? throwErr("User must have an access token"),
     });
   }, [props.projectId, user]);
