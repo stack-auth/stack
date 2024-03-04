@@ -29,10 +29,10 @@ Here is an example of the sign-up page you get out of the box:
 To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
 
 ```bash
-### TODO
+npm install @stackframe/stack
 ```
 
-For setup, refer to [our documentation](https://weblit-docs.vercel.app/getting-started/docs/setup).
+For setup, refer to [our documentation](https://docs.stackframe.co).
 
 ## Development Setup
 
