@@ -64,8 +64,11 @@ export function smartRouteHandler(handler: (req: NextRequest, options: any) => P
   return async (req: NextRequest, options: any) => {
     try {
       const censoredUrl = new URL(req.url);
-      for (const key of censoredUrl.searchParams.keys()) {
-        censoredUrl.searchParams.set(key, "--REDACTED--");
+      for (const [key, value] of censoredUrl.searchParams.entries()) {
+        if (value.length <= 8) {
+          continue;
+        }
+        censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
       }
 
       console.log(`[API REQ] ${req.method} ${censoredUrl}`);

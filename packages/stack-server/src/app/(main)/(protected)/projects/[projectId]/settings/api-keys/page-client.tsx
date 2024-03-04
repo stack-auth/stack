@@ -156,11 +156,11 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
                 <Stack spacing={2}>
                   <FormControl required>
                     <FormLabel>
-                      Name
+                      Description
                     </FormLabel>
                     <Input name="description"/>
                     <FormHelperText>
-                      What will you use this key for? Be descriptive. It will help you remember what this key is for.
+                      Be descriptive. It will help you remember what this key is for.
                     </FormHelperText>
                   </FormControl>
                   <FormControl required>

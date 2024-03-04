@@ -34,7 +34,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
   const apiKeyId = options.params.apiKeyId;
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
-    throw new StatusError(StatusError.Forbidden);
+    throw new StatusError(StatusError.Forbidden, "Invalid API key");
   }
 
   let apiKey;

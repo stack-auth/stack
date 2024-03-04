@@ -23,10 +23,12 @@ function SidebarItem({
   title,
   icon,
   href,
+  target,
 }: {
   title: string,
   icon: React.ReactNode,
   href: string,
+  target?: string,
 }) {
   const pathname = usePathname();
   const selected = React.useMemo(() => {
@@ -42,6 +44,7 @@ function SidebarItem({
       <ListItemButton
         selected={selected}
         href={href}
+        target={target}
         component={NextLink}
         sx={{
           "&.Mui-selected": {
@@ -53,6 +56,7 @@ function SidebarItem({
         <ListItemContent>
           <Typography level="title-md">{title}</Typography>
         </ListItemContent>
+        {target === "_blank" ? <Icon icon="open_in_new" /> : null}
       </ListItemButton>
     </ListItem>
   );
@@ -170,6 +174,7 @@ export function Sidebar(props: {
                 title='Documentation'
                 icon={<Icon icon="help_outline" />}
                 href={process.env.NEXT_PUBLIC_DOC_URL || ''}
+                target="_blank"
               />
             </List>
           </Box>
