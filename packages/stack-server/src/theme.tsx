@@ -9,7 +9,12 @@ import {
 import { useColorScheme as useMaterialColorScheme } from "@mui/material";
 import NextLink from "next/link";
 import React from "react";
-const materialTheme = materialExtendTheme();
+
+const materialTheme = materialExtendTheme({
+  typography: {
+    fontFamily: `var(--font-geist-sans, sans-serif)`,
+  },
+});
 
 const theme = extendTheme({
   fontFamily: {

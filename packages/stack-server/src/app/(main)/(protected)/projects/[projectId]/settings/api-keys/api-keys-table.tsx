@@ -115,8 +115,12 @@ export function ApiKeysTable(props: {
             },
           },
         }}
+        sx={{
+          fontFamily: "inherit",
+        }}
         pageSizeOptions={[5, 15, 25]}
       />
+      
 
       <Dialog
         title
