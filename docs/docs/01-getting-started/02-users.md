@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 # Users & Protected Pages
 
-In [the last section](/docs/01-setup), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
+In [the last guide](/docs/getting-started/setup), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
 ## Client Components
 
