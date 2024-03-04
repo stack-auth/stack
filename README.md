@@ -1,7 +1,7 @@
 ![Stack Logo](/assets/logo.png)
 
 <h3 align="center" style="font-size: 40px">
-    <a href="https://weblit-docs.vercel.app/docs/setup">Documentation</a>
+    <a href="https://weblit-docs.vercel.app/docs/getting-started/setup">Documentation</a>
     <!-- | <a href="#">Demo</a> -->
 </h4>
 
@@ -32,7 +32,7 @@ To get started with Stack, you need to [create a Next.js project](https://nextjs
 ### TODO
 ```
 
-For setup, refer to [our documentation](https://weblit-docs.vercel.app/docs/setup).
+For setup, refer to [our documentation](https://weblit-docs.vercel.app/getting-started/docs/setup).
 
 ## Development Setup
 

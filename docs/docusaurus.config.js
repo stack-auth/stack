@@ -66,7 +66,7 @@ const config = {
         logo: {
           alt: "Stack",
           src: "img/logo.svg",
-          href: "/docs/setup",
+          href: "/docs/getting-started/setup",
         },
         items: [
           {
