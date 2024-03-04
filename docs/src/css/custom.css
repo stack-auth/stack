@@ -23,3 +23,17 @@ html[data-theme='dark'] {
 .prism-code {
   background-color: rgb(15,23,42,50) !important;
 }
+
+.sidebar-title {
+  font-size: 0.7rem;
+  font-weight: bold;
+  opacity: 70%;
+  margin-top: 1.5rem;
+  text-transform: uppercase;
+}
+
+.starred > a::before {
+  content: "★";
+  color: #f0d000;
+  margin-right: 0.25rem;
+}

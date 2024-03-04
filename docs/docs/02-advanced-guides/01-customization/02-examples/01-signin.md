@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Sign In
 
-## Default Sign In Component
+## Custom page with `SignIn` component
 
 ```tsx
 'use client';
@@ -13,11 +13,11 @@ import { useStackApp, SignIn } from "stack";
 export default function DefaultSignIn() {
   const app = useStackApp();
 
-  return <SignIn fullPage redirectUrl={app.urls.userHome}/>;
+  return <SignIn fullPage redirectUrl={app.urls.userHome} />;
 }
 ```
 
-Note that if you don't pass in a `redirectUrl`, the user will be redirected to the same page, which is useful if you want to build a sign in modal.
+`redirectUrl` is optional and defaults to the current page.
 
 
 ## Custom OAuth Sign In

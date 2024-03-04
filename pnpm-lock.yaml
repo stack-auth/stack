@@ -136,6 +136,9 @@ importers:
       '@docusaurus/core':
         specifier: 3.1.1
         version: 3.1.1(@docusaurus/types@3.1.1)(eslint@8.30.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)
+      '@docusaurus/plugin-content-docs':
+        specifier: 3.1.1
+        version: 3.1.1(eslint@8.30.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)
       '@docusaurus/preset-classic':
         specifier: 3.1.1
         version: 3.1.1(@algolia/client-search@4.22.1)(@types/react@18.2.60)(eslint@8.30.0)(react-dom@18.2.0)(react@18.2.0)(search-insights@2.13.0)(typescript@5.3.3)
@@ -2217,7 +2220,7 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
       tslib: 2.6.2
       utility-types: 3.11.0
-      webpack: 5.90.1
+      webpack: 5.90.3
     transitivePeerDependencies:
       - '@parcel/css'
       - '@rspack/core'

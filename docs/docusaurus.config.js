@@ -13,14 +13,14 @@ const config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-site.example.com",
+  url: "https://docs.stackframe.co",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "facebook", // Usually your GitHub org/user name.
+  organizationName: "stackframe-projects", // Usually your GitHub org/user name.
   projectName: "docusaurus", // Usually your repo name.
 
   onBrokenLinks: "throw",
@@ -54,9 +54,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      prism: {
-        additionalLanguages: ["bash"],
-      },
       colorMode: {
         defaultMode: "dark",
         disableSwitch: true,
@@ -74,7 +71,7 @@ const config = {
         items: [
           {
             type: "docSidebar",
-            sidebarId: "tutorialSidebar",
+            sidebarId: "docsSidebar",
             position: "left",
             label: "Documentation",
           },
@@ -88,6 +85,7 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+        additionalLanguages: ["bash"],
       },
     }),
 };
