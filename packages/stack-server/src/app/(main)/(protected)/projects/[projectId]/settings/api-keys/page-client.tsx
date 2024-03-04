@@ -13,6 +13,8 @@ import { useAdminApp } from "../../useAdminInterface";
 import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
 import EnvKeys from "@/components/env-keys";
 import Link from "next/link";
+import { SmartLink } from "@/components/smart-link";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 export default function ApiKeysDashboardClient() {
@@ -101,7 +103,7 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
             <DialogContent>
               <Stack spacing={2} overflow='hidden'>
                 <Paragraph body>
-                  Success! Your new API keys have been created. <Typography fontWeight="bold">Note that you will not be able to view this again</Typography> and you will need to create a new one if you lose it. Detailed setup instructions can be found <Link rel="noopener noreferrer" target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>here</Link>
+                  Success! Your new API keys have been created. <Typography fontWeight="bold">Note that you will not be able to view this again</Typography> and you will need to create a new one if you lose it. Visit the <SmartLink target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL}>documentation</SmartLink> for detailed setup instructions.
                 </Paragraph>
                 <EnvKeys
                   projectId={project.id}

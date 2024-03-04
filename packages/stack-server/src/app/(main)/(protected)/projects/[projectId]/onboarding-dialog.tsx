@@ -65,7 +65,7 @@ export function OnboardingDialog() {
       {/* TODO: Add document link */}
       <Stack spacing={1}>
         <Paragraph body>
-          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file; please see the  <SmartLink rel="noopener noreferrer"  target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>Getting Started guide</SmartLink>.
+          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file; please see the  <SmartLink target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL}>Getting Started guide</SmartLink>.
         </Paragraph>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey.publishableClientKey} secretServerKey={apiKey.secretServerKey} />
         <Paragraph body>
