@@ -6,13 +6,13 @@ sidebar_position: 1
 
 ## Installation
 
-To get started with the Stack, you need to have [Next.js](https://nextjs.org/docs) setup for you project. If you are starting from scratch, run the following command to create a new Next.js project:
+To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
   
 ```bash
-npx create-next-app@latest stack-example
+npx create-next-app@latest -app stack-example
 ```
 
-Once you have your Next.js project setup, you can install Stack by running the following command:
+Once that's done, you can install Stack with npm or yarn:
 
 ```bash
 npm install @stackframe/stack
@@ -20,7 +20,7 @@ npm install @stackframe/stack
 
 ## Setup
 
-1. If you haven't already, [register a new account on Stack](https://app.stackframe.co). Create a project in the dashboard, create a new API Key from the left sidebar, and copy the project ID, publishable client key, and secret server key into a new file called `.env.local` in the root of your Next.js project:
+1. If you haven't already, [register a new account on Stack](https://app.stackframe.co). Create a project in the dashboard, create a new API key from the left sidebar, and copy the project ID, publishable client key, and secret server key into a new file called `.env.local` in the root of your Next.js project:
 
     ```javascript
     NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
