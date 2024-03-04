@@ -17,7 +17,9 @@ export default function DefaultSignIn() {
 }
 ```
 
-`redirectUrl` is optional and defaults to the current page.
+`redirectUrl` is the url the user will be redirected to after successful signing in. It is optional and defaults to the current page. 
+
+You can also use `useUser` at the beginning of the sign in page to check if wether the user is already signed in and redirect them to some other page if they are.
 
 
 ## Custom OAuth Sign In
@@ -41,3 +43,39 @@ export default function CustomOAuthSignIn() {
 ## Custom Credential Sign In
 
 ```tsx
+'use client';
+import { useStackApp, validateEmail } from "@stackframe/stack";
+import { useState } from "react";
+
+export default function CustomCredentialSignIn() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const app = useStackApp();
+
+  const onSubmit = async () => {
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+    const errorCode = await app.signInWithCredential({ email, password, redirectUrl: app.urls.userHome });
+    // It is better to handle each error code separately, but for simplicity in this example, we will just show the error code directly
+    if (errorCode) {
+      setError(errorCode);
+    }
+  };
+  
+  return (
+    <div>
+      {error}
+      <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button onClick={onSubmit}>Sign In</button>
+    </div>
+  );
+}
+```
