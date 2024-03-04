@@ -21,7 +21,7 @@ import { parseJson } from '../utils/json';
 import { AsyncCache, AsyncValueCache } from '../utils/caches';
 import { typedAssign } from '../utils/objects';
 import { AsyncStore } from '../utils/stores';
-import { runAsynchronously } from '../utils/promises';
+import { neverResolve, runAsynchronously } from '../utils/promises';
 
 export type UserCustomizableJson = {
   readonly projectId: string,
@@ -252,13 +252,25 @@ export class StackClientInterface {
       refreshToken: null,
     });
 
-    return await Result.orThrowAsync(
-      Result.retry(
-        () => this.sendClientRequestInner(path, requestOptions, tokenStore!),
-        5,
-        { exponentialDelayBase: 1000 },
-      )
-    );
+
+    try {
+      return await Result.orThrowAsync(
+        Result.retry(
+          () => this.sendClientRequestInner(path, requestOptions, tokenStore!),
+          5,
+          { exponentialDelayBase: 1000 },
+        )
+      );
+    } catch (error: any) {
+      // TODO this is a hack. Occurs when the admin access token is invalid, or expired. Has plenty of weird side effects so we should replace this
+      if ("internalAdminAccessToken" in this.options && error?.message?.includes?.("Invalid API key") && typeof window !== "undefined") {
+        alert("Your session has expired. The page will now reload." + (process.env.NODE_ENV == "development" ? "\n\nThis is a hack and we should probably fix this at some point." : ""));
+        window.location.reload();
+        await neverResolve();
+      }
+
+      throw error;
+    }
   }
 
   protected async sendClientRequestAndCatchKnownError<E>(

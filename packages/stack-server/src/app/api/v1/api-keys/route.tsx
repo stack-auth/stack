@@ -65,7 +65,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
   } = await parseRequest(req, postSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
-    throw new StatusError(StatusError.Forbidden);
+    throw new StatusError(StatusError.Forbidden, "Invalid API key");
   }
 
   const created = await createApiKeySet(
