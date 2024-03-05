@@ -276,7 +276,8 @@ export class StackClientInterface {
       // TODO this is a hack. Occurs when the admin access token is invalid, or expired. Has plenty of weird side effects so we should replace this
       if ("internalAdminAccessToken" in this.options && error?.message?.includes?.("Invalid API key") && typeof window !== "undefined") {
         alert("Your session has expired. The page will now reload." + (process.env.NODE_ENV == "development" ? "\n\nThis is a hack and we should probably fix this at some point." : ""));
-        window.location.reload();
+        window.location.href = "/";
+        document.body.innerHTML = "Reloading...";
         await neverResolve();
       }
 
