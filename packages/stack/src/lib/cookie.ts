@@ -1,14 +1,14 @@
 import { generateRandomCodeVerifier, generateRandomState, calculatePKCECodeChallenge } from "oauth4webapi";
 import Cookies from "js-cookie";
 import { isClient } from "../utils/next";
-import { cookies } from '@stackframe/stack-sc';
+import { cookies as rscCookies } from '@stackframe/stack-sc';
 
 export function getCookie(name: string): string | null {
   // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
-  if (isClient()) {
-    return Cookies.get(name) ?? null;
+  if (rscCookies) {
+    return rscCookies().get(name)?.value ?? null;
   } else {
-    return cookies().get(name)?.value ?? null;
+    return Cookies.get(name) ?? null;
   }
 }
 
@@ -21,20 +21,18 @@ export function setOrDeleteCookie(name: string, value: string | null) {
 }
 
 export function deleteCookie(name: string) {
-  // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
-  if (isClient()) {
-    Cookies.remove(name);
+  if (rscCookies) {
+    rscCookies().delete(name);
   } else {
-    cookies().delete(name);
+    Cookies.remove(name);
   }
 }
 
 export function setCookie(name: string, value: string) {
-  // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
-  if (isClient()) {
-    Cookies.set(name, value);
+  if (rscCookies) {
+    rscCookies().set(name, value);
   } else {
-    cookies().set(name, value);
+    Cookies.set(name, value);
   }
 }
 
