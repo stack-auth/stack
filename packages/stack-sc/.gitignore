@@ -1,0 +1,2 @@
+# we need to not ignore the next-env.d.ts file because it is not automatically recreated (we never run `next build` in this repo directly because Next is just a peer dependency)
+!next-env.d.ts
