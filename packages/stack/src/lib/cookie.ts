@@ -6,10 +6,10 @@ export function getCookie(name: string): string | null {
   // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
   if (isClient()) {
     return Cookies.get(name) ?? null;
-  } else {
+  } else {return null;/*
     const { cookies } = require("next/headers");
     return cookies().get(name)?.value ?? null;
-  }
+*/}
 }
 
 export function setOrDeleteCookie(name: string, value: string | null) {
@@ -24,20 +24,20 @@ export function deleteCookie(name: string) {
   // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
   if (isClient()) {
     Cookies.remove(name);
-  } else {
+  } else {/*
     const { cookies } = require("next/headers");
     cookies().delete(name);
-  }
+*/}
 }
 
 export function setCookie(name: string, value: string) {
   // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
   if (isClient()) {
     Cookies.set(name, value);
-  } else {
+  } else {/*
     const { cookies } = require("next/headers");
     cookies().set(name, value);
-  }
+*/}
 }
 
 export async function saveVerifierAndState() {
