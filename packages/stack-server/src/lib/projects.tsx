@@ -153,7 +153,7 @@ export async function createProject(
         config: {
           create: {
             allowLocalhost: projectOptions.allowLocalhost,
-            enableCredential: projectOptions.credentialEnabled,
+            credentialEnabled: projectOptions.credentialEnabled,
             oauthProviderConfigs: {
               create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
                 id,
@@ -299,7 +299,7 @@ export async function updateProject(
     // Update credentialEnabled
     transaction.push(prismaClient.projectConfig.update({
       where: { id: project.config.id },
-      data: { enableCredential: options.config.credentialEnabled },
+      data: { credentialEnabled: options.config.credentialEnabled },
     }));
   }
 
@@ -358,7 +358,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
     evaluatedConfig: {
       id: project.config.id,
       allowLocalhost: project.config.allowLocalhost,
-      credentialEnabled: project.config.enableCredential,
+      credentialEnabled: project.config.credentialEnabled,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,
