@@ -58,7 +58,7 @@ export default function ProvidersClient() {
               No auth providers enabled yet. Add one from the available providers below!
               </Paragraph>
             ) : (
-              <AccordionGroup variant="outlined" sx={{ margin: "var(--AspectRatio-margin)" }}>
+              <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
                 {oauthProviders.map((provider) => (
                   <ProviderAccordion key={provider.id} provider={provider} />
                 ))}

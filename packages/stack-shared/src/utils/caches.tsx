@@ -1,5 +1,24 @@
+import { DependenciesMap } from "./maps";
 import { RateLimitOptions, ReactPromise, rateLimited } from "./promises";
 import { AsyncStore, ReadonlyAsyncStore } from "./stores";
+
+/**
+ * Can be used to cache the result of a function call, for example for the `use` hook in React.
+ */
+export function cacheFunction<F extends Function>(f: F): F {
+  const dependenciesMap = new DependenciesMap<any, any>();
+
+  return ((...args: any) => {
+    if (dependenciesMap.has(args)) {
+      return dependenciesMap.get(args);
+    }
+
+    const value = f(...args);
+    dependenciesMap.set(args, value);
+    return value;
+  }) as any as F;
+}
+
 
 export class AsyncCache<K extends object, T> {
   private _map: WeakMap<K, AsyncValueCache<T>> = new Map();
