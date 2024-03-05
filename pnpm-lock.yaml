@@ -182,12 +182,12 @@ importers:
 
   packages/stack:
     dependencies:
+      '@stackframe/stack-sc':
+        specifier: workspace:*
+        version: link:../stack-sc
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../stack-shared
-      '@types/js-cookie':
-        specifier: ^3.0.6
-        version: 3.0.6
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -204,6 +204,9 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(postcss@8.4.35)(tailwindcss@3.4.1)
     devDependencies:
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
       '@types/react':
         specifier: ^18.2.60
         version: 18.2.60
@@ -252,6 +255,31 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.1
+
+  packages/stack-sc:
+    dependencies:
+      next:
+        specifier: ^14.1
+        version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.30.0)(typescript@5.3.3)
+      '@typescript-eslint/parser':
+        specifier: ^6.x
+        version: 6.21.0(eslint@8.30.0)(typescript@5.3.3)
+      eslint:
+        specifier: ^8
+        version: 8.30.0
+      eslint-config-next:
+        specifier: ^14
+        version: 14.1.0(eslint@8.30.0)(typescript@5.3.3)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
 
   packages/stack-server:
     dependencies:
@@ -6003,7 +6031,7 @@ packages:
 
   /@types/js-cookie@3.0.6:
     resolution: {integrity: sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==}
-    dev: false
+    dev: true
 
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -7296,6 +7324,7 @@ packages:
 
   /caniuse-lite@1.0.30001584:
     resolution: {integrity: sha512-LOz7CCQ9M1G7OjJOF9/mzmqmj3jE/7VOmrfw6Mgs0E8cjOsbRXQJHsPBfmBOXDskXKrHLyyW3n7kpDW/4BsfpQ==}
+    dev: true
 
   /caniuse-lite@1.0.30001587:
     resolution: {integrity: sha512-HMFNotUmLXn71BQxg8cijvqxnIAofforZOwGsxyXJ0qugTdspUF4sPSJ2vhgprHCB996tIDzEq1ubumPDV8ULA==}
@@ -12254,7 +12283,7 @@ packages:
       '@next/env': 14.1.0
       '@swc/helpers': 0.5.2
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001584
+      caniuse-lite: 1.0.30001587
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.2.0

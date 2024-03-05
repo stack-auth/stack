@@ -17,11 +17,11 @@
     "dist"
   ],
   "dependencies": {
-    "@types/js-cookie": "^3.0.6",
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
     "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-sc": "workspace:*",
     "tailwindcss-scoped-preflight": "^2.1.0",
     "server-only": "^0.0.1"
   },
@@ -30,6 +30,7 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.60",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6.x",
