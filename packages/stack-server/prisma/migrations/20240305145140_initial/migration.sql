@@ -23,6 +23,7 @@ CREATE TABLE "ProjectConfig" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "allowLocalhost" BOOLEAN NOT NULL,
+    "enableCredential" BOOLEAN NOT NULL,
 
     CONSTRAINT "ProjectConfig_pkey" PRIMARY KEY ("id")
 );
