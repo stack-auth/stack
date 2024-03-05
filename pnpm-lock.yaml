@@ -261,7 +261,13 @@ importers:
       next:
         specifier: ^14.1
         version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
     devDependencies:
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.2.60
       '@typescript-eslint/eslint-plugin':
         specifier: ^6
         version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.30.0)(typescript@5.3.3)
@@ -274,9 +280,6 @@ importers:
       eslint-config-next:
         specifier: ^14
         version: 14.1.0(eslint@8.30.0)(typescript@5.3.3)
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
