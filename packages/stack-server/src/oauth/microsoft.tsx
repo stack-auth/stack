@@ -15,8 +15,8 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   }) {
     super({
       issuer: "https://login.microsoftonline.com/" + tenantId + "/v2.0",
-      authorizationEndpoint: "https://login.microsoftonline.com/" + tenantId + "/oauth2/v2.0/authorize",
-      tokenEndpoint: "https://login.microsoftonline.com/" + tenantId + "/oauth2/v2.0/token",
+      authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
+      tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
