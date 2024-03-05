@@ -27,9 +27,6 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
-    const url = new URL('https://graph.microsoft.com/v1.0/me');
-    url.searchParams.append('select', 'id,displayName,mail,identities');
-
     const rawUserInfo = await fetch(
       'https://graph.microsoft.com/v1.0/me',
       {
@@ -39,26 +36,10 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       }
     ).then(res => res.json());
 
-    console.log(rawUserInfo);
-
-    let email = rawUserInfo.mail;
-    if (!email && rawUserInfo.identities) {
-      const emailIdentity = rawUserInfo.identities.find((identity: any) => identity.signInType === 'emailAddress');
-      if (emailIdentity) {
-        email = emailIdentity.issuerAssignedId;
-      }
-    }
-    if (!email && rawUserInfo.userPrincipalName) {
-      email = rawUserInfo.userPrincipalName.split('#')[0];
-    }
-    if (!email || !validateEmail(email)) {
-      throw new Error('Unable to find email address');
-    }
-
     return validateUserInfo({
       accountId: rawUserInfo.id,
       displayName: rawUserInfo.displayName,
-      email: rawUserInfo.mail,
+      email: rawUserInfo.mail || rawUserInfo.userPrincipalName,
       profileImageUrl: undefined, // Microsoft Graph API does not return profile image URL
       accessToken: tokenSet.access_token,
       refreshToken: tokenSet.refresh_token,
