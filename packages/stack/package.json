@@ -39,7 +39,6 @@
     "daisyui": "^4.7.2",
     "eslint": "^8",
     "eslint-config-next": "^14",
-    "next": "14.0.3-canary.1",
     "postcss": "^8.4.35",
     "postcss-cli": "^11.0.0",
     "postcss-nested": "^6.0.1",
