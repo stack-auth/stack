@@ -275,9 +275,6 @@ model ProxiedOauthProviderConfig {
 enum ProxiedOauthProviderType {
   GITHUB
   FACEBOOK
-  SLACK
-  TWITTER
-  LINKEDIN
   GOOGLE
   MICROSOFT
 }
@@ -300,9 +297,6 @@ model StandardOauthProviderConfig {
 enum StandardOauthProviderType {
   GITHUB
   FACEBOOK
-  SLACK
-  TWITTER
-  LINKEDIN
   GOOGLE
   MICROSOFT
 }

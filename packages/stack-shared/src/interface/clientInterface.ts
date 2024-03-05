@@ -55,30 +55,28 @@ export type ClientInterfaceOptions = {
   readonly internalAdminAccessToken: string,
 });
 
-export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-slack" | "shared-twitter" | "shared-linkedin" | "shared-microsoft";
+export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft";
 export const sharedProviders = [
   "shared-github",
   "shared-google",
   "shared-facebook",
-  "shared-slack",
-  "shared-twitter",
-  "shared-linkedin",
   "shared-microsoft",
-];
+] as const;
 
-export type StandardProvider = "github" | "facebook" | "slack" | "twitter" | "linkedin" | "google" | "microsoft";
+export type StandardProvider = "github" | "facebook" | "google" | "microsoft";
 export const standardProviders = [
   "github",
   "facebook",
-  "slack",
-  "twitter",
-  "linkedin",
   "google",
   "microsoft",
-];
+] as const;
 
 export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
   return provider.replace("shared-", "") as StandardProvider;
+}
+
+export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
+  return "shared-" + provider as SharedProvider;
 }
 
 

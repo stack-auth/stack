@@ -13,10 +13,7 @@ function toDBSharedProvider(type: SharedProvider): ProxiedOauthProviderType {
   return ({
     "shared-github": "GITHUB",
     "shared-google": "GOOGLE",
-    "shared-twitter": "TWITTER",
     "shared-facebook": "FACEBOOK",
-    "shared-linkedin": "LINKEDIN",
-    "shared-slack": "SLACK",
     "shared-microsoft": "MICROSOFT",
   } as const)[type];
 }
@@ -25,9 +22,6 @@ function toDBStandardProvider(type: StandardProvider): StandardOauthProviderType
   return ({
     "github": "GITHUB",
     "facebook": "FACEBOOK",
-    "slack": "SLACK",
-    "twitter": "TWITTER",
-    "linkedin": "LINKEDIN",
     "google": "GOOGLE",
     "microsoft": "MICROSOFT",
   } as const)[type];
@@ -37,10 +31,7 @@ function fromDBSharedProvider(type: ProxiedOauthProviderType): SharedProvider {
   return ({
     "GITHUB": "shared-github",
     "GOOGLE": "shared-google",
-    "TWITTER": "shared-twitter",
     "FACEBOOK": "shared-facebook",
-    "LINKEDIN": "shared-linkedin",
-    "SLACK": "shared-slack",
     "MICROSOFT": "shared-microsoft",
   } as const)[type];
 }
@@ -49,9 +40,6 @@ function fromDBStandardProvider(type: StandardOauthProviderType): StandardProvid
   return ({
     "GITHUB": "github",
     "FACEBOOK": "facebook",
-    "SLACK": "slack",
-    "TWITTER": "twitter",
-    "LINKEDIN": "linkedin",
     "GOOGLE": "google",
     "MICROSOFT": "microsoft",
   } as const)[type];
@@ -271,7 +259,7 @@ export async function updateProject(
     }));
 
     options.config.oauthProviders.forEach(providerConfig => {
-      if (sharedProviders.includes(providerConfig.type)) {
+      if (sharedProviders.includes(providerConfig.type as SharedProvider)) {
         transaction.push(prismaClient.oauthProviderConfig.create({
           data: {
             projectConfigId: project.config.id,
@@ -283,7 +271,7 @@ export async function updateProject(
             },
           },
         }));
-      } else if (standardProviders.includes(providerConfig.type)) {
+      } else if (standardProviders.includes(providerConfig.type as StandardProvider)) {
         // make typescript happy
         const typedProviderConfig = providerConfig as OauthProviderUpdateOptions & { type: StandardProvider };
 
