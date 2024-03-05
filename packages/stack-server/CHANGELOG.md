@@ -1,5 +1,11 @@
 # @stackframe/stack-server
 
+## 0.1.2
+
+### Patch Changes
+
+- @stackframe/stack@1.1.1
+
 ## 0.1.1
 
 ### Patch Changes
