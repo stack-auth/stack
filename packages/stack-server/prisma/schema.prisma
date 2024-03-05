@@ -37,8 +37,8 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost   Boolean
-  enableCredential Boolean
+  allowLocalhost    Boolean
+  credentialEnabled Boolean
 
   projects             Project[]
   oauthProviderConfigs OauthProviderConfig[]

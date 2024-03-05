@@ -40,6 +40,7 @@ export type UserJson = UserCustomizableJson & {
 
 export type ClientProjectJson = {
   readonly id: string,
+  readonly credentialEnabled: boolean,
   readonly oauthProviders: readonly {
     id: string,
   }[],
@@ -102,7 +103,7 @@ export type ProjectJson = Readonly<{
   evaluatedConfig: {
     id: string,
     allowLocalhost: boolean,
-    enableCredential: boolean,
+    credentialEnabled: boolean,
     oauthProviders: OauthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],

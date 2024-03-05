@@ -38,7 +38,7 @@ export type ProjectUpdateOptions = Readonly<{
       handlerPath: string,
     }[],
     oauthProviders?: OauthProviderUpdateOptions[],
-    enableCredential?: boolean,
+    credentialEnabled?: boolean,
   },
 }>
 

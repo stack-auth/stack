@@ -31,7 +31,7 @@ const putOrGetSchema = yup.object({
           tenantId: yup.string().optional(),
         })
       ).optional(),
-      enableCredential: yup.boolean().optional(),
+      credentialEnabled: yup.boolean().optional(),
     }).optional(),
   }).nullable(),
 });
@@ -82,7 +82,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
         }
       }),
-      enableCredential: update.config.enableCredential,
+      credentialEnabled: update.config.credentialEnabled,
     },
   };
 
@@ -102,6 +102,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     }
     const clientProject: ClientProjectJson = {
       id: project.id,
+      credentialEnabled: project.evaluatedConfig.credentialEnabled,
       oauthProviders: project.evaluatedConfig.oauthProviders.map(
         (provider) => ({
           id: provider.id,

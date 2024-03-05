@@ -12,6 +12,7 @@ import RedirectMessageCard from '../elements/RedirectMessageCard';
 export default function SignIn({ redirectUrl, fullPage=false }: { redirectUrl?: string, fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
+  const project = stackApp.useProject();
   
   if (user) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
@@ -28,8 +29,11 @@ export default function SignIn({ redirectUrl, fullPage=false }: { redirectUrl?: 
         </p>
       </CardHeader>
       <OauthGroup type='signin' redirectUrl={redirectUrl} />
-      <DividerWithText text={'OR'} />
-      <CredentialSignIn redirectUrl={redirectUrl} />
+      {project.credentialEnabled &&
+      <>
+        <DividerWithText text={'OR'} />
+        <CredentialSignIn redirectUrl={redirectUrl} />
+      </>}
     </CardFrame>
   );
 }

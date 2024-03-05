@@ -149,7 +149,7 @@ export async function listProjects(projectUser: ServerUserJson): Promise<Project
 
 export async function createProject(
   projectUser: ServerUserJson,
-  projectOptions: Pick<ProjectJson, "displayName" | "description"> & Pick<ProjectJson['evaluatedConfig'], 'allowLocalhost' | 'enableCredential'>
+  projectOptions: Pick<ProjectJson, "displayName" | "description"> & Pick<ProjectJson['evaluatedConfig'], 'allowLocalhost' | 'credentialEnabled'>
 ): Promise<ProjectJson> {
   if (projectUser.projectId !== "internal") {
     throw new Error("Only internal project users can create projects");
@@ -165,7 +165,7 @@ export async function createProject(
         config: {
           create: {
             allowLocalhost: projectOptions.allowLocalhost,
-            enableCredential: projectOptions.enableCredential,
+            credentialEnabled: projectOptions.credentialEnabled,
             oauthProviderConfigs: {
               create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
                 id,
@@ -307,11 +307,11 @@ export async function updateProject(
     });
   }
 
-  if (options.config?.enableCredential !== undefined) {
-    // Update enableCredential
+  if (options.config?.credentialEnabled !== undefined) {
+    // Update credentialEnabled
     transaction.push(prismaClient.projectConfig.update({
       where: { id: project.config.id },
-      data: { enableCredential: options.config.enableCredential },
+      data: { credentialEnabled: options.config.credentialEnabled },
     }));
   }
 
@@ -370,7 +370,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
     evaluatedConfig: {
       id: project.config.id,
       allowLocalhost: project.config.allowLocalhost,
-      enableCredential: project.config.enableCredential,
+      credentialEnabled: project.config.credentialEnabled,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,

@@ -12,6 +12,7 @@ import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -45,6 +46,15 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
 
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+  }
+
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found"); // This should never happen, make typescript happy
+  }
+
+  if (!project.evaluatedConfig.credentialEnabled) {
+    throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
   }
 
   // TODO: make this a transaction
@@ -84,11 +94,6 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
       refreshToken: refreshToken,
     },
   });
-
-  const project = await getProject(projectId);
-  if (!project) {
-    throw new Error("Project not found"); // This should never happen, make typescript happy
-  }
 
   if (
     !validateUrl(

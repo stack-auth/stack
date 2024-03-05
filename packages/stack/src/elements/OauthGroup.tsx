@@ -10,9 +10,7 @@ export default function OauthGroup({
 }) {
   const stackApp = useStackApp();
   const project = stackApp.useProject();
-  if (!project) {
-    return null;
-  }
+
   return (
     <div className="wl_space-y-4 wl_flex wl_flex-col wl_items-stretch">
       {project.oauthProviders.map(({ id }) => (

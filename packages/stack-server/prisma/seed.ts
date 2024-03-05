@@ -46,7 +46,7 @@ async function seed() {
               }
             }
           },
-          enableCredential: true,
+          credentialEnabled: true,
         },
       },
     },

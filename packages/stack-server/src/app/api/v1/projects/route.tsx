@@ -60,7 +60,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Invalid project user");
   }
 
-  const project = await createProject(projectUser, { displayName, description, allowLocalhost: true, enableCredential: false });
+  const project = await createProject(projectUser, { displayName, description, allowLocalhost: true, credentialEnabled: false });
 
   return NextResponse.json(project);
 });

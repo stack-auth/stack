@@ -12,6 +12,7 @@ import { sendPasswordResetEmail } from "@/email";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -40,6 +41,15 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
     throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
   }
 
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found"); // This should never happen, make typescript happy
+  }
+
+  if (!project.evaluatedConfig.credentialEnabled) {
+    throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
+  }
+
   const user = await prismaClient.projectUser.findFirst({
     where: {
       projectId,
@@ -52,11 +62,6 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
 
   if (!user) {
     throw new KnownError(UserNotExistErrorCode);
-  }
-
-  const project = await getProject(projectId);
-  if (!project) {
-    throw new Error("Project not found"); // This should never happen, make typescript happy
   }
 
   if (

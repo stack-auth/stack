@@ -7,6 +7,8 @@ import { prismaClient } from "@/prisma-client";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { encodeAccessToken } from "@/lib/access-token";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
+import { getProject } from "@/lib/projects";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -33,6 +35,15 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
 
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+  }
+
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found"); // This should never happen, make typescript happy
+  }
+
+  if (!project.evaluatedConfig.credentialEnabled) {
+    throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
   }
 
   const user = await prismaClient.projectUser.findFirst({

@@ -35,11 +35,11 @@ export default function ProvidersClient() {
         <SimpleCard title="Password authentication">
           <Paragraph body>
             <SmartSwitch
-              checked={project.evaluatedConfig.enableCredential}
+              checked={project.evaluatedConfig.credentialEnabled}
               onChange={async (event) => {
                 await stackAdminApp.updateProject({
                   config: {
-                    enableCredential: event.target.checked,
+                    credentialEnabled: event.target.checked,
                   },
                 });
                 setInvalidationCounter((counter) => counter + 1);
