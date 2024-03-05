@@ -1,6 +1,7 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./oauth-base";
 import { OauthUserInfo, validateUserInfo } from "./utils";
+import { validateEmail } from "@stackframe/stack";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   constructor({
@@ -26,6 +27,9 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
+    const url = new URL('https://graph.microsoft.com/v1.0/me');
+    url.searchParams.append('select', 'id,displayName,mail,identities');
+
     const rawUserInfo = await fetch(
       'https://graph.microsoft.com/v1.0/me',
       {
@@ -37,9 +41,18 @@ export class MicrosoftProvider extends OAuthBaseProvider {
 
     console.log(rawUserInfo);
 
-    let email = rawUserInfo.mail || rawUserInfo.userPrincipalName;
-    if (!email) {
-      throw new Error("Microsoft Graph API did not return email address");
+    let email = rawUserInfo.mail;
+    if (!email && rawUserInfo.identities) {
+      const emailIdentity = rawUserInfo.identities.find((identity: any) => identity.signInType === 'emailAddress');
+      if (emailIdentity) {
+        email = emailIdentity.issuerAssignedId;
+      }
+    }
+    if (!email && rawUserInfo.userPrincipalName) {
+      email = rawUserInfo.userPrincipalName.split('#')[0];
+    }
+    if (!email || !validateEmail(email)) {
+      throw new Error('Unable to find email address');
     }
 
     return validateUserInfo({
