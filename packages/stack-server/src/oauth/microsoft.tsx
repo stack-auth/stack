@@ -38,15 +38,11 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       }
     ).then(res => res.json());
 
-    let email = rawUserInfo.mail;
+    console.log(rawUserInfo);
+
+    let email = rawUserInfo.mail || rawUserInfo.userPrincipalName;
     if (!email) {
-      email = rawUserInfo.identities.find((identity: any) => {
-        if (identity.signInType === 'emailAddress') {
-          rawUserInfo.mail = identity.issuerAssignedId;
-          return true;
-        }
-        return false;
-      });
+      throw new Error("Microsoft Graph API did not return email address");
     }
 
     return validateUserInfo({
