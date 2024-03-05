@@ -26,14 +26,28 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
+    const url = new URL('https://graph.microsoft.com/v1.0/me');
+    url.searchParams.append('$select', 'id,displayName,mail,identities');
+
     const rawUserInfo = await fetch(
-      'https://graph.microsoft.com/v1.0/me/',
+      url.toString(),
       {
         headers: {
           Authorization: `Bearer ${tokenSet.access_token}`,
         },
       }
     ).then(res => res.json());
+
+    let email = rawUserInfo.mail;
+    if (!email) {
+      email = rawUserInfo.identities.find((identity: any) => {
+        if (identity.signInType === 'emailAddress') {
+          rawUserInfo.mail = identity.issuerAssignedId;
+          return true;
+        }
+        return false;
+      });
+    }
 
     return validateUserInfo({
       accountId: rawUserInfo.id,
