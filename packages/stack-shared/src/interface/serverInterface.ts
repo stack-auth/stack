@@ -6,9 +6,9 @@ import {
   StackClientInterface, 
 } from "./clientInterface";
 import { Result } from "../utils/results";
-import { ReadonlyJson } from "../utils/types";
 import { AsyncCache } from "../utils/caches";
 import { runAsynchronously } from "../utils/promises";
+import { ReadonlyJson } from "../utils/json";
 
 export type ServerUserJson = UserJson & {
   readonly serverMetadata: ReadonlyJson,

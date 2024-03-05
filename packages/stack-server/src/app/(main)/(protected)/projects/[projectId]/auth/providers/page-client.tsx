@@ -1,7 +1,7 @@
 "use client";
 
 import { AccordionGroup, Card, CardOverflow } from "@mui/joy";
-import { use } from "react";
+import { use, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SmartSwitch } from "@/components/smart-switch";
@@ -11,10 +11,11 @@ import { ProviderAccordion, CreationType, allCreationTypes, getCreationType } fr
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
+  const [invalidationCounter, setInvalidationCounter] = useState(0);
 
   const projectPromise = useStrictMemo(async () => {
     return await stackAdminApp.getProject();
-  }, [stackAdminApp]);
+  }, [stackAdminApp, invalidationCounter]);
   const project = use(projectPromise);
 
   const oauthProviders = project.evaluatedConfig.oauthProviders;
@@ -34,9 +35,14 @@ export default function ProvidersClient() {
         <SimpleCard title="Password authentication">
           <Paragraph body>
             <SmartSwitch
-              checked={false}
+              checked={project.evaluatedConfig.enableCredential}
               onChange={async (event) => {
-                alert("Not implemented yet");
+                await stackAdminApp.updateProject({
+                  config: {
+                    enableCredential: event.target.checked,
+                  },
+                });
+                setInvalidationCounter((counter) => counter + 1);
               }}
             >
               Enable password authentication

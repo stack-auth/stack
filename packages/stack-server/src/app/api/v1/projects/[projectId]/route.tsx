@@ -4,8 +4,9 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin, updateProject } from "@/lib/projects";
-import { ClientProjectJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
+import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 
 const putOrGetSchema = yup.object({
   headers: yup.object({
@@ -15,13 +16,23 @@ const putOrGetSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    isProductionMode: yup.boolean().default(undefined),
+    isProductionMode: yup.boolean().optional(),
     config: yup.object({
       domains: yup.array(yup.object({
         domain: yup.string().required(),
         handlerPath: yup.string().required(),
-      })).default(undefined),
-    }).default(undefined),
+      })).optional(),
+      oauthProviders: yup.array(
+        yup.object({
+          id: yup.string().required(),
+          type: yup.string().required(),
+          clientId: yup.string().optional(),
+          clientSecret: yup.string().optional(),
+          tenantId: yup.string().optional(),
+        })
+      ).optional(),
+      enableCredential: yup.boolean().optional(),
+    }).optional(),
   }).nullable(),
 });
 
@@ -42,10 +53,43 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
   const saValid = await checkApiKeySet(projectId, { superSecretAdminKey });
 
+  const typedUpdate: ProjectUpdateOptions = {
+    isProductionMode: update.isProductionMode,
+    config: update.config && {
+      domains: update.config.domains,
+      oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
+        if (sharedProviders.includes(provider.type)) {
+          return {
+            id: provider.id,
+            type: provider.type as SharedProvider,
+          };
+        } else if (standardProviders.includes(provider.type)) {
+          if (!provider.clientId) {
+            throw new StatusError(StatusError.BadRequest, "Missing clientId");
+          }
+          if (!provider.clientSecret) {
+            throw new StatusError(StatusError.BadRequest, "Missing clientSecret");
+          }
+          
+          return {
+            id: provider.id,
+            type: provider.type as StandardProvider,
+            clientId: provider.clientId,
+            clientSecret: provider.clientSecret,
+            tenantId: provider.tenantId,
+          };
+        } else {
+          throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
+        }
+      }),
+      enableCredential: update.config.enableCredential,
+    },
+  };
+
   if (asValid || saValid) {
     const project = await updateProject(
       projectId,
-      update,
+      typedUpdate,
     );
     return NextResponse.json(project);
   } else if (asValid || pkValid) {

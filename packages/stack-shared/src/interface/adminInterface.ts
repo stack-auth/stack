@@ -1,7 +1,8 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 import { AsyncValueCache } from "../utils/caches";
-import { ProjectJson, TokenStore } from "./clientInterface";
+import { ProjectJson, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
 import { throwErr } from "../utils/errors";
+import { ReadonlyJson } from "../utils/json";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -14,6 +15,32 @@ export type AdminAuthApplicationOptions = Readonly<
     }
   )
 >
+
+export type OauthProviderUpdateOptions = {
+  id: string,
+} & (
+  | {
+    type: SharedProvider,
+  }
+  | {
+    type: StandardProvider,
+    clientId: string,
+    clientSecret: string,
+    tenantId?: string,
+  }
+)
+
+export type ProjectUpdateOptions = Readonly<{
+  isProductionMode?: boolean,
+  config?: {
+    domains?: {
+      domain: string,
+      handlerPath: string,
+    }[],
+    oauthProviders?: OauthProviderUpdateOptions[],
+    enableCredential?: boolean,
+  },
+}>
 
 export type ApiKeySetBase = Readonly<{
   id: string,
@@ -118,17 +145,7 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async updateProject(
-    update: {
-      isProductionMode?: boolean,
-      config?: {
-        domains?: {
-          domain: string,
-          handlerPath: string,
-        }[],
-      },
-    },
-  ): Promise<ProjectJson> {
+  async updateProject(update: ProjectUpdateOptions): Promise<ProjectJson> {
     const response = await this.sendAdminRequest(
       "/projects/" + encodeURIComponent(this.projectId),
       {

@@ -1,7 +1,6 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./oauth-base";
 import { OauthUserInfo, validateUserInfo } from "./utils";
-import { validateEmail } from "@stackframe/stack";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   constructor({

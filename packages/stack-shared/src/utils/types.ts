@@ -1,15 +1,6 @@
 import { StatusError } from "./errors";
-import { stringifyJson } from "./json";
 
 // TODO: make this file less redundant
-
-export type ReadonlyJson =
-  | null
-  | boolean
-  | number
-  | string
-  | readonly ReadonlyJson[]
-  | { readonly [key: string]: ReadonlyJson };
 
 export const AccessTokenExpiredErrorCode = "ACCESS_TOKEN_EXPIRED";
 export const GrantInvalidErrorCode = "GRANT_INVALID";

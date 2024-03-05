@@ -3,7 +3,6 @@ import crypto from "crypto";
 
 import { 
   AccessTokenExpiredErrorCode, 
-  ReadonlyJson, 
   GrantInvalidErrorCode, 
   SignInErrorCode, 
   SignUpErrorCode, 
@@ -17,7 +16,7 @@ import {
   PasswordResetLinkErrorCode
 } from "../utils/types";
 import { Result } from "../utils/results";
-import { parseJson } from '../utils/json';
+import { ReadonlyJson, parseJson } from '../utils/json';
 import { AsyncCache, AsyncValueCache } from '../utils/caches';
 import { typedAssign } from '../utils/objects';
 import { AsyncStore } from '../utils/stores';
@@ -55,6 +54,32 @@ export type ClientInterfaceOptions = {
   readonly internalAdminAccessToken: string,
 });
 
+export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-slack" | "shared-twitter" | "shared-linkedin" | "shared-microsoft";
+export const sharedProviders = [
+  "shared-github",
+  "shared-google",
+  "shared-facebook",
+  "shared-slack",
+  "shared-twitter",
+  "shared-linkedin",
+  "shared-microsoft",
+];
+
+export type StandardProvider = "github" | "facebook" | "slack" | "twitter" | "linkedin" | "google" | "microsoft";
+export const standardProviders = [
+  "github",
+  "facebook",
+  "slack",
+  "twitter",
+  "linkedin",
+  "google",
+  "microsoft",
+];
+
+export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
+  return provider.replace("shared-", "") as StandardProvider;
+}
+
 
 function getSessionCookieName(projectId: string) {
   return "__stack-token-" + crypto.createHash("sha256").update(projectId).digest("hex");
@@ -77,6 +102,7 @@ export type ProjectJson = Readonly<{
   evaluatedConfig: {
     id: string,
     allowLocalhost: boolean,
+    enableCredential: boolean,
     oauthProviders: OauthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
@@ -86,25 +112,9 @@ export type ProjectJson = Readonly<{
 export type OauthProviderConfigJson = {
   id: string,
 } & (
+  | { type: SharedProvider }
   | {
-    type:
-      | "shared-github"
-      | "shared-google"
-      | "shared-facebook"
-      | "shared-slack"
-      | "shared-twitter"
-      | "shared-linkedin"
-      | "shared-microsoft",
-  }
-  | {
-    type:
-      | "github"
-      | "facebook"
-      | "slack"
-      | "twitter"
-      | "linkedin"
-      | "google"
-      | "microsoft",
+    type: StandardProvider,
     clientId: string,
     clientSecret: string,
     tenantId?: string,

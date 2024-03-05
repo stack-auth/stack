@@ -45,7 +45,8 @@ async function seed() {
                 create: {}
               }
             }
-          }
+          },
+          enableCredential: true,
         },
       },
     },

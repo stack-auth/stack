@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noErrorTruncation": true,
     "plugins": [
       {
         "name": "next"

@@ -1,11 +1,62 @@
 import { OauthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProxiedOauthProviderType, StandardOauthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./access-token";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+
+
+function toDBSharedProvider(type: SharedProvider): ProxiedOauthProviderType {
+  return ({
+    "shared-github": "GITHUB",
+    "shared-google": "GOOGLE",
+    "shared-twitter": "TWITTER",
+    "shared-facebook": "FACEBOOK",
+    "shared-linkedin": "LINKEDIN",
+    "shared-slack": "SLACK",
+    "shared-microsoft": "MICROSOFT",
+  } as const)[type];
+}
+
+function toDBStandardProvider(type: StandardProvider): StandardOauthProviderType {
+  return ({
+    "github": "GITHUB",
+    "facebook": "FACEBOOK",
+    "slack": "SLACK",
+    "twitter": "TWITTER",
+    "linkedin": "LINKEDIN",
+    "google": "GOOGLE",
+    "microsoft": "MICROSOFT",
+  } as const)[type];
+}
+
+function fromDBSharedProvider(type: ProxiedOauthProviderType): SharedProvider {
+  return ({
+    "GITHUB": "shared-github",
+    "GOOGLE": "shared-google",
+    "TWITTER": "shared-twitter",
+    "FACEBOOK": "shared-facebook",
+    "LINKEDIN": "shared-linkedin",
+    "SLACK": "shared-slack",
+    "MICROSOFT": "shared-microsoft",
+  } as const)[type];
+}
+
+function fromDBStandardProvider(type: StandardOauthProviderType): StandardProvider {
+  return ({
+    "GITHUB": "github",
+    "FACEBOOK": "facebook",
+    "SLACK": "slack",
+    "TWITTER": "twitter",
+    "LINKEDIN": "linkedin",
+    "GOOGLE": "google",
+    "MICROSOFT": "microsoft",
+  } as const)[type];
+}
+
 
 const fullProjectInclude = {
   config: {
@@ -98,7 +149,7 @@ export async function listProjects(projectUser: ServerUserJson): Promise<Project
 
 export async function createProject(
   projectUser: ServerUserJson,
-  projectOptions: Pick<ProjectJson, "displayName" | "description"> & Pick<ProjectJson['evaluatedConfig'], 'allowLocalhost'>
+  projectOptions: Pick<ProjectJson, "displayName" | "description"> & Pick<ProjectJson['evaluatedConfig'], 'allowLocalhost' | 'enableCredential'>
 ): Promise<ProjectJson> {
   if (projectUser.projectId !== "internal") {
     throw new Error("Only internal project users can create projects");
@@ -114,6 +165,7 @@ export async function createProject(
         config: {
           create: {
             allowLocalhost: projectOptions.allowLocalhost,
+            enableCredential: projectOptions.enableCredential,
             oauthProviderConfigs: {
               create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
                 id,
@@ -124,7 +176,7 @@ export async function createProject(
                 },
                 projectUserOauthAccounts: {
                   create: []
-                }
+                },
               })),
             },
           },
@@ -174,80 +226,115 @@ export async function getProject(projectId: string): Promise<ProjectJson | null>
 
 export async function updateProject(
   projectId: string,
-  options: {
-    isProductionMode?: boolean,
-    config?: {
-      domains: {
-        domain: string,
-        handlerPath: string,
-      }[],
-    },
-  }
+  options: ProjectUpdateOptions
 ): Promise<ProjectJson | null> {
   // TODO: Validate production mode consistency
-
   const transaction = [];
+
+  const project = await prismaClient.project.findUnique({
+    where: { id: projectId },
+    include: fullProjectInclude,
+  });
+
+  if (!project) {
+    return null;
+  }
 
   if (options.config?.domains) {
     // Fetch current domains
     const currentDomains = await prismaClient.projectDomain.findMany({
-      where: { projectConfigId: projectId },
+      where: { projectConfigId: project.config.id },
     });
 
     const newDomains = options.config.domains;
 
-    // Determine domains to be added or updated
+    // delete existing domains
+    transaction.push(prismaClient.projectDomain.deleteMany({
+      where: { projectConfigId: projectId },
+    }));
+
+    // create new domains
     newDomains.forEach(domainConfig => {
-      const existingDomain = currentDomains.find(d => d.domain === domainConfig.domain);
-      if (existingDomain) {
-        // Update existing domain
-        transaction.push(prismaClient.projectDomain.update({
-          where: { projectConfigId_domain: { projectConfigId: projectId, domain: domainConfig.domain } },
-          data: { handlerPath: domainConfig.handlerPath },
-        }));
-      } else {
-        // Create new domain
-        transaction.push(prismaClient.projectDomain.create({
+      transaction.push(prismaClient.projectDomain.create({
+        data: {
+          projectConfigId: projectId,
+          domain: domainConfig.domain,
+          handlerPath: domainConfig.handlerPath,
+        },
+      }));
+    });
+  }
+
+  if (options.config?.oauthProviders) {
+    transaction.push(prismaClient.oauthProviderConfig.deleteMany({
+      where: { projectConfigId: project.config.id },
+    }));
+
+    options.config.oauthProviders.forEach(providerConfig => {
+      if (sharedProviders.includes(providerConfig.type)) {
+        transaction.push(prismaClient.oauthProviderConfig.create({
           data: {
-            projectConfigId: projectId,
-            domain: domainConfig.domain,
-            handlerPath: domainConfig.handlerPath,
+            projectConfigId: project.config.id,
+            id: providerConfig.id,
+            proxiedOauthConfig: {
+              create: {
+                type: toDBSharedProvider(providerConfig.type as SharedProvider),
+              },
+            },
           },
         }));
-      }
-    });
+      } else if (standardProviders.includes(providerConfig.type)) {
+        // make typescript happy
+        const typedProviderConfig = providerConfig as OauthProviderUpdateOptions & { type: StandardProvider };
 
-    // Determine domains to be removed
-    currentDomains.forEach(currentDomain => {
-      if (!newDomains.some(domainConfig => domainConfig.domain === currentDomain.domain)) {
-        // Delete domain not present in new list
-        transaction.push(prismaClient.projectDomain.delete({
-          where: { projectConfigId_domain: { projectConfigId: projectId, domain: currentDomain.domain } },
+        transaction.push(prismaClient.oauthProviderConfig.create({
+          data: {
+            projectConfigId: project.config.id,
+            id: providerConfig.id,
+            standardOauthConfig: {
+              create: {
+                type: toDBStandardProvider(providerConfig.type as StandardProvider),
+                clientId: typedProviderConfig.clientId,
+                clientSecret: typedProviderConfig.clientSecret,
+                tenantId: typedProviderConfig.tenantId,
+              },
+            },
+          },
         }));
+      } else {
+        console.error(`Invalid provider type '${providerConfig.type}'`);
       }
     });
   }
 
-  // Update project and run transaction
-  const projectUpdatePromise = prismaClient.project.update({
-    where: { id: projectId },
-    data: {
-      isProductionMode: options.isProductionMode,
-      // Other updates can be applied here
-    },
-    include: fullProjectInclude, // Ensure you have defined this include object correctly elsewhere
-  });
+  if (options.config?.enableCredential !== undefined) {
+    // Update enableCredential
+    transaction.push(prismaClient.projectConfig.update({
+      where: { id: project.config.id },
+      data: { enableCredential: options.config.enableCredential },
+    }));
+  }
 
-  transaction.push(projectUpdatePromise);
+  if (options.isProductionMode !== undefined) {
+    // Update production mode
+    transaction.push(prismaClient.project.update({
+      where: { id: projectId },
+      data: { isProductionMode: options.isProductionMode },
+    }));
+  }
 
   const result = await prismaClient.$transaction(transaction);
-  const updatedProject = result.pop(); // The last item is the updated project
+  
+  const updatedProject = await prismaClient.project.findUnique({
+    where: { id: projectId },
+    include: fullProjectInclude, // Ensure you have defined this include object correctly elsewhere
+  });
 
   if (!updatedProject) {
     return null;
   }
 
-  return projectJsonFromDbType(updatedProject); // Ensure this function is implemented correctly
+  return projectJsonFromDbType(updatedProject);
 }
 
 function projectJsonFromDbType(project: ProjectDB): ProjectJson {
@@ -283,6 +370,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
     evaluatedConfig: {
       id: project.config.id,
       allowLocalhost: project.config.allowLocalhost,
+      enableCredential: project.config.enableCredential,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,
@@ -291,29 +379,13 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         if (provider.proxiedOauthConfig) {
           return [{
             id: provider.id,
-            type: ({
-              "GITHUB": "shared-github",
-              "GOOGLE": "shared-google",
-              "TWITTER": "shared-twitter",
-              "FACEBOOK": "shared-facebook",
-              "LINKEDIN": "shared-linkedin",
-              "SLACK": "shared-slack",
-              "MICROSOFT": "shared-microsoft",
-            } as const)[provider.proxiedOauthConfig.type],
+            type: fromDBSharedProvider(provider.proxiedOauthConfig.type),
           }];
         }
         if (provider.standardOauthConfig) {
           return [{
             id: provider.id,
-            type: ({
-              "GITHUB": "github",
-              "FACEBOOK": "facebook",
-              "SLACK": "slack",
-              "TWITTER": "twitter",
-              "LINKEDIN": "linkedin",
-              "GOOGLE": "google",
-              "MICROSOFT": "microsoft",
-            } as const)[provider.standardOauthConfig.type],
+            type: fromDBStandardProvider(provider.standardOauthConfig.type),
             clientId: provider.standardOauthConfig.clientId,
             clientSecret: provider.standardOauthConfig.clientSecret,
             tenantId: provider.standardOauthConfig.tenantId || undefined,
