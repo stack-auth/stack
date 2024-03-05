@@ -26,11 +26,8 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
-    const url = new URL('https://graph.microsoft.com/v1.0/me');
-    url.searchParams.append('$select', 'id,displayName,mail,identities');
-
     const rawUserInfo = await fetch(
-      url.toString(),
+      'https://graph.microsoft.com/v1.0/me',
       {
         headers: {
           Authorization: `Bearer ${tokenSet.access_token}`,
