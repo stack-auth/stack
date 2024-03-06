@@ -34,6 +34,7 @@ const putOrGetSchema = yup.object({
         })
       ).optional(),
       credentialEnabled: yup.boolean().optional(),
+      allowLocalhost: yup.boolean().optional(),
     }).optional(),
   }).nullable(),
 });
@@ -47,7 +48,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await parseRequest(req, putOrGetSchema);
+  } = await parseRequest(req, putOrGetSchema);  
 
   const { showDisabledOauth, ...update } = body ?? {};
 
@@ -59,6 +60,8 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     isProductionMode: update.isProductionMode,
     config: update.config && {
       domains: update.config.domains,
+      allowLocalhost: update.config.allowLocalhost,
+      credentialEnabled: update.config.credentialEnabled,
       oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
         if (sharedProviders.includes(provider.type as SharedProvider)) {
           return {
@@ -86,7 +89,6 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
         }
       }),
-      credentialEnabled: update.config.credentialEnabled,
     },
   };
 

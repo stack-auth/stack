@@ -1,6 +1,6 @@
 "use client";
 
-import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel } from "@mui/joy";
+import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Checkbox, Typography, Box } from "@mui/joy";
 import React, { use, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
@@ -9,6 +9,7 @@ import { AsyncButton } from "@/components/async-button";
 import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../useAdminInterface";
+import { SmartSwitch } from "@/components/smart-switch";
 
 export default function UrlsAndCallbacksClient() {
   const stackAdminApp = useAdminApp();
@@ -32,47 +33,59 @@ export default function UrlsAndCallbacksClient() {
 
   return (
     <>
-      <Paragraph h1>
-        Domains and Handler
-      </Paragraph>
+      <SimpleCard title="Your Domains and Handler">
+        <Box sx={{ my: 2 }}>
+          <SmartSwitch
+            checked={project.evaluatedConfig.allowLocalhost}
+            onChange={async (event) => {
+              await stackAdminApp.updateProject({
+                config: {
+                  allowLocalhost: event.target.checked,
+                },
+              });
+              setInvalidationCounter(invalidationCounter + 1);
+            }}
+          >
+            <Typography>Allow all localhost callbacks for development</Typography>
+          </SmartSwitch>
+        </Box>
 
-      <SimpleCard title="Allowed Oauth callback URLs">
-        <Paragraph sidenote sx={{ mt: 0 }}>
-          Please put in a list of your domains that you control and run the handler on.
-        </Paragraph>
+        {domains.size >= 0 || (
+          <List
+            variant="soft"
+            sx={{
+              "--List-radius": "9px"
+            }}
+          >
+            {[...domains].map(({ domain }, i) => (
+              <React.Fragment key={domain}>
+                {i !== 0 && <ListDivider />}
+                <ListItem
+                  endAction={
+                    <IconButton
+                      aria-label="Delete"
+                      size="sm"
+                      color="danger"
+                      onClick={() => setDeleteDialogDomain(domain)}
+                    >
+                      <Icon icon="delete" />
+                    </IconButton>
+                  }
+                >
+                  {domain}
+                </ListItem>
+              </React.Fragment>
+            ))}
+          </List>
+        )}
 
-        <List
-          variant="soft"
-          sx={{
-            "--List-radius": "9px"
-          }}
-        >
-          {[...domains].map(({ domain }, i) => (
-            <React.Fragment key={domain}>
-              {i !== 0 && <ListDivider />}
-              <ListItem
-                endAction={
-                  <IconButton
-                    aria-label="Delete"
-                    size="sm"
-                    color="danger"
-                    onClick={() => setDeleteDialogDomain(domain)}
-                  >
-                    <Icon icon="delete" />
-                  </IconButton>
-                }
-              >
-                {domain}
-              </ListItem>
-            </React.Fragment>
-          ))}
-        </List>
         <AsyncButton
           onClick={() => setAddNewDialogOpen(true)}
-          variant="plain"
+          variant="soft"
           color="neutral"
+          sx={{ mt: 3 }}
         >
-          Add new prefix
+          Add new domain
         </AsyncButton>
       </SimpleCard>
 

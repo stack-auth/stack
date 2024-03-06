@@ -56,7 +56,7 @@ export default function EnvironmentClient() {
           }}
         >
           <Typography>
-                Enable production mode
+            Enable production mode
           </Typography>
         </SmartSwitch>
         

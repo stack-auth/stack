@@ -39,6 +39,7 @@ export type ProjectUpdateOptions = Readonly<{
     }[],
     oauthProviders?: OauthProviderUpdateOptions[],
     credentialEnabled?: boolean,
+    allowLocalhost?: boolean,
   },
 }>
 
@@ -131,7 +132,7 @@ export class StackAdminInterface extends StackServerInterface {
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify(options || {}),
+        body: JSON.stringify(options ?? {}),
       },
       null,
     );

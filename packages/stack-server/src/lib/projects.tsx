@@ -358,11 +358,19 @@ export async function updateProject(
     }
   }
 
+  // Update credentialEnabled
   if (options.config?.credentialEnabled !== undefined) {
-    // Update credentialEnabled
     transaction.push(prismaClient.projectConfig.update({
       where: { id: project.config.id },
       data: { credentialEnabled: options.config.credentialEnabled },
+    }));
+  }
+
+  // Update allowLocalhost
+  if (options.config?.allowLocalhost !== undefined) {
+    transaction.push(prismaClient.projectConfig.update({
+      where: { id: project.config.id },
+      data: { allowLocalhost: options.config.allowLocalhost },
     }));
   }
 
