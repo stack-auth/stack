@@ -13,7 +13,8 @@ import {
   EmailVerificationLinkErrorCode,
   EmailVerificationLinkErrorCodes,
   PasswordResetLinkErrorCodes,
-  PasswordResetLinkErrorCode
+  PasswordResetLinkErrorCode,
+  KnownErrorCode,
 } from "../utils/types";
 import { AsyncResult, Result } from "../utils/results";
 import { ReadonlyJson, parseJson } from '../utils/json';
@@ -254,16 +255,16 @@ export class StackClientInterface {
     );
   }
 
-  protected async sendClientRequestAndCatchKnownError<E>(
+  protected async sendClientRequestAndCatchKnownError<E extends KnownErrorCode>(
     path: string, 
     requestOptions: RequestInit, 
     tokenStoreOrNull: TokenStore | null,
-    errorCodes: string[],
+    errorCodes: readonly E[],
   ) {
     try {
       return Result.ok(await this.sendClientRequest(path, requestOptions, tokenStoreOrNull));
     } catch (e) {
-      if (e instanceof KnownError && errorCodes.includes(e.errorCode)) {
+      if (e instanceof KnownError && errorCodes.some(code => code === (e as KnownError).errorCode)) {
         return Result.error(e.errorCode as E);
       }
       throw e;

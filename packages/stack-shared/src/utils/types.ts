@@ -1,7 +1,5 @@
 import { StatusError } from "./errors";
 
-// TODO: make this file less redundant
-
 export const AccessTokenExpiredErrorCode = "ACCESS_TOKEN_EXPIRED";
 export const GrantInvalidErrorCode = "GRANT_INVALID";
 export const UserAlreadyExistErrorCode = "USER_ALREADY_EXIST";
@@ -18,22 +16,6 @@ export const PasswordResetLinkInvalidErrorCode = "PASSWORD_RESET_LINK_INVALID";
 export const PasswordResetLinkExpiredErrorCode = "PASSWORD_RESET_LINK_EXPIRED";
 export const PasswordResetLinkUsedErrorCode = "PASSWORD_RESET_LINK_USED";
 
-export type KnownErrorCode =
-  | typeof GrantInvalidErrorCode
-  | typeof AccessTokenExpiredErrorCode 
-  | typeof UserAlreadyExistErrorCode 
-  | typeof UserNotExistErrorCode 
-  | typeof UserNotVerifiedErrorCode 
-  | typeof EmailPasswordMissMatchErrorCode
-  | typeof RedirectUrlInvalidErrorCode
-  | typeof PasswordFormatInvalidErrorCode
-  | typeof ProjectIdOrKeyInvalidErrorCode
-  | typeof EmailVerificationLinkInvalidErrorCode
-  | typeof EmailVerificationLinkExpiredErrorCode
-  | typeof EmailVerificationLinkUsedErrorCode
-  | typeof PasswordResetLinkInvalidErrorCode
-  | typeof PasswordResetLinkExpiredErrorCode
-  | typeof PasswordResetLinkUsedErrorCode
 export const KnownErrorCodes = [
   AccessTokenExpiredErrorCode,
   GrantInvalidErrorCode,
@@ -50,33 +32,31 @@ export const KnownErrorCodes = [
   PasswordResetLinkInvalidErrorCode,
   PasswordResetLinkExpiredErrorCode,
   PasswordResetLinkUsedErrorCode,
-];
+] as const;
+export type KnownErrorCode = typeof KnownErrorCodes[number];
 
-export type SignUpErrorCode = typeof UserAlreadyExistErrorCode
-export const SignUpErrorCodes = [UserAlreadyExistErrorCode];
+export const SignUpErrorCodes = [UserAlreadyExistErrorCode] as const;
+export type SignUpErrorCode = typeof SignUpErrorCodes[number];
 
-export type SignInErrorCode = typeof EmailPasswordMissMatchErrorCode 
-  | typeof UserNotExistErrorCode
 export const SignInErrorCodes = [
   EmailPasswordMissMatchErrorCode, 
   UserNotExistErrorCode
-];
+] as const;
+export type SignInErrorCode = typeof SignInErrorCodes[number];
 
-export type EmailVerificationLinkErrorCode = typeof EmailVerificationLinkInvalidErrorCode 
-  | typeof EmailVerificationLinkExpiredErrorCode | typeof EmailVerificationLinkUsedErrorCode
 export const EmailVerificationLinkErrorCodes = [
   EmailVerificationLinkInvalidErrorCode, 
   EmailVerificationLinkExpiredErrorCode, 
   EmailVerificationLinkUsedErrorCode
-];
+] as const;
+export type EmailVerificationLinkErrorCode = typeof EmailVerificationLinkErrorCodes[number]
 
-export type PasswordResetLinkErrorCode = typeof PasswordResetLinkInvalidErrorCode 
-  | typeof PasswordResetLinkExpiredErrorCode | typeof PasswordResetLinkUsedErrorCode
 export const PasswordResetLinkErrorCodes = [
   PasswordResetLinkInvalidErrorCode, 
   PasswordResetLinkExpiredErrorCode, 
   PasswordResetLinkUsedErrorCode
-];
+] as const;
+export type PasswordResetLinkErrorCode = typeof PasswordResetLinkErrorCodes[number]
 
 export class KnownError extends StatusError {
   constructor(public readonly errorCode: KnownErrorCode) {
