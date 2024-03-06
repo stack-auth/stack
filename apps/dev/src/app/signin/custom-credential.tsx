@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 'use client';
-import { useStackApp, validateEmail } from "@stackframe/stack";
+import { useStackApp } from "@stackframe/stack";
 import { useState } from "react";
 
 export default function CustomCredentialSignIn() {
@@ -10,10 +10,6 @@ export default function CustomCredentialSignIn() {
   const app = useStackApp();
 
   const onSubmit = async () => {
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email');
-      return;
-    }
     if (!password) {
       setError('Please enter your password');
       return;

@@ -9,7 +9,6 @@ export { default as StackHandler } from "./components/StackHandler";
 export { default as EmailVerification } from "./components/EmailVerification";
 export { default as PasswordReset } from "./components/PasswordReset";
 export { default as ForgotPassword } from "./components/ForgotPassword";
-export { validateEmail } from "./utils/email";
 
 // TODO we can't import it like this
 import '../dist/tailwind.css';
