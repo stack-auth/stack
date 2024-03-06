@@ -669,11 +669,16 @@ export class StackClientInterface {
 
 export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
   const errors: ProductionModeError[] = [];
+  const fixUrlRelative = `/projects/${encodeURIComponent(project.id)}/auth/urls-and-callbacks`;
 
-  for (const { domain, handlerPath } of project.evaluatedConfig.domains) {
-    // TODO: check if handlerPath is valid
-    const fixUrlRelative = `/projects/${encodeURIComponent(project.id)}/auth/urls-and-callbacks`;
+  if (project.evaluatedConfig.allowLocalhost) {
+    errors.push({
+      errorMessage: "Localhost is not allowed in production mode, turn off 'Allow localhost' in project settings",
+      fixUrlRelative,
+    });
+  }
 
+  for (const { domain } of project.evaluatedConfig.domains) {
     let url;
     try {
       url = new URL(domain);
@@ -697,7 +702,7 @@ export function getProductionModeErrors(project: ProjectJson): ProductionModeErr
       });
     } else if (url.protocol !== "https:") {
       errors.push({
-        errorMessage: "Auth callback prefix should be HTTPS: " + domain,
+        errorMessage: "Domain should be HTTPS: " + domain,
         fixUrlRelative,
       });
     }
