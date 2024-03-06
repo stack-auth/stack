@@ -34,9 +34,11 @@ npm install @stackframe/stack
 
 For setup, refer to [our documentation](https://docs.stackframe.co).
 
-## Development Setup
+## Development
 
 This is for you if you want to contribute to the Stack project.
+
+### Setup
 
 Make sure you have `pnpm` installed alongside Node v20. Next, ensure you created `.env.local` files by copying `.env` in each of the subpackages in the `packages` folder and filling out the variables. You will need to start a Postgres database; you can do this with the following command:
 
@@ -53,7 +55,9 @@ pnpm install
 pnpm run codegen
 
 # After starting a Postgres database and filling the corresponding variables in .env.local, push the schema to the database:
-pnpm run prisma:server -- db reset
+# for production databases, use `deploy` instead. See: https://www.prisma.io/docs/orm/prisma-migrate/understanding-prisma-migrate/mental-model#prisma-migrate-in-a-staging-and-production-environment
+pnpm run prisma:server -- migrate reset
+
 
 # Start the dev server
 pnpm run dev
@@ -63,4 +67,12 @@ You can also open Prisma Studio to see the database interface and edit data dire
 
 ```sh
 pnpm run prisma:server -- studio
+```
+
+### Database migrations
+
+If you make changes to the Prisma schema, you need to run the following command to create a migration:
+
+```sh
+pnpm run prisma:server -- migrate dev
 ```
