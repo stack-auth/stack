@@ -10,10 +10,13 @@ import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
 import { ServerUser } from '@stackframe/stack/dist/lib/stack-app';
+import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 
 export function UsersTable(props: {
   rows: ServerUser[],
 }) {
+  const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
+
   const columns: (GridColDef & {
     stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
   })[] = [
@@ -48,7 +51,9 @@ export function UsersTable(props: {
       flex: 1,
       editable: true,
       stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        await originalRow.update({ displayName: updatedRow.displayName });
+        if (updatedRow.displayName !== originalRow.displayName) {
+          await originalRow.update({ displayName: updatedRow.displayName });
+        }
       },
     },
     {
@@ -57,7 +62,9 @@ export function UsersTable(props: {
       width: 200,
       editable: true,
       stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
+        if (updatedRow.primaryEmail !== originalRow.primaryEmail) {
+          await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
+        }
       },
       renderCell: (params) => (
         <>
@@ -79,10 +86,9 @@ export function UsersTable(props: {
       ),
     },
     {
-      field: 'signedUpAtMillis',
+      field: 'signedUpAt',
       headerName: 'Signed up',
       type: 'dateTime',
-      valueFormatter: (params) => new Date(params.value as number).toLocaleString(),
       width: 200,
     },
     {
@@ -98,27 +104,37 @@ export function UsersTable(props: {
   ];
 
   return (
-    <DataGrid
-      slots={{
-        toolbar: GridToolbar,
-      }}
-      autoHeight
-      rows={props.rows}
-      columns={columns}
-      initialState={{
-        pagination: { paginationModel: { pageSize: 15 } },
-      }}
-      
-      processRowUpdate={async (updatedRow, originalRow) => {
-        for (const column of columns) {
-          if (column.editable && column.stackOnProcessUpdate) {
-            await column.stackOnProcessUpdate(updatedRow, originalRow);
+    <>
+      {pageLoadingIndicatorCount > 0 && (
+        <PageLoadingIndicator />
+      )}
+      <DataGrid
+        slots={{
+          toolbar: GridToolbar,
+        }}
+        autoHeight
+        rows={props.rows}
+        columns={columns}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 15 } },
+        }}
+        
+        processRowUpdate={async (updatedRow, originalRow) => {
+          setPageLoadingIndicatorCount(c => c + 1);
+          try {
+            await Promise.all(columns.map(async column => {
+              if (column.editable && column.stackOnProcessUpdate) {
+                await column.stackOnProcessUpdate(updatedRow, originalRow);
+              }
+            }));
+            return updatedRow;
+          } finally {
+            setPageLoadingIndicatorCount(c => c - 1);
           }
-        }
-        return originalRow;
-      }}
-      pageSizeOptions={[5, 15, 25]}
-    />
+        }}
+        pageSizeOptions={[5, 15, 25]}
+      />
+    </>
   );
 }
 
