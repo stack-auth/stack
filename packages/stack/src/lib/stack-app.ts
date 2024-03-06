@@ -10,7 +10,7 @@ import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenSt
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithCredential, signInWithOAuth, signUpWithCredential } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
-import { ReadonlyJson } from "../utils/types";
+import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
