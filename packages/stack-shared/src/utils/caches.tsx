@@ -1,6 +1,7 @@
 import { DependenciesMap } from "./maps";
-import { RateLimitOptions, ReactPromise, rateLimited } from "./promises";
-import { AsyncStore, ReadonlyAsyncStore } from "./stores";
+import { filterUndefined } from "./objects";
+import { RateLimitOptions, ReactPromise, pending, rateLimited, resolved, runAsynchronously } from "./promises";
+import { AsyncStore } from "./stores";
 
 /**
  * Can be used to cache the result of a function call, for example for the `use` hook in React.
@@ -20,86 +21,96 @@ export function cacheFunction<F extends Function>(f: F): F {
 }
 
 
-export class AsyncCache<K extends object, T> {
-  private _map: WeakMap<K, AsyncValueCache<T>> = new Map();
+type CacheStrategy = "write-only" | "read-write" | "never";
+
+export class AsyncCache<D extends any[], T> {
+  private readonly _map = new DependenciesMap<D, AsyncValueCache<T>>();
 
   constructor(
-    private readonly _fetcher: (key: K, isFirst: boolean) => Promise<T>,
-    private readonly _rateLimitOptions: Omit<RateLimitOptions, "batchCalls"> = { concurrency: 1, gapMs: 3_000 },
+    private readonly _fetcher: (dependencies: D) => Promise<T>,
+    private readonly _options: {
+      onSubscribe?: (key: D, refresh: () => void) => (() => void),
+      rateLimiter?: Omit<RateLimitOptions, "batchCalls">,
+    } = {},
   ) {
     // nothing here yet
   }
 
   private _createKeyed<FunctionName extends keyof AsyncValueCache<T>>(
     functionName: FunctionName,
-  ): (key: K, ...args: Parameters<AsyncValueCache<T>[FunctionName]>) => ReturnType<AsyncValueCache<T>[FunctionName]> {
-    return (key: K, ...args) => {
+  ): (key: D, ...args: Parameters<AsyncValueCache<T>[FunctionName]>) => ReturnType<AsyncValueCache<T>[FunctionName]> {
+    return (key: D, ...args) => {
       const valueCache = this.getValueCache(key);
       return (valueCache[functionName] as any).apply(valueCache, args);
     };
   }
 
-  getValueCache(key: K): AsyncValueCache<T> {
-    let cache = this._map.get(key);
+  getValueCache(dependencies: D): AsyncValueCache<T> {
+    let cache = this._map.get(dependencies);
     if (!cache) {
-      cache = new AsyncValueCache(async (isFirst) => {
-        return await this._fetcher(key, isFirst);
-      }, this._rateLimitOptions);
-      this._map.set(key, cache);
+      cache = new AsyncValueCache(
+        async () => await this._fetcher(dependencies),
+        {
+          ...this._options,
+          onSubscribe: this._options.onSubscribe ? (cb) => this._options.onSubscribe!(dependencies, cb) : undefined,
+        },
+      );
+      this._map.set(dependencies, cache);
     }
     return cache;
   }
 
-  isAvailable = this._createKeyed("isAvailable");
-  setUnavailable = this._createKeyed("setUnavailable");
-  get = this._createKeyed("get");
-  getOrWait = this._createKeyed("getOrWait");
-  refresh = this._createKeyed("refresh");
-  invalidate = this._createKeyed("invalidate");
-  onChange = this._createKeyed("onChange");
-  onceChange = this._createKeyed("onceChange");
+  readonly isCacheAvailable = this._createKeyed("isCacheAvailable");
+  readonly getIfCached = this._createKeyed("getIfCached");
+  readonly getOrWait = this._createKeyed("getOrWait");
+  readonly refresh = this._createKeyed("refresh");
+  readonly invalidate = this._createKeyed("invalidate");
+  readonly onChange = this._createKeyed("onChange");
 }
 
-export class AsyncValueCache<T> implements ReadonlyAsyncStore<T> {
+class AsyncValueCache<T> {
   private _store: AsyncStore<T>;
-  private _firstFetcher: () => Promise<T>;
-  private _laterFetcher: () => Promise<T>;
+  private _fetcher: () => Promise<T>;
+  private readonly _rateLimitOptions: Omit<RateLimitOptions, "batchCalls">;
+  private _subscriptionsCount = 0;
+  private _unsubscribers: (() => void)[] = [];
 
   constructor(
-    fetcher: (isFirst: boolean) => Promise<T>,
-    private readonly _rateLimitOptions: Omit<RateLimitOptions, "batchCalls"> = { concurrency: 1, debounceMs: 3_000 },
+    fetcher: () => Promise<T>,
+    private readonly _options: {
+      onSubscribe?: (refresh: () => void) => (() => void),
+      rateLimiter?: Omit<RateLimitOptions, "batchCalls">,
+    } = {},
   ) {
     this._store = new AsyncStore();
-
-    this._firstFetcher = async () => {
-      return await fetcher(true);
+    this._rateLimitOptions = {
+      concurrency: 1,
+      debounceMs: 3_000,
+      ...filterUndefined(_options.rateLimiter ?? {}),
     };
-    this._laterFetcher = rateLimited(async () => {
-      return await fetcher(false);
-    }, {
+
+
+    this._fetcher = rateLimited(fetcher, {
       ...this._rateLimitOptions,
       batchCalls: true,
     });
-
-    this._refetch(true).catch(() => {
-      this._store.setRejected(new Error("unavailable"));
-    });
   }
 
-  isAvailable(): boolean {
+  isCacheAvailable(): boolean {
     return this._store.isAvailable();
   }
 
-  setUnavailable(): void {
-    this._store.setUnavailable();
-  }
-
-  get() {
+  getIfCached() {
     return this._store.get();
   }
 
-  getOrWait(): ReactPromise<T> {
-    return this._store.getOrWait();
+  getOrWait(cacheStrategy: CacheStrategy): ReactPromise<T> {
+    const cached = this.getIfCached();
+    if (cacheStrategy === "read-write" && cached.status === "ok") {
+      return resolved(cached.data);
+    }
+
+    return pending(this._refetch(cacheStrategy === "read-write" ? "write-only" : cacheStrategy));
   }
 
   private _set(value: T): void {
@@ -110,10 +121,12 @@ export class AsyncValueCache<T> implements ReadonlyAsyncStore<T> {
     return await this._store.setAsync(value);
   }
 
-  private async _refetch(isFirst: boolean): Promise<T> {
+  private async _refetch(cacheStrategy: "write-only" | "never"): Promise<T> {
     try {
-      const res = isFirst ? this._firstFetcher() : this._laterFetcher();
-      await this._setAsync(res);
+      const res = this._fetcher();
+      if (cacheStrategy === "write-only") {
+        await this._setAsync(res);
+      }
       return await res;
     } catch (e) {
       this._store.setRejected(e);
@@ -122,19 +135,38 @@ export class AsyncValueCache<T> implements ReadonlyAsyncStore<T> {
   }
 
   async refresh(): Promise<T> {
-    return await this._refetch(false);
+    return await this.getOrWait("write-only");
   }
 
   async invalidate(): Promise<T> {
-    this.setUnavailable();
-    return await this._refetch(false);
+    this._store.setUnavailable();
+    return await this.refresh();
   }
 
   onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
-    return this._store.onChange(callback);
-  }
+    const storeObj = this._store.onChange(callback);
 
-  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
-    return this._store.onceChange(callback);
+    if (this._subscriptionsCount++ === 0 && this._options.onSubscribe) {
+      const unsubscribe = this._options.onSubscribe(() => {
+        runAsynchronously(this.refresh());
+      });
+      this._unsubscribers.push(unsubscribe);
+    }
+
+    runAsynchronously(this.refresh());
+
+    let hasUnsubscribed = false;
+    return {
+      unsubscribe: () => {
+        if (hasUnsubscribed) return;
+        hasUnsubscribed = true;
+        storeObj.unsubscribe();
+        if (--this._subscriptionsCount === 0) {
+          for (const unsubscribe of this._unsubscribers) {
+            unsubscribe();
+          }
+        }
+      },
+    };
   }
 }

@@ -59,7 +59,11 @@ export function rejected<T>(reason: unknown): ReactPromise<T> {
 }
 
 export function neverResolve(): ReactPromise<never> {
-  return Object.assign(new Promise<never>(() => {}), {
+  return pending(new Promise<never>(() => {}));
+}
+
+export function pending<T>(promise: Promise<T>): ReactPromise<T> {
+  return Object.assign(promise, {
     status: "pending",
   } as const);
 }

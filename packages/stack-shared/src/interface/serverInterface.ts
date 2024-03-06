@@ -35,30 +35,8 @@ export type ServerAuthApplicationOptions = (
 
 
 export class StackServerInterface extends StackClientInterface {
-  // note that we intentionally use TokenStore (a reference type) as a key, as different token stores with the same tokens should be treated differently
-  // (if we wouldn't do that, we would cache users across requests, which may cause caching issues)
-  public readonly currentServerUserCache: AsyncCache<TokenStore, ServerUserJson | null>;
-
   constructor(public override options: ServerAuthApplicationOptions) {
     super(options);
-    this.currentServerUserCache = new AsyncCache(async (key, isFirst) => {
-      if (isFirst) {
-        key.onChange((newValue, oldValue) => {
-          if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
-          runAsynchronously(this.currentServerUserCache.refresh(key));
-        });
-      }
-      const user = await this.getServerUserByToken(key);
-      return Result.or(user, null);
-    });
-    // TODO override the client user cache to use the server user cache, so we save some requests
-  }
-
-  override async refreshUser(tokenStore: TokenStore) {
-    await Promise.all([
-      super.refreshUser(tokenStore),
-      this.currentServerUserCache.refresh(tokenStore),
-    ]);
   }
 
   protected async sendServerRequest(path: string, options: RequestInit, tokenStore: TokenStore | null) {

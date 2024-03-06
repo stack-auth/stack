@@ -2,9 +2,8 @@ import React, { use, useCallback } from "react";
 import { OauthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { AsyncValueCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { AsyncResult } from "@stackframe/stack-shared/dist/utils/results";
+import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -16,6 +15,7 @@ import { constructRedirectUrl } from "../utils/url";
 import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -176,26 +176,26 @@ function getTokenStore(tokenStoreOptions: TokenStoreOptions) {
 }
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
-function useValueCache<T>(cache: AsyncValueCache<T>): T {
+function useCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D): T {
   // we explicitly don't want to run this hook in SSR
   suspendIfSsr();
 
   const subscribe = useCallback((cb: () => void) => {
-    const { unsubscribe } = cache.onChange(() => cb());
+    const { unsubscribe } = cache.onChange(dependencies, () => cb());
     return unsubscribe;
-  }, [cache]);
+  }, [cache, ...dependencies]);
   const getSnapshot = useCallback(() => {
-    return AsyncResult.or(cache.get(), loadingSentinel);
-  }, [cache]);
+    return AsyncResult.or(cache.getIfCached(dependencies), loadingSentinel);
+  }, [cache, ...dependencies]);
 
   // note: we must use React.useSyncExternalStore instead of importing the function directly, as it will otherwise
   // throw an error ("can't import useSyncExternalStore from the server")
   const value = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   if (value === loadingSentinel) {
-    return use(cache.getOrWait());
+    return use(cache.getOrWait(dependencies, "read-write"));
   } else {
-    // still need to call `use` because React expects the control flow to not change
+    // still need to call `use` because React expects the control flow to not change across two re-renders with the same props/state and it detects that by hook invocations (including `use`)
     return use(resolved(value));
   }
 }
@@ -204,11 +204,44 @@ export const stackAppInternalsSymbol = Symbol.for("StackAppInternals");
 
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
 
+const createCache = <D extends any[], T>(fetcher: (dependencies: D) => Promise<T>) => {
+  return new AsyncCache<D, T>(
+    async (dependencies) => await fetcher(dependencies),
+    {},
+  );
+};
+
+// note that we intentionally use TokenStore (a reference type) as a key instead of a stringified version of it, as different token stores with the same tokens should be treated differently
+// (if we wouldn't , we would cache users across requests, which may cause issues)
+const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: TokenStore, extraDependencies: D) => Promise<T> ) => {
+  return new AsyncCache<[TokenStore, ...D], T>(
+    async ([tokenStore, ...extraDependencies]) => await fetcher(tokenStore, extraDependencies),
+    {
+      onSubscribe: ([tokenStore], refresh) => {
+        const handlerObj = tokenStore.onChange((newValue, oldValue) => {
+          if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
+          refresh();
+        });
+        return () => handlerObj.unsubscribe();
+      },
+    },
+  );
+};
+  
+
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
   protected readonly _uniqueIdentifier: string;
   protected _interface: StackClientInterface;
   protected readonly _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
+
+  private readonly _currentUserCache = createCacheByTokenStore(async (tokenStore) => {
+    const user = await this._interface.getClientUserByToken(tokenStore);
+    return Result.or(user, null);
+  });
+  private readonly _currentProjectCache = createCache(async () => {
+    return Result.orThrow(await this._interface.getClientProject());
+  });
 
   constructor(options:
     & {
@@ -377,7 +410,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options?: GetUserOptions): Promise<CurrentUser | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = await this._interface.currentUserCache.getOrWait(tokenStore);
+    const userJson = await this._currentUserCache.getOrWait([tokenStore], "never");
 
     if (userJson === null) {
       switch (options?.or) {
@@ -405,7 +438,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     const router = useRouter();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = useValueCache(this._interface.currentUserCache.getValueCache(tokenStore));
+    const userJson = useCache(this._currentUserCache, [tokenStore]);
 
     if (userJson === null) {
       switch (options?.or) {
@@ -428,13 +461,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   onUserChange(callback: (user: CurrentUser | null) => void) {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    return this._interface.currentUserCache.getValueCache(tokenStore).onChange((userJson) => {
+    return this._currentUserCache.onChange([tokenStore], (userJson) => {
       callback(this._currentUserFromJson(userJson, tokenStore));
     });
   }
 
   protected async _updateUser(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
-    return await this._interface.setClientUserCustomizableData(update, tokenStore);
+    const res = await this._interface.setClientUserCustomizableData(update, tokenStore);
+    await this._refreshUser(tokenStore);
+    return res;
   }
 
   async signInWithOauth(provider: string) {
@@ -493,15 +528,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async getProject(): Promise<ClientProjectJson> {
-    return await this._interface.clientProjectCache.getOrWait();
+    return await this._currentProjectCache.getOrWait([], "never");
   }
 
   useProject(): ClientProjectJson {
-    return useValueCache(this._interface.clientProjectCache);
+    return useCache(this._currentProjectCache, []);
   }
 
   onProjectChange(callback: (project: ClientProjectJson) => void) {
-    return this._interface.clientProjectCache.onChange(callback);
+    return this._currentProjectCache.onChange([], callback);
   }
 
   async listOwnedProjects(): Promise<Project[]> {
@@ -516,6 +551,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._interface.createProject(newProject, tokenStore);
     return this._projectAdminFromJson(json);
+  }
+
+  protected async _refreshUser(tokenStore: TokenStore) {
+    await this._currentUserCache.refresh([tokenStore]);
+  }
+  
+  protected async _refreshProject() {
+    await this._currentProjectCache.refresh([]);
   }
 
   static get [stackAppInternalsSymbol]() {
@@ -564,6 +607,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 {
   declare protected _interface: StackServerInterface;
 
+  // TODO override the client user cache to use the server user cache, so we save some requests
+  private readonly _currentServerUserCache = createCacheByTokenStore(async (tokenStore) => {
+    const user = await this._interface.getServerUserByToken(tokenStore);
+    return Result.or(user, null);
+  });
+
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
     | {
@@ -603,7 +652,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async delete() {
         await app._interface.deleteServerUser(this.id);
       },
-      async update(update: ServerUserCustomizableJson) {
+      async update(update: Partial<ServerUserCustomizableJson>) {
         await app._interface.setServerUserCustomizableData(this.id, update);
       },
       getClientUser() {
@@ -622,32 +671,43 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _currentServerUserFromJson(json: ServerUserJson | null, tokenStore: TokenStore): CurrentServerUser | null {
     if (json === null) return null;
     const app = this;
+    const nonCurrentServerUser = this._serverUserFromJson(json);
     const res: CurrentServerUser = {
-      ...this._serverUserFromJson(json),
+      ...nonCurrentServerUser,
       get accessToken() {
         return AsyncResult.or(tokenStore.get(), null)?.accessToken ?? null;
       },
       get refreshToken() {
         return AsyncResult.or(tokenStore.get(), null)?.refreshToken ?? null;
       },
+      async delete() {
+        const res = await nonCurrentServerUser.delete();
+        await app._refreshUser(tokenStore);
+        return res;
+      },
+      async update(update: Partial<ServerUserCustomizableJson>) {
+        const res = await nonCurrentServerUser.update(update);
+        await app._refreshUser(tokenStore);
+        return res;
+      },  
       signOut(redirectUrl?: string) {
         return app._signOut(tokenStore, redirectUrl);
       },
       getClientUser() {
-        const serverUser = this;
+        const currentServerUser = this;
         return {
           ...app._userFromJson(json),
           get accessToken() {
-            return serverUser.accessToken;
+            return currentServerUser.accessToken;
           },
           get refreshToken() {
-            return serverUser.refreshToken;
+            return currentServerUser.refreshToken;
           },
           update(update: Partial<ServerUserCustomizableJson>) {
-            return serverUser.update(update);
+            return currentServerUser.update(update);
           },
           signOut(redirectUrl?: string) {
-            return serverUser.signOut(redirectUrl);
+            return currentServerUser.signOut(redirectUrl);
           },
         };
       },
@@ -673,16 +733,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getServerUser(): Promise<CurrentServerUser | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = await this._interface.currentServerUserCache.getOrWait(tokenStore);
+    const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "never");
     return this._currentServerUserFromJson(userJson, tokenStore);
   }
 
   useServerUser(options?: { required: boolean }): CurrentServerUser | null {
     this._ensurePersistentTokenStore();
 
-    const router = useRouter();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = useValueCache(this._interface.currentServerUserCache.getValueCache(tokenStore));
+    const userJson = useCache(this._currentServerUserCache, [tokenStore]);
 
     if (options?.required && userJson === null) {
       use(this.redirectToSignIn());
@@ -694,15 +753,26 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   onServerUserChange(callback: (user: CurrentServerUser | null) => void) {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    return this._interface.currentServerUserCache.getValueCache(tokenStore).onChange((userJson) => {
+    return this._currentServerUserCache.onChange([tokenStore], (userJson) => {
       callback(this._currentServerUserFromJson(userJson, tokenStore));
     });
+  }
+
+  protected override async _refreshUser(tokenStore: TokenStore) {
+    await Promise.all([
+      super._refreshUser(tokenStore),
+      this._currentServerUserCache.refresh([tokenStore]),
+    ]);
   }
 }
 
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
 {
   declare protected _interface: StackAdminInterface;
+  
+  private readonly _adminProjectCache = createCache(async () => {
+    return await this._interface.getProject();
+  });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
@@ -719,15 +789,24 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async getProjectAdmin(): Promise<Project> {
-    return this._projectAdminFromJson(await this._interface.projectCache.getOrWait());
+    return this._projectAdminFromJson(await this._adminProjectCache.getOrWait([], "never"));
   }
 
   useProjectAdmin(): Project {
-    return this._projectAdminFromJson(useValueCache(this._interface.projectCache));
+    return this._projectAdminFromJson(useCache(this._adminProjectCache, []));
   }
 
   onProjectAdminChange(callback: (project: Project) => void) {
-    return this._interface.projectCache.onChange((j) => callback(this._projectAdminFromJson(j)));
+    return this._adminProjectCache.onChange([], () => {
+      callback(this._projectAdminFromJson(useCache(this._adminProjectCache, [])));
+    });
+  }
+
+  protected override async _refreshProject() {
+    await Promise.all([
+      super._refreshProject(),
+      this._adminProjectCache.refresh([]),
+    ]);
   }
 }
 
@@ -809,7 +888,7 @@ export type DomainConfig = DomainConfigJson;
 export type OauthProviderConfig = OauthProviderConfigJson;
 
 export type GetUserOptions = {
-  or?: 'redirect' | 'throw',
+  or?: 'redirect' | 'throw' | 'return-null',
 };
 
 type AsyncStoreProperty<Name extends string, Value> =
