@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import { AsyncResult } from "./results";
 import { generateUuid } from "./uuids";
-import { ReactPromise, rejected, resolved } from "./promises";
+import { ReactPromise, pending, rejected, resolved } from "./promises";
 
 export type ReadonlyAsyncStore<T> = {
   isAvailable(): boolean,
@@ -67,9 +67,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     const withFinally = promise.finally(() => {
       this._waitingRejectFunctions.delete(uuid);
     });
-    return Object.assign(withFinally, {
-      status: "pending",
-    } as const);
+    return pending(withFinally);
   }
 
   _setIfLatest(value: T, curCounter: number) {

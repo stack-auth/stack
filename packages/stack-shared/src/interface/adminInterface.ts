@@ -1,5 +1,4 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { AsyncValueCache } from "../utils/caches";
 import { ProjectJson, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
 import { throwErr } from "../utils/errors";
 import { ReadonlyJson } from "../utils/json";
@@ -106,13 +105,8 @@ export type ApiKeySetSummaryJson = Readonly<
 >
 
 export class StackAdminInterface extends StackServerInterface {
-  public readonly projectCache: AsyncValueCache<ProjectJson>;
-
   constructor(public readonly options: AdminAuthApplicationOptions) {
     super(options);
-    this.projectCache = new AsyncValueCache<ProjectJson>(async () => {
-      return await this.getProject() ?? throwErr("Can't fetch project because it was not found");
-    });
   }
 
   protected async sendAdminRequest(path: string, options: RequestInit, tokenStore: TokenStore | null) {
@@ -127,14 +121,6 @@ export class StackAdminInterface extends StackServerInterface {
       },
       tokenStore,
     );
-  }
-
-
-  async refreshProject() {
-    await Promise.all([
-      super.refreshProject(),
-      this.projectCache.refresh(),
-    ]);
   }
 
   async getProject(options?: { showDisabledOauth?: boolean }): Promise<ProjectJson> {
@@ -164,7 +150,6 @@ export class StackAdminInterface extends StackServerInterface {
       },
       null,
     );
-    await this.refreshProject();
     return await response.json();
   }
 

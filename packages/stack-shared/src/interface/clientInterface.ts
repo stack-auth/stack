@@ -17,7 +17,7 @@ import {
 } from "../utils/types";
 import { Result } from "../utils/results";
 import { ReadonlyJson, parseJson } from '../utils/json';
-import { AsyncCache, AsyncValueCache } from '../utils/caches';
+import { AsyncCache } from '../utils/caches';
 import { typedAssign } from '../utils/objects';
 import { AsyncStore } from '../utils/stores';
 import { neverResolve, runAsynchronously } from '../utils/promises';
@@ -91,7 +91,7 @@ export type TokenObject = Readonly<{
   accessToken: string | null,
 }>;
 
-export type ProjectJson = Readonly<{
+export type ProjectJson = {
   id: string,
   displayName: string,
   description?: string,
@@ -106,7 +106,7 @@ export type ProjectJson = Readonly<{
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
   },
-}>;
+};
 
 export type OauthProviderConfigJson = {
   id: string,
@@ -143,25 +143,8 @@ export type DomainConfigJson = {
 }
 
 export class StackClientInterface {
-  // note that we intentionally use TokenStore (a reference type) as a key, as different token stores with the same tokens should be treated differently
-  // (if we wouldn't do that, we would cache users across requests, which may cause caching issues)
-  public readonly currentUserCache: AsyncCache<TokenStore, UserJson | null>;
-  public readonly clientProjectCache: AsyncValueCache<ClientProjectJson>;
-
   constructor(public readonly options: ClientInterfaceOptions) {
-    this.currentUserCache = new AsyncCache(async (key, isFirst) => {
-      if (isFirst) {
-        key.onChange((newValue, oldValue) => {
-          if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
-          runAsynchronously(this.currentUserCache.refresh(key));
-        });
-      }
-      const user = await this.getClientUserByToken(key);
-      return Result.or(user, null);
-    });
-    this.clientProjectCache = new AsyncValueCache(async () => {
-      return Result.orThrow(await this.getClientProject());
-    });
+    // nothing here
   }
 
   get projectId() {
@@ -174,14 +157,6 @@ export class StackClientInterface {
 
   getApiUrl() {
     return this.options.baseUrl + "/api/v1";
-  }
-
-  async refreshUser(tokenStore: TokenStore) {
-    await this.currentUserCache.refresh(tokenStore);
-  }
-
-  async refreshProject() {
-    await this.clientProjectCache.refresh();
   }
 
   protected async refreshAccessToken(tokenStore: TokenStore) {
@@ -489,7 +464,6 @@ export class StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
     });
-    await this.refreshUser(tokenStore);
   }
 
   async signUpWithCredential(
@@ -524,7 +498,6 @@ export class StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
     });
-    await this.refreshUser(tokenStore);
   }
 
   async getOauthUrl(
@@ -609,7 +582,6 @@ export class StackClientInterface {
       accessToken: result.access_token ?? null,
       refreshToken: result.refresh_token ?? old?.refreshToken ?? null,
     }));
-    await this.refreshUser(tokenStore);
   }
 
   async signOut(tokenStore: TokenStore): Promise<void> {
@@ -632,7 +604,6 @@ export class StackClientInterface {
       accessToken: null,
       refreshToken: null,
     });
-    await this.refreshUser(tokenStore);
   }
 
   async getClientUserByToken(tokenStore: TokenStore): Promise<Result<UserJson>> {
@@ -665,7 +636,6 @@ export class StackClientInterface {
       },
       tokenStore,
     );
-    await this.refreshUser(tokenStore);
   }
 
   async listProjects(tokenStore: TokenStore): Promise<ProjectJson[]> {

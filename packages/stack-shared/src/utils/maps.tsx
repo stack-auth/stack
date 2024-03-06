@@ -122,5 +122,9 @@ export class DependenciesMap<K extends any[], V> {
     return this._unwrapFromInner(dependencies, this._inner).status === "ok";
   }
 
+  clear(): void {
+    this._inner = { map: new MaybeWeakMap(), hasValue: false, value: undefined };
+  }
+
   [Symbol.toStringTag] = "DependenciesMap";
 }
