@@ -17,6 +17,7 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { suspend } from "../utils/react";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -456,7 +457,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           throw new Error("redirect should never return!");
         }
         case 'throw': {
-          throw new Error("User is not signed in");
+          throw new Error("User is not signed in but getUser was called with { or: 'throw' }");
         }
         default: {
           return null;
@@ -481,10 +482,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       switch (options?.or) {
         case 'redirect': {
           router.replace(this.urls.signIn);
-          break;
+          suspend();
+          throw new Error("suspend should never return!");
         }
         case 'throw': {
-          throw new Error("User is not signed in");
+          throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
         }
         default: {
           return null;
