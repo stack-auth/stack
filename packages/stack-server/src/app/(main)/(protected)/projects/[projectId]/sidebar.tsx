@@ -1,9 +1,8 @@
-'use client';
+'use client';;
 import * as React from 'react';
 import NextLink from 'next/link';
 import Avatar from '@mui/joy/Avatar';
 import Box from '@mui/joy/Box';
-import Button from '@mui/joy/Button';
 import Divider from '@mui/joy/Divider';
 import List from '@mui/joy/List';
 import ListItem from '@mui/joy/ListItem';
@@ -15,9 +14,8 @@ import { usePathname } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet, CircularProgress } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from '@/components/async-button';
 import { Logo } from '@/components/logo';
-import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
+import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 
 
 function SidebarItem({
@@ -96,7 +94,7 @@ function AvatarSection() {
               disabled={isSigningOut}
               sx={{
                 width: '100%',
-                ...isSigningOut ? { justifyContent: "center"} : {},
+                ...(isSigningOut ? { justifyContent: "center"} : {}),
               }}
               onClick={isSigningOut ? undefined : () => {
                 setIsSigningOut(true);

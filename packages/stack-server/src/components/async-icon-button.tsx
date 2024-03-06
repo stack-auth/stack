@@ -2,7 +2,7 @@
 
 import { CircularProgress, IconButton, IconButtonProps } from "@mui/joy";
 import React from "react";
-import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 export function AsyncIconButton(props: Omit<IconButtonProps, 'onClick'> & {
   onClick?: (...args: Parameters<IconButtonProps['onClick'] & {}>) => Promise<void> | void | any,

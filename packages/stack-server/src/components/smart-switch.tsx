@@ -2,7 +2,7 @@
 
 import { Box, CircularProgress, Stack, Switch, SwitchProps } from "@mui/joy";
 import React from "react";
-import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 type T = Parameters<SwitchProps['onChange'] & {}>;
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PasswordField } from "./PasswordField";
 import { FormWarningText } from "./FormWarning";
 import { validateEmail } from "../utils/email";
-import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Button from "./Button";

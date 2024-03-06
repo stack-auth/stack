@@ -10,7 +10,7 @@ import { encodeAccessToken } from "@/lib/access-token";
 import { sendVerificationEmail } from "@/email";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
-import { getPasswordError } from "@stackframe/stack-shared/src/helpers/password";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 

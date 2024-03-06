@@ -2,7 +2,7 @@
 
 import { Button, ButtonProps } from "@mui/joy";
 import React from "react";
-import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 export function AsyncButton(props: Omit<ButtonProps, 'onClick'> & {
   onClick?: (...args: Parameters<ButtonProps['onClick'] & {}>) => Promise<void> | void | any,

@@ -8,7 +8,7 @@ import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../../use-admin-app';
-import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
+import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { ServerUser } from '@stackframe/stack/dist/lib/stack-app';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 
