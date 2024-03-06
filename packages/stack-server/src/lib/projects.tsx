@@ -266,30 +266,39 @@ export async function updateProject(
       update: providerUpdate
     })).filter(({ id }) => !providerMap.has(id));
 
-    // Update existing providers
+    // Update existing proxied/standard providers
     for (const [id, { providerUpdate, oldProvider }] of providerMap) {
+
+      // remove existing provider configs
+      if (oldProvider.proxiedOauthConfig) {
+        transaction.push(prismaClient.proxiedOauthProviderConfig.delete({
+          where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
+        }));
+      }
+
+      if (oldProvider.standardOauthConfig) {
+        transaction.push(prismaClient.standardOauthProviderConfig.delete({
+          where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
+        }));
+      }
+
+      // update provider configs with newly created proxied/standard provider configs
       let providerConfigUpdate;
       if (sharedProviders.includes(providerUpdate.type as SharedProvider)) {
         providerConfigUpdate = {
           proxiedOauthConfig: {
-            update: {
+            create: {
               type: toDBSharedProvider(providerUpdate.type as SharedProvider),
             },
           },
         };
-
-        if (oldProvider.standardOauthConfig) {
-          transaction.push(prismaClient.standardOauthProviderConfig.delete({
-            where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
-          }));
-        }
 
       } else if (standardProviders.includes(providerUpdate.type as StandardProvider)) {
         const typedProviderConfig = providerUpdate as OauthProviderUpdateOptions & { type: StandardProvider };
 
         providerConfigUpdate = {
           standardOauthConfig: {
-            update: {
+            create: {
               type: toDBStandardProvider(providerUpdate.type as StandardProvider),
               clientId: typedProviderConfig.clientId,
               clientSecret: typedProviderConfig.clientSecret,
@@ -297,12 +306,6 @@ export async function updateProject(
             },
           },
         };
-
-        if (oldProvider.proxiedOauthConfig) {
-          transaction.push(prismaClient.proxiedOauthProviderConfig.delete({
-            where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
-          }));
-        }
       } else {
         console.error(`Invalid provider type '${providerUpdate.type}'`);
       }

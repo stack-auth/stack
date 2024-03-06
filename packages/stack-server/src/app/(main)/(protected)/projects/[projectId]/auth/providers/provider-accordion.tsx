@@ -93,7 +93,6 @@ export function ProviderAccordion(props: Props) {
 
 function ProviderForm(props: Props & { provider: OauthProviderConfigJson }) {
   const [hasChanges, setHasChanges] = useState(false);
-
   const [newProvider, setNewProvider] = useState<OauthProviderConfigJson | undefined>(undefined);
 
   useEffect(() => {
@@ -160,7 +159,11 @@ function ProviderForm(props: Props & { provider: OauthProviderConfigJson }) {
           <Select<keyof typeof niceOptionProps>
             name="keySharingMode"
             value={isShared ? "shared" : "own"}
-            onChange={() => {
+            onChange={(e, value) => {
+              // this is a hack to avoid an MUI bug
+              // https://github.com/mui/material-ui/issues/36783
+              if (!value) return; 
+
               setHasChanges(true);
               if (isShared) {
                 setNewProvider({

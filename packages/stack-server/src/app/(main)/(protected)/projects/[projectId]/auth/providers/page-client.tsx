@@ -21,8 +21,6 @@ export default function ProvidersClient() {
 
   const oauthProviders = project.evaluatedConfig.oauthProviders;
 
-  console.log(oauthProviders);
-
   return (
     <>
       <Paragraph h1>
