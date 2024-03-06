@@ -2,18 +2,17 @@
 
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { ApiKeySetSummary } from '@stackframe/stack-shared';
 import { Box, Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
 import { Dialog } from '@/components/dialog';
-import { useAdminApp } from '../../useAdminInterface';
+import { useAdminApp } from '../../use-admin-app';
+import { ApiKeySet } from '@stackframe/stack/dist/lib/stack-app';
 
 export function ApiKeysTable(props: {
-  rows: ApiKeySetSummary[],
-  onInvalidate(): void,
+  rows: ApiKeySet[],
 }) {
   const stackAdminApp = useAdminApp();
 
-  const [revokeDialogApiKeySet, setRevokeDialogApiKeySet] = React.useState<ApiKeySetSummary | null>(null);
+  const [revokeDialogApiKeySet, setRevokeDialogApiKeySet] = React.useState<ApiKeySet | null>(null);
 
   const columns: GridColDef[] = [
     {
@@ -128,9 +127,8 @@ export function ApiKeysTable(props: {
           label: "Revoke API key",
           onClick: async () => {
             if (revokeDialogApiKeySet) {
-              await stackAdminApp.revokeApiKeySetById(revokeDialogApiKeySet.id);
+              await revokeDialogApiKeySet.revoke();
               setRevokeDialogApiKeySet(null);
-              props.onInvalidate();
             }
           },
         }}

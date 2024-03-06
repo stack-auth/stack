@@ -6,7 +6,7 @@ import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHe
 import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
 import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
-import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 
 const putOrGetSchema = yup.object({
   headers: yup.object({
@@ -16,7 +16,6 @@ const putOrGetSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    showDisabledOauth: yup.boolean().optional(),
     isProductionMode: yup.boolean().optional(),
     config: yup.object({
       domains: yup.array(yup.object({
@@ -50,7 +49,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     body,
   } = await parseRequest(req, putOrGetSchema);  
 
-  const { showDisabledOauth, ...update } = body ?? {};
+  const { ...update } = body ?? {};
 
   const pkValid = await checkApiKeySet(projectId, { publishableClientKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
@@ -96,15 +95,11 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     const project = await updateProject(
       projectId,
       typedUpdate,
-      showDisabledOauth,
     );
     return NextResponse.json(project);
   } else if (asValid || pkValid) {
     if (Object.entries(update).length !== 0) {
       throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
-    }
-    if (showDisabledOauth) {
-      throw new StatusError(StatusError.Forbidden, "Can't show disabled oauth providers with only publishable client key");
     }
 
     const project = await getProject(projectId);
@@ -117,6 +112,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
       oauthProviders: project.evaluatedConfig.oauthProviders.map(
         (provider) => ({
           id: provider.id,
+          enabled: provider.enabled,
         }),
       ),
     };

@@ -8,19 +8,14 @@ import { Dialog } from "@/components/dialog";
 import { Paragraph } from "@/components/paragraph";
 import { SmartLink } from "@/components/smart-link";
 import { useFromNow } from "@/hooks/use-from-now";
-import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
 import { Project } from "@stackframe/stack/dist/lib/stack-app";
 
 
 export default function ProjectsPageClient() {
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
   const stackApp = useStackApp({ projectIdMustMatch: "internal" });
-  
-  const projectsPromise = useStrictMemo(() => {
-    return stackApp.listOwnedProjects();
-  }, [invalidationCounter]);
-  const projects = use(projectsPromise);
+
+  const projects = stackApp.useOwnedProjects();
   
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -47,7 +42,6 @@ export default function ProjectsPageClient() {
       <CreateProjectDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        onInvalidate={() => setInvalidationCounter((x) => x + 1)}
       />
     </>
   );
@@ -88,7 +82,7 @@ function ProjectCard(props: {
   );
 }
 
-function CreateProjectDialog(props: { open: boolean, onClose(): void, onInvalidate(): void }) {
+function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const formId = useId();
   const [isCreating, setIsCreating] = useState(false);
@@ -125,7 +119,6 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void, onInvalida
                 description: `${formData.get('description')}`,
               });
               
-              props.onInvalidate();
               props.onClose();
             } finally {
               setIsCreating(false);

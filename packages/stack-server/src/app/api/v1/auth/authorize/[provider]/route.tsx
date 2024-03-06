@@ -57,6 +57,9 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
   if (!provider) {
     throw new StatusError(StatusError.NotFound, "Provider not found");
   }
+  if (!provider.enabled) {
+    throw new StatusError(StatusError.NotFound, "Provider not enabled");
+  }
 
   const innerCodeVerifier = generators.codeVerifier();
   const innerState = generators.state();

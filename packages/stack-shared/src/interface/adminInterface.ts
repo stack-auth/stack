@@ -1,7 +1,5 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { ProjectJson, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
-import { throwErr } from "../utils/errors";
-import { ReadonlyJson } from "../utils/json";
+import { ProjectJson, ReadonlyTokenStore, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -10,7 +8,7 @@ export type AdminAuthApplicationOptions = Readonly<
       superSecretAdminKey: string,
     }
     | {
-      internalAdminAccessToken: string,
+      projectOwnerTokens: ReadonlyTokenStore,
     }
   )
 >
@@ -30,7 +28,7 @@ export type OauthProviderUpdateOptions = {
   }
 )
 
-export type ProjectUpdateOptions = Readonly<{
+export type ProjectUpdateOptions = {
   isProductionMode?: boolean,
   config?: {
     domains?: {
@@ -41,69 +39,41 @@ export type ProjectUpdateOptions = Readonly<{
     credentialEnabled?: boolean,
     allowLocalhost?: boolean,
   },
-}>
+};
 
-export type ApiKeySetBase = Readonly<{
-  id: string,
-  description: string,
-  expiresAt: Date,
-  manuallyRevokedAt: Date | null,
-  createdAt: Date,
-  isValid(): boolean,
-  whyInvalid(): "expired" | "manually-revoked" | null,
-}>
-
-export type ApiKeySetBaseJson = Readonly<{
+export type ApiKeySetBaseJson = {
   id: string,
   description: string,
   expiresAtMillis: number,
   manuallyRevokedAtMillis: number | null,
   createdAtMillis: number,
-}>
+};
 
-export type ApiKeySetFirstView = Readonly<
-  ApiKeySetBase & {
-    publishableClientKey?: string,
-    secretServerKey?: string,
-    superSecretAdminKey?: string,
-  }
->
+export type ApiKeySetFirstViewJson = ApiKeySetBaseJson & {
+  publishableClientKey?: string,
+  secretServerKey?: string,
+  superSecretAdminKey?: string,
+};
 
-export type ApiKeySetFirstViewJson = Readonly<
-  ApiKeySetBaseJson & {
-    publishableClientKey?: string,
-    secretServerKey?: string,
-    superSecretAdminKey?: string,
-  }
->
+export type ApiKeySetJson = ApiKeySetBaseJson & {
+  publishableClientKey: null | {
+    lastFour: string,
+  },
+  secretServerKey: null | {
+    lastFour: string,
+  },
+  superSecretAdminKey: null | {
+    lastFour: string,
+  },
+};
 
-export type ApiKeySetSummary = Readonly<
-  ApiKeySetBase & {
-    publishableClientKey: null | {
-      lastFour: string,
-    },
-    secretServerKey: null | {
-      lastFour: string,
-    },
-    superSecretAdminKey: null | {
-      lastFour: string,
-    },
-  }
->
-
-export type ApiKeySetSummaryJson = Readonly<
-  ApiKeySetBaseJson & {
-    publishableClientKey: null | {
-      lastFour: string,
-    },
-    secretServerKey: null | {
-      lastFour: string,
-    },
-    superSecretAdminKey: null | {
-      lastFour: string,
-    },
-  }
->
+export type ApiKeySetCreateOptions = {
+  hasPublishableClientKey: boolean,
+  hasSecretServerKey: boolean,
+  hasSuperSecretAdminKey: boolean,
+  expiresAt: Date,
+  description: string,
+};
 
 export class StackAdminInterface extends StackServerInterface {
   constructor(public readonly options: AdminAuthApplicationOptions) {
@@ -155,14 +125,8 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async createApiKeySet(
-    options: {
-      hasPublishableClientKey: boolean,
-      hasSecretServerKey: boolean,
-      hasSuperSecretAdminKey: boolean,
-      expiresAt: Date,
-      description: string,
-    },
-  ): Promise<ApiKeySetFirstView> {
+    options: ApiKeySetCreateOptions,
+  ): Promise<ApiKeySetFirstViewJson> {
     const response = await this.sendServerRequest(
       "/api-keys",
       {
@@ -174,13 +138,13 @@ export class StackAdminInterface extends StackServerInterface {
       },
       null,
     );
-    return createApiKeySetFirstViewFromJson(await response.json());
+    return await response.json();
   }
 
-  async listApiKeySets(): Promise<ApiKeySetSummary[]> {
+  async listApiKeySets(): Promise<ApiKeySetJson[]> {
     const response = await this.sendAdminRequest("/api-keys", {}, null);
     const json = await response.json();
-    return json.map((k: ApiKeySetSummaryJson) => createApiKeySetSummaryFromJson(k));
+    return json.map((k: ApiKeySetJson) => k);
   }
 
   async revokeApiKeySetById(id: string) {
@@ -198,44 +162,9 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getApiKeySet(id: string, tokenStore: TokenStore): Promise<ApiKeySetSummary> {
+  async getApiKeySet(id: string, tokenStore: TokenStore): Promise<ApiKeySetJson> {
     const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, tokenStore);
     return await response.json();
   }
 }
 
-function createApiKeySetBaseFromJson(data: ApiKeySetBaseJson): ApiKeySetBase {
-  return {
-    id: data.id,
-    description: data.description,
-    expiresAt: new Date(data.expiresAtMillis),
-    manuallyRevokedAt: data.manuallyRevokedAtMillis ? new Date(data.manuallyRevokedAtMillis) : null,
-    createdAt: new Date(data.createdAtMillis),
-    isValid() {
-      return this.whyInvalid() === null;
-    },
-    whyInvalid() {
-      if (this.expiresAt.getTime() < Date.now()) return "expired";
-      if (this.manuallyRevokedAt) return "manually-revoked";
-      return null;
-    },
-  };
-}
-
-function createApiKeySetSummaryFromJson(data: ApiKeySetSummaryJson): ApiKeySetSummary {
-  return {
-    ...createApiKeySetBaseFromJson(data),
-    publishableClientKey: data.publishableClientKey ? { lastFour: data.publishableClientKey.lastFour } : null,
-    secretServerKey: data.secretServerKey ? { lastFour: data.secretServerKey.lastFour } : null,
-    superSecretAdminKey: data.superSecretAdminKey ? { lastFour: data.superSecretAdminKey.lastFour } : null,
-  };
-}
-
-function createApiKeySetFirstViewFromJson(data: ApiKeySetFirstViewJson): ApiKeySetFirstView {
-  return {
-    ...createApiKeySetBaseFromJson(data),
-    publishableClientKey: data.publishableClientKey,
-    secretServerKey: data.secretServerKey,
-    superSecretAdminKey: data.superSecretAdminKey,
-  };
-}

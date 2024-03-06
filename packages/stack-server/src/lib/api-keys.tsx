@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { ApiKeySetFirstViewJson, ApiKeySetSummaryJson } from '@stackframe/stack-shared';
+import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@stackframe/stack-shared';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import * as crypto from 'node:crypto';
@@ -28,7 +28,7 @@ export async function getApiKeySet(
     | { publishableClientKey: string }
     | { secretServerKey: string }
     | { superSecretAdminKey: string },
-): Promise<ApiKeySetSummaryJson | null> {
+): Promise<ApiKeySetJson | null> {
   const where = typeof whereOrId === 'string'
     ? {
       projectId_id: {
@@ -51,7 +51,7 @@ export async function getApiKeySet(
 
 export async function listApiKeySets(
   projectId: string,
-): Promise<ApiKeySetSummaryJson[]> {
+): Promise<ApiKeySetJson[]> {
   const sets = await prismaClient.apiKeySet.findMany({
     where: {
       projectId,
@@ -121,7 +121,7 @@ export async function revokeApiKeySet(projectId: string, apiKeyId: string) {
   return createSummaryFromDbType(set);
 }
 
-function createSummaryFromDbType(set: ApiKeySet): ApiKeySetSummaryJson {
+function createSummaryFromDbType(set: ApiKeySet): ApiKeySetJson {
   return {
     id: set.id,
     description: set.description,

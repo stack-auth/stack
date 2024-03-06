@@ -7,18 +7,15 @@ import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
-import { useAdminApp } from '../../useAdminInterface';
+import { useAdminApp } from '../../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/src/utils/promises';
-import { ServerUserJson } from '@stackframe/stack-shared';
+import { ServerUser } from '@stackframe/stack/dist/lib/stack-app';
 
 export function UsersTable(props: {
-  rows: ServerUserJson[],
-  onInvalidate(): void,
+  rows: ServerUser[],
 }) {
-  const stackAdminApp = useAdminApp();
-
   const columns: (GridColDef & {
-    stackOnProcessUpdate?: (updatedRow: ServerUserJson, oldRow: ServerUserJson) => Promise<void>,
+    stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
   })[] = [
     {
       field: 'profilePicture',
@@ -51,7 +48,7 @@ export function UsersTable(props: {
       flex: 1,
       editable: true,
       stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        await stackAdminApp.setServerUserCustomizableData(originalRow.id, { displayName: updatedRow.displayName });
+        await originalRow.update({ displayName: updatedRow.displayName });
       },
     },
     {
@@ -60,7 +57,7 @@ export function UsersTable(props: {
       width: 200,
       editable: true,
       stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        await stackAdminApp.setServerUserCustomizableData(originalRow.id, { primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
+        await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
       },
       renderCell: (params) => (
         <>
@@ -95,7 +92,7 @@ export function UsersTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} onInvalidate={() => props.onInvalidate()} />
+        <Actions key="more_actions" params={params} />
       ],
     },
   ];
@@ -118,7 +115,6 @@ export function UsersTable(props: {
             await column.stackOnProcessUpdate(updatedRow, originalRow);
           }
         }
-        props.onInvalidate();
         return originalRow;
       }}
       pageSizeOptions={[5, 15, 25]}
@@ -126,7 +122,7 @@ export function UsersTable(props: {
   );
 }
 
-function Actions(props: { params: any, onInvalidate: () => void}) {
+function Actions(props: { params: any }) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -161,7 +157,6 @@ function Actions(props: { params: any, onInvalidate: () => void}) {
         user={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onInvalidate={() => props.onInvalidate()}
       />
 
       <Dialog
@@ -172,8 +167,7 @@ function Actions(props: { params: any, onInvalidate: () => void}) {
         okButton={{
           label: "Delete user",
           onClick: async () => {
-            await stackAdminApp.deleteServerUser(props.params.row.id);
-            props.onInvalidate();
+            await props.params.row.delete();
           }
         }}
         cancelButton={true}
@@ -185,7 +179,7 @@ function Actions(props: { params: any, onInvalidate: () => void}) {
 }
 
 
-function EditUserModal(props: { user: ServerUserJson, open: boolean, onClose: () => void, onInvalidate: () => void }) {
+function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -213,8 +207,7 @@ function EditUserModal(props: { user: ServerUserJson, open: boolean, onClose: ()
                     primaryEmailVerified: formData.get('primaryEmailVerified') === "on",
                     signedUpAtMillis: new Date(formData.get('signedUpAt') as string).getTime(),
                   };
-                  await stackAdminApp.setServerUserCustomizableData(props.user.id, formJson);
-                  props.onInvalidate();
+                  await props.user.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -246,7 +239,7 @@ function EditUserModal(props: { user: ServerUserJson, open: boolean, onClose: ()
               </Stack>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="signedUpAt">Signed up</FormLabel>
-                <Input name="signedUpAt" type="datetime-local" defaultValue={getInputDatetimeLocalString(new Date(props.user.signedUpAtMillis))} required />
+                <Input name="signedUpAt" type="datetime-local" defaultValue={getInputDatetimeLocalString(props.user.signedUpAt)} required />
               </FormControl>
             </Stack>
           </form>

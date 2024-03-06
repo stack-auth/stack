@@ -6,19 +6,14 @@ import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { Dialog } from "@/components/dialog";
 import { AsyncButton } from "@/components/async-button";
-import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../useAdminInterface";
+import { useAdminApp } from "../../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
 
 export default function UrlsAndCallbacksClient() {
   const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProjectAdmin();
 
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
-  const projectPromise = useStrictMemo(async () => {
-    return await stackAdminApp.getProject();
-  }, [stackAdminApp, invalidationCounter]);
-  const project = use(projectPromise);
   const domains = new Set(project.evaluatedConfig.domains);
 
   const [deleteDialogPrefix, setDeleteDialogDomain] = useState<string | null>(null);
@@ -38,12 +33,11 @@ export default function UrlsAndCallbacksClient() {
           <SmartSwitch
             checked={project.evaluatedConfig.allowLocalhost}
             onChange={async (event) => {
-              await stackAdminApp.updateProject({
+              await project.update({
                 config: {
                   allowLocalhost: event.target.checked,
                 },
               });
-              setInvalidationCounter(invalidationCounter + 1);
             }}
           >
             <Typography>Allow all localhost callbacks for development</Typography>
@@ -97,12 +91,11 @@ export default function UrlsAndCallbacksClient() {
         okButton={{
           label: "Delete",
           onClick: async () => {
-            await stackAdminApp.updateProject({
+            await project.update({
               config: {
                 domains: [...domains].filter(({ domain }) => domain !== deleteDialogPrefix),
               }
             });
-            setInvalidationCounter(invalidationCounter + 1);
           }
         }}
         cancelButton
@@ -130,7 +123,7 @@ export default function UrlsAndCallbacksClient() {
               setNewDomainError(true);
               return "prevent-close";
             }
-            await stackAdminApp.updateProject({
+            await project.update({
               config: {
                 domains: [...domains, {
                   domain: newDomain,
@@ -138,7 +131,6 @@ export default function UrlsAndCallbacksClient() {
                 }],
               },
             });
-            setInvalidationCounter(invalidationCounter + 1);
           }
         }}
         cancelButton

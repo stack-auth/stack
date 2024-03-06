@@ -4,9 +4,8 @@ import { Sheet, SheetProps, Select, Option, SelectOption, Stack, Typography } fr
 import * as React from 'react';
 import Box from '@mui/joy/Box';
 import IconButton from '@mui/joy/IconButton';
-import { useAdminApp } from './useAdminInterface';
+import { useAdminApp } from './use-admin-app';
 import { redirect, usePathname } from 'next/navigation';
-import { useStrictMemo } from '@stackframe/stack-shared/src/hooks/use-strict-memo';
 import { useStackApp } from '@stackframe/stack';
 import { Icon } from '@/components/icon';
 import Breadcrumbs from '@mui/joy/Breadcrumbs';
@@ -40,10 +39,7 @@ function ProjectSwitchItem({ label }: { label: string }) {
 function ProjectSwitch() {
   const stackApp = useStackApp({ projectIdMustMatch: "internal" });
   const stackAdminApp = useAdminApp();
-  const projectsPromise = useStrictMemo(() => {
-    return stackApp.listOwnedProjects();
-  }, []);
-  const projects = React.use(projectsPromise);
+  const projects = stackApp.useOwnedProjects();
   const project = projects.find((project) => project.id === stackAdminApp.projectId);
 
   const renderValue = (option: SelectOption<string> | null) => {

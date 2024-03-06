@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { AsyncButton } from "@/components/async-button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { useAdminApp } from "../../useAdminInterface";
+import { useAdminApp } from "../../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
 import { Dialog } from "@/components/dialog";
 import { DialogContent, Icon } from "@mui/material";

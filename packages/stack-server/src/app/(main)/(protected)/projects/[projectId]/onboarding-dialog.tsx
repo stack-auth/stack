@@ -1,7 +1,7 @@
 import { Dialog } from "@/components/dialog";
 import { use, useId, useRef, useState } from "react";
 import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
-import { useAdminApp } from "./useAdminInterface";
+import { useAdminApp } from "./use-admin-app";
 import { Stack } from "@mui/joy";
 import { Paragraph } from "@/components/paragraph";
 import EnvKeys from "@/components/env-keys";

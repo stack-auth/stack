@@ -1,19 +1,19 @@
 "use client";
 
-import { StackAdminInterface } from "@stackframe/stack-shared";
 import React from "react";
 import { useUser } from "@stackframe/stack";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { CurrentUser } from "@stackframe/stack/dist/lib/stack-app";
+import { CurrentUser, StackAdminApp } from "@stackframe/stack/dist/lib/stack-app";
 
-const StackAdminInterfaceContext = React.createContext<StackAdminInterface | null>(null);
+const StackAdminInterfaceContext = React.createContext<StackAdminApp<true> | null>(null);
 
 const createAdminInterface = cacheFunction((baseUrl: string, projectId: string, user: CurrentUser) => {
-  return new StackAdminInterface({
+  return new StackAdminApp({
     baseUrl,
     projectId,
-    internalAdminAccessToken: user.accessToken ?? throwErr("User must have an access token"),
+    tokenStore: "nextjs-cookie",
+    projectOwnerTokens: user.tokenStore,
   });
 });
 

@@ -15,11 +15,11 @@ import {
   PasswordResetLinkErrorCodes,
   PasswordResetLinkErrorCode
 } from "../utils/types";
-import { Result } from "../utils/results";
+import { AsyncResult, Result } from "../utils/results";
 import { ReadonlyJson, parseJson } from '../utils/json';
 import { AsyncCache } from '../utils/caches';
 import { typedAssign } from '../utils/objects';
-import { AsyncStore } from '../utils/stores';
+import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { neverResolve, runAsynchronously } from '../utils/promises';
 
 export type UserCustomizableJson = {
@@ -43,6 +43,7 @@ export type ClientProjectJson = {
   readonly credentialEnabled: boolean,
   readonly oauthProviders: readonly {
     id: string,
+    enabled: boolean,
   }[],
 };
 
@@ -52,7 +53,7 @@ export type ClientInterfaceOptions = {
 } & ({
   readonly publishableClientKey: string,
 } | {
-  readonly internalAdminAccessToken: string,
+  readonly projectOwnerTokens: ReadonlyTokenStore,
 });
 
 export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft";
@@ -84,6 +85,7 @@ function getSessionCookieName(projectId: string) {
   return "__stack-token-" + crypto.createHash("sha256").update(projectId).digest("hex");
 }
 
+export type ReadonlyTokenStore = ReadonlyAsyncStore<TokenObject>;
 export type TokenStore = AsyncStore<TokenObject>;
 
 export type TokenObject = Readonly<{
@@ -141,6 +143,11 @@ export type DomainConfigJson = {
   domain: string,
   handlerPath: string,
 }
+
+export type ProductionModeError = {
+  errorMessage: string,
+  fixUrlRelative: string,
+};
 
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
@@ -238,25 +245,13 @@ export class StackClientInterface {
     });
 
 
-    try {
-      return await Result.orThrowAsync(
-        Result.retry(
-          () => this.sendClientRequestInner(path, requestOptions, tokenStore!),
-          5,
-          { exponentialDelayBase: 1000 },
-        )
-      );
-    } catch (error: any) {
-      // TODO this is a hack. Occurs when the admin access token is invalid, or expired. Has plenty of weird side effects so we should replace this
-      if ("internalAdminAccessToken" in this.options && error?.message?.includes?.("Invalid API key") && typeof window !== "undefined") {
-        alert("Your session has expired. The page will now reload." + (process.env.NODE_ENV == "development" ? "\n\nThis is a hack and we should probably fix this at some point." : ""));
-        window.location.href = "/";
-        document.body.innerHTML = "Reloading...";
-        await neverResolve();
-      }
-
-      throw error;
-    }
+    return await Result.orThrowAsync(
+      Result.retry(
+        () => this.sendClientRequestInner(path, requestOptions, tokenStore!),
+        5,
+        { exponentialDelayBase: 1000 },
+      )
+    );
   }
 
   protected async sendClientRequestAndCatchKnownError<E>(
@@ -302,8 +297,8 @@ export class StackClientInterface {
         ...'publishableClientKey' in this.options ? {
           "x-stack-publishable-client-key": this.options.publishableClientKey,
         } : {},
-        ...'internalAdminAccessToken' in this.options ? {
-          "x-stack-admin-access-token": this.options.internalAdminAccessToken,
+        ...'projectOwnerTokens' in this.options ? {
+          "x-stack-admin-access-token": AsyncResult.or(this.options.projectOwnerTokens?.get(), null)?.accessToken ?? "",
         } : {},
         ...options.headers,
       },
@@ -672,8 +667,8 @@ export class StackClientInterface {
   }
 }
 
-export function getProductionModeErrors(project: ProjectJson): { errorMessage: string, fixUrlRelative: string }[] {
-  const errors: { errorMessage: string, fixUrlRelative: string }[] = [];
+export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
+  const errors: ProductionModeError[] = [];
 
   for (const { domain, handlerPath } of project.evaluatedConfig.domains) {
     // TODO: check if handlerPath is valid

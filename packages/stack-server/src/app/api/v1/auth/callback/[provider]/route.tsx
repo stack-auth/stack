@@ -73,9 +73,11 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);
-  
   if (!provider) {
     throw new StatusError(StatusError.NotFound, "Provider not found");
+  }
+  if (!provider.enabled) {
+    throw new StatusError(StatusError.NotFound, "Provider not enabled");
   }
 
   const userInfo = await getAuthorizationCallback(

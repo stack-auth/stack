@@ -13,8 +13,8 @@ export default function OauthGroup({
 
   return (
     <div className="wl_space-y-4 wl_flex wl_flex-col wl_items-stretch">
-      {project.oauthProviders.map(({ id }) => (
-        <OauthButton key={id} provider={id} type={type} redirectUrl={redirectUrl} />
+      {project.oauthProviders.filter(p => p.enabled).map(p => (
+        <OauthButton key={p.id} provider={p.id} type={type} redirectUrl={redirectUrl} />
       ))}
     </div>
   );

@@ -6,7 +6,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOauthCallback, signInWithCredential, signInWithOauth, signUpWithCredential } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
@@ -14,8 +14,9 @@ import { ReadonlyJson } from "../utils/types";
 import { constructRedirectUrl } from "../utils/url";
 import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
+import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -87,9 +88,20 @@ export type StackServerAppConstructorOptions<HasTokenStore extends boolean, Proj
   secretServerKey?: string,
 };
 
-export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = StackServerAppConstructorOptions<HasTokenStore, ProjectId> & {
-  superSecretAdminKey?: string,
-};
+export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = (
+  | (
+    & StackServerAppConstructorOptions<HasTokenStore, ProjectId>
+    & {
+      superSecretAdminKey?: string,
+    }
+  )
+  | (
+    & Omit<StackServerAppConstructorOptions<HasTokenStore, ProjectId>, "publishableClientKey" | "secretServerKey">
+    & {
+      projectOwnerTokens: ReadonlyTokenStore,
+    }
+  )
+);
 
 export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
   uniqueIdentifier: string,
@@ -218,6 +230,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
     async ([tokenStore, ...extraDependencies]) => await fetcher(tokenStore, extraDependencies),
     {
       onSubscribe: ([tokenStore], refresh) => {
+        // TODO find a *clean* way to not refresh when the token change was made inside the fetcher (for example due to expired access token)
         const handlerObj = tokenStore.onChange((newValue, oldValue) => {
           if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
           refresh();
@@ -241,6 +254,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   });
   private readonly _currentProjectCache = createCache(async () => {
     return Result.orThrow(await this._interface.getClientProject());
+  });
+  private readonly _ownedProjectsCache = createCacheByTokenStore(async (tokenStore) => {
+    return await this._interface.listProjects(tokenStore);
   });
 
   constructor(options:
@@ -312,12 +328,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const app = this;
     const res: CurrentUser = {
       ...this._userFromJson(json),
-      get accessToken() {
-        return AsyncResult.or(tokenStore.get(), null)?.accessToken ?? null;
-      },
-      get refreshToken() {
-        return AsyncResult.or(tokenStore.get(), null)?.refreshToken ?? null;
-      },
+      tokenStore,
       update(update) {
         return app._updateUser(update, tokenStore);
       },
@@ -342,7 +353,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _projectAdminFromJson(data: ProjectJson): Project {
+  protected _projectAdminFromJson(data: ProjectJson, adminInterface: StackAdminInterface, onRefresh: () => Promise<void>): Project {
+    if (data.id !== adminInterface.projectId) {
+      throw new Error(`The project ID of the provided project JSON (${data.id}) does not match the project ID of the app (${adminInterface.projectId})! This is a Stack bug.`);
+    }
+
     return {
       id: data.id,
       displayName: data.displayName,
@@ -352,12 +367,34 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isProductionMode: data.isProductionMode,
       evaluatedConfig: {
         id: data.evaluatedConfig.id,
+        credentialEnabled: data.evaluatedConfig.credentialEnabled,
         allowLocalhost: data.evaluatedConfig.allowLocalhost,
         oauthProviders: data.evaluatedConfig.oauthProviders,
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
       },
+
+      async update(update: ProjectUpdateOptions) {
+        await adminInterface.updateProject(update);
+        await onRefresh();
+      },
+
+      toJson() {
+        return data;
+      },
+
+      getProductionModeErrors() {
+        return getProductionModeErrors(this.toJson());
+      },
     };
+  }
+
+  protected _createAdminInterface(forProjectId: string, tokenStore: TokenStore): StackAdminInterface {
+    return new StackAdminInterface({
+      baseUrl: this._interface.options.baseUrl,
+      projectId: forProjectId,
+      projectOwnerTokens: tokenStore,
+    });
   }
 
   get projectId(): ProjectId {
@@ -542,23 +579,64 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async listOwnedProjects(): Promise<Project[]> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const json = await this._interface.listProjects(tokenStore);
-    return json.map((j) => this._projectAdminFromJson(j));
+    const json = await this._ownedProjectsCache.getOrWait([tokenStore], "never");
+    return json.map((j) => this._projectAdminFromJson(
+      j,
+      this._createAdminInterface(j.id, tokenStore),
+      () => this._refreshOwnedProjects(tokenStore),
+    ));
+  }
+
+  useOwnedProjects(): Project[] {
+    this._ensureInternalProject();
+    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const json = useCache(this._ownedProjectsCache, [tokenStore]);
+    return json.map((j) => this._projectAdminFromJson(
+      j,
+      this._createAdminInterface(j.id, tokenStore),
+      () => this._refreshOwnedProjects(tokenStore),
+    ));
+  }
+
+  onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+    this._ensureInternalProject();
+    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    return this._ownedProjectsCache.onChange([tokenStore], (projects) => {
+      callback(projects.map((j) => this._projectAdminFromJson(
+        j,
+        this._createAdminInterface(j.id, tokenStore),
+        () => this._refreshOwnedProjects(tokenStore),
+      )));
+    });
   }
 
   async createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._interface.createProject(newProject, tokenStore);
-    return this._projectAdminFromJson(json);
+    const res = this._projectAdminFromJson(
+      json,
+      this._createAdminInterface(json.id, tokenStore),
+      () => this._refreshOwnedProjects(tokenStore),
+    );
+    await this._refreshOwnedProjects(tokenStore);
+    return res;
   }
 
   protected async _refreshUser(tokenStore: TokenStore) {
     await this._currentUserCache.refresh([tokenStore]);
   }
+
+  protected async _refreshUsers() {
+    // nothing yet
+  }
   
   protected async _refreshProject() {
     await this._currentProjectCache.refresh([]);
+  }
+
+  protected async _refreshOwnedProjects(tokenStore: TokenStore) {
+    await this._ownedProjectsCache.refresh([tokenStore]);
   }
 
   static get [stackAppInternalsSymbol]() {
@@ -612,6 +690,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const user = await this._interface.getServerUserByToken(tokenStore);
     return Result.or(user, null);
   });
+  private readonly _serverUsersCache = createCache(async () => {
+    return await this._interface.listUsers();
+  });
 
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -650,15 +731,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       ...this._userFromJson(json),
       serverMetadata: json.serverMetadata,
       async delete() {
-        await app._interface.deleteServerUser(this.id);
+        const res = await app._interface.deleteServerUser(this.id);
+        await app._refreshUsers();
+        return res;
       },
       async update(update: Partial<ServerUserCustomizableJson>) {
-        await app._interface.setServerUserCustomizableData(this.id, update);
+        const res = await app._interface.setServerUserCustomizableData(this.id, update);
+        await app._refreshUsers();
+        return res;
       },
       getClientUser() {
-        return {
-          ...app._userFromJson(json),
-        };
+        return app._userFromJson(json);
       },
       toJson() {
         return app._serverUserToJson(this);
@@ -674,12 +757,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const nonCurrentServerUser = this._serverUserFromJson(json);
     const res: CurrentServerUser = {
       ...nonCurrentServerUser,
-      get accessToken() {
-        return AsyncResult.or(tokenStore.get(), null)?.accessToken ?? null;
-      },
-      get refreshToken() {
-        return AsyncResult.or(tokenStore.get(), null)?.refreshToken ?? null;
-      },
+      tokenStore,
       async delete() {
         const res = await nonCurrentServerUser.delete();
         await app._refreshUser(tokenStore);
@@ -694,22 +772,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._signOut(tokenStore, redirectUrl);
       },
       getClientUser() {
-        const currentServerUser = this;
-        return {
-          ...app._userFromJson(json),
-          get accessToken() {
-            return currentServerUser.accessToken;
-          },
-          get refreshToken() {
-            return currentServerUser.refreshToken;
-          },
-          update(update: Partial<ServerUserCustomizableJson>) {
-            return currentServerUser.update(update);
-          },
-          signOut(redirectUrl?: string) {
-            return currentServerUser.signOut(redirectUrl);
-          },
-        };
+        return app._currentUserFromJson(json, tokenStore);
       },
     };
     Object.freeze(res);
@@ -758,10 +821,33 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
+  async listServerUsers(): Promise<ServerUser[]> {
+    const json = await this._serverUsersCache.getOrWait([], "never");
+    return json.map((j) => this._serverUserFromJson(j));
+  }
+
+  useServerUsers(): ServerUser[] {
+    const json = useCache(this._serverUsersCache, []);
+    return json.map((j) => this._serverUserFromJson(j));
+  }
+
+  onServerUsersChange(callback: (users: ServerUser[]) => void) {
+    return this._serverUsersCache.onChange([], (users) => {
+      callback(users.map((j) => this._serverUserFromJson(j)));
+    });
+  }
+
   protected override async _refreshUser(tokenStore: TokenStore) {
     await Promise.all([
       super._refreshUser(tokenStore),
       this._currentServerUserCache.refresh([tokenStore]),
+    ]);
+  }
+
+  protected override async _refreshUsers() {
+    await Promise.all([
+      super._refreshUsers(),
+      this._serverUsersCache.refresh([]),
     ]);
   }
 }
@@ -773,33 +859,117 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   private readonly _adminProjectCache = createCache(async () => {
     return await this._interface.getProject();
   });
+  private readonly _apiKeySetsCache = createCache(async () => {
+    return await this._interface.listApiKeySets();
+  });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
-        publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
-        secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
-        superSecretAdminKey: options.superSecretAdminKey ?? getDefaultSuperSecretAdminKey(),
+        ..."projectOwnerTokens" in options ? {
+          projectOwnerTokens: options.projectOwnerTokens,
+        } : {
+          publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
+          secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
+          superSecretAdminKey: options.superSecretAdminKey ?? getDefaultSuperSecretAdminKey(),
+        },
       }),
       tokenStore: options.tokenStore,
       urls: options.urls,
     });
   }
 
+
+  protected _createApiKeySetBaseFromJson(data: ApiKeySetBaseJson): ApiKeySetBase {
+    const app = this;
+    return {
+      id: data.id,
+      description: data.description,
+      expiresAt: new Date(data.expiresAtMillis),
+      manuallyRevokedAt: data.manuallyRevokedAtMillis ? new Date(data.manuallyRevokedAtMillis) : null,
+      createdAt: new Date(data.createdAtMillis),
+      isValid() {
+        return this.whyInvalid() === null;
+      },
+      whyInvalid() {
+        if (this.expiresAt.getTime() < Date.now()) return "expired";
+        if (this.manuallyRevokedAt) return "manually-revoked";
+        return null;
+      },
+      async revoke() {
+        const res = await app._interface.revokeApiKeySetById(data.id);
+        await app._refreshApiKeySets();
+        return res;
+      }
+    };
+  }
+
+  protected _createApiKeySetFromJson(data: ApiKeySetJson): ApiKeySet {
+    return {
+      ...this._createApiKeySetBaseFromJson(data),
+      publishableClientKey: data.publishableClientKey ? { lastFour: data.publishableClientKey.lastFour } : null,
+      secretServerKey: data.secretServerKey ? { lastFour: data.secretServerKey.lastFour } : null,
+      superSecretAdminKey: data.superSecretAdminKey ? { lastFour: data.superSecretAdminKey.lastFour } : null,
+    };
+  }
+
+  protected _createApiKeySetFirstViewFromJson(data: ApiKeySetFirstViewJson): ApiKeySetFirstView {
+    return {
+      ...this._createApiKeySetBaseFromJson(data),
+      publishableClientKey: data.publishableClientKey,
+      secretServerKey: data.secretServerKey,
+      superSecretAdminKey: data.superSecretAdminKey,
+    };
+  }
+
   async getProjectAdmin(): Promise<Project> {
-    return this._projectAdminFromJson(await this._adminProjectCache.getOrWait([], "never"));
+    return this._projectAdminFromJson(
+      await this._adminProjectCache.getOrWait([], "never"),
+      this._interface,
+      () => this._refreshProject()
+    );
   }
 
   useProjectAdmin(): Project {
-    return this._projectAdminFromJson(useCache(this._adminProjectCache, []));
+    return this._projectAdminFromJson(
+      useCache(this._adminProjectCache, []),
+      this._interface,
+      () => this._refreshProject()
+    );
   }
 
   onProjectAdminChange(callback: (project: Project) => void) {
-    return this._adminProjectCache.onChange([], () => {
-      callback(this._projectAdminFromJson(useCache(this._adminProjectCache, [])));
+    return this._adminProjectCache.onChange([], (project) => {
+      callback(this._projectAdminFromJson(
+        project,
+        this._interface,
+        () => this._refreshProject()
+      ));
     });
+  }
+
+  async listApiKeySets(): Promise<ApiKeySet[]> {
+    const json = await this._apiKeySetsCache.getOrWait([], "never");
+    return json.map((j) => this._createApiKeySetFromJson(j));
+  }
+
+  useApiKeySets(): ApiKeySet[] {
+    const json = useCache(this._apiKeySetsCache, []);
+    return json.map((j) => this._createApiKeySetFromJson(j));
+  }
+
+  onApiKeySetsChange(callback: (apiKeySets: ApiKeySet[]) => void) {
+    return this._apiKeySetsCache.onChange([], (apiKeySets) => {
+      callback(apiKeySets.map((j) => this._createApiKeySetFromJson(j)));
+    });
+  }
+
+  async createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView> {
+    const json = await this._interface.createApiKeySet(options);
+    await this._refreshApiKeySets();
+    return this._createApiKeySetFirstViewFromJson(json);
   }
 
   protected override async _refreshProject() {
@@ -808,11 +978,14 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       this._adminProjectCache.refresh([]),
     ]);
   }
+
+  protected async _refreshApiKeySets() {
+    await this._apiKeySetsCache.refresh([]);
+  }
 }
 
 type Auth<T, C> = {
-  readonly accessToken: string | null,
-  readonly refreshToken: string | null,
+  readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T, redirectUrl?: string): Promise<never>,
 };
@@ -865,21 +1038,58 @@ export type CurrentServerUser = Auth<ServerUser, ServerUserCustomizableJson> & O
   getClientUser(this: CurrentServerUser): CurrentUser,
 };
 
-export type Project = Readonly<{
-  id: string,
-  displayName: string,
-  description?: string,
-  createdAt: Date,
-  userCount: number,
-  isProductionMode: boolean,
-  evaluatedConfig: {
-    id: string,
-    allowLocalhost: boolean,
-    oauthProviders: OauthProviderConfig[],
-    emailConfig?: EmailConfig,
-    domains: DomainConfig[],
+export type Project = {
+  readonly id: string,
+  readonly displayName: string,
+  readonly description?: string,
+  readonly createdAt: Date,
+  readonly userCount: number,
+  readonly isProductionMode: boolean,
+  readonly evaluatedConfig: {
+    readonly id: string,
+    readonly allowLocalhost: boolean,
+    readonly credentialEnabled: boolean,
+    readonly oauthProviders: OauthProviderConfig[],
+    readonly emailConfig?: EmailConfig,
+    readonly domains: DomainConfig[],
   },
-}>;
+
+  update(this: Project, update: ProjectUpdateOptions): Promise<void>,
+
+  toJson(this: Project): ProjectJson,
+
+  getProductionModeErrors(this: Project): ProductionModeError[],
+};
+
+export type ApiKeySetBase = {
+  id: string,
+  description: string,
+  expiresAt: Date,
+  manuallyRevokedAt: Date | null,
+  createdAt: Date,
+  isValid(): boolean,
+  whyInvalid(): "expired" | "manually-revoked" | null,
+  revoke(): Promise<void>,
+};
+
+export type ApiKeySetFirstView = ApiKeySetBase & {
+  publishableClientKey?: string,
+  secretServerKey?: string,
+  superSecretAdminKey?: string,
+};
+
+export type ApiKeySet = ApiKeySetBase & {
+  publishableClientKey: null | {
+    lastFour: string,
+  },
+  secretServerKey: null | {
+    lastFour: string,
+  },
+  superSecretAdminKey: null | {
+    lastFour: string,
+  },
+};
+
 
 export type EmailConfig = EmailConfigJson;
 
@@ -891,12 +1101,12 @@ export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
 };
 
-type AsyncStoreProperty<Name extends string, Value> =
-  & { [key in `get${Capitalize<Name>}`]: () => Promise<Value> }
+type AsyncStoreProperty<Name extends string, Value, IsMultiple extends boolean> =
+  & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: () => Promise<Value> }
   & { [key in `on${Capitalize<Name>}Change`]: (callback: (value: Value) => void) => void }
   & { [key in `use${Capitalize<Name>}`]: () => Value }
 
-export type StackClientApp<HasTokenStore extends boolean, ProjectId extends string = string> = (
+export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & {
     readonly projectId: ProjectId,
 
@@ -915,7 +1125,7 @@ export type StackClientApp<HasTokenStore extends boolean, ProjectId extends stri
       toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,
     },
   }
-  & AsyncStoreProperty<"project", ClientProjectJson>
+  & AsyncStoreProperty<"project", ClientProjectJson, false>
   & { [K in `redirectTo${Capitalize<keyof HandlerUrls>}`]: () => Promise<never> }
   & (HasTokenStore extends false
     ? {}
@@ -926,13 +1136,15 @@ export type StackClientApp<HasTokenStore extends boolean, ProjectId extends stri
       getUser(options: GetUserOptions & { or: 'redirect' }): Promise<CurrentUser>,
       getUser(options: GetUserOptions & { or: 'throw' }): Promise<CurrentUser>,
       getUser(options?: GetUserOptions): Promise<CurrentUser | null>,
-      onUserChange: AsyncStoreProperty<"user", CurrentUser | null>["onUserChange"],
+      onUserChange: AsyncStoreProperty<"user", CurrentUser | null, false>["onUserChange"],
     })
   & (
-    ProjectId extends "internal" ? {
-      listOwnedProjects(): Promise<Project[]>,
-      createProject(project: Pick<Project, "displayName" | "description">): Promise<Project>,
-    } : {}
+    ProjectId extends "internal" ? (
+      & AsyncStoreProperty<"ownedProjects", Project[], true>
+      & {
+        createProject(project: Pick<Project, "displayName" | "description">): Promise<Project>,
+      }
+     ) : {}
   )
 );
 type StackClientAppConstructor = {
@@ -951,9 +1163,10 @@ type StackClientAppConstructor = {
 };
 export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 
-export type StackServerApp<HasTokenStore extends boolean, ProjectId extends string = string> = (
+export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & StackClientApp<HasTokenStore, ProjectId>
-  & AsyncStoreProperty<"serverUser", CurrentServerUser | null>
+  & AsyncStoreProperty<"serverUser", CurrentServerUser | null, false>
+  & AsyncStoreProperty<"serverUsers", ServerUser[], true>
   & {}
 );
 type StackServerAppConstructor = {
@@ -966,9 +1179,13 @@ type StackServerAppConstructor = {
 };
 export const StackServerApp: StackServerAppConstructor = _StackServerAppImpl;
 
-export type StackAdminApp<HasTokenStore extends boolean, ProjectId extends string = string> = (
+export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & StackServerApp<HasTokenStore, ProjectId>
-  & AsyncStoreProperty<"projectAdmin", Project>
+  & AsyncStoreProperty<"projectAdmin", Project, false>
+  & AsyncStoreProperty<"apiKeySets", ApiKeySet[], true>
+  & {
+    createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView>,
+  }
 );
 type StackAdminAppConstructor = {
   new <

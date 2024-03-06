@@ -10,7 +10,7 @@ import ListItem from '@mui/joy/ListItem';
 import ListItemButton from '@mui/joy/ListItemButton';
 import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
-import { useAdminApp } from './useAdminInterface';
+import { useAdminApp } from './use-admin-app';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet, CircularProgress } from '@mui/joy';

@@ -14,11 +14,8 @@ export {
 } from "./interface/serverInterface";
 export { 
   StackAdminInterface, 
-  ApiKeySetBase, 
   ApiKeySetBaseJson, 
-  ApiKeySetFirstView, 
   ApiKeySetFirstViewJson, 
-  ApiKeySetSummary, 
-  ApiKeySetSummaryJson,
+  ApiKeySetJson,
 } from "./interface/adminInterface";
 export { fetchTokenPrefix } from "./helpers/fetch-token";

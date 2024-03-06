@@ -209,14 +209,13 @@ export async function createProject(
   return projectJsonFromDbType(project);
 }
 
-export async function getProject(projectId: string, showDisabledOauth: boolean = false): Promise<ProjectJson | null> {
-  return await updateProject(projectId, {}, showDisabledOauth);
+export async function getProject(projectId: string): Promise<ProjectJson | null> {
+  return await updateProject(projectId, {});
 }
 
 export async function updateProject(
   projectId: string,
   options: ProjectUpdateOptions,
-  showDisabledOauth: boolean = false
 ): Promise<ProjectJson | null> {
   // TODO: Validate production mode consistency
   const transaction = [];
@@ -393,10 +392,10 @@ export async function updateProject(
     return null;
   }
 
-  return projectJsonFromDbType(updatedProject, showDisabledOauth);
+  return projectJsonFromDbType(updatedProject);
 }
 
-function projectJsonFromDbType(project: ProjectDB, showDisabledOauth: boolean = false): ProjectJson {
+function projectJsonFromDbType(project: ProjectDB): ProjectJson {
   let emailConfig: EmailConfigJson | undefined;
   const emailServiceConfig = project.config.emailServiceConfig;
   if (emailServiceConfig) {
@@ -435,9 +434,6 @@ function projectJsonFromDbType(project: ProjectDB, showDisabledOauth: boolean = 
         handlerPath: domain.handlerPath,
       })),
       oauthProviders: project.config.oauthProviderConfigs.flatMap((provider): OauthProviderConfigJson[] => {
-        if (!showDisabledOauth && !provider.enabled) {
-          return [];
-        }
         if (provider.proxiedOauthConfig) {
           return [{
             id: provider.id,

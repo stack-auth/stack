@@ -1,11 +1,15 @@
 'use client';
 
 import MessageCard from "../elements/MessageCard";
-import { useStackApp } from "..";
+import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
 import PasswordResetInner from "../elements/PasswordResetInner";
 import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
-import { useStrictMemo } from "@stackframe/stack-shared/dist/hooks/use-strict-memo";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+
+const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
+  return await stackApp.verifyPasswordResetCode(code);
+});
 
 export default function PasswordReset({
   searchParams,
@@ -39,10 +43,7 @@ export default function PasswordReset({
     return invalidJsx;
   }
 
-  const errorCdoePromise = useStrictMemo(() => {
-    return stackApp.verifyPasswordResetCode(code);
-  }, [code]);
-  const errorCode = use(errorCdoePromise);
+  const errorCode = use(cachedVerifyPasswordResetCode(stackApp, code));
 
   switch (errorCode) {
     case PasswordResetLinkInvalidErrorCode: {

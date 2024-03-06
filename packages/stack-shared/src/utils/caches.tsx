@@ -85,7 +85,7 @@ class AsyncValueCache<T> {
     this._store = new AsyncStore();
     this._rateLimitOptions = {
       concurrency: 1,
-      debounceMs: 3_000,
+      debounceMs: 300,
       ...filterUndefined(_options.rateLimiter ?? {}),
     };
 

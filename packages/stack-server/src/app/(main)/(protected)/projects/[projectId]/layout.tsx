@@ -3,7 +3,7 @@
 import { Box, Drawer, Stack, useTheme } from "@mui/joy";
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
-import { AdminAppProvider } from "./useAdminInterface";
+import { AdminAppProvider } from "./use-admin-app";
 import { Header } from "./header";
 import { Icon } from '@/components/icon';
 import { OnboardingDialog } from "./onboarding-dialog";

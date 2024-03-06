@@ -2,36 +2,22 @@
 
 import { use, useId, useState } from "react";
 import { Box, Button, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
-import { ApiKeySetFirstView } from "@stackframe/stack-shared";
 import { AsyncButton } from "@/components/async-button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
-import { CopyButton } from "@/components/copy-button";
-import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { ApiKeysTable } from "./api-keys-table";
-import { useAdminApp } from "../../useAdminInterface";
+import { useAdminApp } from "../../use-admin-app";
 import { runAsynchronously } from "@stackframe/stack-shared/src/utils/promises";
 import EnvKeys from "@/components/env-keys";
-import Link from "next/link";
 import { SmartLink } from "@/components/smart-link";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { ApiKeySetFirstView } from "@stackframe/stack/dist/lib/stack-app";
 
 
 export default function ApiKeysDashboardClient() {
   const stackAdminApp = useAdminApp();
-
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
-  const apiKeySetsPromise = useStrictMemo(() => {
-    return stackAdminApp.listApiKeySets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invalidationCounter]);
-  const apiKeySets = use(apiKeySetsPromise);
+  const apiKeySets = stackAdminApp.useApiKeySets();
 
   const [isNewApiKeyDialogOpen, setIsNewApiKeyDialogOpen] = useState(false);
-  
-  const invalidate = () => {
-    setInvalidationCounter(c => c + 1);
-  };
 
   return (
     <>
@@ -50,13 +36,12 @@ export default function ApiKeysDashboardClient() {
         Please note that API keys cannot be viewed anymore after they have been created. If you lose them, you will have to create new ones.
       </Paragraph>
 
-      <ApiKeysTable rows={apiKeySets} onInvalidate={() => invalidate()} />
+      <ApiKeysTable rows={apiKeySets} />
 
       <CreateNewDialog
         key={`${isNewApiKeyDialogOpen}`}
         open={isNewApiKeyDialogOpen}
         onClose={() => setIsNewApiKeyDialogOpen(false)}
-        onInvalidate={() => invalidate()}
       />
     </>
   );
@@ -71,19 +56,15 @@ const expiresInOptions = {
   [1000 * 60 * 60 * 24 * 365 * 200]: "Never",
 } as const;
 
-function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate(): void }) {
+function CreateNewDialog(props: { open: boolean, onClose(): void }) {
   const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProjectAdmin();
 
   const formId = useId();
   const [isCreating, setIsCreating] = useState(false);
 
   const [returnedApiKey, setReturnedApiKey] = useState<ApiKeySetFirstView | null>(null);
   const [confirmedOnlyOnce, setConfirmedOnlyOnce] = useState(false);
-
-  const projectPromise = useStrictMemo(() => {
-    return stackAdminApp.getProject();
-  }, []);
-  const project = use(projectPromise);
 
   const close = () => {
     if (returnedApiKey && !confirmedOnlyOnce) return;
@@ -148,7 +129,6 @@ function CreateNewDialog(props: { open: boolean, onClose(): void, onInvalidate()
                         description: formData.get("description") as string,
                       });
                       setReturnedApiKey(returned);
-                      props.onInvalidate();
                     } finally {
                       setIsCreating(false);
                     }

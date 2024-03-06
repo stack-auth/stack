@@ -1,29 +1,21 @@
 "use client";
 
 import { Typography } from "@mui/joy";
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { InlineCode } from "@/components/inline-code";
 import { Paragraph } from "@/components/paragraph";
-import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { IconAlert } from "@/components/icon-alert";
 import { Enumeration, EnumerationItem } from "@/components/enumeration";
 import { SmartLink } from "@/components/smart-link";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../useAdminInterface";
-import { getProductionModeErrors } from "@stackframe/stack-shared";
+import { useAdminApp } from "../../use-admin-app";
 
 export default function EnvironmentClient() {
   const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProjectAdmin();
 
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
-  const projectPromise = useStrictMemo(async () => {
-    return await stackAdminApp.getProject();
-    // eslint-disable-next-line
-  }, [stackAdminApp, invalidationCounter]);
-  const project = use(projectPromise);
-
-  const productionModeErrors = getProductionModeErrors(project);
+  const productionModeErrors = project.getProductionModeErrors();
 
   const [productionModeUpdateLoading, setProductionModeUpdateLoading] = useState(false);
 
@@ -46,11 +38,10 @@ export default function EnvironmentClient() {
           onChange={async (event) => {
             setProductionModeUpdateLoading(true);
             try {
-              await stackAdminApp.updateProject({
+              await project.update({
                 isProductionMode: event.target.checked,
               });
             } finally {
-              setInvalidationCounter((prev) => prev + 1);
               setProductionModeUpdateLoading(false);
             }
           }}

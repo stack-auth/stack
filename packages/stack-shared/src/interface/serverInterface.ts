@@ -3,7 +3,8 @@ import {
   UserCustomizableJson, 
   UserJson, 
   TokenStore, 
-  StackClientInterface, 
+  StackClientInterface,
+  ReadonlyTokenStore, 
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { AsyncCache } from "../utils/caches";
@@ -28,7 +29,7 @@ export type ServerAuthApplicationOptions = (
       readonly secretServerKey: string,
     }
     | {
-      readonly internalAdminAccessToken: string,
+      readonly projectOwnerTokens: ReadonlyTokenStore,
     }
   )
 );

@@ -1,23 +1,17 @@
 "use client";
 
 import { AccordionGroup, Card, CardOverflow } from "@mui/joy";
-import { use, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { useStrictMemo } from "@stackframe/stack-shared/src/hooks/use-strict-memo";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../useAdminInterface";
-import { ProviderAccordion, ProviderType, availableProviders } from "./provider-accordion";
+import { useAdminApp } from "../../use-admin-app";
+import { ProviderAccordion, availableProviders } from "./provider-accordion";
 import { OauthProviderConfigJson } from "@stackframe/stack-shared";
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
-  const [invalidationCounter, setInvalidationCounter] = useState(0);
 
-  const projectPromise = useStrictMemo(async () => {
-    return await stackAdminApp.getProject({ showDisabledOauth: true });
-  }, [stackAdminApp, invalidationCounter]);
-  const project = use(projectPromise);
+  const project = stackAdminApp.useProjectAdmin();
 
   const oauthProviders = project.evaluatedConfig.oauthProviders;
 
@@ -33,12 +27,11 @@ export default function ProvidersClient() {
             <SmartSwitch
               checked={project.evaluatedConfig.credentialEnabled}
               onChange={async (event) => {
-                await stackAdminApp.updateProject({
+                await project.update({
                   config: {
                     credentialEnabled: event.target.checked,
                   },
                 });
-                setInvalidationCounter((counter) => counter + 1);
               }}
             >
               Enable password authentication
@@ -65,10 +58,9 @@ export default function ProvidersClient() {
                       newOauthProviders.push(provider);
                     }
 
-                    await stackAdminApp.updateProject({
+                    await project.update({
                       config: { oauthProviders: newOauthProviders },
                     });
-                    setInvalidationCounter((counter) => counter + 1);
                   }}
                 />;
               })}
