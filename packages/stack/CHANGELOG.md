@@ -1,5 +1,14 @@
 # @stackframe/stack
 
+## 1.2.1
+
+### Patch Changes
+
+- fixed import bugs
+- Updated dependencies
+  - @stackframe/stack-sc@1.2.1
+  - @stackframe/stack-shared@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes

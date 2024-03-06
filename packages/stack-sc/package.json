@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-sc",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "exports": {
     ".": {
       "types": "./dist/index.server.d.ts",

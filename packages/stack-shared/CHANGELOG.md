@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 1.2.1
+
+### Patch Changes
+
+- fixed import bugs
+
 ## 1.2.0
 
 ### Minor Changes
