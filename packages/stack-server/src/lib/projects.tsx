@@ -309,7 +309,7 @@ export async function updateProject(
         console.error(`Invalid provider type '${providerUpdate.type}'`);
       }
 
-      transaction.push(prismaClient.oauthProviderConfig.update({
+      transaction.push(prismaClient.oAuthProviderConfig.update({
         where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
         data: {
           enabled: providerUpdate.enabled,
@@ -346,7 +346,7 @@ export async function updateProject(
         console.error(`Invalid provider type '${provider.update.type}'`);
       }
 
-      transaction.push(prismaClient.oauthProviderConfig.create({
+      transaction.push(prismaClient.oAuthProviderConfig.create({
         data: {
           id: provider.id,
           projectConfigId: project.config.id,

@@ -259,7 +259,6 @@ model OAuthProviderConfig {
   projectUserOAuthAccounts ProjectUserOAuthAccount[]
 
   @@id([projectConfigId, id])
-  @@map(name: "oauthProviderConfigs")
 }
 
 model ProxiedOAuthProviderConfig {
