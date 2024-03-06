@@ -14,6 +14,12 @@ import {
   Input,
   Switch,
   Typography,
+  Modal,
+  ModalDialog,
+  DialogTitle,
+  Divider,
+  Checkbox,
+  DialogActions,
 } from "@mui/joy";
 import { OauthProviderConfigJson } from "@stackframe/stack-shared";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +28,8 @@ import { AsyncButton } from "@/components/async-button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { useAdminApp } from "../../useAdminInterface";
 import { SmartSwitch } from "@/components/smart-switch";
+import { Dialog } from "@/components/dialog";
+import { DialogContent, Icon } from "@mui/material";
 
 /**
  * All the different types of Oauth providers that can be created.
@@ -44,31 +52,97 @@ function toTitle(id: ProviderType) {
   }[id] ?? `Custom Oauth provider: ${id}`;
 }
 
+function ConfirmDialog(props: { open: boolean, onClose(): void, onConfirm(): Promise<void> }) {
+  const [confirmed, setConfirmedOnlyOnce] = useState(false);
+
+  return (
+    <Modal open={props.open} onClose={props.onClose}>
+      <ModalDialog minWidth="60vw">
+        <DialogTitle>
+          Danger! Are you sure?
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          <Stack spacing={2} overflow='hidden'>
+            <Paragraph body>
+              Disabling this provider will prevent users from signing in with it, including existing users who have used it before. They might not be able to log in anymore. Are you sure you want to do this?
+            </Paragraph>
+            <Checkbox
+              label="I understand that this will disable sign-in and sign-up for new and existing users with this provider"
+              checked={confirmed}
+              onChange={() => setConfirmedOnlyOnce(!confirmed)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <AsyncButton
+            color="primary"
+            onClick={async () => {
+              await props.onConfirm();
+              props.onClose();
+            }}
+            disabled={!confirmed}
+          >
+            Disable Provider
+          </AsyncButton>
+          <AsyncButton
+            color="neutral"
+            onClick={() => props.onClose()}
+          >
+            Cancel
+          </AsyncButton>
+        </DialogActions>
+      </ModalDialog>
+    </Modal>
+  );
+}
+
 function AccordionSummaryContent(props: Props) {
   const title = toTitle(props.id);
   const enabled = props.provider?.enabled;
   const [checked, setChecked] = useState(enabled);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  const updateProvider = async (options: { enabled: boolean, id: ProviderType }) => {
+    if (props.provider) {
+      await props.updateProvider({ ...props.provider, enabled: options.enabled });
+    } else {
+      await props.updateProvider({ id: props.id, type: toSharedProvider(props.id), enabled: options.enabled });
+    }
+  };
 
   return (
-    <AccordionSummary indicator={enabled ? undefined : null}>
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <SmartSwitch
-          checked={checked} 
-          sx={{ marginRight: 2 }} 
-          onChange={async (e) => {
-            e.stopPropagation();
-            setChecked(e.target.checked);
-            if (props.provider) {
-              await props.updateProvider({ ...props.provider, enabled: e.target.checked });
-            } else {
-              await props.updateProvider({ id: props.id, type: toSharedProvider(props.id), enabled: e.target.checked });
-            }
-          }}
-        />
-        {title}
-        {props.provider &&  sharedProviders.includes(props.provider.type as SharedProvider) && " (shared keys)"}
-      </Box>
-    </AccordionSummary>
+    <>
+      <AccordionSummary indicator={enabled ? undefined : null}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <SmartSwitch
+            checked={checked} 
+            sx={{ marginRight: 2 }} 
+            onChange={async (e) => {
+              e.stopPropagation();
+
+              if (!e.target.checked) {
+                setConfirmDialogOpen(true);
+                return;
+              }
+              setChecked(e.target.checked);
+              await updateProvider({ enabled: e.target.checked, id: props.id });
+            }}
+          />
+          {title}
+          {props.provider &&  sharedProviders.includes(props.provider.type as SharedProvider) && " (shared keys)"}
+        </Box>
+      </AccordionSummary>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={async () => {
+          setChecked(false);
+          await updateProvider({ enabled: false, id: props.id });
+        }}
+      />
+    </>
   );
 }
 
