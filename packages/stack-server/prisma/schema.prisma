@@ -252,6 +252,8 @@ model OauthProviderConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  enabled Boolean @default(true)
+
   proxiedOauthConfig       ProxiedOauthProviderConfig?
   standardOauthConfig      StandardOauthProviderConfig?
   projectUserOauthAccounts ProjectUserOauthAccount[]

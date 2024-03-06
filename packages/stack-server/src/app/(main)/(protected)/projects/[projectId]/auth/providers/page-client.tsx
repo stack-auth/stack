@@ -15,11 +15,13 @@ export default function ProvidersClient() {
   const [invalidationCounter, setInvalidationCounter] = useState(0);
 
   const projectPromise = useStrictMemo(async () => {
-    return await stackAdminApp.getProject();
+    return await stackAdminApp.getProject({ showDisabledOauth: true });
   }, [stackAdminApp, invalidationCounter]);
   const project = use(projectPromise);
 
   const oauthProviders = project.evaluatedConfig.oauthProviders;
+
+  console.log(oauthProviders);
 
   return (
     <>
@@ -58,11 +60,15 @@ export default function ProvidersClient() {
                   key={id} 
                   id={id} 
                   provider={provider}
-                  updateProvider={async (provider?: OauthProviderConfigJson) => {
+                  updateProvider={async (provider: OauthProviderConfigJson) => {
+                    const alreadyExist = oauthProviders.some((p) => p.id === id);
+                    const newOauthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+                    if (!alreadyExist) {
+                      newOauthProviders.push(provider);
+                    }
+
                     await stackAdminApp.updateProject({
-                      config: {
-                        oauthProviders: oauthProviders.map((p) => p.id === id ? provider : p).filter((p) => p) as OauthProviderConfigJson[],
-                      },
+                      config: { oauthProviders: newOauthProviders },
                     });
                     setInvalidationCounter((counter) => counter + 1);
                   }}

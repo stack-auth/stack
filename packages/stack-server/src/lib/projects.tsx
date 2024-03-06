@@ -7,6 +7,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOauthProviderType {
@@ -208,13 +209,14 @@ export async function createProject(
   return projectJsonFromDbType(project);
 }
 
-export async function getProject(projectId: string): Promise<ProjectJson | null> {
-  return await updateProject(projectId, {});
+export async function getProject(projectId: string, showDisabledOauth: boolean = false): Promise<ProjectJson | null> {
+  return await updateProject(projectId, {}, showDisabledOauth);
 }
 
 export async function updateProject(
   projectId: string,
-  options: ProjectUpdateOptions
+  options: ProjectUpdateOptions,
+  showDisabledOauth: boolean = false
 ): Promise<ProjectJson | null> {
   // TODO: Validate production mode consistency
   const transaction = [];
@@ -229,11 +231,6 @@ export async function updateProject(
   }
 
   if (options.config?.domains) {
-    // Fetch current domains
-    const currentDomains = await prismaClient.projectDomain.findMany({
-      where: { projectConfigId: project.config.id },
-    });
-
     const newDomains = options.config.domains;
 
     // delete existing domains
@@ -253,46 +250,109 @@ export async function updateProject(
     });
   }
 
-  if (options.config?.oauthProviders) {
-    transaction.push(prismaClient.oauthProviderConfig.deleteMany({
-      where: { projectConfigId: project.config.id },
-    }));
-
-    options.config.oauthProviders.forEach(providerConfig => {
-      if (sharedProviders.includes(providerConfig.type as SharedProvider)) {
-        transaction.push(prismaClient.oauthProviderConfig.create({
-          data: {
-            projectConfigId: project.config.id,
-            id: providerConfig.id,
-            proxiedOauthConfig: {
-              create: {
-                type: toDBSharedProvider(providerConfig.type as SharedProvider),
-              },
-            },
-          },
-        }));
-      } else if (standardProviders.includes(providerConfig.type as StandardProvider)) {
-        // make typescript happy
-        const typedProviderConfig = providerConfig as OauthProviderUpdateOptions & { type: StandardProvider };
-
-        transaction.push(prismaClient.oauthProviderConfig.create({
-          data: {
-            projectConfigId: project.config.id,
-            id: providerConfig.id,
-            standardOauthConfig: {
-              create: {
-                type: toDBStandardProvider(providerConfig.type as StandardProvider),
-                clientId: typedProviderConfig.clientId,
-                clientSecret: typedProviderConfig.clientSecret,
-                tenantId: typedProviderConfig.tenantId,
-              },
-            },
-          },
-        }));
-      } else {
-        console.error(`Invalid provider type '${providerConfig.type}'`);
+  const oauthProvidersUpdate = options.config?.oauthProviders;
+  if (oauthProvidersUpdate) {
+    const oldProviders = project.config.oauthProviderConfigs;
+    const providerMap = new Map(oldProviders.map((provider) => [
+      provider.id, 
+      {
+        providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwErr(`Missing provider update for provider '${provider.id}'`),
+        oldProvider: provider,
       }
-    });
+    ]));
+
+    const newProviders = oauthProvidersUpdate.map((providerUpdate) => ({
+      id: providerUpdate.id, 
+      update: providerUpdate
+    })).filter(({ id }) => !providerMap.has(id));
+
+    // Update existing providers
+    for (const [id, { providerUpdate, oldProvider }] of providerMap) {
+      let providerConfigUpdate;
+      if (sharedProviders.includes(providerUpdate.type as SharedProvider)) {
+        providerConfigUpdate = {
+          proxiedOauthConfig: {
+            update: {
+              type: toDBSharedProvider(providerUpdate.type as SharedProvider),
+            },
+          },
+        };
+
+        if (oldProvider.standardOauthConfig) {
+          transaction.push(prismaClient.standardOauthProviderConfig.delete({
+            where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
+          }));
+        }
+
+      } else if (standardProviders.includes(providerUpdate.type as StandardProvider)) {
+        const typedProviderConfig = providerUpdate as OauthProviderUpdateOptions & { type: StandardProvider };
+
+        providerConfigUpdate = {
+          standardOauthConfig: {
+            update: {
+              type: toDBStandardProvider(providerUpdate.type as StandardProvider),
+              clientId: typedProviderConfig.clientId,
+              clientSecret: typedProviderConfig.clientSecret,
+              tenantId: typedProviderConfig.tenantId,
+            },
+          },
+        };
+
+        if (oldProvider.proxiedOauthConfig) {
+          transaction.push(prismaClient.proxiedOauthProviderConfig.delete({
+            where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
+          }));
+        }
+      } else {
+        console.error(`Invalid provider type '${providerUpdate.type}'`);
+      }
+
+      transaction.push(prismaClient.oauthProviderConfig.update({
+        where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
+        data: {
+          enabled: providerUpdate.enabled,
+          ...providerConfigUpdate,
+        },
+      }));
+    }
+    
+    // Create new providers
+    for (const provider of newProviders) {
+      let providerConfigData;
+      if (sharedProviders.includes(provider.update.type as SharedProvider)) {
+        providerConfigData = {
+          proxiedOauthConfig: {
+            create: {
+              type: toDBSharedProvider(provider.update.type as SharedProvider),
+            },
+          },
+        };
+      } else if (standardProviders.includes(provider.update.type as StandardProvider)) {
+        const typedProviderConfig = provider.update as OauthProviderUpdateOptions & { type: StandardProvider };
+
+        providerConfigData = {
+          standardOauthConfig: {
+            create: {
+              type: toDBStandardProvider(provider.update.type as StandardProvider),
+              clientId: typedProviderConfig.clientId,
+              clientSecret: typedProviderConfig.clientSecret,
+              tenantId: typedProviderConfig.tenantId,
+            },
+          },
+        };
+      } else {
+        console.error(`Invalid provider type '${provider.update.type}'`);
+      }
+
+      transaction.push(prismaClient.oauthProviderConfig.create({
+        data: {
+          id: provider.id,
+          projectConfigId: project.config.id,
+          enabled: provider.update.enabled,
+          ...providerConfigData,
+        },
+      }));
+    }
   }
 
   if (options.config?.credentialEnabled !== undefined) {
@@ -311,7 +371,7 @@ export async function updateProject(
     }));
   }
 
-  const result = await prismaClient.$transaction(transaction);
+  await prismaClient.$transaction(transaction);
   
   const updatedProject = await prismaClient.project.findUnique({
     where: { id: projectId },
@@ -322,10 +382,10 @@ export async function updateProject(
     return null;
   }
 
-  return projectJsonFromDbType(updatedProject);
+  return projectJsonFromDbType(updatedProject, showDisabledOauth);
 }
 
-function projectJsonFromDbType(project: ProjectDB): ProjectJson {
+function projectJsonFromDbType(project: ProjectDB, showDisabledOauth: boolean = false): ProjectJson {
   let emailConfig: EmailConfigJson | undefined;
   const emailServiceConfig = project.config.emailServiceConfig;
   if (emailServiceConfig) {
@@ -364,15 +424,20 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         handlerPath: domain.handlerPath,
       })),
       oauthProviders: project.config.oauthProviderConfigs.flatMap((provider): OauthProviderConfigJson[] => {
+        if (!showDisabledOauth && !provider.enabled) {
+          return [];
+        }
         if (provider.proxiedOauthConfig) {
           return [{
             id: provider.id,
+            enabled: provider.enabled,
             type: fromDBSharedProvider(provider.proxiedOauthConfig.type),
           }];
         }
         if (provider.standardOauthConfig) {
           return [{
             id: provider.id,
+            enabled: provider.enabled,
             type: fromDBStandardProvider(provider.standardOauthConfig.type),
             clientId: provider.standardOauthConfig.clientId,
             clientSecret: provider.standardOauthConfig.clientSecret,

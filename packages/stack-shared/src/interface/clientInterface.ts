@@ -110,6 +110,7 @@ export type ProjectJson = Readonly<{
 
 export type OauthProviderConfigJson = {
   id: string,
+  enabled: boolean,
 } & (
   | { type: SharedProvider }
   | {

@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
-import { isProjectAdmin, updateProject } from "@/lib/projects";
+import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
 import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -16,6 +16,7 @@ const putOrGetSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
+    showDisabledOauth: yup.boolean().optional(),
     isProductionMode: yup.boolean().optional(),
     config: yup.object({
       domains: yup.array(yup.object({
@@ -25,6 +26,7 @@ const putOrGetSchema = yup.object({
       oauthProviders: yup.array(
         yup.object({
           id: yup.string().required(),
+          enabled: yup.boolean().required(),
           type: yup.string().required(),
           clientId: yup.string().optional(),
           clientSecret: yup.string().optional(),
@@ -47,7 +49,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     body,
   } = await parseRequest(req, putOrGetSchema);
 
-  const update = body ?? {};
+  const { showDisabledOauth, ...update } = body ?? {};
 
   const pkValid = await checkApiKeySet(projectId, { publishableClientKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
@@ -58,12 +60,13 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     config: update.config && {
       domains: update.config.domains,
       oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
-        if (sharedProviders.includes(provider.type)) {
+        if (sharedProviders.includes(provider.type as SharedProvider)) {
           return {
             id: provider.id,
+            enabled: provider.enabled,
             type: provider.type as SharedProvider,
           };
-        } else if (standardProviders.includes(provider.type)) {
+        } else if (standardProviders.includes(provider.type as StandardProvider)) {
           if (!provider.clientId) {
             throw new StatusError(StatusError.BadRequest, "Missing clientId");
           }
@@ -73,6 +76,7 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
           
           return {
             id: provider.id,
+            enabled: provider.enabled,
             type: provider.type as StandardProvider,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
@@ -90,13 +94,18 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
     const project = await updateProject(
       projectId,
       typedUpdate,
+      showDisabledOauth,
     );
     return NextResponse.json(project);
   } else if (asValid || pkValid) {
     if (Object.entries(update).length !== 0) {
       throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
     }
-    const project = await updateProject(projectId, {});
+    if (showDisabledOauth) {
+      throw new StatusError(StatusError.Forbidden, "Can't show disabled oauth providers with only publishable client key");
+    }
+
+    const project = await getProject(projectId);
     if (!project) {
       throw new Error("Project not found but the API key was valid? Something weird happened");
     }
@@ -120,4 +129,5 @@ const handler = smartRouteHandler(async (req: NextRequest, options: { params: { 
 });
 export const GET = handler;
 export const PUT = handler;
+export const POST = handler;
 export const DELETE = handler;

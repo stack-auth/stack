@@ -18,6 +18,7 @@ export type AdminAuthApplicationOptions = Readonly<
 
 export type OauthProviderUpdateOptions = {
   id: string,
+  enabled: boolean,
 } & (
   | {
     type: SharedProvider,
@@ -136,10 +137,16 @@ export class StackAdminInterface extends StackServerInterface {
     ]);
   }
 
-  async getProject(): Promise<ProjectJson> {
+  async getProject(options?: { showDisabledOauth?: boolean }): Promise<ProjectJson> {
     const response = await this.sendAdminRequest(
       "/projects/" + encodeURIComponent(this.projectId),
-      {},
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options || {}),
+      },
       null,
     );
     return await response.json();

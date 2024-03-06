@@ -32,7 +32,7 @@ export type ProviderType = typeof availableProviders[number];
 type Props = {
   id: ProviderType,
   provider?: OauthProviderConfigJson,
-  updateProvider: (provider?: OauthProviderConfigJson) => Promise<void>,
+  updateProvider: (provider: OauthProviderConfigJson) => Promise<void>,
 };
 
 function toTitle(id: ProviderType) {
@@ -46,19 +46,22 @@ function toTitle(id: ProviderType) {
 
 function AccordionSummaryContent(props: Props) {
   const title = toTitle(props.id);
-  const [checked, setChecked] = useState(!!props.provider);
+  const enabled = props.provider?.enabled;
+  const [checked, setChecked] = useState(enabled);
 
   return (
-    <AccordionSummary indicator={props.provider ? undefined : null}>
+    <AccordionSummary indicator={enabled ? undefined : null}>
       <Box sx={{ display: "flex", alignItems: "center" }}>
         <SmartSwitch
           checked={checked} 
           sx={{ marginRight: 2 }} 
           onChange={async (e) => {
             e.stopPropagation();
-            if (checked) {
-              setChecked(false);
-              await props.updateProvider();
+            setChecked(e.target.checked);
+            if (props.provider) {
+              await props.updateProvider({ ...props.provider, enabled: e.target.checked });
+            } else {
+              await props.updateProvider({ id: props.id, type: toSharedProvider(props.id), enabled: e.target.checked });
             }
           }}
         />
@@ -70,9 +73,9 @@ function AccordionSummaryContent(props: Props) {
 }
 
 export function ProviderAccordion(props: Props) {
-  if (!props.provider) {
+  if (!props.provider?.enabled) {
     return (
-      <Accordion disabled>
+      <Accordion>
         <AccordionSummaryContent {...props}/>
       </Accordion>
     );
