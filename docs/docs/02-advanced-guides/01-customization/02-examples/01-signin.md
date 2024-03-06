@@ -43,7 +43,7 @@ export default function CustomOAuthSignIn() {
   const app = useStackApp();
 
   return <div>
-    <button onClick={async () => await app.signInWithOauth({ 
+    <button onClick={async () => await app.signInWithOAuth({ 
       provider: 'google', 
       redirectUrl: app.urls.userHome
     })}>Sign In with Google</button>

@@ -7,7 +7,7 @@ import MessageCard from "../elements/MessageCard";
 import { HandlerUrls } from "../lib/stack-app";
 import Signout from "./SignOut";
 import ForgotPassword from "./ForgotPassword";
-import OauthCallback from "./OauthCallback";
+import OAuthCallback from "./OAuthCallback";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -66,7 +66,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
     case 'oauth-callback': {
       redirectIfNotHandler('oauthCallback');
-      return <OauthCallback />;
+      return <OAuthCallback />;
     }
     default: {
       return notFound();

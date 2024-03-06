@@ -1,16 +1,16 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import { OauthProviderConfigJson } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { GithubProvider } from "./github";
-import { OauthModel } from "./model";
-import { OauthUserInfo } from "./utils";
+import { OAuthModel } from "./model";
+import { OAuthUserInfo } from "./utils";
 import { OAuthBaseProvider } from "./oauth-base";
 import { GoogleProvider } from "./google";
 import { FacebookProvider } from "./facebook";
 import { MicrosoftProvider } from "./microsoft";
 
 
-function getProvider(provider: OauthProviderConfigJson): OAuthBaseProvider {
+function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
   switch (provider.type) {
     case "github": {
       return new GithubProvider({
@@ -75,7 +75,7 @@ function getProvider(provider: OauthProviderConfigJson): OAuthBaseProvider {
 
 
 export async function getAuthorizationUrl(
-  provider: OauthProviderConfigJson,
+  provider: OAuthProviderConfigJson,
   codeVerifier: string,
   state: string,
 ): Promise<string> {
@@ -88,11 +88,11 @@ export async function getAuthorizationUrl(
 }
 
 export async function getAuthorizationCallback(
-  provider: OauthProviderConfigJson,
+  provider: OAuthProviderConfigJson,
   codeVerifier: string,
   state: string,
   callbackParams: any,
-): Promise<OauthUserInfo> {
+): Promise<OAuthUserInfo> {
   // TODO: better error handling
   // TODO: check callback url
   return await getProvider(provider).getCallback({
@@ -103,5 +103,5 @@ export async function getAuthorizationCallback(
 }
 
 export const oauthServer = new OAuth2Server({
-  model: new OauthModel(),
+  model: new OAuthModel(),
 });

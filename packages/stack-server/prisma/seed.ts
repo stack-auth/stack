@@ -4,7 +4,18 @@ const prisma = new PrismaClient();
 
 async function seed() {
   console.log('Seeding database...');
-  console.log(`Creating internal project... (if it doesn't exist yet)`);
+  
+  const oldProjects = await prisma.project.findUnique({
+    where: {
+      id: 'internal',
+    },
+  });
+
+  if (oldProjects) {
+    console.log('Internal project already exists, skipping seeding');
+    return;
+  }
+
   await prisma.project.upsert({
     where: {
       id: 'internal',
@@ -28,12 +39,12 @@ async function seed() {
           oauthProviderConfigs: {
             create: ['github', 'facebook', 'google', 'microsoft'].map((id) => ({
               id,
-              proxiedOauthConfig: {
+              proxiedOAuthConfig: {
                 create: {                
                   type: id.toUpperCase(),
                 }
               },
-              projectUserOauthAccounts: {
+              projectUserOAuthAccounts: {
                 create: []
               }
             })),
@@ -52,7 +63,7 @@ async function seed() {
     },
     update: {},
   });
-  console.log('Internal project created or found, make sure to set allowed callback prefixes if needed.');
+  console.log('Internal project created');
   console.log('Seeding complete!');
 }
 

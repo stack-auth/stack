@@ -104,13 +104,13 @@ export type ProjectJson = {
     id: string,
     allowLocalhost: boolean,
     credentialEnabled: boolean,
-    oauthProviders: OauthProviderConfigJson[],
+    oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
   },
 };
 
-export type OauthProviderConfigJson = {
+export type OAuthProviderConfigJson = {
   id: string,
   enabled: boolean,
 } & (
@@ -495,7 +495,7 @@ export class StackClientInterface {
     });
   }
 
-  async getOauthUrl(
+  async getOAuthUrl(
     provider: string, 
     redirectUrl: string, 
     codeChallenge: string, 
@@ -511,7 +511,7 @@ export class StackClientInterface {
 
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
-      throw new Error("Admin session token is currently not supported for Oauth");
+      throw new Error("Admin session token is currently not supported for OAuth");
     }
     const url = new URL(this.getApiUrl() + "/auth/authorize/" + provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
@@ -526,7 +526,7 @@ export class StackClientInterface {
     return url.toString();
   }
 
-  async callOauthCallback(
+  async callOAuthCallback(
     oauthParams: URLSearchParams, 
     redirectUri: string,
     codeVerifier: string, 
@@ -535,7 +535,7 @@ export class StackClientInterface {
   ) {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
-      throw new Error("Admin session token is currently not supported for Oauth");
+      throw new Error("Admin session token is currently not supported for OAuth");
     }
     const as = {
       issuer: this.options.baseUrl,

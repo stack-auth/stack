@@ -1,7 +1,7 @@
 'use client';
 import NextLink from 'next/link';
 import DividerWithText from '../elements/DividerWithText';
-import OauthGroup from '../elements/OauthGroup';
+import OAuthGroup from '../elements/OAuthGroup';
 import CardFrame from '../elements/CardFrame';
 import CredentialSignUp from '../elements/CredentialSignUp';
 import CardHeader from '../elements/CardHeader';
@@ -28,7 +28,7 @@ export default function SignUp({ redirectUrl, fullPage=false }: { redirectUrl?: 
           </NextLink>
         </p>
       </CardHeader>
-      <OauthGroup type='signup' redirectUrl={redirectUrl} />
+      <OAuthGroup type='signup' redirectUrl={redirectUrl} />
       {project.credentialEnabled && <>
         <DividerWithText text={'OR'} />
         <CredentialSignUp redirectUrl={redirectUrl} />

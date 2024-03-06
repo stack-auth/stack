@@ -1,5 +1,5 @@
 import React, { use, useCallback } from "react";
-import { OauthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -8,7 +8,7 @@ import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
-import { callOauthCallback, signInWithCredential, signInWithOauth, signUpWithCredential } from "./auth";
+import { callOAuthCallback, signInWithCredential, signInWithOAuth, signUpWithCredential } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "../utils/types";
 import { constructRedirectUrl } from "../utils/url";
@@ -423,7 +423,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
   async redirectToHome() { return await this._redirectTo("home"); }
   async redirectToUserHome() { return await this._redirectTo("userHome"); }
-  async redirectToOauthCallback() { return await this._redirectTo("oauthCallback"); }
+  async redirectToOAuthCallback() { return await this._redirectTo("oauthCallback"); }
 
   async sendForgotPasswordEmail(email: string) {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -511,9 +511,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return res;
   }
 
-  async signInWithOauth(provider: string) {
+  async signInWithOAuth(provider: string) {
     this._ensurePersistentTokenStore();
-    await signInWithOauth(this._interface, { provider, redirectUrl: this.urls.oauthCallback });
+    await signInWithOAuth(this._interface, { provider, redirectUrl: this.urls.oauthCallback });
   }
 
   async signInWithCredential(options: {
@@ -542,12 +542,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await signUpWithCredential(this._interface, tokenStore, options);
   }
 
-  async callOauthCallback(options: {
+  async callOAuthCallback(options: {
     redirectUrl?: string,
   } = {}) {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    await callOauthCallback(this._interface, tokenStore, options.redirectUrl);
+    await callOAuthCallback(this._interface, tokenStore, options.redirectUrl);
   }
 
   protected async _signOut(tokenStore: TokenStore, redirectUrl?: string): Promise<never> {
@@ -1051,7 +1051,7 @@ export type Project = {
     readonly id: string,
     readonly allowLocalhost: boolean,
     readonly credentialEnabled: boolean,
-    readonly oauthProviders: OauthProviderConfig[],
+    readonly oauthProviders: OAuthProviderConfig[],
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
   },
@@ -1097,7 +1097,7 @@ export type EmailConfig = EmailConfigJson;
 
 export type DomainConfig = DomainConfigJson;
 
-export type OauthProviderConfig = OauthProviderConfigJson;
+export type OAuthProviderConfig = OAuthProviderConfigJson;
 
 export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
@@ -1114,10 +1114,10 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     readonly urls: Readonly<HandlerUrls>,
 
-    signInWithOauth(provider: string): Promise<void>,
+    signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignInErrorCode | undefined>,
     signUpWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignUpErrorCode | undefined>,
-    callOauthCallback(options?: { redirectUrl?: string }): Promise<void>,
+    callOAuthCallback(options?: { redirectUrl?: string }): Promise<void>,
     sendForgotPasswordEmail(email: string): Promise<void>,
     resetPassword(options: { code: string, password: string }): Promise<PasswordResetLinkErrorCode | undefined>,
     verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined>,
@@ -1128,10 +1128,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof HandlerUrls>}`]: () => Promise<never> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'oauthCallback'>>}`]: () => Promise<never> }
   & (HasTokenStore extends false
     ? {}
     : {
+      redirectToOAuthCallback(): Promise<never>,
       useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser,
       useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser,
       useUser(options?: GetUserOptions): CurrentUser | null,

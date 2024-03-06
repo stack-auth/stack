@@ -4,7 +4,7 @@ export {
   UserCustomizableJson,
   ClientProjectJson,
   ProjectJson,
-  OauthProviderConfigJson,
+  OAuthProviderConfigJson,
   getProductionModeErrors,
 } from "./interface/clientInterface";
 export { 

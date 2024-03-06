@@ -19,7 +19,7 @@ function checkScope(scope: string | string[] | undefined) {
   }
 }
 
-export class OauthModel implements AuthorizationCodeModel {
+export class OAuthModel implements AuthorizationCodeModel {
   async getClient(clientId: string, clientSecret: string): Promise<Client | Falsey> {
     if (clientSecret) {
       const keySet = await checkApiKeySet(clientId, { publishableClientKey: clientSecret });

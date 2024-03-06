@@ -1,6 +1,6 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./oauth-base";
-import { OauthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo, validateUserInfo } from "./utils";
 
 export class FacebookProvider extends OAuthBaseProvider {
   constructor({
@@ -23,7 +23,7 @@ export class FacebookProvider extends OAuthBaseProvider {
     });
   }
 
-  async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
+  async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const url = new URL('https://graph.facebook.com/v3.2/me');
     url.searchParams.append('access_token', tokenSet.access_token || "");
     url.searchParams.append('fields', 'id,name,email');

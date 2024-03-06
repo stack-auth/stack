@@ -21,7 +21,7 @@ import {
   Checkbox,
   DialogActions,
 } from "@mui/joy";
-import { OauthProviderConfigJson } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { useEffect, useMemo, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { AsyncButton } from "@/components/async-button";
@@ -32,15 +32,15 @@ import { Dialog } from "@/components/dialog";
 import { DialogContent, Icon } from "@mui/material";
 
 /**
- * All the different types of Oauth providers that can be created.
+ * All the different types of OAuth providers that can be created.
  */
 export const availableProviders = standardProviders;
 export type ProviderType = typeof availableProviders[number];
 
 type Props = {
   id: ProviderType,
-  provider?: OauthProviderConfigJson,
-  updateProvider: (provider: OauthProviderConfigJson) => Promise<void>,
+  provider?: OAuthProviderConfigJson,
+  updateProvider: (provider: OAuthProviderConfigJson) => Promise<void>,
 };
 
 function toTitle(id: ProviderType) {
@@ -49,7 +49,7 @@ function toTitle(id: ProviderType) {
     google: "Google",
     facebook: "Facebook",
     microsoft: "Microsoft",
-  }[id] ?? `Custom Oauth provider: ${id}`;
+  }[id] ?? `Custom OAuth provider: ${id}`;
 }
 
 function ConfirmDialog(props: { open: boolean, onClose(): void, onConfirm(): Promise<void> }) {
@@ -165,9 +165,9 @@ export function ProviderAccordion(props: Props) {
   );
 }
 
-function ProviderForm(props: Props & { provider: OauthProviderConfigJson }) {
+function ProviderForm(props: Props & { provider: OAuthProviderConfigJson }) {
   const [hasChanges, setHasChanges] = useState(false);
-  const [newProvider, setNewProvider] = useState<OauthProviderConfigJson | undefined>(undefined);
+  const [newProvider, setNewProvider] = useState<OAuthProviderConfigJson | undefined>(undefined);
 
   useEffect(() => {
     setNewProvider({ ...props.provider });
@@ -190,7 +190,7 @@ function ProviderForm(props: Props & { provider: OauthProviderConfigJson }) {
 
   let standardForm;
   if (!isShared) {
-    const p = newProvider as OauthProviderConfigJson & { type: StandardProvider };
+    const p = newProvider as OAuthProviderConfigJson & { type: StandardProvider };
     standardForm = (<>
       <FormControl required>
         <FormLabel>

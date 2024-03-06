@@ -1,6 +1,6 @@
 import * as yup from "yup";
 import { cookies } from "next/headers";
-import { Request as OauthRequest, Response as OauthResponse } from "@node-oauth/oauth2-server";
+import { Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
@@ -90,7 +90,7 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
     }
   );
   
-  const oauthRequest = new OauthRequest({
+  const oauthRequest = new OAuthRequest({
     headers: {},
     body: {},
     method: "GET",
@@ -107,14 +107,14 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
     }
   });
 
-  const oauthResponse = new OauthResponse();
+  const oauthResponse = new OAuthResponse();
   await oauthServer.authorize(
     oauthRequest,
     oauthResponse,
     {
       authenticateHandler: {
         handle: async () => {
-          const account = await prismaClient.projectUserOauthAccount.upsert({
+          const account = await prismaClient.projectUserOAuthAccount.upsert({
             where: {
               projectId_oauthProviderConfigId_providerAccountId: {
                 projectId: decoded.projectId,

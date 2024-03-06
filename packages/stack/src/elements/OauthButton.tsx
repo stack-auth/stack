@@ -7,7 +7,7 @@ import Button from './Button';
 
 const iconSize = 24;
 
-export default function OauthButton({
+export default function OAuthButton({
   provider,
   type,
   redirectUrl
@@ -112,7 +112,7 @@ export default function OauthButton({
   return (
     <Button
       style={{ backgroundColor: style.backgroundColor, color: style.textColor }}
-      onClick={() => runAsynchronously(stackApp.signInWithOauth(provider))}
+      onClick={() => runAsynchronously(stackApp.signInWithOAuth(provider))}
       leftIcon={style.icon}
     >
       {type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}

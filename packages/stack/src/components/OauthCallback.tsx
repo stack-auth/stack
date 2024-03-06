@@ -5,7 +5,7 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import MessageCard from "../elements/MessageCard";
 import { useRouter } from "next/navigation";
 
-export default function OauthCallback () {
+export default function OAuthCallback () {
   const app = useStackApp();
   const router = useRouter();
   const called = useRef(false);
@@ -13,7 +13,7 @@ export default function OauthCallback () {
   useEffect(() => runAsynchronously(async () => {
     if (called.current) return;
     called.current = true;
-    await app.callOauthCallback();
+    await app.callOAuthCallback();
     router.push(app.urls.userHome);
   }), []);
 

@@ -1,5 +1,5 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
-import { OauthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo, validateUserInfo } from "./utils";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -73,7 +73,7 @@ export abstract class OAuthBaseProvider {
     callbackParams: CallbackParamsType, 
     codeVerifier: string, 
     state: string,
-  }): Promise<OauthUserInfo> {
+  }): Promise<OAuthUserInfo> {
     let tokenSet;
     try {
       const params = {
@@ -86,8 +86,8 @@ export abstract class OAuthBaseProvider {
         tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
       }
     } catch (error) {
-      console.error("Oauth callback failed", error);
-      throw new Error("Oauth callback failed");
+      console.error("OAuth callback failed", error);
+      throw new Error("OAuth callback failed");
     }
     if (!tokenSet.access_token) {
       throw new Error("No access token received");
@@ -96,5 +96,5 @@ export abstract class OAuthBaseProvider {
     return await this.postProcessUserInfo(tokenSet);
   }
 
-  abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo>;
+  abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;
 }

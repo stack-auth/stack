@@ -41,7 +41,7 @@ model ProjectConfig {
   credentialEnabled Boolean
 
   projects             Project[]
-  oauthProviderConfigs OauthProviderConfig[]
+  oauthProviderConfigs OAuthProviderConfig[]
   emailServiceConfig   EmailServiceConfig?
   domains              ProjectDomain[]
 }
@@ -84,7 +84,7 @@ model ProjectUser {
   project                          Project                            @relation("ProjectUsers", fields: [projectId], references: [id])
   projectUserRefreshTokens         ProjectUserRefreshToken[]
   projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
-  projectUserOauthAccounts         ProjectUserOauthAccount[]
+  projectUserOAuthAccounts         ProjectUserOAuthAccount[]
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
 
@@ -100,7 +100,7 @@ model ProjectUser {
   @@id([projectId, projectUserId])
 }
 
-model ProjectUserOauthAccount {
+model ProjectUserOAuthAccount {
   projectId             String
   projectUserId         String @db.Uuid
   projectConfigId       String @db.Uuid
@@ -109,7 +109,7 @@ model ProjectUserOauthAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  providerConfig OauthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
+  providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
   projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   email                String?
@@ -241,10 +241,10 @@ model StandardEmailServiceConfig {
 
 //#endregion
 
-//#region Oauth
+//#region OAuth
 
-// Exactly one of the xyzOauthConfig variables should be set.
-model OauthProviderConfig {
+// Exactly one of the xyzOAuthConfig variables should be set.
+model OAuthProviderConfig {
   projectConfigId String        @db.Uuid
   projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id])
   id              String
@@ -254,41 +254,42 @@ model OauthProviderConfig {
 
   enabled Boolean @default(true)
 
-  proxiedOauthConfig       ProxiedOauthProviderConfig?
-  standardOauthConfig      StandardOauthProviderConfig?
-  projectUserOauthAccounts ProjectUserOauthAccount[]
+  proxiedOAuthConfig       ProxiedOAuthProviderConfig?
+  standardOAuthConfig      StandardOAuthProviderConfig?
+  projectUserOAuthAccounts ProjectUserOAuthAccount[]
 
   @@id([projectConfigId, id])
+  @@map(name: "oauthProviderConfigs")
 }
 
-model ProxiedOauthProviderConfig {
+model ProxiedOAuthProviderConfig {
   projectConfigId String              @db.Uuid
-  providerConfig  OauthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
   id              String
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
-  type ProxiedOauthProviderType
+  type ProxiedOAuthProviderType
 
   @@id([projectConfigId, id])
   @@unique([projectConfigId, type])
 }
 
-enum ProxiedOauthProviderType {
+enum ProxiedOAuthProviderType {
   GITHUB
   FACEBOOK
   GOOGLE
   MICROSOFT
 }
 
-model StandardOauthProviderConfig {
+model StandardOAuthProviderConfig {
   projectConfigId String              @db.Uuid
-  providerConfig  OauthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
   id              String
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
-  type         StandardOauthProviderType
+  type         StandardOAuthProviderType
   tenantId     String? // Currently only used for Microsoft
   clientId     String
   clientSecret String
@@ -296,7 +297,7 @@ model StandardOauthProviderConfig {
   @@id([projectConfigId, id])
 }
 
-enum StandardOauthProviderType {
+enum StandardOAuthProviderType {
   GITHUB
   FACEBOOK
   GOOGLE

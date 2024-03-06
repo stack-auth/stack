@@ -13,7 +13,7 @@ export type AdminAuthApplicationOptions = Readonly<
   )
 >
 
-export type OauthProviderUpdateOptions = {
+export type OAuthProviderUpdateOptions = {
   id: string,
   enabled: boolean,
 } & (
@@ -35,7 +35,7 @@ export type ProjectUpdateOptions = {
       domain: string,
       handlerPath: string,
     }[],
-    oauthProviders?: OauthProviderUpdateOptions[],
+    oauthProviders?: OAuthProviderUpdateOptions[],
     credentialEnabled?: boolean,
     allowLocalhost?: boolean,
   },
@@ -94,7 +94,7 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getProject(options?: { showDisabledOauth?: boolean }): Promise<ProjectJson> {
+  async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectJson> {
     const response = await this.sendAdminRequest(
       "/projects/" + encodeURIComponent(this.projectId),
       {

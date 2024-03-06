@@ -1,7 +1,7 @@
 import { useStackApp } from "..";
-import OauthButton from "./OauthButton";
+import OAuthButton from "./OAuthButton";
 
-export default function OauthGroup({
+export default function OAuthGroup({
   type,
   redirectUrl
 }: {
@@ -14,7 +14,7 @@ export default function OauthGroup({
   return (
     <div className="wl_space-y-4 wl_flex wl_flex-col wl_items-stretch">
       {project.oauthProviders.filter(p => p.enabled).map(p => (
-        <OauthButton key={p.id} provider={p.id} type={type} redirectUrl={redirectUrl} />
+        <OAuthButton key={p.id} provider={p.id} type={type} redirectUrl={redirectUrl} />
       ))}
     </div>
   );

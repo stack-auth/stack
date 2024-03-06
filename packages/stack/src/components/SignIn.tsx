@@ -3,7 +3,7 @@
 import NextLink from 'next/link';
 import CredentialSignIn from '../elements/CredentialSignIn';
 import DividerWithText from '../elements/DividerWithText';
-import OauthGroup from '../elements/OauthGroup';
+import OAuthGroup from '../elements/OAuthGroup';
 import CardFrame from '../elements/CardFrame';
 import CardHeader from '../elements/CardHeader';
 import { useUser, useStackApp } from '..';
@@ -28,7 +28,7 @@ export default function SignIn({ redirectUrl, fullPage=false }: { redirectUrl?: 
           </NextLink>
         </p>
       </CardHeader>
-      <OauthGroup type='signin' redirectUrl={redirectUrl} />
+      <OAuthGroup type='signin' redirectUrl={redirectUrl} />
       {project.credentialEnabled &&
       <>
         <DividerWithText text={'OR'} />

@@ -6,7 +6,7 @@ import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../../use-admin-app";
 import { ProviderAccordion, availableProviders } from "./provider-accordion";
-import { OauthProviderConfigJson } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
@@ -41,7 +41,7 @@ export default function ProvidersClient() {
       </Paragraph>
 
 
-      <SimpleCard title="Oauth">
+      <SimpleCard title="OAuth">
         <Card variant="soft">
           <CardOverflow>
             <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
@@ -51,15 +51,15 @@ export default function ProvidersClient() {
                   key={id} 
                   id={id} 
                   provider={provider}
-                  updateProvider={async (provider: OauthProviderConfigJson) => {
+                  updateProvider={async (provider: OAuthProviderConfigJson) => {
                     const alreadyExist = oauthProviders.some((p) => p.id === id);
-                    const newOauthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
                     if (!alreadyExist) {
-                      newOauthProviders.push(provider);
+                      newOAuthProviders.push(provider);
                     }
 
                     await project.update({
-                      config: { oauthProviders: newOauthProviders },
+                      config: { oauthProviders: newOAuthProviders },
                     });
                   }}
                 />;
@@ -69,11 +69,11 @@ export default function ProvidersClient() {
         </Card>
 
         <Paragraph sidenote>
-          Add an Oauth provider to enable &quot;Sign in with XYZ&quot; on your app. You can enable multiple providers, and users will be able to sign in with any of them.
+          Add an OAuth provider to enable &quot;Sign in with XYZ&quot; on your app. You can enable multiple providers, and users will be able to sign in with any of them.
         </Paragraph>
 
         <Paragraph sidenote>
-          In order to add a new provider, you can choose to use shared credentials created by us, or create your own Oauth client on the provider&apos;s website. Pick an Oauth-compatible service from the list below to get started.
+          In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website. Pick an OAuth-compatible service from the list below to get started.
         </Paragraph>
       </SimpleCard>
     </>

@@ -1,6 +1,6 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./oauth-base";
-import { OauthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo, validateUserInfo } from "./utils";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   constructor({
@@ -25,7 +25,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
     });
   }
 
-  async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
+  async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const rawUserInfo = await fetch(
       'https://graph.microsoft.com/v1.0/me',
       {

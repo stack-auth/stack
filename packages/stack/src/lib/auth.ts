@@ -4,7 +4,7 @@ import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
-export async function signInWithOauth(
+export async function signInWithOAuth(
   iface: StackClientInterface,
   {
     provider,
@@ -16,7 +16,7 @@ export async function signInWithOauth(
 ) {
   redirectUrl = constructRedirectUrl(redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
-  const location = await iface.getOauthUrl(
+  const location = await iface.getOAuthUrl(
     provider,
     redirectUrl,
     codeChallenge,
@@ -28,9 +28,9 @@ export async function signInWithOauth(
 /**
  * Checks if the current URL has the query parameters for an OAuth callback, and if so, removes them.
  * 
- * Must be synchronous for the logic in callOauthCallback to work without race conditions.
+ * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
-function consumeOauthCallbackQueryParams(expectedState: string | null): null | {
+function consumeOAuthCallbackQueryParams(expectedState: string | null): null | {
   newUrl: URL,
   originalUrl: URL,
 } {
@@ -65,16 +65,16 @@ function consumeOauthCallbackQueryParams(expectedState: string | null): null | {
   return { newUrl, originalUrl };
 }
 
-export async function callOauthCallback(
+export async function callOAuthCallback(
   iface: StackClientInterface,
   tokenStore: TokenStore,
   redirectUrl?: string,
 ) {
   // note: this part of the function (until the return) needs
   // to be synchronous, to prevent race conditions when
-  // callOauthCallback is called multiple times in parallel
+  // callOAuthCallback is called multiple times in parallel
   const { codeVerifier, state } = getVerifierAndState();
-  const consumeResult = consumeOauthCallbackQueryParams(state);
+  const consumeResult = consumeOAuthCallbackQueryParams(state);
   if (!consumeResult) {
     return;
   }
@@ -95,7 +95,7 @@ export async function callOauthCallback(
   redirectUrl = redirectUrl.split("#")[0]; // remove hash
 
   try {
-    await iface.callOauthCallback(
+    await iface.callOAuthCallback(
       originalUrl.searchParams,
       redirectUrl,
       codeVerifier,

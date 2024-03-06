@@ -1,6 +1,6 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./oauth-base";
-import { OauthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo, validateUserInfo } from "./utils";
 
 export class GoogleProvider extends OAuthBaseProvider {
   constructor({
@@ -24,7 +24,7 @@ export class GoogleProvider extends OAuthBaseProvider {
     });
   }
 
-  async postProcessUserInfo(tokenSet: TokenSet): Promise<OauthUserInfo> {
+  async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const rawUserInfo = await this.oauthClient.userinfo(tokenSet);
     return validateUserInfo({
       accountId: rawUserInfo.sub,

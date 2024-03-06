@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import { InvalidGrantError, Request as OauthRequest, Response as OauthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
+import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
 import { NextRequest, NextResponse } from "next/server";
 import { oauthServer } from "@/oauth";
 import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
@@ -21,14 +21,14 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
   if (body.redirect_uri) {
     body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash
   }
-  const oauthRequest = new OauthRequest({
+  const oauthRequest = new OAuthRequest({
     headers: Object.fromEntries(req.headers.entries()),
     query: Object.fromEntries(new URL(req.url).searchParams.entries()),
     method: "POST",
     body: body,
   });
 
-  const oauthResponse = new OauthResponse();
+  const oauthResponse = new OAuthResponse();
   try {
     await oauthServer.token(
       oauthRequest, 

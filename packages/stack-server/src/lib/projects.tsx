@@ -1,16 +1,16 @@
-import { OauthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Prisma, ProxiedOauthProviderType, StandardOauthProviderType } from "@prisma/client";
+import { OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
+import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./access-token";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { OauthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
-function toDBSharedProvider(type: SharedProvider): ProxiedOauthProviderType {
+function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({
     "shared-github": "GITHUB",
     "shared-google": "GOOGLE",
@@ -19,7 +19,7 @@ function toDBSharedProvider(type: SharedProvider): ProxiedOauthProviderType {
   } as const)[type];
 }
 
-function toDBStandardProvider(type: StandardProvider): StandardOauthProviderType {
+function toDBStandardProvider(type: StandardProvider): StandardOAuthProviderType {
   return ({
     "github": "GITHUB",
     "facebook": "FACEBOOK",
@@ -28,7 +28,7 @@ function toDBStandardProvider(type: StandardProvider): StandardOauthProviderType
   } as const)[type];
 }
 
-function fromDBSharedProvider(type: ProxiedOauthProviderType): SharedProvider {
+function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
   return ({
     "GITHUB": "shared-github",
     "GOOGLE": "shared-google",
@@ -37,7 +37,7 @@ function fromDBSharedProvider(type: ProxiedOauthProviderType): SharedProvider {
   } as const)[type];
 }
 
-function fromDBStandardProvider(type: StandardOauthProviderType): StandardProvider {
+function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
   return ({
     "GITHUB": "github",
     "FACEBOOK": "facebook",
@@ -52,8 +52,8 @@ const fullProjectInclude = {
     include: {
       oauthProviderConfigs: {
         include: {
-          proxiedOauthConfig: true,
-          standardOauthConfig: true,
+          proxiedOAuthConfig: true,
+          standardOAuthConfig: true,
         },
       },
       emailServiceConfig: {
@@ -75,7 +75,7 @@ const fullProjectInclude = {
 type FullProjectInclude = typeof fullProjectInclude;
 type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
   config: {
-    oauthProviderConfigs: (Prisma.OauthProviderConfigGetPayload<
+    oauthProviderConfigs: (Prisma.OAuthProviderConfigGetPayload<
       typeof fullProjectInclude.config.include.oauthProviderConfigs
     >)[],
     emailServiceConfig: Prisma.EmailServiceConfigGetPayload<
@@ -158,12 +158,12 @@ export async function createProject(
             oauthProviderConfigs: {
               create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
                 id,
-                proxiedOauthConfig: {
+                proxiedOAuthConfig: {
                   create: {                
                     type: typedToUppercase(id),
                   }
                 },
-                projectUserOauthAccounts: {
+                projectUserOAuthAccounts: {
                   create: []
                 },
               })),
@@ -269,14 +269,14 @@ export async function updateProject(
     for (const [id, { providerUpdate, oldProvider }] of providerMap) {
 
       // remove existing provider configs
-      if (oldProvider.proxiedOauthConfig) {
-        transaction.push(prismaClient.proxiedOauthProviderConfig.delete({
+      if (oldProvider.proxiedOAuthConfig) {
+        transaction.push(prismaClient.proxiedOAuthProviderConfig.delete({
           where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
         }));
       }
 
-      if (oldProvider.standardOauthConfig) {
-        transaction.push(prismaClient.standardOauthProviderConfig.delete({
+      if (oldProvider.standardOAuthConfig) {
+        transaction.push(prismaClient.standardOAuthProviderConfig.delete({
           where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
         }));
       }
@@ -285,7 +285,7 @@ export async function updateProject(
       let providerConfigUpdate;
       if (sharedProviders.includes(providerUpdate.type as SharedProvider)) {
         providerConfigUpdate = {
-          proxiedOauthConfig: {
+          proxiedOAuthConfig: {
             create: {
               type: toDBSharedProvider(providerUpdate.type as SharedProvider),
             },
@@ -293,10 +293,10 @@ export async function updateProject(
         };
 
       } else if (standardProviders.includes(providerUpdate.type as StandardProvider)) {
-        const typedProviderConfig = providerUpdate as OauthProviderUpdateOptions & { type: StandardProvider };
+        const typedProviderConfig = providerUpdate as OAuthProviderUpdateOptions & { type: StandardProvider };
 
         providerConfigUpdate = {
-          standardOauthConfig: {
+          standardOAuthConfig: {
             create: {
               type: toDBStandardProvider(providerUpdate.type as StandardProvider),
               clientId: typedProviderConfig.clientId,
@@ -323,17 +323,17 @@ export async function updateProject(
       let providerConfigData;
       if (sharedProviders.includes(provider.update.type as SharedProvider)) {
         providerConfigData = {
-          proxiedOauthConfig: {
+          proxiedOAuthConfig: {
             create: {
               type: toDBSharedProvider(provider.update.type as SharedProvider),
             },
           },
         };
       } else if (standardProviders.includes(provider.update.type as StandardProvider)) {
-        const typedProviderConfig = provider.update as OauthProviderUpdateOptions & { type: StandardProvider };
+        const typedProviderConfig = provider.update as OAuthProviderUpdateOptions & { type: StandardProvider };
 
         providerConfigData = {
-          standardOauthConfig: {
+          standardOAuthConfig: {
             create: {
               type: toDBStandardProvider(provider.update.type as StandardProvider),
               clientId: typedProviderConfig.clientId,
@@ -433,22 +433,22 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         domain: domain.domain,
         handlerPath: domain.handlerPath,
       })),
-      oauthProviders: project.config.oauthProviderConfigs.flatMap((provider): OauthProviderConfigJson[] => {
-        if (provider.proxiedOauthConfig) {
+      oauthProviders: project.config.oauthProviderConfigs.flatMap((provider): OAuthProviderConfigJson[] => {
+        if (provider.proxiedOAuthConfig) {
           return [{
             id: provider.id,
             enabled: provider.enabled,
-            type: fromDBSharedProvider(provider.proxiedOauthConfig.type),
+            type: fromDBSharedProvider(provider.proxiedOAuthConfig.type),
           }];
         }
-        if (provider.standardOauthConfig) {
+        if (provider.standardOAuthConfig) {
           return [{
             id: provider.id,
             enabled: provider.enabled,
-            type: fromDBStandardProvider(provider.standardOauthConfig.type),
-            clientId: provider.standardOauthConfig.clientId,
-            clientSecret: provider.standardOauthConfig.clientSecret,
-            tenantId: provider.standardOauthConfig.tenantId || undefined,
+            type: fromDBStandardProvider(provider.standardOAuthConfig.type),
+            clientId: provider.standardOAuthConfig.clientId,
+            clientSecret: provider.standardOAuthConfig.clientSecret,
+            tenantId: provider.standardOAuthConfig.tenantId || undefined,
           }];
         }
         console.error(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project });
