@@ -31,20 +31,20 @@ npm install @stackframe/stack
 2. Create `StackServerApp` in `lib/stack.ts`:
   
     ```tsx
-      import "server-only";
-      import { StackServerApp } from "@stackframe/stack";
+    import "server-only";
+    import { StackServerApp } from "@stackframe/stack";
 
-      export const stackApp = new StackServerApp({
-        // Automatically reads your API keys from the environment variables you set above.
-        //
-        // Alternatively, you could set them manually:
-        //
-        // projectId: process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
-        // publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
-        // secretServerKey: process.env.STACK_SECRET_SERVER_KEY,
+    export const stackApp = new StackServerApp({
+      // Automatically reads your API keys from the environment variables you set above.
+      //
+      // Alternatively, you could set them manually:
+      //
+      // projectId: process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
+      // publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
+      // secretServerKey: process.env.STACK_SECRET_SERVER_KEY,
 
-        tokenStore: "nextjs-cookie", // storing auth tokens in cookies
-      });
+      tokenStore: "nextjs-cookie", // storing auth tokens in cookies
+    });
     ```
   
     This will create a server app that you can later use to access Stack from your Next.js server.
@@ -53,9 +53,9 @@ npm install @stackframe/stack
 
     ```tsx
     import { StackHandler } from "@stackframe/stack";
-    import { stackApp } from "lib/stack";
+    import { stackApp } from "@/lib/stack";
 
-    export default function Handler(props) {
+    export default function Handler(props: any) {
       return <StackHandler app={stackApp} {...props} />;
     }
     ```
@@ -66,10 +66,11 @@ npm install @stackframe/stack
 4. In your `app/layout.tsx`, wrap your entire layout with a `StackProvider`. Afterwards, it should look like this:
 
     ```tsx
+    import React from "react";
     import { StackProvider } from "@stackframe/stack";
-    import { stackApp } from "@stackframe/stack";
+    import { stackApp } from "@/lib/stack";
 
-    export default function Layout({ children }) {
+    export default function Layout({ children }: { children: React.ReactNode }) {
       return (
         <html lang="en">
           <body>
