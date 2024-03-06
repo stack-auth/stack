@@ -234,14 +234,14 @@ export async function updateProject(
 
     // delete existing domains
     transaction.push(prismaClient.projectDomain.deleteMany({
-      where: { projectConfigId: projectId },
+      where: { projectConfigId: project.config.id },
     }));
 
     // create new domains
     newDomains.forEach(domainConfig => {
       transaction.push(prismaClient.projectDomain.create({
         data: {
-          projectConfigId: projectId,
+          projectConfigId: project.config.id,
           domain: domainConfig.domain,
           handlerPath: domainConfig.handlerPath,
         },
