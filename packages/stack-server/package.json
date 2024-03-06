@@ -14,6 +14,7 @@
     "analyze-bundle": "npm run todo; ANALYZE_BUNDLE=1 npm run build",
     "start": "npm run todo; next start",
     "codegen": "npm run todo; npm run prisma -- generate",
+    "psql": "npm run todo; npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run todo; npm run with-env -- prisma",
     "email": "email dev --port 3001 --dir src/email/templates",
     "lint": "npm run todo; next lint",
