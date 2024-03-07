@@ -139,12 +139,12 @@ export async function signUpWithCredential(
     email,
     password,
     redirectUrl,
-    emailVerificationRedirectUrl = "/"
+    emailVerificationRedirectUrl,
   }: {
     email: string,
     password: string,
     redirectUrl?: string,
-    emailVerificationRedirectUrl?: string,
+    emailVerificationRedirectUrl: string,
   }
 ): Promise<SignUpErrorCode | undefined>{
   emailVerificationRedirectUrl = constructRedirectUrl(emailVerificationRedirectUrl);

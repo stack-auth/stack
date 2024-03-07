@@ -539,7 +539,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    return await signUpWithCredential(this._interface, tokenStore, options);
+    return await signUpWithCredential(this._interface, tokenStore, {
+      ...options,
+      emailVerificationRedirectUrl: this.urls.emailVerification,
+    });
   }
 
   async callOAuthCallback(options: {

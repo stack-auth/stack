@@ -128,9 +128,12 @@ export async function sendVerificationEmail(
     }
   });
 
+  const verificationUrl = new URL(redirectUrl);
+  verificationUrl.searchParams.append('code', verificationCode.code);
+
   const html = render(
     <VerificationEmail
-      verificationUrl={`${getEnvVariable('NEXT_PUBLIC_STACK_URL')}/api/v1/auth/verify-email?code=${verificationCode.code}`}
+      verificationUrl={verificationUrl.toString()}
       projectName={project.displayName}
       username={projectUser.displayName || undefined}
       fromStack={emailConfig.type === 'shared'}

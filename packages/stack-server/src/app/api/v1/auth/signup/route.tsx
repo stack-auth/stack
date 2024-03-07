@@ -105,7 +105,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
     throw new KnownError(RedirectUrlInvalidErrorCode);
   }
 
-  await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl,);
+  await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);
 
   return NextResponse.json({
     access_token: accessToken,
