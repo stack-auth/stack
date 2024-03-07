@@ -20,7 +20,7 @@ npm install @stackframe/stack
 
 ## Setup
 
-1. If you haven't already, [register a new account on Stack](https://app.stackframe.co). Create a project in the dashboard, create a new API key from the left sidebar, and copy the project ID, publishable client key, and secret server key into a new file called `.env.local` in the root of your Next.js project:
+1. If you haven't already, [register a new account on Stack](https://app.stackframe.co/handler/signup). Create a project in the dashboard, create a new API key from the left sidebar, and copy the project ID, publishable client key, and secret server key into a new file called `.env.local` in the root of your Next.js project:
 
     ```javascript
     NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
