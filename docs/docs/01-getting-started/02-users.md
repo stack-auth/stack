@@ -34,7 +34,7 @@ On Server Components, you don't need `useStackApp()`. Instead, you can just impo
 
 ```tsx
 import "server-only";
-import { stackApp } from "@lib/stack";
+import { stackApp } from "lib/stack";
 
 export default async function MyComponent() {
   const user = await stackApp.getUser();
