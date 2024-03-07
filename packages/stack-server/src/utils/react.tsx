@@ -19,8 +19,6 @@ export function getNodeText(node: React.ReactNode): string {
 
 /**
  * Suspends the currently rendered component indefinitely. Will not unsuspend unless the component rerenders.
- * 
- * You can use this to translate older query- or AsyncResult-based code to new the Suspense system, for example: `if (query.isLoading) suspend();`
  */
 export function suspend(): never {
   use(neverResolve());

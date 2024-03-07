@@ -189,9 +189,9 @@ function getTokenStore(tokenStoreOptions: TokenStoreOptions) {
 }
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
-function useCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D): T {
+function useCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
   // we explicitly don't want to run this hook in SSR
-  suspendIfSsr();
+  suspendIfSsr(caller);
 
   const subscribe = useCallback((cb: () => void) => {
     const { unsubscribe } = cache.onChange(dependencies, () => cb());
@@ -476,7 +476,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     const router = useRouter();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = useCache(this._currentUserCache, [tokenStore]);
+    const userJson = useCache(this._currentUserCache, [tokenStore], "useUser()");
 
     if (userJson === null) {
       switch (options?.or) {
@@ -571,7 +571,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   useProject(): ClientProjectJson {
-    return useCache(this._currentProjectCache, []);
+    return useCache(this._currentProjectCache, [], "useProject()");
   }
 
   onProjectChange(callback: (project: ClientProjectJson) => void) {
@@ -592,7 +592,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useOwnedProjects(): Project[] {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const json = useCache(this._ownedProjectsCache, [tokenStore]);
+    const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
     return json.map((j) => this._projectAdminFromJson(
       j,
       this._createAdminInterface(j.id, tokenStore),
@@ -806,7 +806,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensurePersistentTokenStore();
 
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = useCache(this._currentServerUserCache, [tokenStore]);
+    const userJson = useCache(this._currentServerUserCache, [tokenStore], "useServerUser()");
 
     if (options?.required && userJson === null) {
       use(this.redirectToSignIn());
@@ -829,7 +829,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   useServerUsers(): ServerUser[] {
-    const json = useCache(this._serverUsersCache, []);
+    const json = useCache(this._serverUsersCache, [], "useServerUsers()");
     return json.map((j) => this._serverUserFromJson(j));
   }
 
@@ -936,7 +936,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   useProjectAdmin(): Project {
     return this._projectAdminFromJson(
-      useCache(this._adminProjectCache, []),
+      useCache(this._adminProjectCache, [], "useProjectAdmin()"),
       this._interface,
       () => this._refreshProject()
     );
@@ -958,7 +958,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   useApiKeySets(): ApiKeySet[] {
-    const json = useCache(this._apiKeySetsCache, []);
+    const json = useCache(this._apiKeySetsCache, [], "useApiKeySets()");
     return json.map((j) => this._createApiKeySetFromJson(j));
   }
 
