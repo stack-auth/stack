@@ -12,11 +12,23 @@ export default function EnvKeys(props: {
   return (
     <Tabs>
       <TabList>
-        <Tab>API Keys</Tab>
         <Tab>Next.js</Tab>
+        <Tab>API Keys</Tab>
       </TabList>
       <TabPanel value={0}>
-        <Stack spacing={2}>
+        <CopyField
+          value={Object.entries({
+            NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
+            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
+            STACK_SECRET_SERVER_KEY: props.secretServerKey,
+            STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
+          }).filter(([k, v]) => v).map(([k, v]) => `${k}=${v}`).join("\n")}
+          label="Environment variables"
+          helper={<>Copy these variables into your <InlineCode>.env.local</InlineCode> file.</>}
+        />
+      </TabPanel>
+      <TabPanel value={1}>
+        <Stack spacing={1}>
           {props.publishableClientKey && (
             <CopyField
               value={props.publishableClientKey}
@@ -39,18 +51,6 @@ export default function EnvKeys(props: {
             />
           )}
         </Stack>
-      </TabPanel>
-      <TabPanel value={1}>
-        <CopyField
-          value={Object.entries({
-            NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
-            STACK_SECRET_SERVER_KEY: props.secretServerKey,
-            STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
-          }).filter(([k, v]) => v).map(([k, v]) => `${k}=${v}`).join("\n")}
-          label="Environment variables"
-          helper={<>Copy these variables into your <InlineCode>.env.local</InlineCode> file.</>}
-        />
       </TabPanel>
     </Tabs>
   );
