@@ -34,7 +34,7 @@ On Server Components, you don't need `useStackApp()`. Instead, you can just impo
 
 ```tsx
 import "server-only";
-import { stackApp } from "lib/stack";
+import { stackApp } from "@lib/stack";
 
 export default async function MyComponent() {
   const user = await stackApp.getUser();
@@ -57,25 +57,24 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 <Tabs>
   <TabItem value="client" label="Client Component" default>
     ```tsx
-      "use client";
-      import { useStackApp } from "@stackframe/stack";
+    "use client";
+    import { useStackApp } from "@stackframe/stack";
 
-      export default function Protected() {
-        useUser({ or: 'redirect' });
-        return <h1>You can only see this if you are logged in</h1>
-      }
-      ```
-        </TabItem>
+    export default function Protected() {
+      useUser({ or: 'redirect' });
+      return <h1>You can only see this if you are logged in</h1>
+    }
+    ```
+      </TabItem>
 
-        <TabItem value="server" label="Server Component">
-      ```tsx
-      import "server-only";
-      import { useStackApp } from "@stackframe/stack";
+      <TabItem value="server" label="Server Component">
+    ```tsx
+    import { useStackApp } from "@stackframe/stack";
 
-      export default async function Protected() {
-        await stack.getUser({ or: 'redirect' });
-        return <h1>You can only see this if you are logged in</h1>
-      }
+    export default async function Protected() {
+      await stack.getUser({ or: 'redirect' });
+      return <h1>You can only see this if you are logged in</h1>
+    }
     ```
   </TabItem>
 </Tabs>
@@ -86,15 +85,16 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 
 Stack automatically creates a user profile on sign-up. Let's create a page that displays this information.
 
-Depending on whether you want to use a Client or Server Component, copy the following code into `app/page.tsx`:
+If you want to use the client component version, create a new file with the following code and import it to `app/page.tsx`. If you want to use the server component version, paste the code directly into `app/page.tsx`.
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
 ```tsx
 'use client';
-import { useStackApp } from "@stackframe/stack";
+import { useUser, useStackApp } from "@stackframe/stack";
 
 export default function PageClient() {
+  const user = useUser();
   const app = useStackApp();
   return (
     <div>
@@ -104,7 +104,7 @@ export default function PageClient() {
           <p>Welcome, {user.displayName}</p>
           <p>Your e-mail: {user.primaryEmail}</p>
           <p>Your e-mail verification status: {user.primaryEmailVerified}</p>
-          <button onClick={() => app.signOut()}>Sign Out</button>
+          <button onClick={() => user.signOut()}>Sign Out</button>
         </div>
       ) : (
         <div>
@@ -121,11 +121,10 @@ export default function PageClient() {
 
   <TabItem value="server" label="Server Component">
 ```tsx
-import "server-only";
-import { stack } from "../lib/stack";
+import { stackApp } from "@/lib/stack";
 
 export default async function Page() {
-  const user = await stack.getUser();
+  const user = await stackApp.getUser();
   return (
     <div>
       <h1>Home</h1>
@@ -133,14 +132,13 @@ export default async function Page() {
         <div>
           <p>Welcome, {user.displayName}</p>
           <p>Your e-mail: {user.primaryEmail}</p>
-          <p>Your e-mail verification status: {user.primaryEmailVerified}</p>
-          <button onClick={() => app.signOut()}>Sign Out</button>
+          <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
         </div>
       ) : (
         <div>
           <p>You are not logged in</p>
-          <button onClick={() => app.redirectToSignIn()}>Sign in</button>
-          <button onClick={() => app.redirectToSignUp()}>Sign up</button>
+          <p><a href={stackApp.urls.signIn}>Sign in</a></p>
+          <p><a href={stackApp.urls.signUp}>Sign up</a></p>
         </div>
       )}
     </div>
@@ -149,6 +147,8 @@ export default async function Page() {
 ```
   </TabItem>
 </Tabs>
+
+Now, if you visit http://localhost:3000, you should see the main page with user information or sign-in/
 
 ## Next steps
 

@@ -28,7 +28,7 @@ npm install @stackframe/stack
     STACK_SECRET_SERVER_KEY=<your-secret-server-key>
     ```
 
-2. Create `StackServerApp` in `lib/stack.ts`:
+2. Create `StackServerApp` in `@lib/stack.ts`:
   
     ```tsx
     import "server-only";
