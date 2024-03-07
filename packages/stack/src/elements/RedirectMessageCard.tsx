@@ -16,7 +16,8 @@ export default function RedirectMessageCard({
   const router = useRouter();
 
   let title: string;
-  let url: string;
+  let primaryUrl: string;
+  let secondaryUrl: string | null = null;
   let message: string | null = null;
   let primaryButton: string;
   let secondaryButton: string | null = null;
@@ -24,35 +25,36 @@ export default function RedirectMessageCard({
     case 'signedIn': {
       title = "You are already signed in";
       message = 'You are already signed in.';
-      url = stackApp.urls.signOut;
+      primaryUrl = stackApp.urls.userHome;
+      secondaryUrl = stackApp.urls.signOut;
       primaryButton = "Go to Home";
       secondaryButton = "Sign Out";
       break;
     }
     case 'signedOut': {
       title = "You are not currently signed in.";
-      url = stackApp.urls.home;
+      primaryUrl = stackApp.urls.home;
       primaryButton = "Go to Home";
       break;
     }
     case 'emailSent': {
       title = "Email sent!";
       message = 'Please check your inbox. Make sure to check your spam folder.';
-      url = stackApp.urls.home;
+      primaryUrl = stackApp.urls.home;
       primaryButton = "Go to Home";
       break;
     }
     case 'passwordReset': {
       title = "Password reset successfully!";
       message = 'Your password has been reset. You can now sign in with your new password.';
-      url = stackApp.urls.signIn;
+      primaryUrl = stackApp.urls.signIn;
       primaryButton = "Go to Sign In";
       break;
     }
     case 'emailVerified': {
       title = "Email verified!";
       message = 'Your have successfully verified your email.';
-      url = stackApp.urls.home;
+      primaryUrl = stackApp.urls.home;
       primaryButton = "Go to Home";
       break;
     }
@@ -74,7 +76,7 @@ export default function RedirectMessageCard({
         
         <Button
           className='wl_btn wl_btn-primary'
-          onClick={() => router.push(url.toString())}
+          onClick={() => router.push(primaryUrl.toString())}
         >
           {primaryButton}
         </Button>
