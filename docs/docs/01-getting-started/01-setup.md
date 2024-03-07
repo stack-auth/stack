@@ -60,7 +60,7 @@ npm install @stackframe/stack
 4. In your `app/layout.tsx`, wrap your entire layout with a `StackProvider`. Afterwards, it should look like this:
 
     ```tsx
-    import React from "react";
+    import React, { Suspense } from "react";
     import { StackProvider } from "@stackframe/stack";
     import { stackApp } from "@/lib/stack";
 
@@ -68,9 +68,11 @@ npm install @stackframe/stack
       return (
         <html lang="en">
           <body>
-            <StackProvider app={stackApp}>
-              {children}
-            </StackProvider>
+            <Suspense>
+              <StackProvider app={stackApp}>
+                {children}
+              </StackProvider>
+            </Suspense>
           </body>
         </html>
       );
@@ -78,6 +80,8 @@ npm install @stackframe/stack
     ```
 
     This lets you use the `useStackApp()` and `useUser()` hooks.
+
+    Note that Stack uses the new react suspense feature, which abstracted away all the hurdle of handling loading states. Check our [here](https://react.dev/reference/react/Suspense) if you want to learn more about suspense.
 
 5. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to `http://localhost:3000/handler/signup`, you will see the Stack sign-up page!
 

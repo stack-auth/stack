@@ -138,7 +138,7 @@ export async function listProjects(projectUser: ServerUserJson): Promise<Project
 
 export async function createProject(
   projectUser: ServerUserJson,
-  projectOptions: Pick<ProjectJson, "displayName" | "description"> & Pick<ProjectJson['evaluatedConfig'], 'allowLocalhost' | 'credentialEnabled'>
+  projectOptions: Pick<ProjectJson, "displayName" | "description">
 ): Promise<ProjectJson> {
   if (projectUser.projectId !== "internal") {
     throw new Error("Only internal project users can create projects");
@@ -153,10 +153,10 @@ export async function createProject(
         description: projectOptions.description,
         config: {
           create: {
-            allowLocalhost: projectOptions.allowLocalhost,
-            credentialEnabled: projectOptions.credentialEnabled,
+            allowLocalhost: true,
+            credentialEnabled: true,
             oauthProviderConfigs: {
-              create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
+              create: (['github', 'google'] as const).map((id) => ({
                 id,
                 proxiedOAuthConfig: {
                   create: {                
