@@ -168,6 +168,14 @@ export async function createProject(
                 },
               })),
             },
+            emailServiceConfig: {
+              create: {
+                senderName: projectOptions.displayName,
+                proxiedEmailServiceConfig: {
+                  create: {}
+                }
+              }
+            },
           },
         },
       },
