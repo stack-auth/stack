@@ -1,8 +1,9 @@
 ![Stack Logo](/assets/logo.png)
 
-<h3 align="center" style="font-size: 40px">
+<h2 align="center">
     <a href="https://docs.stackframe.co">Documentation</a>
-    <!-- | <a href="#">Demo</a> -->
+    | <a href="https://stackframe-demo.vercel.app/">Demo</a>
+    | <a href="https://stackframe.co/">Stackframe (hosting)</a>
 </h4>
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
