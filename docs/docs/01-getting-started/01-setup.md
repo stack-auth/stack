@@ -35,19 +35,13 @@ npm install @stackframe/stack
     import { StackServerApp } from "@stackframe/stack";
 
     export const stackApp = new StackServerApp({
-      // Automatically reads your API keys from the environment variables you set above.
-      //
-      // Alternatively, you could set them manually:
-      //
-      // projectId: process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
-      // publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
-      // secretServerKey: process.env.STACK_SECRET_SERVER_KEY,
-
       tokenStore: "nextjs-cookie", // storing auth tokens in cookies
     });
     ```
   
-    This will create a server app that you can later use to access Stack from your Next.js server.
+    This will reads the environment variables automatically and create a server app that you can later use to access Stack from your Next.js server.
+    
+    `StackServerApp` has many other options. Check out [StackServerApp documentation](/docs/api-documentation/app) if you want to learn more.
 
 3. Create a new file in `app/handler/[...stack]/page.tsx` and paste the following code: 
 
