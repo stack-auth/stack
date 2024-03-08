@@ -24,6 +24,8 @@ Here is an example of the sign-up page you get out of the box:
 - User-associated metadata with client-/server-specific permissions
 - **100% open-source!**
 
+Currently, only Next.js is supported, but we are working on adding other frameworks.
+
 ## Installation
 
 To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
