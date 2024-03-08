@@ -10,6 +10,7 @@ To get started with Stack, you need to create a [Next.js](https://nextjs.org/doc
   
 ```bash
 npx create-next-app@latest --app stack-example
+cd stack-example
 ```
 
 Once that's done, you can install Stack with npm or yarn:
@@ -39,9 +40,9 @@ npm install @stackframe/stack
     });
     ```
   
-    This will reads the environment variables automatically and create a server app that you can later use to access Stack from your Next.js server.
+    This will read the environment variables automatically and create a server app that you can later use to access Stack from your Next.js server.
     
-    `StackServerApp` has many other options. Check out [StackServerApp documentation](/docs/api-documentation/app) if you want to learn more.
+    Check out the [`StackServerApp` documentation](/docs/api-documentation/app) to learn more about its other options.
 
 3. Create a new file in `app/handler/[...stack]/page.tsx` and paste the following code: 
 
@@ -57,14 +58,14 @@ npm install @stackframe/stack
     This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/advanced-guides/customization/overview) later.
 
 
-4. In your `app/layout.tsx`, wrap your entire layout with a `StackProvider`. Afterwards, it should look like this:
+4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider`. Afterwards, it should look like this:
 
     ```tsx
     import React from "react";
     import { StackProvider } from "@stackframe/stack";
     import { stackApp } from "@/lib/stack";
 
-    export default function Layout({ children }: { children: React.ReactNode }) {
+    export default function RootLayout({ children }: { children: React.ReactNode }) {
       return (
         <html lang="en">
           <body>
@@ -76,9 +77,6 @@ npm install @stackframe/stack
       );
     }
     ```
-
-    This lets you use the `useStackApp()` and `useUser()` hooks.
-
 
 5. By default, Stack uses [`Suspense`](https://react.dev/reference/react/Suspense) to handle loading states. To show a loading indicator while Stack is fetching user data, make sure there is a `loading.tsx` file in your `app` directory:
 

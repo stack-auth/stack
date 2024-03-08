@@ -22,7 +22,7 @@ export function MyComponent() {
   const app = useStackApp();
   const user = app.useUser();
 
-  return <div>{user ? `Hello, ${user.displayName}` : 'You are not logged in'}</div>;
+  return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
@@ -39,7 +39,7 @@ import { stackApp } from "@/lib/stack";
 export default async function MyComponent() {
   const user = await stackApp.getUser();
 
-  return <div>{user ? `Hello, ${user.displayName}` : 'You are not logged in'}</div>;
+  return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
@@ -58,98 +58,128 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
   <TabItem value="client" label="Client Component" default>
     ```tsx
     "use client";
-    import { useStackApp } from "@stackframe/stack";
+    import { useUser } from "@stackframe/stack";
 
     export default function Protected() {
       useUser({ or: 'redirect' });
       return <h1>You can only see this if you are logged in</h1>
     }
     ```
-      </TabItem>
+  </TabItem>
 
-      <TabItem value="server" label="Server Component">
+  <TabItem value="server" label="Server Component">
     ```tsx
-    import { useStackApp } from "@stackframe/stack";
+    import { stackApp } from "@/lib/stack";
 
     export default async function Protected() {
-      await stack.getUser({ or: 'redirect' });
+      await stackApp.getUser({ or: 'redirect' });
       return <h1>You can only see this if you are logged in</h1>
     }
     ```
   </TabItem>
 </Tabs>
 
+
+## Signing out
+
+You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`.
+
+
+<Tabs>
+  <TabItem value="client" label="user.signOut()" default>
+    ```tsx
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export default function SignOutButton() {
+      const user = useUser();
+      return <button onClick={() => user?.signOut()}>
+        Sign Out
+      </button>;
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="server" label="Redirect">
+    ```tsx
+    import { stackApp } from "@/lib/stack";
+
+    export default async function SignOutLink() {
+      return <a href={stackApp.urls.signOut}>
+        Sign Out
+      </a>;
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
 ## Examples
 
 ### User profile
 
-Stack automatically creates a user profile on sign-up. Let's create a page that displays this information.
-
-If you want to use the client component version, create a new file with the following code and import it to `app/page.tsx`. If you want to use the server component version, paste the code directly into `app/page.tsx`.
+Stack automatically creates a user profile on sign-up. Let's create a page that displays this information. In `app/profile/page.tsx`:
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
-```tsx
-'use client';
-import { useUser, useStackApp } from "@stackframe/stack";
+    ```tsx
+    'use client';
+    import { useUser, useStackApp } from "@stackframe/stack";
 
-export default function PageClient() {
-  const user = useUser();
-  const app = useStackApp();
-  return (
-    <div>
-      <h1>Home</h1>
-      {user ? (
+    export default function PageClient() {
+      const user = useUser();
+      const app = useStackApp();
+      return (
         <div>
-          <p>Welcome, {user.displayName}</p>
-          <p>Your e-mail: {user.primaryEmail}</p>
-          <p>Your e-mail verification status: {user.primaryEmailVerified}</p>
-          <button onClick={() => user.signOut()}>Sign Out</button>
+          <h1>Home</h1>
+          {user ? (
+            <div>
+              <p>Welcome, {user.displayName}</p>
+              <p>Your e-mail: {user.primaryEmail}</p>
+              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
+              <button onClick={() => user.signOut()}>Sign Out</button>
+            </div>
+          ) : (
+            <div>
+              <p>You are not logged in</p>
+              <button onClick={() => app.redirectToSignIn()}>Sign in</button>
+              <button onClick={() => app.redirectToSignUp()}>Sign up</button>
+            </div>
+          )}
         </div>
-      ) : (
-        <div>
-          <p>You are not logged in</p>
-          <button onClick={() => app.redirectToSignIn()}>Sign in</button>
-          <button onClick={() => app.redirectToSignUp()}>Sign up</button>
-        </div>
-      )}
-    </div>
-  );
-}
-```
+      );
+    }
+    ```
   </TabItem>
 
   <TabItem value="server" label="Server Component">
-```tsx
-import { stackApp } from "@/lib/stack";
+    ```tsx
+    import { stackApp } from "@/lib/stack";
 
-export default async function Page() {
-  const user = await stackApp.getUser();
-  return (
-    <div>
-      <h1>Home</h1>
-      {user ? (
+    export default async function Page() {
+      const user = await stackApp.getUser();
+      return (
         <div>
-          <p>Welcome, {user.displayName}</p>
-          <p>Your e-mail: {user.primaryEmail}</p>
-          <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
+          <h1>Home</h1>
+          {user ? (
+            <div>
+              <p>Welcome, {user.displayName}</p>
+              <p>Your e-mail: {user.primaryEmail}</p>
+              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
+              <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
+            </div>
+          ) : (
+            <div>
+              <p>You are not logged in</p>
+              <p><a href={stackApp.urls.signIn}>Sign in</a></p>
+              <p><a href={stackApp.urls.signUp}>Sign up</a></p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div>
-          <p>You are not logged in</p>
-          <p><a href={stackApp.urls.signIn}>Sign in</a></p>
-          <p><a href={stackApp.urls.signUp}>Sign up</a></p>
-        </div>
-      )}
-    </div>
-  );
-}
-```
+      );
+    }
+    ```
   </TabItem>
 </Tabs>
 
-Now, if you visit http://localhost:3000, you should see the main page with user information or sign-in/
-
-## Next steps
-
-Next, we will take a look at the actions that can be taken from the server-side.
+You will now be able to see the new profile page on http://localhost:3000/profile.
