@@ -31,6 +31,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.2.2",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mdx-js/loader": "^3",
