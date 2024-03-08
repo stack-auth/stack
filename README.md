@@ -1,9 +1,10 @@
 ![Stack Logo](/assets/logo.png)
 
-<h2 align="center">
-    <a href="https://docs.stackframe.co">Documentation</a>
+<h3 align="center">
+    <a href="https://docs.stackframe.co">📘 Documentation</a>
     | <a href="https://stackframe-demo.vercel.app/">Demo</a>
-    | <a href="https://stackframe.co/">Stackframe (hosting)</a>
+    | <a href="https://stackframe.co/">Stackframe</a>
+    | <a href="https://discord.gg/bww4ExZx">Discord</a>
 </h4>
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
@@ -19,12 +20,24 @@ Here is an example of the sign-up page you get out of the box:
 - Composable React components & hooks
 - OAuth (Google, Facebook, GitHub, etc.)
 - Email and password authentication (with email verification and password reset)
-- Easy to set up with proxied providers
+- Easy to set up with proxied providers (no need to sign up and create OAuth endpoints yourself on all the providers)
 - User management & analytics
 - User-associated metadata with client-/server-specific permissions
 - **100% open-source!**
 
 Currently, only Next.js is supported, but we are working on adding other frameworks.
+
+## Vision
+
+We all know how much overhead there is when starting a new project. Developers need to handle so many things that aren't even part of their core business, like user authentication, user profiles, payments, dashboards, hosting, and more. Our vision is to build a full-stack framework that handles all of this out-of-the-box with less than 10 minutes of setup, so developers can focus on what they really want to build. Authentication is the first step towards this vision.
+
+## Roadmap
+
+- Organization, groups, and roles
+- More pre-built UI components (user profile display/edit, onboarding page)
+- Fraud/bot prevention
+- Feature-rich email/notification system
+- Cross-platform/cross-library/cross-platform supports
 
 ## Installation
 
@@ -42,7 +55,7 @@ This is for you if you want to contribute to the Stack project.
 
 ### Setup
 
-Make sure you have `pnpm` installed alongside Node v20. Next, ensure you created `.env.local` files by copying `.env` in each of the subpackages in the `packages` folder and filling out the variables. You will need to start a Postgres database; you can do this with the following command:
+Make sure you have `pnpm` installed alongside Node v20. Next, ensure you created `.env.local` files by copying `.env` in each sub-package in the `packages` folder and filling out the variables. You will need to start a Postgres database; you can do this with the following command:
 
 ```sh
 docker run -it --rm -e POSTGRES_PASSWORD=password -p "5432:5432" postgres
