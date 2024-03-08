@@ -192,7 +192,7 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       next:
-        specifier: ^14
+        specifier: ^14.1
         version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
       oauth4webapi:
         specifier: ^2.10.3
