@@ -2,6 +2,8 @@
   "name": "@stackframe/stack",
   "version": "1.2.1",
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc && npx tailwindcss build -i src/tailwind.css -o dist/tailwind.css && postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js",
@@ -14,12 +16,6 @@
   "files": [
     "dist"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "dependencies": {
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
