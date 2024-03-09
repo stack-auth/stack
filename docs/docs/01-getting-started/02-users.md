@@ -80,7 +80,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 </Tabs>
 
 
-## Signing out
+## Signing out
 
 You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`.
 
