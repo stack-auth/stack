@@ -71,7 +71,7 @@ pnpm run codegen
 
 # After starting a Postgres database and filling the corresponding variables in .env.local, push the schema to the database:
 # for production databases, use `deploy` instead. See: https://www.prisma.io/docs/orm/prisma-migrate/understanding-prisma-migrate/mental-model#prisma-migrate-in-a-staging-and-production-environment
-pnpm run prisma:server -- migrate reset
+pnpm run prisma:server migrate reset
 
 
 # Start the dev server
@@ -81,7 +81,7 @@ pnpm run dev
 You can also open Prisma Studio to see the database interface and edit data directly:
 
 ```sh
-pnpm run prisma:server -- studio
+pnpm run prisma:server studio
 ```
 
 ### Database migrations
@@ -89,5 +89,5 @@ pnpm run prisma:server -- studio
 If you make changes to the Prisma schema, you need to run the following command to create a migration:
 
 ```sh
-pnpm run prisma:server -- migrate dev
+pnpm run prisma:server migrate dev
 ```
