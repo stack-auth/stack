@@ -37,7 +37,7 @@ We all know how much overhead there is when starting a new project. Developers n
 - More pre-built UI components (user profile display/edit, onboarding page)
 - Fraud/bot prevention
 - Feature-rich email/notification system
-- Cross-platform/cross-library/cross-platform supports
+- Cross-platform/UI library/language supports
 
 ## Installation
 
