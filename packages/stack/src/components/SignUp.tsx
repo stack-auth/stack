@@ -6,10 +6,9 @@ import CardFrame from '../elements/CardFrame';
 import CredentialSignUp from '../elements/CredentialSignUp';
 import CardHeader from '../elements/CardHeader';
 import { useUser, useStackApp } from '..';
-import AlreadySignedInMessageCard from '../elements/RedirectMessageCard';
 import RedirectMessageCard from '../elements/RedirectMessageCard';
 
-export default function SignUp({ redirectUrl, fullPage=false }: { redirectUrl?: string, fullPage?: boolean }) {
+export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const project = stackApp.useProject();
@@ -28,10 +27,10 @@ export default function SignUp({ redirectUrl, fullPage=false }: { redirectUrl?: 
           </NextLink>
         </p>
       </CardHeader>
-      <OAuthGroup type='signup' redirectUrl={redirectUrl} />
+      <OAuthGroup type='signup'/>
       {project.credentialEnabled && <>
         <DividerWithText text={'OR'} />
-        <CredentialSignUp redirectUrl={redirectUrl} />
+        <CredentialSignUp/>
       </>}
     </CardFrame>
   );

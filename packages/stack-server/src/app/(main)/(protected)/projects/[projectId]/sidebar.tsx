@@ -64,6 +64,7 @@ function SidebarItem({
 function AvatarSection() {
   const { mode, setMode } = useColorScheme();
   const user = useUser({ or: 'redirect' });
+  const app = useAdminApp();
   const nameStyle = { 
     textOverflow: 'ellipsis', 
     whiteSpace: 'nowrap', 
@@ -98,7 +99,10 @@ function AvatarSection() {
               }}
               onClick={isSigningOut ? undefined : () => {
                 setIsSigningOut(true);
-                runAsynchronously(user.signOut().finally(() => setIsSigningOut(false)));
+                runAsynchronously((async () => {
+                  await user.signOut();
+                  app.redirectToAfterSignOut();
+                })().finally(() => setIsSigningOut(false)));
               }}
               variant='plain'
             >

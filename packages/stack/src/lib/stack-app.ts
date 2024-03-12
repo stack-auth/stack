@@ -28,13 +28,15 @@ export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
 export type HandlerUrls = {
   handler: string,
   signIn: string,
+  afterSignIn: string,
   signUp: string,
+  afterSignUp: string,
   signOut: string,
+  afterSignOut: string,
   emailVerification: string,
   passwordReset: string,
   forgotPassword: string,
   home: string,
-  userHome: string,
   oauthCallback: string,
 }
 
@@ -43,14 +45,16 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   return {
     handler,
     signIn: `${handler}/signin`,
+    afterSignIn: "/",
     signUp: `${handler}/signup`,
+    afterSignUp: "/",
     signOut: `${handler}/signout`,
+    afterSignOut: "/",
     emailVerification: `${handler}/email-verification`,
     passwordReset: `${handler}/password-reset`,
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
     home: "/",
-    userHome: "/",
     ...filterUndefined(partial),
   };
 }
@@ -333,8 +337,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       update(update) {
         return app._updateUser(update, tokenStore);
       },
-      signOut(redirectUrl?: string) {
-        return app._signOut(tokenStore, redirectUrl);
+      signOut() {
+        return app._signOut(tokenStore);
       },
     };
     Object.freeze(res);
@@ -414,7 +418,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return neverResolve();
   }
 
-  async redirectToHandler() { return await this._redirectTo("handler"); }
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
   async redirectToSignUp() { return await this._redirectTo("signUp"); }
   async redirectToSignOut() { return await this._redirectTo("signOut"); }
@@ -422,8 +425,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToPasswordReset() { return await this._redirectTo("passwordReset"); }
   async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
   async redirectToHome() { return await this._redirectTo("home"); }
-  async redirectToUserHome() { return await this._redirectTo("userHome"); }
   async redirectToOAuthCallback() { return await this._redirectTo("oauthCallback"); }
+  async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
+  async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
+  async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
 
   async sendForgotPasswordEmail(email: string) {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -519,11 +524,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
-    redirectUrl?: string,
   }): Promise<SignInErrorCode | undefined> {
-    if (!options.redirectUrl) {
-      options.redirectUrl = constructRedirectUrl(options.redirectUrl);
-    }
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     return await signInWithCredential(this._interface, tokenStore, options);
@@ -532,11 +533,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signUpWithCredential(options: {
     email: string,
     password: string,
-    redirectUrl?: string,
   }): Promise<SignUpErrorCode | undefined>{
-    if (!options.redirectUrl) {
-      options.redirectUrl = constructRedirectUrl(options.redirectUrl);
-    }
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     return await signUpWithCredential(this._interface, tokenStore, {
@@ -545,28 +542,24 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  async callOAuthCallback(options: {
-    redirectUrl?: string,
-  } = {}) {
+  async callOAuthCallback() {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    await callOAuthCallback(this._interface, tokenStore, options.redirectUrl);
+    const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
+    return {
+      newUser: !!result.newUser,
+    };
   }
 
-  protected async _signOut(tokenStore: TokenStore, redirectUrl?: string): Promise<never> {
-    redirectUrl = constructRedirectUrl(redirectUrl);
+  protected async _signOut(tokenStore: TokenStore): Promise<void> {
     await this._interface.signOut(tokenStore);
-    window.location.assign(redirectUrl);
-    return await neverResolve();
   }
 
-  async signOut(redirectUrl: string): Promise<never> {
+  async signOut(): Promise<void> {
     const user = await this.getUser();
     if (user) {
-      await user.signOut(redirectUrl);
+      await user.signOut();
     }
-    window.location.assign(redirectUrl);
-    return await neverResolve();
   }
 
   async getProject(): Promise<ClientProjectJson> {
@@ -773,8 +766,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(tokenStore);
         return res;
       },  
-      signOut(redirectUrl?: string) {
-        return app._signOut(tokenStore, redirectUrl);
+      signOut() {
+        return app._signOut(tokenStore);
       },
       getClientUser() {
         return app._currentUserFromJson(json, tokenStore);
@@ -992,7 +985,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: Partial<C>): Promise<void>,
-  signOut(this: T, redirectUrl?: string): Promise<never>,
+  signOut(this: T): Promise<void>,
 };
 
 export type User = {
@@ -1118,9 +1111,9 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignInErrorCode | undefined>,
-    signUpWithCredential(options: { email: string, password: string, redirectUrl?: string }): Promise<SignUpErrorCode | undefined>,
-    callOAuthCallback(options?: { redirectUrl?: string }): Promise<void>,
+    signInWithCredential(options: { email: string, password: string }): Promise<SignInErrorCode | undefined>,
+    signUpWithCredential(options: { email: string, password: string }): Promise<SignUpErrorCode | undefined>,
+    callOAuthCallback(): Promise<{ newUser: boolean }>,
     sendForgotPasswordEmail(email: string): Promise<void>,
     resetPassword(options: { code: string, password: string }): Promise<PasswordResetLinkErrorCode | undefined>,
     verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined>,
@@ -1131,7 +1124,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'oauthCallback'>>}`]: () => Promise<never> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<never> }
   & (HasTokenStore extends false
     ? {}
     : {

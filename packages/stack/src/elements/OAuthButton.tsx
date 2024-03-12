@@ -10,11 +10,9 @@ const iconSize = 24;
 export default function OAuthButton({
   provider,
   type,
-  redirectUrl
 }: {
   provider: string,
   type: 'signin' | 'signup',
-  redirectUrl?: string,
 }) {
   const stackApp = useStackApp();
 

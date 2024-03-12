@@ -7,6 +7,11 @@ export default function CustomOAuthSignIn() {
 
   return <div>
     <h1>My Custom Sign In page</h1>
-    <button onClick={async () => await app.signInWithOAuth('google')}>Sign In with Google</button>
+    <button onClick={async () => {
+      // this will redirect to the OAuth provider's login page
+      await app.signInWithOAuth('google');
+    }}>
+      Sign In with Google
+    </button>
   </div>;
 }

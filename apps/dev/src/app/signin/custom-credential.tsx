@@ -14,10 +14,14 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
-    const errorCode = await app.signInWithCredential({ email, password, redirectUrl: app.urls.userHome });
+    const errorCode = await app.signInWithCredential({ email, password });
     // It is better to handle each error code separately, but for simplicity, we will just show the error code directly
     if (errorCode) {
       setError(errorCode);
+    } else {
+      // redirectToXXX will refresh the page so server components can be updated
+      // you can also router.push if you don't have any server components using the user info
+      app.redirectToAfterSignIn();
     }
   };
   

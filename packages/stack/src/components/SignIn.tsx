@@ -9,7 +9,7 @@ import CardHeader from '../elements/CardHeader';
 import { useUser, useStackApp } from '..';
 import RedirectMessageCard from '../elements/RedirectMessageCard';
 
-export default function SignIn({ redirectUrl, fullPage=false }: { redirectUrl?: string, fullPage?: boolean }) {
+export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const project = stackApp.useProject();
@@ -28,11 +28,11 @@ export default function SignIn({ redirectUrl, fullPage=false }: { redirectUrl?: 
           </NextLink>
         </p>
       </CardHeader>
-      <OAuthGroup type='signin' redirectUrl={redirectUrl} />
+      <OAuthGroup type='signin'/>
       {project.credentialEnabled &&
       <>
         <DividerWithText text={'OR'} />
-        <CredentialSignIn redirectUrl={redirectUrl} />
+        <CredentialSignIn/>
       </>}
     </CardFrame>
   );

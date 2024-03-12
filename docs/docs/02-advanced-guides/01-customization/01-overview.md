@@ -52,15 +52,20 @@ For more examples, please refer to the [Examples](/docs/category/examples).
 We also provide the low-level functions powering our components, so that you can build your own logic. For example, to build a custom OAuth sign-in button, create a file at `app/signin/page.tsx`:
 
 ```tsx
-"use client";
+'use client';
 import { useStackApp } from "@stackframe/stack";
 
-export default function CustomOAuthSignInPage() {
+export default function CustomOAuthSignIn() {
   const app = useStackApp();
 
   return <div>
     <h1>My Custom Sign In page</h1>
-    <button onClick={async () => await app.signInWithOAuth('google')}>Sign In with Google</button>
+    <button onClick={async () => {
+      // this will redirect to the OAuth provider's login page
+      await app.signInWithOAuth('google');
+    }}>
+      Sign In with Google
+    </button>
   </div>;
 }
 ```

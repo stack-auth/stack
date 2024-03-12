@@ -578,6 +578,8 @@ export class StackClientInterface {
       accessToken: result.access_token ?? null,
       refreshToken: result.refresh_token ?? old?.refreshToken ?? null,
     }));
+
+    return result;
   }
 
   async signOut(tokenStore: TokenStore): Promise<void> {

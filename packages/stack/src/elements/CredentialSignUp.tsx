@@ -10,7 +10,7 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import Button from "./Button";
 import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
-export default function CredentialSignUp({ redirectUrl }: { redirectUrl?: string }) {
+export default function CredentialSignUp() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +18,7 @@ export default function CredentialSignUp({ redirectUrl }: { redirectUrl?: string
   const [passwordRepeat, setPasswordRepeat] = useState('');
   const [passwordRepeatError, setPasswordRepeatError] = useState('');
   const [loading, setLoading] = useState(false);
-  const stackApp = useStackApp();
+  const app = useStackApp();
 
   const onSubmit = async () => {
     if (!email) {
@@ -49,7 +49,7 @@ export default function CredentialSignUp({ redirectUrl }: { redirectUrl?: string
     }
 
     setLoading(true);
-    const errorCode = await stackApp.signUpWithCredential({ email, password, redirectUrl });
+    const errorCode = await app.signUpWithCredential({ email, password });
     setLoading(false);
     
     switch (errorCode) {
@@ -59,7 +59,7 @@ export default function CredentialSignUp({ redirectUrl }: { redirectUrl?: string
       }
       case undefined: {
         // success
-        break;
+        await app.redirectToAfterSignIn();
       }
     }
   };
