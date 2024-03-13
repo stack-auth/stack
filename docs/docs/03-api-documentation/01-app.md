@@ -12,7 +12,7 @@ sidebar_position: 1
 
 ## Initialization
 
-We showed in the [setup guide](docs/getting-started/setup) that you can create a `StackServerApp` in a file like `lib/stack.ts` like this:
+We showed in the [setup guide](/docs/getting-started/setup) that you can create a `StackServerApp` in a file like `lib/stack.ts` like this:
 
 ```tsx
 import "server-only";
