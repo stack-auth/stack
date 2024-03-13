@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { updateClientUser, updateServerUser } from "@/lib/users";
@@ -27,7 +27,7 @@ const putOrGetSchema = yup.object({
   }).nullable(),
 });
 
-const handler = smartRouteHandler(async (req: NextRequest) => {
+const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     query: {
       server,

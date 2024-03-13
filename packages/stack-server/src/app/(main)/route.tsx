@@ -1,6 +1,6 @@
-import { smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { redirect } from "next/navigation";
 
-export const GET = smartRouteHandler(async () => {
+export const GET = deprecatedSmartRouteHandler(async () => {
   redirect("/projects");
 });

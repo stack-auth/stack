@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, getApiKeySet, revokeApiKeySet, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { deleteServerUser, updateServerUser } from "@/lib/users";
@@ -17,7 +17,7 @@ const putOrGetSchema = yup.object({
   }).nullable(),
 });
 
-const handler = smartRouteHandler(async (req: NextRequest, options: { params: { apiKeyId: string } }) => {
+const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { apiKeyId: string } }) => {
   const {
     headers: {
       "x-stack-project-id": projectId,

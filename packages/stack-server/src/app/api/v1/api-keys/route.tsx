@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, createApiKeySet, listApiKeySets, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 
@@ -13,7 +13,7 @@ const getSchema = yup.object({
   }).required(),
 });
 
-export const GET = smartRouteHandler(async (req: NextRequest) => {
+export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: {
       "x-stack-project-id": projectId,
@@ -48,7 +48,7 @@ const postSchema = yup.object({
   }).required(),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: {
       "x-stack-project-id": projectId,

@@ -60,7 +60,7 @@ export async function parseRequest<T>(req: NextRequest, schema: yup.Schema<T>): 
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-export function smartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     try {
       const censoredUrl = new URL(req.url);

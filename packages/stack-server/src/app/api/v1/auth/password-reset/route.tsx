@@ -7,7 +7,7 @@ import {
   PasswordResetLinkExpiredErrorCode
 } from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 const postSchema = yup.object({
@@ -18,7 +18,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const { body: { code, password, onlyVerifyCode } } = await parseRequest(req, postSchema);
 
   const codeRecord = await prismaClient.projectUserPasswordResetCode.findUnique({
