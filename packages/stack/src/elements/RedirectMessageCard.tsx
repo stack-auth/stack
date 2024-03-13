@@ -25,7 +25,7 @@ export default function RedirectMessageCard({
     case 'signedIn': {
       title = "You are already signed in";
       message = 'You are already signed in.';
-      primaryUrl = stackApp.urls.userHome;
+      primaryUrl = stackApp.urls.home;
       secondaryUrl = stackApp.urls.signOut;
       primaryButton = "Go to Home";
       secondaryButton = "Sign Out";

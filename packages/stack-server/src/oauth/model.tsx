@@ -91,7 +91,10 @@ export class OAuthModel implements AuthorizationCodeModel {
 
     token.client = client;
     token.user = user;
-    return token;
+    return {
+      ...token,
+      newUser: user.newUser,
+    };
   }
 
   async getAccessToken(accessToken: string): Promise<Token | Falsey> {
@@ -164,6 +167,7 @@ export class OAuthModel implements AuthorizationCodeModel {
         redirectUri: code.redirectUri,
         expiresAt: code.expiresAt,
         projectUserId: user.id,
+        newUser: user.newUser,
         projectId: client.id,
       },
     });
@@ -177,9 +181,7 @@ export class OAuthModel implements AuthorizationCodeModel {
         id: client.id,
         grants: ["authorization_code", "refresh_token"],
       },
-      user: {
-        id: user.id,
-      },
+      user,
     };
   }
 
@@ -205,6 +207,7 @@ export class OAuthModel implements AuthorizationCodeModel {
       },
       user: {
         id: code.projectUserId,
+        newUser: code.newUser,
       },
     };
   }

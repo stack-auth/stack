@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser, useStackApp } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 export default function SignOutButton() {

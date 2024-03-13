@@ -13,7 +13,7 @@ import { useStackApp, SignIn } from "@stackframe/stack";
 export default function DefaultSignIn() {
   const app = useStackApp();
 
-  return <SignIn fullPage redirectUrl={app.urls.userHome} />;
+  return <SignIn fullPage />;
 }
 ```
 
@@ -43,10 +43,13 @@ export default function CustomOAuthSignIn() {
   const app = useStackApp();
 
   return <div>
-    <button onClick={async () => await app.signInWithOAuth({ 
-      provider: 'google', 
-      redirectUrl: app.urls.userHome
-    })}>Sign In with Google</button>
+    <h1>My Custom Sign In page</h1>
+    <button onClick={async () => {
+      // this will redirect to the OAuth provider's login page
+      await app.signInWithOAuth('google');
+    }}>
+      Sign In with Google
+    </button>
   </div>;
 }
 ```
@@ -69,8 +72,9 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
-    const errorCode = await app.signInWithCredential({ email, password, redirectUrl: app.urls.userHome });
-    // It is better to handle each error code separately, but for simplicity in this example, we will just show the error code directly
+    // this will rediret to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    const errorCode = await app.signInWithCredential({ email, password });
+    // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
     if (errorCode) {
       setError(errorCode);
     }

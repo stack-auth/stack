@@ -9,13 +9,13 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 // Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
 
-export default function CredentialSignIn({ redirectUrl }: { redirectUrl?: string }) {
+export default function CredentialSignIn() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
-  const stackApp = useStackApp();
+  const app = useStackApp();
   
   const onSubmit = async () => {
     if (!email) {
@@ -32,7 +32,7 @@ export default function CredentialSignIn({ redirectUrl }: { redirectUrl?: string
     }
     
     setLoading(true);
-    const errorCode = await stackApp.signInWithCredential({ email, password, redirectUrl });
+    const errorCode = await app.signInWithCredential({ email, password });
     setLoading(false);
   
     switch (errorCode) {
@@ -90,7 +90,7 @@ export default function CredentialSignIn({ redirectUrl }: { redirectUrl?: string
       {/* forgot password */}
       <div className="wl_flex wl_items-center wl_justify-between">
         <NextLink 
-          href={stackApp.urls.forgotPassword} 
+          href={app.urls.forgotPassword} 
           className="wl_text-sm wl_text-blue-500 wl_no-underline wl_hover:wl_underline">
           Forgot password?
         </NextLink>

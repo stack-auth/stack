@@ -1,14 +1,15 @@
 'use client';
 
 import { use } from "react";
-import { useUser } from "..";
+import { useStackApp, useUser } from "..";
 import GoHomeMessageCard from "../elements/RedirectMessageCard";
 
-export default function Signout({ redirectUrl }: { redirectUrl?: string }) {
+export default function Signout() {
   const user = useUser();
+  const app = useStackApp();
   
   if (user) {
-    use(user.signOut(redirectUrl));
+    use(user.signOut());
   }
   
   return <GoHomeMessageCard type='signedOut' fullPage />;

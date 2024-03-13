@@ -82,7 +82,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 
 ## Signing out
 
-You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`.
+You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`. The user will be redirected to `afterSignOut` URL. you can customize it in the `StackServerApp` constructor (see [here](/docs/api-documentation/app)).
 
 
 <Tabs>
@@ -93,7 +93,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
     export default function SignOutButton() {
       const user = useUser();
-      return <button onClick={() => user?.signOut()}>
+      return <button onClick={user?.signOut}>
         Sign Out
       </button>;
     }

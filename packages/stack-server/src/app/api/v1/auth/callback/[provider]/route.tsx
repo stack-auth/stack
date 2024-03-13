@@ -73,11 +73,8 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);
-  if (!provider) {
-    throw new StatusError(StatusError.NotFound, "Provider not found");
-  }
-  if (!provider.enabled) {
-    throw new StatusError(StatusError.NotFound, "Provider not enabled");
+  if (!provider || !provider.enabled) {
+    throw new StatusError(StatusError.NotFound, "Provider not found or not enabled");
   }
 
   const userInfo = await getAuthorizationCallback(
@@ -114,7 +111,7 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
     {
       authenticateHandler: {
         handle: async () => {
-          const account = await prismaClient.projectUserOAuthAccount.upsert({
+          const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
             where: {
               projectId_oauthProviderConfigId_providerAccountId: {
                 projectId: decoded.projectId,
@@ -122,8 +119,17 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
                 providerAccountId: userInfo.accountId,
               },
             },
-            update: {},
-            create: {
+          });
+
+          if (oldAccount) {
+            return {
+              id: oldAccount.projectUserId,
+              newUser: false
+            };
+          }
+
+          const newAccount = await prismaClient.projectUserOAuthAccount.create({
+            data: {
               providerAccountId: userInfo.accountId,
               email: userInfo.email,
               providerConfig: {
@@ -147,7 +153,8 @@ export const GET = smartRouteHandler(async (req: NextRequest, options: { params:
           });
 
           return {
-            id: account.projectUserId,
+            id: newAccount.projectUserId,
+            newUser: true
           };
         }
       }

@@ -2,7 +2,6 @@ import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -30,10 +29,7 @@ export async function signInWithOAuth(
  * 
  * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
-function consumeOAuthCallbackQueryParams(expectedState: string | null): null | {
-  newUrl: URL,
-  originalUrl: URL,
-} {
+function consumeOAuthCallbackQueryParams(expectedState: string | null): null | URL {
   const requiredParams = ["code", "state"];
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
@@ -62,96 +58,39 @@ function consumeOAuthCallbackQueryParams(expectedState: string | null): null | {
   // prevent an unnecessary reload
   window.history.replaceState({}, "", newUrl.toString());
 
-  return { newUrl, originalUrl };
+  return originalUrl; 
 }
 
 export async function callOAuthCallback(
   iface: StackClientInterface,
   tokenStore: TokenStore,
-  redirectUrl?: string,
+  redirectUrl: string,
 ) {
   // note: this part of the function (until the return) needs
   // to be synchronous, to prevent race conditions when
   // callOAuthCallback is called multiple times in parallel
   const { codeVerifier, state } = getVerifierAndState();
-  const consumeResult = consumeOAuthCallbackQueryParams(state);
-  if (!consumeResult) {
-    return;
+  const originalUrl = consumeOAuthCallbackQueryParams(state);
+  if (!originalUrl) {
+    throw new Error("Invalid OAuth callback URL");
   }
 
   if (!codeVerifier || !state) {
-    return;
+    throw new Error("Invalid OAuth callback URL");
   }
 
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback)
-
-  const { newUrl, originalUrl } = consumeResult;
-
-  if (!redirectUrl) {
-    redirectUrl = newUrl.toString();
-  }
-
-  redirectUrl = redirectUrl.split("#")[0]; // remove hash
-
   try {
-    await iface.callOAuthCallback(
+    return await iface.callOAuthCallback(
       originalUrl.searchParams,
-      redirectUrl,
+      constructRedirectUrl(redirectUrl),
       codeVerifier,
       state,
       tokenStore,
     );
-
-    // reload/redirect so the server can update now that the user is signed in
-    window.location.assign(redirectUrl);
   } catch (e) {
     console.error("Error signing in during OAuth callback", e);
     throw new Error("Error signing in. Please try again.");
   }
-}
-
-export async function signInWithCredential(
-  iface: StackClientInterface,
-  tokenStore: TokenStore,
-  {
-    email,
-    password,
-    redirectUrl,
-  }: {
-    email: string,
-    password: string,
-    redirectUrl?: string,
-  }
-): Promise<SignInErrorCode | undefined>{
-  const errorCode = await iface.signInWithCredential(email, password, tokenStore);
-  if (!errorCode) {
-    redirectUrl = constructRedirectUrl(redirectUrl);
-    window.location.assign(redirectUrl);
-  }
-  return errorCode;
-}
-
-export async function signUpWithCredential(
-  iface: StackClientInterface,
-  tokenStore: TokenStore,
-  {
-    email,
-    password,
-    redirectUrl,
-    emailVerificationRedirectUrl,
-  }: {
-    email: string,
-    password: string,
-    redirectUrl?: string,
-    emailVerificationRedirectUrl: string,
-  }
-): Promise<SignUpErrorCode | undefined>{
-  emailVerificationRedirectUrl = constructRedirectUrl(emailVerificationRedirectUrl);
-  const errorCode = await iface.signUpWithCredential(email, password, emailVerificationRedirectUrl, tokenStore);
-  if (!errorCode) {
-    redirectUrl = constructRedirectUrl(redirectUrl);
-    window.location.assign(redirectUrl);
-  }
-  return errorCode;
 }

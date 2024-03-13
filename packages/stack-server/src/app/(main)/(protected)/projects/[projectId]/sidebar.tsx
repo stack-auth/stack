@@ -64,6 +64,7 @@ function SidebarItem({
 function AvatarSection() {
   const { mode, setMode } = useColorScheme();
   const user = useUser({ or: 'redirect' });
+  const app = useAdminApp();
   const nameStyle = { 
     textOverflow: 'ellipsis', 
     whiteSpace: 'nowrap', 

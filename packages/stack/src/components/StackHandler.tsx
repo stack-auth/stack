@@ -42,15 +42,15 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   switch (path) {
     case 'signin': {
       redirectIfNotHandler('signIn');
-      return <SignIn fullPage redirectUrl={app.urls.userHome}/>;
+      return <SignIn fullPage/>;
     }
     case 'signup': {
       redirectIfNotHandler('signUp');
-      return <SignUp fullPage redirectUrl={app.urls.userHome}/>;
+      return <SignUp fullPage/>;
     }
     case 'email-verification': {
       redirectIfNotHandler('emailVerification');
-      return <EmailVerification searchParams={searchParams} fullPage redirectUrl={app.urls.signIn} />;
+      return <EmailVerification searchParams={searchParams} fullPage/>;
     }
     case 'password-reset': {
       redirectIfNotHandler('passwordReset');
@@ -62,7 +62,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
     case 'signout': {
       redirectIfNotHandler('signOut');
-      return <Signout redirectUrl={app.urls.home} />;
+      return <Signout/>;
     }
     case 'oauth-callback': {
       redirectIfNotHandler('oauthCallback');

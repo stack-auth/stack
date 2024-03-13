@@ -104,4 +104,5 @@ export async function getAuthorizationCallback(
 
 export const oauthServer = new OAuth2Server({
   model: new OAuthModel(),
+  allowExtendedTokenAttributes: true,
 });

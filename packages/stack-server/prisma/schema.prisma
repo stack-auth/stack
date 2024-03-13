@@ -147,6 +147,7 @@ model ProjectUserAuthorizationCode {
 
   codeChallenge       String
   codeChallengeMethod String
+  newUser             Boolean
 
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 

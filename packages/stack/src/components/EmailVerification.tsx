@@ -14,7 +14,6 @@ export default function EmailVerification({
 }: { 
   searchParams?: Record<string, string>,
   fullPage?: boolean,
-  redirectUrl?: string,
 }) {
   const stackApp = useStackApp();
 
