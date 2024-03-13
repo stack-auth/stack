@@ -1,5 +1,16 @@
 # @stackframe/stack
 
+## 2.0.0
+
+### Major Changes
+
+- 948252f: removed redirect URL in function options, redirect automatically to default URL
+
+### Patch Changes
+
+- Updated dependencies [948252f]
+  - @stackframe/stack-shared@2.0.0
+
 ## 1.2.1
 
 ### Patch Changes

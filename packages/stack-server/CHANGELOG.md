@@ -1,5 +1,13 @@
 # @stackframe/stack-server
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [948252f]
+  - @stackframe/stack-shared@2.0.0
+  - @stackframe/stack@2.0.0
+
 ## 0.1.4
 
 ### Patch Changes
