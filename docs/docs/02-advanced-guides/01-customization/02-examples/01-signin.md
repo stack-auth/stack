@@ -17,8 +17,6 @@ export default function DefaultSignIn() {
 }
 ```
 
-`redirectUrl` is the url the user will be redirected to after successful signing in. It is optional and defaults to the current page. 
-
 You can also use `useUser` at the beginning of the sign in page to check if wether the user is already signed in and redirect them to some other page if they are.
 
 
