@@ -48,7 +48,6 @@
 - `PasswordRequirementsNotMet`:
   - `PasswordTooShort`: Password too short. (400)
   - `PasswordTooLong`: Password too long. (400)
-  - `PasswordTooWeak`: Password is on a list of known weak passwords and should be avoided. (400)
 - `EmailVerificationError`:
   - `InvalidEmailVerificationCode`: The e-mail verification link is invalid. (400)
   - `EmailVerificationCodeExpired`: The e-mail verification link has expired. (400)
