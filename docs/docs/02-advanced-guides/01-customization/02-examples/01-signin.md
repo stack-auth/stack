@@ -13,7 +13,7 @@ import { useStackApp, SignIn } from "@stackframe/stack";
 export default function DefaultSignIn() {
   const app = useStackApp();
 
-  return <SignIn fullPage redirectUrl={app.urls.signInRedirect} />;
+  return <SignIn fullPage />;
 }
 ```
 
@@ -72,8 +72,9 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
+    // this will rediret to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
     const errorCode = await app.signInWithCredential({ email, password });
-    // It is better to handle each error code separately, but for simplicity in this example, we will just show the error code directly
+    // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
     if (errorCode) {
       setError(errorCode);
     }
