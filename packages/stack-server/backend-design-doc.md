@@ -1,0 +1,164 @@
+# Backend Design Doc
+
+## API format
+
+- RESTful
+- If `X-Stack-Override-Error-Status` header is given, the server MUST replace all statuses 400-599 with 200, and return the actual status code in the `X-Stack-Actual-Status` header.
+- If a known error (see below) occurs, the `X-Stack-Known-Error` header MUST be returned containing the error code. The body MUST be of the shape `{ code: <ERROR_CODE>, message: <HUMAN_READABLE_ERROR_MESSAGE>, details?: {<ADDITIONAL_ERROR_INFORMATION>} }`.
+- The `X-Stack-Request-Id` header MAY be returned with a randomly generated string that can be used to identify the request in the server logs. If an error occurs, the client SHOULD include this in the message as an error code.
+- The server will return the `SchemaError` if applicable, on any endpoint. This is referred to as "Common errors" in the endpoints list below.
+
+## Known errors
+
+- `SchemaError`: The request body does not match the expected schema. (400)
+- `ProjectAuthenticationError`:
+  - `InvalidProjectAuthentication`:
+    - `InvalidPublishableClientKey`: The publishable key is not valid for the given project. Does the project and/or the key exist? (401)
+    - `InvalidSecretServerKey`: The secret server key is not valid for the given project. Does the project and/or the key exist? (401)
+    - `InvalidSuperSecretAdminKey`: The super secret admin key is not valid for the given project. Does the project and/or the key exist? (401)
+    - `InvalidAdminAccessToken`:
+      - `UnparsableAdminAccessToken`: Admin access token is not parsable. (401)
+      - `AdminAccessTokenExpired`: Admin access token has expired. (401)
+      - `InvalidProjectForAdminAccessToken`: Admin access token not valid for this project. (401)
+  - `ProjectAuthenticationRequired`:
+    - `ClientAuthenticationRequired`: The publishable client key must be provided. (401)
+    - `ServerAuthenticationRequired`: The secret server key must be provided. (401)
+    - `ClientOrServerAuthenticationRequired`: Either the publishable client key or the secret server key must be provided. (401)
+    - `ClientOrAdminAuthenticationRequired`: Either the publishable client key or the super secret admin key must be provided. (401)
+    - `ClientOrServerOrAdminAuthenticationRequired`: Either the publishable client key, the secret server key, or the super secret admin key must be provided. (401)
+    - `AdminAuthenticationRequired`: The super secret admin key must be provided. (401)
+  - `ExpectedInternalProject`: The project ID is expected to be internal. (401)
+- `SessionAuthenticationError`:
+  - `InvalidSessionAuthentication`:
+    - `InvalidAccessToken`: [^1]
+      - `UnparsableAccessToken`: Access token is not parsable. (401)
+      - `AccessTokenExpired`: Access token has expired. (401)
+      - `InvalidProjectForAccessToken`: Access token not valid for this project. (401)
+    - `SessionUserEmailNotVerified`: User e-mail not verified, but is required by the project. (401)
+  - `SessionAuthenticationRequired`: Session required for this request. (401)
+- `InvalidRefreshToken`: The client should remove the refresh token.
+  - `ProviderRejected`: The provider refused to refresh their token. (401)
+  - `RefreshTokenExpired`: Refresh token has expired. A new refresh token requires reauthentication. (401)
+- `UserEmailAlreadyExists`: User already exists. (400)
+- `UserNotFound`: User not found. (404)
+- `ApiKeyNotFound`: API key not found. (404)
+- `ProjectNotFound`: Project not found. (404)
+- `EmailPasswordMismatch`: Wrong e-mail or password. (400)
+- `InvalidRedirectUrl`: Invalid redirect URL. (400)
+- `PasswordRequirementsNotMet`:
+  - `PasswordTooShort`: Password too short. (400)
+  - `PasswordTooLong`: Password too long. (400)
+  - `PasswordTooWeak`: Password is on a list of known weak passwords and should be avoided. (400)
+- `EmailVerificationError`:
+  - `InvalidEmailVerificationCode`: The e-mail verification link is invalid. (400)
+  - `EmailVerificationCodeExpired`: The e-mail verification link has expired. (400)
+  - `EmailVerificationCodeAlreadyUsed`: The e-mail verification link has already been used. (400)
+- `PasswordResetError`:
+  - `InvalidPasswordResetCode`: The password reset link is invalid. (400)
+  - `PasswordResetCodeExpired`: The password reset link has expired. (400)
+  - `PasswordResetCodeAlreadyUsed`: The password reset link has already been used. (400)
+
+
+## Project Authentication
+
+- On endpoints that require project authentication, the client MUST provide:
+  - The project ID in the `X-Stack-Project-Id` header.
+  - One of:
+    - The publishable client key in the `X-Stack-Publishable-Client-Key` header.
+    - The secret server key in the `X-Stack-Secret-Server-Key` header.
+    - The super secret admin key in the `X-Stack-Super-Secret-Admin-Key` header.
+    - The admin access token in the `X-Stack-Admin-Access-Token` header.
+- The server MUST respond with a `InvalidProjectAuthentication` error if there is an authentication error on the server.
+
+
+## Session Authentication
+
+- On endpoints that require session authentication, the client MUST provide:
+  - Project authentication with client permissions.
+  - The access token in the `X-Stack-Access-Token` header.
+- The server MUST respond with a `InvalidSessionAuthentication` error if there is an authentication error on the server.
+
+
+## Endpoints
+
+- `/api-keys`
+  - Overload 1: List or create API keys for the project.
+    - Methods: `GET`, `POST`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `AdminAuthenticationRequired`.
+- `/api-keys/:id`
+  - Overload 1: Get, update, or delete the API key with the given ID.
+    - Methods: `GET`, `PATCH`, `DELETE`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `AdminAuthenticationRequired`, `ApiKeyNotFound`.
+- `/auth/...`
+  - not part of the rework for now
+- `/current-project`
+  - Overload 1: Get, update, or delete the current project admin.
+    - Methods: `GET`, `PATCH`, `DELETE`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `AdminAuthenticationRequired`.
+  - Overload 2: Get the current client project.
+    - Methods: `GET`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ClientAuthenticationRequired`.
+- `/current-user`
+  - Overload 1: Get or update the current user.
+    - Methods: `GET`, `PATCH`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ClientAuthenticationRequired`, `SessionAuthenticationRequired`.
+  - Overload 2: Get or update the current server user.
+    - Methods: `GET`, `PATCH`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ServerAuthenticationRequired`, `SessionAuthenticationRequired`.
+- `/projects`
+  - Overload 1: List or create projects for the current user.
+    - Methods: `GET`, `POST`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ClientAuthenticationRequired`, `ExpectedInternalProject`, `SessionAuthenticationRequired`.
+- `/users`
+  - Overload 1: List users in the project.
+    - Methods: `GET`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ServerAuthenticationRequired`.
+- `/users/:id`
+  - Overload 1: Get, update, or delete the user with the given ID.
+    - Methods: `GET`, `PATCH`, `DELETE`
+    - Errors: Common errors, `InvalidProjectAuthentication`, `ServerAuthenticationRequired`, `UserNotFound`.
+
+
+## Example endpoint implementation
+
+```tsx
+const requestBase = {};
+
+const handler = smartRouteHandler(
+  [{ isClient: true }, { isClient: false }],
+  ({ isClient }) => {
+    request: yup.object({
+      project: isClient ? requireClientAuthentication : requireServerAuthentication,
+      params: yup.object({
+        id: yup.string().required(),
+      }),
+    }),
+    response: yup.object({
+      status: 200,
+      body: yup.object({
+        id: yup.string().required(),
+        name: yup.string().required(),
+        ...isClient ? {} : { secret: yup.string().required() },
+      }),
+    }),
+    handler: (obj) => {
+      return {
+        status: 200,
+        body: {
+          id: obj.params.id,
+          name: "John Doe",
+          ...isClient ? {} : { secret: "super-secret" },
+        },
+      };
+    },
+  },
+);
+
+export const GET = handler;
+```
+
+
+
+## Footnotes
+
+[^1]: The client SHOULD remove the access token from the client storage, and request a new one using the refresh token.
