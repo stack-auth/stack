@@ -46,7 +46,7 @@ export default function CredentialSignIn() {
       }
       case undefined: {
         // success
-        await app.redirectToAfterSignIn();
+        break;
       }
     }
   };

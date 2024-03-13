@@ -2,7 +2,6 @@ import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -94,49 +93,4 @@ export async function callOAuthCallback(
     console.error("Error signing in during OAuth callback", e);
     throw new Error("Error signing in. Please try again.");
   }
-}
-
-export async function signInWithCredential(
-  iface: StackClientInterface,
-  tokenStore: TokenStore,
-  {
-    email,
-    password,
-    redirectUrl,
-  }: {
-    email: string,
-    password: string,
-    redirectUrl?: string,
-  }
-): Promise<SignInErrorCode | undefined>{
-  const errorCode = await iface.signInWithCredential(email, password, tokenStore);
-  if (!errorCode) {
-    redirectUrl = constructRedirectUrl(redirectUrl);
-    window.location.assign(redirectUrl);
-  }
-  return errorCode;
-}
-
-export async function signUpWithCredential(
-  iface: StackClientInterface,
-  tokenStore: TokenStore,
-  {
-    email,
-    password,
-    redirectUrl,
-    emailVerificationRedirectUrl,
-  }: {
-    email: string,
-    password: string,
-    redirectUrl?: string,
-    emailVerificationRedirectUrl: string,
-  }
-): Promise<SignUpErrorCode | undefined>{
-  emailVerificationRedirectUrl = constructRedirectUrl(emailVerificationRedirectUrl);
-  const errorCode = await iface.signUpWithCredential(email, password, emailVerificationRedirectUrl, tokenStore);
-  if (!errorCode) {
-    redirectUrl = constructRedirectUrl(redirectUrl);
-    window.location.assign(redirectUrl);
-  }
-  return errorCode;
 }

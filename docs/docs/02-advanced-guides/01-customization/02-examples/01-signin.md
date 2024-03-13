@@ -77,7 +77,6 @@ export default function CustomCredentialSignIn() {
     if (errorCode) {
       setError(errorCode);
     }
-    app.redirectToSignInRedirect();
   };
   
   return (

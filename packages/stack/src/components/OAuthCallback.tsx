@@ -11,12 +11,7 @@ export default function OAuthCallback () {
   useEffect(() => runAsynchronously(async () => {
     if (called.current) return;
     called.current = true;
-    const { newUser } = await app.callOAuthCallback();
-    if (newUser) {
-      await app.redirectToAfterSignUp();
-    } else {
-      await app.redirectToAfterSignIn();
-    }
+    await app.callOAuthCallback();
   }), []);
 
   return <MessageCard title='Redirecting...' fullPage />;

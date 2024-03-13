@@ -94,10 +94,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
     export default function SignOutButton() {
       const user = useUser();
       return <button onClick={async () => {
-        await user?.signOut()
-        // redirectToXXX will redirect and reload the page so server components can re-render
-        // you can also use router.push if you don't have any server components that uses the user
-        app.redirectToAfterSignOut();
+        await user?.signOut();
       }>
         Sign Out
       </button>;

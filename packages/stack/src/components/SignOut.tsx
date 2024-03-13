@@ -9,10 +9,7 @@ export default function Signout() {
   const app = useStackApp();
   
   if (user) {
-    use((async () => {
-      await user.signOut();
-      await app.redirectToAfterSignOut();
-    })());
+    use(user.signOut());
   }
   
   return <GoHomeMessageCard type='signedOut' fullPage />;

@@ -8,7 +8,7 @@ import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
-import { callOAuthCallback, signInWithCredential, signInWithOAuth, signUpWithCredential } from "./auth";
+import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
@@ -527,7 +527,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }): Promise<SignInErrorCode | undefined> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    return await signInWithCredential(this._interface, tokenStore, options);
+    const errorCode = await this._interface.signInWithCredential(options.email, options.password, tokenStore);
+    if (!errorCode) {
+      window.location.assign(this.urls.afterSignIn);
+    }
+    return errorCode;
   }
 
   async signUpWithCredential(options: {
@@ -536,23 +540,33 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }): Promise<SignUpErrorCode | undefined>{
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    return await signUpWithCredential(this._interface, tokenStore, {
-      ...options,
-      emailVerificationRedirectUrl: this.urls.emailVerification,
-    });
+    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
+    const errorCode = await this._interface.signUpWithCredential(
+      options.email, 
+      options.password, 
+      emailVerificationRedirectUrl, 
+      tokenStore
+    );
+    if (!errorCode) {
+      window.location.assign(this.urls.afterSignUp);
+    }
+    return errorCode;
   }
 
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
-    return {
-      newUser: !!result.newUser,
-    };
+    if (result.newUser) {
+      await window.location.replace(this.urls.afterSignUp);
+    } else {
+      await window.location.replace(this.urls.afterSignIn);
+    }
   }
 
   protected async _signOut(tokenStore: TokenStore): Promise<void> {
     await this._interface.signOut(tokenStore);
+    window.location.assign(this.urls.afterSignOut);
   }
 
   async signOut(): Promise<void> {
@@ -1113,7 +1127,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string }): Promise<SignInErrorCode | undefined>,
     signUpWithCredential(options: { email: string, password: string }): Promise<SignUpErrorCode | undefined>,
-    callOAuthCallback(): Promise<{ newUser: boolean }>,
+    callOAuthCallback(): Promise<void>,
     sendForgotPasswordEmail(email: string): Promise<void>,
     resetPassword(options: { code: string, password: string }): Promise<PasswordResetLinkErrorCode | undefined>,
     verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined>,

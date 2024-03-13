@@ -99,10 +99,7 @@ function AvatarSection() {
               }}
               onClick={isSigningOut ? undefined : () => {
                 setIsSigningOut(true);
-                runAsynchronously((async () => {
-                  await user.signOut();
-                  app.redirectToAfterSignOut();
-                })().finally(() => setIsSigningOut(false)));
+                runAsynchronously(user.signOut().finally(() => setIsSigningOut(false)));
               }}
               variant='plain'
             >
