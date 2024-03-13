@@ -3,6 +3,8 @@ import { StackServerApp } from '@stackframe/stack';
 export const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
   urls: {
-    userHome: "/projects",
+    afterSignIn: "/projects",
+    afterSignUp: "/projects",
+    afterSignOut: "/",
   }
 });
