@@ -1,0 +1,32 @@
+{
+  "name": "@stackframe/stack-ui",
+  "version": "2.0.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "clean": "rimraf dist && rimraf node_modules",
+    "dev": "npm run watch:ts",
+    "lint": "eslint --ext .tsx,.ts ."
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+  },
+  "peerDependencies": {
+    "next": "^14.1",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.60",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8",
+    "eslint-config-next": "^14",
+    "react": "^18.2.0",
+    "rimraf": "^5.0.5"
+  }
+}
