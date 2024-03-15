@@ -4,7 +4,7 @@
     <a href="https://docs.stackframe.co">📘 Documentation</a>
     | <a href="https://stackframe-demo.vercel.app/">Demo</a>
     | <a href="https://stackframe.co/">Stackframe</a>
-    | <a href="https://discord.gg/bww4ExZx">Discord</a>
+    | <a href="https://discord.gg/pD4nyYyKrb">Discord</a>
 </h4>
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
