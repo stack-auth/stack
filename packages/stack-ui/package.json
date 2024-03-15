@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "clean": "rimraf dist && rimraf node_modules",
-    "dev": "npm run watch:ts",
+    "dev": "tsc -w --preserveWatchOutput --declarationMap",
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
@@ -25,6 +25,7 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@types/color": "^3.0.6",
     "@types/react": "^18.2.66",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6.x",

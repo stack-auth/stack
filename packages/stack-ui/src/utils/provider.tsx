@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTheme } from "next-themes";
 import { createContext, useContext, useEffect, useState } from "react";
+import StyledComponentsRegistry from './registry';
 
 type DesignContextValue = {
   colors: {
@@ -34,7 +35,7 @@ function getColors(theme: 'dark' | 'light') {
   };
 }
 
-export function DesignProvider(props: { children: React.ReactNode }) {
+export function StackUIProvider(props: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentTheme = theme === 'dark' ? 'dark' : 'light';
@@ -66,16 +67,18 @@ export function DesignProvider(props: { children: React.ReactNode }) {
   if (!mounted) return null;
 
   return (
-    <DesignContext.Provider value={designValue}>
-      {props.children}
-    </DesignContext.Provider>
+    <StyledComponentsRegistry>
+      <DesignContext.Provider value={designValue}>
+        {props.children}
+      </DesignContext.Provider>
+    </StyledComponentsRegistry>
   );
 }
 
 export function useDesign(): DesignContextValue {
   const context = useContext(DesignContext);
   if (!context) {
-    throw new Error("useDesign must be used within a StackProvider");
+    throw new Error("useDesign must be used within a StackDesignProvider");
   }
   return context;
 }
