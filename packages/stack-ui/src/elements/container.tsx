@@ -1,6 +1,6 @@
 'use client';
 
-import { useDesign } from "../utils/provider";
+import { useDesign } from "../utils/design-provider";
 import styled from 'styled-components';
 
 export type GridProps = { 

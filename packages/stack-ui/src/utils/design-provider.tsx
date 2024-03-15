@@ -35,7 +35,7 @@ function getColors(theme: 'dark' | 'light') {
   };
 }
 
-export function StackUIProvider(props: { children: React.ReactNode }) {
+export function StackDesignProvider(props: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentTheme = theme === 'dark' ? 'dark' : 'light';

@@ -1,4 +1,4 @@
-import { useDesign } from "../utils/provider";
+import { useDesign } from "../utils/design-provider";
 
 export default function Divider({ direction='horizontal' }: { direction?: 'horizontal' | 'vertical'}) {
   const { colors } = useDesign();

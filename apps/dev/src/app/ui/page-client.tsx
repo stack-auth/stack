@@ -1,20 +1,21 @@
 'use client';
 
 import {
-  Button,
   Container,
   Divider,
   Input,
   Label,
   Link,
   Typography,
-  useDesign
+  useDesign,
+  useElement
 } from '@stackframe/stack-ui';
 
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
   const { colors, setTheme, currentTheme } = useDesign();
+  const { Button } = useElement();
   return (
     <div style={{ backgroundColor: colors.primaryBgColor }}>
       <Container size='sm'>
@@ -91,6 +92,7 @@ export default function PageClient() {
               <Typography color="secondary">{text}</Typography>
               <Typography color="warning">{text}</Typography>
               <Typography color="success">{text}</Typography>
+              <Typography color="orange">{text}</Typography>
             </div>
           </div>
 
