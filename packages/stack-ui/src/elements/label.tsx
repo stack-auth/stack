@@ -16,11 +16,13 @@ const Primitive = styled(LabelPrimitive.Root)<{ color: string }>`
   margin-bottom: 0.5rem;
 `;
 
+export type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root>;
+
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(
-  (props , ref) => {
+  (props, ref) => {
     const { currentTheme } = useDesign();
     return <Primitive
       color={currentTheme === 'dark' ? SECONDARY_FONT_COLORS.dark : SECONDARY_FONT_COLORS.light}

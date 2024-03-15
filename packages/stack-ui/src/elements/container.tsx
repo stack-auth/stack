@@ -3,7 +3,7 @@
 import { useDesign } from "../utils/design-provider";
 import styled from 'styled-components';
 
-export type GridProps = { 
+export type ContainerProps = { 
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
 
@@ -22,7 +22,7 @@ const InnerContainer = styled.div<{ $breakpoint: number }>`
 export default function Container({
   size='md',
   ...props
-} : GridProps) {
+} : ContainerProps) {
   const { breakpoints } = useDesign();
   return (
     <OuterContainer>

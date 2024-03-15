@@ -1,6 +1,8 @@
 import { useDesign } from "../utils/design-provider";
 
-export default function Divider({ direction='horizontal' }: { direction?: 'horizontal' | 'vertical'}) {
+export type DividerProps = { direction?: 'horizontal' | 'vertical'}
+
+export default function Divider({ direction='horizontal' }: DividerProps) {
   const { colors } = useDesign();
   return <hr style={{ 
     width: direction === 'horizontal' ? '100%' : '1px', 

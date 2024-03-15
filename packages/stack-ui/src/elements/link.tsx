@@ -2,7 +2,7 @@ import NextLink from "next/link";
 import { FONT_FAMILY, FONT_SIZES } from "../utils/constants";
 import { Url } from "url";
 
-export type TypographyProps = {
+export type LinkProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
   href: Url | string,
 } & Omit<React.HTMLProps<HTMLLinkElement>, 'size' | 'href'>
@@ -12,7 +12,7 @@ export default function Link({
   href,
   style,
   ...props
-} : TypographyProps) {
+} : LinkProps) {
   return (
     <NextLink
       href={href}

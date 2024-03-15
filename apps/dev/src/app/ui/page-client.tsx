@@ -1,12 +1,6 @@
 'use client';
 
 import {
-  Container,
-  Divider,
-  Input,
-  Label,
-  Link,
-  Typography,
   useDesign,
   useElement
 } from '@stackframe/stack-ui';
@@ -15,7 +9,16 @@ const text = "This is a test sentence. ";
 
 export default function PageClient() {
   const { colors, setTheme, currentTheme } = useDesign();
-  const { Button } = useElement();
+  const { 
+    Button,
+    Container,
+    Divider,
+    Input,
+    Label,
+    Link,
+    Text
+  } = useElement();
+  
   return (
     <div style={{ backgroundColor: colors.primaryBgColor }}>
       <Container size='sm'>
@@ -78,21 +81,21 @@ export default function PageClient() {
 
           <div style={{ display: 'flex', gap: 20}}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Typography size='xs'>{text}</Typography>
-              <Typography size='sm'>{text}</Typography>
-              <Typography size='md'>{text}</Typography>
-              <Typography size='lg'>{text}</Typography>
-              <Typography size='xl'>{text}</Typography>
+              <Text size='xs'>{text}</Text>
+              <Text size='sm'>{text}</Text>
+              <Text size='md'>{text}</Text>
+              <Text size='lg'>{text}</Text>
+              <Text size='xl'>{text}</Text>
             </div>
           
             <Divider direction='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Typography color="primary">{text}</Typography>
-              <Typography color="secondary">{text}</Typography>
-              <Typography color="warning">{text}</Typography>
-              <Typography color="success">{text}</Typography>
-              <Typography color="orange">{text}</Typography>
+              <Text color="primary">{text}</Text>
+              <Text color="secondary">{text}</Text>
+              <Text color="warning">{text}</Text>
+              <Text color="success">{text}</Text>
+              <Text color="orange">{text}</Text>
             </div>
           </div>
 

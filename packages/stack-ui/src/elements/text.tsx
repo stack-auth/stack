@@ -5,19 +5,19 @@ import { createElement } from "react";
 import { FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
 import { useDesign } from "../utils/design-provider";
 
-export type TypographyProps = {
+export type TextProps = {
   color?: 'primary' | 'secondary' | 'warning' | 'success' | string,
   as?: 'p' | 'h6'| 'h5' | 'h4' | 'h3' | 'h2' | 'h1',
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
 } & Omit<React.HTMLProps<HTMLParagraphElement>, 'size'>
 
-const Typography = React.forwardRef<HTMLParagraphElement, TypographyProps>(({
+const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
   color='primary',
   size='md',
   as='p',
   style,
   ...props
-} : TypographyProps) => {
+} : TextProps) => {
   const { currentTheme } = useDesign();
 
   let textColor;
@@ -60,6 +60,6 @@ const Typography = React.forwardRef<HTMLParagraphElement, TypographyProps>(({
     props.children
   );
 });
-Typography.displayName = 'Typography';
+Text.displayName = 'Typography';
 
-export default Typography;
+export default Text;
