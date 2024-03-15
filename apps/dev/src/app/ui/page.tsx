@@ -1,5 +1,5 @@
-import PageClient from "./page-client";
+import UIPage from "../ui-page";
 
 export default function Page() {
-  return <PageClient/>;
+  return <UIPage/>;
 }

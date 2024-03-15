@@ -105,14 +105,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         bgColor = colors.secondaryColor;
         break;
       }
-      case 'transparent': {
-        bgColor = 'transparent';
-        break;
-      }
       case 'warning': {
         bgColor = '#ff4500';
         break;
       }
+      case 'transparent':
       default: {
         bgColor = color;
       }

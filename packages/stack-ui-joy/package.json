@@ -1,0 +1,38 @@
+{
+  "name": "@stackframe/stack-ui-joy",
+  "version": "2.0.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "clean": "rimraf dist && rimraf node_modules",
+    "dev": "tsc -w --preserveWatchOutput --declarationMap",
+    "lint": "eslint --ext .tsx,.ts ."
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@stackframe/stack-ui": "^2.0.0",
+    "color": "^4.2.3",
+    "styled-components": "^6.1.8"
+  },
+  "peerDependencies": {
+    "next": "^14.1",
+    "react": "^18.2.0",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/joy": "5.0.0-beta.30"
+  },
+  "devDependencies": {
+    "@types/color": "^3.0.6",
+    "@types/react": "^18.2.66",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8",
+    "eslint-config-next": "^14",
+    "rimraf": "^5.0.5"
+  }
+}
