@@ -5,49 +5,78 @@ import { useTheme } from "next-themes";
 import { createContext, useContext, useEffect, useState } from "react";
 import StyledComponentsRegistry from './registry';
 
+type ColorPalette = {
+  primaryColor: string,
+  secondaryColor: string,
+  primaryBgColor: string,
+  secondaryBgColor: string,
+  neutralColor: string,
+};
+
+type Breakpoints = {
+  xs: number,
+  sm: number,
+  md: number,
+  lg: number,
+  xl: number,
+};
+
 type DesignContextValue = {
-  colors: {
-    primaryColor: string,
-    secondaryColor: string,
-    primaryBgColor: string,
-    secondaryBgColor: string,
-    neutralColor: string,
-  },
-  breakpoints: {
-    xs: number,
-    sm: number,
-    md: number,
-    lg: number,
-    xl: number,
-  },
+  colors: ColorPalette,
+  breakpoints: Breakpoints,
   currentTheme: 'dark' | 'light',
   setTheme: (theme: 'dark' | 'light') => void,
 }
+
+export type DesignProviderProps = {
+  colors?: {
+    dark: Partial<ColorPalette>,
+    light: Partial<ColorPalette>,
+  },
+  breakpoints?: Partial<Breakpoints>,
+};
+
 const DesignContext = createContext<DesignContextValue | undefined>(undefined);
 
-function getColors(theme: 'dark' | 'light') {
-  return {
+const defaultBreakpoints: Breakpoints = {
+  xs: 400,
+  sm: 600,
+  md: 900,
+  lg: 1200,
+  xl: 1536,
+};
+
+const defaultColors = ({
+  dark: {
     primaryColor: '#570df8',
     secondaryColor: '#bababa',
-    primaryBgColor: theme === 'dark' ? 'black' : 'white',
-    secondaryBgColor: theme === 'dark' ? '#1f1f1f' : '#f5f5f5',
-    neutralColor: theme === 'dark' ? '#27272a' : '#e4e4e7',
-  };
+    primaryBgColor: 'black',
+    secondaryBgColor: '#1f1f1f',
+    neutralColor: '#27272a',
+  },
+  light: {
+    primaryColor: '#570df8',
+    secondaryColor: '#bababa',
+    primaryBgColor: 'white',
+    secondaryBgColor: '#f5f5f5',
+    neutralColor: '#e4e4e7',
+  },
+} as const);
+
+function getColors(
+  theme: 'dark' | 'light', 
+  colors: { dark: Partial<ColorPalette>, light: Partial<ColorPalette> } | undefined,
+): ColorPalette {
+  return { ...defaultColors[theme], ...colors?.[theme]};
 }
 
-export function StackDesignProvider(props: { children: React.ReactNode }) {
+export function StackDesignProvider(props: { children: React.ReactNode } & DesignProviderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentTheme = theme === 'dark' ? 'dark' : 'light';
   const [designValue, setDesignValue] = useState<DesignContextValue>({
-    colors: getColors(currentTheme),
-    breakpoints: {
-      xs: 400,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
+    colors: getColors(currentTheme, props.colors),
+    breakpoints: { ...defaultBreakpoints, ...props.breakpoints },
     currentTheme,
     setTheme,
   });
@@ -55,7 +84,7 @@ export function StackDesignProvider(props: { children: React.ReactNode }) {
   useEffect(() => {
     setDesignValue((v) => ({
       ...v,
-      colors: getColors(currentTheme),
+      colors: getColors(currentTheme, props.colors),
       currentTheme: currentTheme === 'dark' ? 'dark' : 'light',
     }));
   }, [currentTheme]);

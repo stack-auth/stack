@@ -17,8 +17,7 @@ type Elements = {
   Text: React.ElementType<TextProps>,
 }
 
-type ProviderProps = {
-  children: React.ReactNode,
+export type ElementProviderProps = {
   elements?: Partial<Elements>,
 }
 
@@ -32,7 +31,7 @@ export function useElement() {
   return context;
 }
 
-export function StackElementProvider(props: ProviderProps) {
+export function StackElementProvider(props: { children: React.ReactNode } & ElementProviderProps) {
   return (
     <ElementContext.Provider value={{
       Button: props.elements?.Button || Button,

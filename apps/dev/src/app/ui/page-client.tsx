@@ -7,7 +7,7 @@ import {
 
 const text = "This is a test sentence. ";
 
-export default function UIPage() {
+export default function PageClient() {
   const { colors, setTheme, currentTheme } = useDesign();
   const { 
     Button,
