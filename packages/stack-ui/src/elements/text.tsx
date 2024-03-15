@@ -17,7 +17,7 @@ const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
   as='p',
   style,
   ...props
-} : TextProps) => {
+} : TextProps, ref) => {
   const { currentTheme } = useDesign();
 
   let textColor;
@@ -55,6 +55,7 @@ const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
         margin: 0,
         ...style
       },
+      ref,
       ...props
     },
     props.children

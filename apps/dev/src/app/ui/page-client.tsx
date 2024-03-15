@@ -4,11 +4,13 @@ import {
   useDesign,
   useElement
 } from '@stackframe/stack-ui';
+import { useCurrentUI } from 'src/components/Provider';
 
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
   const { colors, setTheme, currentTheme } = useDesign();
+  const [currentUI, setCurrentUI] = useCurrentUI();
   const { 
     Button,
     Container,
@@ -23,6 +25,11 @@ export default function PageClient() {
     <div style={{ backgroundColor: colors.primaryBgColor }}>
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
+          <select value={currentUI} onChange={e => setCurrentUI(e.target.value as 'default' | 'joy')}>
+            <option value='default'>Default</option>
+            <option value='joy'>Joy</option>
+          </select>
+          
           <div>
             <Button onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} color="transparent">
               { currentTheme === 'dark' ? '☀️' : '🌙' } Toggle Theme
