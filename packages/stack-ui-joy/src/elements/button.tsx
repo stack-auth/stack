@@ -26,6 +26,9 @@ export default function Button({
       '&:hover': {
         backgroundColor: Color(customColor).darken(0.1).toString(),
       },
+      '&:active': {
+        backgroundColor: Color(customColor).darken(0.2).toString(),
+      },
     } : {}}
     size={size}
     loading={loading}
