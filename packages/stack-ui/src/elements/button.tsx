@@ -37,7 +37,7 @@ function getColors(color: string, primaryBgColor: string): {
 }
 
 export type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'plain' | 'destructive',
+  color?: 'primary' | 'secondary' | 'transparent' | 'warning' | string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
 } & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type'>
@@ -53,16 +53,16 @@ const StyledButton = styled.button<{
   border-radius: ${BORDER_RADIUS};
   padding: ${props => {
     switch (props.$size) {
-      case 'sm': return '0.5rem 0.75rem';
-      case 'md': return '0.5rem 1rem';
-      case 'lg': return '0.5rem 2rem';
+      case 'sm': { return '0.5rem 0.75rem'; }
+      case 'md': { return '0.5rem 1rem'; }
+      case 'lg': { return '0.5rem 2rem'; }
     }
   }};
   height: ${props => {
     switch (props.$size) {
-      case 'sm': return '2.25rem';
-      case 'md': return '2.5rem';
-      case 'lg': return '2.75rem';
+      case 'sm': { return '2.25rem'; }
+      case 'md': { return '2.5rem'; }
+      case 'lg': { return '2.75rem'; }
     }
   }};
   font-size: ${FONT_SIZES.md};
@@ -88,7 +88,7 @@ const StyledButton = styled.button<{
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({
-    variant='primary',
+    color='primary',
     size='md',
     loading=false,
     disabled=false,
@@ -96,19 +96,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const { colors } = useDesign();
     let bgColor;
-    switch (variant) {
-      case 'primary':
+    switch (color) {
+      case 'primary': {
         bgColor = colors.primaryColor;
         break;
-      case 'secondary':
+      }
+      case 'secondary': {
         bgColor = colors.secondaryColor;
         break;
-      case 'plain':
+      }
+      case 'transparent': {
         bgColor = 'transparent';
         break;
-      case 'destructive':
+      }
+      case 'warning': {
         bgColor = '#ff4500';
         break;
+      }
+      default: {
+        bgColor = color;
+      }
     }
     const buttonColors = getColors(bgColor, colors.primaryBgColor);
   

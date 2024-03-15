@@ -20,46 +20,55 @@ export default function PageClient() {
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
           <div>
-            <Button onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} variant="primary">
-              Toggle Theme
+            <Button onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} color="transparent">
+              { currentTheme === 'dark' ? '☀️' : '🌙' } Toggle Theme
             </Button>
           </div>
 
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='sm' variant="primary">
+            <Button size='sm' color="primary">
               Button
             </Button>
-            <Button size='md' variant="primary">
+            <Button size='md' color="primary">
               Button
             </Button>
-            <Button size='lg' variant="primary">
+            <Button size='lg' color="primary">
               Button
             </Button>
           </div>
         
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' variant="primary">
+            <Button size='md' color="primary">
               Button
             </Button>
-            <Button size='md' variant="secondary">
+            <Button size='md' color="secondary">
               Button
             </Button>
-            <Button size='md' variant="plain">
+            <Button size='md' color="transparent">
               Button
             </Button>
-            <Button size='md' variant="destructive">
+            <Button size='md' color="warning">
+              Button
+            </Button>
+            <Button size='md' color="orange">
               Button
             </Button>
           </div>
 
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' variant="primary" disabled>
+            <Button size='md' color="primary" disabled>
               Button
             </Button>
-            <Button size='md' variant="secondary" disabled>
+            <Button size='md' color="secondary" disabled>
               Button
             </Button>
-            <Button size='md' variant="plain" disabled>
+            <Button size='md' color="transparent" disabled>
+              Button
+            </Button>
+            <Button size='md' color="warning" disabled>
+              Button
+            </Button>
+            <Button size='md' color="orange" disabled>
               Button
             </Button>
           </div>
@@ -78,10 +87,10 @@ export default function PageClient() {
             <Divider direction='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Typography variant="primary">{text}</Typography>
-              <Typography variant="secondary">{text}</Typography>
-              <Typography variant="warning">{text}</Typography>
-              <Typography variant="success">{text}</Typography>
+              <Typography color="primary">{text}</Typography>
+              <Typography color="secondary">{text}</Typography>
+              <Typography color="warning">{text}</Typography>
+              <Typography color="success">{text}</Typography>
             </div>
           </div>
 

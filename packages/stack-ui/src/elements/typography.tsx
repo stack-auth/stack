@@ -6,13 +6,13 @@ import { FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } f
 import { useDesign } from "../utils/provider";
 
 export type TypographyProps = {
-  variant?: 'primary' | 'secondary' | 'warning' | 'success',
+  color?: 'primary' | 'secondary' | 'warning' | 'success' | string,
   as?: 'p' | 'h6'| 'h5' | 'h4' | 'h3' | 'h2' | 'h1',
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
 } & Omit<React.HTMLProps<HTMLParagraphElement>, 'size'>
 
 const Typography = React.forwardRef<HTMLParagraphElement, TypographyProps>(({
-  variant='primary',
+  color='primary',
   size='md',
   as='p',
   style,
@@ -21,7 +21,7 @@ const Typography = React.forwardRef<HTMLParagraphElement, TypographyProps>(({
   const { currentTheme } = useDesign();
 
   let textColor;
-  switch (variant) {
+  switch (color) {
     case 'primary': {
       textColor = PRIMARY_FONT_COLORS[currentTheme];
       break;
@@ -36,6 +36,10 @@ const Typography = React.forwardRef<HTMLParagraphElement, TypographyProps>(({
     }
     case 'success': {
       textColor = '#32cd32';
+      break;
+    }
+    default: {
+      textColor = color;
       break;
     }
   }
