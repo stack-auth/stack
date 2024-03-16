@@ -5,7 +5,7 @@ import { FormWarningText } from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Button from "./button";
+import { useElements } from "@stackframe/stack-ui";
 
 
 export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
@@ -13,6 +13,7 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
   const [emailError, setEmailError] = useState('');
   const [sending, setSending] = useState(false);
   const stackApp = useStackApp();
+  const { Button, Input, Label } = useElements();
   
   const onSubmit = async () => {
     if (!email) {
@@ -31,34 +32,28 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
   };
 
   return (
-    <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="email">
-          <span className="wl_label-text">Your Email</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          className="wl_input wl_input-bordered"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setEmailError('');
-          }}
-        />
-        <FormWarningText text={emailError} />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <Label htmlFor="email">Your Email</Label>
+      <Input
+        id="email"
+        type="email"
+        name="email"
+        className="wl_input wl_input-bordered"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setEmailError('');
+        }}
+      />
+      <FormWarningText text={emailError} />
 
-      <div className="wl_flex wl_flex-col wl_items-stretch">
-        <Button
-          className="wl_btn-primary wl_mt-6" 
-          onClick={() => runAsynchronously(onSubmit())}
-          loading={sending}
-        >
+      <Button
+        style={{ marginTop: '1.5rem'}}
+        onClick={() => runAsynchronously(onSubmit())}
+        loading={sending}
+      >
           Send Email
-        </Button>
-      </div>
+      </Button>
     </div>
   );
 }
