@@ -2,7 +2,6 @@ import { useState } from "react";
 import { FormWarningText } from "./form-warning";
 import { PasswordField } from "./password-field";
 import { validateEmail } from "../utils/email";
-import NextLink from "next/link";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
@@ -16,7 +15,7 @@ export default function CredentialSignIn() {
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
-  const { Button } = useElements();
+  const { Button, Input, Label, Link } = useElements();
   
   const onSubmit = async () => {
     if (!email) {
@@ -53,52 +52,38 @@ export default function CredentialSignIn() {
   };
 
   return (
-    <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="email">
-          <span className="wl_label-text">Email</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          className="wl_input wl_input-bordered"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setEmailError('');
-          }}
-        />
-        <FormWarningText text={emailError} />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <Label htmlFor="email">Email</Label>
+      <Input
+        id="email"
+        type="email"
+        name="email"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setEmailError('');
+        }}
+      />
+      <FormWarningText text={emailError} />
 
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="password">
-          <span className="wl_label-text">Password</span>
-        </label>
-        <PasswordField
-          id="password"
-          name="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setPasswordError('');
-          }}
-        />
-        <FormWarningText text={passwordError} />
-      </div>
+      <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
+      <PasswordField
+        id="password"
+        name="password"
+        value={password}
+        onChange={(e) => {
+          setPassword(e.target.value);
+          setPasswordError('');
+        }}
+      />
+      <FormWarningText text={passwordError} />
 
-      {/* forgot password */}
-      <div className="wl_flex wl_items-center wl_justify-between">
-        <NextLink 
-          href={app.urls.forgotPassword} 
-          className="wl_text-sm wl_text-blue-500 wl_no-underline wl_hover:wl_underline">
-          Forgot password?
-        </NextLink>
-      </div>
+      <Link href={app.urls.forgotPassword} size='sm' style={{ marginTop: '0.5rem' }}>
+        Forgot password?
+      </Link>
 
       <Button
-        style={{ marginTop: '2rem' }}
+        style={{ marginTop: '1.5rem' }}
         onClick={() => runAsynchronously(onSubmit)}
         loading={loading}
       >

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { createElement } from "react";
-import { FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
+import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
 import { useDesign } from "../providers/design-provider";
 
 export type TextProps = {
@@ -49,6 +49,7 @@ const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
     {
       style: {
         fontSize: FONT_SIZES[size],
+        lineHeight: LINE_HEIGHTS[size],
         fontFamily: FONT_FAMILY,
         color: textColor,
         padding: 0,
