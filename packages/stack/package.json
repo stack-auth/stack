@@ -6,11 +6,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc && npx tailwindcss build -i src/tailwind.css -o dist/tailwind.css && postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js",
+    "build": "tsc",
     "clean": "rimraf dist && rimraf node_modules",
-    "dev": "concurrently \"npm run watch:ts\" \"npm run watch:postcss\"",
-    "watch:ts": "tsc -w --preserveWatchOutput --declarationMap",
-    "watch:postcss": "postcss ./src/tailwind.css -o ./dist/tailwind.css --config postcss.config.js --watch",
+    "dev": "tsc -w --preserveWatchOutput --declarationMap",
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
@@ -37,17 +35,9 @@
     "@types/react": "^18.2.66",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6.x",
-    "autoprefixer": "^10.4.17",
-    "concurrently": "^8.2.2",
-    "daisyui": "^4.7.2",
     "eslint": "^8",
     "eslint-config-next": "^14",
-    "postcss": "^8.4.35",
-    "postcss-cli": "^11.0.0",
-    "postcss-nested": "^6.0.1",
-    "postcss-prefix-selector": "^1.16.0",
     "react": "^18.2",
-    "rimraf": "^5.0.5",
-    "tailwindcss": "^3.4.1"
+    "rimraf": "^5.0.5"
   }
 }

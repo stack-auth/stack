@@ -38,7 +38,6 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
         id="email"
         type="email"
         name="email"
-        className="wl_input wl_input-bordered"
         value={email}
         onChange={(e) => {
           setEmail(e.target.value);

@@ -9,6 +9,8 @@ import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";
 import CardHeader from "./card-header";
+import { useElements } from "@stackframe/stack-ui";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
 export default function PasswordResetInner(
@@ -22,6 +24,7 @@ export default function PasswordResetInner(
   const [finished, setFinished] = useState(false);
   const [resetError, setResetError] = useState(false);
   const stackApp = useStackApp();
+  const { Button, Label, Text } = useElements();
 
   const onSubmit = async () => {
     if (!password) {
@@ -61,7 +64,7 @@ export default function PasswordResetInner(
   if (resetError) {
     return (
       <MessageCard title="Failed to reset password" fullPage={fullPage}>
-        <p>Failed to reset password. Please request a new password reset link</p>
+        <Text>Failed to reset password. Please request a new password reset link</Text>
       </MessageCard>
     );
   }
@@ -69,44 +72,36 @@ export default function PasswordResetInner(
   return (
     <CardFrame fullPage={fullPage}>
       <CardHeader title="Reset Your Password" />
-      <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
-        <div className="wl_form-control">
-          <label className="wl_label" htmlFor="password">
-            New Password
-          </label>
-          <PasswordField
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setPasswordError('');
-              setPasswordRepeatError('');
-            }}
-          />
-          <FormWarningText text={passwordError} />
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+        <Label htmlFor="password">New Password</Label>
+        <PasswordField
+          id="password"
+          name="password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setPasswordError('');
+            setPasswordRepeatError('');
+          }}
+        />
+        <FormWarningText text={passwordError} />
 
-        <div className="wl_form-control">
-          <label className="wl_label" htmlFor="repeat-password">
-          Repeat New Password
-          </label>
-          <PasswordField
-            id="repeat-password"
-            name="repeat-password"
-            value={passwordRepeat}
-            onChange={(e) => {
-              setPasswordRepeat(e.target.value);
-              setPasswordError('');
-              setPasswordRepeatError('');
-            }}
-          />
-          <FormWarningText text={passwordRepeatError} />
-        </div>
+        <Label htmlFor="repeat-password" style={{ marginTop: "1rem" }}>Repeat New Password</Label>
+        <PasswordField
+          id="repeat-password"
+          name="repeat-password"
+          value={passwordRepeat}
+          onChange={(e) => {
+            setPasswordRepeat(e.target.value);
+            setPasswordError('');
+            setPasswordRepeatError('');
+          }}
+        />
+        <FormWarningText text={passwordRepeatError} />
 
-        <div className="wl_flex wl_flex-col wl_items-stretch">
-          <button className="wl_btn wl_btn-primary wl_mt-6" onClick={() => void onSubmit()}>Reset Password</button>
-        </div>
+        <Button style={{ marginTop: '1.5rem' }} onClick={() => runAsynchronously(onSubmit())}>
+          Reset Password
+        </Button>
       </div>
     </CardFrame>
   ); 
