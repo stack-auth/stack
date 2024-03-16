@@ -19,6 +19,8 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
+  const enableDivider = project.credentialEnabled && project.oauthProviders.filter(p => p.enabled).length > 0;
+
   return (
     <CardFrame fullPage={fullPage}>
       <CardHeader title="Create a New Account">
@@ -30,10 +32,8 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
         </Text>
       </CardHeader>
       <OAuthGroup type='signup'/>
-      {project.credentialEnabled && <>
-        <DividerWithText text={'OR'} />
-        <CredentialSignUp/>
-      </>}
+      {enableDivider && <DividerWithText text={'OR'} />}
+      {project.credentialEnabled && <CredentialSignUp/>}
     </CardFrame>
   );
 }

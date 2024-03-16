@@ -6,7 +6,7 @@ export default function DividerWithText({ text }: { text: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', 'justifyContent': 'center', marginTop: '16px', marginBottom: '16px' }}>
       <Divider />
-      <Text style={{ padding: '0 16px', color: colors.neutralColor }}>{text}</Text>
+      <Text style={{ padding: '0 16px' }} variant="secondary">{text}</Text>
       <Divider />
     </div>
   );

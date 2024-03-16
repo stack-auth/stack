@@ -19,6 +19,8 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
+  const enableDivider = project.credentialEnabled && project.oauthProviders.filter(p => p.enabled).length > 0;
+
   return (
     <CardFrame fullPage={fullPage}>
       <CardHeader title="Sign In to Your Account">
@@ -30,11 +32,8 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
         </Text>
       </CardHeader>
       <OAuthGroup type='signin'/>
-      {project.credentialEnabled &&
-      <>
-        <DividerWithText text={'OR'} />
-        <CredentialSignIn/>
-      </>}
+      {enableDivider && <DividerWithText text={'OR'} />}
+      {project.credentialEnabled && <CredentialSignIn/>}
     </CardFrame>
   );
 }
