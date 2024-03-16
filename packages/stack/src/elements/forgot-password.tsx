@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from "react";
-import { FormWarningText } from "./FormWarning";
+import { FormWarningText } from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Button from "./Button";
+import Button from "./button";
 
 
 export default function ForgotPassword({ onSent }: { onSent?: () => void }) {

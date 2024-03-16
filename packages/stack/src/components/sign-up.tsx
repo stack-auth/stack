@@ -1,12 +1,12 @@
 'use client';
 import NextLink from 'next/link';
-import DividerWithText from '../elements/DividerWithText';
-import OAuthGroup from '../elements/OAuthGroup';
-import CardFrame from '../elements/CardFrame';
-import CredentialSignUp from '../elements/CredentialSignUp';
-import CardHeader from '../elements/CardHeader';
+import DividerWithText from '../elements/divider-with-text';
+import OAuthGroup from '../elements/oauth-group';
+import CardFrame from '../elements/card-frame';
+import CredentialSignUp from '../elements/credential-sign-up';
+import CardHeader from '../elements/card-header';
 import { useUser, useStackApp } from '..';
-import RedirectMessageCard from '../elements/RedirectMessageCard';
+import RedirectMessageCard from '../elements/redirect-message-card';
 
 export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();

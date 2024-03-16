@@ -2,8 +2,8 @@
 
 import { use } from "react";
 import { useStackApp } from "..";
-import MessageCard from "../elements/MessageCard";
-import RedirectMessageCard from "../elements/RedirectMessageCard";
+import MessageCard from "../elements/message-card";
+import RedirectMessageCard from "../elements/redirect-message-card";
 import { EmailVerificationLinkExpiredErrorCode, EmailVerificationLinkInvalidErrorCode, EmailVerificationLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 export default function EmailVerification({ 

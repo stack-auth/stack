@@ -1,6 +1,6 @@
-export { useDesign } from './utils/design-provider';
-export { useElement } from './utils/element-provider';
-export { StackUIProvider } from './utils/provider';
+export { useDesign } from './providers/design-provider';
+export { useElement } from './providers/element-provider';
+export { StackUIProvider, ThemeConfig } from './providers/ui-provider';
 export { ButtonProps } from './elements/button';
 export { ContainerProps } from './elements/container';
 export { DividerProps } from './elements/divider';

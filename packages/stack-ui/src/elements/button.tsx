@@ -1,5 +1,5 @@
 import React from "react";
-import { useDesign } from "../utils/design-provider";
+import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";

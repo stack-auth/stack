@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useStackApp } from "..";
-import MessageCard from "./MessageCard";
-import Button from "./Button";
+import MessageCard from "./message-card";
+import Button from "./button";
 
 export default function RedirectMessageCard({ 
   type,

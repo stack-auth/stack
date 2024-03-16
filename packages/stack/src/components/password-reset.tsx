@@ -1,9 +1,9 @@
 'use client';
 
-import MessageCard from "../elements/MessageCard";
+import MessageCard from "../elements/message-card";
 import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
-import PasswordResetInner from "../elements/PasswordResetInner";
+import PasswordResetInner from "../elements/password-reset-inner";
 import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 

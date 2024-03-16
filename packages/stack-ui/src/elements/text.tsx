@@ -3,7 +3,7 @@
 import React from "react";
 import { createElement } from "react";
 import { FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
-import { useDesign } from "../utils/design-provider";
+import { useDesign } from "../providers/design-provider";
 
 export type TextProps = {
   color?: 'primary' | 'secondary' | 'warning' | 'success' | string,

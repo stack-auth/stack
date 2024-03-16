@@ -1,5 +1,5 @@
 import { useStackApp } from "..";
-import OAuthButton from "./OAuthButton";
+import OAuthButton from "./oauth-button";
 
 export default function OAuthGroup({
   type,

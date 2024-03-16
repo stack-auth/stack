@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { useStackApp, useUser } from "..";
-import GoHomeMessageCard from "../elements/RedirectMessageCard";
+import GoHomeMessageCard from "../elements/redirect-message-card";
 
 export default function Signout() {
   const user = useUser();

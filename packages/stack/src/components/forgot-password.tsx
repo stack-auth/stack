@@ -1,10 +1,10 @@
 'use client';
 
-import ForgotPasswordElement from "../elements/ForgotPassword";
-import CardFrame from "../elements/CardFrame";
-import CardHeader from "../elements/CardHeader";
+import ForgotPasswordElement from "../elements/forgot-password";
+import CardFrame from "../elements/card-frame";
+import CardHeader from "../elements/card-header";
 import { useUser, useStackApp } from "..";
-import RedirectMessageCard from "../elements/RedirectMessageCard";
+import RedirectMessageCard from "../elements/redirect-message-card";
 import NextLink from 'next/link';
 import { useState } from "react";
 

@@ -4,7 +4,7 @@ import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import styled from 'styled-components';
 import { FONT_FAMILY, FONT_SIZES, SECONDARY_FONT_COLORS } from "../utils/constants";
-import { useDesign } from "../utils/design-provider";
+import { useDesign } from "../providers/design-provider";
 
 const Primitive = styled(LabelPrimitive.Root)<{ color: string }>`
   font-size: ${FONT_SIZES.sm};

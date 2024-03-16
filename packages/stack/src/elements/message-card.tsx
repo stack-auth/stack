@@ -1,5 +1,5 @@
 import React from "react";
-import CardFrame from "./CardFrame";
+import CardFrame from "./card-frame";
 
 export default function MessageCard(
   { children, title, fullPage=false }: 

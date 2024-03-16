@@ -1,4 +1,4 @@
-import { useDesign } from "../utils/design-provider";
+import { useDesign } from "../providers/design-provider";
 
 export type DividerProps = { direction?: 'horizontal' | 'vertical'}
 

@@ -1,22 +1,25 @@
-import { useState } from "react";
-import { FormWarningText } from "./FormWarning";
-import { PasswordField } from "./PasswordField";
-import { validateEmail } from "../utils/email";
-import NextLink from "next/link";
-import { useStackApp } from "..";
-import Button from "./Button";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
-// Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
+'use client';
 
-export default function CredentialSignIn() {
+import { useState } from "react";
+import { PasswordField } from "./password-field";
+import { FormWarningText } from "./form-warning";
+import { validateEmail } from "../utils/email";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { useStackApp } from "..";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import Button from "./button";
+import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+
+export default function CredentialSignUp() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [passwordRepeat, setPasswordRepeat] = useState('');
+  const [passwordRepeatError, setPasswordRepeatError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
-  
+
   const onSubmit = async () => {
     if (!email) {
       setEmailError('Please enter your email');
@@ -30,18 +33,28 @@ export default function CredentialSignIn() {
       setPasswordError('Please enter your password');
       return;
     }
-    
+    if (!passwordRepeat) {
+      setPasswordRepeatError('Please repeat your password');
+      return;
+    }
+    if (password !== passwordRepeat) {
+      setPasswordRepeatError('Passwords do not match');
+      return;
+    }
+
+    const errorMessage = getPasswordError(password);
+    if (errorMessage) {
+      setPasswordError(errorMessage);
+      return;
+    }
+
     setLoading(true);
-    const errorCode = await app.signInWithCredential({ email, password });
+    const errorCode = await app.signUpWithCredential({ email, password });
     setLoading(false);
-  
+    
     switch (errorCode) {
-      case UserNotExistErrorCode: {
-        setEmailError('User does not exist');
-        break;
-      }
-      case EmailPasswordMissMatchErrorCode: {
-        setPasswordError('Wrong email or password');
+      case UserAlreadyExistErrorCode: {
+        setEmailError('User already exists');
         break;
       }
       case undefined: {
@@ -55,13 +68,13 @@ export default function CredentialSignIn() {
     <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
       <div className="wl_form-control">
         <label className="wl_label" htmlFor="email">
-          <span className="wl_label-text">Email</span>
+          Email
         </label>
         <input
+          className="wl_input wl_input-bordered"
           id="email"
           type="email"
           name="email"
-          className="wl_input wl_input-bordered"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -73,7 +86,7 @@ export default function CredentialSignIn() {
 
       <div className="wl_form-control">
         <label className="wl_label" htmlFor="password">
-          <span className="wl_label-text">Password</span>
+          Password
         </label>
         <PasswordField
           id="password"
@@ -82,27 +95,36 @@ export default function CredentialSignIn() {
           onChange={(e) => {
             setPassword(e.target.value);
             setPasswordError('');
+            setPasswordRepeatError('');
           }}
         />
         <FormWarningText text={passwordError} />
       </div>
 
-      {/* forgot password */}
-      <div className="wl_flex wl_items-center wl_justify-between">
-        <NextLink 
-          href={app.urls.forgotPassword} 
-          className="wl_text-sm wl_text-blue-500 wl_no-underline wl_hover:wl_underline">
-          Forgot password?
-        </NextLink>
+      <div className="wl_form-control">
+        <label className="wl_label" htmlFor="repeat-password">
+          Repeat Password
+        </label>
+        <PasswordField
+          id="repeat-password"
+          name="repeat-password"
+          value={passwordRepeat}
+          onChange={(e) => {
+            setPasswordRepeat(e.target.value);
+            setPasswordError('');
+            setPasswordRepeatError('');
+          }}
+        />
+        <FormWarningText text={passwordRepeatError} />
       </div>
 
       <div className="wl_flex wl_flex-col wl_items-stretch">
-        <Button
+        <Button 
           className="wl_btn-primary wl_mt-6"
           onClick={() => runAsynchronously(onSubmit)}
           loading={loading}
         >
-          Sign In
+          Sign Up
         </Button>
       </div>
     </div>

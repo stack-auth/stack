@@ -1,13 +1,13 @@
-import SignUp from "./SignUp";
-import SignIn from "./SignIn";
+import SignUp from "./sign-up";
+import SignIn from "./sign-in";
 import { RedirectType, notFound, redirect } from 'next/navigation';
-import EmailVerification from "./EmailVerification";
+import EmailVerification from "./email-verification";
 import { PasswordReset, StackServerApp } from "..";
-import MessageCard from "../elements/MessageCard";
+import MessageCard from "../elements/message-card";
 import { HandlerUrls } from "../lib/stack-app";
-import Signout from "./SignOut";
-import ForgotPassword from "./ForgotPassword";
-import OAuthCallback from "./OAuthCallback";
+import Signout from "./sign-out";
+import ForgotPassword from "./forgot-password";
+import OAuthCallback from "./oauth-callback";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,

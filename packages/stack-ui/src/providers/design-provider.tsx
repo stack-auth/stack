@@ -3,7 +3,6 @@
 import React from 'react';
 import { useTheme } from "next-themes";
 import { createContext, useContext, useEffect, useState } from "react";
-import StyledComponentsRegistry from './registry';
 
 type ColorPalette = {
   primaryColor: string,
@@ -96,11 +95,9 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
   if (!mounted) return null;
 
   return (
-    <StyledComponentsRegistry>
-      <DesignContext.Provider value={designValue}>
-        {props.children}
-      </DesignContext.Provider>
-    </StyledComponentsRegistry>
+    <DesignContext.Provider value={designValue}>
+      {props.children}
+    </DesignContext.Provider>
   );
 }
 

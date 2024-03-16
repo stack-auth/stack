@@ -2,7 +2,7 @@
 import { useRef, useEffect } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import MessageCard from "../elements/MessageCard";
+import MessageCard from "../elements/message-card";
 
 export default function OAuthCallback () {
   const app = useStackApp();
