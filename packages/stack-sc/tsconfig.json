@@ -8,6 +8,7 @@
     "module": "ES2015",
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "strict": true
   },
   "include": ["src/**/*", "next-env.d.ts"],

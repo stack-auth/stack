@@ -28,11 +28,11 @@
   },
   "peerDependencies": {
     "next": "^14.1",
-    "react": "^18"
+    "react": "^18.2"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^18.2.60",
+    "@types/react": "^18.2.66",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6.x",
     "autoprefixer": "^10.4.17",
@@ -44,7 +44,7 @@
     "postcss-cli": "^11.0.0",
     "postcss-nested": "^6.0.1",
     "postcss-prefix-selector": "^1.16.0",
-    "react": "^18",
+    "react": "^18.2",
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1"
   }

@@ -1,23 +1,18 @@
 import React from 'react';
 import { StackClientApp, stackAppInternalsSymbol } from '../lib/stack-app';
-import { StackProviderClient } from './stack-providerClient';
-import { StackUIProvider, ThemeConfig } from '@stackframe/stack-ui';
+import { StackProviderClient } from './stack-provider-client';
 
 
 export default function StackProvider({
   children,
   app,
-  theme,
 }: {
   children: React.ReactNode,
   app: StackClientApp<true>,
-  theme?: ThemeConfig,
 }) {
   return (
     <StackProviderClient appJsonPromise={app[stackAppInternalsSymbol].toClientJson()}>
-      <StackUIProvider theme={theme}>
-        {children}
-      </StackUIProvider>
+      {children}
     </StackProviderClient>
   );
 }

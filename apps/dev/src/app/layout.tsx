@@ -1,6 +1,6 @@
 import { StackProvider } from "@stackframe/stack";
-import { stackServerApp } from "src/stack";
 import Provider from "src/components/Provider";
+import { stackServerApp } from "src/stack";
 
 
 export default function RootLayout({

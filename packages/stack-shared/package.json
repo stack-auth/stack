@@ -14,7 +14,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": "^18"
+    "react": "^18.2"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -29,13 +29,13 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/react": "^18.2.60",
+    "@types/react": "^18.2.66",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6.x",
     "eslint": "^8",
     "eslint-config-next": "^14",
     "rimraf": "^5.0.5",
-    "react": "^18"
+    "react": "^18.2"
   }
 }
