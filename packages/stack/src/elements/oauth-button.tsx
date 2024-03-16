@@ -116,7 +116,7 @@ export default function OAuthButton({
       style={{ border: style.border }}
       onClick={() => runAsynchronously(stackApp.signInWithOAuth(provider))}
     >
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         {style.icon}
         <span style={{ flexGrow: 1 }}>{type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
         {<div style={{ visibility: 'hidden' }}>{style.icon}</div>}

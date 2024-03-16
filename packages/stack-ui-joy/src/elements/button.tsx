@@ -23,6 +23,7 @@ export default function Button({
     variant={variant}
     sx={customColor ? {
       backgroundColor: customColor,
+      color: Color(customColor).isDark() ? 'white' : 'black',
       '&:hover': {
         backgroundColor: Color(customColor).darken(0.1).toString(),
       },
