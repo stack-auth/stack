@@ -1,10 +1,13 @@
+import { useElements } from "@stackframe/stack-ui";
+
 export function FormWarningText({ text }: { text?: string }) {
+  const { Text } = useElements();
   if (!text) {
     return null;
   }
   return (
-    <p className="wl_text-sm wl_text-red-500">
+    <Text size="sm" variant="warning">
       {text}
-    </p>
+    </Text>
   );
 }
