@@ -72,7 +72,7 @@ export default function PasswordResetInner(
       <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
         <div className="wl_form-control">
           <label className="wl_label" htmlFor="password">
-          New Password
+            New Password
           </label>
           <PasswordField
             id="password"

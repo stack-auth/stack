@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useStackApp } from "..";
 import MessageCard from "./message-card";
-import Button from "./button";
+import { useElements } from "@stackframe/stack-ui";
 
 export default function RedirectMessageCard({ 
   type,
@@ -14,6 +14,7 @@ export default function RedirectMessageCard({
 }) {
   const stackApp = useStackApp();
   const router = useRouter();
+  const { Text, Button } = useElements();
 
   let title: string;
   let primaryUrl: string;
@@ -24,7 +25,6 @@ export default function RedirectMessageCard({
   switch (type) {
     case 'signedIn': {
       title = "You are already signed in";
-      message = 'You are already signed in.';
       primaryUrl = stackApp.urls.home;
       secondaryUrl = stackApp.urls.signOut;
       primaryButton = "Go to Home";
@@ -62,22 +62,19 @@ export default function RedirectMessageCard({
 
   return (
     <MessageCard title={title} fullPage={fullPage}>
-      {message && <p className='wl_mb-8'>{message}</p>}
+      {message && <Text>{message}</Text>}
 
-      <div className='wl_flex wl_flex-row wl_align-center wl_justify-center wl_gap-4'>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: 20 }}>
         {secondaryButton && (
           <Button
-            className='wl_btn_ghost'
+            variant="secondary"
             onClick={() => router.push(stackApp.urls.signOut.toString())}
           >
             {secondaryButton}
           </Button>
         )}
         
-        <Button
-          className='wl_btn wl_btn-primary'
-          onClick={() => router.push(primaryUrl.toString())}
-        >
+        <Button onClick={() => router.push(primaryUrl.toString())}>
           {primaryButton}
         </Button>
       </div>

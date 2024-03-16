@@ -10,7 +10,7 @@ export default function OAuthGroup({
   const project = stackApp.useProject();
 
   return (
-    <div className="wl_space-y-4 wl_flex wl_flex-col wl_items-stretch">
+    <div style={{ gap: '16px', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
       {project.oauthProviders.filter(p => p.enabled).map(p => (
         <OAuthButton key={p.id} provider={p.id} type={type}/>
       ))}
