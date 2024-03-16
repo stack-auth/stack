@@ -20,7 +20,7 @@
     "@stackframe/stack-shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/react": "^18.2.23",
+    "@types/react": "^18.2.60",
     "@types/react-dom": "^18.2.8",
     "autoprefixer": "^10.4.17",
     "daisyui": "^4.7.2",

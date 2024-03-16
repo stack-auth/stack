@@ -14,7 +14,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": "^18"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -36,6 +36,6 @@
     "eslint": "^8",
     "eslint-config-next": "^14",
     "rimraf": "^5.0.5",
-    "react": "^18.2.0"
+    "react": "^18"
   }
 }

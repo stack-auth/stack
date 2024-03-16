@@ -88,8 +88,8 @@ importers:
         version: 18.2.0(react@18.2.0)
     devDependencies:
       '@types/react':
-        specifier: ^18.2.23
-        version: 18.2.60
+        specifier: ^18.2.60
+        version: 18.2.66
       '@types/react-dom':
         specifier: ^18.2.8
         version: 18.2.18
@@ -137,8 +137,8 @@ importers:
         version: 18.2.0(react@18.2.0)
     devDependencies:
       '@types/react':
-        specifier: ^18.2.23
-        version: 18.2.60
+        specifier: ^18.2.60
+        version: 18.2.66
       '@types/react-dom':
         specifier: ^18.2.8
         version: 18.2.18
@@ -170,7 +170,7 @@ importers:
         specifier: ^2.3.0
         version: 2.3.1(react@18.2.0)
       react:
-        specifier: ^18.0.0
+        specifier: ^18
         version: 18.2.0
       react-dom:
         specifier: ^18.0.0
@@ -194,6 +194,9 @@ importers:
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../stack-shared
+      '@stackframe/stack-ui':
+        specifier: workspace:*
+        version: link:../stack-ui
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -253,7 +256,7 @@ importers:
         specifier: ^1.16.0
         version: 1.16.0(postcss@8.4.35)
       react:
-        specifier: ^18.2.0
+        specifier: ^18
         version: 18.2.0
       rimraf:
         specifier: ^5.0.5
@@ -265,15 +268,15 @@ importers:
   packages/stack-sc:
     dependencies:
       next:
-        specifier: ^14
+        specifier: ^14.1
         version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
       react:
-        specifier: ^18.2.0
+        specifier: ^18
         version: 18.2.0
     devDependencies:
       '@types/react':
-        specifier: ^18.2.0
-        version: 18.2.60
+        specifier: ^18.2.60
+        version: 18.2.66
       '@typescript-eslint/eslint-plugin':
         specifier: ^6
         version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.30.0)(typescript@5.3.3)
@@ -484,7 +487,7 @@ importers:
         specifier: ^14
         version: 14.1.0(eslint@8.30.0)(typescript@5.3.3)
       react:
-        specifier: ^18.2.0
+        specifier: ^18
         version: 18.2.0
       rimraf:
         specifier: ^5.0.5
@@ -505,7 +508,7 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(next@14.1.0)(react-dom@18.2.0)(react@18.2.0)
       react:
-        specifier: ^18.2.0
+        specifier: ^18
         version: 18.2.0
       styled-components:
         specifier: ^6.1.8
@@ -515,7 +518,7 @@ importers:
         specifier: ^3.0.6
         version: 3.0.6
       '@types/react':
-        specifier: ^18.2.66
+        specifier: ^18.2.60
         version: 18.2.66
       '@typescript-eslint/eslint-plugin':
         specifier: ^6
@@ -554,7 +557,7 @@ importers:
         specifier: ^14.1
         version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
       react:
-        specifier: ^18.2.0
+        specifier: ^18
         version: 18.2.0
       styled-components:
         specifier: ^6.1.8
@@ -564,7 +567,7 @@ importers:
         specifier: ^3.0.6
         version: 3.0.6
       '@types/react':
-        specifier: ^18.2.66
+        specifier: ^18.2.60
         version: 18.2.66
       '@typescript-eslint/eslint-plugin':
         specifier: ^6
@@ -6234,7 +6237,7 @@ packages:
   /@types/react-dom@18.2.18:
     resolution: {integrity: sha512-TJxDm6OfAX2KJWJdMEVTwWke5Sc/E/RlnPGvGfS0W7+6ocy2xhDVQVh/KvC2Uf7kACs+gDytdusDSdWfWkaNzw==}
     dependencies:
-      '@types/react': 18.2.60
+      '@types/react': 18.2.66
 
   /@types/react-router-config@5.0.11:
     resolution: {integrity: sha512-WmSAg7WgqW7m4x8Mt4N6ZyKz0BubSj/2tVUMsAHp+Yd2AMwcSbeFq9WympT19p5heCFmF97R9eD5uUR/t4HEqw==}
