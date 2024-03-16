@@ -1,23 +1,20 @@
 'use client';
 
 import React from "react";
-import { StackDesignProvider, DesignProviderProps } from "./design-provider";
-import { StackElementProvider, ElementProviderProps } from "./element-provider";
+import { StackDesignProvider, DesignConfig } from "./design-provider";
+import { StackElementProvider, ElementConfig } from "./element-provider";
 
-export function StackUIProvider(props : { 
+export function StackUIProvider({
+  theme,
+  children,
+} : { 
   children?: React.ReactNode, 
-} & DesignProviderProps & ElementProviderProps) {
-  const designProps = {
-    breakpoints: props.breakpoints,
-    colors: props.colors,
-  };
-  const elementProps = {
-    elements: props.elements,
-  };
+  theme?: DesignConfig & ElementConfig,
+}) {
   return (
-    <StackDesignProvider {...designProps}>
-      <StackElementProvider {...elementProps}>
-        {props.children}
+    <StackDesignProvider colors={theme?.colors} breakpoints={theme?.breakpoints}>
+      <StackElementProvider elements={theme?.elements}>
+        {children}
       </StackElementProvider>
     </StackDesignProvider>
   );

@@ -28,7 +28,7 @@ type DesignContextValue = {
   setColorMode: (theme: 'dark' | 'light') => void,
 }
 
-export type DesignProviderProps = {
+export type DesignConfig = {
   colors?: {
     dark: Partial<ColorPalette>,
     light: Partial<ColorPalette>,
@@ -70,7 +70,7 @@ function getColors(
   return { ...defaultColors[theme], ...colors?.[theme]};
 }
 
-export function StackDesignProvider(props: { children: React.ReactNode } & DesignProviderProps) {
+export function StackDesignProvider(props: { children?: React.ReactNode } & DesignConfig) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const colorMode = theme === 'dark' ? 'dark' : 'light';

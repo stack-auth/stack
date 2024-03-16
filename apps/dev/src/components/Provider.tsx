@@ -18,10 +18,12 @@ export default function Provider({ children }) {
   return (
     <CurrentUIContext.Provider value={[context, setContext]}>
       <ThemeProvider>
-        <StackUIProvider elements={{
-          'default': undefined,
-          'joy': elements,
-        }[context]}>
+        <StackUIProvider theme={{
+          elements: {
+            'default': undefined,
+            'joy': elements,
+          }[context]
+        }}>
 
           {children}
         </StackUIProvider>
