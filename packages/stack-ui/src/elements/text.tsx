@@ -6,13 +6,13 @@ import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS, PRIMARY_FONT_COLORS, SECONDARY_F
 import { useDesign } from "../providers/design-provider";
 
 export type TextProps = {
-  variant: 'primary' | 'secondary' | 'warning' | 'success',
+  variant?: 'primary' | 'secondary' | 'warning' | 'success',
   as?: 'p' | 'h6'| 'h5' | 'h4' | 'h3' | 'h2' | 'h1',
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
 } & Omit<React.HTMLProps<HTMLParagraphElement>, 'size'>
 
 const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
-  variant = 'primary',
+  variant='primary',
   size='md',
   as='p',
   style,

@@ -9,7 +9,6 @@ export default function Divider({ direction='horizontal' }: DividerProps) {
     height: direction === 'horizontal' ? '1px' : undefined,
     border: 'none', 
     backgroundColor: colors.neutralColor,
-    alignSelf: 'stretch',
     margin: 0,
     padding: 0,
   }} />;

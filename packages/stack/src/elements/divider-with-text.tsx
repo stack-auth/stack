@@ -1,10 +1,13 @@
+import { useElements } from "@stackframe/stack-ui";
+
 export default function DividerWithText({ text }: { text: string }) {
-  const lineStyle = "wl_flex-grow wl_bg-neutral wl_h-px";
+  const { Divider } = useElements();
   return (
-    <div className="wl_flex wl_items-center wl_my-4">
-      <div className={lineStyle}></div>
-      <span className="wl_px-4 wl_text-sm wl_text-neutral">{text}</span>
-      <div className={lineStyle}></div>
+    <div style={{ display: 'flex', alignItems: 'center', 'justifyContent': 'center', marginTop: '16px', marginBottom: '16px' }}>
+      <Divider />
+      <span style={{ padding: '0 16px', fontSize: '14px', color: 'neutral' }}>{text}</span>
+      <Divider />
     </div>
   );
+  
 }
