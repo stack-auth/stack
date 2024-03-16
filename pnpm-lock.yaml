@@ -197,6 +197,9 @@ importers:
       '@stackframe/stack-ui':
         specifier: workspace:*
         version: link:../stack-ui
+      color:
+        specifier: ^4.2.3
+        version: 4.2.3
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -216,6 +219,9 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(postcss@8.4.35)(tailwindcss@3.4.1)
     devDependencies:
+      '@types/color':
+        specifier: ^3.0.6
+        version: 3.0.6
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6

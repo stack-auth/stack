@@ -36,7 +36,7 @@ export default function PageClient() {
             </Button>
           </div>
 
-          <div style={{ display: 'flex', gap: 5 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
             <Button size='sm' color="primary">
               Button
             </Button>

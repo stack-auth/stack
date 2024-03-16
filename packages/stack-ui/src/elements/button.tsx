@@ -22,15 +22,15 @@ function getColors(color: string, primaryBgColor: string): {
   } else if (c.isLight()) {
     return {
       bgColor: color,
-      hoverBgColor: c.darken(0.2).toString(),
-      activeBgColor: c.darken(0.4).toString(),
+      hoverBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() - 10).toString(),
+      activeBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() - 20).toString(),
       textColor: 'black',
     };
   } else {
     return {
       bgColor: color,
-      hoverBgColor: c.lighten(0.2).toString(),
-      activeBgColor: c.lighten(0.4).toString(),
+      hoverBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() + 10).toString(),
+      activeBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() + 20).toString(),
       textColor: 'white',
     };
   }
@@ -54,15 +54,8 @@ const StyledButton = styled.button<{
   padding: ${props => {
     switch (props.$size) {
       case 'sm': { return '0.5rem 0.75rem'; }
-      case 'md': { return '0.5rem 1rem'; }
-      case 'lg': { return '0.5rem 2rem'; }
-    }
-  }};
-  height: ${props => {
-    switch (props.$size) {
-      case 'sm': { return '2.25rem'; }
-      case 'md': { return '2.5rem'; }
-      case 'lg': { return '2.75rem'; }
+      case 'md': { return '0.75rem 1rem'; }
+      case 'lg': { return '1rem 2rem'; }
     }
   }};
   font-size: ${FONT_SIZES.md};

@@ -1,11 +1,12 @@
 'use client';
 
-import { FaGoogle, FaGithub, FaFacebook, FaApple, FaMicrosoft } from 'react-icons/fa';
+import { FaGithub, FaFacebook, FaApple } from 'react-icons/fa';
 import { useStackApp } from '..';
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Button from './button';
+import { useDesign, useElements } from '@stackframe/stack-ui';
+import Color from 'color';
 
-const iconSize = 24;
+const iconSize = 22;
 
 export default function OAuthButton({
   provider,
@@ -14,15 +15,22 @@ export default function OAuthButton({
   provider: string,
   type: 'signin' | 'signup',
 }) {
+  const { colors } = useDesign();
   const stackApp = useStackApp();
+  const { Button } = useElements();
 
-  let style;
+  let style : {
+    backgroundColor: string,
+    name: string,
+    icon: JSX.Element | null,
+    border?: string,
+  };
   switch (provider) {
     case 'google': {
       style = {
         backgroundColor: '#fff',
-        textColor: '#000',
         name: 'Google',
+        border: Color(colors.primaryBgColor).isDark() ? undefined : '1px solid #ccc',
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 24 24">
             <path
@@ -50,7 +58,6 @@ export default function OAuthButton({
     case 'github': {
       style = {
         backgroundColor: '#111',
-        textColor: '#fff',
         name: 'GitHub',
         icon: (
           <FaGithub color="#fff" size={iconSize} />
@@ -61,7 +68,6 @@ export default function OAuthButton({
     case 'facebook': {
       style = {
         backgroundColor: '#1877F2',
-        textColor: '#fff',
         name: 'Facebook',
         icon: (
           <FaFacebook color="#fff" size={iconSize} />
@@ -72,7 +78,6 @@ export default function OAuthButton({
     case 'apple': {
       style = {
         backgroundColor: '#000',
-        textColor: '#fff',
         name: 'Apple',
         icon: (
           <FaApple color="#fff" size={iconSize} />
@@ -83,7 +88,6 @@ export default function OAuthButton({
     case 'microsoft': {
       style = {
         backgroundColor: '#2f2f2f',
-        textColor: '#fff',
         name: 'Microsoft',
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 21 21">
@@ -100,7 +104,6 @@ export default function OAuthButton({
     default: {
       style = {
         backgroundColor: '#000',
-        textColor: '#fff',
         name: provider,
         icon: null
       };
@@ -109,11 +112,16 @@ export default function OAuthButton({
 
   return (
     <Button
-      style={{ backgroundColor: style.backgroundColor, color: style.textColor }}
+      color={style.backgroundColor}
+      style={{ border: style.border }}
       onClick={() => runAsynchronously(stackApp.signInWithOAuth(provider))}
-      leftIcon={style.icon}
     >
-      {type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {style.icon}
+        <span style={{ flexGrow: 1 }}>{type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
+        {<div style={{ visibility: 'hidden' }}>{style.icon}</div>}
+      </div>
+      
     </Button>
   );
 }
