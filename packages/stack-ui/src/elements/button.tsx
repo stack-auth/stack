@@ -37,7 +37,8 @@ function getColors(color: string, primaryBgColor: string): {
 }
 
 export type ButtonProps = {
-  color?: 'primary' | 'secondary' | 'transparent' | 'warning' | string,
+  variant?: 'primary' | 'secondary' | 'warning',
+  color?: string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
 } & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type'>
@@ -81,7 +82,7 @@ const StyledButton = styled.button<{
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({
-    color='primary',
+    variant='primary',
     size='md',
     loading=false,
     disabled=false,
@@ -89,7 +90,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const { colors } = useDesign();
     let bgColor;
-    switch (color) {
+    switch (variant) {
       case 'primary': {
         bgColor = colors.primaryColor;
         break;
@@ -102,10 +103,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         bgColor = '#ff4500';
         break;
       }
-      case 'transparent':
-      default: {
-        bgColor = color;
-      }
+    }
+    if (props.color) {
+      bgColor = props.color;
     }
     const buttonColors = getColors(bgColor, colors.primaryBgColor);
   

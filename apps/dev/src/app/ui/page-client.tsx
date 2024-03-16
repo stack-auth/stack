@@ -37,28 +37,25 @@ export default function PageClient() {
           </div>
 
           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-            <Button size='sm' color="primary">
+            <Button size='sm' variant="primary">
               Button
             </Button>
-            <Button size='md' color="primary">
+            <Button size='md' variant="primary">
               Button
             </Button>
-            <Button size='lg' color="primary">
+            <Button size='lg' variant="primary">
               Button
             </Button>
           </div>
         
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' color="primary">
+            <Button size='md' variant="primary">
               Button
             </Button>
-            <Button size='md' color="secondary">
+            <Button size='md' variant="secondary">
               Button
             </Button>
-            <Button size='md' color="transparent">
-              Button
-            </Button>
-            <Button size='md' color="warning">
+            <Button size='md' variant="warning">
               Button
             </Button>
             <Button size='md' color="orange">
@@ -67,19 +64,16 @@ export default function PageClient() {
           </div>
 
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' color="primary" disabled>
+            <Button size='md' variant="primary" disabled>
               Button
             </Button>
-            <Button size='md' color="secondary" disabled>
+            <Button size='md' variant="secondary" disabled>
               Button
             </Button>
-            <Button size='md' color="transparent" disabled>
+            <Button size='md' variant="warning" disabled>
               Button
             </Button>
-            <Button size='md' color="warning" disabled>
-              Button
-            </Button>
-            <Button size='md' color="orange" disabled>
+            <Button size='md' color='orange' disabled>
               Button
             </Button>
           </div>
