@@ -17,7 +17,7 @@ export default function Provider({ children }) {
 
   return (
     <CurrentUIContext.Provider value={[context, setContext]}>
-      <ThemeProvider attribute="class">
+      <ThemeProvider>
         <StackUIProvider
           theme={{
             elements: {

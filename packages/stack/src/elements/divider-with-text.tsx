@@ -1,11 +1,12 @@
-import { useElements } from "@stackframe/stack-ui";
+import { useDesign, useElements } from "@stackframe/stack-ui";
 
 export default function DividerWithText({ text }: { text: string }) {
-  const { Divider } = useElements();
+  const { Divider, Text } = useElements();
+  const { colors } = useDesign();
   return (
     <div style={{ display: 'flex', alignItems: 'center', 'justifyContent': 'center', marginTop: '16px', marginBottom: '16px' }}>
       <Divider />
-      <span style={{ padding: '0 16px', fontSize: '14px', color: 'neutral' }}>{text}</span>
+      <Text style={{ padding: '0 16px', color: colors.neutralColor }}>{text}</Text>
       <Divider />
     </div>
   );

@@ -1,6 +1,8 @@
+import React from "react";
 import { StackProvider } from "@stackframe/stack";
 import Provider from "src/components/Provider";
 import { stackServerApp } from "src/stack";
+import './global.css';
 
 
 export default function RootLayout({
