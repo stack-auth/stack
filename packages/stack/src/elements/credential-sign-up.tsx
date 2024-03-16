@@ -19,7 +19,7 @@ export default function CredentialSignUp() {
   const [passwordRepeatError, setPasswordRepeatError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
-  const { Button } = useElements();
+  const { Button, Label, Input } = useElements();
 
   const onSubmit = async () => {
     if (!email) {
@@ -66,61 +66,48 @@ export default function CredentialSignUp() {
   };
 
   return (
-    <div className="wl_flex wl_flex-col wl_space-y-2 wl_items-stretch">
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="email">
-          Email
-        </label>
-        <input
-          className="wl_input wl_input-bordered"
-          id="email"
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setEmailError('');
-          }}
-        />
-        <FormWarningText text={emailError} />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <Label htmlFor="email">Email</Label>
+      <Input
+        id="email"
+        type="email"
+        name="email"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setEmailError('');
+        }}
+      />
+      <FormWarningText text={emailError} />
 
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="password">
-          Password
-        </label>
-        <PasswordField
-          id="password"
-          name="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setPasswordError('');
-            setPasswordRepeatError('');
-          }}
-        />
-        <FormWarningText text={passwordError} />
-      </div>
-
-      <div className="wl_form-control">
-        <label className="wl_label" htmlFor="repeat-password">
-          Repeat Password
-        </label>
-        <PasswordField
-          id="repeat-password"
-          name="repeat-password"
-          value={passwordRepeat}
-          onChange={(e) => {
-            setPasswordRepeat(e.target.value);
-            setPasswordError('');
-            setPasswordRepeatError('');
-          }}
-        />
-        <FormWarningText text={passwordRepeatError} />
-      </div>
+      <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
+      <PasswordField
+        id="password"
+        name="password"
+        value={password}
+        onChange={(e) => {
+          setPassword(e.target.value);
+          setPasswordError('');
+          setPasswordRepeatError('');
+        }}
+      />
+      <FormWarningText text={passwordError} />
+        
+      <Label htmlFor="repeat-password" style={{ marginTop: '1rem' }}>Repeat Password</Label>
+      <PasswordField
+        id="repeat-password"
+        name="repeat-password"
+        value={passwordRepeat}
+        onChange={(e) => {
+          setPasswordRepeat(e.target.value);
+          setPasswordError('');
+          setPasswordRepeatError('');
+        }}
+      />
+      <FormWarningText text={passwordRepeatError} />
 
       <Button 
-        style={{ marginTop: '2rem' }}
+        style={{ marginTop: '1.5rem' }}
         onClick={() => runAsynchronously(onSubmit)}
         loading={loading}
       >

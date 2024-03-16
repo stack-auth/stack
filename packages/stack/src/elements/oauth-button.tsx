@@ -58,6 +58,7 @@ export default function OAuthButton({
     case 'github': {
       style = {
         backgroundColor: '#111',
+        border: Color(colors.primaryBgColor).isDark() ? '1px solid #666' : undefined,
         name: 'GitHub',
         icon: (
           <FaGithub color="#fff" size={iconSize} />
