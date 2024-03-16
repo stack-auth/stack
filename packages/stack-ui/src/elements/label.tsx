@@ -23,9 +23,9 @@ const Label = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(
   (props, ref) => {
-    const { currentTheme } = useDesign();
+    const { colorMode } = useDesign();
     return <Primitive
-      color={currentTheme === 'dark' ? SECONDARY_FONT_COLORS.dark : SECONDARY_FONT_COLORS.light}
+      color={colorMode === 'dark' ? SECONDARY_FONT_COLORS.dark : SECONDARY_FONT_COLORS.light}
       ref={ref}
       {...props}
     />;

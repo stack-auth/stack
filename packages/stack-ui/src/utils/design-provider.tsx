@@ -24,8 +24,8 @@ type Breakpoints = {
 type DesignContextValue = {
   colors: ColorPalette,
   breakpoints: Breakpoints,
-  currentTheme: 'dark' | 'light',
-  setTheme: (theme: 'dark' | 'light') => void,
+  colorMode: 'dark' | 'light',
+  setColorMode: (theme: 'dark' | 'light') => void,
 }
 
 export type DesignProviderProps = {
@@ -73,21 +73,21 @@ function getColors(
 export function StackDesignProvider(props: { children: React.ReactNode } & DesignProviderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const currentTheme = theme === 'dark' ? 'dark' : 'light';
+  const colorMode = theme === 'dark' ? 'dark' : 'light';
   const [designValue, setDesignValue] = useState<DesignContextValue>({
-    colors: getColors(currentTheme, props.colors),
+    colors: getColors(colorMode, props.colors),
     breakpoints: { ...defaultBreakpoints, ...props.breakpoints },
-    currentTheme,
-    setTheme,
+    colorMode,
+    setColorMode: setTheme,
   });
 
   useEffect(() => {
     setDesignValue((v) => ({
       ...v,
-      colors: getColors(currentTheme, props.colors),
-      currentTheme: currentTheme === 'dark' ? 'dark' : 'light',
+      colors: getColors(colorMode, props.colors),
+      colorMode: colorMode === 'dark' ? 'dark' : 'light',
     }));
-  }, [currentTheme]);
+  }, [colorMode]);
 
   useEffect(() => {
     setMounted(true);

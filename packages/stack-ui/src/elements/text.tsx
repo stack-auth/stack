@@ -18,16 +18,16 @@ const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
   style,
   ...props
 } : TextProps, ref) => {
-  const { currentTheme } = useDesign();
+  const { colorMode } = useDesign();
 
   let textColor;
   switch (color) {
     case 'primary': {
-      textColor = PRIMARY_FONT_COLORS[currentTheme];
+      textColor = PRIMARY_FONT_COLORS[colorMode];
       break;
     }
     case 'secondary': {
-      textColor = SECONDARY_FONT_COLORS[currentTheme];
+      textColor = SECONDARY_FONT_COLORS[colorMode];
       break;
     }
     case 'warning': {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function ColorMode() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setColorMode } = useTheme();
 
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function ColorMode() {
     return null;
   }
   return (
-    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className='btn btn-ghost'>
+    <button onClick={() => setColorMode(theme === 'light' ? 'dark' : 'light')} className='btn btn-ghost'>
       {theme === 'light' ? 'Dark' : 'Light'} Mode
     </button>
   );

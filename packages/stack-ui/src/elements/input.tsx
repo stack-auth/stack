@@ -49,16 +49,16 @@ const StyledInput = styled.input<{
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (props, ref) => {
-    const { colors, currentTheme } = useDesign();
+    const { colors, colorMode } = useDesign();
     return (
       <StyledInput
         ref={ref}
         $backgroundColor={colors.primaryBgColor}
         $borderColor={colors.neutralColor}
-        $placeholderColor={SECONDARY_FONT_COLORS[currentTheme]}
-        $textColor={PRIMARY_FONT_COLORS[currentTheme]}
-        $fileSelectorColor={SECONDARY_FONT_COLORS[currentTheme]}
-        $fileSelectorButtonColor={PRIMARY_FONT_COLORS[currentTheme]}
+        $placeholderColor={SECONDARY_FONT_COLORS[colorMode]}
+        $textColor={PRIMARY_FONT_COLORS[colorMode]}
+        $fileSelectorColor={SECONDARY_FONT_COLORS[colorMode]}
+        $fileSelectorButtonColor={PRIMARY_FONT_COLORS[colorMode]}
         $focusShadowColor={colors.primaryColor}
         {...props}
       />

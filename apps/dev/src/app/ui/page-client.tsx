@@ -9,7 +9,7 @@ import { useCurrentUI } from 'src/components/Provider';
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
-  const { colors, setTheme, currentTheme } = useDesign();
+  const { colors, setColorMode, colorMode } = useDesign();
   const [currentUI, setCurrentUI] = useCurrentUI();
   const { 
     Button,
@@ -31,8 +31,8 @@ export default function PageClient() {
           </select>
           
           <div>
-            <Button onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} color="transparent">
-              { currentTheme === 'dark' ? '☀️' : '🌙' } Toggle Theme
+            <Button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} color="transparent">
+              { colorMode === 'dark' ? '☀️' : '🌙' } Toggle Theme
             </Button>
           </div>
 
