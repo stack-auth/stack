@@ -3,13 +3,14 @@
 import { useDesign } from "../providers/design-provider";
 import styled from 'styled-components';
 
-export type ContainerProps = { 
+export type ContainerProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
 
 const OuterContainer = styled.div`
   display: flex;
   justify-content: center;
+  width: 100%;
 `;
 
 const InnerContainer = styled.div<{ $breakpoint: number }>`

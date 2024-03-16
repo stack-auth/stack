@@ -27,7 +27,7 @@ export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttribu
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', display: 'flex' }}>
       <Input
         id={id}
         ref={mergeRef}
@@ -35,7 +35,7 @@ export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttribu
         type={isOpen ? 'text' : 'password'}
         autoComplete="current-password"
         required
-        style={{ width: '100%' }}
+        style={{ flex: 1 }}
         {...props}
       />
       <button
@@ -43,6 +43,8 @@ export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttribu
         type="button"
         style={{ 
           position: 'absolute', 
+          backgroundColor: 'transparent',
+          border: 'none',
           top: 0, 
           right: 0, 
           bottom: 0, 

@@ -1,3 +1,6 @@
+'use client';
+
+import { useElements } from "@stackframe/stack-ui";
 import React from "react";
 
 export default function CardFrame({ 
@@ -7,21 +10,18 @@ export default function CardFrame({
   children: React.ReactNode, 
   fullPage?: boolean, 
 }) {
-  const inner = (
-    <div className="stack-scope wl_container wl_mx-auto wl_max-w-md wl_font-sans">
-      <div className={`wl_py-8 wl_px-4 wl_bg-transparent wl_rounded-xl sm:wl_px-10 sm:wl_bg-base-200 sm:wl_shadow-xl`}>
-        {children}
-      </div>
-    </div>
-  );
-
+  const { Container } = useElements();
+  
   if (fullPage) {
     return (
-      <div className="wl_min-h-screen wl_flex wl_items-center wl_justify-center">
-        {inner}
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Container size='xs'>
+          {children}
+        </Container>
       </div>
     );
   } else {
-    return inner;
+    return children;
   }
+  
 }
