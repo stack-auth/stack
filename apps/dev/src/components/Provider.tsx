@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { StackProvider } from "@stackframe/stack";
 import { elements } from "@stackframe/stack-ui-joy";
 import { StackUIProvider } from "@stackframe/stack-ui";
+import { ThemeProvider } from "next-themes";
 import { stackServerApp } from "src/stack";
 
 type UI = 'default' | 'joy';
@@ -18,16 +19,18 @@ export default function Provider({ children }) {
 
   return (
     <CurrentUIContext.Provider value={[context, setContext]}>
-      <StackUIProvider
-        theme={{
-          elements: {
-            'default': undefined,
-            'joy': elements,
-          }[context]
-        }}
-      >
-        {children}
-      </StackUIProvider>
+      <ThemeProvider attribute="class">
+        <StackUIProvider
+          theme={{
+            elements: {
+              'default': undefined,
+              'joy': elements,
+            }[context]
+          }}
+        >
+          {children}
+        </StackUIProvider>
+      </ThemeProvider>
     </CurrentUIContext.Provider>
   );
 }
