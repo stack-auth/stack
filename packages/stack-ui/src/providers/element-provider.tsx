@@ -23,10 +23,10 @@ export type ElementConfig = {
 
 const ElementContext = createContext<Elements | undefined>(undefined);
 
-export function useElement() {
+export function useElements() {
   const context = useContext(ElementContext);
   if (!context) {
-    throw new Error('useElement must be used within a ElementProvider');
+    throw new Error('useElements must be used within a ElementProvider');
   }
   return context;
 }

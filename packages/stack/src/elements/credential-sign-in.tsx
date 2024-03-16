@@ -4,9 +4,9 @@ import { PasswordField } from "./password-field";
 import { validateEmail } from "../utils/email";
 import NextLink from "next/link";
 import { useStackApp } from "..";
-import Button from "./button";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { useElements } from "@stackframe/stack-ui";
 // Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
 
 export default function CredentialSignIn() {
@@ -16,6 +16,7 @@ export default function CredentialSignIn() {
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
+  const { Button } = useElements();
   
   const onSubmit = async () => {
     if (!email) {
@@ -96,15 +97,13 @@ export default function CredentialSignIn() {
         </NextLink>
       </div>
 
-      <div className="wl_flex wl_flex-col wl_items-stretch">
-        <Button
-          className="wl_btn-primary wl_mt-6"
-          onClick={() => runAsynchronously(onSubmit)}
-          loading={loading}
-        >
+      <Button
+        style={{ marginTop: '2rem' }}
+        onClick={() => runAsynchronously(onSubmit)}
+        loading={loading}
+      >
           Sign In
-        </Button>
-      </div>
+      </Button>
     </div>
   );
 }

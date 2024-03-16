@@ -1,5 +1,5 @@
 export { useDesign } from './providers/design-provider';
-export { useElement } from './providers/element-provider';
+export { useElements } from './providers/element-provider';
 export { StackUIProvider, ThemeConfig } from './providers/ui-provider';
 export { ButtonProps } from './elements/button';
 export { ContainerProps } from './elements/container';

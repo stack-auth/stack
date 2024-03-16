@@ -38,6 +38,9 @@ export default async function Page() {
       <Link href="/protected-server">
         Protected server
       </Link>
+      <Link href="/ui">
+        UI test page
+      </Link>
     </div>
   );
 }

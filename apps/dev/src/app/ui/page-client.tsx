@@ -2,7 +2,7 @@
 
 import {
   useDesign,
-  useElement
+  useElements
 } from '@stackframe/stack-ui';
 import { useCurrentUI } from 'src/components/Provider';
 
@@ -19,7 +19,7 @@ export default function PageClient() {
     Label,
     Link,
     Text
-  } = useElement();
+  } = useElements();
   
   return (
     <div style={{ backgroundColor: colors.primaryBgColor }}>

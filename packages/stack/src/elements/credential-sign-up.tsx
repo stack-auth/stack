@@ -7,8 +7,8 @@ import { validateEmail } from "../utils/email";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Button from "./button";
 import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { useElements } from "@stackframe/stack-ui";
 
 export default function CredentialSignUp() {
   const [email, setEmail] = useState('');
@@ -19,6 +19,7 @@ export default function CredentialSignUp() {
   const [passwordRepeatError, setPasswordRepeatError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
+  const { Button } = useElements();
 
   const onSubmit = async () => {
     if (!email) {
@@ -118,15 +119,13 @@ export default function CredentialSignUp() {
         <FormWarningText text={passwordRepeatError} />
       </div>
 
-      <div className="wl_flex wl_flex-col wl_items-stretch">
-        <Button 
-          className="wl_btn-primary wl_mt-6"
-          onClick={() => runAsynchronously(onSubmit)}
-          loading={loading}
-        >
+      <Button 
+        style={{ marginTop: '2rem' }}
+        onClick={() => runAsynchronously(onSubmit)}
+        loading={loading}
+      >
           Sign Up
-        </Button>
-      </div>
+      </Button>
     </div>
   );
 }
