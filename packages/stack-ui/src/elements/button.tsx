@@ -16,15 +16,18 @@ function getColors(color: string, primaryBgColor: string): {
   const changeColor = (value: number) => {
     return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
   };
-  const getAlpha = (color: string, alpha: number) => {
-    return Color(color).alpha(alpha).toString();
+  
+  const getAlpha = (alpha: number) => {
+    return Color(
+      pc.isDark() ? 'white' : 'black'
+    ).alpha(alpha).toString();
   };
 
   if (c.alpha() === 0) {
     return {
       bgColor: 'transparent',
-      hoverBgColor: pc.isLight() ? getAlpha('black', 0.1) : getAlpha('white', 0.1),
-      activeBgColor: pc.isLight() ? getAlpha('black', 0.2) : getAlpha('white', 0.2),
+      hoverBgColor: getAlpha(0.1),
+      activeBgColor: getAlpha(0.2),
       textColor: pc.isLight() ? 'black' : 'white',
     };
   } else if (c.isLight()) {

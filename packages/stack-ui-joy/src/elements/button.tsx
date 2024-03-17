@@ -18,7 +18,11 @@ export default function Button({
   const { children, action, ref, ...validProps } = props;
   const c = Color(customColor);
   const changeColor = (value: number) => {
-    return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
+    return c.hsl(
+      c.hue(), 
+      c.saturationl(), 
+      c.lightness() + (c.isDark() ? value : -value)
+    ).toString();
   };
 
   return <JoyButton 
@@ -28,10 +32,10 @@ export default function Button({
       backgroundColor: customColor,
       color: c.isDark() ? 'white' : 'black',
       '&:hover': {
-        backgroundColor: c.isDark() ? changeColor(10) : changeColor(-10),
+        backgroundColor: changeColor(10)
       },
       '&:active': {
-        backgroundColor: c.isDark() ? changeColor(20) : changeColor(-20),
+        backgroundColor: changeColor(20)
       },
     } : {}}
     size={size}
