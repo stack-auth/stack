@@ -3,16 +3,17 @@ import { Button as JoyButton } from '@mui/joy';
 import Color from "color";
 
 export default function Button({
-  color = "primary",
+  variant = "primary",
+  color,
   size = "md",
   loading = false,
   ...props
 } : ButtonProps) {
-  const muiColor: "primary" | "neutral" | "danger" = ({
+  const muiVariant: "primary" | "neutral" | "danger" = ({
     primary: "primary",
     secondary: "neutral",
     warning: "danger",
-  } as const)[color] || "primary";
+  } as const)[variant] || "primary";
   const customColor = ['primary', 'secondary', 'warning'].includes(color) ? undefined : color;
 
   const { children, action, ref, ...validProps } = props;
@@ -26,8 +27,7 @@ export default function Button({
   };
 
   return <JoyButton 
-    variant="solid"
-    color={muiColor}
+    color={muiVariant}
     sx={customColor ? {
       backgroundColor: customColor,
       color: c.isDark() ? 'white' : 'black',
