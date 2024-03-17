@@ -12,25 +12,33 @@ function getColors(color: string, primaryBgColor: string): {
 } {
   const c = Color(color);
   const pc = Color(primaryBgColor);
+
+  const changeColor = (value: number) => {
+    return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
+  };
+  const getAlpha = (color: string, alpha: number) => {
+    return Color(color).alpha(alpha).toString();
+  };
+
   if (c.alpha() === 0) {
     return {
       bgColor: 'transparent',
-      hoverBgColor: pc.isLight() ? Color('black').alpha(0.1).toString() : Color('white').alpha(0.1).toString(),
-      activeBgColor: pc.isLight() ? Color('black').alpha(0.2).toString() : Color('white').alpha(0.2).toString(),
+      hoverBgColor: pc.isLight() ? getAlpha('black', 0.1) : getAlpha('white', 0.1),
+      activeBgColor: pc.isLight() ? getAlpha('black', 0.2) : getAlpha('white', 0.2),
       textColor: pc.isLight() ? 'black' : 'white',
     };
   } else if (c.isLight()) {
     return {
       bgColor: color,
-      hoverBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() - 10).toString(),
-      activeBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() - 20).toString(),
+      hoverBgColor: changeColor(-10),
+      activeBgColor: changeColor(-20),
       textColor: 'black',
     };
   } else {
     return {
       bgColor: color,
-      hoverBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() + 10).toString(),
-      activeBgColor: Color.hsl(c.hue(), c.saturationl(), c.lightness() + 20).toString(),
+      hoverBgColor: changeColor(10),
+      activeBgColor: changeColor(20),
       textColor: 'white',
     };
   }

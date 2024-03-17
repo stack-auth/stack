@@ -13,22 +13,25 @@ export default function Button({
     secondary: "neutral",
     warning: "danger",
   } as const)[color] || "primary";
-  const customColor = ['primary', 'secondary', 'warning', 'transparent'].includes(color) ? undefined : color;
-  const variant = color === "transparent" ? "plain" : "solid";
+  const customColor = ['primary', 'secondary', 'warning'].includes(color) ? undefined : color;
 
   const { children, action, ref, ...validProps } = props;
+  const c = Color(customColor);
+  const changeColor = (value: number) => {
+    return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
+  };
 
   return <JoyButton 
+    variant="solid"
     color={muiColor}
-    variant={variant}
     sx={customColor ? {
       backgroundColor: customColor,
-      color: Color(customColor).isDark() ? 'white' : 'black',
+      color: c.isDark() ? 'white' : 'black',
       '&:hover': {
-        backgroundColor: Color(customColor).darken(0.1).toString(),
+        backgroundColor: c.isDark() ? changeColor(10) : changeColor(-10),
       },
       '&:active': {
-        backgroundColor: Color(customColor).darken(0.2).toString(),
+        backgroundColor: c.isDark() ? changeColor(20) : changeColor(-20),
       },
     } : {}}
     size={size}
