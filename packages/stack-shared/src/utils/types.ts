@@ -67,7 +67,7 @@ export class KnownError extends StatusError {
       }),
       {
         headers: {
-          "content-type": "application/json",
+          "content-type": ["application/json"],
         },
       }
     );

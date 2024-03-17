@@ -10,6 +10,7 @@
 
 ## Known errors
 
+- `AllOverloadsFailed`: This endpoint has multiple overloads, but they all failed to process the request. (400)
 - `SchemaError`: The request body does not match the expected schema. (400)
 - `ProjectAuthenticationError`:
   - `InvalidProjectAuthentication`:
