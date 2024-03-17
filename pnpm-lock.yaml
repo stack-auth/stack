@@ -135,6 +135,9 @@ importers:
       react-dom:
         specifier: ^18
         version: 18.2.0(react@18.2.0)
+      styles:
+        specifier: link:@mui/joy/styles
+        version: link:@mui/joy/styles
     devDependencies:
       '@types/react':
         specifier: ^18.2.66

@@ -12,14 +12,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@stackframe/stack": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*",
+    "@stackframe/stack-ui-joy": "workspace:*",
     "next": "^14.1",
     "next-themes": "^0.2.1",
     "react": "^18.2",
     "react-dom": "^18",
-    "@stackframe/stack": "workspace:*",
-    "@stackframe/stack-shared": "workspace:*",
-    "@stackframe/stack-ui": "workspace:*",
-    "@stackframe/stack-ui-joy": "workspace:*"
+    "styles": "link:@mui/joy/styles"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from "react";
-import { theme } from "@stackframe/stack-ui-joy";
+import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
 import { StackUIProvider } from "@stackframe/stack-ui";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider as NextThemeProvider } from "next-themes";
+import StackUIJoyProvider from "@stackframe/stack-ui-joy/dist/providers/provider";
 
 type UI = 'default' | 'joy';
 const CurrentUIContext = React.createContext<[UI, React.Dispatch<React.SetStateAction<UI>>]>(['default', () => {}]);
@@ -12,21 +14,50 @@ export function useCurrentUI() {
   return React.useContext(CurrentUIContext);
 }
 
+function JoyProvider(props: any) {
+  return (
+    <CssVarsProvider defaultTheme="system">
+      <CssBaseline />
+      <StackUIJoyProvider>
+        {props.children}
+      </StackUIJoyProvider>
+    </CssVarsProvider>
+  );
+}
+
+function DefaultProvider(props: any) {
+  return (
+    <NextThemeProvider defaultTheme="system">
+      <StackUIProvider>
+        {props.children}
+      </StackUIProvider>
+    </NextThemeProvider>
+  );
+}
+
 export default function Provider({ children }) {
   const [context, setContext] = useState<UI>("default");
 
+  let UIProvider;
+  switch (context) {
+    case 'joy': {
+      UIProvider = JoyProvider;
+      break;
+    }
+    case 'default': {
+      UIProvider = DefaultProvider;
+      break;
+    }
+  }
+
   return (
-    <CurrentUIContext.Provider value={[context, setContext]}>
-      <ThemeProvider>
-        <StackUIProvider
-          theme={{
-            'default': undefined,
-            'joy': theme
-          }[context]}
-        >
+    <>
+      {context === 'joy' && getInitColorSchemeScript()}
+      <UIProvider>
+        <CurrentUIContext.Provider value={[context, setContext]}>
           {children}
-        </StackUIProvider>
-      </ThemeProvider>
-    </CurrentUIContext.Provider>
+        </CurrentUIContext.Provider>
+      </UIProvider>
+    </>
   );
 }
