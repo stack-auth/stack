@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { elements } from "@stackframe/stack-ui-joy";
+import { theme } from "@stackframe/stack-ui-joy";
 import { StackUIProvider } from "@stackframe/stack-ui";
 import { ThemeProvider } from "next-themes";
 
@@ -20,11 +20,9 @@ export default function Provider({ children }) {
       <ThemeProvider>
         <StackUIProvider
           theme={{
-            elements: {
-              'default': undefined,
-              'joy': elements,
-            }[context]
-          }}
+            'default': undefined,
+            'joy': theme
+          }[context]}
         >
           {children}
         </StackUIProvider>

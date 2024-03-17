@@ -14,10 +14,9 @@ export default function Button({
     secondary: "neutral",
     warning: "danger",
   } as const)[variant] || "primary";
-  const customColor = ['primary', 'secondary', 'warning'].includes(color) ? undefined : color;
 
   const { children, action, ref, ...validProps } = props;
-  const c = Color(customColor);
+  const c = Color(color);
   const changeColor = (value: number) => {
     return c.hsl(
       c.hue(), 
@@ -28,8 +27,8 @@ export default function Button({
 
   return <JoyButton 
     color={muiVariant}
-    sx={customColor ? {
-      backgroundColor: customColor,
+    sx={color ? {
+      backgroundColor: color,
       color: c.isDark() ? 'white' : 'black',
       '&:hover': {
         backgroundColor: changeColor(10)

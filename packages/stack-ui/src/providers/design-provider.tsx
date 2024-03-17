@@ -33,7 +33,13 @@ export type DesignConfig = {
     light: Partial<ColorPalette>,
   },
   breakpoints?: Partial<Breakpoints>,
-};
+} & (
+  {} 
+  | {
+    colorMode: 'dark' | 'light',
+    setColorMode: (theme: 'dark' | 'light') => void,
+  }
+)
 
 const DesignContext = createContext<DesignContextValue | undefined>(undefined);
 
@@ -62,6 +68,13 @@ const defaultColors = ({
   },
 } as const);
 
+export function hasCustomColorMode(config: DesignConfig): config is DesignConfig & { 
+  colorMode: 'dark' | 'light', 
+  setColorMode: (theme: 'dark' | 'light') => void,
+} {
+  return 'colorMode' in config && 'setColorMode' in config;
+}
+
 function getColors(
   theme: 'dark' | 'light', 
   colors: { dark: Partial<ColorPalette>, light: Partial<ColorPalette> } | undefined,
@@ -69,22 +82,40 @@ function getColors(
   return { ...defaultColors[theme], ...colors?.[theme]};
 }
 
+const useColorMode = (
+  props: DesignConfig, 
+): ['dark' | 'light', (theme: 'dark' | 'light') => void] => {
+  const { theme: nextColorMode, setTheme: setNextColorMode } = useTheme();
+  const nextColorModeValue = nextColorMode === 'dark' ? 'dark' : 'light';
+  if (hasCustomColorMode(props)) {
+    return [
+      props.colorMode,
+      props.setColorMode,
+    ];
+  } else {
+    return [
+      nextColorModeValue,
+      setNextColorMode,
+    ];
+  }
+};
+
+
 export function StackDesignProvider(props: { children?: React.ReactNode } & DesignConfig) {
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const colorMode = theme === 'dark' ? 'dark' : 'light';
+  const [colorMode, setColorMode] = useColorMode(props);
   const [designValue, setDesignValue] = useState<DesignContextValue>({
     colors: getColors(colorMode, props.colors),
     breakpoints: { ...defaultBreakpoints, ...props.breakpoints },
     colorMode,
-    setColorMode: setTheme,
+    setColorMode,
   });
 
   useEffect(() => {
     setDesignValue((v) => ({
       ...v,
       colors: getColors(colorMode, props.colors),
-      colorMode: colorMode === 'dark' ? 'dark' : 'light',
+      colorMode,
     }));
   }, [colorMode]);
 
@@ -104,7 +135,7 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
 export function useDesign(): DesignContextValue {
   const context = useContext(DesignContext);
   if (!context) {
-    throw new Error("useDesign must be used within a StackDesignProvider");
+    throw new Error("useDesign must be used within a StackUIProvider");
   }
   return context;
 }
