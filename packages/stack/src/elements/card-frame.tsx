@@ -1,7 +1,7 @@
 'use client';
 
 import { Container } from "@stackframe/stack-ui";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function CardFrame({ 
   children, 
@@ -10,10 +10,24 @@ export default function CardFrame({
   children: React.ReactNode, 
   fullPage?: boolean, 
 }) {
-  
+  const [hasNoParent, setHasNoParent] = useState(false);
+  useEffect(() => {
+    const component = document.getElementById('stack-card-frame');
+    setHasNoParent(
+      !component?.parentElement || 
+      component?.parentElement === document.body || 
+      component?.parentElement === document.documentElement
+    );
+  }, []);
+
   if (fullPage) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div id='stack-card-frame' style={{ 
+        height: hasNoParent ? '100vh' : '100%',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
         <Container size={360}>
           {children}
         </Container>
