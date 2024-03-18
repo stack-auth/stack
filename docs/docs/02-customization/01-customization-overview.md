@@ -1,0 +1,26 @@
+---
+sidebar_position: 1
+title: Customization Overview
+---
+
+# Customization Overview
+
+## Customization Methods
+
+Stack offers comprehensive customization options for its user interface, available across three levels:
+
+- [**Custom Color Scheme**](/docs/customization/custom-colors): For those looking to quickly align the interface with their brand while minimizing customization efforts, changing the color scheme is an efficient option.
+
+- [**Custom Component**](/docs/customization/custom-components): Stack features a uniquely designed UI system that enables the replacement of any low-level components with alternatives of your choosing. This includes integration with various UI libraries such as MUI, Chakra, or any custom stayled components. You can opt for quick modifications by replacing prominent components like buttons and input fields, or undertake comprehensive UI customization by replacing all components.
+
+- [**Custom Pages**](/docs/customization/custom-pages): For complete control over the UI, including alterations to the overall layout or the logic flow of pages, you can design your own pages. This can be done using Stack components or those from your preferred library, supported by our low-level functions to facilitate logic operations and server communication.
+
+These customization levels operate independently, allowing any combination of adjustments. For instance, you might customize the buttons and input fields while retaining the default design for other components, and adapt a custom color scheme as a fallback for the look of the other components. 
+
+## Design Principles
+
+Our customization system is guided by two main objectives:
+
+- **Compatibility**: Our aim is for Stack to integrate smoothly with a range of UI libraries as well as with your existing applications. To achieve this, we avoid the use of global CSS or styles. Instead, we encapsulate all color and theme details within a React context. This approach ensures that you can effortlessly envelop the Stack provider with your own theme provider, guaranteeing a seamless integration.
+
+- **Deep Customization**: We facilitate extensive customization through the provision of low-level functions and components that underpin our built-in components. These foundational components are modifiable via React context, ensuring that any adjustments automatically propagate to higher-level components. This methodology not only enables deep customization but also introduces a novel feature: the ability to dynamically alter the theme and even switch underlying UI libraries in real-time, on a per-component basis.
