@@ -13,9 +13,9 @@ const OAuthUserInfoSchema = yup.object().shape({
   accountId: yup.string().required(),
   displayName: yup.string().required(),
   email: yup.string().required(),
-  profileImageUrl: yup.string().optional(),
-  accessToken: yup.string().optional(),
-  refreshToken: yup.string().optional(),
+  profileImageUrl: yup.string().default(undefined),
+  accessToken: yup.string().default(undefined),
+  refreshToken: yup.string().default(undefined),
 });
 
 export function validateUserInfo(userInfo: any): OAuthUserInfo {

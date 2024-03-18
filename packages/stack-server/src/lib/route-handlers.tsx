@@ -1,53 +1,52 @@
 import { NextRequest } from "next/server";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
+import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { Json } from "@stackframe/stack-shared/dist/utils/json";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
-export async function parseRequest<T>(req: NextRequest, schema: yup.Schema<T>): Promise<T> {
-  const urlObject = new URL(req.url);
-  let body: unknown = req.body;
-  switch (req.headers.get("content-type")?.split(";")[0]) {
-    case "application/json": {
-      try {
-        body = await req.json();
-      } catch (e) {
-        throw new StatusError(400, "Invalid JSON in request body");
-      }
-      break;
-    }
-    case "text/plain": {
-      try {
-        body = await req.text();
-      } catch (e) {
-        throw new StatusError(400, "Invalid text in request body");
-      }
-      break;
-    }
-    case "application/x-www-form-urlencoded": {
-      try {
-        body = Object.fromEntries(new URLSearchParams(await req.text()).entries());
-      } catch (e) {
-        throw new StatusError(400, "Invalid form data in request body");
-      }
-      break;
-    }
-    default: {
-      body = req.body;
-    }
+const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
+
+type SmartRequest = {
+  url: string,
+  method: typeof allowedMethods[number],
+  body: unknown,
+  headers: Record<string, string[]>,
+  query: Record<string, string>,
+  params: Record<string, string>,
+};
+
+type SmartResponse = {
+  statusCode: number,
+  headers?: Record<string, string[]>,
+} & (
+  | {
+    bodyType?: undefined,
+    body: ArrayBuffer | Json,
   }
-  const toValidate = {
-    url: req.url,
-    method: req.method,
-    body: body,
-    headers: Object.fromEntries(req.headers.entries()),
-    query: Object.fromEntries(urlObject.searchParams.entries()),
-  };
+  | {
+    bodyType: "text",
+    body: string,
+  }
+  | {
+    bodyType: "json",
+    body: Json,
+  }
+  | {
+    bodyType: "array-buffer",
+    body: ArrayBuffer,
+  }
+);
 
+
+async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
-    const validated = await schema.validate(toValidate, {
+    return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
     });
-    return validated;
   } catch (error) {
     if (error instanceof yup.ValidationError) {
       throw new StatusError(400, error.errors.join("\n\n"));
@@ -56,13 +55,159 @@ export async function parseRequest<T>(req: NextRequest, schema: yup.Schema<T>): 
   }
 }
 
+async function parseBody(req: NextRequest): Promise<SmartRequest["body"]> {
+  const contentType = req.headers.get("content-type")?.split(";")[0];
+  switch (contentType) {
+    case "":
+    case undefined: {
+      return undefined;
+    }
+    case "application/json": {
+      try {
+        return await req.json();
+      } catch (e) {
+        throw new StatusError(400, "Invalid JSON in request body");
+      }
+    }
+    case "application/octet-stream": {
+      return await req.arrayBuffer();
+    }
+    case "text/plain": {
+      try {
+        return await req.text();
+      } catch (e) {
+        throw new StatusError(400, "Invalid text in request body");
+      }
+    }
+    case "application/x-www-form-urlencoded": {
+      try {
+        return Object.fromEntries(new URLSearchParams(await req.text()).entries());
+      } catch (e) {
+        throw new StatusError(400, "Invalid form data in request body");
+      }
+    }
+    default: {
+      throw new StatusError(400, "Unknown content type in request body: " + contentType);
+    }
+  }
+}
+
+export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+  const urlObject = new URL(req.url);  
+  const toValidate: SmartRequest = {
+    url: req.url,
+    method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
+    body: await parseBody(req),
+    headers: Object.fromEntries(
+      [...groupBy(req.headers.entries(), ([key, _]) => key.toLowerCase())]
+        .map(([key, values]) => [key, values.map(([_, value]) => value)]),
+    ),
+    query: Object.fromEntries(urlObject.searchParams.entries()),
+    params: options?.params ?? {},
+  };
+
+  return await validate(toValidate, schema);
+}
+
+export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartRequest, "headers"> & { headers: Record<string, string> }>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+  const urlObject = new URL(req.url);  
+  const toValidate: Omit<SmartRequest, "headers"> & { headers: Record<string, string> } = {
+    url: req.url,
+    method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
+    body: await parseBody(req),
+    headers: Object.fromEntries([...req.headers.entries()].map(([k, v]) => [k.toLowerCase(), v])),
+    query: Object.fromEntries(urlObject.searchParams.entries()),
+    params: options?.params ?? {},
+  };
+
+  return await validate(toValidate, schema);
+}
+
+export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+  const validated = await validate(obj, schema);
+
+  let status = validated.statusCode;
+  const headers = new Map<string, string[]>;
+
+  const bodyType = validated.bodyType ?? (validated.body instanceof ArrayBuffer ? "array-buffer" : "json");
+  let arrayBufferBody;
+  switch (bodyType) {
+    case "json": {
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+      break;
+    }
+    case "text": {
+      headers.set("content-type", ["text/plain; charset=utf-8"]);
+      if (typeof validated.body !== "string") throw new Error("Invalid body type, expected string");
+      arrayBufferBody = new TextEncoder().encode(validated.body);
+      break;
+    }
+    case "array-buffer": {
+      if (!(validated.body instanceof ArrayBuffer)) throw new Error("Invalid body type, expected ArrayBuffer");
+      arrayBufferBody = validated.body;
+      break;
+    }
+    default: {
+      throw new Error(`Invalid body type: ${bodyType}`);
+    }
+  }
+
+
+  // Add the request ID to the response headers
+  headers.set("x-stack-request-id", [requestId]);
+
+
+  // If the x-stack-override-error-status header is given, override error statuses to 200
+  if (req.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
+    status = 200;
+    headers.set("x-stack-actual-status", [validated.statusCode.toString()]);
+  }
+
+  return new Response(
+    arrayBufferBody,
+    {
+      status,
+      headers: [
+        ...Object.entries({
+          ...Object.fromEntries(headers),
+          ...validated.headers ?? {}
+        }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
+      ],
+    },
+  );
+}
+
+
+/**
+ * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
+ * (such as Next.js redirects) will be rethrown.
+ */
+function catchError(error: unknown): StatusError {
+  // catch some Next.js non-errors and rethrow them
+  if (error instanceof Error) {
+    const digest = (error as any)?.digest;
+    if (typeof digest === "string") {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+        throw error;
+      }
+    }
+  }
+
+  if (error instanceof StatusError) return error;
+  console.error(`Unhandled error in route handler:`, error);
+  return new StatusError(StatusError.InternalServerError);
+}
+
 /**
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-export function smartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
+    const requestId = generateSecureRandomString(80);
     try {
+      // censor long query parameters because they might contain sensitive data
       const censoredUrl = new URL(req.url);
       for (const [key, value] of censoredUrl.searchParams.entries()) {
         if (value.length <= 8) {
@@ -71,39 +216,101 @@ export function smartRouteHandler(handler: (req: NextRequest, options: any) => P
         censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
       }
 
-      console.log(`[API REQ] ${req.method} ${censoredUrl}`);
+      console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
-      const res = await handler(req, options);
+      const res = await handler(req, options, requestId);
       const time = (performance.now() - timeStart);
-      console.log(`[    RES] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
+      console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
-      // catch some Next.js non-errors and rethrow them
-      if (e instanceof Error) {
-        const digest = (e as any)?.digest;
-        if (typeof digest === "string") {
-          if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
-            throw e;
-          }
-        }
-      }
-
       let statusError;
-      if (!(e instanceof StatusError)) {
-        console.error(`Unhandled error in route handler:`, e, (e as any).constructor);
-        statusError = new StatusError(StatusError.InternalServerError);
-      } else {
-        statusError = e;
+      try {
+        statusError = catchError(e);
+      } catch (e) {
+        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        throw e;
       }
 
-      console.log(`[    ERR] ${req.method} ${req.url} : ${statusError.message}`);
-      return new Response(statusError.message, {
-        status: statusError.statusCode,
+      console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+
+      const res = await createResponse(req, requestId, {
+        statusCode: statusError.statusCode,
+        bodyType: "text",
+        body: statusError.message,
         headers: {
-          "Content-Type": "text/plain",
           ...statusError.options?.headers ?? {},
         },
-      });
+      }, yup.mixed());
+      return res;
     }
   };
 };
+
+type SmartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> = {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req) => Promise<Res>,
+};
+
+export function smartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  handler: SmartRouteHandler<Req, Res>,
+): (req: NextRequest, options: any) => Promise<Response>;
+export function smartRouteHandler<
+  OverloadParam,
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  overloadParams: OverloadParam[],
+  overloadGenerator: (param: OverloadParam) => SmartRouteHandler<Req, Res>,
+): (req: NextRequest, options: any) => Promise<Response>;
+export function smartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  ...args: [unknown[], (param: unknown) => SmartRouteHandler<Req, Res>] | [SmartRouteHandler<Req, Res>]
+): (req: NextRequest, options: any) => Promise<Response> {
+  const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
+  const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
+
+  return deprecatedSmartRouteHandler(async (req, options, requestId) => {
+    const reqsParsed: [Req, SmartRouteHandler<Req, Res>][] = [];
+    const reqsErrors: unknown[] = [];
+    for (const overloadParam of overloadParams as unknown[]) {
+      const handler = overloadGenerator(overloadParam);
+      try {
+        const parsed = await parseRequest(req, handler.request, options);
+        reqsParsed.push([parsed, handler]);
+      } catch (e) {
+        reqsErrors.push(e);
+      }
+    }
+    if (reqsParsed.length === 0) {
+      if (reqsErrors.length === 1) {
+        throw reqsErrors[0];
+      } else {
+        const errorMessage = deindent`
+          Could not process request because all available overloads of this endpoint failed to parse it.
+
+            ${reqsErrors.map(e => catchError(e)).map((e, i) => deindent`
+              Overload ${i + 1}: ${e.statusCode}
+                ${e.message}
+            `).join("\n\n")}
+        `;
+        throw new StatusError(400, errorMessage);
+      }
+    }
+
+    const smartReq = reqsParsed[0][0];
+    const handler = reqsParsed[0][1];
+
+    let smartRes = await handler.handler(smartReq);
+
+    return await createResponse(req, requestId, smartRes, handler.response);
+  });
+}

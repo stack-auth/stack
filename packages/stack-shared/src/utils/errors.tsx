@@ -20,7 +20,7 @@ type Status = {
 type StatusErrorConstructorParameters = [
   statusCode: number | Status,
   message?: string,
-  options?: { headers: Record<string, string> },
+  options?: { headers: Record<string, string[]> },
 ];
 
 export class StatusError extends Error {
@@ -70,7 +70,7 @@ export class StatusError extends Error {
 
 
   constructor(...args: StatusErrorConstructorParameters);
-  constructor(status: number | Status, message?: string, public readonly options?: { headers: Record<string, string> }) {
+  constructor(status: number | Status, message?: string, public readonly options?: { headers: Record<string, string[]> }) {
     if (typeof status === "object") {
       message ??= status.message;
       status = status.statusCode;

@@ -1,3 +1,5 @@
+export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
+
 /**
  * Assumes both objects are primitives, arrays, or non-function plain objects, and compares them deeply.
  * 

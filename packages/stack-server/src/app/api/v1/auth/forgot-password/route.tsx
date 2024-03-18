@@ -7,7 +7,7 @@ import {
   UserNotExistErrorCode
 } from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { sendPasswordResetEmail } from "@/email";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
@@ -25,7 +25,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const { 
     headers: { 
       "x-stack-project-id": projectId, 
@@ -35,7 +35,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
       email,
       redirectUrl
     } 
-  } = await parseRequest(req, postSchema);
+  } = await deprecatedParseRequest(req, postSchema);
   
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownError(ProjectIdOrKeyInvalidErrorCode);

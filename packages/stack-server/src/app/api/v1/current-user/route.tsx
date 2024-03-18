@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { updateClientUser, updateServerUser } from "@/lib/users";
@@ -12,7 +12,7 @@ const putOrGetSchema = yup.object({
     server: yup.string().oneOf(["true", "false"]).default("false"),
   }).required(),
   headers: yup.object({
-    authorization: authorizationHeaderSchema.nullable().default(null),
+    authorization: authorizationHeaderSchema.default(undefined),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-admin-access-token": yup.string().default(""),
@@ -27,7 +27,7 @@ const putOrGetSchema = yup.object({
   }).nullable(),
 });
 
-const handler = smartRouteHandler(async (req: NextRequest) => {
+const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     query: {
       server,
@@ -40,7 +40,7 @@ const handler = smartRouteHandler(async (req: NextRequest) => {
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await parseRequest(req, putOrGetSchema);
+  } = await deprecatedParseRequest(req, putOrGetSchema);
 
   let {
     displayName,

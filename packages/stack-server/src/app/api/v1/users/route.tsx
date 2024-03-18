@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { listServerUsers } from "@/lib/users";
@@ -17,7 +17,7 @@ const getSchema = yup.object({
   }).required(),
 });
 
-export const GET = smartRouteHandler(async (req: NextRequest) => {
+export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     query: {
       server,
@@ -27,7 +27,7 @@ export const GET = smartRouteHandler(async (req: NextRequest) => {
       "x-stack-secret-server-key": secretServerKey,
       "x-stack-admin-access-token": adminAccessToken,
     },
-  } = await parseRequest(req, getSchema);
+  } = await deprecatedParseRequest(req, getSchema);
 
   let users;
   if (server === "true") {

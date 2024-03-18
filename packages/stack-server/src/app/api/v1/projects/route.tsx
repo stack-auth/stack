@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { smartRouteHandler, parseRequest } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { createProject, listProjects } from "@/lib/projects";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/access-token";
 import { getServerUser } from "@/lib/users";
@@ -13,10 +13,10 @@ const getRequestSchema = yup.object({
   }),
 });
 
-export const GET = smartRouteHandler(async (req: NextRequest) => {
+export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: { authorization },
-  } = await parseRequest(req, getRequestSchema);
+  } = await deprecatedParseRequest(req, getRequestSchema);
 
   const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
   if (accessTokenProjectId !== "internal") {
@@ -44,11 +44,11 @@ const postRequestSchema = yup.object({
   }),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: { authorization },
     body: { displayName, description },
-  } = await parseRequest(req, postRequestSchema);
+  } = await deprecatedParseRequest(req, postRequestSchema);
 
   const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
   if (accessTokenProjectId !== "internal") {
