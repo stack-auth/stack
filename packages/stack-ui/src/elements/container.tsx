@@ -4,7 +4,7 @@ import { useDesign } from "../providers/design-provider";
 import styled from 'styled-components';
 
 export type ContainerProps = {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number,
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
 
 const OuterContainer = styled.div`
@@ -28,7 +28,7 @@ export default function Container({
   return (
     <OuterContainer>
       <InnerContainer
-        $breakpoint={breakpoints[size]}
+        $breakpoint={typeof size === 'number' ? size : breakpoints[size]}
         {...props}
       >
         {props.children}

@@ -65,9 +65,16 @@ const StyledButton = styled.button<{
   border-radius: ${BORDER_RADIUS};
   padding: ${props => {
     switch (props.$size) {
-      case 'sm': { return '0.5rem 0.75rem'; }
-      case 'md': { return '0.75rem 1rem'; }
-      case 'lg': { return '1rem 2rem'; }
+      case 'sm': { return '0rem 0.75rem'; }
+      case 'md': { return '0rem 1rem'; }
+      case 'lg': { return '0rem 2rem'; }
+    }
+  }};
+  height: ${props => {
+    switch (props.$size) {
+      case 'sm': { return '2rem'; }
+      case 'md': { return '2.5rem'; }
+      case 'lg': { return '3rem'; }
     }
   }};
   font-size: ${FONT_SIZES.md};

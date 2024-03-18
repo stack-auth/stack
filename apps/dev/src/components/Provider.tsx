@@ -16,7 +16,7 @@ export function useCurrentUI() {
 
 function JoyProvider(props: any) {
   return (
-    <CssVarsProvider defaultTheme="system">
+    <CssVarsProvider defaultMode="system">
       <CssBaseline />
       <StackUIJoyProvider>
         {props.children}

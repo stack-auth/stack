@@ -12,6 +12,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/joy": "5.0.0-beta.30",
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",
@@ -19,12 +22,10 @@
     "next": "^14.1",
     "next-themes": "^0.2.1",
     "react": "^18.2",
-    "react-dom": "^18",
-    "styles": "link:@mui/joy/styles"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.8",
-    "rimraf": "^5.0.5"
+    "@types/react-dom": "^18.2.8"
   }
 }

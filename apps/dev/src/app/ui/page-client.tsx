@@ -31,7 +31,7 @@ export default function PageClient() {
           </select>
           
           <div>
-            <Button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} color="transparent">
+            <Button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} variant="secondary">
               { colorMode === 'dark' ? '☀️' : '🌙' } Toggle Theme
             </Button>
           </div>

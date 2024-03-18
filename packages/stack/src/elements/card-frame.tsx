@@ -15,7 +15,7 @@ export default function CardFrame({
   if (fullPage) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Container size='xs'>
+        <Container size={360}>
           {children}
         </Container>
       </div>
