@@ -6,7 +6,7 @@
 - If `X-Stack-Override-Error-Status` header is given, the server MUST replace all statuses 400-599 with 200, and return the actual status code in the `X-Stack-Actual-Status` header.
 - If a known error (see below) occurs, the `X-Stack-Known-Error` header MUST be returned containing the error code. The body MUST be of the shape `{ code: <ERROR_CODE>, message: <HUMAN_READABLE_ERROR_MESSAGE>, details?: {<ADDITIONAL_ERROR_INFORMATION>} }`.
 - The `X-Stack-Request-Id` header MAY be returned with a randomly generated string that can be used to identify the request in the server logs. If an error occurs, the client SHOULD include this in the message as an error code.
-- The server will return the `SchemaError` if applicable, on any endpoint. This is referred to as "Common errors" in the endpoints list below.
+- The server may return the `SchemaError` if applicable, on any endpoint. This is referred to as "Common errors" in the endpoints list below.
 
 ## Known errors
 

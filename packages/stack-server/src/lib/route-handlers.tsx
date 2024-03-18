@@ -5,6 +5,7 @@ import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -162,6 +163,7 @@ function catchError(error: unknown): StatusError {
  */
 export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
+    const requestId = generateSecureRandomString(80);
     try {
       const censoredUrl = new URL(req.url);
       for (const [key, value] of censoredUrl.searchParams.entries()) {
@@ -171,24 +173,25 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
         censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
       }
 
-      console.log(`[API REQ] ${req.method} ${censoredUrl}`);
+      console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options);
+      res.headers.set("x-stack-request-id", requestId);
       const time = (performance.now() - timeStart);
-      console.log(`[    RES] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
+      console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
       let statusError;
       try {
         statusError = catchError(e);
       } catch (e) {
-        console.log(`[    EXC] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
         throw e;
       }
 
-      console.log(`[    ERR] ${req.method} ${req.url}: ${statusError.message}`);
+      console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
 
-      return await createResponse({
+      const res = await createResponse({
         statusCode: statusError.statusCode,
         bodyType: "text",
         body: statusError.message,
@@ -196,6 +199,8 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
           ...statusError.options?.headers ?? {},
         },
       }, yup.mixed());
+      res.headers.set("x-stack-request-id", requestId);
+      return res;
     }
   };
 };
