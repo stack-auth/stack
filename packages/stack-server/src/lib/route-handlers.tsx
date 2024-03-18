@@ -19,9 +19,25 @@ type SmartRequest = {
 
 type SmartResponse = {
   statusCode: number,
-  body: Json,
-  headers: Record<string, string[]>,
-};
+  headers?: Record<string, string[]>,
+} & (
+  | {
+    bodyType?: undefined,
+    body: ArrayBuffer | Json,
+  }
+  | {
+    bodyType: "text",
+    body: string,
+  }
+  | {
+    bodyType: "json",
+    body: Json,
+  }
+  | {
+    bodyType: "array-buffer",
+    body: ArrayBuffer,
+  }
+);
 
 
 async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
@@ -41,6 +57,10 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
 async function parseBody(req: NextRequest): Promise<SmartRequest["body"]> {
   const contentType = req.headers.get("content-type")?.split(";")[0];
   switch (contentType) {
+    case "":
+    case undefined: {
+      return undefined;
+    }
     case "application/json": {
       try {
         return await req.json();
@@ -88,20 +108,49 @@ export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: Nex
   return await validate(toValidate, schema);
 }
 
-export async function createResponse<T extends DeepPartial<SmartResponse>>(obj: T, schema: yup.Schema<T>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(obj, schema);
+
+  const bodyType = validated.bodyType ?? (validated.body instanceof ArrayBuffer ? "array-buffer" : "json");
+  const customContentTypeHeader: [string, string] | null = 
+    bodyType === "json" ? ["content-type", "application/json; charset=utf-8"] :
+      bodyType === "text" ? ["content-type", "text/plain; charset=utf-8"] :
+        bodyType === "array-buffer" ? ["content-type", "application/octet-stream"] :
+          throwErr(new Error(`Invalid body type: ${bodyType}`));
+  const arrayBufferBody = 
+    bodyType === "json" ? new TextEncoder().encode(JSON.stringify(validated.body)) :
+      bodyType === "text" ? (typeof validated.body === "string" ? new TextEncoder().encode(validated.body) : throwErr("Invalid body type: expected string")) :
+        bodyType === "array-buffer" ? (validated.body instanceof ArrayBuffer ? validated.body : throwErr("Invalid body type: expected ArrayBuffer")) :
+          throwErr(new Error(`Invalid body type: ${bodyType}`));
   
-  return new Response(JSON.stringify(validated.body), {
-    status: validated.statusCode,
-    headers: [
-      ..."content-type" in (validated.headers ?? {}) ? [] as const : [["content-type", "application/json"]] as [string, string][],
-      ...Object.entries(validated.headers ?? {}).flatMap(([key, values]) => values?.filter(v => v !== undefined).map(v => [key.toLowerCase(), v!] as [string, string]) ?? []),
-    ],
-  });
+  return new Response(
+    arrayBufferBody,
+    {
+      status: validated.statusCode,
+      headers: [
+        ...!customContentTypeHeader || "content-type" in (validated.headers ?? {}) ? [] as const : [customContentTypeHeader],
+        ...Object.entries(validated.headers ?? {}).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
+      ],
+    },
+  );
 }
 
 
+/**
+ * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
+ * (such as Next.js redirects) will be rethrown.
+ */
 function catchError(error: unknown): StatusError {
+  // catch some Next.js non-errors and rethrow them
+  if (error instanceof Error) {
+    const digest = (error as any)?.digest;
+    if (typeof digest === "string") {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+        throw error;
+      }
+    }
+  }
+
   if (error instanceof StatusError) return error;
   console.error(`Unhandled error in route handler:`, error);
   return new StatusError(StatusError.InternalServerError);
@@ -129,34 +178,31 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       console.log(`[    RES] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
-      // catch some Next.js non-errors and rethrow them
-      if (e instanceof Error) {
-        const digest = (e as any)?.digest;
-        if (typeof digest === "string") {
-          if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
-            throw e;
-          }
-        }
+      let statusError;
+      try {
+        statusError = catchError(e);
+      } catch (e) {
+        console.log(`[    EXC] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        throw e;
       }
 
-      const statusError = catchError(e);
+      console.log(`[    ERR] ${req.method} ${req.url}: ${statusError.message}`);
 
-      console.log(`[    ERR] ${req.method} ${req.url} : ${statusError.message}`);
-
-      return new Response(statusError.message, {
-        status: statusError.statusCode,
+      return await createResponse({
+        statusCode: statusError.statusCode,
+        bodyType: "text",
+        body: statusError.message,
         headers: {
-          "Content-Type": "text/plain",
           ...statusError.options?.headers ?? {},
         },
-      });
+      }, yup.mixed());
     }
   };
 };
 
 type SmartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
-  Res extends DeepPartial<SmartResponse>,
+  Res extends SmartResponse,
 > = {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
@@ -165,21 +211,21 @@ type SmartRouteHandler<
 
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
-  Res extends DeepPartial<SmartResponse>,
+  Res extends SmartResponse,
 >(
   handler: SmartRouteHandler<Req, Res>,
 ): (req: NextRequest, options: any) => Promise<Response>;
 export function smartRouteHandler<
   OverloadParam,
   Req extends DeepPartial<SmartRequest>,
-  Res extends DeepPartial<SmartResponse>,
+  Res extends SmartResponse,
 >(
   overloadParams: OverloadParam[],
   overloadGenerator: (param: OverloadParam) => SmartRouteHandler<Req, Res>,
 ): (req: NextRequest, options: any) => Promise<Response>;
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
-  Res extends DeepPartial<SmartResponse>,
+  Res extends SmartResponse,
 >(
   ...args: [unknown[], (param: unknown) => SmartRouteHandler<Req, Res>] | [SmartRouteHandler<Req, Res>]
 ): (req: NextRequest, options: any) => Promise<Response> {
@@ -192,7 +238,7 @@ export function smartRouteHandler<
     for (const overloadParam of overloadParams as unknown[]) {
       const handler = overloadGenerator(overloadParam);
       try {
-        const parsed = await parseRequest(req, handler.request);
+        const parsed = await parseRequest(req, handler.request, options);
         reqsParsed.push([parsed, handler]);
       } catch (e) {
         reqsErrors.push(e);
@@ -202,11 +248,10 @@ export function smartRouteHandler<
       if (reqsErrors.length === 1) {
         throw reqsErrors[0];
       } else {
-        const reqsCaughtErrors = reqsErrors.map(e => catchError(e));
         const errorMessage = deindent`
           Could not process request because all available overloads of this endpoint failed to parse it.
 
-            ${reqsCaughtErrors.map((e, i) => deindent`
+            ${reqsErrors.map(e => catchError(e)).map((e, i) => deindent`
               Overload ${i + 1}: ${e.statusCode}
                 ${e.message}
             `).join("\n\n")}
