@@ -1,21 +1,9 @@
 ---
 sidebar_position: 1
-title: Overview
 ---
 
-# Customization Overview
+# Custom Pages
 
-Stack provides two ways to customize the UI:
-
-- **CSS customization**: You can modify default UI looks by overriding the styles of class names beginning with `wl_`, such as `wl_btn`.
-- **Custom pages**: You can create custom pages for sign in, sign up, reset password and more, thanks to built-in components.
-- **From scratch**: If you need even more flexibility, you can always reimplement our components from scratch with the helper functions that we provide.
-
-## CSS customization
-
-You can modify the default UI looks by overriding the styles of class names beginning with `wl_`, such as `wl_btn`. (Please stay tuned — we're updating this part of the documentation!)
-
-## Custom pages
 
 By default, `StackHandler` creates all pages you need. However, if you'd like a bit of additional control, you can always use our built-in components (such as `<SignIn />`) to build your own pages for all features. For example, if you have the following in `app/signin/page.tsx`:
 
