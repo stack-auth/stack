@@ -1,11 +1,13 @@
 import { StackUIProvider, ThemeConfig } from "@stackframe/stack-ui";
 import Button from '../elements/button';
 import Input from '../elements/input';
+import Text from '../elements/text';
 import { useColorScheme } from "@mui/joy";
 
 export const defaultElements = {
   Button,
   Input,
+  Text,
 };
 
 export default function StackUIJoyProvider(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
