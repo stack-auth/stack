@@ -16,7 +16,9 @@ export default function RootLayout({
       <body>
         <StackProvider app={stackServerApp}>
           <Provider>
-            {children}
+            <div style={{ height: '100vh', width: '100%' }}>
+              {children}
+            </div>
           </Provider>
         </StackProvider>
       </body>

@@ -18,7 +18,7 @@ export default function PageClient() {
   );
   
   return (
-    <div className='flex flex-col items-center justify-center h-screen w-full gap-10'>
+    <div className='flex flex-col items-center justify-center h-full w-full gap-10'>
       {user ? (
         <div className='flex flex-col gap-5 justify-center items-center'>
           <p className='text-lg'>Logged in as: <span className='font-bold'>{user.primaryEmail}</span></p>

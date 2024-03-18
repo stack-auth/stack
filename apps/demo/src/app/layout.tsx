@@ -25,7 +25,9 @@ export default function RootLayout({
         >
           <Provider>
             <Header />
-            {children}
+            <div className="absolute top-12 left-0 right-0 bottom-0 overflow-auto">
+              {children}
+            </div>
           </Provider>
         </StackProvider>
       </body>
