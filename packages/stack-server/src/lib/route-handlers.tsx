@@ -109,28 +109,56 @@ export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: Nex
   return await validate(toValidate, schema);
 }
 
-export async function createResponse<T extends SmartResponse>(obj: T, schema: yup.Schema<T>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(obj, schema);
 
+  let status = validated.statusCode;
+  const headers = new Map<string, string[]>;
+
   const bodyType = validated.bodyType ?? (validated.body instanceof ArrayBuffer ? "array-buffer" : "json");
-  const customContentTypeHeader: [string, string] | null = 
-    bodyType === "json" ? ["content-type", "application/json; charset=utf-8"] :
-      bodyType === "text" ? ["content-type", "text/plain; charset=utf-8"] :
-        bodyType === "array-buffer" ? ["content-type", "application/octet-stream"] :
-          throwErr(new Error(`Invalid body type: ${bodyType}`));
-  const arrayBufferBody = 
-    bodyType === "json" ? new TextEncoder().encode(JSON.stringify(validated.body)) :
-      bodyType === "text" ? (typeof validated.body === "string" ? new TextEncoder().encode(validated.body) : throwErr("Invalid body type: expected string")) :
-        bodyType === "array-buffer" ? (validated.body instanceof ArrayBuffer ? validated.body : throwErr("Invalid body type: expected ArrayBuffer")) :
-          throwErr(new Error(`Invalid body type: ${bodyType}`));
-  
+  let arrayBufferBody;
+  switch (bodyType) {
+    case "json": {
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+      break;
+    }
+    case "text": {
+      headers.set("content-type", ["text/plain; charset=utf-8"]);
+      if (typeof validated.body !== "string") throw new Error("Invalid body type, expected string");
+      arrayBufferBody = new TextEncoder().encode(validated.body);
+      break;
+    }
+    case "array-buffer": {
+      if (!(validated.body instanceof ArrayBuffer)) throw new Error("Invalid body type, expected ArrayBuffer");
+      arrayBufferBody = validated.body;
+      break;
+    }
+    default: {
+      throw new Error(`Invalid body type: ${bodyType}`);
+    }
+  }
+
+
+  // Add the request ID to the response headers
+  headers.set("x-stack-request-id", [requestId]);
+
+
+  // If the x-stack-override-error-status header is given, override error statuses to 200
+  if (req.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
+    status = 200;
+    headers.set("x-stack-actual-status", [validated.statusCode.toString()]);
+  }
+
   return new Response(
     arrayBufferBody,
     {
-      status: validated.statusCode,
+      status,
       headers: [
-        ...!customContentTypeHeader || "content-type" in (validated.headers ?? {}) ? [] as const : [customContentTypeHeader],
-        ...Object.entries(validated.headers ?? {}).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
+        ...Object.entries({
+          ...Object.fromEntries(headers),
+          ...validated.headers ?? {}
+        }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
       ],
     },
   );
@@ -161,10 +189,11 @@ function catchError(error: unknown): StatusError {
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
     try {
+      // censor long query parameters because they might contain sensitive data
       const censoredUrl = new URL(req.url);
       for (const [key, value] of censoredUrl.searchParams.entries()) {
         if (value.length <= 8) {
@@ -175,8 +204,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
 
       console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
-      const res = await handler(req, options);
-      res.headers.set("x-stack-request-id", requestId);
+      const res = await handler(req, options, requestId);
       const time = (performance.now() - timeStart);
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
@@ -191,7 +219,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
 
-      const res = await createResponse({
+      const res = await createResponse(req, requestId, {
         statusCode: statusError.statusCode,
         bodyType: "text",
         body: statusError.message,
@@ -199,7 +227,6 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
           ...statusError.options?.headers ?? {},
         },
       }, yup.mixed());
-      res.headers.set("x-stack-request-id", requestId);
       return res;
     }
   };
@@ -237,7 +264,7 @@ export function smartRouteHandler<
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
   const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
 
-  return deprecatedSmartRouteHandler(async (req, options) => {
+  return deprecatedSmartRouteHandler(async (req, options, requestId) => {
     const reqsParsed: [Req, SmartRouteHandler<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
     for (const overloadParam of overloadParams as unknown[]) {
@@ -264,11 +291,12 @@ export function smartRouteHandler<
         throw new StatusError(400, errorMessage);
       }
     }
+
     const smartReq = reqsParsed[0][0];
     const handler = reqsParsed[0][1];
 
-    const res = await handler.handler(smartReq);
+    let smartRes = await handler.handler(smartReq);
 
-    return await createResponse(res, handler.response);
+    return await createResponse(req, requestId, smartRes, handler.response);
   });
 }
