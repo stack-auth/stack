@@ -1,3 +1,5 @@
+'use client';
+
 import { ButtonProps } from "@stackframe/stack-ui";
 import { Button as JoyButton } from '@mui/joy';
 import Color from "color";

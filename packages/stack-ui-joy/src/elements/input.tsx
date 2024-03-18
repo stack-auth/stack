@@ -1,3 +1,5 @@
+'use client';
+
 import { InputProps } from "@stackframe/stack-ui";
 import { Input as JoyInput } from '@mui/joy';
 

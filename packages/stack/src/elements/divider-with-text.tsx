@@ -5,9 +5,13 @@ export default function DividerWithText({ text }: { text: string }) {
   const { colors } = useDesign();
   return (
     <div style={{ display: 'flex', alignItems: 'center', 'justifyContent': 'center', marginTop: '16px', marginBottom: '16px' }}>
-      <Divider />
+      <div style={{ flex: 1 }}>
+        <Divider />
+      </div>
       <Text style={{ padding: '0 16px' }} variant="secondary">{text}</Text>
-      <Divider />
+      <div style={{ flex: 1 }}>
+        <Divider />
+      </div>
     </div>
   );
   
