@@ -11,7 +11,6 @@ export const GET = smartRouteHandler({
     body: yup.string().required(),
   }),
   handler: async (req) => {
-    throw 123;
     return {
       statusCode: 200,
       bodyType: "text",
