@@ -4,7 +4,7 @@ import { generators } from "openid-client";
 import { cookies } from "next/headers";
 import { encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deprecatedSmartRouteHandler, parseRequest } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { getAuthorizationUrl } from "@/oauth";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
@@ -38,7 +38,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       code_challenge_method: codeChallengeMethod,
       response_type: responseType,
     }
-  } = await parseRequest(req, getSchema);
+  } = await deprecatedParseRequest(req, getSchema);
 
   const providerId = options.params.provider;
 

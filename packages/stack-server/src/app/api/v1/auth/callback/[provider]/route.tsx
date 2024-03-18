@@ -4,7 +4,7 @@ import { Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/
 import { NextRequest } from "next/server";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
-import { deprecatedSmartRouteHandler, parseRequest as parseRequest } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler, deprecatedParseRequest as deprecatedParseRequest } from "@/lib/route-handlers";
 import { getAuthorizationCallback, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
@@ -37,7 +37,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   const { query: {
     code,
     state,
-  } } = await parseRequest(req, getSchema);
+  } } = await deprecatedParseRequest(req, getSchema);
 
   const providerId = options.params.provider;
 

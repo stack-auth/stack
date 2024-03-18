@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
 import { NextRequest, NextResponse } from "next/server";
 import { oauthServer } from "@/oauth";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { GrantInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 
 // make this specific to each grant type later
@@ -17,7 +17,7 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { body } = await parseRequest(req, postSchema);
+  const { body } = await deprecatedParseRequest(req, postSchema);
   if (body.redirect_uri) {
     body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash
   }

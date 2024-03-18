@@ -7,7 +7,7 @@ import {
   EmailVerificationLinkExpiredErrorCode
 } from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 
 const postSchema = yup.object({
   body: yup.object({
@@ -16,7 +16,7 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { body: { code } } = await parseRequest(req, postSchema);
+  const { body: { code } } = await deprecatedParseRequest(req, postSchema);
 
   const codeRecord = await prismaClient.projectUserEmailVerificationCode.findUnique({
     where: {

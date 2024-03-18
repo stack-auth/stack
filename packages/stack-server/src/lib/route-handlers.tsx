@@ -109,6 +109,20 @@ export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: Nex
   return await validate(toValidate, schema);
 }
 
+export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartRequest, "headers"> & { headers: Record<string, string> }>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+  const urlObject = new URL(req.url);  
+  const toValidate: Omit<SmartRequest, "headers"> & { headers: Record<string, string> } = {
+    url: req.url,
+    method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
+    body: await parseBody(req),
+    headers: Object.fromEntries([...req.headers.entries()].map(([k, v]) => [k.toLowerCase(), v])),
+    query: Object.fromEntries(urlObject.searchParams.entries()),
+    params: options?.params ?? {},
+  };
+
+  return await validate(toValidate, schema);
+}
+
 export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(obj, schema);
 

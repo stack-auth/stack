@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { deleteServerUser, updateServerUser } from "@/lib/users";
 
 const putOrGetOrDeleteSchema = yup.object({
   query: yup.object({
-    server: yup.string().oneOf(["true"]).optional(),
+    server: yup.string().oneOf(["true"]).default(undefined),
   }).required(),
   headers: yup.object({
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
@@ -35,7 +35,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await parseRequest(req, putOrGetOrDeleteSchema);
+  } = await deprecatedParseRequest(req, putOrGetOrDeleteSchema);
 
   let {
     displayName,

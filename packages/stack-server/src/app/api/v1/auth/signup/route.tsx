@@ -5,7 +5,7 @@ import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { encodeAccessToken } from "@/lib/access-token";
 import { sendVerificationEmail } from "@/email";
 import { getProject } from "@/lib/projects";
@@ -37,7 +37,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId, 
       "x-stack-publishable-client-key": publishableClientKey 
     }
-  } = await parseRequest(req, postSchema);
+  } = await deprecatedParseRequest(req, postSchema);
 
   const passwordError = getPasswordError(password);
   if (passwordError) {

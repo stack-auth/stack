@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 
 const postSchema = yup.object({
   body: yup.object({
@@ -10,7 +10,7 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { body: { refreshToken } } = await parseRequest(req, postSchema);
+  const { body: { refreshToken } } = await deprecatedParseRequest(req, postSchema);
 
   const res = await prismaClient.projectUserRefreshToken.deleteMany({
     where: {

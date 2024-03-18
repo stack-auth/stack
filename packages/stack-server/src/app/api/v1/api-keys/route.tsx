@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, createApiKeySet, listApiKeySets, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 
@@ -20,7 +20,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-super-secret-admin-key": superSecretAdminKey,
       "x-stack-admin-access-token": adminAccessToken,
     },
-  } = await parseRequest(req, getSchema);
+  } = await deprecatedParseRequest(req, getSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
     throw new StatusError(StatusError.Forbidden);
@@ -62,7 +62,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       hasSecretServerKey,
       hasSuperSecretAdminKey,
     },
-  } = await parseRequest(req, postSchema);
+  } = await deprecatedParseRequest(req, postSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
     throw new StatusError(StatusError.Forbidden, "Invalid API key");

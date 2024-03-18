@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
 import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -16,26 +16,26 @@ const putOrGetSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    isProductionMode: yup.boolean().optional(),
+    isProductionMode: yup.boolean().default(undefined),
     config: yup.object({
       domains: yup.array(yup.object({
         domain: yup.string().required(),
         handlerPath: yup.string().required(),
-      })).optional(),
+      })).default(undefined),
       oauthProviders: yup.array(
         yup.object({
           id: yup.string().required(),
           enabled: yup.boolean().required(),
           type: yup.string().required(),
-          clientId: yup.string().optional(),
-          clientSecret: yup.string().optional(),
-          tenantId: yup.string().optional(),
+          clientId: yup.string().default(undefined),
+          clientSecret: yup.string().default(undefined),
+          tenantId: yup.string().default(undefined),
         })
-      ).optional(),
-      credentialEnabled: yup.boolean().optional(),
-      allowLocalhost: yup.boolean().optional(),
-    }).optional(),
-  }).nullable(),
+      ).default(undefined),
+      credentialEnabled: yup.boolean().default(undefined),
+      allowLocalhost: yup.boolean().default(undefined),
+    }).default(undefined),
+  }).default(undefined),
 });
 
 const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { apiKeyId: string } }) => {
@@ -47,7 +47,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await parseRequest(req, putOrGetSchema);  
+  } = await deprecatedParseRequest(req, putOrGetSchema);  
 
   const { ...update } = body ?? {};
 
@@ -98,6 +98,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
     );
     return NextResponse.json(project);
   } else if (asValid || pkValid) {
+    console.log(update);
     if (Object.entries(update).length !== 0) {
       throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
     }

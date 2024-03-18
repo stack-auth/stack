@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { updateClientUser, updateServerUser } from "@/lib/users";
@@ -40,7 +40,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await parseRequest(req, putOrGetSchema);
+  } = await deprecatedParseRequest(req, putOrGetSchema);
 
   let {
     displayName,
