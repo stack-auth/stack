@@ -12,7 +12,7 @@ const putOrGetSchema = yup.object({
     server: yup.string().oneOf(["true", "false"]).default("false"),
   }).required(),
   headers: yup.object({
-    authorization: authorizationHeaderSchema.nullable().default(null),
+    authorization: authorizationHeaderSchema.default(undefined),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-admin-access-token": yup.string().default(""),
