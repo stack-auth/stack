@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useStackApp } from "..";
 import MessageCard from "./message-card";
-import { useElements } from "@stackframe/stack-ui";
+import { Text, Button } from "@stackframe/stack-ui";
 
 export default function RedirectMessageCard({ 
   type,
@@ -14,7 +14,6 @@ export default function RedirectMessageCard({
 }) {
   const stackApp = useStackApp();
   const router = useRouter();
-  const { Text, Button } = useElements();
 
   let title: string;
   let primaryUrl: string;

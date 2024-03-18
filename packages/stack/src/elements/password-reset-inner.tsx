@@ -9,7 +9,7 @@ import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";
 import CardHeader from "./card-header";
-import { useElements } from "@stackframe/stack-ui";
+import { Button, Label, Text } from "@stackframe/stack-ui";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
@@ -24,7 +24,6 @@ export default function PasswordResetInner(
   const [finished, setFinished] = useState(false);
   const [resetError, setResetError] = useState(false);
   const stackApp = useStackApp();
-  const { Button, Label, Text } = useElements();
 
   const onSubmit = async () => {
     if (!password) {

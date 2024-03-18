@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStackApp, useUser } from '@stackframe/stack';
-import { useElements } from '@stackframe/stack-ui';
-
+import { Button } from '@stackframe/stack-ui';
 
 export default function PageClient() {
   const user = useUser();
   const router = useRouter();
-  const { Button } = useElements();
   const app = useStackApp();
 
   const authButtons = (

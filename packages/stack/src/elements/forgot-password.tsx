@@ -5,7 +5,7 @@ import { FormWarningText } from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { useElements } from "@stackframe/stack-ui";
+import { Button, Input, Label } from "@stackframe/stack-ui";
 
 
 export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
@@ -13,7 +13,6 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
   const [emailError, setEmailError] = useState('');
   const [sending, setSending] = useState(false);
   const stackApp = useStackApp();
-  const { Button, Input, Label } = useElements();
   
   const onSubmit = async () => {
     if (!email) {

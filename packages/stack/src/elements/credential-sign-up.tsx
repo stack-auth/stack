@@ -8,7 +8,7 @@ import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
-import { useElements } from "@stackframe/stack-ui";
+import { Button, Label, Input } from "@stackframe/stack-ui";
 
 export default function CredentialSignUp() {
   const [email, setEmail] = useState('');
@@ -19,7 +19,6 @@ export default function CredentialSignUp() {
   const [passwordRepeatError, setPasswordRepeatError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
-  const { Button, Label, Input } = useElements();
 
   const onSubmit = async () => {
     if (!email) {

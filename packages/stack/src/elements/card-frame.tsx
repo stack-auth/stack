@@ -1,6 +1,6 @@
 'use client';
 
-import { useElements } from "@stackframe/stack-ui";
+import { Container } from "@stackframe/stack-ui";
 import React from "react";
 
 export default function CardFrame({ 
@@ -10,7 +10,6 @@ export default function CardFrame({
   children: React.ReactNode, 
   fullPage?: boolean, 
 }) {
-  const { Container } = useElements();
   
   if (fullPage) {
     return (

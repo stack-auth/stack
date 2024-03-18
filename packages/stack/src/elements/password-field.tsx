@@ -1,11 +1,10 @@
-import { useElements } from '@stackframe/stack-ui';
+import { Input } from '@stackframe/stack-ui';
 import { forwardRef, useRef, useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
 export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ id, name, ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const { Input } = useElements();
 
   const mergeRef = (node: HTMLInputElement) => {
     if (ref) {

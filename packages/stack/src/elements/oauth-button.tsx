@@ -3,7 +3,7 @@
 import { FaGithub, FaFacebook, FaApple } from 'react-icons/fa';
 import { useStackApp } from '..';
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { useDesign, useElements } from '@stackframe/stack-ui';
+import { Button, useDesign } from '@stackframe/stack-ui';
 import Color from 'color';
 
 const iconSize = 22;
@@ -17,7 +17,6 @@ export default function OAuthButton({
 }) {
   const { colors } = useDesign();
   const stackApp = useStackApp();
-  const { Button } = useElements();
 
   let style : {
     backgroundColor: string,
@@ -122,7 +121,6 @@ export default function OAuthButton({
         <span style={{ flexGrow: 1 }}>{type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
         {<div style={{ visibility: 'hidden' }}>{style.icon}</div>}
       </div>
-      
     </Button>
   );
 }

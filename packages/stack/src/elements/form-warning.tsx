@@ -1,7 +1,6 @@
-import { useElements } from "@stackframe/stack-ui";
+import { Text } from "@stackframe/stack-ui";
 
 export function FormWarningText({ text }: { text?: string }) {
-  const { Text } = useElements();
   if (!text) {
     return null;
   }

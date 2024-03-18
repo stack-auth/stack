@@ -7,7 +7,7 @@ import Link, { LinkProps } from '../elements/link';
 import Label, { LabelProps } from '../elements/label';
 import Text, { TextProps } from '../elements/text';
 
-type Elements = {
+export type Elements = {
   Button: React.ElementType<ButtonProps>,
   Container: React.ElementType<ContainerProps>,
   Divider: React.ElementType<DividerProps>,
@@ -26,7 +26,7 @@ const ElementContext = createContext<Elements | undefined>(undefined);
 export function useElements() {
   const context = useContext(ElementContext);
   if (!context) {
-    throw new Error('useElements must be used within a ElementProvider');
+    throw new Error('Stack UI elements must be used within a StackUIProvider');
   }
   return context;
 }

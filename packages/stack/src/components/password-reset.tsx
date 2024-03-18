@@ -6,7 +6,7 @@ import { use } from "react";
 import PasswordResetInner from "../elements/password-reset-inner";
 import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { useElements } from "@stackframe/stack-ui";
+import { Text } from "@stackframe/stack-ui";
 
 const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyPasswordResetCode(code);
@@ -20,7 +20,6 @@ export default function PasswordReset({
   fullPage?: boolean, 
 }) {
   const stackApp = useStackApp();
-  const { Text } = useElements();
 
   const invalidJsx = (
     <MessageCard title="Invalid Password Reset Link" fullPage={fullPage}>

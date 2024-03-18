@@ -5,7 +5,7 @@ import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
-import { useElements } from "@stackframe/stack-ui";
+import { Button, Input, Label, Link } from "@stackframe/stack-ui";
 // Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
 
 export default function CredentialSignIn() {
@@ -15,7 +15,6 @@ export default function CredentialSignIn() {
   const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
   const app = useStackApp();
-  const { Button, Input, Label, Link } = useElements();
   
   const onSubmit = async () => {
     if (!email) {

@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  useDesign,
-  useElements
-} from '@stackframe/stack-ui';
+import { Button, Container, Divider, Input, Label, Link, Text, useDesign } from '@stackframe/stack-ui';
 import { useCurrentUI } from 'src/components/Provider';
 
 const text = "This is a test sentence. ";
@@ -11,15 +8,6 @@ const text = "This is a test sentence. ";
 export default function PageClient() {
   const { colors, setColorMode, colorMode } = useDesign();
   const [currentUI, setCurrentUI] = useCurrentUI();
-  const { 
-    Button,
-    Container,
-    Divider,
-    Input,
-    Label,
-    Link,
-    Text
-  } = useElements();
   
   return (
     <div style={{ backgroundColor: colors.primaryBgColor }}>
