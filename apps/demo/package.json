@@ -12,20 +12,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/joy": "5.0.0-beta.30",
+    "@stackframe/stack": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*",
+    "@stackframe/stack-ui-joy": "workspace:*",
     "next": "^14.1",
     "next-themes": "^0.2.1",
     "react": "^18.2",
-    "react-dom": "^18",
-    "@stackframe/stack": "workspace:*",
-    "@stackframe/stack-shared": "workspace:*"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.8",
     "autoprefixer": "^10.4.17",
-    "daisyui": "^4.7.2",
     "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "tailwindcss": "^3.4.1"
   }
 }

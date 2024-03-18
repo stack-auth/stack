@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTheme } from "next-themes";
 import { createContext, useContext, useEffect, useState } from "react";
+import { DEFAULT_COLORS } from '../utils/constants';
 
 type ColorPalette = {
   primaryColor: string,
@@ -51,23 +52,6 @@ const defaultBreakpoints: Breakpoints = {
   xl: 1536,
 };
 
-const defaultColors = ({
-  dark: {
-    primaryColor: '#570df8',
-    secondaryColor: '#bababa',
-    primaryBgColor: 'black',
-    secondaryBgColor: '#1f1f1f',
-    neutralColor: '#27272a',
-  },
-  light: {
-    primaryColor: '#570df8',
-    secondaryColor: '#bababa',
-    primaryBgColor: 'white',
-    secondaryBgColor: '#f5f5f5',
-    neutralColor: '#e4e4e7',
-  },
-} as const);
-
 export function hasCustomColorMode(config: DesignConfig): config is DesignConfig & { 
   colorMode: 'dark' | 'light', 
   setColorMode: (theme: 'dark' | 'light') => void,
@@ -79,7 +63,7 @@ function getColors(
   theme: 'dark' | 'light', 
   colors: { dark: Partial<ColorPalette>, light: Partial<ColorPalette> } | undefined,
 ): ColorPalette {
-  return { ...defaultColors[theme], ...colors?.[theme]};
+  return { ...DEFAULT_COLORS[theme], ...colors?.[theme]};
 }
 
 const useColorMode = (
