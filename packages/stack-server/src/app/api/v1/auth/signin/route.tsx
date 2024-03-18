@@ -4,7 +4,7 @@ import { ProjectIdOrKeyInvalidErrorCode, KnownError, UserNotExistErrorCode, Emai
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { encodeAccessToken } from "@/lib/access-token";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
@@ -21,7 +21,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const { 
     body: { 
       email,
@@ -31,7 +31,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId, 
       "x-stack-publishable-client-key": publishableClientKey 
     }
-  } = await parseRequest(req, postSchema);
+  } = await deprecatedParseRequest(req, postSchema);
 
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownError(ProjectIdOrKeyInvalidErrorCode);

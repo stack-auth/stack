@@ -16,11 +16,11 @@ export function isShallowEqual(a: readonly any[], b: readonly any[]): boolean {
   return true;
 }
 
-export function groupBy<T extends readonly any[], K>(
-  arr: T,
-  key: (item: T[number]) => K,
-): Map<K, T[number][]> {
-  const result = new Map<K, T[number][]>;
+export function groupBy<T extends any, K>(
+  arr: Iterable<T>,
+  key: (item: T) => K,
+): Map<K, T[]> {
+  const result = new Map<K, T[]>;
   for (const item of arr) {
     const k = key(item);
     if (result.get(k) === undefined) result.set(k, []);

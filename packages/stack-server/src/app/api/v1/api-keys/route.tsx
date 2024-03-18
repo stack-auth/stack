@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { parseRequest, smartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, createApiKeySet, listApiKeySets, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 
@@ -13,14 +13,14 @@ const getSchema = yup.object({
   }).required(),
 });
 
-export const GET = smartRouteHandler(async (req: NextRequest) => {
+export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: {
       "x-stack-project-id": projectId,
       "x-stack-super-secret-admin-key": superSecretAdminKey,
       "x-stack-admin-access-token": adminAccessToken,
     },
-  } = await parseRequest(req, getSchema);
+  } = await deprecatedParseRequest(req, getSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
     throw new StatusError(StatusError.Forbidden);
@@ -48,7 +48,7 @@ const postSchema = yup.object({
   }).required(),
 });
 
-export const POST = smartRouteHandler(async (req: NextRequest) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: {
       "x-stack-project-id": projectId,
@@ -62,7 +62,7 @@ export const POST = smartRouteHandler(async (req: NextRequest) => {
       hasSecretServerKey,
       hasSuperSecretAdminKey,
     },
-  } = await parseRequest(req, postSchema);
+  } = await deprecatedParseRequest(req, postSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
     throw new StatusError(StatusError.Forbidden, "Invalid API key");
