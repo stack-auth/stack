@@ -5,7 +5,7 @@ import Input from '../components/input';
 import Text from '../components/text';
 import Divider from '../components/divider';
 
-export const defaultElements = {
+export const defaultComponents = {
   Button,
   Input,
   Text,
