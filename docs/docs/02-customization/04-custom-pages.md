@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Custom Pages
 
-By default, `StackHandler` creates all pages you need. You can customize the [colors](/docs/02-customization/02-custom-colors) and [components](/docs/02-customization/03-custom-components) here. However, if you'd like full control of the layout and logic flow, you can always use our built-in components to build your own pages or use even star from strach using low-level functions. 
+By default, `StackHandler` creates all pages you need. You can customize the [colors](/docs/customization/custom-colors) and [components](/docs/customization/custom-components) here. However, if you'd like full control of the layout and logic flow, you can always use our built-in components to build your own pages or use even star from strach using low-level functions. 
 
 ## Simple Example
 
@@ -35,7 +35,7 @@ export const stackApp = new StackServerApp({
 
 You are now all set! If you visit the `/signin` page, you should see your custom sign in page. If your user visits a protected page or the old `/handler/signin` URL, they will be redirected to your new sign-in page.
 
-For more examples, please refer to the [Examples](/docs/category/examples).
+For more examples, please refer to the [Examples](/docs/category/page-examples).
 
 
 ## From scratch
@@ -78,4 +78,4 @@ As above, visit the `/signin` page to see your newly created custom OAuth page.
 
 ## Next steps
 
-Take a look at the [customization examples](/docs/category/examples) to see how to build custom pages for sign in, sign up, reset password, and more.
+Take a look at the [customization examples](/docs/category/page-examples) to see how to build custom pages for sign in, sign up, reset password, and more.

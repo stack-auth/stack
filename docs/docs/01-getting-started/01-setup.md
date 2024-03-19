@@ -55,7 +55,7 @@ npm install @stackframe/stack
     }
     ```
 
-    This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/advanced-guides/customization/overview) later.
+    This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/customization/overview) later.
 
 
 4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider`. Afterwards, it should look like this:
