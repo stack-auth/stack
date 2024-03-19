@@ -1,11 +1,11 @@
 ---
 sidebar_position: 1
-title: Customization Overview
+title: Overview
 ---
 
 # Customization Overview
 
-## Customization Methods
+## Methods
 
 Stack offers comprehensive customization options for its user interface, available across three levels:
 
@@ -19,8 +19,6 @@ These customization levels operate independently, allowing any combination of ad
 
 ## Design Principles
 
-Our customization system is guided by two main objectives:
+- **No global styles**: Our aim is for Stack to integrate smoothly with a range of UI libraries as well as with your existing applications. To achieve this, we avoid the use of global CSS or styles. Instead, we encapsulate all color and theme details within a React context. This approach ensures that you can effortlessly envelop the Stack provider with your own theme provider, guaranteeing a seamless integration.
 
-- **Compatibility**: Our aim is for Stack to integrate smoothly with a range of UI libraries as well as with your existing applications. To achieve this, we avoid the use of global CSS or styles. Instead, we encapsulate all color and theme details within a React context. This approach ensures that you can effortlessly envelop the Stack provider with your own theme provider, guaranteeing a seamless integration.
-
-- **Deep Customization**: We facilitate extensive customization through the provision of low-level functions and components that underpin our built-in components. These foundational components are modifiable via React context, ensuring that any adjustments automatically propagate to higher-level components. This methodology not only enables deep customization but also introduces a novel feature: the ability to dynamically alter the theme and even switch underlying UI libraries in real-time, on a per-component basis.
+- **Component-level customization**: We provide deep customization through allowing developers to replace the low-level components with their owns. These foundational components are modifiable via React context, ensuring that any adjustments automatically propagate to higher-level components. This methodology not only enables deep customization but also introduces a novel feature: the ability to dynamically alter the theme and even switch underlying UI libraries in real-time, on a per-component basis.
