@@ -4,8 +4,11 @@ sidebar_position: 1
 
 # Custom Pages
 
+By default, `StackHandler` creates all pages you need. You can customize the [colors](/docs/02-customization/02-custom-colors) and [components](/docs/02-customization/03-custom-components) here. However, if you'd like full control of the layout and logic flow, you can always use our built-in components to build your own pages or use even star from strach using low-level functions. 
 
-By default, `StackHandler` creates all pages you need. However, if you'd like a bit of additional control, you can always use our built-in components (such as `<SignIn />`) to build your own pages for all features. For example, if you have the following in `app/signin/page.tsx`:
+## Simple Example
+
+Let's say that you built a custom sign-in page like this in `app/signin/page.tsx`:
 
 ```tsx
 import { SignIn } from "@stackframe/stack";
