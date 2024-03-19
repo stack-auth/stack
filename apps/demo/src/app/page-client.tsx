@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStackApp, useUser } from '@stackframe/stack';
-import { Button } from '@stackframe/stack-ui';
+import { Button, Link, Text, useDesign } from '@stackframe/stack-ui';
 
 export default function PageClient() {
   const user = useUser();
@@ -21,8 +20,8 @@ export default function PageClient() {
     <div className='flex flex-col items-center justify-center h-full w-full gap-10'>
       {user ? (
         <div className='flex flex-col gap-5 justify-center items-center'>
-          <p className='text-lg'>Logged in as: <span className='font-bold'>{user.primaryEmail}</span></p>
-          <Link href={app.urls.signOut} className='text-blue-500'>
+          <Text size='lg'>Logged in as: <span className='font-bold'>{user.primaryEmail}</span></Text>
+          <Link href={app.urls.signOut}>
             Sign Out
           </Link>
         </div>

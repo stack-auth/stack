@@ -69,7 +69,7 @@ function getColors(
 const useColorMode = (
   props: DesignConfig, 
 ): ['dark' | 'light', (theme: 'dark' | 'light') => void] => {
-  const { theme: nextColorMode, setTheme: setNextColorMode } = useTheme();
+  const { resolvedTheme: nextColorMode, setTheme: setNextColorMode } = useTheme();
   const nextColorModeValue = nextColorMode === 'dark' ? 'dark' : 'light';
   if (hasCustomColorMode(props)) {
     return [
