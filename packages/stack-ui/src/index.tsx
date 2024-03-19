@@ -1,4 +1,4 @@
-import { createDynamicComponent } from './utils/dynamic-element';
+import { createDynamicComponent } from './utils/dynamic-component';
 import StaticButton from './components/button';
 import StaticContainer from './components/container';
 import StaticDivider from './components/divider';
@@ -8,7 +8,7 @@ import StaticLink from './components/link';
 import StaticText from './components/text';
 
 export { useDesign } from './providers/design-provider';
-export { useComponents } from './providers/element-provider';
+export { useComponents } from './providers/component-provider';
 export { StackUIProvider, ThemeConfig } from './providers/ui-provider';
 export { ButtonProps } from './components/button';
 export { ContainerProps } from './components/container';

@@ -1,1 +1,1 @@
-export { default as StackUIProvider } from './providers/provider';
+export { default as StackUIJoyProvider } from './providers/provider';

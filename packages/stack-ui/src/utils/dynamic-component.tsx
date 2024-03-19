@@ -1,7 +1,8 @@
 'use client';
-import { ComponentProps, createElement } from "react";
+
+import React, { ComponentProps, createElement } from "react";
 import { useComponents } from "..";
-import { Components } from "../providers/element-provider";
+import { Components } from "../providers/component-provider";
 
 export function createDynamicComponent<Component extends React.ElementType> (
   name: keyof Components

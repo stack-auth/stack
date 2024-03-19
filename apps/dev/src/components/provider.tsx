@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import { StackUIProvider } from "@stackframe/stack-ui";
-import { ThemeProvider as NextThemeProvider } from "next-themes";
-import StackUIJoyProvider from "@stackframe/stack-ui-joy/dist/providers/provider";
+import { StackUIJoyProvider } from "@stackframe/stack-ui-joy";
 
 type UI = 'default' | 'joy';
 const CurrentUIContext = React.createContext<[UI, React.Dispatch<React.SetStateAction<UI>>]>(['default', () => {}]);

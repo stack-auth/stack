@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext } from 'react';
 import Button, { ButtonProps } from '../components/button';
 import Container, { ContainerProps } from '../components/container';

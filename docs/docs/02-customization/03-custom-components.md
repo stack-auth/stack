@@ -90,6 +90,7 @@ If you use MUI Joy and want the Stack components to look consistent with MUI Joy
     import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
     import CssBaseline from '@mui/joy/CssBaseline';
     import { StackProvider } from "@stackframe/stack";
+    import { StackUIJoyProvider } from "@stackframe/stack-ui-joy";
     import Provider from "src/components/provider";
     import { stackServerApp } from "src/stack";
 

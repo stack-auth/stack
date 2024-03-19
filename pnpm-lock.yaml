@@ -352,6 +352,9 @@ importers:
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../stack-shared
+      '@stackframe/stack-ui-joy':
+        specifier: workspace:*
+        version: link:../stack-ui-joy
       '@types/mdx':
         specifier: ^2
         version: 2.0.11
