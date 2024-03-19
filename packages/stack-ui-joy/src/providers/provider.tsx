@@ -1,9 +1,9 @@
 import { StackUIProvider, ThemeConfig } from "@stackframe/stack-ui";
 import { useColorScheme } from "@mui/joy";
-import Button from '../elements/button';
-import Input from '../elements/input';
-import Text from '../elements/text';
-import Divider from '../elements/divider';
+import Button from '../components/button';
+import Input from '../components/input';
+import Text from '../components/text';
+import Divider from '../components/divider';
 
 export const defaultElements = {
   Button,
@@ -15,9 +15,9 @@ export const defaultElements = {
 export default function StackUIJoyProvider(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
   const { mode, setMode } = useColorScheme();
   const mergedTheme = {
-    elements: {
-      ...defaultElements,
-      ...props.theme?.elements,
+    components: {
+      ...defaultComponents,
+      ...props.theme?.components,
     },
     colorMode: mode,
     setColorMode: setMode,

@@ -2,11 +2,11 @@
 
 import React, { ComponentProps } from "react";
 import { StackDesignProvider, DesignConfig, hasCustomColorMode } from "./design-provider";
-import { StackElementProvider, ElementConfig } from "./element-provider";
+import { StackComponentProvider, ComponentConfig } from "./element-provider";
 import StyledComponentsRegistry from "./styled-components-registry";
 import { useTheme as useNextTheme, ThemeProvider as NextThemeProvider} from "next-themes";
 
-export type ThemeConfig = DesignConfig & ElementConfig;
+export type ThemeConfig = DesignConfig & ComponentConfig;
 
 export function StackUIProvider({
   theme,
@@ -14,11 +14,11 @@ export function StackUIProvider({
   colorModeConfig,
 } : { 
   children?: React.ReactNode,
-  theme?: DesignConfig & ElementConfig,
+  theme?: DesignConfig & ComponentConfig,
   colorModeConfig?: Omit<ComponentProps<typeof NextThemeProvider>, "themes" | "children">,
 }) {
   const { theme: nextTheme } = useNextTheme();
-  const elementProps = { elements: theme?.elements };
+  const componentProps = { components: theme?.components };
 
   const ColorModeProvider = !nextTheme ? NextThemeProvider : React.Fragment;
   const colorModeProps = !nextTheme ? colorModeConfig : {};
@@ -34,9 +34,9 @@ export function StackUIProvider({
     <ColorModeProvider {...colorModeProps}>
       <StyledComponentsRegistry>
         <StackDesignProvider {...designProps}>
-          <StackElementProvider {...elementProps}>
+          <StackComponentProvider {...componentProps}>
             {children}
-          </StackElementProvider>
+          </StackComponentProvider>
         </StackDesignProvider>
       </StyledComponentsRegistry>
     </ColorModeProvider>

@@ -1,13 +1,13 @@
 'use client';
 import { ComponentProps, createElement } from "react";
-import { useElements } from "..";
-import { Elements } from "../providers/element-provider";
+import { useComponents } from "..";
+import { Components } from "../providers/element-provider";
 
-export function createDynamicElement<Element extends React.ElementType> (
-  name: keyof Elements
+export function createDynamicComponent<Component extends React.ElementType> (
+  name: keyof Components
 ) {
-  return function DynamicElement (props: ComponentProps<Element>) {
-    const element = useElements()[name];
-    return createElement(element as Element, props);
+  return function DynamicComponent (props: ComponentProps<Component>) {
+    const component = useComponents()[name];
+    return createElement(component as Component, props);
   };
 }

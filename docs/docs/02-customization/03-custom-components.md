@@ -52,7 +52,7 @@ import CustomButton from "./your-custom-button-path";
 
 const theme = {
   // other theme configs
-  elements: {
+  components: {
     Button: CustomButton,
   }
 }
@@ -66,7 +66,7 @@ const theme = {
 
 Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack-ui`, it will also use your custom button component as well.
 
-Here is a list of low-level components that you can customize, started ones are the most used and recommended to customize first:
+Here is a list of low-level components that you can customize, stared ones are the most used and recommended to customize first:
 - Button ⭐
 - Container
 - Divider
