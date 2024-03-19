@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import { StackUIProvider } from "@stackframe/stack-ui";
-import { ThemeProvider as NextThemeProvider } from "next-themes";
 import StackUIJoyProvider from "@stackframe/stack-ui-joy/dist/providers/provider";
 
 type UI = 'default' | 'joy';

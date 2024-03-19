@@ -38,7 +38,8 @@ const theme = {
   }
 }
 
-// pass the theme as a prop to the StackUIProvider
+// ...
+
 <StackUIProvider theme={theme}>
   {/* children */}
 </StackUIProvider>
@@ -55,7 +56,8 @@ const colorModeConfig = {
   defaultTheme: 'dark',
 }
 
-// pass the colorModeConfig as a prop to the StackUIProvider
+// ...
+
 <StackUIProvider colorModeConfig={colorModeConfig}>
   {/* children */}
 </StackUIProvider>
@@ -68,12 +70,16 @@ If you also use next-themes in your app, you can just wrap the next-themes' `The
 ```jsx
 import { ThemeProvider } from 'next-themes'
 
+// ...
+
 <ThemeProvider {/* your next-themes config */}>
   <StackUIProvider>
     {/* children */}
   </StackUIProvider>
 </ThemeProvider>
 ```
+
+Note that Stack assumes the default `themes=['dark', 'light']` setting of next-themes. If you use a different set of themes, Stack might not work as expected.
 
 ### Using other theme providers
 
