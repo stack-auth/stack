@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Even though Stack provides beautiful components out of the box, sometimes you might want to achieve coherent visual across your whole website.Stack allow you to replace low-level components like button, input, and text, with your own custom components as long as the props are the same.  The high-level components like sign-in, sign-up, or oauth will automatically use the custom components. This is useful if you want to achieve deep customization. 
 
-We currently already implemented the support for MUI Joy for you, so you can use it directly with minimal setup (see [MUI Joy](#mui-joy-setup)). If you use other libraries or your own custom components, you can follow customizing components guide below.
+We currently already implemented the support for MUI Joy for you, so you can use it directly with minimal setup (see [MUI Joy](#mui-joy-setup)). Support of other common libraries like Chakra UI, Daisy UI, and Shadcn are comming soon. If you use the libraries that are currently not supported or you have your own custom components, you can follow customizing components guide below.
 
 ## Customizing Components
 
@@ -65,6 +65,15 @@ const theme = {
 ```
 
 Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack-ui`, it will also use your custom button component as well.
+
+Here is a list of low-level components that you can customize, started ones are the most used and recommended to customize first:
+- Button ⭐
+- Container
+- Divider
+- Input ⭐
+- Label
+- Link
+- Text ⭐
 
 ## MUI Joy setup
 
