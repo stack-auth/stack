@@ -27,11 +27,9 @@ function JoyProvider(props: any) {
 
 function DefaultProvider(props: any) {
   return (
-    <NextThemeProvider defaultTheme="system">
-      <StackUIProvider>
-        {props.children}
-      </StackUIProvider>
-    </NextThemeProvider>
+    <StackUIProvider>
+      {props.children}
+    </StackUIProvider>
   );
 }
 
