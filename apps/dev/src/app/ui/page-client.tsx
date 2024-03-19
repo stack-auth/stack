@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Container, Divider, Input, Label, Link, Text, useDesign } from '@stackframe/stack-ui';
-import { useCurrentUI } from 'src/components/Provider';
+import { useCurrentUI } from 'src/components/provider';
 
 const text = "This is a test sentence. ";
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { StackProvider } from "@stackframe/stack";
-import Provider from "src/components/Provider";
+import Provider from "src/components/provider";
 import { stackServerApp } from "src/stack";
 import './global.css';
 
