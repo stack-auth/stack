@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useStackApp, useUser } from '@stackframe/stack';
-import { Button, Link, Text, useDesign } from '@stackframe/stack-ui';
+import { Button, Link, Text } from '@stackframe/stack-ui';
 
 export default function PageClient() {
   const user = useUser();

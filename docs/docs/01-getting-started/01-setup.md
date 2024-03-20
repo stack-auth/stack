@@ -16,7 +16,7 @@ cd stack-example
 Once that's done, you can install Stack with npm or yarn:
 
 ```bash
-npm install @stackframe/stack
+npm install @stackframe/stack @stackframe/stack-ui
 ```
 
 ## Setup
@@ -58,11 +58,12 @@ npm install @stackframe/stack
     This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/customization/overview) later.
 
 
-4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider`. Afterwards, it should look like this:
+4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider` and `StackUIProvider`. Afterwards, it should look like this:
 
     ```tsx
     import React from "react";
     import { StackProvider } from "@stackframe/stack";
+    import { StackUIProvider } from "@stackframe/stack-ui";
     import { stackApp } from "@/lib/stack";
 
     export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -70,7 +71,9 @@ npm install @stackframe/stack
         <html lang="en">
           <body>
             <StackProvider app={stackApp}>
-              {children}
+              <StackUIProvider>
+                {children}
+              </StackUIProvider>
             </StackProvider>
           </body>
         </html>
