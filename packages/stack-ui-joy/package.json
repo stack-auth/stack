@@ -15,7 +15,7 @@
     "dist"
   ],
   "dependencies": {
-    "@stackframe/stack-ui": "^2.0.0",
+    "@stackframe/stack-ui": "2.0.0",
     "color": "^4.2.3",
     "styled-components": "^6.1.8"
   },
@@ -28,11 +28,6 @@
   },
   "devDependencies": {
     "@types/color": "^3.0.6",
-    "@types/react": "^18.2.66",
-    "@typescript-eslint/eslint-plugin": "^6",
-    "@typescript-eslint/parser": "^6.x",
-    "eslint": "^8",
-    "eslint-config-next": "^14",
-    "rimraf": "^5.0.5"
+    "@types/react": "^18.2.66"
   }
 }

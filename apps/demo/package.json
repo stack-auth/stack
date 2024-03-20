@@ -15,10 +15,10 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/joy": "5.0.0-beta.30",
-    "@stackframe/stack": "workspace:*",
-    "@stackframe/stack-shared": "workspace:*",
-    "@stackframe/stack-ui": "workspace:*",
-    "@stackframe/stack-ui-joy": "workspace:*",
+    "@stackframe/stack": "2.0.0",
+    "@stackframe/stack-shared": "2.0.0",
+    "@stackframe/stack-ui": "2.0.0",
+    "@stackframe/stack-ui-joy": "2.0.0",
     "next": "^14.1",
     "next-themes": "^0.2.1",
     "react": "^18.2",
@@ -28,10 +28,9 @@
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.8",
+    "@types/react-dom": "^18",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
-    "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1"
   }
 }

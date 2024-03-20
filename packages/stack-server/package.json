@@ -35,7 +35,7 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mdx-js/loader": "^3",
-    "@mdx-js/react": "^3",
+    "@mdx-js/react": "^3.0.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/joy": "5.0.0-beta.30",
     "@mui/material": "^5.15.7",
@@ -47,9 +47,8 @@
     "@react-email/components": "^0.0.14",
     "@react-email/render": "^0.0.12",
     "@react-email/tailwind": "^0.0.14",
-    "@stackframe/stack": "workspace:*",
-    "@stackframe/stack-shared": "workspace:*",
-    "@stackframe/stack-ui-joy": "workspace:*",
+    "@stackframe/stack": "2.0.0",
+    "@stackframe/stack-shared": "2.0.0",
     "@types/mdx": "^2",
     "bcrypt": "^5.1.1",
     "bright": "^0.8.4",
@@ -73,17 +72,10 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^20",
+    "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
-    "@typescript-eslint/eslint-plugin": "^6",
-    "@typescript-eslint/parser": "^6.x",
-    "eslint": "^8",
-    "eslint-config-next": "^14",
-    "prisma": "^5.9.1",
-    "rimraf": "^5.0.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3"
+    "prisma": "^5.9.1"
   }
 }
