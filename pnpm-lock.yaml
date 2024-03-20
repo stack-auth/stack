@@ -60,7 +60,7 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0(@emotion/react@11.11.3)(@types/react@18.2.66)(react@18.2.0)
       '@mui/joy':
-        specifier: 5.0.0-beta.30
+        specifier: ^5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack':
         specifier: workspace:*
@@ -118,7 +118,7 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0(@emotion/react@11.11.3)(@types/react@18.2.66)(react@18.2.0)
       '@mui/joy':
-        specifier: 5.0.0-beta.30
+        specifier: ^5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack':
         specifier: workspace:*
@@ -266,7 +266,7 @@ importers:
         specifier: ^5.15.10
         version: 5.15.10(@mui/material@5.15.7)(@types/react@18.2.66)(react@18.2.0)
       '@mui/joy':
-        specifier: 5.0.0-beta.30
+        specifier: ^5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@mui/material':
         specifier: ^5.15.7
@@ -452,7 +452,7 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0(@emotion/react@11.11.3)(@types/react@18.2.66)(react@18.2.0)
       '@mui/joy':
-        specifier: 5.0.0-beta.30
+        specifier: ^5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack-ui':
         specifier: workspace:*

@@ -1,3 +1,5 @@
+'use client';
+
 import { StackUIProvider, ThemeConfig } from "@stackframe/stack-ui";
 import { useColorScheme } from "@mui/joy";
 import Button from '../components/button';
