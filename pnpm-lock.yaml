@@ -63,16 +63,16 @@ importers:
         specifier: 5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack
       '@stackframe/stack-shared':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-shared
       '@stackframe/stack-ui':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-ui
       '@stackframe/stack-ui-joy':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-ui-joy
       next:
         specifier: ^14.1
@@ -121,16 +121,16 @@ importers:
         specifier: 5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack
       '@stackframe/stack-shared':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-shared
       '@stackframe/stack-ui':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-ui
       '@stackframe/stack-ui-joy':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../../packages/stack-ui-joy
       next:
         specifier: ^14.1
@@ -192,13 +192,13 @@ importers:
   packages/stack:
     dependencies:
       '@stackframe/stack-sc':
-        specifier: 1.2.1
+        specifier: workspace:*
         version: link:../stack-sc
       '@stackframe/stack-shared':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../stack-shared
       '@stackframe/stack-ui':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../stack-ui
       color:
         specifier: ^4.2.3
@@ -296,11 +296,14 @@ importers:
         specifier: ^0.0.14
         version: 0.0.14(react@18.2.0)
       '@stackframe/stack':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../stack
       '@stackframe/stack-shared':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../stack-shared
+      '@stackframe/stack-ui-joy':
+        specifier: workspace:*
+        version: link:../stack-ui-joy
       '@types/mdx':
         specifier: ^2
         version: 2.0.11
@@ -452,7 +455,7 @@ importers:
         specifier: 5.0.0-beta.30
         version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
       '@stackframe/stack-ui':
-        specifier: 2.0.0
+        specifier: workspace:*
         version: link:../stack-ui
       color:
         specifier: ^4.2.3

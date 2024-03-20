@@ -15,9 +15,9 @@
     "dist"
   ],
   "dependencies": {
-    "@stackframe/stack-sc": "1.2.1",
-    "@stackframe/stack-shared": "2.0.0",
-    "@stackframe/stack-ui": "2.0.0",
+    "@stackframe/stack-sc": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*",
     "color": "^4.2.3",
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
