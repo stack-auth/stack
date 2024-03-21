@@ -1,3 +1,5 @@
+'use client';
+
 import { useStackApp } from "../lib/hooks";
 import OAuthButton from "./oauth-button";
 

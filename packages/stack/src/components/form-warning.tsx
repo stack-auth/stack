@@ -1,6 +1,8 @@
+'use client';
+
 import { Text } from "../components-core";
 
-export function FormWarningText({ text }: { text?: string }) {
+export default function FormWarningText({ text }: { text?: string }) {
   if (!text) {
     return null;
   }

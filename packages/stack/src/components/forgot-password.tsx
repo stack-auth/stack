@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { FormWarningText } from "./form-warning";
+import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";

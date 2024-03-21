@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import { PasswordField } from "./password-field";
-import { FormWarningText } from "./form-warning";
+import PasswordField from "./password-field";
+import FormWarningText from "./form-warning";
 import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";

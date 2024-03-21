@@ -1,3 +1,5 @@
+'use client';
+
 import NextLink from "next/link";
 import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS } from "../utils/constants";
 import { Url } from "url";

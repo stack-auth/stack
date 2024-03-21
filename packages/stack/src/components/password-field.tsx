@@ -1,8 +1,10 @@
+'use client';
+
 import { Input } from "../components-core";;
 import { forwardRef, useRef, useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
-export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ id, name, ...props }, ref) => {
+const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ id, name, ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -61,3 +63,5 @@ export const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttribu
 });
 
 PasswordField.displayName = 'PasswordField';
+
+export default PasswordField;

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from "react";
-import { PasswordField } from "./password-field";
-import { FormWarningText } from "./form-warning";
+import PasswordField from "./password-field";
+import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";

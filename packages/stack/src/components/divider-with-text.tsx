@@ -1,4 +1,5 @@
 'use client';
+
 import { Divider, Text } from "../components-core";
 
 export default function DividerWithText({ text }: { text: string }) {

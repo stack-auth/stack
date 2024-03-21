@@ -1,4 +1,5 @@
 'use client';
+
 import { useRef, useEffect } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";

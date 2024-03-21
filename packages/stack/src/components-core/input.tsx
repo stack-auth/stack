@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { useDesign } from "../providers/design-provider";
 import styled from 'styled-components';

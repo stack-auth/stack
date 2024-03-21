@@ -1,12 +1,13 @@
+'use client';
+
 import { useState } from "react";
-import { FormWarningText } from "./form-warning";
-import { PasswordField } from "./password-field";
+import FormWarningText from "./form-warning";
+import PasswordField from "./password-field";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { Button, Input, Label, Link } from "../components-core";
-// Import or define the PasswordField, FormWarningText, and validateEmail utilities if they're custom components or functions.
 
 export default function CredentialSignIn() {
   const [email, setEmail] = useState('');
