@@ -35,9 +35,9 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mdx-js/loader": "^3",
-    "@mdx-js/react": "^3",
+    "@mdx-js/react": "^3.0.0",
     "@mui/icons-material": "^5.15.10",
-    "@mui/joy": "5.0.0-beta.30",
+    "@mui/joy": "^5.0.0-beta.30",
     "@mui/material": "^5.15.7",
     "@mui/x-data-grid": "^6.19.3",
     "@next/bundle-analyzer": "^14.0.3",
@@ -59,7 +59,7 @@
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",
     "pg": "^8.11.3",
-    "react": "^18",
+    "react": "^18.2",
     "react-dom": "^18",
     "react-email": "2.1.0",
     "rehype-katex": "^7",
@@ -72,17 +72,10 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^20",
+    "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.2.60",
+    "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
-    "@typescript-eslint/eslint-plugin": "^6",
-    "@typescript-eslint/parser": "^6.x",
-    "eslint": "^8",
-    "eslint-config-next": "^14",
-    "prisma": "^5.9.1",
-    "rimraf": "^5.0.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3"
+    "prisma": "^5.9.1"
   }
 }

@@ -1,6 +1,8 @@
+import React from "react";
 import { StackProvider } from "@stackframe/stack";
+import Provider from "src/components/provider";
 import { stackServerApp } from "src/stack";
-import Provider from "src/components/Provider";
+import './global.css';
 
 
 export default function RootLayout({
@@ -12,9 +14,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body>
-        <StackProvider
-          app={stackServerApp}
-        >
+        <StackProvider app={stackServerApp}>
           <Provider>
             {children}
           </Provider>

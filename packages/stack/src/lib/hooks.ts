@@ -1,5 +1,5 @@
 import { CurrentUser, GetUserOptions, StackClientApp } from "./stack-app";
-import { StackContext } from "../providers/StackProviderClient";
+import { StackContext } from "../providers/stack-provider-client";
 import { useContext } from "react";
 
 /**

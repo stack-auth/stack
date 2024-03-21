@@ -13,7 +13,7 @@ npx create-next-app@latest --app stack-example
 cd stack-example
 ```
 
-Once that's done, you can install Stack with npm or yarn:
+Once that's done, you can install Stack with npm, yarn, or pnpm:
 
 ```bash
 npm install @stackframe/stack
@@ -55,14 +55,14 @@ npm install @stackframe/stack
     }
     ```
 
-    This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/advanced-guides/customization/overview) later.
+    This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/customization/overview) later.
 
 
-4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider`. Afterwards, it should look like this:
+4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider` and `StackTheme`. Afterwards, it should look like this:
 
     ```tsx
     import React from "react";
-    import { StackProvider } from "@stackframe/stack";
+    import { StackProvider, StackTheme } from "@stackframe/stack";
     import { stackApp } from "@/lib/stack";
 
     export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -70,7 +70,9 @@ npm install @stackframe/stack
         <html lang="en">
           <body>
             <StackProvider app={stackApp}>
-              {children}
+              <StackTheme>
+                {children}
+              </StackTheme>
             </StackProvider>
           </body>
         </html>

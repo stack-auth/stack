@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { stackServerApp } from 'src/stack';
-import ColorModeButton from 'src/components/ColorThemeButton';
-import SignOutButton from 'src/components/SignOutButton';
-import UserInfo from 'src/components/UserInfo';
-import UserInfoClient from 'src/components/UserInfoClient';
+import ColorModeButton from 'src/components/color-mode-button';
+import SignOutButton from 'src/components/sign-out-button';
+import UserInfo from 'src/components/user-info';
+import UserInfoClient from 'src/components/user-info-client';
 
 export default async function Page() {
   return (
@@ -37,6 +37,9 @@ export default async function Page() {
       </Link>
       <Link href="/protected-server">
         Protected server
+      </Link>
+      <Link href="/ui">
+        UI test page
       </Link>
     </div>
   );

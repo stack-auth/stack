@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { StackProvider } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
-import Provider from "src/components/Provider";
-import ColorMode from "src/components/ColorMode";
+import Provider from "src/components/provider";
+import Header from "src/components/header";
 import './global.css';
 
 export const metadata: Metadata = {
@@ -24,13 +24,10 @@ export default function RootLayout({
           app={stackServerApp}
         >
           <Provider>
-            <div className="sticky top-0 z-50 p-4 h-12 flex justify-between items-center py-4 border-b border-base-300 bg-base-100">
-              <Link href="/" className="font-bold">
-                Stack Demo
-              </Link>
-              <ColorMode />
+            <Header />
+            <div className="absolute top-12 left-0 right-0 bottom-0 overflow-auto">
+              {children}
             </div>
-            {children}
           </Provider>
         </StackProvider>
       </body>
