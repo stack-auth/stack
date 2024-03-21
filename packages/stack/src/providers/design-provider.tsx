@@ -8,8 +8,7 @@ import { DEFAULT_COLORS } from '../utils/constants';
 type ColorPalette = {
   primaryColor: string,
   secondaryColor: string,
-  primaryBgColor: string,
-  secondaryBgColor: string,
+  backgroundColor: string,
   neutralColor: string,
 };
 

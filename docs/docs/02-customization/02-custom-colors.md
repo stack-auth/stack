@@ -13,8 +13,7 @@ There are five variables that you can override:
 - `primaryColor`: The primary color used for components like button with primary variant.
 - `secondaryColor`: The secondary color used for components like button with secondary variant.
 - `neutralColor`: The color used for dividers and borders.
-- `primaryBgColor`: The background color of your the main content area, should be the same the color of your `body` element.
-- `secondaryBgColor`: The background color of things like cards and modals.
+- `backgroundColor`: The background color of your the main content area, should be the same the color of your `body` element.
 
 These colors can be different for light and dark mode. You can pass these into the `StackTheme` component (in your `layout.tsx` file if you followed the get started guide) as follows:
 
@@ -24,15 +23,13 @@ const theme = {
     light: {
       primaryColor: '#570df8',
       secondaryColor: '#e0e0e0',
-      primaryBgColor: 'white',
-      secondaryBgColor: '#474747',
+      backgroundColor: 'white',
       neutralColor: '#e4e4e7',
     },
     dark: {
       primaryColor: '#570df8',
       secondaryColor: '#404040',
-      primaryBgColor: 'black',
-      secondaryBgColor: '#1f1f1f',
+      backgroundColor: 'black',
       neutralColor: '#27272a',
     },
   }

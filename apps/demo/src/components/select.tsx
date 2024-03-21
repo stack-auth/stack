@@ -34,7 +34,7 @@ const Select = ({ options, ...props }) => {
   const { colors } = useDesign();
   return (
     <SelectWrapper>
-      <StyledSelect {...props} bgColor={colors.primaryBgColor} borderColor={colors.neutralColor}>
+      <StyledSelect {...props} bgColor={colors.backgroundColor} borderColor={colors.neutralColor}>
         {options.map(option => (
           <StyledOption key={option.value} value={option.value}>
             {option.label}

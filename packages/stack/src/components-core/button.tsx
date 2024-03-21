@@ -6,14 +6,14 @@ import Color from 'color';
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";
 
-function getColors(color: string, primaryBgColor: string): { 
+function getColors(color: string, backgroundColor: string): { 
   bgColor: string, 
   hoverBgColor: string,
   activeBgColor: string,
   textColor: string,
 } {
   const c = Color(color);
-  const pc = Color(primaryBgColor);
+  const pc = Color(backgroundColor);
 
   const changeColor = (value: number) => {
     return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
@@ -127,7 +127,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     if (props.color) {
       bgColor = props.color;
     }
-    const buttonColors = getColors(bgColor, colors.primaryBgColor);
+    const buttonColors = getColors(bgColor, colors.backgroundColor);
   
     return (
       <StyledButton

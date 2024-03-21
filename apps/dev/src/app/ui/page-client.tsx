@@ -10,7 +10,7 @@ export default function PageClient() {
   const [currentUI, setCurrentUI] = useCurrentUI();
   
   return (
-    <div style={{ backgroundColor: colors.primaryBgColor }}>
+    <div style={{ backgroundColor: colors.backgroundColor }}>
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
           <select value={currentUI} onChange={e => setCurrentUI(e.target.value as 'default' | 'joy')}>

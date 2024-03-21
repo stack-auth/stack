@@ -8,15 +8,13 @@ export const DEFAULT_COLORS = ({
   dark: {
     primaryColor: '#570df8',
     secondaryColor: '#404040',
-    primaryBgColor: 'black',
-    secondaryBgColor: '#1f1f1f',
+    backgroundColor: 'black',
     neutralColor: '#27272a',
   },
   light: {
     primaryColor: '#570df8',
     secondaryColor: '#e0e0e0',
-    primaryBgColor: 'white',
-    secondaryBgColor: '#474747',
+    backgroundColor: 'white',
     neutralColor: '#e4e4e7',
   },
 } as const);
