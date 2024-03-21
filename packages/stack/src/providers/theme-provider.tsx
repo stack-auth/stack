@@ -28,7 +28,7 @@ export function StackTheme({
     let { colorMode, setColorMode } = theme;
     designProps = { colorMode, setColorMode };
   }
-  designProps = designProps || {breakpoints: theme?.breakpoints, colors: theme?.colors};
+  designProps = { breakpoints: theme?.breakpoints, colors: theme?.colors, ...designProps };
 
   return (
     <ColorModeProvider {...colorModeProps}>

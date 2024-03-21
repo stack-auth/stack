@@ -30,8 +30,8 @@ type DesignContextValue = {
 
 export type DesignConfig = {
   colors?: {
-    dark: Partial<ColorPalette>,
-    light: Partial<ColorPalette>,
+    dark?: Partial<ColorPalette>,
+    light?: Partial<ColorPalette>,
   },
   breakpoints?: Partial<Breakpoints>,
 } & (
@@ -61,9 +61,12 @@ export function hasCustomColorMode(config: DesignConfig): config is DesignConfig
 
 function getColors(
   theme: 'dark' | 'light', 
-  colors: { dark: Partial<ColorPalette>, light: Partial<ColorPalette> } | undefined,
+  colors: { dark?: Partial<ColorPalette>, light?: Partial<ColorPalette> } | undefined,
 ): ColorPalette {
-  return { ...DEFAULT_COLORS[theme], ...colors?.[theme]};
+  return {
+    dark: { ...DEFAULT_COLORS.dark, ...colors?.dark },
+    light: { ...DEFAULT_COLORS.light, ...colors?.light },
+  }[theme];
 }
 
 const useColorMode = (
