@@ -1,5 +1,12 @@
 # demo-app
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.1.1
+
 ## 1.0.6
 
 ### Patch Changes
