@@ -10,7 +10,6 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<Reac
 const StyledInput = styled.input<{
   $borderColor: string,
   $focusShadowColor: string,
-  $backgroundColor: string,
   $textColor: string,
   $placeholderColor: string,
   $fileSelectorColor: string,
@@ -20,9 +19,9 @@ const StyledInput = styled.input<{
   font-size: ${FONT_SIZES.md};
   height: 2.5rem;
   border-radius: ${BORDER_RADIUS};
+  background-color: transparent;
   border: 1px solid;
   border-color: ${props => props.$borderColor};
-  background-color: ${props => props.$backgroundColor};
   padding: 0rem 1rem;
   color: ${props => props.$textColor};
   &::placeholder {
@@ -55,7 +54,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <StyledInput
         ref={ref}
-        $backgroundColor={colors.primaryBgColor}
         $borderColor={colors.neutralColor}
         $placeholderColor={SECONDARY_FONT_COLORS[colorMode]}
         $textColor={PRIMARY_FONT_COLORS[colorMode]}
