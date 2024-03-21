@@ -1,5 +1,13 @@
 # demo-app
 
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies [9e9907f]
+  - @stackframe/stack-shared@2.1.0
+  - @stackframe/stack@2.1.0
+
 ## 1.0.5
 
 ### Patch Changes

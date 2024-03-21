@@ -1,5 +1,17 @@
 # @stackframe/stack
 
+## 2.1.0
+
+### Minor Changes
+
+- 9e9907f: Added new stack UI system
+
+### Patch Changes
+
+- Updated dependencies [9e9907f]
+  - @stackframe/stack-shared@2.1.0
+  - @stackframe/stack-sc@1.3.0
+
 ## 2.0.0
 
 ### Major Changes
