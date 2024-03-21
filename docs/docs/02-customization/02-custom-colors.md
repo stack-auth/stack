@@ -1,9 +1,9 @@
 ---
 sidebar_position: 1
-title: Custom Colors
+title: Colors & Color Mode
 ---
 
-# Custom Colors and Color Mode
+# Colors and Color Mode
 
 ## Color Scheme
 
@@ -45,7 +45,45 @@ const theme = {
 </StackTheme>
 ```
 
+To get the current color scheme, you can use the `useDesign` hook. This hook will return `colors` object which contains the current color scheme respecting the color mode. Here is an example of a custom rectangle component that uses the color scheme:
+
+```jsx
+'use client';
+import { useDesign } from '@stackframe/stack';
+
+export default function Rectangle() {
+  const { colors } = useDesign();
+  return (
+    <div
+      style={{
+        width: 100,
+        height: 100,
+        backgroundColor: colors.primaryColor,
+      }}
+    />
+  );
+}
+```
+
+
 ## Color Mode
+
+To get the current color mode or change it, you can use the `useDesign` hook. This hook will return `colorMode` and `setColorMode` functions. Here is an example of how you can build a color mode switcher:
+
+```jsx
+'use client';
+import { Button, useDesign } from '@stackframe/stack'
+
+export default function ColorModeSwitcher() {
+  const { colorMode, setColorMode } = useDesign()
+  return (
+    <Button onClick={() => setColorMode(colorMode === 'light' ? 'dark' : 'light')}>
+      {colorMode === 'light' ? 'Dark' : 'Light'} Mode
+    </Button>
+  )
+}
+```
+
 
 ### Color Mode Configs
 
