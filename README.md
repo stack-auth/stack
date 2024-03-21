@@ -23,6 +23,8 @@ Here is an example of the sign-up page you get out of the box:
 - Easy to set up with proxied providers (no need to sign up and create OAuth endpoints yourself on all the providers)
 - User management & analytics
 - User-associated metadata with client-/server-specific permissions
+- Out-of-the-box Dark/Light mode support
+- suports switching out the underlying UI library, support MUI Joy out of the box
 - **100% open-source!**
 
 Currently, only Next.js is supported, but we are working on adding other frameworks.
@@ -37,7 +39,7 @@ We all know how much overhead there is when starting a new project. Developers n
 - More pre-built UI components (user profile display/edit, onboarding page)
 - Fraud/bot prevention
 - Feature-rich email/notification system
-- Cross-platform/UI library/language supports
+- Cross-platform/language supports
 
 ## Installation
 
