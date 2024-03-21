@@ -44,7 +44,7 @@ export default function CustomButton({
 }
 ```
 
-Then you can pass the custom button to the `StackUIProvider` (if you followed the get started guide, you can find it in your `layout.tsx` file) as follows:
+Then you can pass the custom button to the `StackTheme` (if you followed the get started guide, you can find it in your `layout.tsx` file) as follows:
 
 ```jsx
 //...
@@ -59,9 +59,9 @@ const theme = {
 
 //...
 
-<StackUIProvider theme={theme}>
+<StackTheme theme={theme}>
   {/* children */}
-</StackUIProvider>
+</StackTheme>
 ```
 
 Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack`, it will also use your custom button component as well.
@@ -79,12 +79,12 @@ Here is a list of low-level components that you can customize, stared ones are t
 
 If you use MUI Joy and want the Stack components to look consistent with MUI Joy, you can follow the following steps:
 
-Replace `StackUIProvider` with `StackUIJoyProvider`, and put it inside your `CssVarsProvider` from Joy UI. Your `layout.tsx` file should look like this:
+Replace `StackTheme` with `StackJoyTheme`, and put it inside your `CssVarsProvider` from Joy UI. Your `layout.tsx` file should look like this:
     ```jsx
     import React from "react";
     import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
     import CssBaseline from '@mui/joy/CssBaseline';
-    import { StackProvider, StackUIJoyProvider } from "@stackframe/stack";
+    import { StackProvider, StackJoyTheme } from "@stackframe/stack";
     import Provider from "src/components/provider";
     import { stackServerApp } from "src/stack";
 
@@ -98,9 +98,9 @@ Replace `StackUIProvider` with `StackUIJoyProvider`, and put it inside your `Css
             <StackProvider app={stackServerApp}>
               <CssVarsProvider defaultMode="system">
                 <CssBaseline />
-                <StackUIJoyProvider>
+                <StackJoyTheme>
                   {props.children}
-                </StackUIJoyProvider>
+                </StackJoyTheme>
               </CssVarsProvider>
             </StackProvider>
           </body>
@@ -109,6 +109,6 @@ Replace `StackUIProvider` with `StackUIJoyProvider`, and put it inside your `Css
     }
     ```
 
-    Now your Stack components will look consistent with MUI Joy. Note it is important that `StackUIJoyProvider` is inside `CssVarsProvider`. It uses the color mode from `CssVarsProvider` to automatically.
+    Now your Stack components will look consistent with MUI Joy. Note it is important that `StackJoyTheme` is inside `CssVarsProvider`. It uses the color mode from `CssVarsProvider` to automatically.
 
     If you need more information about MUI Joy setup, you can check out the [Joy UI Next.js integration docs](https://mui.com/joy/getting-started/installation/).

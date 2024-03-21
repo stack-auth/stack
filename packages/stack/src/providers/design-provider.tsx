@@ -119,7 +119,7 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
 export function useDesign(): DesignContextValue {
   const context = useContext(DesignContext);
   if (!context) {
-    throw new Error("useDesign must be used within a StackUIProvider");
+    throw new Error("useDesign must be used within a StackTheme");
   }
   return context;
 }

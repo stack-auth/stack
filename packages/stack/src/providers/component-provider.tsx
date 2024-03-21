@@ -28,7 +28,7 @@ const ComponentContext = createContext<Components | undefined>(undefined);
 export function useComponents() {
   const context = useContext(ComponentContext);
   if (!context) {
-    throw new Error('Stack UI components must be used within a StackUIProvider');
+    throw new Error('Stack UI components must be used within a StackTheme');
   }
   return context;
 }

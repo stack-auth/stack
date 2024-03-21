@@ -1,6 +1,6 @@
 'use client';
 
-import { StackUIProvider, ThemeConfig } from "../providers/ui-provider";
+import { StackTheme, ThemeConfig } from "../providers/ui-provider";
 import { useColorScheme } from "@mui/joy";
 import Button from '../components-core-joy/button';
 import Input from '../components-core-joy/input';
@@ -14,7 +14,7 @@ export const defaultComponents = {
   Divider
 };
 
-export function StackUIJoyProvider(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
+export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
   const { mode, setMode } = useColorScheme();
   const mergedTheme = {
     components: {
@@ -27,8 +27,8 @@ export function StackUIJoyProvider(props : { theme?: ThemeConfig, children?: Rea
   };
 
   return (
-    <StackUIProvider theme={mergedTheme}>
+    <StackTheme theme={mergedTheme}>
       {props.children}
-    </StackUIProvider>
+    </StackTheme>
   );
 }

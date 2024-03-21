@@ -1,13 +1,13 @@
 import { StackProvider } from "@stackframe/stack";
 import { stackServerApp } from "@/stack";
-import { StackUIJoyProvider } from "@stackframe/stack";
+import { StackJoyTheme } from "@stackframe/stack";
 
 export default function Layout(props: { children: React.ReactNode }) {
   return (
     <StackProvider app={stackServerApp}>
-      <StackUIJoyProvider>
+      <StackJoyTheme>
         {props.children}
-      </StackUIJoyProvider>
+      </StackJoyTheme>
     </StackProvider>
   );
 }

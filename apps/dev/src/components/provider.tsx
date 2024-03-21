@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
-import { StackUIProvider, StackUIJoyProvider } from "@stackframe/stack";
+import { StackTheme, StackJoyTheme } from "@stackframe/stack";
 
 type UI = 'default' | 'joy';
 const CurrentUIContext = React.createContext<[UI, React.Dispatch<React.SetStateAction<UI>>]>(['default', () => {}]);
@@ -16,18 +16,18 @@ function JoyProvider(props: any) {
   return (
     <CssVarsProvider defaultMode="system">
       <CssBaseline />
-      <StackUIJoyProvider>
+      <StackJoyTheme>
         {props.children}
-      </StackUIJoyProvider>
+      </StackJoyTheme>
     </CssVarsProvider>
   );
 }
 
 function DefaultProvider(props: any) {
   return (
-    <StackUIProvider>
+    <StackTheme>
       {props.children}
-    </StackUIProvider>
+    </StackTheme>
   );
 }
 

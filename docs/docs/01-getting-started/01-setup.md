@@ -58,11 +58,11 @@ npm install @stackframe/stack
     This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/customization/overview) later.
 
 
-4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider` and `StackUIProvider`. Afterwards, it should look like this:
+4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider` and `StackTheme`. Afterwards, it should look like this:
 
     ```tsx
     import React from "react";
-    import { StackProvider, StackUIProvider } from "@stackframe/stack";
+    import { StackProvider, StackTheme } from "@stackframe/stack";
     import { stackApp } from "@/lib/stack";
 
     export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -70,9 +70,9 @@ npm install @stackframe/stack
         <html lang="en">
           <body>
             <StackProvider app={stackApp}>
-              <StackUIProvider>
+              <StackTheme>
                 {children}
-              </StackUIProvider>
+              </StackTheme>
             </StackProvider>
           </body>
         </html>

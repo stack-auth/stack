@@ -12,6 +12,6 @@ export { default as ForgotPassword } from "./components-page/forgot-password";
 
 export { useDesign } from './providers/design-provider';
 export { useComponents } from './providers/component-provider';
-export { StackUIProvider, ThemeConfig } from './providers/ui-provider';
-export { StackUIJoyProvider } from './providers/joy-provider';
+export { StackTheme, ThemeConfig } from './providers/ui-provider';
+export { StackJoyTheme } from './providers/joy-provider';
 export * from './components-core';

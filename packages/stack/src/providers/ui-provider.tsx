@@ -8,7 +8,7 @@ import { useTheme as useNextTheme, ThemeProvider as NextThemeProvider} from "nex
 
 export type ThemeConfig = DesignConfig & ComponentConfig;
 
-export function StackUIProvider({
+export function StackTheme({
   theme,
   children,
   colorModeConfig,
