@@ -1,38 +1,57 @@
 'use client';
 
-import ForgotPasswordElement from "../elements/forgot-password";
-import CardFrame from "../elements/card-frame";
-import CardHeader from "../elements/card-header";
-import { useUser, useStackApp } from "..";
-import RedirectMessageCard from "../elements/redirect-message-card";
 import { useState } from "react";
-import { Link, Text } from "@stackframe/stack-ui";
+import { FormWarningText } from "./form-warning";
+import { validateEmail } from "../utils/email";
+import { useStackApp } from "..";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Button, Input, Label } from "../components-core";
 
 
-export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
+export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [sending, setSending] = useState(false);
   const stackApp = useStackApp();
-  const user = useUser();
-  const [sent, setSent] = useState(false);
+  
+  const onSubmit = async () => {
+    if (!email) {
+      setEmailError('Please enter your email');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      return;
+    }
+    setSending(true);
+    await stackApp.sendForgotPasswordEmail(email);
+    setSending(false);
 
-  if (user) {
-    return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
-  }
-
-  if (sent) {
-    return <RedirectMessageCard type='emailSent' fullPage={fullPage} />;
-  }
+    onSent?.();
+  };
 
   return (
-    <CardFrame fullPage={fullPage}>
-      <CardHeader title="Reset Your Password">
-        <Text>
-          {"Don't need to reset? "}
-          <Link href={stackApp.urls['signUp']}>
-            Sign In
-          </Link>
-        </Text>
-      </CardHeader>
-      <ForgotPasswordElement onSent={() => setSent(true)} />
-    </CardFrame>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <Label htmlFor="email">Your Email</Label>
+      <Input
+        id="email"
+        type="email"
+        name="email"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setEmailError('');
+        }}
+      />
+      <FormWarningText text={emailError} />
+
+      <Button
+        style={{ marginTop: '1.5rem'}}
+        onClick={() => runAsynchronously(onSubmit())}
+        loading={sending}
+      >
+          Send Email
+      </Button>
+    </div>
   );
-};
+}

@@ -1,5 +1,5 @@
 'use client';
-import { Button, useDesign } from "@stackframe/stack-ui";
+import { Button, useDesign } from "@stackframe/stack";
 
 export default function ColorMode() {
   const {colorMode, setColorMode} = useDesign();

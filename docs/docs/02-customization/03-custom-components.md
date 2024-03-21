@@ -15,7 +15,7 @@ Here is an example of how you can customize the button component. For demostrati
 ```jsx
 'use client';
 
-import { ButtonProps, useDesign } from "@stackframe/stack-ui";
+import { ButtonProps, useDesign } from "@stackframe/stack";
 
 export default function CustomButton({
   variant = "primary",
@@ -47,7 +47,7 @@ export default function CustomButton({
 Then you can pass the custom button to the `StackUIProvider` (if you followed the get started guide, you can find it in your `layout.tsx` file) as follows:
 
 ```jsx
-import { StackUIProvider } from "@stackframe/stack-ui";
+//...
 import CustomButton from "./your-custom-button-path";
 
 const theme = {
@@ -64,7 +64,7 @@ const theme = {
 </StackUIProvider>
 ```
 
-Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack-ui`, it will also use your custom button component as well.
+Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack`, it will also use your custom button component as well.
 
 Here is a list of low-level components that you can customize, stared ones are the most used and recommended to customize first:
 - Button ⭐
@@ -79,18 +79,12 @@ Here is a list of low-level components that you can customize, stared ones are t
 
 If you use MUI Joy and want the Stack components to look consistent with MUI Joy, you can follow the following steps:
 
-1. Install `stack-ui-joy`:
-    ```bash
-    npm install @stackframe/stack-ui-joy
-    ```
-
-2. Replace `StackUIProvider` with `StackUIJoyProvider`, and put it inside your `CssVarsProvider` from Joy UI. Your `layout.tsx` file should look like this:
+Replace `StackUIProvider` with `StackUIJoyProvider`, and put it inside your `CssVarsProvider` from Joy UI. Your `layout.tsx` file should look like this:
     ```jsx
     import React from "react";
     import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
     import CssBaseline from '@mui/joy/CssBaseline';
-    import { StackProvider } from "@stackframe/stack";
-    import { StackUIJoyProvider } from "@stackframe/stack-ui-joy";
+    import { StackProvider, StackUIJoyProvider } from "@stackframe/stack";
     import Provider from "src/components/provider";
     import { stackServerApp } from "src/stack";
 

@@ -17,17 +17,25 @@
   "dependencies": {
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
-    "@stackframe/stack-ui": "workspace:*",
     "color": "^4.2.3",
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
     "server-only": "^0.0.1",
-    "tailwindcss-scoped-preflight": "^2.1.0"
+    "tailwindcss-scoped-preflight": "^2.1.0",
+    "@radix-ui/react-label": "^2.0.2",
+    "next-themes": "^0.2.1",
+    "styled-components": "^6.1.8"
   },
   "peerDependencies": {
     "next": "^14.1",
-    "react": "^18.2"
+    "react": "^18.2",
+    "@mui/joy": "^5.0.0-beta.30"
+  },
+  "peerDependenciesMeta": {
+    "@mui/joy": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/color": "^3.0.6",

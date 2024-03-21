@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { IoIosArrowDown } from 'react-icons/io';
-import { useDesign } from '@stackframe/stack-ui';
+import { useDesign } from '@stackframe/stack';
 
 const SelectWrapper = styled.div`
   position: relative;

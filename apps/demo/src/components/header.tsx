@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useDesign } from "@stackframe/stack-ui";
+import { useDesign } from "@stackframe/stack";
 import ColorMode from "./color-mode";
 import Select from "./select";
 import { useCurrentUI } from "./provider";

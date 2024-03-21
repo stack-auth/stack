@@ -13,10 +13,10 @@ npx create-next-app@latest --app stack-example
 cd stack-example
 ```
 
-Once that's done, you can install Stack with npm or yarn:
+Once that's done, you can install Stack with npm, yarn, or pnpm:
 
 ```bash
-npm install @stackframe/stack @stackframe/stack-ui
+npm install @stackframe/stack
 ```
 
 ## Setup
@@ -62,8 +62,7 @@ npm install @stackframe/stack @stackframe/stack-ui
 
     ```tsx
     import React from "react";
-    import { StackProvider } from "@stackframe/stack";
-    import { StackUIProvider } from "@stackframe/stack-ui";
+    import { StackProvider, StackUIProvider } from "@stackframe/stack";
     import { stackApp } from "@/lib/stack";
 
     export default function RootLayout({ children }: { children: React.ReactNode }) {
