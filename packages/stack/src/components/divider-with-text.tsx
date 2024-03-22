@@ -8,7 +8,7 @@ export default function DividerWithText({ text }: { text: string }) {
       <div style={{ flex: 1 }}>
         <Divider />
       </div>
-      <Text style={{ padding: '0 16px' }} variant="secondary">{text}</Text>
+      <Text style={{ padding: '0 16px' }} variant="secondary" size='sm'>{text}</Text>
       <div style={{ flex: 1 }}>
         <Divider />
       </div>
