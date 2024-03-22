@@ -28,10 +28,8 @@ export default function CardFrame({
         alignItems: 'center', 
         justifyContent: 'center' 
       }}>
-        <Container size='xs'>
-          <Card>
-            {children}
-          </Card>
+        <Container size={350}>
+          {children}
         </Container>
       </div>
     );
