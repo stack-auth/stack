@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.1.2
+
+### Patch Changes
+
+- 2eda71b: Fixed UI bugs
+
 ## 2.1.1
 
 ### Patch Changes

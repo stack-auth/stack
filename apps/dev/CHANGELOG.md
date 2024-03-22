@@ -1,5 +1,12 @@
 # dev-app
 
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies [2eda71b]
+  - @stackframe/stack@2.1.2
+
 ## 1.0.7
 
 ### Patch Changes
