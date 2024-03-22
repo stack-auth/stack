@@ -8,7 +8,7 @@ import FormWarningText from "./form-warning";
 import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";
-import { Button, CardHeader, Label, Text } from "../components-core";
+import { Button, Label, Text } from "../components-core";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
@@ -69,10 +69,10 @@ export default function PasswordResetInner(
 
   return (
     <CardFrame fullPage={fullPage}>
-      <CardHeader style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <Text size="xl" as='h2'>Reset Your Password</Text>
-      </CardHeader>
-      
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         <Label htmlFor="password">New Password</Label>
         <PasswordField

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, Container } from "../components-core";
+import { Card, Container } from "../components-core";
 import React, { useEffect, useState } from "react";
 
 export default function CardFrame({ 

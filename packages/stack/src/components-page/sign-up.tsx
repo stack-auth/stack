@@ -6,7 +6,7 @@ import CardFrame from '../components/card-frame';
 import CredentialSignUp from '../components/credential-sign-up';
 import { useUser, useStackApp } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
-import { CardContent, CardHeader, Link, Text } from "../components-core";
+import { Link, Text } from "../components-core";
 
 export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
@@ -21,7 +21,7 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
 
   return (
     <CardFrame fullPage={fullPage}>
-      <CardHeader style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <Text size="xl" as='h2'>Create a New Account</Text>
         <Text>
           {"Already have an account? "}
@@ -29,12 +29,11 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
             Sign in
           </Link>
         </Text>
-      </CardHeader>
-      <CardContent>
-        <OAuthGroup type='signup'/>
-        {enableDivider && <DividerWithText text={'OR'} />}
-        {project.credentialEnabled && <CredentialSignUp/>}
-      </CardContent>
+      </div>
+
+      <OAuthGroup type='signup'/>
+      {enableDivider && <DividerWithText text={'OR'} />}
+      {project.credentialEnabled && <CredentialSignUp/>}
     </CardFrame>
   );
 }
