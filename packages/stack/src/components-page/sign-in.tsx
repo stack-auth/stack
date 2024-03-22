@@ -22,7 +22,7 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
   return (
     <CardFrame fullPage={fullPage}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2'>Reset Your Password</Text>
+        <Text size="xl" as='h2'>Sign into Your Account</Text>
         <Text>
           {"Don't have an account? "}
           <Link href={stackApp.urls['signUp']}>
@@ -31,7 +31,7 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
         </Text>
       </div>
       <OAuthGroup type='signin'/>
-      {enableDivider && <DividerWithText text={'OR'} />}
+      {enableDivider && <DividerWithText text={'or continue with email'} />}
       {project.credentialEnabled && <CredentialSignIn/>}
     </CardFrame>
   );
