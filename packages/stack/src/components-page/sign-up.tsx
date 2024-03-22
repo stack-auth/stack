@@ -4,10 +4,9 @@ import DividerWithText from '../components/divider-with-text';
 import OAuthGroup from '../components/oauth-group';
 import CardFrame from '../components/card-frame';
 import CredentialSignUp from '../components/credential-sign-up';
-import CardHeader from '../components/card-header';
 import { useUser, useStackApp } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
-import { Link, Text } from "../components-core";
+import { CardContent, CardHeader, Link, Text } from "../components-core";
 
 export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
@@ -22,7 +21,8 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
 
   return (
     <CardFrame fullPage={fullPage}>
-      <CardHeader title="Create a New Account">
+      <CardHeader style={{ textAlign: 'center' }}>
+        <Text size="xl" as='h2'>Create a New Account</Text>
         <Text>
           {"Already have an account? "}
           <Link href={stackApp.urls['signIn']}>
@@ -30,9 +30,11 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
           </Link>
         </Text>
       </CardHeader>
-      <OAuthGroup type='signup'/>
-      {enableDivider && <DividerWithText text={'OR'} />}
-      {project.credentialEnabled && <CredentialSignUp/>}
+      <CardContent>
+        <OAuthGroup type='signup'/>
+        {enableDivider && <DividerWithText text={'OR'} />}
+        {project.credentialEnabled && <CredentialSignUp/>}
+      </CardContent>
     </CardFrame>
   );
 }

@@ -9,6 +9,7 @@ import { InputProps } from './input';
 import { LabelProps } from './label';
 import { LinkProps } from './link';
 import { TextProps } from './text';
+import { CardProps, CardContentProps, CardFooterProps, CardHeaderProps } from './card';
 
 export {
   ButtonProps,
@@ -18,6 +19,10 @@ export {
   LabelProps,
   LinkProps,
   TextProps,
+  CardProps,
+  CardContentProps,
+  CardFooterProps,
+  CardHeaderProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -53,4 +58,24 @@ export function Link(props: LinkProps) { // TODO: maybe add forwardRef
 export const Text = forwardRef<HTMLParagraphElement, TextProps>((props, ref) => {
   const { Text } = useComponents();
   return <Text {...props} ref={ref} />;
+});
+
+export const Card = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
+  const { Card } = useComponents();
+  return <Card {...props} ref={ref} />;
+});
+
+export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>((props, ref) => {
+  const { CardHeader } = useComponents();
+  return <CardHeader {...props} ref={ref} />;
+});
+
+export const CardContent = forwardRef<HTMLDivElement, CardContentProps>((props, ref) => {
+  const { CardContent } = useComponents();
+  return <CardContent {...props} ref={ref} />;
+});
+
+export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>((props, ref) => {
+  const { CardFooter } = useComponents();
+  return <CardFooter {...props} ref={ref} />;
 });

@@ -2,11 +2,10 @@
 
 import ForgotPasswordElement from "../components/forgot-password";
 import CardFrame from "../components/card-frame";
-import CardHeader from "../components/card-header";
 import { useUser, useStackApp } from "..";
 import RedirectMessageCard from "../components/redirect-message-card";
 import { useState } from "react";
-import { Link, Text } from "../components-core";
+import { CardContent, CardHeader, Link, Text } from "../components-core";
 
 
 export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
@@ -24,7 +23,8 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
 
   return (
     <CardFrame fullPage={fullPage}>
-      <CardHeader title="Reset Your Password">
+      <CardHeader style={{ textAlign: 'center' }}>
+        <Text size="xl" as='h2'>Reset Your Password</Text>
         <Text>
           {"Don't need to reset? "}
           <Link href={stackApp.urls['signUp']}>
@@ -32,7 +32,9 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
           </Link>
         </Text>
       </CardHeader>
-      <ForgotPasswordElement onSent={() => setSent(true)} />
+      <CardContent>
+        <ForgotPasswordElement onSent={() => setSent(true)} />
+      </CardContent>
     </CardFrame>
   );
 };

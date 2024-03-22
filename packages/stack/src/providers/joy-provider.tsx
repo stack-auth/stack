@@ -15,13 +15,13 @@ export const defaultComponents = {
 };
 
 export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
-  const { mode, setMode } = useColorScheme();
+  const { mode, systemMode, setMode } = useColorScheme();
   const mergedTheme = {
     components: {
       ...defaultComponents,
       ...props.theme?.components,
     },
-    colorMode: mode,
+    colorMode: mode === 'system' ? systemMode : mode,
     setColorMode: setMode,
     ...props.theme,
   };

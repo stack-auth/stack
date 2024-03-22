@@ -65,7 +65,7 @@ function getColors(
   return {
     dark: { ...DEFAULT_COLORS.dark, ...colors?.dark },
     light: { ...DEFAULT_COLORS.light, ...colors?.light },
-  }[theme];
+  }[theme || 'light'];
 }
 
 const useColorMode = (
@@ -75,7 +75,7 @@ const useColorMode = (
   const nextColorModeValue = nextColorMode === 'dark' ? 'dark' : 'light';
   if (hasCustomColorMode(props)) {
     return [
-      props.colorMode,
+      props.colorMode === 'dark' ? 'dark' : 'light',
       props.setColorMode,
     ];
   } else {
