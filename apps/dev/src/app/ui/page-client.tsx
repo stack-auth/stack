@@ -77,7 +77,7 @@ export default function PageClient() {
               <Text size='xl'>{text}</Text>
             </div>
           
-            <Divider direction='vertical' />
+            <Divider orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
               <Text color="primary">{text}</Text>

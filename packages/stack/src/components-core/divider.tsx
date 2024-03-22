@@ -1,25 +1,40 @@
 'use client';
 
-import React from "react";
-import { useDesign } from "../providers/design-provider";
+import React from 'react';
+import * as SeparatorPrimitive from '@radix-ui/react-separator';
+import styled from 'styled-components';
+import { useDesign } from '..';
 
-export type DividerProps = { direction?: 'horizontal' | 'vertical'} & React.HTMLProps<HTMLHRElement>;
+export type DividerProps = React.ComponentProps<typeof SeparatorPrimitive.Root>;
 
-const Divider = React.forwardRef<HTMLHRElement, DividerProps>(
-  ({ direction='horizontal' }, ref) => {
-    const { colors } = useDesign();
-    return <hr 
-      ref={ref} 
-      style={{ 
-        width: direction === 'horizontal' ? undefined : '1px', 
-        height: direction === 'horizontal' ? '1px' : undefined,
-        border: 'none', 
-        backgroundColor: colors.neutralColor,
-        margin: 0,
-        padding: 0,
-      }} />;
-  }
-);
-Divider.displayName = 'Divider';
+const StyledDivider = styled(SeparatorPrimitive.Root)<{ 
+  $orientation: string,
+  $color: string,
+}>`
+  flex-shrink: 0;
+  background-color: ${props => props.$color};
+  
+  ${(props) =>
+    props.$orientation === 'horizontal'
+      ? 'height: 1px; width: 100%;'
+      : 'height: 100%; width: 1px;'}
+`;
+
+const Divider = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
+>(({ orientation = 'horizontal', decorative = true, ...props }, ref) => {
+  const { colors } = useDesign();
+
+  return <StyledDivider
+    ref={ref}
+    decorative={decorative}
+    $orientation={orientation}
+    $color={colors.neutralColor}
+    {...props}
+  />;
+});
+
+Divider.displayName = 'Separator';
 
 export default Divider;

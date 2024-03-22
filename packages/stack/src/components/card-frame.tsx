@@ -1,6 +1,6 @@
 'use client';
 
-import { Container } from "../components-core";
+import { Card, Container } from "../components-core";
 import React, { useEffect, useState } from "react";
 
 export default function CardFrame({ 
@@ -28,7 +28,7 @@ export default function CardFrame({
         alignItems: 'center', 
         justifyContent: 'center' 
       }}>
-        <Container size={360}>
+        <Container size={350}>
           {children}
         </Container>
       </div>

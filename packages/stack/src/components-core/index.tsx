@@ -9,6 +9,7 @@ import { InputProps } from './input';
 import { LabelProps } from './label';
 import { LinkProps } from './link';
 import { TextProps } from './text';
+import { CardProps } from './card';
 
 export {
   ButtonProps,
@@ -18,6 +19,7 @@ export {
   LabelProps,
   LinkProps,
   TextProps,
+  CardProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -53,4 +55,9 @@ export function Link(props: LinkProps) { // TODO: maybe add forwardRef
 export const Text = forwardRef<HTMLParagraphElement, TextProps>((props, ref) => {
   const { Text } = useComponents();
   return <Text {...props} ref={ref} />;
+});
+
+export const Card = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
+  const { Card } = useComponents();
+  return <Card {...props} ref={ref} />;
 });
