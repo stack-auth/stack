@@ -32,7 +32,7 @@ export default function SignUp({ fullPage=false }: { fullPage?: boolean }) {
       </div>
 
       <OAuthGroup type='signup'/>
-      {enableDivider && <DividerWithText text={'OR'} />}
+      {enableDivider && <DividerWithText text={'or continue with email'} />}
       {project.credentialEnabled && <CredentialSignUp/>}
     </CardFrame>
   );
