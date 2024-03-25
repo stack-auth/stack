@@ -29,7 +29,7 @@ export async function signInWithOAuth(
  * 
  * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
-function consumeOAuthCallbackQueryParams(expectedState: string | null): null | URL {
+function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   const requiredParams = ["code", "state"];
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
@@ -70,14 +70,11 @@ export async function callOAuthCallback(
   // to be synchronous, to prevent race conditions when
   // callOAuthCallback is called multiple times in parallel
   const { codeVerifier, state } = getVerifierAndState();
-  const originalUrl = consumeOAuthCallbackQueryParams(state);
-  if (!originalUrl) {
-    throw new Error("Invalid OAuth callback URL");
-  }
-
   if (!codeVerifier || !state) {
     throw new Error("Invalid OAuth callback URL");
   }
+  const originalUrl = consumeOAuthCallbackQueryParams(state);
+  if (!originalUrl) return null;
 
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback)
