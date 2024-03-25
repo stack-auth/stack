@@ -1,27 +1,11 @@
 import * as oauth from 'oauth4webapi';
 import crypto from "crypto";
 
-import { 
-  AccessTokenExpiredErrorCode, 
-  GrantInvalidErrorCode, 
-  SignInErrorCode, 
-  SignUpErrorCode, 
-  KnownErrorCodes,
-  KnownError,
-  SignUpErrorCodes,
-  SignInErrorCodes,
-  EmailVerificationLinkErrorCode,
-  EmailVerificationLinkErrorCodes,
-  PasswordResetLinkErrorCodes,
-  PasswordResetLinkErrorCode,
-  KnownErrorCode,
-} from "../utils/types";
 import { AsyncResult, Result } from "../utils/results";
 import { ReadonlyJson, parseJson } from '../utils/json';
-import { AsyncCache } from '../utils/caches';
 import { typedAssign } from '../utils/objects';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
-import { neverResolve, runAsynchronously } from '../utils/promises';
+import { KnownError, KnownErrors } from '../known-errors';
 
 export type UserCustomizableJson = {
   readonly projectId: string,
@@ -193,37 +177,38 @@ export class StackClientInterface {
       token_endpoint_auth_method: 'client_secret_basic',
     };
 
-    const response = await oauth.refreshTokenGrantRequest(
+    const rawResponse = await oauth.refreshTokenGrantRequest(
       as,
       client,
       refreshToken,
     );
+    const response = await this._processResponse(rawResponse);
 
-    if (!response.ok) {
-      const error = await response.text();
-      let errorJsonResult = parseJson(error);
-      if (response.status === 401
-        && errorJsonResult.status === "ok"
-        && errorJsonResult.data
-        && (errorJsonResult.data as any).error_code === GrantInvalidErrorCode
-      ) {
+    if (response.status === "error") {
+      const error = response.error;
+      if (error instanceof KnownErrors.RefreshTokenError) {
         return tokenStore.set({
           accessToken: null,
           refreshToken: null,
         });
       }
-      throw new Error(`Failed to send refresh token request: ${response.status} ${error}`);
+      throw error;
     }
-    
+
+    if (!response.data.ok) {
+      const body = await response.data.text();
+      throw new Error(`Failed to send refresh token request: ${response.status} ${body}`);
+    }
+
     let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response))) {
+    if ((challenges = oauth.parseWwwAuthenticateChallenges(response.data))) {
       for (const challenge of challenges) {
         console.error('WWW-Authenticate Challenge', challenge);
       }
       throw new Error(); // Handle WWW-Authenticate Challenges as needed
     }
 
-    const result = await oauth.processRefreshTokenResponse(as, client, response);
+    const result = await oauth.processRefreshTokenResponse(as, client, response.data);
     if (oauth.isOAuth2Error(result)) {
       console.error('Error Response', result);
       throw new Error(); // Handle OAuth 2.0 response body error
@@ -255,17 +240,24 @@ export class StackClientInterface {
     );
   }
 
-  protected async sendClientRequestAndCatchKnownError<E extends KnownErrorCode>(
+  protected async sendClientRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
     path: string, 
     requestOptions: RequestInit, 
     tokenStoreOrNull: TokenStore | null,
-    errorCodes: readonly E[],
-  ) {
+    errorsToCatch: readonly E[],
+  ): Promise<Result<
+    Response & {
+      usedTokens: TokenObject,
+    },
+    InstanceType<E>
+  >> {
     try {
       return Result.ok(await this.sendClientRequest(path, requestOptions, tokenStoreOrNull));
     } catch (e) {
-      if (e instanceof KnownError && errorCodes.some(code => code === (e as KnownError).errorCode)) {
-        return Result.error(e.errorCode as E);
+      for (const errorType of errorsToCatch) {
+        if (e instanceof errorType) {
+          return Result.error(e as InstanceType<E>);
+        }
       }
       throw e;
     }
@@ -291,37 +283,26 @@ export class StackClientInterface {
     const params = {
       ...options,
       headers: {
+        "X-Stack-Override-Error-Status": "true",
+        "X-Stack-Project-Id": this.projectId,
         ...tokenObj.accessToken ? {
-          "authorization": "StackSession " + tokenObj.accessToken,
+          "Authorization": "StackSession " + tokenObj.accessToken,
         } : {},
-        "x-stack-project-id": this.projectId,
         ...'publishableClientKey' in this.options ? {
-          "x-stack-publishable-client-key": this.options.publishableClientKey,
+          "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
         } : {},
         ...'projectOwnerTokens' in this.options ? {
-          "x-stack-admin-access-token": AsyncResult.or(this.options.projectOwnerTokens?.get(), null)?.accessToken ?? "",
+          "X-Stack-Admin-Access-Token": AsyncResult.or(this.options.projectOwnerTokens?.get(), null)?.accessToken ?? "",
         } : {},
         ...options.headers,
       },
     };
 
-    const res = await fetch(url, params);
-    typedAssign(res, {
-      usedTokens: tokenObj,
-    });
-
-    if (res.ok) {
-      return Result.ok(res);
-    } else {
-      const error = await res.text();
-      let errorJsonResult = parseJson(error);
-
-      if (
-        res.status === 401
-        && errorJsonResult.status === "ok"
-        && errorJsonResult.data
-        && (errorJsonResult.data as any).error_code === AccessTokenExpiredErrorCode
-      ) {
+    const rawRes = await fetch(url, params);
+    const processedRes = await this._processResponse(rawRes);
+    if (processedRes.status === "error") {
+      // If the access token is expired, reset it and retry
+      if (processedRes.error instanceof KnownErrors.AccessTokenExpired) {
         tokenStore.set({
           accessToken: null,
           refreshToken: tokenObj.refreshToken,
@@ -329,24 +310,54 @@ export class StackClientInterface {
         return Result.error(new Error("Access token expired"));
       }
 
-      if (
-        res.status >= 400 && res.status <= 599
-        && errorJsonResult.status === "ok"
-        && errorJsonResult.data
-        && KnownErrorCodes.includes((errorJsonResult.data as any).error_code)
-      ) {
-        throw new KnownError((errorJsonResult.data as any).error_code);
-      }
+      // Known errors are client side errors, and should hence not be retried (except for access token expired above).
+      // Hence, throw instead of returning an error
+      throw processedRes.error;
+    }
+
+
+    const res = Object.assign(processedRes.data, {
+      usedTokens: tokenObj,
+    });
+    if (res.ok) {
+      return Result.ok(res);
+    } else {
+      const error = await res.text();
+
       // Do not retry, throw error instead of returning one
       throw new Error(`Failed to send request to ${url}: ${res.status} ${error}`);
     }
   }
 
+  private async _processResponse(rawRes: Response): Promise<Result<Response, KnownError>> {
+    let res = rawRes;
+    if (rawRes.headers.has("x-stack-actual-status")) {
+      const actualStatus = Number(rawRes.headers.get("x-stack-actual-status"));
+      res = new Response(rawRes.body, {
+        status: actualStatus,
+        statusText: rawRes.statusText,
+        headers: rawRes.headers,
+      });
+    }
+
+    // Handle known errors
+    if (res.headers.has("x-stack-known-error")) {
+      const errorJson = await res.json();
+      if (res.headers.get("x-stack-known-error") !== errorJson.code) {
+        throw new Error("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
+      }
+      const error = KnownError.fromJson(errorJson);
+      return Result.error(error);
+    }
+
+    return Result.ok(res);
+  }
+
   async sendForgotPasswordEmail(
-    email: string, 
-    redirectUrl: string
-  ): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
+    email: string,
+    redirectUrl: string,
+  ): Promise<KnownErrors["UserNotFound"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/forgot-password",
       {
         method: "POST",
@@ -359,17 +370,18 @@ export class StackClientInterface {
         }),
       },
       null,
-      PasswordResetLinkErrorCodes
+      [KnownErrors.UserNotFound],
     );
-
 
     if (res.status === "error") {
       return res.error;
     }
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
+  async resetPassword(
+    options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
+  ): Promise<KnownErrors["PasswordResetError"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password-reset",
       {
         method: "POST",
@@ -379,7 +391,7 @@ export class StackClientInterface {
         body: JSON.stringify(options),
       },
       null,
-      PasswordResetLinkErrorCodes
+      [KnownErrors.PasswordResetError]
     );
 
     if (res.status === "error") {
@@ -387,30 +399,16 @@ export class StackClientInterface {
     }
   }
 
-  async verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
-      "/auth/password-reset",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          code,
-          onlyVerifyCode: true,
-        }),
-      },
-      null,
-      PasswordResetLinkErrorCodes
-    );
-
-    if (res.status === "error") {
-      return res.error;
+  async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined> {
+    const res = await this.resetPassword({ code, onlyVerifyCode: true });
+    if (res && !(res instanceof KnownErrors.PasswordResetCodeError)) {
+      throw res;
     }
+    return res;
   }
 
-  async verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<EmailVerificationLinkErrorCode>(
+  async verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/email-verification",
       {
         method: "POST",
@@ -422,7 +420,7 @@ export class StackClientInterface {
         }),
       },
       null,
-      EmailVerificationLinkErrorCodes
+      [KnownErrors.EmailVerificationError]
     );
 
     if (res.status === "error") {
@@ -434,8 +432,8 @@ export class StackClientInterface {
     email: string, 
     password: string, 
     tokenStore: TokenStore
-  ): Promise<SignInErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<SignInErrorCode>(
+  ): Promise<KnownErrors["EmailPasswordMismatch"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signin",
       {
         method: "POST",
@@ -448,7 +446,7 @@ export class StackClientInterface {
         }),
       },
       tokenStore,
-      SignInErrorCodes
+      [KnownErrors.EmailPasswordMismatch]
     );
 
     if (res.status === "error") {
@@ -467,8 +465,8 @@ export class StackClientInterface {
     password: string,
     emailVerificationRedirectUrl: string,
     tokenStore: TokenStore,
-  ): Promise<SignUpErrorCode | undefined> {
-    const res = await this.sendClientRequestAndCatchKnownError<SignUpErrorCode>(
+  ): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",
       {
         headers: {
@@ -482,7 +480,7 @@ export class StackClientInterface {
         }),
       },
       tokenStore,
-      SignUpErrorCodes
+      [KnownErrors.UserEmailAlreadyExists]
     );
 
     if (res.status === "error") {

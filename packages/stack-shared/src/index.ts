@@ -18,4 +18,7 @@ export {
   ApiKeySetFirstViewJson, 
   ApiKeySetJson,
 } from "./interface/adminInterface";
-export { fetchTokenPrefix } from "./helpers/fetch-token";
+export {
+  KnownError,
+  KnownErrors,
+} from "./known-errors";

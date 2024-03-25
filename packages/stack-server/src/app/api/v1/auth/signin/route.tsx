@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError, UserNotExistErrorCode, EmailPasswordMissMatchErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
@@ -9,6 +8,7 @@ import { encodeAccessToken } from "@/lib/access-token";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -34,7 +34,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   } = await deprecatedParseRequest(req, postSchema);
 
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
-    throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const project = await getProject(projectId);
@@ -53,15 +53,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       passwordHash: { not: null },
     },
   });
+  if (!await comparePassword(password, user?.passwordHash || "")) {
+    throw new KnownErrors.EmailPasswordMismatch();
+  }
+
   if (!user) {
-    throw new KnownError(UserNotExistErrorCode);
+    throw new Error("This should never happen (the comparePassword call should've already caused this to fail)");
   }
 
-  if (! await comparePassword(password, user.passwordHash || "")) {
-    throw new KnownError(EmailPasswordMissMatchErrorCode);
-  }
-
-  const refreshToken =  await generateSecureRandomString();
+  const refreshToken = generateSecureRandomString();
   const accessToken = await encodeAccessToken({
     projectId,
     userId: user.projectUserId,

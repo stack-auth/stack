@@ -7,8 +7,8 @@ import { validateEmail } from "../utils/email";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { Button, Label, Input } from "../components-core";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function CredentialSignUp() {
   const [email, setEmail] = useState('');
@@ -42,25 +42,24 @@ export default function CredentialSignUp() {
       return;
     }
 
-    const errorMessage = getPasswordError(password);
-    if (errorMessage) {
-      setPasswordError(errorMessage);
+    const passwordError = getPasswordError(password);
+    if (passwordError) {
+      setPasswordError(passwordError.message);
       return;
     }
 
     setLoading(true);
-    const errorCode = await app.signUpWithCredential({ email, password });
-    setLoading(false);
+    let error;
+    try {
+      error = await app.signUpWithCredential({ email, password });
+    } finally {
+      setLoading(false);
+    }
     
-    switch (errorCode) {
-      case UserAlreadyExistErrorCode: {
-        setEmailError('User already exists');
-        break;
-      }
-      case undefined: {
-        // success
-        break;
-      }
+    if (error instanceof KnownErrors.UserEmailAlreadyExists) {
+      setEmailError('User already exists');
+    } else if (error) {
+      setEmailError(`An error occurred. ${error.message}`);
     }
   };
 

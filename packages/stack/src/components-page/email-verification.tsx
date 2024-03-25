@@ -4,7 +4,7 @@ import { use } from "react";
 import { useStackApp } from "..";
 import MessageCard from "../components/message-card";
 import RedirectMessageCard from "../components/redirect-message-card";
-import { EmailVerificationLinkExpiredErrorCode, EmailVerificationLinkInvalidErrorCode, EmailVerificationLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function EmailVerification({ 
   searchParams: {
@@ -33,19 +33,17 @@ export default function EmailVerification({
     return invalidJsx;
   }
 
-  const errorCode = use(stackApp.verifyEmail(code));
+  const error = use(stackApp.verifyEmail(code));
 
-  switch (errorCode) {
-    case EmailVerificationLinkInvalidErrorCode: {
-      return invalidJsx;
-    }
-    case EmailVerificationLinkExpiredErrorCode: {
-      return expiredJsx;
-    }
-    case EmailVerificationLinkUsedErrorCode: 
-    case undefined: {
-      return <RedirectMessageCard type='emailVerified' fullPage={fullPage} />;
-    }
+  if (error instanceof KnownErrors.EmailVerificationCodeNotFound) {
+    return invalidJsx;
+  } else if (error instanceof KnownErrors.EmailVerificationCodeExpired) {
+    return expiredJsx;
+  } else if (error instanceof KnownErrors.EmailVerificationCodeAlreadyUsed) {
+    // everything fine, continue
+  } else if (error) {
+    throw error;
   }
-  return null;
+
+  return <RedirectMessageCard type='emailVerified' fullPage={fullPage} />;
 }

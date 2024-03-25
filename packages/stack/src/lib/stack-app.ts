@@ -1,5 +1,5 @@
 import React, { use, useCallback } from "react";
-import { OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -12,7 +12,6 @@ import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
@@ -430,20 +429,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
 
-  async sendForgotPasswordEmail(email: string) {
+  async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+    const error = await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+    return error;
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
+  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["PasswordResetError"] | undefined> {
     return await this._interface.resetPassword(options);
   }
 
-  async verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined> {
+  async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined> {
     return await this._interface.verifyPasswordResetCode(code);
   }
 
-  async verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined> {
+  async verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined> {
     return await this._interface.verifyEmail(code);
   }
 
@@ -524,7 +524,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
-  }): Promise<SignInErrorCode | undefined> {
+  }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const errorCode = await this._interface.signInWithCredential(options.email, options.password, tokenStore);
@@ -537,7 +537,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signUpWithCredential(options: {
     email: string,
     password: string,
-  }): Promise<SignUpErrorCode | undefined>{
+  }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>{
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
@@ -1125,13 +1125,13 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string }): Promise<SignInErrorCode | undefined>,
-    signUpWithCredential(options: { email: string, password: string }): Promise<SignUpErrorCode | undefined>,
+    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined>,
+    signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>,
     callOAuthCallback(): Promise<void>,
-    sendForgotPasswordEmail(email: string): Promise<void>,
-    resetPassword(options: { code: string, password: string }): Promise<PasswordResetLinkErrorCode | undefined>,
-    verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined>,
-    verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined>,
+    sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
+    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
+    verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined>,
+    verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,

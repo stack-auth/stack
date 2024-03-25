@@ -6,8 +6,8 @@ import PasswordField from "./password-field";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { EmailPasswordMissMatchErrorCode, UserNotExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { Button, Input, Label, Link } from "../components-core";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function CredentialSignIn() {
   const [email, setEmail] = useState('');
@@ -32,22 +32,17 @@ export default function CredentialSignIn() {
     }
     
     setLoading(true);
-    const errorCode = await app.signInWithCredential({ email, password });
-    setLoading(false);
-  
-    switch (errorCode) {
-      case UserNotExistErrorCode: {
-        setEmailError('User does not exist');
-        break;
-      }
-      case EmailPasswordMissMatchErrorCode: {
-        setPasswordError('Wrong email or password');
-        break;
-      }
-      case undefined: {
-        // success
-        break;
-      }
+    let error;
+    try {
+      error = await app.signInWithCredential({ email, password });
+    } finally {
+      setLoading(false);
+    }
+
+    if (error instanceof KnownErrors.EmailPasswordMismatch) {
+      setPasswordError('Wrong email or password');
+    } else if (error) {
+      setEmailError(`An error occurred. ${error.message}`);
     }
   };
 

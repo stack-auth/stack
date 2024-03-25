@@ -3,7 +3,7 @@ import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, 
 import { NextRequest, NextResponse } from "next/server";
 import { oauthServer } from "@/oauth";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
-import { GrantInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 // make this specific to each grant type later
 const postSchema = yup.object({
@@ -41,10 +41,10 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     );
   } catch (e) {
     if (e instanceof InvalidGrantError) {
-      throw new KnownError(GrantInvalidErrorCode);
+      throw new KnownErrors.InvalidRefreshToken();
     }
     if (e instanceof InvalidClientError) {
-      throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+      throw new KnownErrors.ProjectNotFound();
     }
     throw e;
   }
