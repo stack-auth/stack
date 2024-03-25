@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { 
-  KnownError, 
-  ProjectIdOrKeyInvalidErrorCode, 
-  RedirectUrlInvalidErrorCode, 
-  UserNotExistErrorCode
-} from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { sendPasswordResetEmail } from "@/email";
@@ -13,6 +7,7 @@ import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -38,7 +33,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   } = await deprecatedParseRequest(req, postSchema);
   
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
-    throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const project = await getProject(projectId);
@@ -61,7 +56,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!user) {
-    throw new KnownError(UserNotExistErrorCode);
+    throw new KnownErrors.UserNotFound();
   }
 
   if (
@@ -71,7 +66,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       project.evaluatedConfig.allowLocalhost 
     )
   ) {
-    throw new KnownError(RedirectUrlInvalidErrorCode);
+    throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
   
   await sendPasswordResetEmail(projectId, user.projectUserId, redirectUrl);

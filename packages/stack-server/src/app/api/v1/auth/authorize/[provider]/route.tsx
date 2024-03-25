@@ -8,7 +8,7 @@ import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route
 import { getAuthorizationUrl } from "@/oauth";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -43,7 +43,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   const providerId = options.params.provider;
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
-    throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const project = await getProject(projectId);

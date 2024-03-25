@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { PasswordFormatInvalidErrorCode, ProjectIdOrKeyInvalidErrorCode, RedirectUrlInvalidErrorCode, KnownError, UserAlreadyExistErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
@@ -13,6 +12,7 @@ import { validateUrl } from "@/utils/url";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -41,11 +41,11 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const passwordError = getPasswordError(password);
   if (passwordError) {
-    throw new KnownError(PasswordFormatInvalidErrorCode);
+    throw passwordError;
   }
 
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
-    throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const project = await getProject(projectId);
@@ -68,7 +68,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (user) {
-    throw new KnownError(UserAlreadyExistErrorCode);
+    throw new KnownErrors.UserEmailAlreadyExists();
   }
 
   const newUser = await prismaClient.projectUser.create({
@@ -102,7 +102,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       project?.evaluatedConfig.allowLocalhost 
     )
   ) {
-    throw new KnownError(RedirectUrlInvalidErrorCode);
+    throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
 
   await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);

@@ -1,8 +1,8 @@
 import * as yup from 'yup';
 import { JWTExpired } from 'jose/errors';
-import { AccessTokenExpiredErrorCode, KnownError } from '@stackframe/stack-shared/dist/utils/types';
 import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { StatusError } from '@stackframe/stack-shared/dist/utils/errors';
+import { KnownErrors } from '@stackframe/stack-shared';
 
 export const authorizationHeaderSchema = yup.string().matches(/^StackSession [^ ]+$/);
 
@@ -18,7 +18,7 @@ export async function decodeAccessToken(accessToken: string) {
     decoded = await decryptJWT(accessToken);
   } catch (error) {
     if (error instanceof JWTExpired) {
-      throw new KnownError(AccessTokenExpiredErrorCode);
+      throw new KnownErrors.AccessTokenExpired();
     }
     throw error;
   }

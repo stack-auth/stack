@@ -76,10 +76,18 @@ export async function waitUntil(date: Date) {
   return await wait(date.getTime() - Date.now());
 }
 
+class ErrorDuringRunAsynchronously extends Error {
+  constructor() {
+    super("The error above originated in a runAsynchronously() call. Below is the stacktrace associated with it.");
+    this.name = "ErrorDuringRunAsynchronously";
+  }
+}
+
 export function runAsynchronously(promiseOrFunc: Promise<unknown> | (() => Promise<unknown>) | undefined): void {
   if (typeof promiseOrFunc === "function") {
     promiseOrFunc = promiseOrFunc();
   }
+  const duringError = new ErrorDuringRunAsynchronously();
   promiseOrFunc?.catch(error => {
     const newError = new Error(
       "Uncaught error in asynchronous function: " + error.toString(),
@@ -88,6 +96,7 @@ export function runAsynchronously(promiseOrFunc: Promise<unknown> | (() => Promi
       }
     );
     console.error(newError);
+    console.error(duringError);
   });
 }
 

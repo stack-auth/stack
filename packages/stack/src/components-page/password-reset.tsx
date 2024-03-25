@@ -4,9 +4,10 @@ import MessageCard from "../components/message-card";
 import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
 import PasswordResetInner from "../components/password-reset-inner";
-import { PasswordResetLinkExpiredErrorCode, PasswordResetLinkInvalidErrorCode, PasswordResetLinkUsedErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { Text } from "../components-core";
+import { KnownErrors } from "@stackframe/stack-shared";
+import React from "react";
 
 const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyPasswordResetCode(code);
@@ -44,20 +45,17 @@ export default function PasswordReset({
     return invalidJsx;
   }
 
-  const errorCode = use(cachedVerifyPasswordResetCode(stackApp, code));
-
-  switch (errorCode) {
-    case PasswordResetLinkInvalidErrorCode: {
-      return invalidJsx;
-    }
-    case PasswordResetLinkExpiredErrorCode: {
-      return expiredJsx;
-    }
-    case PasswordResetLinkUsedErrorCode: {
-      return usedJsx;
-    }
-    case undefined: {
-      return <PasswordResetInner code={code} fullPage={fullPage} />;
-    }
+  const error = use(cachedVerifyPasswordResetCode(stackApp, code));
+  
+  if (error instanceof KnownErrors.PasswordResetCodeNotFound) {
+    return invalidJsx;
+  } else if (error instanceof KnownErrors.PasswordResetCodeExpired) {
+    return expiredJsx;
+  } else if (error instanceof KnownErrors.PasswordResetCodeAlreadyUsed) {
+    return usedJsx;
+  } else if (error) {
+    throw error;
   }
+
+  return <PasswordResetInner code={code} fullPage={fullPage} />;
 }

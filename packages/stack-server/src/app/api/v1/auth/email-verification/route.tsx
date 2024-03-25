@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { 
-  KnownError, 
-  EmailVerificationLinkInvalidErrorCode, 
-  EmailVerificationLinkUsedErrorCode, 
-  EmailVerificationLinkExpiredErrorCode
-} from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   body: yup.object({
@@ -25,15 +20,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!codeRecord) {
-    throw new KnownError(EmailVerificationLinkInvalidErrorCode);
+    throw new KnownErrors.PasswordResetCodeNotFound();
   }
 
   if (codeRecord.expiresAt < new Date()) {
-    throw new KnownError(EmailVerificationLinkExpiredErrorCode);
+    throw new KnownErrors.PasswordResetCodeExpired();
   }
 
   if (codeRecord.usedAt) {
-    throw new KnownError(EmailVerificationLinkUsedErrorCode);
+    throw new KnownErrors.PasswordResetCodeAlreadyUsed();
   }
   
   await prismaClient.projectUser.update({

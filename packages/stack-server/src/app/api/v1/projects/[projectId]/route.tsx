@@ -5,8 +5,8 @@ import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
 import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
 import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const putOrGetSchema = yup.object({
   headers: yup.object({
@@ -98,7 +98,6 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
     );
     return NextResponse.json(project);
   } else if (asValid || pkValid) {
-    console.log(update);
     if (Object.entries(update).length !== 0) {
       throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
     }
@@ -120,10 +119,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
  
     return NextResponse.json(clientProject);
   } else {
-    if (projectId.length !== 0 && publishableClientKey.length !== 0) {
-      throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
-    }
-    throw new StatusError(StatusError.Forbidden, "Invalid API key");
+    throw new KnownErrors.ApiKeyNotFound();
   }
 });
 export const GET = handler;

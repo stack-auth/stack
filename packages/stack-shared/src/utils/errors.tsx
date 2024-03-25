@@ -1,3 +1,5 @@
+import { Json } from "./json";
+
 export function throwErr(errorMessage: string): never;
 export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
@@ -20,7 +22,6 @@ type Status = {
 type StatusErrorConstructorParameters = [
   statusCode: number | Status,
   message?: string,
-  options?: { headers: Record<string, string[]> },
 ];
 
 export class StatusError extends Error {
@@ -70,7 +71,10 @@ export class StatusError extends Error {
 
 
   constructor(...args: StatusErrorConstructorParameters);
-  constructor(status: number | Status, message?: string, public readonly options?: { headers: Record<string, string[]> }) {
+  constructor(
+    status: number | Status,
+    message?: string,
+  ) {
     if (typeof status === "object") {
       message ??= status.message;
       status = status.statusCode;
@@ -86,5 +90,27 @@ export class StatusError extends Error {
 
   public isServerError() {
     return !this.isClientError();
+  }
+
+  public getStatusCode(): number {
+    return this.statusCode;
+  }
+
+  public getBody(): Uint8Array {
+    return new TextEncoder().encode(this.message);
+  }
+
+  public getHeaders(): Record<string, string[]> {
+    return {
+      "Content-Type": ["text/plain; charset=utf-8"],
+    };
+  }
+
+  public toHttpJson(): Json {
+    return {
+      statusCode: this.statusCode,
+      body: this.message,
+      headers: this.getHeaders(),
+    };
   }
 }
