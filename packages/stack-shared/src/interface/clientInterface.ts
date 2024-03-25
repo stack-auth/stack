@@ -564,7 +564,7 @@ export class StackClientInterface {
       for (const challenge of challenges) {
         console.error('WWW-Authenticate Challenge', challenge);
       }
-      throw new Error(); // Handle WWW-Authenticate Challenges as needed
+      throw new Error("WWW-Authenticate challenge not implemented"); // Handle WWW-Authenticate Challenges as needed
     }
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
