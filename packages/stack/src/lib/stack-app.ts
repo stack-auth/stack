@@ -16,7 +16,7 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { suspend } from "../utils/react";
+import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
