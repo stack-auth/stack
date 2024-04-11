@@ -9,6 +9,7 @@ import Link, { LinkProps } from '../components-core/link';
 import Label, { LabelProps } from '../components-core/label';
 import Text, { TextProps } from '../components-core/text';
 import Card, { CardProps } from '../components-core/card';
+import { Popover, PopoverTrigger, PopoverContent, PopoverProps, PopoverContentProps, PopoverTriggerProps } from '../components-core/popover';
 
 export type Components = {
   Button: React.ComponentType<ButtonProps>,
@@ -19,6 +20,9 @@ export type Components = {
   Link: React.ComponentType<LinkProps>,
   Text: React.ComponentType<TextProps>,
   Card: React.ComponentType<CardProps>,
+  Popover: React.ComponentType<PopoverProps>,
+  PopoverTrigger: React.ComponentType<PopoverTriggerProps>,
+  PopoverContent: React.ComponentType<PopoverContentProps>,
 }
 
 export type ComponentConfig = {
@@ -45,7 +49,10 @@ export function StackComponentProvider(props: { children?: React.ReactNode } & C
       Label: props.components?.Label || Label,
       Link: props.components?.Link || Link,
       Text: props.components?.Text || Text,
-      Card: props.components?.Card || Card
+      Card: props.components?.Card || Card,
+      Popover: props.components?.Popover || Popover,
+      PopoverTrigger: props.components?.PopoverTrigger || PopoverTrigger,
+      PopoverContent: props.components?.PopoverContent || PopoverContent,
     }}>
       {props.children}
     </ComponentContext.Provider>

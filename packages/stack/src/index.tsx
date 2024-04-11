@@ -15,6 +15,7 @@ export { default as CredentialSignUp } from "./components/credential-sign-up";
 export { default as OAuthButton } from "./components/oauth-button";
 export { default as OAuthGroup } from "./components/oauth-group";
 export { default as PasswordField } from "./components/password-field";
+export { default as UserButton } from "./components/user-button";
 
 export { useDesign } from './providers/design-provider';
 export { useComponents } from './providers/component-provider';

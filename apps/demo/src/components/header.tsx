@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useDesign } from "@stackframe/stack";
+import { useDesign, UserButton } from "@stackframe/stack";
 import ColorMode from "./color-mode";
 import Select from "./select";
 import { useCurrentUI } from "./provider";
@@ -30,6 +30,7 @@ export default function Header() {
           onChange={(e) => setCurrentUI(e.target.value as any)}
         />
         <ColorMode />
+        <UserButton />
       </div>
     </div>
   );

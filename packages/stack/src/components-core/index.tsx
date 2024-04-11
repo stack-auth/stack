@@ -10,6 +10,7 @@ import { LabelProps } from './label';
 import { LinkProps } from './link';
 import { TextProps } from './text';
 import { CardProps } from './card';
+import { PopoverProps, PopoverContentProps, PopoverTriggerProps } from './popover';
 
 export {
   ButtonProps,
@@ -20,6 +21,9 @@ export {
   LinkProps,
   TextProps,
   CardProps,
+  PopoverProps,
+  PopoverContentProps,
+  PopoverTriggerProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -60,4 +64,19 @@ export const Text = forwardRef<HTMLParagraphElement, TextProps>((props, ref) => 
 export const Card = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
   const { Card } = useComponents();
   return <Card {...props} ref={ref} />;
+});
+
+export function Popover(props: PopoverProps) {
+  const { Popover } = useComponents();
+  return <Popover {...props} />;
+}
+
+export const PopoverTrigger = forwardRef<HTMLButtonElement, PopoverTriggerProps>((props, ref) => {
+  const { PopoverTrigger } = useComponents();
+  return <PopoverTrigger {...props} ref={ref} />;
+});
+
+export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>((props, ref) => {
+  const { PopoverContent } = useComponents();
+  return <PopoverContent {...props} ref={ref} />;
 });
