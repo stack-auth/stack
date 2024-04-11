@@ -10,6 +10,20 @@ import Label, { LabelProps } from '../components-core/label';
 import Text, { TextProps } from '../components-core/text';
 import Card, { CardProps } from '../components-core/card';
 import { Popover, PopoverTrigger, PopoverContent, PopoverProps, PopoverContentProps, PopoverTriggerProps } from '../components-core/popover';
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuProps,
+  DropdownMenuTriggerProps,
+  DropdownMenuContentProps,
+  DropdownMenuItemProps,
+  DropdownMenuLabelProps,
+  DropdownMenuSeparatorProps,
+} from '../components-core/dropdown';
 
 export type Components = {
   Button: React.ComponentType<ButtonProps>,
@@ -23,6 +37,12 @@ export type Components = {
   Popover: React.ComponentType<PopoverProps>,
   PopoverTrigger: React.ComponentType<PopoverTriggerProps>,
   PopoverContent: React.ComponentType<PopoverContentProps>,
+  DropdownMenu: React.ComponentType<DropdownMenuProps>,
+  DropdownMenuTrigger: React.ComponentType<DropdownMenuTriggerProps>,
+  DropdownMenuContent: React.ComponentType<DropdownMenuContentProps>,
+  DropdownMenuItem: React.ComponentType<DropdownMenuItemProps>,
+  DropdownMenuLabel: React.ComponentType<DropdownMenuLabelProps>,
+  DropdownMenuSeparator: React.ComponentType<DropdownMenuSeparatorProps>,
 }
 
 export type ComponentConfig = {
@@ -53,6 +73,12 @@ export function StackComponentProvider(props: { children?: React.ReactNode } & C
       Popover: props.components?.Popover || Popover,
       PopoverTrigger: props.components?.PopoverTrigger || PopoverTrigger,
       PopoverContent: props.components?.PopoverContent || PopoverContent,
+      DropdownMenu: props.components?.DropdownMenu || DropdownMenu,
+      DropdownMenuTrigger: props.components?.DropdownMenuTrigger || DropdownMenuTrigger,
+      DropdownMenuContent: props.components?.DropdownMenuContent || DropdownMenuContent,
+      DropdownMenuItem: props.components?.DropdownMenuItem || DropdownMenuItem,
+      DropdownMenuLabel: props.components?.DropdownMenuLabel || DropdownMenuLabel,
+      DropdownMenuSeparator: props.components?.DropdownMenuSeparator || DropdownMenuSeparator,
     }}>
       {props.children}
     </ComponentContext.Provider>

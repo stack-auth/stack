@@ -3,6 +3,7 @@ export const LINE_HEIGHTS = {'xs': '1rem', 'sm': '1.25rem', 'md': '1.5rem', 'lg'
 export const FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
 export const PRIMARY_FONT_COLORS = { 'dark': 'white', 'light': 'black' };
 export const SECONDARY_FONT_COLORS = { 'dark': '#a8a8a8', 'light': '#737373' };
+export const SELECTED_BACKGROUND_COLORS = { 'dark': 'rgba(255, 255, 255, 0.1)', 'light': 'rgba(0, 0, 0, 0.04)' };
 export const BORDER_RADIUS = '0.375rem';
 export const DEFAULT_COLORS = ({
   dark: {

@@ -11,6 +11,14 @@ import { LinkProps } from './link';
 import { TextProps } from './text';
 import { CardProps } from './card';
 import { PopoverProps, PopoverContentProps, PopoverTriggerProps } from './popover';
+import { 
+  DropdownMenuProps,
+  DropdownMenuTriggerProps,
+  DropdownMenuContentProps,
+  DropdownMenuItemProps,
+  DropdownMenuLabelProps,
+  DropdownMenuSeparatorProps,
+} from './dropdown';
 
 export {
   ButtonProps,
@@ -24,6 +32,12 @@ export {
   PopoverProps,
   PopoverContentProps,
   PopoverTriggerProps,
+  DropdownMenuProps,
+  DropdownMenuTriggerProps,
+  DropdownMenuContentProps,
+  DropdownMenuItemProps,
+  DropdownMenuLabelProps,
+  DropdownMenuSeparatorProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -79,4 +93,34 @@ export const PopoverTrigger = forwardRef<HTMLButtonElement, PopoverTriggerProps>
 export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>((props, ref) => {
   const { PopoverContent } = useComponents();
   return <PopoverContent {...props} ref={ref} />;
+});
+
+export function DropdownMenu(props: DropdownMenuProps) {
+  const { DropdownMenu } = useComponents();
+  return <DropdownMenu {...props} />;
+}
+
+export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>((props, ref) => {
+  const { DropdownMenuTrigger } = useComponents();
+  return <DropdownMenuTrigger {...props} ref={ref} />;
+});
+
+export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>((props, ref) => {
+  const { DropdownMenuContent } = useComponents();
+  return <DropdownMenuContent {...props} ref={ref} />;
+});
+
+export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>((props, ref) => {
+  const { DropdownMenuItem } = useComponents();
+  return <DropdownMenuItem {...props} ref={ref} />;
+});
+
+export const DropdownMenuLabel = forwardRef<HTMLDivElement, DropdownMenuLabelProps>((props, ref) => {
+  const { DropdownMenuLabel } = useComponents();
+  return <DropdownMenuLabel {...props} ref={ref} />;
+});
+
+export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSeparatorProps>((props, ref) => {
+  const { DropdownMenuSeparator } = useComponents();
+  return <DropdownMenuSeparator {...props} ref={ref} />;
 });
