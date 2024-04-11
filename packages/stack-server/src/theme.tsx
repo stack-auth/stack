@@ -44,7 +44,7 @@ const theme = extendTheme({
     JoyLink: {
       defaultProps: {
         // eslint-disable-next-line react/display-name
-        component: React.forwardRef((props, ref) => (<NextLink {...props} ref={ref} />)),
+        component: React.forwardRef((props, ref) => (<NextLink {...props} ref={ref} prefetch={false} />)),
         ...{
           "data-n2-clickable": true,
         } as any,
