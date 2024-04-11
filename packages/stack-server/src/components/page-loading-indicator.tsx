@@ -11,12 +11,10 @@ export function PageLoadingIndicator() {
         zIndex={9999999}
         sx={{
           pointerEvents: "none",
-          backgroundColor: "green",
         }}
       >
         <LinearProgress
           variant="solid"
-          color="danger"
           sx={{
             width: '100%',
             "--LinearProgress-thickness": "5px",
