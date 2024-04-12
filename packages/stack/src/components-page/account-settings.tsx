@@ -1,20 +1,23 @@
 'use client';
 
-import { useUser } from '..';
+import { PasswordField, useUser } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Text, Divider, Label, Input, Button } from "../components-core";
 import UserAvatar from '../components/user-avatar';
 import CardFrame from '../components/card-frame';
 import { useState } from 'react';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
+import FormWarningText from '../components/form-warning';
 
 export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
   const [saving, setSaving] = useState(false);
   const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
-  const [userInfoChanged, setUserInfoChanged] = useState(false);
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [userInfoChanged, setUserInfoChanged] = useState<boolean>(false);
+  const [oldPassword, setOldPassword] = useState<string>('');
+  const [oldPasswordError, setOldPasswordError] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [newPasswordError, setNewPasswordError] = useState<string>('');
   const [emailSent, setEmailSent] = useState(false);
   
   if (!user) {
@@ -73,28 +76,26 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Label htmlFor='old-password'>Old Password</Label>
-        <Input 
+        <PasswordField
           id='old-password' 
-          type='password' 
           value={oldPassword} 
           onChange={(e) => {
             setOldPassword(e.target.value);
-            // setHasChanged(true);
           }}
         />
+        <FormWarningText text={oldPasswordError} />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Label htmlFor='new-password'>New Password</Label>
-        <Input 
+        <PasswordField
           id='new-password' 
-          type='password'
-          value={newPassword}
+          value={newPassword} 
           onChange={(e) => {
             setNewPassword(e.target.value);
-            // setHasChanged(true);
           }}
         />
+        <FormWarningText text={newPasswordError} />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
@@ -106,6 +107,9 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
             if (userInfoChanged) {
               await user.update({ displayName: userInfo.displayName });
               setUserInfoChanged(false);
+            }
+            if (oldPassword && newPassword) {
+              const errorCode = await user.updatePassword({ oldPassword, newPassword });
             }
           })}
         >

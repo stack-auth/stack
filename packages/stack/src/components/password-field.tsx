@@ -3,9 +3,11 @@
 import { Input } from "../components-core";;
 import { forwardRef, useRef, useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
+import { useDesign } from "..";
 
 const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ id, name, ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { colors } = useDesign();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const mergeRef = (node: HTMLInputElement) => {
@@ -56,7 +58,7 @@ const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTM
         onClick={onClickReveal}
         aria-label={isOpen ? 'Mask password' : 'Reveal password'}
       >
-        {isOpen ? <HiEyeOff /> : <HiEye />}
+        {isOpen ? <HiEyeOff color={colors.secondaryColor} /> : <HiEye color={colors.secondaryColor} />}
       </button>
     </div>
   );

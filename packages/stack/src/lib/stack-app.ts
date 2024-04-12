@@ -12,7 +12,7 @@ import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, PasswordUpdateErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
@@ -344,6 +344,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       sendVerificationEmail() {
         return app._sendVerificationEmail(tokenStore);
+      },
+      updatePassword(options: { oldPassword: string, newPassword: string}) {
+        return app._updatePassword(options, tokenStore);
       }
     };
     Object.freeze(res);
@@ -583,6 +586,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     );
   }
 
+  protected async _updatePassword(options: { oldPassword: string, newPassword: string}, tokenStore: TokenStore): Promise<PasswordUpdateErrorCode | undefined> {
+    return this._interface.updatePassword(options, tokenStore);
+  }
+
   async signOut(): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -802,6 +809,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       sendVerificationEmail() {
         return app._sendVerificationEmail(tokenStore);
+      },
+      updatePassword(options: { oldPassword: string, newPassword: string}) {
+        return app._updatePassword(options, tokenStore);
       }
     };
     Object.freeze(res);
@@ -1018,6 +1028,7 @@ type Auth<T, C> = {
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<void>,
+  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<PasswordUpdateErrorCode | undefined>,
 };
 
 export type User = {

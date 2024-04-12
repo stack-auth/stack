@@ -4,8 +4,9 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
-import { sendVerificationEmail } from "@/email";
-import { getClientUser } from "@/lib/users";
+import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { prismaClient } from "@/prisma-client";
+import { KnownError, WrongPasswordErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -14,7 +15,8 @@ const postSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    emailVerificationRedirectUrl: yup.string().required(),
+    oldPassword: yup.string().required(),
+    newPassword: yup.string().required(),
   }).required(),
 });
 
@@ -26,7 +28,8 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-publishable-client-key": publishableClientKey,
     },
     body: { 
-      emailVerificationRedirectUrl 
+      oldPassword,
+      newPassword,
     },
   } = await deprecatedParseRequest(req, postSchema);
 
@@ -46,19 +49,34 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden);
   }
 
-  const user = await getClientUser(projectId, userId);
-  if (!user) {
-    throw new StatusError(StatusError.NotFound);
+  const user = await prismaClient.projectUser.findUnique({
+    where: {
+      projectId_projectUserId: {
+        projectId,
+        projectUserId: userId,
+      },
+    },
+  });
+  if (!user?.passwordHash) {
+    throw new StatusError(StatusError.NotFound, "User is not signed in using password");
   }
-  if (user.primaryEmailVerified) {
-    throw new StatusError(StatusError.BadRequest, "Email already verified");
+
+  if (! await comparePassword(oldPassword, user.passwordHash || "")) {
+    throw new KnownError(WrongPasswordErrorCode);
   }
-  try {
-    await sendVerificationEmail(projectId, userId, emailVerificationRedirectUrl);
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+
+  await prismaClient.projectUser.update({
+    where: {
+      projectId_projectUserId: {
+        projectId,
+        projectUserId: userId,
+      },
+    },
+    data: {
+      passwordHash: await hashPassword(newPassword),
+    },
+  });
+
   return NextResponse.json({});
 });
 export const POST = handler;

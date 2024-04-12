@@ -15,6 +15,7 @@ export const EmailVerificationLinkUsedErrorCode = "EMAIL_VERIFICATION_LINK_USED"
 export const PasswordResetLinkInvalidErrorCode = "PASSWORD_RESET_LINK_INVALID";
 export const PasswordResetLinkExpiredErrorCode = "PASSWORD_RESET_LINK_EXPIRED";
 export const PasswordResetLinkUsedErrorCode = "PASSWORD_RESET_LINK_USED";
+export const WrongPasswordErrorCode = "WRONG_PASSWORD";
 
 export const KnownErrorCodes = [
   AccessTokenExpiredErrorCode,
@@ -32,6 +33,7 @@ export const KnownErrorCodes = [
   PasswordResetLinkInvalidErrorCode,
   PasswordResetLinkExpiredErrorCode,
   PasswordResetLinkUsedErrorCode,
+  WrongPasswordErrorCode
 ] as const;
 export type KnownErrorCode = typeof KnownErrorCodes[number];
 
@@ -57,6 +59,9 @@ export const PasswordResetLinkErrorCodes = [
   PasswordResetLinkUsedErrorCode
 ] as const;
 export type PasswordResetLinkErrorCode = typeof PasswordResetLinkErrorCodes[number]
+
+export const PasswordUpdateErrorCodes = [WrongPasswordErrorCode] as const;
+export type PasswordUpdateErrorCode = typeof PasswordUpdateErrorCodes[number];
 
 export class KnownError extends StatusError {
   constructor(public readonly errorCode: KnownErrorCode) {

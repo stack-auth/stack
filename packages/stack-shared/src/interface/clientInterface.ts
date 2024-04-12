@@ -15,6 +15,8 @@ import {
   PasswordResetLinkErrorCodes,
   PasswordResetLinkErrorCode,
   KnownErrorCode,
+  PasswordUpdateErrorCodes,
+  PasswordUpdateErrorCode
 } from "../utils/types";
 import { AsyncResult, Result } from "../utils/results";
 import { ReadonlyJson, parseJson } from '../utils/json';
@@ -404,6 +406,25 @@ export class StackClientInterface {
       },
       null,
       PasswordResetLinkErrorCodes
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
+  async updatePassword(options: { oldPassword: string, newPassword: string }, tokenStore: TokenStore): Promise<PasswordUpdateErrorCode | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError<PasswordUpdateErrorCode>(
+      "/auth/update-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      tokenStore,
+      PasswordUpdateErrorCodes
     );
 
     if (res.status === "error") {
