@@ -60,7 +60,7 @@ export const PasswordResetLinkErrorCodes = [
 ] as const;
 export type PasswordResetLinkErrorCode = typeof PasswordResetLinkErrorCodes[number]
 
-export const PasswordUpdateErrorCodes = [WrongPasswordErrorCode] as const;
+export const PasswordUpdateErrorCodes = [WrongPasswordErrorCode, PasswordFormatInvalidErrorCode] as const;
 export type PasswordUpdateErrorCode = typeof PasswordUpdateErrorCodes[number];
 
 export class KnownError extends StatusError {

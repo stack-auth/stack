@@ -587,7 +587,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _updatePassword(options: { oldPassword: string, newPassword: string}, tokenStore: TokenStore): Promise<PasswordUpdateErrorCode | undefined> {
-    return this._interface.updatePassword(options, tokenStore);
+    return await this._interface.updatePassword(options, tokenStore);
   }
 
   async signOut(): Promise<void> {

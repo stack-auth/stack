@@ -1,6 +1,6 @@
 'use client';
 
-import { PasswordField, useUser } from '..';
+import { PasswordField, useStackApp, useUser } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Text, Divider, Label, Input, Button } from "../components-core";
 import UserAvatar from '../components/user-avatar';
@@ -8,9 +8,11 @@ import CardFrame from '../components/card-frame';
 import { useState } from 'react';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import FormWarningText from '../components/form-warning';
+import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 
 export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
+  const app = useStackApp();
   const [saving, setSaving] = useState(false);
   const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
   const [userInfoChanged, setUserInfoChanged] = useState<boolean>(false);
@@ -81,6 +83,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           value={oldPassword} 
           onChange={(e) => {
             setOldPassword(e.target.value);
+            setOldPasswordError('');
           }}
         />
         <FormWarningText text={oldPasswordError} />
@@ -93,24 +96,42 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           value={newPassword} 
           onChange={(e) => {
             setNewPassword(e.target.value);
+            setNewPasswordError('');
           }}
         />
         <FormWarningText text={newPasswordError} />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem', gap: '1rem' }}>
         <Button 
           variant='primary' 
           disabled={!userInfoChanged && !oldPassword && !newPassword}
           loading={saving}
           onClick={() => runAsynchronously(async () => {
+            setSaving(true);
             if (userInfoChanged) {
               await user.update({ displayName: userInfo.displayName });
               setUserInfoChanged(false);
             }
             if (oldPassword && newPassword) {
-              const errorCode = await user.updatePassword({ oldPassword, newPassword });
+              const errorMessage = getPasswordError(newPassword);
+              if (errorMessage) {
+                setNewPasswordError(errorMessage);
+              } else {
+                const errorCode = await user.updatePassword({ oldPassword, newPassword });
+                if (errorCode) {
+                  setOldPasswordError('Incorrect password');
+                } else {
+                  setOldPassword('');
+                  setNewPassword('');
+                }
+              }
+            } else if (oldPassword && !newPassword) {
+              setNewPasswordError('Please enter a new password');
+            } else if (newPassword && !oldPassword) {
+              setOldPasswordError('Please enter your old password');
             }
+            setSaving(false);
           })}
         >
           Save Changes

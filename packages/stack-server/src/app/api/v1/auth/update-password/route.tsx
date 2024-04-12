@@ -6,7 +6,8 @@ import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
-import { KnownError, WrongPasswordErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { KnownError, PasswordFormatInvalidErrorCode, WrongPasswordErrorCode } from "@stackframe/stack-shared/dist/utils/types";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -47,6 +48,11 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   if (accessTokenProjectId !== projectId) {
     throw new StatusError(StatusError.Forbidden);
+  }
+
+  const passwordError = getPasswordError(newPassword);
+  if (passwordError) {
+    throw new KnownError(PasswordFormatInvalidErrorCode);
   }
 
   const user = await prismaClient.projectUser.findUnique({
