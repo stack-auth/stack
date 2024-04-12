@@ -15,6 +15,7 @@ export default function Button({
     primary: "primary",
     secondary: "neutral",
     warning: "danger",
+    transparent: "primary",
   } as const)[variant] || "primary";
 
   const { children, action, ref, ...validProps } = props;
@@ -29,6 +30,7 @@ export default function Button({
 
   return <JoyButton 
     color={muiVariant}
+    variant={variant === 'transparent' ? 'plain' : 'solid'}
     sx={color ? {
       backgroundColor: color,
       color: c.isDark() ? 'white' : 'black',

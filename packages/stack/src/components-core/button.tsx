@@ -6,7 +6,11 @@ import Color from 'color';
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";
 
-function getColors(color: string, backgroundColor: string): { 
+function getColors(
+  color: string, 
+  backgroundColor: string,
+  primaryColor: string,
+): { 
   bgColor: string, 
   hoverBgColor: string,
   activeBgColor: string,
@@ -30,7 +34,7 @@ function getColors(color: string, backgroundColor: string): {
       bgColor: 'transparent',
       hoverBgColor: getAlpha(0.1),
       activeBgColor: getAlpha(0.2),
-      textColor: pc.isLight() ? 'black' : 'white',
+      textColor: primaryColor,
     };
   } else if (c.isLight()) {
     return {
@@ -50,7 +54,7 @@ function getColors(color: string, backgroundColor: string): {
 }
 
 export type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'warning',
+  variant?: 'primary' | 'secondary' | 'warning' | "transparent",
   color?: string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
@@ -123,12 +127,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         bgColor = '#ff4500';
         break;
       }
+      case 'transparent': {
+        bgColor = 'transparent';
+        break;
+      }
     }
     if (props.color) {
       bgColor = props.color;
     }
-    const buttonColors = getColors(bgColor, colors.backgroundColor);
-  
+    const buttonColors = getColors(bgColor, colors.backgroundColor, colors.primaryColor);
     return (
       <StyledButton
         ref={ref}

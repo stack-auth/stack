@@ -76,7 +76,7 @@ export async function waitUntil(date: Date) {
   return await wait(date.getTime() - Date.now());
 }
 
-export function runAsynchronously(promiseOrFunc: Promise<unknown> | (() => Promise<unknown>) | undefined): void {
+export function runAsynchronously(promiseOrFunc: void | Promise<unknown> | (() => void | Promise<unknown>) | undefined): void {
   if (typeof promiseOrFunc === "function") {
     promiseOrFunc = promiseOrFunc();
   }

@@ -11,7 +11,7 @@ export default function Header() {
   const [currentUI, setCurrentUI] = useCurrentUI();
   return (
     <div 
-      className={"absolute w-full top-0 z-50 p-4 h-12 flex items-center py-4 border-b justify-between"}
+      className={"fixed w-full top-0 z-50 p-4 h-12 flex items-center py-4 border-b justify-between"}
       style={{
         borderColor: colors.neutralColor
       }}

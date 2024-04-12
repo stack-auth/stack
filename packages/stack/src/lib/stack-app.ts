@@ -38,6 +38,7 @@ export type HandlerUrls = {
   forgotPassword: string,
   home: string,
   oauthCallback: string,
+  accountSettings: string,
 }
 
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
@@ -55,6 +56,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
     home: "/",
+    accountSettings: `${handler}/account-settings`,
     ...filterUndefined(partial),
   };
 }
@@ -429,6 +431,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
+  async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
 
   async sendForgotPasswordEmail(email: string) {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);

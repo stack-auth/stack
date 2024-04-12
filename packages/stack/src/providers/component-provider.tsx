@@ -24,6 +24,7 @@ import {
   DropdownMenuLabelProps,
   DropdownMenuSeparatorProps,
 } from '../components-core/dropdown';
+import { Avatar, AvatarProps, AvatarFallback, AvatarFallbackProps, AvatarImage, AvatarImageProps } from '../components-core/avatar';
 
 export type Components = {
   Button: React.ComponentType<ButtonProps>,
@@ -43,6 +44,9 @@ export type Components = {
   DropdownMenuItem: React.ComponentType<DropdownMenuItemProps>,
   DropdownMenuLabel: React.ComponentType<DropdownMenuLabelProps>,
   DropdownMenuSeparator: React.ComponentType<DropdownMenuSeparatorProps>,
+  Avatar: React.ComponentType<AvatarProps>,
+  AvatarFallback: React.ComponentType<AvatarFallbackProps>,
+  AvatarImage: React.ComponentType<AvatarImageProps>,
 }
 
 export type ComponentConfig = {
@@ -79,6 +83,9 @@ export function StackComponentProvider(props: { children?: React.ReactNode } & C
       DropdownMenuItem: props.components?.DropdownMenuItem || DropdownMenuItem,
       DropdownMenuLabel: props.components?.DropdownMenuLabel || DropdownMenuLabel,
       DropdownMenuSeparator: props.components?.DropdownMenuSeparator || DropdownMenuSeparator,
+      Avatar: props.components?.Avatar || Avatar,
+      AvatarFallback: props.components?.AvatarFallback || AvatarFallback,
+      AvatarImage: props.components?.AvatarImage || AvatarImage,
     }}>
       {props.children}
     </ComponentContext.Provider>

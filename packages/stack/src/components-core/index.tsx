@@ -19,6 +19,7 @@ import {
   DropdownMenuLabelProps,
   DropdownMenuSeparatorProps,
 } from './dropdown';
+import { AvatarProps, AvatarFallbackProps, AvatarImageProps } from './avatar';
 
 export {
   ButtonProps,
@@ -38,6 +39,9 @@ export {
   DropdownMenuItemProps,
   DropdownMenuLabelProps,
   DropdownMenuSeparatorProps,
+  AvatarProps,
+  AvatarFallbackProps,
+  AvatarImageProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -123,4 +127,19 @@ export const DropdownMenuLabel = forwardRef<HTMLDivElement, DropdownMenuLabelPro
 export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSeparatorProps>((props, ref) => {
   const { DropdownMenuSeparator } = useComponents();
   return <DropdownMenuSeparator {...props} ref={ref} />;
+});
+
+export const Avatar = forwardRef<HTMLDivElement, AvatarProps>((props, ref) => {
+  const { Avatar } = useComponents();
+  return <Avatar {...props} ref={ref} />;
+});
+
+export const AvatarFallback = forwardRef<HTMLDivElement, AvatarFallbackProps>((props, ref) => {
+  const { AvatarFallback } = useComponents();
+  return <AvatarFallback {...props} ref={ref} />;
+});
+
+export const AvatarImage = forwardRef<HTMLImageElement, AvatarImageProps>((props, ref) => {
+  const { AvatarImage } = useComponents();
+  return <AvatarImage {...props} ref={ref} />;
 });
