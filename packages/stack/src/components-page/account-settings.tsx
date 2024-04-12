@@ -10,11 +10,12 @@ import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises'
 
 export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
-  const [name, setName] = useState(user?.displayName || '');
+  const [saving, setSaving] = useState(false);
+  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
+  const [userInfoChanged, setUserInfoChanged] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const [hasChanged, setHasChanged] = useState(false);
   
   if (!user) {
     return <RedirectMessageCard type='signedOut' fullPage={fullPage} />;
@@ -33,7 +34,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <UserAvatar size={60}/>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Text size='lg'>{name}</Text>
+            <Text size='lg'>{userInfo.displayName}</Text>
             <Text variant='secondary' size='sm'>{user.primaryEmail}</Text>
           </div>
         </div>
@@ -62,10 +63,10 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
         <Label htmlFor='display-name'>Name</Label>
         <Input 
           id='display-name' 
-          value={name} 
+          value={userInfo.displayName}
           onChange={(e) => {
-            setName(e.target.value);
-            setHasChanged(true);
+            setUserInfo((i) => ({...i, displayName: e.target.value }));
+            setUserInfoChanged(true);
           }}
         />
       </div>
@@ -78,7 +79,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           value={oldPassword} 
           onChange={(e) => {
             setOldPassword(e.target.value);
-            setHasChanged(true);
+            // setHasChanged(true);
           }}
         />
       </div>
@@ -91,13 +92,25 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           value={newPassword}
           onChange={(e) => {
             setNewPassword(e.target.value);
-            setHasChanged(true);
+            // setHasChanged(true);
           }}
         />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
-        <Button variant='primary' disabled={!hasChanged}>Save</Button>
+        <Button 
+          variant='primary' 
+          disabled={!userInfoChanged && !oldPassword && !newPassword}
+          loading={saving}
+          onClick={() => runAsynchronously(async () => {
+            if (userInfoChanged) {
+              await user.update({ displayName: userInfo.displayName });
+              setUserInfoChanged(false);
+            }
+          })}
+        >
+          Save Changes
+        </Button>
       </div>
     </div>
   );
