@@ -302,12 +302,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (options.currentClientUserJson !== undefined) {
       this._currentUserCache.forceSetCachedValue([getTokenStore(this._tokenStoreOptions)], options.currentClientUserJson);
     } else if (this.hasPersistentTokenStore()) {
-      runAsynchronously(() => this.getUser());
+      runAsynchronously(() => this.getUser(), { ignoreErrors: true });
     }
     if (options.currentProjectJson !== undefined) {
       this._currentProjectCache.forceSetCachedValue([], options.currentProjectJson);
     } else {
-      runAsynchronously(this.getProject());
+      runAsynchronously(this.getProject(), { ignoreErrors: true });
     }
   }
 
