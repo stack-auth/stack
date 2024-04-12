@@ -75,32 +75,34 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           }}
         />
       </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='old-password'>Old Password</Label>
-        <PasswordField
-          id='old-password' 
-          value={oldPassword} 
-          onChange={(e) => {
-            setOldPassword(e.target.value);
-            setOldPasswordError('');
-          }}
-        />
-        <FormWarningText text={oldPasswordError} />
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='new-password'>New Password</Label>
-        <PasswordField
-          id='new-password' 
-          value={newPassword} 
-          onChange={(e) => {
-            setNewPassword(e.target.value);
-            setNewPasswordError('');
-          }}
-        />
-        <FormWarningText text={newPasswordError} />
-      </div>
+      
+      {user.authMethod === 'credential' &&
+      <>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Label htmlFor='old-password'>Old Password</Label>
+          <PasswordField
+            id='old-password' 
+            value={oldPassword} 
+            onChange={(e) => {
+              setOldPassword(e.target.value);
+              setOldPasswordError('');
+            }}
+          />
+          <FormWarningText text={oldPasswordError} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Label htmlFor='new-password'>New Password</Label>
+          <PasswordField
+            id='new-password' 
+            value={newPassword} 
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              setNewPasswordError('');
+            }}
+          />
+          <FormWarningText text={newPasswordError} />
+        </div>
+      </>}
 
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem', gap: '1rem' }}>
         <Button 

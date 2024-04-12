@@ -39,6 +39,7 @@ export type UserJson = UserCustomizableJson & {
   readonly clientMetadata: ReadonlyJson,
   readonly profileImageUrl: string | null,
   readonly signedUpAtMillis: number,
+  readonly authMethod: "credential" | "oauth",
 };
 
 export type ClientProjectJson = {

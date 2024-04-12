@@ -322,6 +322,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: json.profileImageUrl,
       signedUpAt: new Date(json.signedUpAtMillis),
       clientMetadata: json.clientMetadata,
+      authMethod: json.authMethod,
       toJson() {
         return json;
       }
@@ -363,6 +364,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: user.profileImageUrl,
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
+      authMethod: user.authMethod,
     };
   }
 
@@ -829,6 +831,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
       serverMetadata: user.serverMetadata,
+      authMethod: user.authMethod,
     };
   }
 
@@ -1050,6 +1053,7 @@ export type User = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: ReadonlyJson,
+  readonly authMethod: 'credential' | 'oauth',
 
   toJson(this: CurrentUser): UserJson,
 };
