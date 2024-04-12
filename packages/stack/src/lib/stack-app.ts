@@ -342,6 +342,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signOut() {
         return app._signOut(tokenStore);
       },
+      sendVerificationEmail() {
+        return app._sendVerificationEmail(tokenStore);
+      }
     };
     Object.freeze(res);
     return res;
@@ -572,6 +575,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     window.location.assign(this.urls.afterSignOut);
   }
 
+  protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<void> {
+    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
+    await this._interface.sendVerificationEmail(
+      emailVerificationRedirectUrl,
+      tokenStore
+    );
+  }
+
   async signOut(): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -789,6 +800,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       getClientUser() {
         return app._currentUserFromJson(json, tokenStore);
       },
+      sendVerificationEmail() {
+        return app._sendVerificationEmail(tokenStore);
+      }
     };
     Object.freeze(res);
     return res;
@@ -1003,6 +1017,7 @@ type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T): Promise<void>,
+  sendVerificationEmail(this: T): Promise<void>,
 };
 
 export type User = {

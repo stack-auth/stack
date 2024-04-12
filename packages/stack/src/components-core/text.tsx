@@ -31,11 +31,11 @@ const Text = React.forwardRef<HTMLParagraphElement, TextProps>(({
       break;
     }
     case 'warning': {
-      textColor = '#ff4500';
+      textColor = '#b33b1d';
       break;
     }
     case 'success': {
-      textColor = '#32cd32';
+      textColor = '#3da63d';
       break;
     }
   }

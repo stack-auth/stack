@@ -368,6 +368,30 @@ export class StackClientInterface {
     }
   }
 
+  async sendVerificationEmail(
+    emailVerificationRedirectUrl: string, 
+    tokenStore: TokenStore
+  ): Promise<EmailVerificationLinkErrorCode | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError<EmailVerificationLinkErrorCode>(
+      "/auth/send-verification-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          emailVerificationRedirectUrl,
+        }),
+      },
+      tokenStore,
+      EmailVerificationLinkErrorCodes
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
   async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError<PasswordResetLinkErrorCode>(
       "/auth/password-reset",
