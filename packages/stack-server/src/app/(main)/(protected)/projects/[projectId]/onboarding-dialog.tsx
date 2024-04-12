@@ -1,3 +1,5 @@
+"use client";
+
 import { Dialog } from "@/components/dialog";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
@@ -37,7 +39,6 @@ export function OnboardingDialog() {
     <Dialog
       titleIcon="library_add"
       title="Onboarding"
-      cancelButton
       okButton={{
         label: "Continue",
         onClick: async () => setApiKey(null),

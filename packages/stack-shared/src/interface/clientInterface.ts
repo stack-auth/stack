@@ -2,8 +2,7 @@ import * as oauth from 'oauth4webapi';
 import crypto from "crypto";
 
 import { AsyncResult, Result } from "../utils/results";
-import { ReadonlyJson, parseJson } from '../utils/json';
-import { typedAssign } from '../utils/objects';
+import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 
@@ -280,7 +279,15 @@ export class StackClientInterface {
     }
 
     const url = this.getApiUrl() + path;
-    const params = {
+    const params: RequestInit = {
+      /**
+       * This fetch may be cross-origin, in which case we don't want to send cookies of the
+       * original origin (this is the default behaviour of `credentials`).
+       * 
+       * To help debugging, also omit cookies on same-origin, so we don't accidentally
+       * implement reliance on cookies anywhere.
+       */
+      credentials: "omit",
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
@@ -292,7 +299,7 @@ export class StackClientInterface {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
         } : {},
         ...'projectOwnerTokens' in this.options ? {
-          "X-Stack-Admin-Access-Token": AsyncResult.or(this.options.projectOwnerTokens?.get(), null)?.accessToken ?? "",
+          "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
         } : {},
         ...options.headers,
       },

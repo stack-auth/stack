@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { Logo } from "@/components/logo";
 import { Sheet, SheetProps, Stack } from "@mui/joy";
 

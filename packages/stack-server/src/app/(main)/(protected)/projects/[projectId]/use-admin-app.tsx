@@ -6,16 +6,15 @@ import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, StackAdminApp } from "@stackframe/stack/dist/lib/stack-app";
 
-const StackAdminAppContext = React.createContext<StackAdminApp<true> | null>(null);
+const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
 
 const usersMap = new Map<string, CurrentUser>();
 
 const createAdminApp = cacheFunction((baseUrl: string, projectId: string, userId: string) => {
-  console.log("new app", baseUrl, projectId, userId, usersMap);
-  return new StackAdminApp({
+  return new StackAdminApp<false, string>({
     baseUrl,
     projectId,
-    tokenStore: "nextjs-cookie",
+    tokenStore: null,
     projectOwnerTokens: usersMap.get(userId)!.tokenStore,
   });
 });

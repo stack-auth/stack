@@ -2,7 +2,6 @@ import * as yup from 'yup';
 import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@stackframe/stack-shared';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
-import * as crypto from 'node:crypto';
 import { prismaClient } from '@/prisma-client';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 

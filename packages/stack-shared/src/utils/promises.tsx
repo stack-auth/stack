@@ -63,9 +63,20 @@ export function neverResolve(): ReactPromise<never> {
 }
 
 export function pending<T>(promise: Promise<T>): ReactPromise<T> {
-  return Object.assign(promise, {
+  const res = Object.assign(promise, {
     status: "pending",
-  } as const);
+  } as Pick<ReactPromise<T>, "status"> & { value: T, reason: unknown });
+  res.then(
+    value => {
+      res.status = "fulfilled";
+      res.value = value;
+    },
+    reason => {
+      res.status = "rejected";
+      res.reason = reason;
+    },
+  );
+  return res;
 }
 
 export async function wait(ms: number) {
@@ -78,12 +89,17 @@ export async function waitUntil(date: Date) {
 
 class ErrorDuringRunAsynchronously extends Error {
   constructor() {
-    super("The error above originated in a runAsynchronously() call. Below is the stacktrace associated with it.");
+    super("The error above originated in a runAsynchronously() call. Here is the stacktrace associated with it.");
     this.name = "ErrorDuringRunAsynchronously";
   }
 }
 
-export function runAsynchronously(promiseOrFunc: Promise<unknown> | (() => Promise<unknown>) | undefined): void {
+export function runAsynchronously(
+  promiseOrFunc: Promise<unknown> | (() => Promise<unknown>) | undefined,
+  options: {
+    ignoreErrors?: boolean,
+  } = {},
+): void {
   if (typeof promiseOrFunc === "function") {
     promiseOrFunc = promiseOrFunc();
   }
@@ -95,8 +111,10 @@ export function runAsynchronously(promiseOrFunc: Promise<unknown> | (() => Promi
         cause: error,
       }
     );
-    console.error(newError);
-    console.error(duringError);
+    if (!options.ignoreErrors) {
+      console.error(newError);
+      console.error(duringError);
+    }
   });
 }
 

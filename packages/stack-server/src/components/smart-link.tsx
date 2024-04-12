@@ -7,6 +7,7 @@ import { Icon } from "./icon";
 
 export const SmartLink = React.forwardRef((props: LinkProps & { hideExternalIndicator?: boolean }, ref) => {
   const [isExternal, setIsExternal] = useState(!!props.href?.match(/^[a-z]+:/));
+  const [isClicked, setIsClicked] = useState(false);
 
   const { hideExternalIndicator, ...linkProps } = props;
 

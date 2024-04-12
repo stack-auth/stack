@@ -93,7 +93,7 @@ async function parseBody(req: NextRequest): Promise<SmartRequest["body"]> {
   }
 }
 
-export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
   const urlObject = new URL(req.url);  
   const toValidate: SmartRequest = {
     url: req.url,
@@ -132,7 +132,7 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(obj, schema);
 
   let status = validated.statusCode;
@@ -241,7 +241,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       }
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
-      console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+      console.log(`For the error above with request ID ${requestId}, the full error is:`, statusError);
 
       const res = await createResponse(req, requestId, {
         statusCode: statusError.statusCode,
