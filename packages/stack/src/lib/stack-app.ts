@@ -1,4 +1,4 @@
-import React, { use, useCallback } from "react";
+import React, { use, useCallback, useMemo } from "react";
 import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -488,7 +488,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         case 'redirect': {
           router.replace(this.urls.signIn);
           suspend();
-          throw new Error("suspend should never return!");
+          throw new Error("suspend should never return! This is a bug in Stack.");
         }
         case 'throw': {
           throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
@@ -499,7 +499,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     }
 
-    return this._currentUserFromJson(userJson, tokenStore);
+    return useMemo(() => {
+      return this._currentUserFromJson(userJson, tokenStore);
+    }, [userJson, tokenStore, options?.or]);
   }
 
   onUserChange(callback: (user: CurrentUser | null) => void) {
@@ -604,11 +606,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
-    return json.map((j) => this._projectAdminFromJson(
+    return useMemo(() => json.map((j) => this._projectAdminFromJson(
       j,
       this._createAdminInterface(j.id, tokenStore),
       () => this._refreshOwnedProjects(tokenStore),
-    ));
+    )), [json]);
   }
 
   onOwnedProjectsChange(callback: (projects: Project[]) => void) {
@@ -819,11 +821,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = useCache(this._currentServerUserCache, [tokenStore], "useServerUser()");
 
-    if (options?.required && userJson === null) {
-      use(this.redirectToSignIn());
-    }
+    return useMemo(() => {
+      if (options?.required && userJson === null) {
+        use(this.redirectToSignIn());
+      }
 
-    return this._currentServerUserFromJson(userJson, tokenStore);
+      return this._currentServerUserFromJson(userJson, tokenStore);
+    }, [userJson, tokenStore, options?.required]);
   }
 
   onServerUserChange(callback: (user: CurrentServerUser | null) => void) {
@@ -841,7 +845,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   useServerUsers(): ServerUser[] {
     const json = useCache(this._serverUsersCache, [], "useServerUsers()");
-    return json.map((j) => this._serverUserFromJson(j));
+    return useMemo(() => {
+      return json.map((j) => this._serverUserFromJson(j));
+    }, [json]);
   }
 
   onServerUsersChange(callback: (users: ServerUser[]) => void) {
@@ -946,11 +952,12 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   useProjectAdmin(): Project {
-    return this._projectAdminFromJson(
-      useCache(this._adminProjectCache, [], "useProjectAdmin()"),
+    const json = useCache(this._adminProjectCache, [], "useProjectAdmin()");
+    return useMemo(() => this._projectAdminFromJson(
+      json,
       this._interface,
       () => this._refreshProject()
-    );
+    ), [json]);
   }
 
   onProjectAdminChange(callback: (project: Project) => void) {
@@ -970,7 +977,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   useApiKeySets(): ApiKeySet[] {
     const json = useCache(this._apiKeySetsCache, [], "useApiKeySets()");
-    return json.map((j) => this._createApiKeySetFromJson(j));
+    return useMemo(() => {
+      return json.map((j) => this._createApiKeySetFromJson(j));
+    }, [json]);
   }
 
   onApiKeySetsChange(callback: (apiKeySets: ApiKeySet[]) => void) {
