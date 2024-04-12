@@ -13,7 +13,7 @@ const config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://docs.stackframe.co",
+  url: "https://docs.stack-auth.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -79,7 +79,7 @@ const config = {
           },
           {
             href: process.env.STACKFRAME_URL,
-            label: "Stackframe",
+            label: "Stack",
             position: "left",
           },
           {

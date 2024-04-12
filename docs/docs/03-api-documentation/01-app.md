@@ -99,4 +99,4 @@ export const stackApp = new StackServerApp({
 
     The URL of the handler root. If you want to change the URL of your handler to something other than `/handler`, you can change it here. 
 
-    Note that you also need to change the `[...stack]/page.tsx` file to the corresponding location. When you want to use your website in a non-local environment, you need to change the handler URL in the Stackframe dashboard as well.
+    Note that you also need to change the `[...stack]/page.tsx` file to the corresponding location. When you want to use your website in a non-local environment, you need to change the handler URL in the Stack dashboard as well.
