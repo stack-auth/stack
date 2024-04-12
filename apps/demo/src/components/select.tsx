@@ -8,14 +8,14 @@ const SelectWrapper = styled.div`
   display: inline-block;
 `;
 
-const StyledSelect = styled.select<{bgColor: string, borderColor: string}>`
+const StyledSelect = styled.select<{$bgColor: string, $borderColor: string}>`
   padding: 3px 5px;
   padding-right: 30px;
   display: inline-block;
-  border: 1px solid ${props => props.borderColor};
+  border: 1px solid ${props => props.$borderColor};
   border-radius: 4px;
   box-sizing: border-box;
-  background-color: ${props => props.bgColor};
+  background-color: ${props => props.$bgColor};
   appearance: none;
 `;
 
@@ -34,7 +34,7 @@ const Select = ({ options, ...props }) => {
   const { colors } = useDesign();
   return (
     <SelectWrapper>
-      <StyledSelect {...props} bgColor={colors.backgroundColor} borderColor={colors.neutralColor}>
+      <StyledSelect {...props} $bgColor={colors.backgroundColor} $borderColor={colors.neutralColor}>
         {options.map(option => (
           <StyledOption key={option.value} value={option.value}>
             {option.label}
