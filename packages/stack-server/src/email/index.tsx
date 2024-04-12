@@ -29,7 +29,7 @@ export async function sendEmail({
   emailConfig: EmailConfig,
   to: string | string[],
   subject: string,
-  text?: string,
+  text: string,
   html: string,
 }) {
   const transporter = nodemailer.createTransport({
@@ -132,20 +132,21 @@ export async function sendVerificationEmail(
   const verificationUrl = new URL(redirectUrl);
   verificationUrl.searchParams.append('code', verificationCode.code);
 
-  const html = render(
-    <VerificationEmail
-      verificationUrl={verificationUrl.toString()}
-      projectName={project.displayName}
-      username={projectUser.displayName || undefined}
-      fromStack={emailConfig.type === 'shared'}
-    />
-  );
+  const htmlEmail = <VerificationEmail
+    verificationUrl={verificationUrl.toString()}
+    projectName={project.displayName}
+    username={projectUser.displayName || undefined}
+    fromStack={emailConfig.type === 'shared'}
+  />;
+  const html = render(htmlEmail);
+  const text = render(htmlEmail, { plainText: true });
   
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
     subject: "Verify your email at " + project.displayName,
     html,
+    text,
   });
 }
 
@@ -173,19 +174,20 @@ export async function sendPasswordResetEmail(
   const passwordResetUrl = new URL(redirectUrl);
   passwordResetUrl.searchParams.append('code', resetCode.code);
 
-  const html = render(
-    <PasswordResetEmail
-      passwordResetUrl={passwordResetUrl.toString()}
-      projectName={project.displayName}
-      username={projectUser.displayName || undefined}
-      fromStack={emailConfig.type === 'shared'}
-    />
-  );
+  const htmlEmail = <PasswordResetEmail
+    passwordResetUrl={passwordResetUrl.toString()}
+    projectName={project.displayName}
+    username={projectUser.displayName || undefined}
+    fromStack={emailConfig.type === 'shared'}
+  />;
+  const html = render(htmlEmail);
+  const text = render(htmlEmail, { plainText: true });
 
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
     subject: "Reset your password at " + project.displayName,
     html,
+    text,
   });
 }
