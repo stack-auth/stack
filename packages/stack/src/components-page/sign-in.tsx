@@ -1,7 +1,7 @@
 'use client';
 
 import CredentialSignIn from '../components/credential-sign-in';
-import DividerWithText from '../components/divider-with-text';
+import SeparatorWithText from '../components/separator-with-text';
 import OAuthGroup from '../components/oauth-group';
 import CardFrame from '../components/card-frame';
 import { useUser, useStackApp } from '..';
@@ -17,7 +17,7 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
-  const enableDivider = project.credentialEnabled && project.oauthProviders.filter(p => p.enabled).length > 0;
+  const enableSeparator = project.credentialEnabled && project.oauthProviders.filter(p => p.enabled).length > 0;
 
   return (
     <CardFrame fullPage={fullPage}>
@@ -31,7 +31,7 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
         </Text>
       </div>
       <OAuthGroup type='signin'/>
-      {enableDivider && <DividerWithText text={'or continue with email'} />}
+      {enableSeparator && <SeparatorWithText text={'or continue with email'} />}
       {project.credentialEnabled && <CredentialSignIn/>}
     </CardFrame>
   );

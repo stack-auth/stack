@@ -69,7 +69,7 @@ Now if you check out your sign-in page, you will see the sign-in button there is
 Here is a list of low-level components that you can customize, stared ones are the most used and recommended to customize first:
 - Button ⭐
 - Container
-- Divider
+- Separator
 - Input ⭐
 - Label
 - Link

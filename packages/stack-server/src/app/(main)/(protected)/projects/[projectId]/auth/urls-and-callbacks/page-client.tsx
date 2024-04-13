@@ -1,6 +1,6 @@
 "use client";
 
-import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Checkbox, Typography, Box, FormHelperText } from "@mui/joy";
+import { IconButton, List, ListItem, ListSeparator, Input, FormControl, FormLabel, Checkbox, Typography, Box, FormHelperText } from "@mui/joy";
 import React, { use, useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
@@ -181,7 +181,7 @@ export default function UrlsAndCallbacksClient() {
           >
             {[...domains].map(({ domain, handlerPath }, i) => (
               <React.Fragment key={domain}>
-                {i !== 0 && <ListDivider />}
+                {i !== 0 && <ListSeparator />}
                 <ListItem
                   endAction={
                     <>

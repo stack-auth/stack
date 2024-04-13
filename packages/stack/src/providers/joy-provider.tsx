@@ -5,13 +5,13 @@ import { useColorScheme } from "@mui/joy";
 import { Button } from '../components-core-joy/button';
 import { Input } from '../components-core-joy/input';
 import { Text } from '../components-core-joy/text';
-import { Divider } from '../components-core-joy/divider';
+import { Separator } from '../components-core-joy/separator';
 
 export const defaultComponents = {
   Button,
   Input,
   Text,
-  Divider,
+  Separator,
 };
 
 export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.ReactNode }) {

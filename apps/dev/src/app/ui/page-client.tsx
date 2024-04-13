@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Container, Divider, Input, Label, Link, Text, useDesign } from '@stackframe/stack';
+import { Button, Container, Separator, Input, Label, Link, Text, useDesign } from '@stackframe/stack';
 import { useCurrentUI } from 'src/components/provider';
 
 const text = "This is a test sentence. ";
@@ -66,7 +66,7 @@ export default function PageClient() {
             </Button>
           </div>
 
-          <Divider />
+          <Separator />
 
           <div style={{ display: 'flex', gap: 20}}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
@@ -77,7 +77,7 @@ export default function PageClient() {
               <Text size='xl'>{text}</Text>
             </div>
           
-            <Divider orientation='vertical' />
+            <Separator orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
               <Text color="primary">{text}</Text>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, CardContent, CardOverflow, Divider, FormControl, FormLabel, Grid, Input, Stack, Textarea, Typography } from "@mui/joy";
+import { Button, Card, CardContent, CardOverflow, Separator, FormControl, FormLabel, Grid, Input, Stack, Textarea, Typography } from "@mui/joy";
 import { useId, useRef, useState } from "react";
 import { useStackApp } from "@stackframe/stack";
 import { prettyPrintWithMagnitudes } from "@stackframe/stack-shared/dist/utils/numbers";
@@ -66,12 +66,12 @@ function ProjectCard(props: {
           <Typography level="body-sm" sx={singleLineCss}>{props.project.description}</Typography>
         </CardContent>
         <CardOverflow variant="soft" sx={{ bgcolor: 'background.level1' }}>
-          <Divider inset="context" />
+          <Separator inset="context" />
           <CardContent orientation="horizontal">
             <Typography level="body-xs" fontWeight="md" textColor="text.secondary" sx={singleLineCss}>
               {prettyPrintWithMagnitudes(props.project.userCount)} users
             </Typography>
-            <Divider orientation="vertical" />
+            <Separator orientation="vertical" />
             <Typography level="body-xs" fontWeight="md" textColor="text.secondary" sx={singleLineCss}>
               {createdAt}
             </Typography>

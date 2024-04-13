@@ -5,7 +5,7 @@ import { forwardRef } from 'react';
 import { Components, useComponents } from '../providers/component-provider';
 import { Button as StaticButton } from './button';
 import { Container as StaticContainer } from './container';
-import { Divider as StaticDivider } from './divider';
+import { Separator as StaticSeparator } from './separator';
 import { Input as StaticInput } from './input';
 import { Label as StaticLabel } from './label';
 import { Link as StaticLink } from './link';
@@ -57,12 +57,12 @@ export const Container = forwardRef<
   return <Container {...props} ref={ref} />;
 });
 
-export const Divider = forwardRef<
+export const Separator = forwardRef<
   HTMLHRElement, 
-  React.ComponentProps<typeof StaticDivider>
+  React.ComponentProps<typeof StaticSeparator>
 >((props, ref) => {
-  const { Divider } = useComponents();
-  return <Divider {...props} ref={ref} />;
+  const { Separator } = useComponents();
+  return <Separator {...props} ref={ref} />;
 });
 
 export const Input = forwardRef<

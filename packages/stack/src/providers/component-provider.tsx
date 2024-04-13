@@ -3,7 +3,7 @@
 import React, { createContext, useContext } from 'react';
 import { Button } from '../components-core/button';
 import { Container } from '../components-core/container';
-import { Divider } from '../components-core/divider';
+import { Separator } from '../components-core/separator';
 import { Input } from '../components-core/input';
 import { Link } from '../components-core/link';
 import { Label } from '../components-core/label';
@@ -25,7 +25,7 @@ export const Components = {
   Input,
   Button,
   Container,
-  Divider,
+  Separator,
   Label,
   Link,
   Text,

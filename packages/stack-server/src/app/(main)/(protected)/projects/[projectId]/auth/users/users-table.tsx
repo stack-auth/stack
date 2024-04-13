@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
+import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Separator, Dropdown, FormControl, FormLabel, IconButton, Input, ListSeparator, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
 import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
@@ -159,7 +159,7 @@ function Actions(props: { params: any }) {
             </ListItemDecorator>{' '}
             Edit
           </MenuItem>
-          <ListDivider />
+          <ListSeparator />
           <MenuItem color="danger" onClick={() => setIsDeleteModalOpen(true)}>
             <ListItemDecorator sx={{ color: 'inherit' }}>
               <Icon icon='delete' />
@@ -208,7 +208,7 @@ function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => 
           <Icon icon='edit' />
           Edit user
         </DialogTitle>
-        <Divider />
+        <Separator />
         <DialogContent>
           <form
             onSubmit={(event) => {
