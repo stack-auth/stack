@@ -11,9 +11,9 @@ Stack is an open-source, self-hostable, and highly customizable authentication a
 
 We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows. Think of it as Supabase Auth or next-auth, but better.
 
-Here is an example of the sign-up page you get out of the box:
+Here are some of the components you get out-of-the-box:
 
-![Stack Sign Up Page](/assets/signup-page.png)
+![Stack Sign Up Page](/assets/components.png)
 
 ## Features
 
