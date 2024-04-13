@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-server",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -12,7 +12,7 @@
     "dev": "npm run todo; next dev --port 8101",
     "build": "npm run todo; npm run codegen && next build",
     "analyze-bundle": "npm run todo; ANALYZE_BUNDLE=1 npm run build",
-    "start": "npm run todo; next start",
+    "start": "npm run todo; next start --port 8101",
     "codegen": "npm run todo; npm run prisma -- generate",
     "psql": "npm run todo; npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run todo; npm run with-env -- prisma",
@@ -76,6 +76,7 @@
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
-    "prisma": "^5.9.1"
+    "prisma": "^5.9.1",
+    "ts-node": "^10.9.2"
   }
 }

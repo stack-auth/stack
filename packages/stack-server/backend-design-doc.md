@@ -10,8 +10,11 @@
 
 ## Known errors
 
-- `AllOverloadsFailed`: This endpoint has multiple overloads, but they all failed to process the request. (400)
+Terminology: "Invalid" means it was found but not valid, "Not found" means it was not found. "Error" could be anything. Make sure not to accidentally leak information, eg. "access forbidden" should often be "not found" or the user would know that the resource exists.
+
+- `UnsupportedError`: An error occured that is not currently supported (possibly because it was added in a version of Stack that is newer than this client). (400)
 - `SchemaError`: The request body does not match the expected schema. (400)
+- `AllOverloadsFailed`: This endpoint has multiple overloads, but they all failed to process the request. (400)
 - `ProjectAuthenticationError`:
   - `InvalidProjectAuthentication`:
     - `InvalidPublishableClientKey`: The publishable key is not valid for the given project. Does the project and/or the key exist? (401)
@@ -19,7 +22,7 @@
     - `InvalidSuperSecretAdminKey`: The super secret admin key is not valid for the given project. Does the project and/or the key exist? (401)
     - `InvalidAdminAccessToken`:
       - `UnparsableAdminAccessToken`: Admin access token is not parsable. (401)
-      - `AdminAccessTokenExpired`: Admin access token has expired. (401)
+      - `AdminAccessTokenExpired`: Admin access token has expired. Please refresh it and try again. (401)
       - `InvalidProjectForAdminAccessToken`: Admin access token not valid for this project. (401)
   - `ProjectAuthenticationRequired`:
     - `ClientAuthenticationRequired`: The publishable client key must be provided. (401)
@@ -33,30 +36,32 @@
   - `InvalidSessionAuthentication`:
     - `InvalidAccessToken`: [^1]
       - `UnparsableAccessToken`: Access token is not parsable. (401)
-      - `AccessTokenExpired`: Access token has expired. (401)
+      - `AccessTokenExpired`: Access token has expired. Please refresh it and try again. (401)
       - `InvalidProjectForAccessToken`: Access token not valid for this project. (401)
     - `SessionUserEmailNotVerified`: User e-mail not verified, but is required by the project. (401)
   - `SessionAuthenticationRequired`: Session required for this request. (401)
-- `InvalidRefreshToken`: The client should remove the refresh token.
+- `RefreshTokenError`:
   - `ProviderRejected`: The provider refused to refresh their token. (401)
-  - `RefreshTokenExpired`: Refresh token has expired. A new refresh token requires reauthentication. (401)
+  - `InvalidRefreshToken`: Refresh token is invalid, possibly because it has expired. A new refresh token requires reauthentication. (401)
 - `UserEmailAlreadyExists`: User already exists. (400)
 - `UserNotFound`: User not found. (404)
 - `ApiKeyNotFound`: API key not found. (404)
-- `ProjectNotFound`: Project not found. (404)
+- `ProjectNotFound`: Project not found or is not accessible. (404)
 - `EmailPasswordMismatch`: Wrong e-mail or password. (400)
-- `InvalidRedirectUrl`: Invalid redirect URL. (400)
+- `RedirectUrlNotWhitelisted`: The redirect URL is not whitelisted. (400)
 - `PasswordRequirementsNotMet`:
   - `PasswordTooShort`: Password too short. (400)
   - `PasswordTooLong`: Password too long. (400)
 - `EmailVerificationError`:
-  - `InvalidEmailVerificationCode`: The e-mail verification link is invalid. (400)
-  - `EmailVerificationCodeExpired`: The e-mail verification link has expired. (400)
-  - `EmailVerificationCodeAlreadyUsed`: The e-mail verification link has already been used. (400)
+  - `EmailVerificationCodeError`:
+    - `EmailVerificationCodeNotFound`: The e-mail verification code does not exist for this project. (404)
+    - `EmailVerificationCodeExpired`: The e-mail verification code has expired. (400)
+    - `EmailVerificationCodeAlreadyUsed`: The e-mail verification code has already been used. (400)
 - `PasswordResetError`:
-  - `InvalidPasswordResetCode`: The password reset link is invalid. (400)
-  - `PasswordResetCodeExpired`: The password reset link has expired. (400)
-  - `PasswordResetCodeAlreadyUsed`: The password reset link has already been used. (400)
+  - `PasswordResetCodeError`:
+    - `PasswordResetCodeNotFound`: The password reset code does not exist for this project. (404)
+    - `PasswordResetCodeExpired`: The password reset code has expired. (400)
+    - `PasswordResetCodeAlreadyUsed`: The password reset code has already been used. (400)
 
 
 ## Project Authentication

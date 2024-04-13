@@ -9,7 +9,7 @@ import { getAuthorizationCallback, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { ProjectIdOrKeyInvalidErrorCode, KnownError } from "@stackframe/stack-shared/dist/utils/types";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -62,7 +62,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   } = decoded;
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
-    throw new KnownError(ProjectIdOrKeyInvalidErrorCode);
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const project = await getProject(projectId);

@@ -29,7 +29,6 @@ export class FacebookProvider extends OAuthBaseProvider {
     url.searchParams.append('fields', 'id,name,email');
     const rawUserInfo = await fetch(url).then((res) => res.json());
 
-    console.log(rawUserInfo);
     return validateUserInfo({
       accountId: rawUserInfo.id,
       displayName: rawUserInfo.name,

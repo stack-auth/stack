@@ -23,7 +23,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   } = await deprecatedParseRequest(req, getSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
-    throw new StatusError(StatusError.Forbidden);
+    throw new StatusError(StatusError.Forbidden, "Invalid API key or insufficient permissions");
   }
 
   const apiKeys = await listApiKeySets(

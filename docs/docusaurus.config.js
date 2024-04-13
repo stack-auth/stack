@@ -26,7 +26,7 @@ const config = {
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
 
-  headTags: JSON.parse((console.log(process.env.STACK_HEAD_TAGS), process.env.STACK_HEAD_TAGS) || "[]"),
+  headTags: JSON.parse(process.env.STACK_HEAD_TAGS || "[]"),
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you

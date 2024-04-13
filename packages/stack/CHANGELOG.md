@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.1.3
+
+### Patch Changes
+
+- 4f985be: Fixed signin title bug
+
 ## 2.1.2
 
 ### Patch Changes

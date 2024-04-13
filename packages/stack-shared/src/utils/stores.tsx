@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { AsyncResult } from "./results";
+import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
 import { ReactPromise, pending, rejected, resolved } from "./promises";
 
@@ -70,24 +70,38 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     return pending(withFinally);
   }
 
-  _setIfLatest(value: T, curCounter: number) {
-    if (!this._isAvailable || this._isRejected || this._value !== value) {
-      const oldValue = this._value;
-      if (curCounter > this._lastSuccessfulUpdate) {
-        this._lastSuccessfulUpdate = curCounter;
-        this._isAvailable = true;
-        this._isRejected = false;
-        this._value = value;
-        this._callbacks.forEach((callback) => callback(value, oldValue));
-        return true;
+  _setIfLatest(result: Result<T>, curCounter: number) {
+    if (curCounter > this._lastSuccessfulUpdate) {
+      switch (result.status) {
+        case "ok": {
+          if (!this._isAvailable || this._isRejected || this._value !== result.data) {
+            const oldValue = this._value;
+            this._lastSuccessfulUpdate = curCounter;
+            this._isAvailable = true;
+            this._isRejected = false;
+            this._value = result.data;
+            this._rejectionError = undefined;
+            this._callbacks.forEach((callback) => callback(result.data, oldValue));
+            return true;
+          }
+          return false;
+        }
+        case "error": {
+          this._lastSuccessfulUpdate = curCounter;
+          this._isAvailable = false;
+          this._isRejected = true;
+          this._value = undefined;
+          this._rejectionError = result.error;
+          this._waitingRejectFunctions.forEach((reject) => reject(result.error));
+          return true;
+        }
       }
-      return false;
     }
     return false;
   }
 
   set(value: T): void {
-    this._setIfLatest(value, ++this._updateCounter);
+    this._setIfLatest(Result.ok(value), ++this._updateCounter);
   }
 
   update(updater: (value: T | undefined) => T): T {
@@ -98,21 +112,20 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
 
   async setAsync(promise: Promise<T>): Promise<boolean> {
     const curCounter = ++this._updateCounter;
-    const value = await promise;
-    return this._setIfLatest(value, curCounter);
+    const result = await Result.fromPromise(promise);
+    return this._setIfLatest(result, curCounter);
   }
 
   setUnavailable(): void {
+    this._lastSuccessfulUpdate = ++this._updateCounter;
     this._isAvailable = false;
     this._isRejected = false;
     this._value = undefined;
+    this._rejectionError = undefined;
   }
 
   setRejected(error: unknown): void {
-    this._isRejected = true;
-    this._value = undefined;
-    this._rejectionError = error;
-    this._waitingRejectFunctions.forEach((reject) => reject(error));
+    this._setIfLatest(Result.error(error), ++this._updateCounter);
   }
 
   map<U>(mapper: (value: T) => U): AsyncStore<U> {

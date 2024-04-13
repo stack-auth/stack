@@ -36,7 +36,6 @@ function EditDialog(props: {
   const [newHandlerPathError, setNewHandlerPathError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(props.editIndex, props.domains);
     if (props.editIndex !== undefined) {
       const domain = [...props.domains][props.editIndex];
       setNewDomain(domain.domain);

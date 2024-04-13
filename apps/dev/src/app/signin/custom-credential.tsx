@@ -14,10 +14,10 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
-    const errorCode = await app.signInWithCredential({ email, password });
+    const error = await app.signInWithCredential({ email, password });
     // It is better to handle each error code separately, but for simplicity, we will just show the error code directly
-    if (errorCode) {
-      setError(errorCode);
+    if (error) {
+      setError(error.message);
     }
   };
   

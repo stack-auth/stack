@@ -63,6 +63,7 @@ export class AsyncCache<D extends any[], T> {
   readonly isCacheAvailable = this._createKeyed("isCacheAvailable");
   readonly getIfCached = this._createKeyed("getIfCached");
   readonly getOrWait = this._createKeyed("getOrWait");
+  readonly forceSetCachedValue = this._createKeyed("forceSetCachedValue");
   readonly refresh = this._createKeyed("refresh");
   readonly invalidate = this._createKeyed("invalidate");
   readonly onChange = this._createKeyed("onChange");
@@ -70,6 +71,7 @@ export class AsyncCache<D extends any[], T> {
 
 class AsyncValueCache<T> {
   private _store: AsyncStore<T>;
+  private _pendingPromise: ReactPromise<T> | undefined;
   private _fetcher: () => Promise<T>;
   private readonly _rateLimitOptions: Omit<RateLimitOptions, "batchCalls">;
   private _subscriptionsCount = 0;
@@ -85,7 +87,7 @@ class AsyncValueCache<T> {
     this._store = new AsyncStore();
     this._rateLimitOptions = {
       concurrency: 1,
-      debounceMs: 300,
+      throttleMs: 300,
       ...filterUndefined(_options.rateLimiter ?? {}),
     };
 
@@ -110,28 +112,31 @@ class AsyncValueCache<T> {
       return resolved(cached.data);
     }
 
-    return pending(this._refetch(cacheStrategy === "read-write" ? "write-only" : cacheStrategy));
+    return this._refetch(cacheStrategy);
   }
 
   private _set(value: T): void {
     this._store.set(value);
   }
 
-  private async _setAsync(value: Promise<T>): Promise<boolean> {
-    return await this._store.setAsync(value);
+  private _setAsync(value: Promise<T>): ReactPromise<boolean> {
+    return pending(this._store.setAsync(value));
   }
 
-  private async _refetch(cacheStrategy: "write-only" | "never"): Promise<T> {
-    try {
-      const res = this._fetcher();
-      if (cacheStrategy === "write-only") {
-        await this._setAsync(res);
-      }
-      return await res;
-    } catch (e) {
-      this._store.setRejected(e);
-      throw e;
+  private _refetch(cacheStrategy: CacheStrategy): ReactPromise<T> {
+    if (cacheStrategy === "read-write" && this._pendingPromise) {
+      return this._pendingPromise;
     }
+    const promise = pending(this._fetcher());
+    if (cacheStrategy === "never") {
+      return promise;
+    }
+    this._pendingPromise = promise;
+    return pending(this._setAsync(promise).then(() => promise));
+  }
+
+  forceSetCachedValue(value: T): void {
+    this._set(value);
   }
 
   async refresh(): Promise<T> {
@@ -140,6 +145,7 @@ class AsyncValueCache<T> {
 
   async invalidate(): Promise<T> {
     this._store.setUnavailable();
+    this._pendingPromise = undefined;
     return await this.refresh();
   }
 

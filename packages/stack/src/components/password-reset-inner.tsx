@@ -38,9 +38,9 @@ export default function PasswordResetInner(
       return;
     }
 
-    const errorMessage = getPasswordError(password);
-    if (errorMessage) {
-      setPasswordError(errorMessage);
+    const passwordError = getPasswordError(password);
+    if (passwordError) {
+      setPasswordError(passwordError.message);
       return;
     }
 

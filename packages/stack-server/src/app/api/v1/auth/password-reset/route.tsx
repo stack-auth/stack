@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { 
-  KnownError,
-  PasswordResetLinkInvalidErrorCode,
-  PasswordResetLinkUsedErrorCode,
-  PasswordResetLinkExpiredErrorCode
-} from "@stackframe/stack-shared/dist/utils/types";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   body: yup.object({
@@ -28,15 +23,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!codeRecord) {
-    throw new KnownError(PasswordResetLinkInvalidErrorCode);
+    throw new KnownErrors.PasswordResetCodeNotFound();
   }
 
   if (codeRecord.expiresAt < new Date()) {
-    throw new KnownError(PasswordResetLinkExpiredErrorCode);
+    throw new KnownErrors.PasswordResetCodeExpired();
   }
 
   if (codeRecord.usedAt) {
-    throw new KnownError(PasswordResetLinkUsedErrorCode);
+    throw new KnownErrors.PasswordResetCodeAlreadyUsed();
   }
 
   if (onlyVerifyCode) {

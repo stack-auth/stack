@@ -6,10 +6,11 @@ import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
-type SmartRequest = {
+export type SmartRequest = {
   url: string,
   method: typeof allowedMethods[number],
   body: unknown,
@@ -18,7 +19,7 @@ type SmartRequest = {
   params: Record<string, string>,
 };
 
-type SmartResponse = {
+export type SmartResponse = {
   statusCode: number,
   headers?: Record<string, string[]>,
 } & (
@@ -35,7 +36,7 @@ type SmartResponse = {
     body: Json,
   }
   | {
-    bodyType: "array-buffer",
+    bodyType: "binary",
     body: ArrayBuffer,
   }
 );
@@ -92,7 +93,7 @@ async function parseBody(req: NextRequest): Promise<SmartRequest["body"]> {
   }
 }
 
-export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
   const urlObject = new URL(req.url);  
   const toValidate: SmartRequest = {
     url: req.url,
@@ -123,13 +124,21 @@ export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartReq
   return await validate(toValidate, schema);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+
+function isBinaryBody(body: unknown): body is BodyInit {
+  return body instanceof ArrayBuffer
+    || body instanceof SharedArrayBuffer
+    || body instanceof Blob
+    || ArrayBuffer.isView(body);
+}
+
+async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(obj, schema);
 
   let status = validated.statusCode;
   const headers = new Map<string, string[]>;
 
-  const bodyType = validated.bodyType ?? (validated.body instanceof ArrayBuffer ? "array-buffer" : "json");
+  const bodyType = validated.bodyType ?? (isBinaryBody(validated.body) ? "binary" : "json");
   let arrayBufferBody;
   switch (bodyType) {
     case "json": {
@@ -139,12 +148,12 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
     }
     case "text": {
       headers.set("content-type", ["text/plain; charset=utf-8"]);
-      if (typeof validated.body !== "string") throw new Error("Invalid body type, expected string");
+      if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
       arrayBufferBody = new TextEncoder().encode(validated.body);
       break;
     }
-    case "array-buffer": {
-      if (!(validated.body instanceof ArrayBuffer)) throw new Error("Invalid body type, expected ArrayBuffer");
+    case "binary": {
+      if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
       arrayBufferBody = validated.body;
       break;
     }
@@ -232,13 +241,14 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       }
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+      console.log(`For the error above with request ID ${requestId}, the full error is:`, statusError);
 
       const res = await createResponse(req, requestId, {
         statusCode: statusError.statusCode,
-        bodyType: "text",
-        body: statusError.message,
+        bodyType: "binary",
+        body: statusError.getBody(),
         headers: {
-          ...statusError.options?.headers ?? {},
+          ...statusError.getHeaders(),
         },
       }, yup.mixed());
       return res;
@@ -294,15 +304,16 @@ export function smartRouteHandler<
       if (reqsErrors.length === 1) {
         throw reqsErrors[0];
       } else {
+        const caughtErrors = reqsErrors.map(e => catchError(e));
         const errorMessage = deindent`
           Could not process request because all available overloads of this endpoint failed to parse it.
 
-            ${reqsErrors.map(e => catchError(e)).map((e, i) => deindent`
+            ${caughtErrors.map((e, i) => deindent`
               Overload ${i + 1}: ${e.statusCode}
                 ${e.message}
             `).join("\n\n")}
         `;
-        throw new StatusError(400, errorMessage);
+        throw new KnownErrors.AllOverloadsFailed(caughtErrors.map(e => e.toHttpJson()));
       }
     }
 

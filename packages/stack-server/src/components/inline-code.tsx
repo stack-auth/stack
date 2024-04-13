@@ -3,7 +3,7 @@
 import { Typography, TypographyProps } from "@mui/joy";
 import { MouseEvent } from "react";
 import { hasClickableParent } from "@stackframe/stack-shared/dist/utils/dom";
-import { getNodeText } from "@/utils/react";
+import { getNodeText } from "@stackframe/stack-shared/dist/utils/react";
 import { useSnackbar } from "@/hooks/use-snackbar";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 

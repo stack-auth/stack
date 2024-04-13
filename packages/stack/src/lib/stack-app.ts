@@ -1,5 +1,5 @@
-import React, { use, useCallback } from "react";
-import { OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import React, { use, useCallback, useMemo } from "react";
+import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -12,12 +12,11 @@ import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { EmailVerificationLinkErrorCode, PasswordResetLinkErrorCode, PasswordUpdateErrorCode, SignInErrorCode, SignUpErrorCode } from "@stackframe/stack-shared/dist/utils/types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { neverResolve, resolved } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { suspend } from "../utils/react";
+import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -112,6 +111,8 @@ export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, Proje
 
 export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
   uniqueIdentifier: string,
+  currentClientUserJson: UserJson | null,
+  currentProjectJson: ClientProjectJson,
 };
 
 const defaultBaseUrl = "https://app.stackframe.co";
@@ -270,13 +271,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     & {
       uniqueIdentifier?: string,
       checkString?: string,
+      currentClientUserJson?: UserJson | null,
+      currentProjectJson?: ClientProjectJson,
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
       | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls"> & {
         interface: StackClientInterface,
-        tokenStore: TokenStoreOptions<HasTokenStore>,
-        urls: Partial<HandlerUrls> | undefined,
       }
     )
   ) {
@@ -298,16 +299,36 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error("A Stack client app with the same unique identifier already exists");
     }
     allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
+
+    // For some important calls, either use the provided cached values or start fetching them now
+    if (options.currentClientUserJson !== undefined) {
+      this._currentUserCache.forceSetCachedValue([getTokenStore(this._tokenStoreOptions)], options.currentClientUserJson);
+    } else if (this.hasPersistentTokenStore()) {
+      runAsynchronously(() => this.getUser(), { ignoreErrors: true });
+    }
+    if (options.currentProjectJson !== undefined) {
+      this._currentProjectCache.forceSetCachedValue([], options.currentProjectJson);
+    } else {
+      runAsynchronously(this.getProject(), { ignoreErrors: true });
+    }
+  }
+
+  protected hasPersistentTokenStore(): this is StackClientApp<true, ProjectId> {
+    return this._tokenStoreOptions !== null;
   }
 
   protected _ensurePersistentTokenStore(): asserts this is StackClientApp<true, ProjectId>  {
-    if (!this._tokenStoreOptions) {
+    if (!this.hasPersistentTokenStore()) {
       throw new Error("Cannot call this function on a Stack app without a persistent token store. Make sure the tokenStore option is set to a non-null value when initializing Stack.");
     }
   }
 
+  protected isInternalProject(): this is { projectId: "internal" } {
+    return this.projectId === "internal";
+  }
+
   protected _ensureInternalProject(): asserts this is { projectId: "internal" } {
-    if (this.projectId !== "internal") {
+    if (!this.isInternalProject()) {
       throw new Error("Cannot call this function on a Stack app with a project ID other than 'internal'.");
     }
   }
@@ -441,20 +462,22 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
   async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
 
-  async sendForgotPasswordEmail(email: string) {
+  async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+    const error = await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+    return error;
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<PasswordResetLinkErrorCode | undefined> {
-    return await this._interface.resetPassword(options);
+  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["PasswordResetError"] | undefined> {
+    const error = await this._interface.resetPassword(options);
+    return error;
   }
 
-  async verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined> {
+  async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined> {
     return await this._interface.verifyPasswordResetCode(code);
   }
 
-  async verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined> {
+  async verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined> {
     return await this._interface.verifyEmail(code);
   }
 
@@ -464,7 +487,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options?: GetUserOptions): Promise<CurrentUser | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = await this._currentUserCache.getOrWait([tokenStore], "never");
+    const userJson = await this._currentUserCache.getOrWait([tokenStore], "write-only");
 
     if (userJson === null) {
       switch (options?.or) {
@@ -499,7 +522,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         case 'redirect': {
           router.replace(this.urls.signIn);
           suspend();
-          throw new Error("suspend should never return!");
+          throw new Error("suspend should never return! This is a bug in Stack.");
         }
         case 'throw': {
           throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
@@ -510,7 +533,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     }
 
-    return this._currentUserFromJson(userJson, tokenStore);
+    return useMemo(() => {
+      return this._currentUserFromJson(userJson, tokenStore);
+    }, [userJson, tokenStore, options?.or]);
   }
 
   onUserChange(callback: (user: CurrentUser | null) => void) {
@@ -535,7 +560,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
-  }): Promise<SignInErrorCode | undefined> {
+  }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const errorCode = await this._interface.signInWithCredential(options.email, options.password, tokenStore);
@@ -548,7 +573,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signUpWithCredential(options: {
     email: string,
     password: string,
-  }): Promise<SignUpErrorCode | undefined>{
+  }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>{
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
@@ -568,11 +593,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
-    if (result.newUser) {
-      await window.location.replace(this.urls.afterSignUp);
+    if (result?.newUser) {
+      window.location.replace(this.urls.afterSignUp);
     } else {
-      await window.location.replace(this.urls.afterSignIn);
+      window.location.replace(this.urls.afterSignIn);
     }
+    await neverResolve();
   }
 
   protected async _signOut(tokenStore: TokenStore): Promise<void> {
@@ -580,15 +606,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     window.location.assign(this.urls.afterSignOut);
   }
 
-  protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<void> {
+  protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    await this._interface.sendVerificationEmail(
+    return await this._interface.sendVerificationEmail(
       emailVerificationRedirectUrl,
       tokenStore
     );
   }
 
-  protected async _updatePassword(options: { oldPassword: string, newPassword: string}, tokenStore: TokenStore): Promise<PasswordUpdateErrorCode | undefined> {
+  protected async _updatePassword(
+    options: { oldPassword: string, newPassword: string }, 
+    tokenStore: TokenStore
+  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     return await this._interface.updatePassword(options, tokenStore);
   }
 
@@ -600,7 +629,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async getProject(): Promise<ClientProjectJson> {
-    return await this._currentProjectCache.getOrWait([], "never");
+    return await this._currentProjectCache.getOrWait([], "write-only");
   }
 
   useProject(): ClientProjectJson {
@@ -614,7 +643,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async listOwnedProjects(): Promise<Project[]> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const json = await this._ownedProjectsCache.getOrWait([tokenStore], "never");
+    const json = await this._ownedProjectsCache.getOrWait([tokenStore], "write-only");
     return json.map((j) => this._projectAdminFromJson(
       j,
       this._createAdminInterface(j.id, tokenStore),
@@ -626,11 +655,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
-    return json.map((j) => this._projectAdminFromJson(
+    return useMemo(() => json.map((j) => this._projectAdminFromJson(
       j,
       this._createAdminInterface(j.id, tokenStore),
       () => this._refreshOwnedProjects(tokenStore),
-    ));
+    )), [json]);
   }
 
   onOwnedProjectsChange(callback: (projects: Project[]) => void) {
@@ -703,6 +732,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           // TODO find a way to do this
           throw Error("Cannot serialize to JSON from an application without a publishable client key");
         }
+
+        const [user, project] = await Promise.all([
+          this.getUser(),
+          this.getProject(),
+        ]);
+
         return {
           baseUrl: this._interface.options.baseUrl,
           projectId: this.projectId,
@@ -710,6 +745,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           tokenStore: this._tokenStoreOptions,
           urls: this._urlOptions,
           uniqueIdentifier: this._uniqueIdentifier,
+          currentClientUserJson: user?.toJson() ?? null,
+          currentProjectJson: project,
         };
       }
     };
@@ -838,7 +875,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getServerUser(): Promise<CurrentServerUser | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
-    const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "never");
+    const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "write-only");
     return this._currentServerUserFromJson(userJson, tokenStore);
   }
 
@@ -848,11 +885,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = useCache(this._currentServerUserCache, [tokenStore], "useServerUser()");
 
-    if (options?.required && userJson === null) {
-      use(this.redirectToSignIn());
-    }
+    return useMemo(() => {
+      if (options?.required && userJson === null) {
+        use(this.redirectToSignIn());
+      }
 
-    return this._currentServerUserFromJson(userJson, tokenStore);
+      return this._currentServerUserFromJson(userJson, tokenStore);
+    }, [userJson, tokenStore, options?.required]);
   }
 
   onServerUserChange(callback: (user: CurrentServerUser | null) => void) {
@@ -864,13 +903,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listServerUsers(): Promise<ServerUser[]> {
-    const json = await this._serverUsersCache.getOrWait([], "never");
+    const json = await this._serverUsersCache.getOrWait([], "write-only");
     return json.map((j) => this._serverUserFromJson(j));
   }
 
   useServerUsers(): ServerUser[] {
     const json = useCache(this._serverUsersCache, [], "useServerUsers()");
-    return json.map((j) => this._serverUserFromJson(j));
+    return useMemo(() => {
+      return json.map((j) => this._serverUserFromJson(j));
+    }, [json]);
   }
 
   onServerUsersChange(callback: (users: ServerUser[]) => void) {
@@ -968,18 +1009,19 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   async getProjectAdmin(): Promise<Project> {
     return this._projectAdminFromJson(
-      await this._adminProjectCache.getOrWait([], "never"),
+      await this._adminProjectCache.getOrWait([], "write-only"),
       this._interface,
       () => this._refreshProject()
     );
   }
 
   useProjectAdmin(): Project {
-    return this._projectAdminFromJson(
-      useCache(this._adminProjectCache, [], "useProjectAdmin()"),
+    const json = useCache(this._adminProjectCache, [], "useProjectAdmin()");
+    return useMemo(() => this._projectAdminFromJson(
+      json,
       this._interface,
       () => this._refreshProject()
-    );
+    ), [json]);
   }
 
   onProjectAdminChange(callback: (project: Project) => void) {
@@ -993,13 +1035,15 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async listApiKeySets(): Promise<ApiKeySet[]> {
-    const json = await this._apiKeySetsCache.getOrWait([], "never");
+    const json = await this._apiKeySetsCache.getOrWait([], "write-only");
     return json.map((j) => this._createApiKeySetFromJson(j));
   }
 
   useApiKeySets(): ApiKeySet[] {
     const json = useCache(this._apiKeySetsCache, [], "useApiKeySets()");
-    return json.map((j) => this._createApiKeySetFromJson(j));
+    return useMemo(() => {
+      return json.map((j) => this._createApiKeySetFromJson(j));
+    }, [json]);
   }
 
   onApiKeySetsChange(callback: (apiKeySets: ApiKeySet[]) => void) {
@@ -1030,8 +1074,8 @@ type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T): Promise<void>,
-  sendVerificationEmail(this: T): Promise<void>,
-  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<PasswordUpdateErrorCode | undefined>,
+  sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
+  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined,
 };
 
 export type User = {
@@ -1158,13 +1202,13 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string }): Promise<SignInErrorCode | undefined>,
-    signUpWithCredential(options: { email: string, password: string }): Promise<SignUpErrorCode | undefined>,
+    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined>,
+    signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>,
     callOAuthCallback(): Promise<void>,
-    sendForgotPasswordEmail(email: string): Promise<void>,
-    resetPassword(options: { code: string, password: string }): Promise<PasswordResetLinkErrorCode | undefined>,
-    verifyPasswordResetCode(code: string): Promise<PasswordResetLinkErrorCode | undefined>,
-    verifyEmail(code: string): Promise<EmailVerificationLinkErrorCode | undefined>,
+    sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
+    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
+    verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined>,
+    verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,
@@ -1235,8 +1279,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
 );
 type StackAdminAppConstructor = {
   new <
-    TokenStoreType extends string,
-    HasTokenStore extends (TokenStoreType extends {} ? true : boolean),
+    HasTokenStore extends boolean,
     ProjectId extends string
   >(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>): StackAdminApp<HasTokenStore, ProjectId>,
   new (options: StackAdminAppConstructorOptions<boolean, string>): StackAdminApp<boolean, string>,
