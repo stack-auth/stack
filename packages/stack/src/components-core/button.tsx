@@ -4,20 +4,49 @@ import React from "react";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
-import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";
+import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, LINK_COLORS } from "../utils/constants";
 
-function getColors(
-  color: string, 
-  backgroundColor: string,
-  primaryColor: string,
-): { 
+function getColors({
+  propsColor, 
+  colors, 
+  variant, 
+  colorMode,
+}: {
+  propsColor?: string, 
+  colors: { primaryColor: string, secondaryColor: string, backgroundColor: string },
+  variant: 'primary' | 'secondary' | 'warning' | 'link',
+  colorMode: 'dark' | 'light',
+}): { 
   bgColor: string, 
   hoverBgColor: string,
   activeBgColor: string,
   textColor: string,
 } {
-  const c = Color(color);
-  const pc = Color(backgroundColor);
+  let bgColor;
+  switch (variant) {
+    case 'primary': {
+      bgColor = colors.primaryColor;
+      break;
+    }
+    case 'secondary': {
+      bgColor = colors.secondaryColor;
+      break;
+    }
+    case 'warning': {
+      bgColor = '#ff4500';
+      break;
+    }
+    case 'link': {
+      bgColor = 'transparent';
+      break;
+    }
+  }
+  if (propsColor) {
+    bgColor = propsColor;
+  }
+
+  const c = Color(bgColor);
+  const pc = Color(colors.primaryColor);
 
   const changeColor = (value: number) => {
     return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
@@ -29,23 +58,32 @@ function getColors(
     ).alpha(alpha).toString();
   };
 
+  if (variant === 'link') {
+    return {
+      bgColor: 'transparent',
+      hoverBgColor: getAlpha(0.1),
+      activeBgColor: getAlpha(0.2),
+      textColor: LINK_COLORS[colorMode],
+    };
+  }
+
   if (c.alpha() === 0) {
     return {
       bgColor: 'transparent',
       hoverBgColor: getAlpha(0.1),
       activeBgColor: getAlpha(0.2),
-      textColor: primaryColor,
+      textColor: colors.primaryColor,
     };
   } else if (c.isLight()) {
     return {
-      bgColor: color,
+      bgColor,
       hoverBgColor: changeColor(-10),
       activeBgColor: changeColor(-20),
       textColor: 'black',
     };
   } else {
     return {
-      bgColor: color,
+      bgColor,
       hoverBgColor: changeColor(10),
       activeBgColor: changeColor(20),
       textColor: 'white',
@@ -54,7 +92,7 @@ function getColors(
 }
 
 export type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'warning' | "transparent",
+  variant?: 'primary' | 'secondary' | 'warning' | "link",
   color?: string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
@@ -66,6 +104,7 @@ const StyledButton = styled.button<{
   $hoverBgColor: string,
   $activeBgColor: string,
   $textColor: string,
+  $underline: boolean,
 }>`
   border: 0;
   border-radius: ${BORDER_RADIUS};
@@ -102,6 +141,7 @@ const StyledButton = styled.button<{
     opacity: 0.5;
   }
   font-family: ${FONT_FAMILY};
+  text-decoration: ${props => props.$underline ? 'underline' : 'none'};
 `;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -112,30 +152,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     disabled=false,
     ...props
   }, ref) => {
-    const { colors } = useDesign();
-    let bgColor;
-    switch (variant) {
-      case 'primary': {
-        bgColor = colors.primaryColor;
-        break;
-      }
-      case 'secondary': {
-        bgColor = colors.secondaryColor;
-        break;
-      }
-      case 'warning': {
-        bgColor = '#ff4500';
-        break;
-      }
-      case 'transparent': {
-        bgColor = 'transparent';
-        break;
-      }
-    }
-    if (props.color) {
-      bgColor = props.color;
-    }
-    const buttonColors = getColors(bgColor, colors.backgroundColor, colors.primaryColor);
+    const { colors, colorMode } = useDesign();
+    const buttonColors = getColors({
+      propsColor: props.color,
+      colors,
+      variant,
+      colorMode,
+    });
+
     return (
       <StyledButton
         ref={ref}
@@ -144,6 +168,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         $hoverBgColor={buttonColors.hoverBgColor}
         $activeBgColor={buttonColors.activeBgColor}
         $textColor={buttonColors.textColor}
+        $underline={variant === 'link'}
         disabled={disabled || loading}
         {...props}
       >

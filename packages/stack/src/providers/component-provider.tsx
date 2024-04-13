@@ -8,7 +8,18 @@ import Input, { InputProps } from '../components-core/input';
 import Link, { LinkProps } from '../components-core/link';
 import Label, { LabelProps } from '../components-core/label';
 import Text, { TextProps } from '../components-core/text';
-import Card, { CardProps } from '../components-core/card';
+import { 
+  Card, 
+  CardProps, 
+  CardHeader,
+  CardHeaderProps, 
+  CardContent,
+  CardContentProps, 
+  CardFooter,
+  CardFooterProps, 
+  CardDescription,
+  CardDescriptionProps 
+} from '../components-core/card';
 import { Popover, PopoverTrigger, PopoverContent, PopoverProps, PopoverContentProps, PopoverTriggerProps } from '../components-core/popover';
 import { 
   DropdownMenu,
@@ -25,6 +36,7 @@ import {
   DropdownMenuSeparatorProps,
 } from '../components-core/dropdown';
 import { Avatar, AvatarProps, AvatarFallback, AvatarFallbackProps, AvatarImage, AvatarImageProps } from '../components-core/avatar';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent, CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps } from '../components-core/collapsible';
 
 export type Components = {
   Button: React.ComponentType<ButtonProps>,
@@ -47,6 +59,13 @@ export type Components = {
   Avatar: React.ComponentType<AvatarProps>,
   AvatarFallback: React.ComponentType<AvatarFallbackProps>,
   AvatarImage: React.ComponentType<AvatarImageProps>,
+  Collapsible: React.ComponentType<CollapsibleProps>,
+  CollapsibleTrigger: React.ComponentType<CollapsibleTriggerProps>,
+  CollapsibleContent: React.ComponentType<CollapsibleContentProps>,
+  CardHeader: React.ComponentType<CardHeaderProps>,
+  CardContent: React.ComponentType<CardContentProps>,
+  CardFooter: React.ComponentType<CardFooterProps>,
+  CardDescription: React.ComponentType<CardDescriptionProps>,
 }
 
 export type ComponentConfig = {
@@ -86,6 +105,13 @@ export function StackComponentProvider(props: { children?: React.ReactNode } & C
       Avatar: props.components?.Avatar || Avatar,
       AvatarFallback: props.components?.AvatarFallback || AvatarFallback,
       AvatarImage: props.components?.AvatarImage || AvatarImage,
+      Collapsible: props.components?.Collapsible || Collapsible,
+      CollapsibleTrigger: props.components?.CollapsibleTrigger || CollapsibleTrigger,
+      CollapsibleContent: props.components?.CollapsibleContent || CollapsibleContent,
+      CardHeader: props.components?.CardHeader || CardHeader,
+      CardContent: props.components?.CardContent || CardContent,
+      CardFooter: props.components?.CardFooter || CardFooter,
+      CardDescription: props.components?.CardDescription || CardDescription,
     }}>
       {props.children}
     </ComponentContext.Provider>

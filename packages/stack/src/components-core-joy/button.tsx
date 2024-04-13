@@ -15,7 +15,7 @@ export default function Button({
     primary: "primary",
     secondary: "neutral",
     warning: "danger",
-    transparent: "primary",
+    link: "primary",
   } as const)[variant] || "primary";
 
   const { children, action, ref, ...validProps } = props;
@@ -30,7 +30,7 @@ export default function Button({
 
   return <JoyButton 
     color={muiVariant}
-    variant={variant === 'transparent' ? 'plain' : 'solid'}
+    variant={variant === 'link' ? 'plain' : 'solid'}
     sx={color ? {
       backgroundColor: color,
       color: c.isDark() ? 'white' : 'black',
@@ -40,6 +40,7 @@ export default function Button({
       '&:active': {
         backgroundColor: changeColor(20)
       },
+      'textDecoration': variant === 'link' ? 'underline' : 'none',
     } : {}}
     size={size}
     loading={loading}

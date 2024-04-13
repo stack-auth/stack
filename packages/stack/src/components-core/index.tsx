@@ -9,7 +9,7 @@ import { InputProps } from './input';
 import { LabelProps } from './label';
 import { LinkProps } from './link';
 import { TextProps } from './text';
-import { CardProps } from './card';
+import { CardProps, CardHeaderProps, CardContentProps, CardFooterProps, CardDescriptionProps } from './card';
 import { PopoverProps, PopoverContentProps, PopoverTriggerProps } from './popover';
 import { 
   DropdownMenuProps,
@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparatorProps,
 } from './dropdown';
 import { AvatarProps, AvatarFallbackProps, AvatarImageProps } from './avatar';
+import { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps } from './collapsible';
 
 export {
   ButtonProps,
@@ -42,6 +43,13 @@ export {
   AvatarProps,
   AvatarFallbackProps,
   AvatarImageProps,
+  CollapsibleProps,
+  CollapsibleTriggerProps,
+  CollapsibleContentProps,
+  CardHeaderProps,
+  CardContentProps,
+  CardFooterProps,
+  CardDescriptionProps,
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
@@ -142,4 +150,39 @@ export const AvatarFallback = forwardRef<HTMLDivElement, AvatarFallbackProps>((p
 export const AvatarImage = forwardRef<HTMLImageElement, AvatarImageProps>((props, ref) => {
   const { AvatarImage } = useComponents();
   return <AvatarImage {...props} ref={ref} />;
+});
+
+export function Collapsible(props: CollapsibleProps) {
+  const { Collapsible } = useComponents();
+  return <Collapsible {...props} />;
+}
+
+export const CollapsibleTrigger = forwardRef<HTMLButtonElement, CollapsibleTriggerProps>((props, ref) => {
+  const { CollapsibleTrigger } = useComponents();
+  return <CollapsibleTrigger {...props} ref={ref} />;
+});
+
+export const CollapsibleContent = forwardRef<HTMLDivElement, CollapsibleContentProps>((props, ref) => {
+  const { CollapsibleContent } = useComponents();
+  return <CollapsibleContent {...props} ref={ref} />;
+});
+
+export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>((props, ref) => {
+  const { CardHeader } = useComponents();
+  return <CardHeader {...props} ref={ref} />;
+});
+
+export const CardContent = forwardRef<HTMLDivElement, CardContentProps>((props, ref) => {
+  const { CardContent } = useComponents();
+  return <CardContent {...props} ref={ref} />;
+});
+
+export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>((props, ref) => {
+  const { CardFooter } = useComponents();
+  return <CardFooter {...props} ref={ref} />;
+});
+
+export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>((props, ref) => {
+  const { CardDescription } = useComponents();
+  return <CardDescription {...props} ref={ref} />;
 });
