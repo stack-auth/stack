@@ -12,7 +12,7 @@ If you want to spend minimal time on styling but still want to align with your b
 There are five variables that you can override:
 - `primaryColor`: The primary color used for components like button with primary variant.
 - `secondaryColor`: The secondary color used for components like button with secondary variant.
-- `neutralColor`: The color used for dividers and borders.
+- `neutralColor`: The color used for separators and borders.
 - `backgroundColor`: The background color of your the main content area, should be the same the color of your `body` element.
 
 These colors can be different for light and dark mode. You can pass these into the `StackTheme` component (in your `layout.tsx` file if you followed the get started guide) as follows:

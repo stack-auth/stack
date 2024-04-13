@@ -564,6 +564,16 @@ const EmailVerificationCodeAlreadyUsed = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const PasswordMismatch = createKnownErrorConstructor(
+  KnownError,
+  "PASSWORD_MISMATCH",
+  () => [
+    400,
+    "Passwords do not match.",
+  ] as const,
+  () => [] as const,
+);
+
 const PasswordResetError = createKnownErrorConstructor(
   KnownError,
   "PASSWORD_RESET_ERROR",
@@ -604,6 +614,16 @@ const PasswordResetCodeAlreadyUsed = createKnownErrorConstructor(
   () => [
     400,
     "The password reset code has already been used.",
+  ] as const,
+  () => [] as const,
+);
+
+const EmailAlreadyVerified = createKnownErrorConstructor(
+  KnownError,
+  "EMAIL_ALREADY_VERIFIED",
+  () => [
+    400,
+    "The e-mail is already verified.",
   ] as const,
   () => [] as const,
 );
@@ -663,6 +683,8 @@ export const KnownErrors = {
   PasswordResetCodeNotFound,
   PasswordResetCodeExpired,
   PasswordResetCodeAlreadyUsed,
+  PasswordMismatch,
+  EmailAlreadyVerified,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

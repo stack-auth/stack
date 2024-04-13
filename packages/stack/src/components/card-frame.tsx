@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 
 export default function CardFrame({ 
   children, 
-  fullPage=true 
+  fullPage=true
 }: { 
   children: React.ReactNode, 
   fullPage?: boolean, 
@@ -22,12 +22,15 @@ export default function CardFrame({
 
   if (fullPage) {
     return (
-      <div id='stack-card-frame' style={{ 
-        height: hasNoParent ? '100vh' : '100%',
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
-      }}>
+      <div 
+        id='stack-card-frame' 
+        style={{ 
+          height: hasNoParent ? '100vh' : '100%',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}
+      >
         <Container size={350}>
           {children}
         </Container>

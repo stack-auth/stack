@@ -1,17 +1,17 @@
 'use client';
 
 import NextLink from "next/link";
-import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS } from "../utils/constants";
+import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS, LINK_COLORS } from "../utils/constants";
 import { Url } from "url";
 import { useDesign } from "..";
 import React from "react";
 
-export type LinkProps = {
+type LinkProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
   href: Url | string,
 } & Omit<React.HTMLProps<HTMLLinkElement>, 'size' | 'href'>
 
-export default function Link({
+export function Link({
   size='md',
   href,
   style,
@@ -25,7 +25,7 @@ export default function Link({
         fontSize: FONT_SIZES[size],
         lineHeight: LINE_HEIGHTS[size],
         fontFamily: FONT_FAMILY,
-        color: colorMode === 'dark' ? '#3B82F6' : '#2563EB',
+        color: LINK_COLORS[colorMode],
         textDecoration: 'underline',
         margin: 0,
         padding: 0,

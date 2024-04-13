@@ -95,7 +95,7 @@ class ErrorDuringRunAsynchronously extends Error {
 }
 
 export function runAsynchronously(
-  promiseOrFunc: Promise<unknown> | (() => Promise<unknown>) | undefined,
+  promiseOrFunc: void | Promise<unknown> | (() => void | Promise<unknown>) | undefined,
   options: {
     ignoreErrors?: boolean,
   } = {},

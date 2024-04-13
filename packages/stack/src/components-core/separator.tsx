@@ -5,9 +5,7 @@ import * as SeparatorPrimitive from '@radix-ui/react-separator';
 import styled from 'styled-components';
 import { useDesign } from '..';
 
-export type DividerProps = React.ComponentProps<typeof SeparatorPrimitive.Root>;
-
-const StyledDivider = styled(SeparatorPrimitive.Root)<{ 
+const StyledSeparator = styled(SeparatorPrimitive.Root)<{ 
   $orientation: string,
   $color: string,
 }>`
@@ -20,13 +18,13 @@ const StyledDivider = styled(SeparatorPrimitive.Root)<{
       : 'height: 100%; width: 1px;'}
 `;
 
-const Divider = React.forwardRef<
+const Separator = React.forwardRef<
   React.ElementRef<typeof SeparatorPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
 >(({ orientation = 'horizontal', decorative = true, ...props }, ref) => {
   const { colors } = useDesign();
 
-  return <StyledDivider
+  return <StyledSeparator
     ref={ref}
     decorative={decorative}
     $orientation={orientation}
@@ -35,6 +33,6 @@ const Divider = React.forwardRef<
   />;
 });
 
-Divider.displayName = 'Separator';
+Separator.displayName = 'Separator';
 
-export default Divider;
+export { Separator };

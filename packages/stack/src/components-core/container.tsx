@@ -3,7 +3,7 @@
 import { useDesign } from "../providers/design-provider";
 import styled from 'styled-components';
 
-export type ContainerProps = {
+type ContainerProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number,
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
 
@@ -20,7 +20,7 @@ const InnerContainer = styled.div<{ $breakpoint: number }>`
   }
 `;
 
-export default function Container({
+export function Container({
   size='md',
   ...props
 } : ContainerProps) {

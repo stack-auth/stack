@@ -1,31 +1,61 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import Button, { ButtonProps } from '../components-core/button';
-import Container, { ContainerProps } from '../components-core/container';
-import Divider, { DividerProps } from '../components-core/divider';
-import Input, { InputProps } from '../components-core/input';
-import Link, { LinkProps } from '../components-core/link';
-import Label, { LabelProps } from '../components-core/label';
-import Text, { TextProps } from '../components-core/text';
-import Card, { CardProps } from '../components-core/card';
+import { Button } from '../components-core/button';
+import { Container } from '../components-core/container';
+import { Separator } from '../components-core/separator';
+import { Input } from '../components-core/input';
+import { Link } from '../components-core/link';
+import { Label } from '../components-core/label';
+import { Text } from '../components-core/text';
+import { Card, CardHeader, CardContent, CardFooter, CardDescription } from '../components-core/card';
+import { Popover, PopoverTrigger, PopoverContent } from '../components-core/popover';
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '../components-core/dropdown';
+import { Avatar, AvatarFallback, AvatarImage } from '../components-core/avatar';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components-core/collapsible';
 
-export type Components = {
-  Button: React.ComponentType<ButtonProps>,
-  Container: React.ComponentType<ContainerProps>,
-  Divider: React.ComponentType<DividerProps>,
-  Input: React.ComponentType<InputProps>,
-  Label: React.ComponentType<LabelProps>,
-  Link: React.ComponentType<LinkProps>,
-  Text: React.ComponentType<TextProps>,
-  Card: React.ComponentType<CardProps>,
-}
+export const Components = {
+  Input,
+  Button,
+  Container,
+  Separator,
+  Label,
+  Link,
+  Text,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} as const;
 
 export type ComponentConfig = {
-  components?: Partial<Components>,
+  components?: Partial<typeof Components>,
 }
 
-const ComponentContext = createContext<Components | undefined>(undefined);
+const ComponentContext = createContext<typeof Components | undefined>(undefined);
 
 export function useComponents() {
   const context = useContext(ComponentContext);
@@ -37,16 +67,7 @@ export function useComponents() {
 
 export function StackComponentProvider(props: { children?: React.ReactNode } & ComponentConfig) {
   return (
-    <ComponentContext.Provider value={{
-      Button: props.components?.Button || Button,
-      Container: props.components?.Container || Container,
-      Divider: props.components?.Divider || Divider,
-      Input: props.components?.Input || Input,
-      Label: props.components?.Label || Label,
-      Link: props.components?.Link || Link,
-      Text: props.components?.Text || Text,
-      Card: props.components?.Card || Card
-    }}>
+    <ComponentContext.Provider value={{ ...Components, ...props.components }}>
       {props.children}
     </ComponentContext.Provider>
   );

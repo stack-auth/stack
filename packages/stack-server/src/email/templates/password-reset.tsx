@@ -65,12 +65,6 @@ export default function PasswordResetEmail({
                 Reset Password
               </Button>
             </Section>
-            <Text className="text-black text-[14px] leading-[24px]">
-              or copy and paste this URL into your browser:{" "}
-              <Link href={passwordResetUrl} className="text-blue-600 no-underline">
-                {passwordResetUrl}
-              </Link>
-            </Text>
             <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
             <Text className="text-[#666666] text-[12px] leading-[24px]">
               {fromStack ? "This email is sent from Stack on behalf of " + projectName + ". " : null}

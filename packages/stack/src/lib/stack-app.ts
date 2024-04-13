@@ -37,6 +37,7 @@ export type HandlerUrls = {
   forgotPassword: string,
   home: string,
   oauthCallback: string,
+  accountSettings: string,
 }
 
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
@@ -54,6 +55,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
     home: "/",
+    accountSettings: `${handler}/account-settings`,
     ...filterUndefined(partial),
   };
 }
@@ -341,6 +343,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: json.profileImageUrl,
       signedUpAt: new Date(json.signedUpAtMillis),
       clientMetadata: json.clientMetadata,
+      authMethod: json.authMethod,
       toJson() {
         return json;
       }
@@ -361,6 +364,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signOut() {
         return app._signOut(tokenStore);
       },
+      sendVerificationEmail() {
+        return app._sendVerificationEmail(tokenStore);
+      },
+      updatePassword(options: { oldPassword: string, newPassword: string}) {
+        return app._updatePassword(options, tokenStore);
+      }
     };
     Object.freeze(res);
     return res;
@@ -376,6 +385,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: user.profileImageUrl,
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
+      authMethod: user.authMethod,
     };
   }
 
@@ -450,6 +460,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
+  async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -458,7 +469,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["PasswordResetError"] | undefined> {
-    return await this._interface.resetPassword(options);
+    const error = await this._interface.resetPassword(options);
+    return error;
   }
 
   async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined> {
@@ -592,6 +604,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _signOut(tokenStore: TokenStore): Promise<void> {
     await this._interface.signOut(tokenStore);
     window.location.assign(this.urls.afterSignOut);
+  }
+
+  protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
+    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
+    return await this._interface.sendVerificationEmail(
+      emailVerificationRedirectUrl,
+      tokenStore
+    );
+  }
+
+  protected async _updatePassword(
+    options: { oldPassword: string, newPassword: string }, 
+    tokenStore: TokenStore
+  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    return await this._interface.updatePassword(options, tokenStore);
   }
 
   async signOut(): Promise<void> {
@@ -819,6 +846,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       getClientUser() {
         return app._currentUserFromJson(json, tokenStore);
       },
+      sendVerificationEmail() {
+        return app._sendVerificationEmail(tokenStore);
+      },
+      updatePassword(options: { oldPassword: string, newPassword: string}) {
+        return app._updatePassword(options, tokenStore);
+      }
     };
     Object.freeze(res);
     return res;
@@ -835,6 +868,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
       serverMetadata: user.serverMetadata,
+      authMethod: user.authMethod,
     };
   }
 
@@ -1040,6 +1074,8 @@ type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T): Promise<void>,
+  sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
+  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
 };
 
 export type User = {
@@ -1061,6 +1097,7 @@ export type User = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: ReadonlyJson,
+  readonly authMethod: 'credential' | 'oauth',
 
   toJson(this: CurrentUser): UserJson,
 };

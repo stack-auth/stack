@@ -1,7 +1,7 @@
 import * as oauth from 'oauth4webapi';
 import crypto from "crypto";
 
-import { AsyncResult, Result } from "../utils/results";
+import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
@@ -20,6 +20,7 @@ export type UserJson = UserCustomizableJson & {
   readonly clientMetadata: ReadonlyJson,
   readonly profileImageUrl: string | null,
   readonly signedUpAtMillis: number,
+  readonly authMethod: "credential" | "oauth",
 };
 
 export type ClientProjectJson = {
@@ -385,6 +386,30 @@ export class StackClientInterface {
     }
   }
 
+  async sendVerificationEmail(
+    emailVerificationRedirectUrl: string, 
+    tokenStore: TokenStore
+  ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/send-verification-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          emailVerificationRedirectUrl,
+        }),
+      },
+      tokenStore,
+      [KnownErrors.EmailAlreadyVerified]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
   async resetPassword(
     options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
   ): Promise<KnownErrors["PasswordResetError"] | undefined> {
@@ -399,6 +424,28 @@ export class StackClientInterface {
       },
       null,
       [KnownErrors.PasswordResetError]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
+  async updatePassword(
+    options: { oldPassword: string, newPassword: string }, 
+    tokenStore: TokenStore
+  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/update-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      tokenStore,
+      [KnownErrors.PasswordMismatch, KnownErrors.PasswordRequirementsNotMet]
     );
 
     if (res.status === "error") {

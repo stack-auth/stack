@@ -85,6 +85,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     profileImageUrl: serverUser.profileImageUrl,
     signedUpAtMillis: serverUser.signedUpAtMillis,
     clientMetadata: serverUser.clientMetadata,
+    authMethod: serverUser.authMethod,
   };
 }
 
@@ -99,5 +100,6 @@ function getServerUserFromDbType(projectUser: ProjectUser): ServerUserJson {
     signedUpAtMillis: projectUser.createdAt.getTime(),
     clientMetadata: projectUser.clientMetadata as any,
     serverMetadata: projectUser.serverMetadata as any,
+    authMethod: projectUser.passwordHash ? 'credential' : 'oauth',
   };
 }

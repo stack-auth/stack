@@ -8,6 +8,7 @@ import { HandlerUrls } from "../lib/stack-app";
 import Signout from "./sign-out";
 import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
+import AccountSettings from "./account-settings";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -67,6 +68,10 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case 'oauth-callback': {
       redirectIfNotHandler('oauthCallback');
       return <OAuthCallback />;
+    }
+    case 'account-settings': {
+      redirectIfNotHandler('accountSettings');
+      return <AccountSettings fullPage />;
     }
     default: {
       return notFound();

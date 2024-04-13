@@ -16,8 +16,6 @@ const Primitive = styled(LabelPrimitive.Root)<{ color: string }>`
   margin-bottom: 0.5rem;
 `;
 
-export type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root>;
-
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -33,4 +31,4 @@ const Label = React.forwardRef<
 );
 Label.displayName = LabelPrimitive.Root.displayName;
 
-export default Label;
+export { Label };

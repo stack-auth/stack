@@ -2,18 +2,16 @@
 
 import { StackTheme, ThemeConfig } from "./theme-provider";
 import { useColorScheme } from "@mui/joy";
-import Button from '../components-core-joy/button';
-import Input from '../components-core-joy/input';
-import Text from '../components-core-joy/text';
-import Divider from '../components-core-joy/divider';
-import { Card } from '../components-core-joy/card';
+import { Button } from '../components-core-joy/button';
+import { Input } from '../components-core-joy/input';
+import { Text } from '../components-core-joy/text';
+import { Separator } from '../components-core-joy/separator';
 
 export const defaultComponents = {
   Button,
   Input,
   Text,
-  Divider,
-  Card,
+  Separator,
 };
 
 export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
@@ -23,7 +21,7 @@ export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.Re
       ...defaultComponents,
       ...props.theme?.components,
     },
-    colorMode: mode === 'system' ? systemMode : mode,
+    colorMode: (mode === 'system' ? systemMode : mode) || 'light',
     setColorMode: setMode,
     ...props.theme,
   };
