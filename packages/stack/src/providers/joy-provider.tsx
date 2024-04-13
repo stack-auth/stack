@@ -6,14 +6,12 @@ import Button from '../components-core-joy/button';
 import Input from '../components-core-joy/input';
 import Text from '../components-core-joy/text';
 import Divider from '../components-core-joy/divider';
-import { Card } from '../components-core-joy/card';
 
 export const defaultComponents = {
   Button,
   Input,
   Text,
   Divider,
-  Card,
 };
 
 export function StackJoyTheme(props : { theme?: ThemeConfig, children?: React.ReactNode }) {
