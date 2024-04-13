@@ -62,6 +62,7 @@ Terminology: "Invalid" means it was found but not valid, "Not found" means it wa
     - `PasswordResetCodeNotFound`: The password reset code does not exist for this project. (404)
     - `PasswordResetCodeExpired`: The password reset code has expired. (400)
     - `PasswordResetCodeAlreadyUsed`: The password reset code has already been used. (400)
+- `PasswordMismatch`: The given password does not match the user's password. (400)
 
 
 ## Project Authentication
