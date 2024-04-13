@@ -122,15 +122,6 @@ const DropdownMenuSeparator = React.forwardRef<
 });
 DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 
-
-type DropdownMenuProps = React.ComponentProps<typeof DropdownMenu>
-type DropdownMenuTriggerProps = React.ComponentProps<typeof DropdownMenuTrigger>
-type DropdownMenuContentProps = React.ComponentProps<typeof DropdownMenuContent>
-type DropdownMenuItemProps = React.ComponentProps<typeof DropdownMenuItem>
-type DropdownMenuLabelProps = React.ComponentProps<typeof DropdownMenuLabel>
-type DropdownMenuSeparatorProps = React.ComponentProps<typeof DropdownMenuSeparator>
-
-
 export {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -138,10 +129,4 @@ export {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuProps,
-  DropdownMenuTriggerProps,
-  DropdownMenuContentProps,
-  DropdownMenuItemProps,
-  DropdownMenuLabelProps,
-  DropdownMenuSeparatorProps,
 };

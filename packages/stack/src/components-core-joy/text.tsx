@@ -1,10 +1,14 @@
 'use client';
 
-import { TextProps } from "../components-core";
+import React from 'react';
+import { Text as DefaultText } from "../components-core";
 import { Typography as JoyText } from '@mui/joy';
 
-export default function Text(props : TextProps) {
-  const { color, size, as, variant, ref, ...validProps } = props;
+export const Text = React.forwardRef<
+  HTMLParagraphElement,
+  React.ComponentProps<typeof DefaultText>
+>((props, ref) => {
+  const { color, size, as, variant, ref: _, ...validProps } = props;
   const muiLevel = ({
     h1: 'h1',
     h2: 'h2',
@@ -28,4 +32,4 @@ export default function Text(props : TextProps) {
   } as const)[variant || 'primary'];
 
   return <JoyText level={muiLevel} color={muiColor} {...validProps}/>;
-}
+});

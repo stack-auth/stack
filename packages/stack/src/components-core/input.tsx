@@ -5,7 +5,7 @@ import { useDesign } from "../providers/design-provider";
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
 
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<React.HTMLProps<HTMLInputElement>, 'ref'>
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<React.HTMLProps<HTMLInputElement>, 'ref'>
 
 const StyledInput = styled.input<{
   $borderColor: string,
@@ -67,4 +67,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = 'Input';
 
-export default Input;
+export { Input };

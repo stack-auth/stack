@@ -62,8 +62,4 @@ const AvatarFallback = React.forwardRef<
 });
 AvatarFallback.displayName = 'AvatarFallback';
 
-type AvatarProps = React.ComponentProps<typeof Avatar>;
-type AvatarImageProps = React.ComponentProps<typeof AvatarImage>;
-type AvatarFallbackProps = React.ComponentProps<typeof AvatarFallback>;
-
-export { Avatar, AvatarImage, AvatarFallback, AvatarProps, AvatarImageProps, AvatarFallbackProps };
+export { Avatar, AvatarImage, AvatarFallback };

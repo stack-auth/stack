@@ -74,13 +74,6 @@ const StyledCardFooter = styled.div`
   margin-top: 1.5rem;
 `;
 
-type CardProps = React.ComponentProps<typeof Card>;
-type CardHeaderProps = React.ComponentProps<typeof CardHeader>;
-type CardFooterProps = React.ComponentProps<typeof CardFooter>;
-type CardTitleProps = React.ComponentProps<typeof CardTitle>;
-type CardDescriptionProps = React.ComponentProps<typeof CardDescription>;
-type CardContentProps = React.ComponentProps<typeof CardContent>;
-
 export { 
   Card, 
   CardHeader, 
@@ -88,10 +81,4 @@ export {
   CardTitle, 
   CardDescription, 
   CardContent,
-  CardProps,
-  CardHeaderProps,
-  CardFooterProps,
-  CardTitleProps,
-  CardDescriptionProps,
-  CardContentProps,
 };

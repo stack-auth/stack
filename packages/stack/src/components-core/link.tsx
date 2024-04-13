@@ -6,12 +6,12 @@ import { Url } from "url";
 import { useDesign } from "..";
 import React from "react";
 
-export type LinkProps = {
+type LinkProps = {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl',
   href: Url | string,
 } & Omit<React.HTMLProps<HTMLLinkElement>, 'size' | 'href'>
 
-export default function Link({
+export function Link({
   size='md',
   href,
   style,
