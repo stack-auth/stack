@@ -6,6 +6,7 @@ import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
 import { sendVerificationEmail } from "@/email";
 import { getClientUser } from "@/lib/users";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -51,7 +52,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound);
   }
   if (user.primaryEmailVerified) {
-    throw new StatusError(StatusError.BadRequest, "Email already verified");
+    throw new KnownErrors.EmailAlreadyVerified();
   }
   try {
     await sendVerificationEmail(projectId, userId, emailVerificationRedirectUrl);

@@ -1075,7 +1075,7 @@ type Auth<T, C> = {
   update(this: T, user: Partial<C>): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
-  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined,
+  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
 };
 
 export type User = {

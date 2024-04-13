@@ -52,7 +52,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const passwordError = getPasswordError(newPassword);
   if (passwordError) {
-    throw new KnownError(PasswordFormatInvalidErrorCode);
+    throw passwordError;
   }
 
   const user = await prismaClient.projectUser.findUnique({
@@ -67,7 +67,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound, "User is not signed in using password");
   }
 
-  if (! await comparePassword(oldPassword, user.passwordHash || "")) {
+  if (! await comparePassword(oldPassword, user.passwordHash)) {
     throw new KnownError(WrongPasswordErrorCode);
   }
 

@@ -75,7 +75,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
           }}
         />
       </div>
-      
+
       {user.authMethod === 'credential' &&
       <>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -118,7 +118,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
             if (oldPassword && newPassword) {
               const errorMessage = getPasswordError(newPassword);
               if (errorMessage) {
-                setNewPasswordError(errorMessage);
+                setNewPasswordError(errorMessage.message);
               } else {
                 const errorCode = await user.updatePassword({ oldPassword, newPassword });
                 if (errorCode) {
