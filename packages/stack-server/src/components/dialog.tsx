@@ -1,4 +1,4 @@
-import { Modal, ModalDialog, DialogTitle, Separator, DialogContent, DialogActions } from "@mui/joy";
+import { Modal, ModalDialog, DialogTitle, Divider, DialogContent, DialogActions } from "@mui/joy";
 import React from "react";
 import { AsyncButton } from "./async-button";
 import { Icon } from "./icon";
@@ -43,7 +43,7 @@ export function Dialog(props: DialogProps) {
           </DialogTitle>
         )}
         {title && (
-          <Separator />
+          <Divider />
         )}
         <DialogContent>
           {props.children}

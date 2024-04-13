@@ -3,7 +3,7 @@ import * as React from 'react';
 import NextLink from 'next/link';
 import Avatar from '@mui/joy/Avatar';
 import Box from '@mui/joy/Box';
-import Separator from '@mui/joy/Separator';
+import Divider from '@mui/joy/Divider';
 import List from '@mui/joy/List';
 import ListItem from '@mui/joy/ListItem';
 import ListItemButton from '@mui/joy/ListItemButton';
@@ -162,7 +162,7 @@ export function Sidebar(props: {
           <Logo full height={24} href="/projects" />
         </Stack>
 
-        <Separator sx={{ mb: 1 }} />
+        <Divider sx={{ mb: 1 }} />
 
         <Stack sx={{ px: 1, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
           <Box
@@ -193,7 +193,7 @@ export function Sidebar(props: {
             </List>
           </Box>
 
-          <Separator sx={{ mt: 1 }} />
+          <Divider sx={{ mt: 1 }} />
       
           <Box sx={{ py: 1 }}>
             <AvatarSection />

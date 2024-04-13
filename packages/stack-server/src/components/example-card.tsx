@@ -1,4 +1,4 @@
-import { Card, CardContent, CardOverflow, CardProps, Separator, Sheet } from "@mui/joy";
+import { Card, CardContent, CardOverflow, CardProps, Divider, Sheet } from "@mui/joy";
 import { CodeBlock } from "./code-block";
 
 export function ExampleCard(props: CardProps & {
@@ -34,7 +34,7 @@ export function ExampleCard(props: CardProps & {
           overflow: 'hidden',
         }}
       >
-        <Separator />
+        <Divider />
         <CodeBlock
           disableBorder
           lineNumbers

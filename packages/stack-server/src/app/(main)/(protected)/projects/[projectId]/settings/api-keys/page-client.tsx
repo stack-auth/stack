@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Box, Button, Checkbox, DialogActions, DialogContent, DialogTitle, Separator, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
+import { Box, Button, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
 import { AsyncButton } from "@/components/async-button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
@@ -78,7 +78,7 @@ function CreateNewDialog(props: { open: boolean, onClose(): void }) {
           <Icon icon='key' />
           Create new API key
         </DialogTitle>
-        <Separator />
+        <Divider />
         {returnedApiKey ? (
           <>
             <DialogContent>

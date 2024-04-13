@@ -17,7 +17,7 @@ import {
   Modal,
   ModalDialog,
   DialogTitle,
-  Separator,
+  Divider,
   Checkbox,
   DialogActions,
 } from "@mui/joy";
@@ -61,7 +61,7 @@ function ConfirmDialog(props: { open: boolean, onClose(): void, onConfirm(): Pro
         <DialogTitle>
           Danger! Are you sure?
         </DialogTitle>
-        <Separator />
+        <Divider />
         <DialogContent>
           <Stack spacing={2} overflow='hidden'>
             <Paragraph body>

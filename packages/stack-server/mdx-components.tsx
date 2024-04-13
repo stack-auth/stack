@@ -5,7 +5,7 @@ import { InlineCode } from '@/components/inline-code';
 import { Paragraph } from '@/components/paragraph';
 import { QuoteBlock } from '@/components/quote-block';
 import { SmartLink } from '@/components/smart-link';
-import { Box, Checkbox, Separator, Stack, Table, Typography } from '@mui/joy';
+import { Box, Checkbox, Divider, Stack, Table, Typography } from '@mui/joy';
 import type { MDXComponents } from 'mdx/types';
 import React from 'react';
 
@@ -87,7 +87,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       );
       },
     hr: (props) => (
-      <Separator
+      <Divider
         sx={{
           marginY: 2,
         }}
