@@ -14,7 +14,7 @@ export const GET = smartRouteHandler({
     return {
       statusCode: 200,
       bodyType: "text",
-      body: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stackframe.co.",
+      body: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.",
     };
   },
 });

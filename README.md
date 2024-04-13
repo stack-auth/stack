@@ -1,9 +1,9 @@
 ![Stack Logo](/assets/logo.png)
 
 <h3 align="center">
-    <a href="https://docs.stackframe.co">📘 Documentation</a>
-    | <a href="https://stackframe-demo.vercel.app/">Demo</a>
-    | <a href="https://stackframe.co/">Stackframe</a>
+    <a href="https://docs.stack-auth.com">📘 Documentation</a>
+    | <a href="https://demo.stack-auth.com/">Demo</a>
+    | <a href="https://stack-auth.com/">Website</a>
     | <a href="https://discord.gg/pD4nyYyKrb">Discord</a>
 </h4>
 
@@ -49,7 +49,7 @@ To get started with Stack, you need to [create a Next.js project](https://nextjs
 npm install @stackframe/stack
 ```
 
-For setup, refer to [our documentation](https://docs.stackframe.co).
+For setup, refer to [our documentation](https://docs.stack-auth.com).
 
 ## Development
 
