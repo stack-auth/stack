@@ -66,3 +66,12 @@ export function typedAssign<T extends {}, U extends {}>(target: T, source: U): a
 export function filterUndefined<T extends {}>(obj: T): { [k in keyof T]+?: T[k] & ({} | null) } {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as any;
 }
+
+
+export function pick<T extends {}, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  return Object.fromEntries(Object.entries(obj).filter(([k]) => keys.includes(k as K))) as any;
+}
+
+export function omit<T extends {}, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
+  return Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k as K))) as any;
+}

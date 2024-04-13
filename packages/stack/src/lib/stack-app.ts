@@ -12,7 +12,7 @@ import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -708,10 +708,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       fromClientJson: <HasTokenStore extends boolean, ProjectId extends string>(
         json: StackClientAppJson<HasTokenStore, ProjectId>
       ): StackClientApp<HasTokenStore, ProjectId> => {
+        const providedCheckString = JSON.stringify(omit(json, ["currentClientUserJson", "currentProjectJson"]));
         const existing = allClientApps.get(json.uniqueIdentifier);
         if (existing) {
-          const [checkString, clientApp] = existing;
-          if (checkString !== JSON.stringify(json)) {
+          const [existingCheckString, clientApp] = existing;
+          if (existingCheckString !== providedCheckString) {
+            console.error("The provided app JSON does not match the configuration of the existing client app with the same unique identifier", { providedObj: json, existingString: existingCheckString });
             throw new Error("The provided app JSON does not match the configuration of the existing client app with the same unique identifier");
           }
           return clientApp as any;
@@ -719,7 +721,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
         return new _StackClientAppImpl<HasTokenStore, ProjectId>({
           ...json,
-          checkString: JSON.stringify(json),
+          checkString: providedCheckString,
         });
       }
     };

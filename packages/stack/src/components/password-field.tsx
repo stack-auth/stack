@@ -1,6 +1,6 @@
 'use client';
 
-import { Input } from "../components-core";;
+import { Input } from "../components-core";
 import { forwardRef, useRef, useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { useDesign } from "..";
