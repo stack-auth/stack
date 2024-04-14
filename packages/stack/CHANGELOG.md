@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.2.2
+
+### Patch Changes
+
+- fixed mui import problem
+
 ## 2.2.1
 
 ### Patch Changes
