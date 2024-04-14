@@ -68,7 +68,7 @@ const config = {
         logo: {
           alt: "Stack",
           src: "img/logo.svg",
-          href: "/docs/getting-started/setup",
+          href: process.env.LANDING_PAGE_URL,
         },
         items: [
           {
@@ -78,13 +78,13 @@ const config = {
             label: "Documentation",
           },
           {
-            href: process.env.STACKFRAME_URL,
-            label: "Stack",
-            position: "left",
-          },
-          {
             href: "https://github.com/stackframe-projects/stack",
             label: "GitHub",
+            position: "right",
+          },
+          {
+            href: process.env.APP_URL + "/handler/signin",
+            label: "Go to Dashboard",
             position: "right",
           },
         ],
