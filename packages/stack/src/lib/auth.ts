@@ -3,6 +3,7 @@ import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -73,7 +74,7 @@ export async function callOAuthCallback(
   // callOAuthCallback is called multiple times in parallel
   const { codeVerifier, state } = getVerifierAndState();
   if (!codeVerifier || !state) {
-    throw new Error("Invalid OAuth callback URL");
+    throw new Error("Invalid OAuth callback URL parameters. It seems like the OAuth flow was interrupted, so please try again.");
   }
   const originalUrl = consumeOAuthCallbackQueryParams(state);
   if (!originalUrl) return null;
@@ -89,7 +90,6 @@ export async function callOAuthCallback(
       tokenStore,
     );
   } catch (e) {
-    console.error("Error signing in during OAuth callback", e);
-    throw new Error("Error signing in. Please try again.");
+    throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });
   }
 }

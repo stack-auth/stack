@@ -54,12 +54,9 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   if (user.primaryEmailVerified) {
     throw new KnownErrors.EmailAlreadyVerified();
   }
-  try {
-    await sendVerificationEmail(projectId, userId, emailVerificationRedirectUrl);
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+
+  await sendVerificationEmail(projectId, userId, emailVerificationRedirectUrl);
+
   return NextResponse.json({});
 });
 export const POST = handler;

@@ -5,6 +5,7 @@ import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
+import { StackAssertionError } from '../utils/errors';
 
 export type UserCustomizableJson = {
   readonly projectId: string,
@@ -202,16 +203,14 @@ export class StackClientInterface {
 
     let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
     if ((challenges = oauth.parseWwwAuthenticateChallenges(response.data))) {
-      for (const challenge of challenges) {
-        console.error('WWW-Authenticate Challenge', challenge);
-      }
-      throw new Error(); // Handle WWW-Authenticate Challenges as needed
+      // TODO Handle WWW-Authenticate Challenges as needed
+      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
     }
 
     const result = await oauth.processRefreshTokenResponse(as, client, response.data);
     if (oauth.isOAuth2Error(result)) {
-      console.error('Error Response', result);
-      throw new Error(); // Handle OAuth 2.0 response body error
+      // TODO Handle OAuth 2.0 response body error
+      throw new StackAssertionError("OAuth error", { result });
     }
 
     tokenStore.update(old => ({
@@ -602,8 +601,7 @@ export class StackClientInterface {
     };
     const params = oauth.validateAuthResponse(as, client, oauthParams, state);
     if (oauth.isOAuth2Error(params)) {
-      console.error('Error validating OAuth response', params);
-      throw new Error("Error validating OAuth response"); // Handle OAuth 2.0 redirect error
+      throw new StackAssertionError("Error validating OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
     const response = await oauth.authorizationCodeGrantRequest(
       as,
@@ -615,16 +613,14 @@ export class StackClientInterface {
 
     let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
     if ((challenges = oauth.parseWwwAuthenticateChallenges(response))) {
-      for (const challenge of challenges) {
-        console.error('WWW-Authenticate Challenge', challenge);
-      }
-      throw new Error("WWW-Authenticate challenge not implemented"); // Handle WWW-Authenticate Challenges as needed
+      // TODO Handle WWW-Authenticate Challenges as needed
+      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
     }
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
-      console.error('Error Response', result);
-      throw new Error(); // Handle OAuth 2.0 response body error
+      // TODO Handle OAuth 2.0 response body error
+      throw new StackAssertionError("OAuth error", { result });
     }
     tokenStore.update(old => ({
       accessToken: result.access_token ?? null,

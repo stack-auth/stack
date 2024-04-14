@@ -7,7 +7,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError, throwStackErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -111,11 +111,11 @@ export async function isProjectAdmin(projectId: string, adminAccessToken: string
 function listProjectIds(projectUser: ServerUserJson) {
   const serverMetadata = projectUser.serverMetadata;
   if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
-    throw new Error("Invalid server metadata, did something go wrong?");
+    throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
   }
   const managedProjectIds = serverMetadata?.managedProjectIds ?? [];
   if (!isStringArray(managedProjectIds)) {
-    throw new Error("Invalid server metadata, did something go wrong? Expected string array");
+    throw new StackAssertionError("Invalid server metadata, did something go wrong? Expected string array", { managedProjectIds });
   }
 
   return managedProjectIds;
@@ -263,7 +263,7 @@ export async function updateProject(
     const providerMap = new Map(oldProviders.map((provider) => [
       provider.id, 
       {
-        providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwErr(`Missing provider update for provider '${provider.id}'`),
+        providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwStackErr(`Missing provider update for provider '${provider.id}'`),
         oldProvider: provider,
       }
     ]));
@@ -314,7 +314,7 @@ export async function updateProject(
           },
         };
       } else {
-        console.error(`Invalid provider type '${providerUpdate.type}'`);
+        throw new StackAssertionError(`Invalid provider type '${providerUpdate.type}'`, { providerUpdate });
       }
 
       transaction.push(prismaClient.oAuthProviderConfig.update({
@@ -351,7 +351,7 @@ export async function updateProject(
           },
         };
       } else {
-        console.error(`Invalid provider type '${provider.update.type}'`);
+        throw new StackAssertionError(`Invalid provider type '${provider.update.type}'`, { provider });
       }
 
       transaction.push(prismaClient.oAuthProviderConfig.create({
@@ -459,7 +459,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
             tenantId: provider.standardOAuthConfig.tenantId || undefined,
           }];
         }
-        console.error(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project });
+        captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));
         return [];
       }),
       emailConfig,
