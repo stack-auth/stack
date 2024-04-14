@@ -90,7 +90,7 @@ function EmailVerificationSection() {
   return (
     <SettingSection
       title='Email Verification'
-      desc='We want to make sure that you own the email address'
+      desc='We want to make sure that you own the email address.'
       buttonDisabled={emailSent}
       buttonText={
         !user?.primaryEmailVerified ? 
@@ -125,7 +125,7 @@ function PasswordSection() {
   return (
     <SettingSection
       title='Password'
-      desc='Change your password'
+      desc='Change your password here.'
       buttonDisabled={!oldPassword || !newPassword}
       buttonText='Save'
       onButtonClick={async () => {
@@ -182,7 +182,7 @@ function SignOutSection() {
   return (
     <SettingSection
       title='Sign out'
-      desc='Sign out of your account on this device'
+      desc='Sign out of your account on this device.'
       buttonVariant='secondary'
       buttonText='Sign Out'
       onButtonClick={() => user?.signOut()}
