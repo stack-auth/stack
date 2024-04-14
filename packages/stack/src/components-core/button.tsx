@@ -5,7 +5,7 @@ import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, LINK_COLORS } from "../utils/constants";
-import { PulseSpinner } from "react-spinners-kit";
+import LoadingIndicator from "./loading-indicator";
 
 function getColors({
   propsColor, 
@@ -176,7 +176,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
-          <PulseSpinner size={20} color={buttonColors.textColor} />
+          <LoadingIndicator color={buttonColors.textColor}/>
         </div>
         <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
           {props.children}
