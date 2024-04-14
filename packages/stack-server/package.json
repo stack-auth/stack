@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
