@@ -96,7 +96,8 @@ export type ButtonProps = {
   color?: string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
-} & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type'>
+  onClick?: (() => void) | (() => Promise<void>),
+} & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type' | 'onClick'>
 
 const StyledButton = styled.button<{
   $size: 'sm' | 'md' | 'lg',
@@ -180,4 +181,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-export { Button };
+export {
+  Button,
+};

@@ -5,7 +5,6 @@ import FormWarningText from "./form-warning";
 import PasswordField from "./password-field";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, Link } from "../components-core";
 import { KnownErrors } from "@stackframe/stack-shared";
 
@@ -79,7 +78,7 @@ export default function CredentialSignIn() {
 
       <Button
         style={{ marginTop: '1.5rem' }}
-        onClick={() => runAsynchronously(onSubmit)}
+        onClick={onSubmit}
         loading={loading}
       >
           Sign In

@@ -2,6 +2,7 @@ import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -22,6 +23,7 @@ export async function signInWithOAuth(
     state,
   );
   window.location.assign(location);
+  await neverResolve();
 }
 
 /**

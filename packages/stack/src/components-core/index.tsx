@@ -3,26 +3,26 @@
 import React from 'react';
 import { forwardRef } from 'react';
 import { Components, useComponents } from '../providers/component-provider';
-import { Button as StaticButton } from './button';
-import { Container as StaticContainer } from './container';
-import { Separator as StaticSeparator } from './separator';
-import { Input as StaticInput } from './input';
-import { Label as StaticLabel } from './label';
-import { Link as StaticLink } from './link';
-import { Text as StaticText } from './text';
-import { 
+import type { Button as StaticButton } from './button';
+import type { Container as StaticContainer } from './container';
+import type { Separator as StaticSeparator } from './separator';
+import type { Input as StaticInput } from './input';
+import type { Label as StaticLabel } from './label';
+import type { Link as StaticLink } from './link';
+import type { Text as StaticText } from './text';
+import type { 
   Card as StaticCard,
   CardHeader as StaticCardHeader,
   CardContent as StaticCardContent,
   CardFooter as StaticCardFooter,
   CardDescription as StaticCardDescription,
 } from './card';
-import { 
+import type { 
   Popover as StaticPopover,
   PopoverContent as StaticPopoverContent,
   PopoverTrigger as StaticPopoverTrigger,
 } from './popover';
-import { 
+import type { 
   DropdownMenu as StaticDropdownMenu,
   DropdownMenuTrigger as StaticDropdownMenuTrigger,
   DropdownMenuContent as StaticDropdownMenuContent,
@@ -30,23 +30,34 @@ import {
   DropdownMenuLabel as StaticDropdownMenuLabel,
   DropdownMenuSeparator as StaticDropdownMenuSeparator,
 } from './dropdown';
-import { 
+import type { 
   Avatar as StaticAvatar,
   AvatarFallback as StaticAvatarFallback,
   AvatarImage as StaticAvatarImage,
 } from './avatar';
-import { 
+import type { 
   Collapsible as StaticCollapsible,
   CollapsibleTrigger as StaticCollapsibleTrigger,
   CollapsibleContent as StaticCollapsibleContent,
 } from './collapsible';
+import { useAsyncCallbackWithLoggedError } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
 
 export const Button = forwardRef<
   HTMLButtonElement, 
   React.ComponentProps<typeof StaticButton>
 >((props, ref) => {
   const { Button } = useComponents();
-  return <Button {...props} ref={ref} />;
+  const [onClick, onClickLoading] = useAsyncCallbackWithLoggedError(async () => {
+    return await props.onClick?.();
+  }, [props.onClick]);
+
+  return <Button
+    {...props}
+    onClick={props.onClick && onClick}
+    loading={props.loading || onClickLoading}
+    disabled={props.disabled || onClickLoading}
+    ref={ref}
+  />;
 });
 
 export const Container = forwardRef<
