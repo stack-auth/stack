@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.2.3
+
+### Patch Changes
+
+- fixed access token parsing error
+
 ## 2.2.2
 
 ### Patch Changes
