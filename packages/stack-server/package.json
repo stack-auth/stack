@@ -31,7 +31,6 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@vercel/analytics": "^1.2.2",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mdx-js/loader": "^3",
@@ -47,9 +46,11 @@
     "@react-email/components": "^0.0.14",
     "@react-email/render": "^0.0.12",
     "@react-email/tailwind": "^0.0.14",
+    "@sentry/nextjs": "^7.105.0",
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@types/mdx": "^2",
+    "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
     "bright": "^0.8.4",
     "dotenv-cli": "^7.3.0",
