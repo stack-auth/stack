@@ -5,6 +5,7 @@ import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
 import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, LINK_COLORS } from "../utils/constants";
+import { PulseSpinner } from "react-spinners-kit";
 
 function getColors({
   propsColor, 
@@ -106,6 +107,7 @@ const StyledButton = styled.button<{
   $activeBgColor: string,
   $textColor: string,
   $underline: boolean,
+  $loading: boolean,
 }>`
   border: 0;
   border-radius: ${BORDER_RADIUS};
@@ -143,6 +145,7 @@ const StyledButton = styled.button<{
   }
   font-family: ${FONT_FAMILY};
   text-decoration: ${props => props.$underline ? 'underline' : 'none'};
+  position: relative;
 `;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -150,7 +153,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     variant='primary',
     size='md',
     loading=false,
-    disabled=false,
     ...props
   }, ref) => {
     const { colors, colorMode } = useDesign();
@@ -168,12 +170,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         $bgColor={buttonColors.bgColor}
         $hoverBgColor={buttonColors.hoverBgColor}
         $activeBgColor={buttonColors.activeBgColor}
-        $textColor={buttonColors.textColor}
+        $textColor={buttonColors.textColor} 
         $underline={variant === 'link'}
-        disabled={disabled || loading}
+        $loading={loading}
         {...props}
       >
-        {props.children}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
+          <PulseSpinner size={20} color={buttonColors.textColor} />
+        </div>
+        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+          {props.children}
+        </div>
       </StyledButton>
     );
   }

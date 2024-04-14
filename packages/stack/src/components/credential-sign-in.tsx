@@ -13,7 +13,6 @@ export default function CredentialSignIn() {
   const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [loading, setLoading] = useState(false);
   const app = useStackApp();
   
   const onSubmit = async () => {
@@ -30,13 +29,7 @@ export default function CredentialSignIn() {
       return;
     }
     
-    setLoading(true);
-    let error;
-    try {
-      error = await app.signInWithCredential({ email, password });
-    } finally {
-      setLoading(false);
-    }
+    const error = await app.signInWithCredential({ email, password });
 
     if (error instanceof KnownErrors.EmailPasswordMismatch) {
       setPasswordError('Wrong email or password');
@@ -79,7 +72,6 @@ export default function CredentialSignIn() {
       <Button
         style={{ marginTop: '1.5rem' }}
         onClick={onSubmit}
-        loading={loading}
       >
           Sign In
       </Button>

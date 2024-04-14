@@ -14,7 +14,6 @@ function SettingSection(props: {
   desc: string, 
   buttonText?: string, 
   buttonDisabled?: boolean,
-  buttonLoading?: boolean,
   onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
   buttonVariant?: 'primary' | 'secondary',
   children?: React.ReactNode, 
@@ -35,7 +34,6 @@ function SettingSection(props: {
           <Button
             disabled={props.buttonDisabled}
             onClick={props.onButtonClick}
-            loading={props.buttonLoading}
             variant={props.buttonVariant}
           >
             {props.buttonText}
@@ -88,7 +86,6 @@ function ProfileSection() {
 function EmailVerificationSection() {
   const user = useUser();
   const [emailSent, setEmailSent] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
 
   return (
     <SettingSection
@@ -102,12 +99,9 @@ function EmailVerificationSection() {
             'Send Email'
           : undefined
       }
-      buttonLoading={sendingEmail}
       onButtonClick={async () => {
-        setSendingEmail(true);
         await user?.sendVerificationEmail();
         setEmailSent(true);
-        setSendingEmail(false);
       }}
     >
       {user?.primaryEmailVerified ? 
@@ -123,7 +117,6 @@ function PasswordSection() {
   const [oldPasswordError, setOldPasswordError] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [newPasswordError, setNewPasswordError] = useState<string>('');
-  const [saving, setSaving] = useState(false);
 
   if (user?.authMethod !== 'credential') {
     return null;
@@ -135,7 +128,6 @@ function PasswordSection() {
       desc='Change your password'
       buttonDisabled={!oldPassword || !newPassword}
       buttonText='Save'
-      buttonLoading={saving}
       onButtonClick={async () => {
         if (oldPassword && newPassword) {
           const errorMessage = getPasswordError(newPassword);
