@@ -1,0 +1,1 @@
+export { StackJoyTheme } from './providers/joy-provider';

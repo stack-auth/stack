@@ -2,8 +2,16 @@
   "name": "@stackframe/stack",
   "version": "2.2.1",
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./joy": {
+      "types": "./dist/joy.d.ts",
+      "default": "./dist/joy.js"
+    }
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",

@@ -95,7 +95,8 @@ Replace `StackTheme` with `StackJoyTheme`, and put it inside your `CssVarsProvid
     import React from "react";
     import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
     import CssBaseline from '@mui/joy/CssBaseline';
-    import { StackProvider, StackJoyTheme } from "@stackframe/stack";
+    import { StackProvider } from "@stackframe/stack";
+    import StackJoyTheme from "@stackframe/stack/joy";
     import Provider from "src/components/provider";
     import { stackServerApp } from "src/stack";
 
