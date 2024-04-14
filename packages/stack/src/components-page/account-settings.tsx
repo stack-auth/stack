@@ -99,7 +99,7 @@ function EmailVerificationSection() {
       buttonText={
         !user?.primaryEmailVerified ? 
           emailSent ? 
-            'Email Sent' : 
+            'Email sent!' : 
             'Send Email'
           : undefined
       }
