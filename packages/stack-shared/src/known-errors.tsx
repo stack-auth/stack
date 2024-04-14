@@ -528,7 +528,7 @@ const EmailVerificationError = createKnownErrorConstructor(
 );
 
 const EmailVerificationCodeError = createKnownErrorConstructor(
-  KnownError,
+  EmailVerificationError,
   "EMAIL_VERIFICATION_CODE_ERROR",
   "inherit",
   "inherit",
