@@ -6,7 +6,7 @@ import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import { Label, Input, AsyncButton } from "../components-core";
+import { Label, Input, Button } from "../components-core";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function CredentialSignUp() {
