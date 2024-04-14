@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.2.0
+
+### Minor Changes
+
+- 2995d96: Added new UserButton component and Account setting page
+
 ## 2.1.0
 
 ### Minor Changes

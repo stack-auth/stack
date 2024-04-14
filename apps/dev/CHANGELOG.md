@@ -1,5 +1,14 @@
 # dev-app
 
+## 1.0.10
+
+### Patch Changes
+
+- Updated dependencies [2995d96]
+- Updated dependencies [2995d96]
+  - @stackframe/stack@2.2.0
+  - @stackframe/stack-shared@2.2.0
+
 ## 1.0.9
 
 ### Patch Changes

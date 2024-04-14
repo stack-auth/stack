@@ -1,5 +1,18 @@
 # @stackframe/stack-server
 
+## 0.2.0
+
+### Minor Changes
+
+- 2995d96: Added new UserButton component and Account setting page
+
+### Patch Changes
+
+- Updated dependencies [2995d96]
+- Updated dependencies [2995d96]
+  - @stackframe/stack@2.2.0
+  - @stackframe/stack-shared@2.2.0
+
 ## 0.1.9
 
 ### Patch Changes
