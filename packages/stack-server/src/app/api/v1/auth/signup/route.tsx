@@ -13,6 +13,9 @@ import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+
+export const maxDuration = 60;
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -105,9 +108,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
 
-  sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl).catch((err) => {
-    console.error("Error sending verification email", err);
-  });
+  runAsynchronously(sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl));
 
   return NextResponse.json({
     access_token: accessToken,
