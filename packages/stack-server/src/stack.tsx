@@ -1,3 +1,5 @@
+import './polyfills';
+
 import { StackServerApp } from '@stackframe/stack';
 
 export const stackServerApp = new StackServerApp({

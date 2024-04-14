@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { cookies } from "next/headers";
 import { Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest as deprecatedParseRequest } from "@/lib/route-handlers";
 import { getAuthorizationCallback, oauthServer } from "@/oauth";
@@ -69,7 +69,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   if (!project) {
     // This should never happen, make typescript happy
-    throw new Error("Project not found");
+    throw new StackAssertionError("Project not found");
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);

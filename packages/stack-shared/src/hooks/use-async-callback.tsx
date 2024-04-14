@@ -1,4 +1,5 @@
 import React from "react";
+import { captureError } from "../utils/errors";
 
 export function useAsyncCallback<A extends any[], R>(
   callback: (...args: A) => Promise<R>,
@@ -33,7 +34,7 @@ export function useAsyncCallbackWithLoggedError<A extends any[], R>(
     try {
       return await callback(...args);
     } catch (e) {
-      console.error("Uncaught error in async callback", e);
+      captureError("async-callback", e);
       throw e;
     }
   }, deps);

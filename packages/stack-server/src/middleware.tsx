@@ -1,3 +1,5 @@
+import './polyfills';
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';

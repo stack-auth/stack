@@ -1,7 +1,7 @@
 import React, { use, useCallback, useMemo } from "react";
 import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
@@ -297,7 +297,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     this._uniqueIdentifier = options.uniqueIdentifier ?? generateUuid();
     if (allClientApps.has(this._uniqueIdentifier)) {
-      throw new Error("A Stack client app with the same unique identifier already exists");
+      throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
     }
     allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
 
@@ -714,8 +714,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (existing) {
           const [existingCheckString, clientApp] = existing;
           if (existingCheckString !== providedCheckString) {
-            console.error("The provided app JSON does not match the configuration of the existing client app with the same unique identifier", { providedObj: json, existingString: existingCheckString });
-            throw new Error("The provided app JSON does not match the configuration of the existing client app with the same unique identifier");
+            throw new StackAssertionError("The provided app JSON does not match the configuration of the existing client app with the same unique identifier", { providedObj: json, existingString: existingCheckString });
           }
           return clientApp as any;
         }

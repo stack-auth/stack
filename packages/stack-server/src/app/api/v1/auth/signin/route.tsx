@@ -7,7 +7,7 @@ import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route
 import { encodeAccessToken } from "@/lib/access-token";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
@@ -39,7 +39,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new Error("Project not found"); // This should never happen, make typescript happy
+    throw new StackAssertionError("Project not found"); // This should never happen, make typescript happy
   }
 
   if (!project.evaluatedConfig.credentialEnabled) {
@@ -58,7 +58,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   if (!user) {
-    throw new Error("This should never happen (the comparePassword call should've already caused this to fail)");
+    throw new StackAssertionError("This should never happen (the comparePassword call should've already caused this to fail)");
   }
 
   const refreshToken = generateSecureRandomString();

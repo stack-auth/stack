@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { generators } from "openid-client";
 import { cookies } from "next/headers";
 import { encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { getAuthorizationUrl } from "@/oauth";
 import { getProject } from "@/lib/projects";
@@ -50,7 +50,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   if (!project) {
     // This should never happen, make typescript happy
-    throw new Error("Project not found");
+    throw new StackAssertionError("Project not found");
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);

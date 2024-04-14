@@ -1,5 +1,7 @@
+import "../polyfills";
+
 import { NextRequest } from "next/server";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
@@ -204,7 +206,7 @@ function catchError(error: unknown): StatusError {
   }
 
   if (error instanceof StatusError) return error;
-  console.error(`Unhandled error in route handler:`, error);
+  captureError(`route-handler`, error);
   return new StatusError(StatusError.InternalServerError);
 }
 

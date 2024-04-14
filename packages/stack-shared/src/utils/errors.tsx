@@ -1,5 +1,6 @@
 import { Json } from "./json";
 
+
 export function throwErr(errorMessage: string): never;
 export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
@@ -13,6 +14,36 @@ export function throwErr(...args: any[]): never {
     throw new StatusError(...args);
   }
 }
+
+
+export class StackAssertionError extends Error {
+  constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
+    super(`${message}\n\nThis is likely an error in Stack. Please report it.`, options);
+  }
+}
+
+export function throwStackErr(message: string, extraData?: any): never {
+  throw new StackAssertionError(message, extraData);
+}
+
+
+const errorSinks = new Set<(location: string, error: unknown) => void>();
+export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
+  if (errorSinks.has(sink)) {
+    console.log("Error sink already registered", sink);
+    return;
+  }
+  console.log("Registering error sink", sink);
+  errorSinks.add(sink);
+}
+registerErrorSink((location, ...args) => console.error(`Error in ${location}:`, ...args));
+
+export function captureError(location: string, error: unknown): void {
+  for (const sink of errorSinks) {
+    sink(location, error);
+  }
+}
+
 
 type Status = {
   statusCode: number,

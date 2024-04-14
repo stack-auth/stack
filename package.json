@@ -9,7 +9,7 @@
     "build:docs": "turbo run build --no-cache --filter=stack-docs...",
     "build:server": "turbo run build --no-cache --filter=@stackframe/stack-server...",
     "build:demo": "turbo run build --no-cache --filter=demo-app...",
-    "clean": "turbo run clean --no-cache && rimraf node_modules",
+    "clean": "turbo run clean --no-cache && rimraf .turbo && rimraf node_modules",
     "codegen": "turbo run codegen --no-cache",
     "psql:server": "pnpm run --filter=@stackframe/stack-server psql",
     "prisma:server": "pnpm run --filter=@stackframe/stack-server prisma",
