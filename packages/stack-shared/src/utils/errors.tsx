@@ -30,10 +30,8 @@ export function throwStackErr(message: string, extraData?: any): never {
 const errorSinks = new Set<(location: string, error: unknown) => void>();
 export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
   if (errorSinks.has(sink)) {
-    console.log("Error sink already registered", sink);
     return;
   }
-  console.log("Registering error sink", sink);
   errorSinks.add(sink);
 }
 registerErrorSink((location, ...args) => console.error(`Error in ${location}:`, ...args));
