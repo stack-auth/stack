@@ -309,7 +309,7 @@ export class StackClientInterface {
     const processedRes = await this._processResponse(rawRes);
     if (processedRes.status === "error") {
       // If the access token is expired, reset it and retry
-      if (processedRes.error instanceof KnownErrors.AccessTokenExpired) {
+      if (processedRes.error instanceof KnownErrors.InvalidAccessToken) {
         tokenStore.set({
           accessToken: null,
           refreshToken: tokenObj.refreshToken,

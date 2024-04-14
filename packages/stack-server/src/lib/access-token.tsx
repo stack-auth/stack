@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { JWTExpired } from 'jose/errors';
+import { JWTExpired, JOSEError } from 'jose/errors';
 import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { StatusError } from '@stackframe/stack-shared/dist/utils/errors';
 import { KnownErrors } from '@stackframe/stack-shared';
@@ -19,6 +19,8 @@ export async function decodeAccessToken(accessToken: string) {
   } catch (error) {
     if (error instanceof JWTExpired) {
       throw new KnownErrors.AccessTokenExpired();
+    } else if (error instanceof JOSEError) {
+      throw new KnownErrors.UnparsableAccessToken();
     }
     throw error;
   }
