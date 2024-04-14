@@ -9,6 +9,7 @@ import { SELECTED_BACKGROUND_COLORS } from '../utils/constants';
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
 const StyledTrigger = styled(DropdownMenuPrimitive.Trigger)`
+  all: unset;
   &:focus {
     outline: none;
     box-shadow: 0;

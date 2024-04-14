@@ -3,11 +3,10 @@
 import React from 'react';
 import { PasswordField, useUser } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
-import { Text, Label, Input, Button, Card, CardHeader, CardDescription, CardContent, CardFooter, Container } from "../components-core";
+import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
 import FormWarningText from '../components/form-warning';
-import { CardTitle } from '../components-core/card';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 
 function SettingSection(props: {
@@ -23,8 +22,8 @@ function SettingSection(props: {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
-        <CardDescription>{props.desc}</CardDescription>
+        <Text size='xl' as='h2'>{props.title}</Text>
+        <Text variant='secondary'>{props.desc}</Text>
       </CardHeader>
       {props.children && <CardContent>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

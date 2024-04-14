@@ -7,8 +7,8 @@ import { SECONDARY_FONT_COLORS } from '../utils/constants';
 const StyledAvatar = styled(AvatarPrimitive.Root)`
   position: relative;
   display: flex;
-  height: 2.25rem;
-  width: 2.25rem;
+  height: 2rem;
+  width: 2rem;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 9999px;

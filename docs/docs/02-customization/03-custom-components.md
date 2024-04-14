@@ -84,7 +84,7 @@ Here is a list of low-level components that you can customize, stared ones are t
 - `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`
 - `Avatar`, `AvatarFallback`, `AvatarImage`
 - `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
-- `Card`, `CardHeader`, `CardContent`, `CardFooter`, `CardDescription`
+- `Card`, `CardHeader`, `CardContent`, `CardFooter`
 
 ## MUI Joy setup
 

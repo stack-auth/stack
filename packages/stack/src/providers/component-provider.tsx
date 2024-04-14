@@ -8,7 +8,7 @@ import { Input } from '../components-core/input';
 import { Link } from '../components-core/link';
 import { Label } from '../components-core/label';
 import { Text } from '../components-core/text';
-import { Card, CardHeader, CardContent, CardFooter, CardDescription } from '../components-core/card';
+import { Card, CardHeader, CardContent, CardFooter } from '../components-core/card';
 import { Popover, PopoverTrigger, PopoverContent } from '../components-core/popover';
 import { 
   DropdownMenu,
@@ -48,7 +48,6 @@ export const Components = {
   CardHeader,
   CardContent,
   CardFooter,
-  CardDescription,
 } as const;
 
 export type ComponentConfig = {

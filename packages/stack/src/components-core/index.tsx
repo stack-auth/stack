@@ -15,7 +15,6 @@ import type {
   CardHeader as StaticCardHeader,
   CardContent as StaticCardContent,
   CardFooter as StaticCardFooter,
-  CardDescription as StaticCardDescription,
 } from './card';
 import type { 
   Popover as StaticPopover,
@@ -246,12 +245,4 @@ export const CardFooter = forwardRef<
 >((props, ref) => {
   const { CardFooter } = useComponents();
   return <CardFooter {...props} ref={ref} />;
-});
-
-export const CardDescription = forwardRef<
-  HTMLParagraphElement, 
-  React.ComponentProps<typeof StaticCardDescription>
->((props, ref) => {
-  const { CardDescription } = useComponents();
-  return <CardDescription {...props} ref={ref} />;
 });
