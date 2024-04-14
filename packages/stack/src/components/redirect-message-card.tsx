@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useStackApp } from "..";
 import MessageCard from "./message-card";
 import { Text, Button } from "../components-core";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
 export default function RedirectMessageCard({ 
   type,
@@ -67,13 +68,19 @@ export default function RedirectMessageCard({
         {secondaryButton && (
           <Button
             variant="secondary"
-            onClick={() => router.push(stackApp.urls.signOut.toString())}
+            onClick={async () => {
+              router.push(stackApp.urls.signOut.toString());
+              await neverResolve();
+            }}
           >
             {secondaryButton}
           </Button>
         )}
         
-        <Button onClick={() => router.push(primaryUrl.toString())}>
+        <Button onClick={async () => {
+          router.push(primaryUrl.toString());
+          await neverResolve();
+        }}>
           {primaryButton}
         </Button>
       </div>

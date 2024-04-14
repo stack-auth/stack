@@ -342,7 +342,12 @@ export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 30
       body: yup.string().required(),
     }),
     async handler(req) {
-      const newUrl = new URL(redirectPath, req.url + "/");
+      const urlWithTrailingSlash = new URL(req.url);
+      if (!urlWithTrailingSlash.pathname.endsWith("/")) {
+        urlWithTrailingSlash.pathname += "/";
+      }
+      const newUrl = new URL(redirectPath, urlWithTrailingSlash);
+      console.log({ req, newUrl });
       return {
         statusCode,
         headers: {
