@@ -37,8 +37,8 @@ const StyledContent = styled(DropdownMenuPrimitive.Content)<{
 `;
 
 const DropdownMenuContent = React.forwardRef<
-React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => {
   const { colors } = useDesign();
   return (

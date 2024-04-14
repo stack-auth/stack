@@ -1,6 +1,7 @@
 "use client";
 import { Logo } from "@/components/logo";
 import { Sheet, SheetProps, Stack } from "@mui/joy";
+import { UserButton } from "@stackframe/stack";
 
 export function Header(props: SheetProps & { headerHeight: number }) {
   const { headerHeight, ...sheetProps } = props;
@@ -20,6 +21,7 @@ export function Header(props: SheetProps & { headerHeight: number }) {
         borderRight: 'none',
         display: 'flex',
         alignItems: 'stretch',
+        justifyContent: 'space-between',
         height: `${headerHeight}px`,
         ...(sheetProps.sx ?? {}),
       }}
@@ -27,6 +29,7 @@ export function Header(props: SheetProps & { headerHeight: number }) {
       <Stack sx={{ marginLeft: 2, justifyContent: 'center', height: headerHeight - 1 }}>
         <Logo full height={24} href="/projects" />
       </Stack>
+      <UserButton />
     </Sheet>
   );
 }
