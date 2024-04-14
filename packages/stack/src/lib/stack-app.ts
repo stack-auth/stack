@@ -113,6 +113,7 @@ export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends 
   uniqueIdentifier: string,
   currentClientUserJson: UserJson | null,
   currentProjectJson: ClientProjectJson,
+  // note: if you add more fields here, make sure to ensure the checkString in the constructor has/doesn't have them
 };
 
 const defaultBaseUrl = "https://app.stack-auth.com";
