@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useStackApp, useUser, Button, Link, Text } from '@stackframe/stack';
+import { useStackApp, useUser, Button, Link, Text, UserButton } from '@stackframe/stack';
 
 export default function PageClient() {
   const user = useUser();
@@ -24,6 +24,7 @@ export default function PageClient() {
             Sign Out
           </Link>
         </div>
+        // <UserButton />
       ) : authButtons}
     </div>
   );
