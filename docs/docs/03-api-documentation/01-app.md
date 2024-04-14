@@ -94,6 +94,11 @@ export const stackApp = new StackServerApp({
 
     The URL of the forgot password page.
 
+- `account-settings`   
+    Default: `"/handler/account-settings"`
+
+    The URL of the account settings page.
+
 - `handler`    
     Default: `"/handler"`  
 

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import { StackTheme, StackJoyTheme } from "@stackframe/stack";
+import { Button } from "./custom-button";
 
 type UI = 'default' | 'joy';
 const CurrentUIContext = React.createContext<[UI, React.Dispatch<React.SetStateAction<UI>>]>(['default', () => {}]);
@@ -24,8 +25,9 @@ function JoyProvider(props: any) {
 }
 
 function DefaultProvider(props: any) {
+  // theme={{ components: { Button }}}>
   return (
-    <StackTheme>
+    <StackTheme> 
       {props.children}
     </StackTheme>
   );

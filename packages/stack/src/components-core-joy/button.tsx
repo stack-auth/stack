@@ -5,14 +5,6 @@ import { Button as DefaultButton } from "../components-core";
 import { Button as JoyButton } from '@mui/joy';
 import Color from "color";
 
-// export default function Button({
-//   variant = "primary",
-//   color,
-//   size = "md",
-//   loading = false,
-//   ...props
-// } : React.ComponentProps<typeof DefaultButton>) {
-
 export const Button = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof DefaultButton>
