@@ -187,4 +187,4 @@ Note the `UserButton` is a component that you normally put in the top right corn
 
 ![UserButton](../imgs/user-button.png)
 
-You will now be able to see the new profile page on http://localhost:3000/profile.
+You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).

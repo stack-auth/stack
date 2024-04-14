@@ -91,7 +91,7 @@ npm install @stackframe/stack
     }
     ```
 
-6. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to `http://localhost:3000/handler/signup`, you will see the Stack sign-up page!
+6. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
 
     ![Stack sign up page](../imgs/signup-page.png)
 
