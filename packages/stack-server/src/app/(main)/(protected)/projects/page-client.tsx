@@ -9,7 +9,7 @@ import { Paragraph } from "@/components/paragraph";
 import { SmartLink } from "@/components/smart-link";
 import { useFromNow } from "@/hooks/use-from-now";
 import { neverResolve, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Project } from "@stackframe/stack/dist/lib/stack-app";
+import { Project } from "@stackframe/stack";
 import { useRouter } from "next/navigation";
 
 

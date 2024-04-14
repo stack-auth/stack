@@ -10,7 +10,7 @@ import { useAdminApp } from "../../use-admin-app";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import EnvKeys from "@/components/env-keys";
 import { SmartLink } from "@/components/smart-link";
-import { ApiKeySetFirstView } from "@stackframe/stack/dist/lib/stack-app";
+import { ApiKeySetFirstView } from "@stackframe/stack";
 
 
 export default function ApiKeysDashboardClient() {
