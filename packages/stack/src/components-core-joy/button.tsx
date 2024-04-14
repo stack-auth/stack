@@ -32,7 +32,7 @@ export const Button = React.forwardRef<
     ).toString();
   };
 
-  return <JoyButton 
+  return <JoyButton
     color={muiVariant}
     variant={variant === 'link' ? 'plain' : 'solid'}
     sx={color ? {

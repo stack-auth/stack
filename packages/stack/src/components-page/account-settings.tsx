@@ -1,23 +1,22 @@
 'use client';
 
 import React from 'react';
-import { PasswordField, useStackApp, useUser } from '..';
+import { PasswordField, useUser } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Text, Label, Input, Button, Card, CardHeader, CardDescription, CardContent, CardFooter, Container } from "../components-core";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
-import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import FormWarningText from '../components/form-warning';
 import { CardTitle } from '../components-core/card';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 
-function SettingSection(props: { 
+function SettingSection(props: {
   title: string, 
   desc: string, 
   buttonText?: string, 
   buttonDisabled?: boolean,
   buttonLoading?: boolean,
-  onButtonClick?: () => void,
+  onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
   buttonVariant?: 'primary' | 'secondary',
   children?: React.ReactNode, 
 }) {
@@ -34,10 +33,10 @@ function SettingSection(props: {
       </CardContent>}
       {props.buttonText && <CardFooter>
         <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-          <Button 
-            disabled={props.buttonDisabled} 
-            onClick={props.onButtonClick} 
-            loading={props.buttonLoading} 
+          <Button
+            disabled={props.buttonDisabled}
+            onClick={props.onButtonClick}
+            loading={props.buttonLoading}
             variant={props.buttonVariant}
           >
             {props.buttonText}
@@ -46,7 +45,7 @@ function SettingSection(props: {
       </CardFooter>}
     </Card>
   );
-} 
+}
 
 function ProfileSection() {
   const user = useUser();
@@ -59,10 +58,10 @@ function ProfileSection() {
       desc='Your profile information'
       buttonDisabled={!changed}
       buttonText='Save'
-      onButtonClick={() => runAsynchronously(async () => {
+      onButtonClick={async () => {
         await user?.update(userInfo);
         setChanged(false);
-      })}
+      }}
     >
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         <UserAvatar size={60}/>
@@ -90,7 +89,7 @@ function ProfileSection() {
 function EmailVerificationSection() {
   const user = useUser();
   const [emailSent, setEmailSent] = useState(false);
-  const [sedingEmail, setSendingEmail] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   return (
     <SettingSection
@@ -104,17 +103,17 @@ function EmailVerificationSection() {
             'Send Email'
           : undefined
       }
-      buttonLoading={sedingEmail}
-      onButtonClick={() => runAsynchronously(async () => {
+      buttonLoading={sendingEmail}
+      onButtonClick={async () => {
         setSendingEmail(true);
         await user?.sendVerificationEmail();
         setEmailSent(true);
         setSendingEmail(false);
-      })}
+      }}
     >
       {user?.primaryEmailVerified ? 
         <Text variant='success'>Your email has been verified</Text> : 
-        <Text variant='warning'>Your Email has not been verified</Text>}
+        <Text variant='warning'>Your email has not been verified</Text>}
     </SettingSection>
   );
 }
@@ -138,7 +137,7 @@ function PasswordSection() {
       buttonDisabled={!oldPassword || !newPassword}
       buttonText='Save'
       buttonLoading={saving}
-      onButtonClick={() => runAsynchronously(async () => {
+      onButtonClick={async () => {
         if (oldPassword && newPassword) {
           const errorMessage = getPasswordError(newPassword);
           if (errorMessage) {
@@ -157,7 +156,7 @@ function PasswordSection() {
         } else if (newPassword && !oldPassword) {
           setOldPasswordError('Please enter your old password');
         }
-      })}
+      }}
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Label htmlFor='old-password'>Old Password</Label>
@@ -195,7 +194,7 @@ function SignOutSection() {
       desc='Sign out of your account on this device'
       buttonVariant='secondary'
       buttonText='Sign Out'
-      onButtonClick={() => runAsynchronously(user?.signOut)}
+      onButtonClick={() => user?.signOut()}
     >
     </SettingSection>
   );
