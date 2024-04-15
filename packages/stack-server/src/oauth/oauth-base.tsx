@@ -1,5 +1,5 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
-import { OAuthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo } from "./utils";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
