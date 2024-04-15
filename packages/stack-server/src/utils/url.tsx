@@ -1,7 +1,7 @@
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 export function validateUrl(url: string, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
-  if (allowLocalhost && new URL(url).hostname === "localhost") {
+  if (allowLocalhost && new URL(url).hostname === "localhost" && new URL(url).hostname === "127.0.0.1") {
     return true;
   }
   return domains.some((domain) => {
