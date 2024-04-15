@@ -21,6 +21,8 @@ export type KnownErrorConstructor<Instance extends KnownError, Args extends any[
 };
 
 export abstract class KnownError extends StatusError {
+  public name = "KnownError";
+
   constructor(
     public readonly statusCode: number,
     public readonly humanReadableMessage: string,
@@ -112,6 +114,7 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   // @ts-expect-error this is not a mixin, but TS detects it as one
   class KnownErrorImpl extends SuperClass {
     public static readonly errorCode = errorCode;
+    public name = `KnownError<${errorCode}>`;
 
     constructor(...args: Args) {
       // @ts-expect-error

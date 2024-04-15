@@ -17,6 +17,7 @@ export function throwErr(...args: any[]): never {
 
 
 export class StackAssertionError extends Error {
+  public name = "StackAssertionError";
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
     super(`${message}\n\nThis is likely an error in Stack. Please report it.`, options);
   }
@@ -54,6 +55,7 @@ type StatusErrorConstructorParameters = [
 ];
 
 export class StatusError extends Error {
+  public name = "StatusError";
   public readonly statusCode: number;
 
   public static BadRequest = { statusCode: 400, message: "Bad Request" };
