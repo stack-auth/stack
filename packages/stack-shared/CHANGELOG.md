@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.2.1
+
+### Patch Changes
+
+- fixed minor errors
+
 ## 2.2.0
 
 ### Minor Changes

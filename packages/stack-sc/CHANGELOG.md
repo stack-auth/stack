@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.3.1
+
+### Patch Changes
+
+- fixed minor errors
+
 ## 1.3.0
 
 ### Minor Changes
