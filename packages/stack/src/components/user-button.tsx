@@ -50,7 +50,7 @@ export default function UserButton({
           </div>}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent style={{ zIndex: 1500 }}>
         <DropdownMenuLabel>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <UserAvatar/>
