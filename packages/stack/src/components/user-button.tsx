@@ -5,6 +5,7 @@ import { RxPerson, RxEnter, RxSun, RxShadow } from "react-icons/rx";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { SECONDARY_FONT_COLORS } from "../utils/constants";
 import UserAvatar from "./user-avatar";
+import { useRouter } from "next/navigation";
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
@@ -28,6 +29,7 @@ export default function UserButton({
   const { colorMode, setColorMode } = useDesign();
   const user = useUser();
   const app = useStackApp();
+  const router = useRouter();
 
   const textStyles = {
     textOverflow: 'ellipsis', 
@@ -61,7 +63,7 @@ export default function UserButton({
         <DropdownMenuSeparator />
         <Item 
           text="Account settings" 
-          onClick={() => app.redirectToAccountSettings()} 
+          onClick={() => runAsynchronously(router.push(app.urls.accountSettings))}
           icon={<RxPerson size={22} color={SECONDARY_FONT_COLORS[colorMode]} />}
         />
         {showColorMode && <Item 
