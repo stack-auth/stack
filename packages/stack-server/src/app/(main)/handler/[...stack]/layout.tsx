@@ -5,9 +5,9 @@ import { Box, Stack } from '@mui/joy';
 export default function Layout(props: { children: React.ReactNode }) {
   const headerHeight = 50;
   return (
-    <Stack direction="column" height='100vh' overflow='hidden'>
+    <Stack direction="column" height='100vh'>
       <Header headerHeight={headerHeight} />
-      <Box height={'100%'} overflow='auto'>
+      <Box flexGrow={1}>
         {props.children}
       </Box>
     </Stack>
