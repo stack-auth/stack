@@ -551,8 +551,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         case 'throw': {
           throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
         }
-        default: {
-          return null;
+        case undefined:
+        case "return-null": {
+          // do nothing
         }
       }
     }
