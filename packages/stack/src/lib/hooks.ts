@@ -1,4 +1,4 @@
-import { CurrentUser, GetUserOptions, StackClientApp } from "./stack-app";
+import { CurrentUser, GetUserOptions as AppGetUserOptions, StackClientApp, CurrentInternalUser } from "./stack-app";
 import { StackContext } from "../providers/stack-provider-client";
 import { useContext } from "react";
 
@@ -8,11 +8,24 @@ import { useContext } from "react";
  * @returns the current user
  */
 
-export function useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser;
-export function useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser;
-export function useUser(options?: GetUserOptions): CurrentUser | null;
-export function useUser(options?: GetUserOptions): CurrentUser | null {
-  return useStackApp().useUser(options);
+type GetUserOptions = AppGetUserOptions & {
+  projectIdMustMatch?: string,
+}
+
+export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw', projectIdMustMatch: "internal" }): CurrentInternalUser;
+export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw' }): CurrentUser;
+export function useUser(options: GetUserOptions & { projectIdMustMatch: "internal" }): CurrentInternalUser | null;
+export function useUser(options: GetUserOptions): CurrentUser | CurrentInternalUser | null;
+export function useUser(options: GetUserOptions = {}): CurrentUser | CurrentInternalUser | null {
+  const stackApp = useStackApp(options);
+  if (options.projectIdMustMatch && stackApp.projectId !== options.projectIdMustMatch) {
+    throw new Error("Unexpected project ID in useStackApp: " + stackApp.projectId);
+  }
+  if (options.projectIdMustMatch === "internal") {
+    return stackApp.useUser(options) as CurrentInternalUser;
+  } else {
+    return stackApp.useUser(options) as CurrentUser;
+  }
 }
 
 /**

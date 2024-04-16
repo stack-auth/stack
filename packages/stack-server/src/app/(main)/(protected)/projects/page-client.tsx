@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function ProjectsPageClient() {
-  const user = useUser({ or: 'redirect' });
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
   
   const [createDialogOpen, setCreateDialogOpen] = useState(projects.length === 0);
@@ -86,8 +86,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const formId = useId();
   const [isCreating, setIsCreating] = useState(false);
-  // const stackApp = useStackApp({ projectIdMustMatch: "internal" });
-  const user = useUser({ or: 'redirect' });
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const router = useRouter();
 
   return (

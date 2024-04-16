@@ -38,7 +38,7 @@ function ProjectSwitchItem({ label }: { label: string }) {
 
 function ProjectSwitch() {
   const stackAdminApp = useAdminApp();
-  const user = useUser({ or: 'redirect' });
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
   const project = projects.find((project) => project.id === stackAdminApp.projectId);
 
