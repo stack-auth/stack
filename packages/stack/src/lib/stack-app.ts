@@ -374,18 +374,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
       },
-      // createProject(newProject: Pick<Project, "displayName" | "description">) {
-      //   return app._createProject(newProject);
-      // },
-      // listOwnedProjects() {
-      //   return app._listOwnedProjects();
-      // },
-      // useOwnedProjects() {
-      //   return app._useOwnedProjects();
-      // },
-      // onOwnedProjectsChange(callback: (projects: Project[]) => void) {
-      //   return app._onOwnedProjectsChange(callback);
-      // }
     };
     if (this.isInternalProject()) {
       const internalUser: CurrentInternalUser = {
