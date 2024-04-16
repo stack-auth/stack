@@ -2,7 +2,6 @@
 
 import { FaGithub, FaFacebook, FaApple } from 'react-icons/fa';
 import { useStackApp } from '..';
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button } from "../components-core";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
@@ -115,7 +114,7 @@ export default function OAuthButton({
     <Button
       color={style.backgroundColor}
       style={{ border: style.border }}
-      onClick={() => runAsynchronously(stackApp.signInWithOAuth(provider))}
+      onClick={() => stackApp.signInWithOAuth(provider)}
     >
       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         {style.icon}

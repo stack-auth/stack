@@ -1,5 +1,5 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
-import { OAuthUserInfo, validateUserInfo } from "./utils";
+import { OAuthUserInfo } from "./utils";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -86,8 +86,7 @@ export abstract class OAuthBaseProvider {
         tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
       }
     } catch (error) {
-      console.error("OAuth callback failed", error);
-      throw new Error("OAuth callback failed");
+      throw new Error("OAuth callback failed", { cause: error });
     }
     if (!tokenSet.access_token) {
       throw new Error("No access token received");

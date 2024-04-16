@@ -15,16 +15,6 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 ));
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>((props, ref) => (
-  <StyledCardTitle ref={ref} {...props} />
-));
-CardTitle.displayName = "CardTitle";
-
-const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>((props, ref) => (
-  <StyledCardDescription ref={ref} {...props} />
-));
-CardDescription.displayName = "CardDescription";
-
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>((props, ref) => (
   <StyledCardContent ref={ref} {...props} />
 ));
@@ -53,18 +43,6 @@ const StyledCardHeader = styled.div`
   margin-bottom: 1.5rem;
 `;
 
-const StyledCardTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.05em;
-`;
-
-const StyledCardDescription = styled.p`
-  font-size: 0.875rem;
-  color: #6c757d; /* Example muted text color */
-`;
-
 const StyledCardContent = styled.div`
 `;
 
@@ -78,7 +56,5 @@ export {
   Card, 
   CardHeader, 
   CardFooter, 
-  CardTitle, 
-  CardDescription, 
   CardContent,
 };

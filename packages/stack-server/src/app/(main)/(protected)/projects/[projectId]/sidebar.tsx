@@ -1,7 +1,6 @@
 'use client';;
 import * as React from 'react';
 import NextLink from 'next/link';
-import Avatar from '@mui/joy/Avatar';
 import Box from '@mui/joy/Box';
 import Divider from '@mui/joy/Divider';
 import List from '@mui/joy/List';
@@ -11,11 +10,10 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './use-admin-app';
 import { usePathname } from 'next/navigation';
-import { useUser } from '@stackframe/stack';
-import { Dropdown, MenuButton, MenuItem, Menu, useColorScheme, Stack, Sheet, CircularProgress } from '@mui/joy';
+import { UserButton, useUser } from '@stackframe/stack';
+import { useColorScheme, Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Logo } from '@/components/logo';
-import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 
 
 function SidebarItem({
@@ -58,64 +56,6 @@ function SidebarItem({
         {target === "_blank" ? <Icon icon="open_in_new" /> : null}
       </ListItemButton>
     </ListItem>
-  );
-}
-
-function AvatarSection() {
-  const { mode, setMode } = useColorScheme();
-  const user = useUser({ or: 'redirect' });
-  const app = useAdminApp();
-  const nameStyle = { 
-    textOverflow: 'ellipsis', 
-    whiteSpace: 'nowrap', 
-    overflow: 'hidden'
-  };
-  const [isSigningOut, setIsSigningOut] = React.useState(false);
-
-  return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-      <Avatar
-        variant="outlined"
-        size="sm"
-        src={user.profileImageUrl || undefined}
-      />
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography level="title-sm" sx={nameStyle}>{user.displayName || user.primaryEmail}</Typography>
-        {user.displayName ? <Typography level="body-xs" sx={nameStyle}>{user.primaryEmail}</Typography> : null}
-      </Box>
-      <Dropdown>
-        <MenuButton size="sm" variant="plain" color="neutral">
-          <Icon icon="more_vert" />
-          <Menu sx={{ zIndex: 10001 }}>
-            <MenuItem onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} variant='plain' sx={{ width: '100%'}}>
-              <Icon icon={mode === 'dark' ? "light_mode" : "dark_mode"} sx={{ mr: 1 }}/>
-              {mode === 'dark' ? 'Light mode' : 'Dark mode'}
-            </MenuItem>
-            <MenuItem
-              disabled={isSigningOut}
-              sx={{
-                width: '100%',
-                ...(isSigningOut ? { justifyContent: "center"} : {}),
-              }}
-              onClick={isSigningOut ? undefined : () => {
-                setIsSigningOut(true);
-                runAsynchronously(user.signOut().finally(() => setIsSigningOut(false)));
-              }}
-              variant='plain'
-            >
-              {isSigningOut ? (
-                <CircularProgress size="sm" />
-              ) : (
-                <>
-                  <Icon icon="logout" sx={{ mr: 1 }} />
-                  Sign out
-                </>
-              )}
-            </MenuItem>
-          </Menu>
-        </MenuButton>
-      </Dropdown>
-    </Box>
   );
 }
 
@@ -196,7 +136,7 @@ export function Sidebar(props: {
           <Divider sx={{ mt: 1 }} />
       
           <Box sx={{ py: 1 }}>
-            <AvatarSection />
+            <UserButton showUserInfo />
           </Box>
         </Stack>
       </Stack>

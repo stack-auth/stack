@@ -1,8 +1,8 @@
 import * as yup from "yup";
 import { cookies } from "next/headers";
-import { Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest as deprecatedParseRequest } from "@/lib/route-handlers";
 import { getAuthorizationCallback, oauthServer } from "@/oauth";
@@ -69,7 +69,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   if (!project) {
     // This should never happen, make typescript happy
-    throw new Error("Project not found");
+    throw new StackAssertionError("Project not found");
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);
@@ -105,61 +105,74 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   });
 
   const oauthResponse = new OAuthResponse();
-  await oauthServer.authorize(
-    oauthRequest,
-    oauthResponse,
-    {
-      authenticateHandler: {
-        handle: async () => {
-          const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
-            where: {
-              projectId_oauthProviderConfigId_providerAccountId: {
-                projectId: decoded.projectId,
-                oauthProviderConfigId: provider.id,
-                providerAccountId: userInfo.accountId,
+  try {
+    await oauthServer.authorize(
+      oauthRequest,
+      oauthResponse,
+      {
+        authenticateHandler: {
+          handle: async () => {
+            const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
+              where: {
+                projectId_oauthProviderConfigId_providerAccountId: {
+                  projectId: decoded.projectId,
+                  oauthProviderConfigId: provider.id,
+                  providerAccountId: userInfo.accountId,
+                },
               },
-            },
-          });
+            });
 
-          if (oldAccount) {
-            return {
-              id: oldAccount.projectUserId,
-              newUser: false
-            };
-          }
+            if (oldAccount) {
+              return {
+                id: oldAccount.projectUserId,
+                newUser: false
+              };
+            }
 
-          const newAccount = await prismaClient.projectUserOAuthAccount.create({
-            data: {
-              providerAccountId: userInfo.accountId,
-              email: userInfo.email,
-              providerConfig: {
-                connect: {
-                  projectConfigId_id: {
-                    projectConfigId: project.evaluatedConfig.id,
-                    id: provider.id,
+            const newAccount = await prismaClient.projectUserOAuthAccount.create({
+              data: {
+                providerAccountId: userInfo.accountId,
+                email: userInfo.email,
+                providerConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      projectConfigId: project.evaluatedConfig.id,
+                      id: provider.id,
+                    },
+                  },
+                },
+                projectUser: {
+                  create: {
+                    projectId,
+                    displayName: userInfo.displayName,
+                    profileImageUrl: userInfo.profileImageUrl,
+                    primaryEmail: userInfo.email,
+                    primaryEmailVerified: true,
                   },
                 },
               },
-              projectUser: {
-                create: {
-                  projectId,
-                  displayName: userInfo.displayName,
-                  profileImageUrl: userInfo.profileImageUrl,
-                  primaryEmail: userInfo.email,
-                  primaryEmailVerified: true,
-                },
-              },
-            },
-          });
+            });
 
-          return {
-            id: newAccount.projectUserId,
-            newUser: true
-          };
+            return {
+              id: newAccount.projectUserId,
+              newUser: true
+            };
+          }
         }
       }
+    );
+  } catch (error) {
+    if (error instanceof InvalidClientError) {
+      if (error.message.includes("redirect_uri")) {
+        throw new StatusError(
+          StatusError.BadRequest, 
+          'Invalid redirect URL. This is probably caused by not setting up domains/handlers correctly in the Stack dashboard'
+        );
+      }
+      throw new StatusError(StatusError.BadRequest, error.message);
     }
-  );
+    throw error;
+  }
 
   return new Response(JSON.stringify(oauthResponse.body), {
     status: oauthResponse.status,

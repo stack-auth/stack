@@ -16,6 +16,7 @@ export type EmailConfig = {
   password: string,
   senderEmail: string,
   senderName: string,
+  secure: boolean,
   type: 'shared' | 'standard',
 }
 
@@ -35,8 +36,7 @@ export async function sendEmail({
   const transporter = nodemailer.createTransport({
     host: emailConfig.host,
     port: emailConfig.port,
-    // secure: true,
-    secure: false,
+    secure: emailConfig.secure,
     auth: {
       user: emailConfig.username,
       pass: emailConfig.password,
@@ -69,6 +69,7 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   }
 
   let emailConfig: EmailConfig;
+  const secure = process.env.EMAIL_SECURE === undefined ? true : process.env.EMAIL_SECURE === 'true';
   if (projectEmailConfig.type === 'shared') {
     emailConfig = {
       host: getEnvVariable('EMAIL_HOST'),
@@ -77,6 +78,7 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
       password: getEnvVariable('EMAIL_PASSWORD'),
       senderEmail: getEnvVariable('EMAIL_SENDER'),
       senderName: projectEmailConfig.senderName,
+      secure: secure,
       type: 'shared',
     };
   } else {
@@ -87,6 +89,7 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
       password: projectEmailConfig.password,
       senderEmail: projectEmailConfig.senderEmail,
       senderName: projectEmailConfig.senderName,
+      secure: secure, // TODO: add secure to projectEmailConfig
       type: 'standard',
     };
   }

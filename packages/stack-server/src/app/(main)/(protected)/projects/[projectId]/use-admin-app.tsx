@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { useUser } from "@stackframe/stack";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { CurrentUser, StackAdminApp } from "@stackframe/stack/dist/lib/stack-app";
+import { CurrentUser, StackAdminApp } from "@stackframe/stack";
 
 const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
 

@@ -9,7 +9,7 @@ title: Colors & Color Mode
 
 If you want to spend minimal time on styling but still want to align with your brand, you can customize the colors of the Stack app. Colors are stored in React context and can be easily overridden.
 
-There are five variables that you can override:
+There are a few variables that you can override:
 - `primaryColor`: The primary color used for components like button with primary variant.
 - `secondaryColor`: The secondary color used for components like button with secondary variant.
 - `neutralColor`: The color used for separators and borders.

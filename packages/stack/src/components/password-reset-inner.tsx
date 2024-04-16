@@ -9,7 +9,6 @@ import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";
 import { Button, Label, Text } from "../components-core";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
 export default function PasswordResetInner(
@@ -100,7 +99,7 @@ export default function PasswordResetInner(
         />
         <FormWarningText text={passwordRepeatError} />
 
-        <Button style={{ marginTop: '1.5rem' }} onClick={() => runAsynchronously(onSubmit())}>
+        <Button style={{ marginTop: '1.5rem' }} onClick={() => onSubmit()}>
           Reset Password
         </Button>
       </div>

@@ -1,5 +1,7 @@
+import "../polyfills";
+
 import { NextRequest } from "next/server";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
@@ -204,7 +206,7 @@ function catchError(error: unknown): StatusError {
   }
 
   if (error instanceof StatusError) return error;
-  console.error(`Unhandled error in route handler:`, error);
+  captureError(`route-handler`, error);
   return new StatusError(StatusError.InternalServerError);
 }
 
@@ -323,5 +325,39 @@ export function smartRouteHandler<
     let smartRes = await handler.handler(smartReq);
 
     return await createResponse(req, requestId, smartRes, handler.response);
+  });
+}
+
+
+export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
+  return smartRouteHandler({
+    request: yup.object({
+      url: yup.string().required(),
+      method: yup.string().oneOf(["GET"]).required(),
+    }),
+    response: yup.object({
+      statusCode: yup.number().oneOf([301, 302, 303, 307, 308]).required(),
+      headers: yup.object().shape({
+        location: yup.array(yup.string().required()),
+      }),
+      bodyType: yup.string().oneOf(["text"]).required(),
+      body: yup.string().required(),
+    }),
+    async handler(req) {
+      const urlWithTrailingSlash = new URL(req.url);
+      if (!urlWithTrailingSlash.pathname.endsWith("/")) {
+        urlWithTrailingSlash.pathname += "/";
+      }
+      const newUrl = new URL(redirectPath, urlWithTrailingSlash);
+      console.log({ req, newUrl });
+      return {
+        statusCode,
+        headers: {
+          location: [newUrl.toString()],
+        },
+        bodyType: "text",
+        body: "Redirecting...",
+      };
+    },
   });
 }

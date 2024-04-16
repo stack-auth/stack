@@ -66,6 +66,21 @@ export default function PageClient() {
             </Button>
           </div>
 
+          <div style={{ display: 'flex', gap: 5 }}>
+            <Button size='md' variant="primary" loading>
+              Button
+            </Button>
+            <Button size='md' variant="secondary" loading>
+              Button
+            </Button>
+            <Button size='md' variant="warning" loading>
+              Button
+            </Button>
+            <Button size='md' color='orange' loading>
+              Button
+            </Button>
+          </div>
+
           <Separator />
 
           <div style={{ display: 'flex', gap: 20}}>

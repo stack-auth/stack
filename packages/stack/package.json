@@ -1,9 +1,17 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.1.3",
+  "version": "2.2.4",
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./joy": {
+      "types": "./dist/joy.d.ts",
+      "default": "./dist/joy.js"
+    }
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
@@ -20,6 +28,7 @@
     "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.7",
+    "@radix-ui/react-separator": "^1.0.3",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "color": "^4.2.3",

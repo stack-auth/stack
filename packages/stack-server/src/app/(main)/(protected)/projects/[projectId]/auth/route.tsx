@@ -1,6 +1,3 @@
-import { deprecatedSmartRouteHandler } from "@/lib/route-handlers";
-import { redirect } from "next/navigation";
+import { redirectHandler } from "@/lib/route-handlers";
 
-export const GET = deprecatedSmartRouteHandler(async () => {
-  redirect("/dashboard/auth/users");
-});
+export const GET = redirectHandler("users");

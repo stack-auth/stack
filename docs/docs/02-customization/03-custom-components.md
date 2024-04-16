@@ -4,28 +4,33 @@ sidebar_position: 1
 
 # Custom Components
 
-Even though Stack provides beautiful components out of the box, sometimes you might want to achieve coherent visual across your whole website.Stack allow you to replace low-level components like button, input, and text, with your own custom components as long as the props are the same.  The high-level components like sign-in, sign-up, or oauth will automatically use the custom components. This is useful if you want to achieve deep customization. 
+# Custom Components
 
-We currently already implemented the support for MUI Joy for you, so you can use it directly with minimal setup (see [MUI Joy](#mui-joy-setup)). Support of other common libraries like Chakra UI, Daisy UI, and Shadcn are comming soon. If you use the libraries that are currently not supported or you have your own custom components, you can follow customizing components guide below.
+Even though Stack provides beautiful components out of the box, sometimes you might want to achieve a coherent visual style across your entire website. Stack allows you to replace low-level components like buttons, inputs, and text with your own custom components, as long as the props are the same. The high-level components like sign-in, sign-up, or OAuth will automatically use the custom components. This is useful if you want to achieve deep customization.
+
+We currently already implemented support for MUI Joy, so you can use it directly with minimal setup (see [MUI Joy](#mui-joy-setup)). Support for other common libraries like Chakra UI, Daisy UI, and Shadcn is coming soon. If you use libraries that are currently not supported or you have your own custom components, you can follow the customizing components guide below.
 
 ## Customizing Components
 
-Here is an example of how you can customize the button component. For demostration purpose, we will keep the styling minimal. First we will create a new button component with `ButtonProps`. You can use `useDesign` hook to get the colors scheme (see more in [Custom Colors](/docs/customization/custom-colors)). You can also ignore the color scheme if you have a different way to handle colors.
+Here is an example of how you can customize the button component. For demonstration purposes, we will keep the styling minimal. We will create a new button component. You can use the `useDesign` hook to get the color scheme (see more in [Custom Colors](/docs/customization/custom-colors)). You can also ignore the color scheme if you have a different way to handle colors.
 
 ```jsx
 'use client';
 
-import { ButtonProps, useDesign } from "@stackframe/stack";
+import React from "react";
+import { Button as DefaultButton, useDesign } from "@stackframe/stack";
 
-export default function CustomButton({
+export const Button = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof DefaultButton>
+>(({
   variant = "primary",
   color,
   size = "md",
   loading = false,
   disabled = false,
-  children,
   ...props
-} : ButtonProps) {
+}, ref) => {
   const { colors } = useDesign();
 
   return <button
@@ -38,10 +43,10 @@ export default function CustomButton({
     }}
     disabled={loading || disabled}
     {...props}
-  >
-    {children}
-  </button>;
-}
+  />;
+});
+
+Button.displayName = "Button";
 ```
 
 Then you can pass the custom button to the `StackTheme` (if you followed the get started guide, you can find it in your `layout.tsx` file) as follows:
@@ -67,13 +72,19 @@ const theme = {
 Now if you check out your sign-in page, you will see the sign-in button there is using your custom button component. If you import `Button` from `@stackframe/stack`, it will also use your custom button component as well.
 
 Here is a list of low-level components that you can customize, stared ones are the most used and recommended to customize first:
-- Button ⭐
-- Container
-- Separator
-- Input ⭐
-- Label
-- Link
-- Text ⭐
+
+- `Input` ⭐
+- `Button` ⭐
+- `Container`
+- `Separator`
+- `Label`
+- `Link`
+- `Text` ⭐
+- `Popover`, `PopoverTrigger`, `PopoverContent`
+- `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`
+- `Avatar`, `AvatarFallback`, `AvatarImage`
+- `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
+- `Card`, `CardHeader`, `CardContent`, `CardFooter`
 
 ## MUI Joy setup
 
@@ -84,7 +95,8 @@ Replace `StackTheme` with `StackJoyTheme`, and put it inside your `CssVarsProvid
     import React from "react";
     import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
     import CssBaseline from '@mui/joy/CssBaseline';
-    import { StackProvider, StackJoyTheme } from "@stackframe/stack";
+    import { StackProvider } from "@stackframe/stack";
+    import StackJoyTheme from "@stackframe/stack/joy";
     import Provider from "src/components/provider";
     import { stackServerApp } from "src/stack";
 

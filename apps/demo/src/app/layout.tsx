@@ -24,9 +24,11 @@ export default function RootLayout({
           app={stackServerApp}
         >
           <Provider>
-            <Header />
-            <div className="fixed top-12 left-0 right-0 bottom-0 overflow-auto">
-              {children}
+            <div className="flex flex-col h-screen">
+              <Header />
+              <div className="flex-grow">
+                {children}
+              </div>
             </div>
           </Provider>
         </StackProvider>

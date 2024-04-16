@@ -1,6 +1,6 @@
 import { Stack } from "@mui/joy";
 import ProjectsPageClient from "./page-client";
-import { Header } from "./header";
+import { Header } from '@/components/header';
 
 export const metadata = {
   title: "Projects",

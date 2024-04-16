@@ -1,5 +1,5 @@
-import { StatusError, throwErr } from "./utils/errors";
-import { identity, identityArgs } from "./utils/functions";
+import { StatusError, throwErr, throwStackErr } from "./utils/errors";
+import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
 
 export type KnownErrorJson = {
@@ -21,6 +21,8 @@ export type KnownErrorConstructor<Instance extends KnownError, Args extends any[
 };
 
 export abstract class KnownError extends StatusError {
+  public name = "KnownError";
+
   constructor(
     public readonly statusCode: number,
     public readonly humanReadableMessage: string,
@@ -48,7 +50,7 @@ export abstract class KnownError extends StatusError {
   }
 
   get errorCode(): string {
-    return (this.constructor as any).errorCode ?? throwErr(`Can't find error code for this KnownError. Is its constructor a KnownErrorConstructor? ${this}`);
+    return (this.constructor as any).errorCode ?? throwStackErr(`Can't find error code for this KnownError. Is its constructor a KnownErrorConstructor? ${this}`);
   }
 
   public static constructorArgsFromJson(json: KnownErrorJson): ConstructorParameters<typeof KnownError> {
@@ -112,6 +114,7 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   // @ts-expect-error this is not a mixin, but TS detects it as one
   class KnownErrorImpl extends SuperClass {
     public static readonly errorCode = errorCode;
+    public name = `KnownError<${errorCode}>`;
 
     constructor(...args: Args) {
       // @ts-expect-error

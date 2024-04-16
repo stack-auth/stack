@@ -114,9 +114,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 </Tabs>
 
 
-## Examples
-
-### User profile
+## Example Profile Page
 
 Stack automatically creates a user profile on sign-up. Let's create a page that displays this information. In `app/profile/page.tsx`:
 
@@ -124,7 +122,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   <TabItem value="client" label="Client Component" default>
     ```tsx
     'use client';
-    import { useUser, useStackApp } from "@stackframe/stack";
+    import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 
     export default function PageClient() {
       const user = useUser();
@@ -134,6 +132,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
           <h1>Home</h1>
           {user ? (
             <div>
+              <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
@@ -155,6 +154,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   <TabItem value="server" label="Server Component">
     ```tsx
     import { stackApp } from "@/lib/stack";
+    import { UserButton } from "@stackframe/stack";
 
     export default async function Page() {
       const user = await stackApp.getUser();
@@ -163,6 +163,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
           <h1>Home</h1>
           {user ? (
             <div>
+              <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
@@ -182,4 +183,8 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   </TabItem>
 </Tabs>
 
-You will now be able to see the new profile page on http://localhost:3000/profile.
+Note the `UserButton` is a component that you normally put in the top right corner of your page. It shows the user's profile picture (and optionally their name) and opens a dropdown with the user's profile, account settings, and sign-out button. It looks like this:
+
+![UserButton](../imgs/user-button.png)
+
+You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).

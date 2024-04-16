@@ -6,6 +6,7 @@ import { decodeAccessToken, encodeAccessToken } from "@/lib/access-token";
 import { validateUrl } from "@/utils/url";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const enabledScopes = ["openid"];
 
@@ -102,7 +103,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     try {
       decoded = await decodeAccessToken(accessToken);
     } catch (e) {
-      console.error(e);
+      captureError("getAccessToken", e);
       return false;
     }
 
@@ -222,8 +223,8 @@ export class OAuthModel implements AuthorizationCodeModel {
 
       return !!deletedCode;
     } catch (e) {
-      if (! (e instanceof PrismaClientKnownRequestError)) {
-        console.error(e); 
+      if (!(e instanceof PrismaClientKnownRequestError)) {
+        throw e;
       }
       return false;
     }

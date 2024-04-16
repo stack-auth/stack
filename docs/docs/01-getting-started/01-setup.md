@@ -91,9 +91,13 @@ npm install @stackframe/stack
     }
     ```
 
-6. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to `http://localhost:3000/handler/signup`, you will see the Stack sign-up page!
+6. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
 
     ![Stack sign up page](../imgs/signup-page.png)
+
+    After signing up/in, you will be redirected back to the home page, which is empty/default for now. We will add some useful information to it in the next section. You can also check out [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
+
+    ![Stack account settings page](../imgs/account-settings-page.png)
 
 
 ## Next steps

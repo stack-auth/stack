@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage, useUser } from "..";
+import { Avatar, AvatarFallback, AvatarImage, Text, useUser } from "..";
 
 export default function UserAvatar(props: { size?: number }) {
   const user = useUser();
@@ -10,7 +10,11 @@ export default function UserAvatar(props: { size?: number }) {
   return (
     <Avatar style={{ height: props.size, width: props.size }}>
       <AvatarImage src={user.profileImageUrl || ''} />
-      <AvatarFallback>{(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}</AvatarFallback>
+      <AvatarFallback>
+        <Text style={{ fontWeight: 500 }}>
+          {(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}
+        </Text>
+      </AvatarFallback>
     </Avatar>
   );
 }

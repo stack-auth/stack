@@ -6,8 +6,7 @@ import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Button, Label, Input } from "../components-core";
+import { Label, Input, Button } from "../components-core";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function CredentialSignUp() {
@@ -17,7 +16,6 @@ export default function CredentialSignUp() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordRepeat, setPasswordRepeat] = useState('');
   const [passwordRepeatError, setPasswordRepeatError] = useState('');
-  const [loading, setLoading] = useState(false);
   const app = useStackApp();
 
   const onSubmit = async () => {
@@ -48,13 +46,8 @@ export default function CredentialSignUp() {
       return;
     }
 
-    setLoading(true);
     let error;
-    try {
-      error = await app.signUpWithCredential({ email, password });
-    } finally {
-      setLoading(false);
-    }
+    error = await app.signUpWithCredential({ email, password });
     
     if (error instanceof KnownErrors.UserEmailAlreadyExists) {
       setEmailError('User already exists');
@@ -106,8 +99,7 @@ export default function CredentialSignUp() {
 
       <Button 
         style={{ marginTop: '1.5rem' }}
-        onClick={() => runAsynchronously(onSubmit)}
-        loading={loading}
+        onClick={onSubmit}
       >
           Sign Up
       </Button>

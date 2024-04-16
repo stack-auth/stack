@@ -8,8 +8,9 @@ import { Dialog } from "@/components/dialog";
 import { Paragraph } from "@/components/paragraph";
 import { SmartLink } from "@/components/smart-link";
 import { useFromNow } from "@/hooks/use-from-now";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Project } from "@stackframe/stack/dist/lib/stack-app";
+import { neverResolve, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Project } from "@stackframe/stack";
+import { useRouter } from "next/navigation";
 
 
 export default function ProjectsPageClient() {
@@ -17,7 +18,7 @@ export default function ProjectsPageClient() {
 
   const projects = stackApp.useOwnedProjects();
   
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(projects.length === 0);
 
   return (
     <>
@@ -59,7 +60,7 @@ function ProjectCard(props: {
   };
 
   return (
-    <SmartLink href={`/projects/${encodeURIComponent(props.project.id)}/auth/users`} sx={{ color: "inherit" }}>
+    <SmartLink href={`/projects/${encodeURIComponent(props.project.id)}`} sx={{ color: "inherit" }}>
       <Card variant="outlined">
         <CardContent>
           <Typography level="title-md" sx={singleLineCss}>{props.project.displayName}</Typography>
@@ -87,6 +88,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
   const formId = useId();
   const [isCreating, setIsCreating] = useState(false);
   const stackApp = useStackApp({ projectIdMustMatch: "internal" });
+  const router = useRouter();
 
   return (
     <Dialog
@@ -114,12 +116,12 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
             setIsCreating(true);
             try {
               const formData = new FormData(event.currentTarget);
-              await stackApp.createProject({
+              const project = await stackApp.createProject({
                 displayName: `${formData.get('name')}`,
                 description: `${formData.get('description')}`,
               });
-              
-              props.onClose();
+              router.push(`/projects/${encodeURIComponent(project.id)}`);
+              await neverResolve();
             } finally {
               setIsCreating(false);
             }

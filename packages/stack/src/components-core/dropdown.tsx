@@ -9,6 +9,7 @@ import { SELECTED_BACKGROUND_COLORS } from '../utils/constants';
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
 const StyledTrigger = styled(DropdownMenuPrimitive.Trigger)`
+  all: unset;
   &:focus {
     outline: none;
     box-shadow: 0;
@@ -37,8 +38,8 @@ const StyledContent = styled(DropdownMenuPrimitive.Content)<{
 `;
 
 const DropdownMenuContent = React.forwardRef<
-React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => {
   const { colors } = useDesign();
   return (

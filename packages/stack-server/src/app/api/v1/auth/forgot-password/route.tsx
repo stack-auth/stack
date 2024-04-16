@@ -6,7 +6,7 @@ import { sendPasswordResetEmail } from "@/email";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
@@ -38,7 +38,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new Error("Project not found"); // This should never happen, make typescript happy
+    throw new StackAssertionError("Project not found"); // This should never happen, make typescript happy
   }
 
   if (!project.evaluatedConfig.credentialEnabled) {

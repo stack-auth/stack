@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export interface OAuthUserInfo {
   accountId: string,
-  displayName: string,
+  displayName?: string,
   email: string,
   profileImageUrl?: string,
   accessToken?: string,
@@ -11,7 +11,7 @@ export interface OAuthUserInfo {
 
 const OAuthUserInfoSchema = yup.object().shape({
   accountId: yup.string().required(),
-  displayName: yup.string().required(),
+  displayName: yup.string(),
   email: yup.string().required(),
   profileImageUrl: yup.string().default(undefined),
   accessToken: yup.string().default(undefined),

@@ -1,3 +1,4 @@
+import { StackAssertionError, captureError } from "./errors";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
 import type { RejectedThenable, FulfilledThenable, PendingThenable } from "react";
@@ -105,15 +106,17 @@ export function runAsynchronously(
   }
   const duringError = new ErrorDuringRunAsynchronously();
   promiseOrFunc?.catch(error => {
-    const newError = new Error(
+    const newError = new StackAssertionError(
       "Uncaught error in asynchronous function: " + error.toString(),
+      {
+        duringError,
+      },
       {
         cause: error,
       }
     );
     if (!options.ignoreErrors) {
-      console.error(newError);
-      console.error(duringError);
+      captureError("runAsynchronously", newError);
     }
   });
 }

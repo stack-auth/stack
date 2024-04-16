@@ -105,7 +105,11 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
 
-  await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);
+  try {
+    await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);
+  } catch (error) {
+    console.error(error);
+  }
 
   return NextResponse.json({
     access_token: accessToken,

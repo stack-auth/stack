@@ -1,5 +1,44 @@
 # @stackframe/stack
 
+## 2.2.4
+
+### Patch Changes
+
+- fixed minor errors
+- Updated dependencies
+  - @stackframe/stack-sc@1.3.1
+  - @stackframe/stack-shared@2.2.1
+
+## 2.2.3
+
+### Patch Changes
+
+- fixed access token parsing error
+
+## 2.2.2
+
+### Patch Changes
+
+- fixed mui import problem
+
+## 2.2.1
+
+### Patch Changes
+
+- fixed dependency bug
+
+## 2.2.0
+
+### Minor Changes
+
+- 2995d96: Added new UserButton component and Account setting page
+
+### Patch Changes
+
+- 2995d96: Fixed signin title bug
+- Updated dependencies [2995d96]
+  - @stackframe/stack-shared@2.2.0
+
 ## 2.1.3
 
 ### Patch Changes
