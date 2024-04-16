@@ -59,6 +59,7 @@ export default function RootLayout({
            */
           fontFamily: '"Brush Script MT", "Zapfino", "Comic Sans MS", cursive',
         }}
+        suppressHydrationWarning
       >
         <Analytics />
         <ThemeProvider>

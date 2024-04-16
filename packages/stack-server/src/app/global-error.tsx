@@ -11,7 +11,7 @@ export default function GlobalError({ error }: any) {
 
   return (
     <html>
-      <body>
+      <body suppressHydrationWarning>
         <Error
           statusCode={500}
         />
