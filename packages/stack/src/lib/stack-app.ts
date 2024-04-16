@@ -370,6 +370,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
+      },
+      createProject(newProject: Pick<Project, "displayName" | "description">) {
+        return app._createProject(newProject);
+      },
+      listOwnedProjects() {
+        return app._listOwnedProjects();
+      },
+      useOwnedProjects() {
+        return app._useOwnedProjects();
+      },
+      onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+        return app._onOwnedProjectsChange(callback);
       }
     };
     Object.freeze(res);
@@ -641,7 +653,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._currentProjectCache.onChange([], callback);
   }
 
-  async listOwnedProjects(): Promise<Project[]> {
+  protected async _listOwnedProjects(): Promise<Project[]> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._ownedProjectsCache.getOrWait([tokenStore], "write-only");
@@ -652,7 +664,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ));
   }
 
-  useOwnedProjects(): Project[] {
+  protected _useOwnedProjects(): Project[] {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
@@ -663,7 +675,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     )), [json]);
   }
 
-  onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+  protected _onOwnedProjectsChange(callback: (projects: Project[]) => void) {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     return this._ownedProjectsCache.onChange([tokenStore], (projects) => {
@@ -675,7 +687,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  async createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
+  protected async _createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._interface.createProject(newProject, tokenStore);
@@ -853,6 +865,18 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
+      },
+      createProject(newProject: Pick<Project, "displayName" | "description">) {
+        return app._createProject(newProject);
+      },
+      listOwnedProjects() {
+        return app._listOwnedProjects();
+      },
+      useOwnedProjects() {
+        return app._useOwnedProjects();
+      },
+      onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+        return app._onOwnedProjectsChange(callback);
       }
     };
     Object.freeze(res);
@@ -1078,6 +1102,10 @@ type Auth<T, C> = {
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
+  createProject(this: T, newProject: Pick<Project, "displayName" | "description">): Promise<Project>,
+  listOwnedProjects(this: T): Promise<Project[]>,
+  useOwnedProjects(this: T): Project[],
+  onOwnedProjectsChange(this: T, callback: (projects: Project[]) => void): void,
 };
 
 export type User = {
@@ -1230,14 +1258,6 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
       getUser(options?: GetUserOptions): Promise<CurrentUser | null>,
       onUserChange: AsyncStoreProperty<"user", CurrentUser | null, false>["onUserChange"],
     })
-  & (
-    ProjectId extends "internal" ? (
-      & AsyncStoreProperty<"ownedProjects", Project[], true>
-      & {
-        createProject(project: Pick<Project, "displayName" | "description">): Promise<Project>,
-      }
-     ) : {}
-  )
 );
 type StackClientAppConstructor = {
   new <
