@@ -40,6 +40,9 @@ export type HandlerUrls = {
   accountSettings: string,
 }
 
+type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
+type ProjectCurrentSeverUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
+
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   const handler = partial.handler ?? "/handler";
   return {
@@ -351,12 +354,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentUserFromJson(json: UserJson, tokenStore: TokenStore): CurrentUser;
-  protected _currentUserFromJson(json: UserJson | null, tokenStore: TokenStore): CurrentUser | null;
-  protected _currentUserFromJson(json: UserJson | null, tokenStore: TokenStore): CurrentUser | null {
+  protected _currentUserFromJson(json: UserJson, tokenStore: TokenStore): ProjectCurrentUser<ProjectId>;
+  protected _currentUserFromJson(json: UserJson | null, tokenStore: TokenStore): ProjectCurrentUser<ProjectId> | null;
+  protected _currentUserFromJson(json: UserJson | null, tokenStore: TokenStore): ProjectCurrentUser<ProjectId> | null {
     if (json === null) return null;
     const app = this;
-    const res: CurrentUser = {
+    const currentUser: CurrentUser = {
       ...this._userFromJson(json),
       tokenStore,
       update(update) {
@@ -370,10 +373,30 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
-      }
+      },
     };
-    Object.freeze(res);
-    return res;
+    if (this.isInternalProject()) {
+      const internalUser: CurrentInternalUser = {
+        ...currentUser,
+        createProject(newProject: Pick<Project, "displayName" | "description">) {
+          return app._createProject(newProject);
+        },
+        listOwnedProjects() {
+          return app._listOwnedProjects();
+        },
+        useOwnedProjects() {
+          return app._useOwnedProjects();
+        },
+        onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+          return app._onOwnedProjectsChange(callback);
+        }
+      };
+      Object.freeze(internalUser);
+      return internalUser;
+    } else {
+      Object.freeze(currentUser);
+      return currentUser as any;
+    }
   }
 
   protected _userToJson(user: User): UserJson {
@@ -482,10 +505,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.verifyEmail(code);
   }
 
-  async getUser(options: GetUserOptions & { or: 'redirect' }): Promise<CurrentUser>;
-  async getUser(options: GetUserOptions & { or: 'throw' }): Promise<CurrentUser>;
-  async getUser(options?: GetUserOptions): Promise<CurrentUser | null>;
-  async getUser(options?: GetUserOptions): Promise<CurrentUser | null> {
+  async getUser(options: GetUserOptions & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>;
+  async getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>;
+  async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>;
+  async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = await this._currentUserCache.getOrWait([tokenStore], "write-only");
@@ -508,10 +531,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._currentUserFromJson(userJson, tokenStore);
   }
 
-  useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser;
-  useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser;
-  useUser(options?: GetUserOptions): CurrentUser | null;
-  useUser(options?: GetUserOptions): CurrentUser | null {
+  useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>;
+  useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>;
+  useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null;
+  useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null {
     this._ensurePersistentTokenStore();
 
     const router = useRouter();
@@ -641,7 +664,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._currentProjectCache.onChange([], callback);
   }
 
-  async listOwnedProjects(): Promise<Project[]> {
+  protected async _listOwnedProjects(): Promise<Project[]> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._ownedProjectsCache.getOrWait([tokenStore], "write-only");
@@ -652,7 +675,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ));
   }
 
-  useOwnedProjects(): Project[] {
+  protected _useOwnedProjects(): Project[] {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
@@ -663,7 +686,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     )), [json]);
   }
 
-  onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+  protected _onOwnedProjectsChange(callback: (projects: Project[]) => void) {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     return this._ownedProjectsCache.onChange([tokenStore], (projects) => {
@@ -675,7 +698,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  async createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
+  protected async _createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._interface.createProject(newProject, tokenStore);
@@ -823,13 +846,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentServerUserFromJson(json: ServerUserJson, tokenStore: TokenStore): CurrentServerUser;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, tokenStore: TokenStore): CurrentServerUser | null;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, tokenStore: TokenStore): CurrentServerUser | null {
+  protected _currentServerUserFromJson(json: ServerUserJson, tokenStore: TokenStore): ProjectCurrentSeverUser<ProjectId>;
+  protected _currentServerUserFromJson(json: ServerUserJson | null, tokenStore: TokenStore): ProjectCurrentSeverUser<ProjectId> | null;
+  protected _currentServerUserFromJson(json: ServerUserJson | null, tokenStore: TokenStore): ProjectCurrentSeverUser<ProjectId> | null {
     if (json === null) return null;
     const app = this;
     const nonCurrentServerUser = this._serverUserFromJson(json);
-    const res: CurrentServerUser = {
+    const currentUser: CurrentServerUser = {
       ...nonCurrentServerUser,
       tokenStore,
       async delete() {
@@ -853,10 +876,31 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
-      }
+      },
     };
-    Object.freeze(res);
-    return res;
+
+    if (this.isInternalProject()) {
+      const internalUser: CurrentInternalServerUser = {
+        ...currentUser,
+        createProject(newProject: Pick<Project, "displayName" | "description">) {
+          return app._createProject(newProject);
+        },
+        listOwnedProjects() {
+          return app._listOwnedProjects();
+        },
+        useOwnedProjects() {
+          return app._useOwnedProjects();
+        },
+        onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+          return app._onOwnedProjectsChange(callback);
+        }
+      };
+      Object.freeze(internalUser);
+      return internalUser;
+    } else {
+      Object.freeze(currentUser);
+      return currentUser as any;
+    }
   }
 
   protected _serverUserToJson(user: ServerUser): ServerUserJson {
@@ -874,14 +918,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  async getServerUser(): Promise<CurrentServerUser | null> {
+  async getServerUser(): Promise<ProjectCurrentSeverUser<ProjectId> | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "write-only");
     return this._currentServerUserFromJson(userJson, tokenStore);
   }
 
-  useServerUser(options?: { required: boolean }): CurrentServerUser | null {
+  useServerUser(options?: { required: boolean }): ProjectCurrentSeverUser<ProjectId> | null {
     this._ensurePersistentTokenStore();
 
     const tokenStore = getTokenStore(this._tokenStoreOptions);
@@ -1080,6 +1124,13 @@ type Auth<T, C> = {
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
 };
 
+type InternalAuth<T> = {
+  createProject(this: T, newProject: Pick<Project, "displayName" | "description">): Promise<Project>,
+  listOwnedProjects(this: T): Promise<Project[]>,
+  useOwnedProjects(this: T): Project[],
+  onOwnedProjectsChange(this: T, callback: (projects: Project[]) => void): void,
+}
+
 export type User = {
   readonly projectId: string,
   readonly id: string,
@@ -1106,6 +1157,7 @@ export type User = {
 
 export type CurrentUser = Auth<User, UserCustomizableJson> & User;
 
+export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
 
 /**
  * A user including sensitive fields that should only be used on the server, never sent to the client
@@ -1128,6 +1180,8 @@ export type ServerUser = Omit<User, "toJson"> & {
 export type CurrentServerUser = Auth<ServerUser, ServerUserCustomizableJson> & Omit<ServerUser, "getClientUser"> & {
   getClientUser(this: CurrentServerUser): CurrentUser,
 };
+
+export type CurrentInternalServerUser = CurrentServerUser & InternalAuth<CurrentServerUser>;
 
 export type Project = {
   readonly id: string,
@@ -1222,22 +1276,14 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     ? {}
     : {
       redirectToOAuthCallback(): Promise<never>,
-      useUser(options: GetUserOptions & { or: 'redirect' }): CurrentUser,
-      useUser(options: GetUserOptions & { or: 'throw' }): CurrentUser,
-      useUser(options?: GetUserOptions): CurrentUser | null,
-      getUser(options: GetUserOptions & { or: 'redirect' }): Promise<CurrentUser>,
-      getUser(options: GetUserOptions & { or: 'throw' }): Promise<CurrentUser>,
-      getUser(options?: GetUserOptions): Promise<CurrentUser | null>,
+      useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
+      useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
+      useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null,
+      getUser(options: GetUserOptions & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>,
+      getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>,
+      getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>,
       onUserChange: AsyncStoreProperty<"user", CurrentUser | null, false>["onUserChange"],
     })
-  & (
-    ProjectId extends "internal" ? (
-      & AsyncStoreProperty<"ownedProjects", Project[], true>
-      & {
-        createProject(project: Pick<Project, "displayName" | "description">): Promise<Project>,
-      }
-     ) : {}
-  )
 );
 type StackClientAppConstructor = {
   new <

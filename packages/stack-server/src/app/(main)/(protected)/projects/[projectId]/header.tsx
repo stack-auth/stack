@@ -6,7 +6,7 @@ import Box from '@mui/joy/Box';
 import IconButton from '@mui/joy/IconButton';
 import { useAdminApp } from './use-admin-app';
 import { redirect, usePathname } from 'next/navigation';
-import { useStackApp } from '@stackframe/stack';
+import { useUser } from '@stackframe/stack';
 import { Icon } from '@/components/icon';
 import Breadcrumbs from '@mui/joy/Breadcrumbs';
 
@@ -37,9 +37,9 @@ function ProjectSwitchItem({ label }: { label: string }) {
 }
 
 function ProjectSwitch() {
-  const stackApp = useStackApp({ projectIdMustMatch: "internal" });
   const stackAdminApp = useAdminApp();
-  const projects = stackApp.useOwnedProjects();
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
+  const projects = user.useOwnedProjects();
   const project = projects.find((project) => project.id === stackAdminApp.projectId);
 
   const renderValue = (option: SelectOption<string> | null) => {

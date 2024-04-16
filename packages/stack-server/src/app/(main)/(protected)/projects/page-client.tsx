@@ -2,7 +2,7 @@
 
 import { Button, Card, CardContent, CardOverflow, Divider, FormControl, FormLabel, Grid, Input, Stack, Textarea, Typography } from "@mui/joy";
 import { useId, useRef, useState } from "react";
-import { useStackApp } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
 import { prettyPrintWithMagnitudes } from "@stackframe/stack-shared/dist/utils/numbers";
 import { Dialog } from "@/components/dialog";
 import { Paragraph } from "@/components/paragraph";
@@ -14,9 +14,8 @@ import { useRouter } from "next/navigation";
 
 
 export default function ProjectsPageClient() {
-  const stackApp = useStackApp({ projectIdMustMatch: "internal" });
-
-  const projects = stackApp.useOwnedProjects();
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
+  const projects = user.useOwnedProjects();
   
   const [createDialogOpen, setCreateDialogOpen] = useState(projects.length === 0);
 
@@ -87,7 +86,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const formId = useId();
   const [isCreating, setIsCreating] = useState(false);
-  const stackApp = useStackApp({ projectIdMustMatch: "internal" });
+  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const router = useRouter();
 
   return (
@@ -116,7 +115,7 @@ function CreateProjectDialog(props: { open: boolean, onClose(): void }) {
             setIsCreating(true);
             try {
               const formData = new FormData(event.currentTarget);
-              const project = await stackApp.createProject({
+              const project = await user.createProject({
                 displayName: `${formData.get('name')}`,
                 description: `${formData.get('description')}`,
               });
