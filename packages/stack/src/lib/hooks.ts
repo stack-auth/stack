@@ -15,7 +15,7 @@ type GetUserOptions = AppGetUserOptions & {
 export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw', projectIdMustMatch: "internal" }): CurrentInternalUser;
 export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw' }): CurrentUser;
 export function useUser(options: GetUserOptions & { projectIdMustMatch: "internal" }): CurrentInternalUser | null;
-export function useUser(options: GetUserOptions): CurrentUser | CurrentInternalUser | null;
+export function useUser(options?: GetUserOptions): CurrentUser | CurrentInternalUser | null;
 export function useUser(options: GetUserOptions = {}): CurrentUser | CurrentInternalUser | null {
   const stackApp = useStackApp(options);
   if (options.projectIdMustMatch && stackApp.projectId !== options.projectIdMustMatch) {
