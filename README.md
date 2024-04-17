@@ -15,6 +15,10 @@ Here are some of the components you get out-of-the-box:
 
 ![Stack Sign Up Page](/assets/components.png)
 
+Here is the user/project management dashboard:
+
+![Stack Dashboard](/assets/dashboard.png)
+
 ## Features
 
 - Composable React components & hooks
