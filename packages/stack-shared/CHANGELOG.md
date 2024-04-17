@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.2.2
+
+### Patch Changes
+
+- 5909ecd: fixed bugs
+
 ## 2.2.1
 
 ### Patch Changes

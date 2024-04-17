@@ -1,5 +1,14 @@
 # @stackframe/stack
 
+## 2.2.5
+
+### Patch Changes
+
+- 5909ecd: fixed bugs
+- Updated dependencies [5909ecd]
+  - @stackframe/stack-sc@1.3.2
+  - @stackframe/stack-shared@2.2.2
+
 ## 2.2.4
 
 ### Patch Changes
