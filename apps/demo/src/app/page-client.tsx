@@ -20,6 +20,7 @@ export default function PageClient() {
       {user ? (
         <div className='flex flex-col gap-5 justify-center items-center'>
           <Text size='lg'>Logged in as: <span className='font-bold'>{user.primaryEmail}</span></Text>
+          <Text size='md'>Click on your user&apos;s image at the top right to see your account settings.</Text>
           <Link href={app.urls.signOut}>
             Sign Out
           </Link>
