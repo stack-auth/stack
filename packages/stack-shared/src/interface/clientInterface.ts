@@ -90,6 +90,7 @@ export type ProjectJson = {
     id: string,
     allowLocalhost: boolean,
     credentialEnabled: boolean,
+    magicLinkEnabled: boolean,
     oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import VerificationEmail from './templates/verification';
+import VerificationEmail from './templates/email-verification';
 import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
@@ -8,6 +8,7 @@ import { render } from '@react-email/render';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
+import MagicLinkEmail from './templates/magic-link';
 
 export type EmailConfig = {
   host: string,
@@ -139,7 +140,7 @@ export async function sendVerificationEmail(
     verificationUrl={verificationUrl.toString()}
     projectName={project.displayName}
     username={projectUser.displayName || undefined}
-    fromStack={emailConfig.type === 'shared'}
+    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
   />;
   const html = render(htmlEmail);
   const text = render(htmlEmail, { plainText: true });
@@ -181,7 +182,7 @@ export async function sendPasswordResetEmail(
     passwordResetUrl={passwordResetUrl.toString()}
     projectName={project.displayName}
     username={projectUser.displayName || undefined}
-    fromStack={emailConfig.type === 'shared'}
+    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
   />;
   const html = render(htmlEmail);
   const text = render(htmlEmail, { plainText: true });
@@ -190,6 +191,52 @@ export async function sendPasswordResetEmail(
     emailConfig,
     to: projectUser.primaryEmail,
     subject: "Reset your password at " + project.displayName,
+    html,
+    text,
+  });
+}
+
+export async function sendMagicLink(
+  projectId: string,
+  projectUserId: string,
+  redirectUrl: string,
+) {
+  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
+
+  if (!projectUser.primaryEmail) {
+    throw Error('The user does not have a primary email');
+  }
+
+  if (projectUser.primaryEmailVerified) {
+    throw Error('Email already verified');
+  }
+
+  const magicLinkCode = await prismaClient.projectUserMagicLinkCode.create({
+    data: {
+      projectId,
+      projectUserId,
+      code: generateSecureRandomString(),
+      redirectUrl,
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // expires in 30 min
+    }
+  });
+
+  const verificationUrl = new URL(redirectUrl);
+  verificationUrl.searchParams.append('code', magicLinkCode.code);
+
+  const htmlEmail = <MagicLinkEmail
+    verificationUrl={verificationUrl.toString()}
+    projectName={project.displayName}
+    username={projectUser.displayName || undefined}
+    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
+  />;
+  const html = render(htmlEmail);
+  const text = render(htmlEmail, { plainText: true });
+  
+  await sendEmail({
+    emailConfig,
+    to: projectUser.primaryEmail,
+    subject: "Sign into " + project.displayName,
     html,
     text,
   });
