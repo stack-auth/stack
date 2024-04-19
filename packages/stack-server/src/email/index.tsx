@@ -208,10 +208,6 @@ export async function sendMagicLink(
     throw Error('The user does not have a primary email');
   }
 
-  if (projectUser.primaryEmailVerified) {
-    throw Error('Email already verified');
-  }
-
   const magicLinkCode = await prismaClient.projectUserMagicLinkCode.create({
     data: {
       projectId,
@@ -223,11 +219,11 @@ export async function sendMagicLink(
     }
   });
 
-  const verificationUrl = new URL(redirectUrl);
-  verificationUrl.searchParams.append('code', magicLinkCode.code);
+  const magicLink = new URL(redirectUrl);
+  magicLink.searchParams.append('code', magicLinkCode.code);
 
   const htmlEmail = <MagicLinkEmail
-    verificationUrl={verificationUrl.toString()}
+    verificationUrl={magicLink.toString()}
     projectName={project.displayName}
     username={projectUser.displayName || undefined}
     sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}

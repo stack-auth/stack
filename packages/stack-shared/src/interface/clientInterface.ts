@@ -535,8 +535,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
   }
 
@@ -569,8 +569,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
   }
 
@@ -596,8 +596,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
     return { newUser: result.newUser };
   }

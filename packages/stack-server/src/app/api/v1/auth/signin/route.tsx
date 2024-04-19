@@ -78,7 +78,9 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   return NextResponse.json({
-    access_token: accessToken,
-    refresh_token: refreshToken,
+    access_token: accessToken, // backwards compatibility
+    refresh_token: refreshToken, // backwards compatibility
+    accessToken,
+    refreshToken,
   });
 });
