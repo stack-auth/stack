@@ -492,6 +492,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return error;
   }
 
+  async sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.signIn);
+    const error = await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
+    return error;
+  }
+
   async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["PasswordResetError"] | undefined> {
     const error = await this._interface.resetPassword(options);
     return error;
@@ -633,10 +639,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    return await this._interface.sendVerificationEmail(
-      emailVerificationRedirectUrl,
-      tokenStore
-    );
+    return await this._interface.sendVerificationEmail(emailVerificationRedirectUrl, tokenStore);
   }
 
   protected async _updatePassword(
@@ -1263,6 +1266,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>,
     callOAuthCallback(): Promise<void>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
+    sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined>,
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined>,

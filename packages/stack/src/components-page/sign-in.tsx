@@ -6,13 +6,14 @@ import OAuthGroup from '../components/oauth-group';
 import CardFrame from '../components/card-frame';
 import { useUser, useStackApp } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
-import { Link, Text } from "../components-core";
+import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
+import MagicLinkSignIn from '../components/magic-link-sign-in';
 
 export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const project = stackApp.useProject();
-  
+
   if (user) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
   }
@@ -31,8 +32,26 @@ export default function SignIn({ fullPage=false }: { fullPage?: boolean }) {
         </Text>
       </div>
       <OAuthGroup type='signin'/>
-      {enableSeparator && <SeparatorWithText text={'or continue with email'} />}
-      {project.credentialEnabled && <CredentialSignIn/>}
+      {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
+
+      {project.credentialEnabled && project.magicLinkEnabled ? (
+        <Tabs defaultValue='magic-link'>
+          <TabsList style={{ marginBottom: '1.5rem' }}>
+            <TabsTrigger value='magic-link'>Magic Link</TabsTrigger>
+            <TabsTrigger value='password'>Password</TabsTrigger>
+          </TabsList>
+          <TabsContent value='magic-link'>
+            <MagicLinkSignIn/>
+          </TabsContent>
+          <TabsContent value='password'>
+            <CredentialSignIn/>
+          </TabsContent>
+        </Tabs>
+      ) : project.credentialEnabled ? (
+        <CredentialSignIn/>
+      ) : project.magicLinkEnabled ? (
+        <MagicLinkSignIn/>
+      ) : null}
     </CardFrame>
   );
 }

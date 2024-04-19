@@ -27,6 +27,7 @@ export type UserJson = UserCustomizableJson & {
 export type ClientProjectJson = {
   readonly id: string,
   readonly credentialEnabled: boolean,
+  readonly magicLinkEnabled: boolean,
   readonly oauthProviders: readonly {
     id: string,
     enabled: boolean,
@@ -403,6 +404,31 @@ export class StackClientInterface {
       },
       tokenStore,
       [KnownErrors.EmailAlreadyVerified]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
+  async sendMagicLinkEmail(
+    email: string, 
+    redirectUrl: string,
+  ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/send-magic-link",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          redirectUrl,
+        }),
+      },
+      null,
+      [KnownErrors.RedirectUrlNotWhitelisted]
     );
 
     if (res.status === "error") {

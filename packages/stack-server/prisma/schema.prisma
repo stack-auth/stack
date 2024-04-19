@@ -88,6 +88,7 @@ model ProjectUser {
   projectUserOAuthAccounts         ProjectUserOAuthAccount[]
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
+  projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
@@ -95,9 +96,8 @@ model ProjectUser {
   displayName          String?
   passwordHash         String?
 
-  serverMetadata           Json?
-  clientMetadata           Json?
-  ProjectUserMagicLinkCode ProjectUserMagicLinkCode[]
+  serverMetadata Json?
+  clientMetadata Json?
 
   @@id([projectId, projectUserId])
 }
@@ -201,6 +201,7 @@ model ProjectUserMagicLinkCode {
   expiresAt   DateTime
   usedAt      DateTime?
   redirectUrl String
+  newUser     Boolean
 
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 

@@ -109,6 +109,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
     const clientProject: ClientProjectJson = {
       id: project.id,
       credentialEnabled: project.evaluatedConfig.credentialEnabled,
+      magicLinkEnabled: project.evaluatedConfig.magicLinkEnabled,
       oauthProviders: project.evaluatedConfig.oauthProviders.map(
         (provider) => ({
           id: provider.id,
