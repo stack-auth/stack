@@ -38,27 +38,36 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new StackAssertionError("Project not found"); // This should never happen, make typescript happy
+    throw new StackAssertionError("Project not found");
   }
 
   if (!project.evaluatedConfig.magicLinkEnabled) {
     throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
   }
 
-  const user = await prismaClient.projectUser.findFirst({
+  let user = await prismaClient.projectUser.findUnique({
     where: {
-      projectId,
-      primaryEmail: email,
-      passwordHash: {
-        not: null,
+      projectId_primaryEmail_authWithEmail: {
+        projectId,
+        primaryEmail: email,
+        authWithEmail: true,
       },
     },
   });
 
-  if (!user) {
-    throw new KnownErrors.UserNotFound();
-  }
+  const newUser = !user;
 
+  if (!user) {
+    user = await prismaClient.projectUser.create({
+      data: {
+        projectId,
+        primaryEmail: email,
+        primaryEmailVerified: false,
+        authWithEmail: true,
+      },
+    });
+  }
+  
   if (
     !validateUrl(
       redirectUrl, 
@@ -69,7 +78,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
   
-  await sendMagicLink(projectId, user.projectUserId, redirectUrl);
+  await sendMagicLink(projectId, user.projectUserId, redirectUrl, newUser);
 
   return new NextResponse();
 });

@@ -2,7 +2,7 @@ import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, OAuth2Server
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken, encodeAccessToken } from "@/lib/access-token";
+import { decodeAccessToken, encodeAccessToken } from "@/lib/tokens";
 import { validateUrl } from "@/utils/url";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";

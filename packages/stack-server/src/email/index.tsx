@@ -200,6 +200,7 @@ export async function sendMagicLink(
   projectId: string,
   projectUserId: string,
   redirectUrl: string,
+  newUser: boolean,
 ) {
   const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
 
@@ -218,6 +219,7 @@ export async function sendMagicLink(
       code: generateSecureRandomString(),
       redirectUrl,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000), // expires in 30 min
+      newUser,
     }
   });
 

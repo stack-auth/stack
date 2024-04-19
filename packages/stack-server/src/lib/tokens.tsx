@@ -1,8 +1,9 @@
 import * as yup from 'yup';
 import { JWTExpired, JOSEError } from 'jose/errors';
 import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
-import { StatusError } from '@stackframe/stack-shared/dist/utils/errors';
 import { KnownErrors } from '@stackframe/stack-shared';
+import { prismaClient } from '@/prisma-client';
+import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 
 export const authorizationHeaderSchema = yup.string().matches(/^StackSession [^ ]+$/);
 
@@ -36,4 +37,28 @@ export async function encodeAccessToken({
   userId: string,
 }) {
   return await encryptJWT({ projectId, userId }, process.env.STACK_ACCESS_TOKEN_EXPIRATION_TIME || '1h');
+}
+
+export async function createAuthTokens({
+  projectId,
+  projectUserId,
+}: {
+  projectId: string,
+  projectUserId: string,
+}) {
+  const refreshToken =  await generateSecureRandomString();
+  const accessToken = await encodeAccessToken({
+    projectId,
+    userId: projectUserId,
+  });
+
+  await prismaClient.projectUserRefreshToken.create({
+    data: {
+      projectId,
+      projectUserId,
+      refreshToken: refreshToken,
+    },
+  });
+
+  return { refreshToken, accessToken };
 }

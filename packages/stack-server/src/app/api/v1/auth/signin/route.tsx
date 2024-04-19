@@ -4,7 +4,7 @@ import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
-import { encodeAccessToken } from "@/lib/access-token";
+import { encodeAccessToken } from "@/lib/tokens";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
@@ -46,11 +46,13 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
   }
 
-  const user = await prismaClient.projectUser.findFirst({
+  const user = await prismaClient.projectUser.findUnique({
     where: {
-      projectId,
-      primaryEmail: email,
-      passwordHash: { not: null },
+      projectId_primaryEmail_authWithEmail: {
+        projectId,
+        primaryEmail: email,
+        authWithEmail: true,
+      },
     },
   });
   if (!await comparePassword(password, user?.passwordHash || "")) {

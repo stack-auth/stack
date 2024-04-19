@@ -95,11 +95,13 @@ model ProjectUser {
   profileImageUrl      String?
   displayName          String?
   passwordHash         String?
+  authWithEmail        Boolean
 
   serverMetadata Json?
   clientMetadata Json?
 
   @@id([projectId, projectUserId])
+  @@unique([projectId, primaryEmail, authWithEmail])
 }
 
 model ProjectUserOAuthAccount {

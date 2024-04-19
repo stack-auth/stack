@@ -1,7 +1,7 @@
 import { OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken } from "./access-token";
+import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";

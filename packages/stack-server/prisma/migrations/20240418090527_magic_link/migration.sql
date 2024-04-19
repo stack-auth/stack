@@ -1,6 +1,10 @@
 -- AlterTable
 ALTER TABLE "ProjectConfig" ADD COLUMN     "magicLinkEnabled" BOOLEAN NOT NULL DEFAULT false;
 
+-- AlterTable, authWithEmail default to true if password hash is set previously, otherwise false
+ALTER TABLE "ProjectUser" ADD COLUMN "authWithEmail" BOOLEAN NOT NULL DEFAULT false;
+UPDATE "ProjectUser" SET "authWithEmail" = true WHERE "passwordHash" IS NOT NULL;
+
 -- CreateTable
 CREATE TABLE "ProjectUserMagicLinkCode" (
     "projectId" TEXT NOT NULL,

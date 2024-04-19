@@ -37,6 +37,7 @@ export type HandlerUrls = {
   forgotPassword: string,
   home: string,
   oauthCallback: string,
+  magicLinkCallback: string,
   accountSettings: string,
 }
 
@@ -57,6 +58,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     passwordReset: `${handler}/password-reset`,
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
+    magicLinkCallback: `${handler}/magic-link-callback`,
     home: "/",
     accountSettings: `${handler}/account-settings`,
     ...filterUndefined(partial),
@@ -481,6 +483,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
   async redirectToHome() { return await this._redirectTo("home"); }
   async redirectToOAuthCallback() { return await this._redirectTo("oauthCallback"); }
+  async redirectToMagicLinkCallback() { return await this._redirectTo("magicLinkCallback"); }
   async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
