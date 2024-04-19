@@ -73,7 +73,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
   if (accessTokenProjectId !== projectId) {
-    throw new StatusError(StatusError.Forbidden);
+    return NextResponse.json(null);
   }
 
   let user;
