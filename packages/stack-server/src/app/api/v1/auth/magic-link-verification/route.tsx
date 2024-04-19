@@ -64,5 +64,6 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   return NextResponse.json({
     refreshToken,
     accessToken,
+    newUser: codeRecord.newUser,
   });
 });

@@ -9,6 +9,7 @@ import Signout from "./sign-out";
 import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
 import AccountSettings from "./account-settings";
+import MagicLinkCallback from "./magic-link-callback";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -72,6 +73,10 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case 'account-settings': {
       redirectIfNotHandler('accountSettings');
       return <AccountSettings fullPage />;
+    }
+    case 'magic-link-callback': {
+      redirectIfNotHandler('magicLinkCallback');
+      return <MagicLinkCallback searchParams={searchParams} fullPage />;
     }
     default: {
       return notFound();

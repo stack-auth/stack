@@ -1,5 +1,5 @@
 import React, { use, useCallback, useMemo } from "react";
-import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -496,7 +496,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
-    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.signIn);
+    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
     const error = await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
     return error;
   }
@@ -621,6 +621,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       window.location.assign(this.urls.afterSignUp);
     }
     return errorCode;
+  }
+
+  async signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined> {
+    this._ensurePersistentTokenStore();
+    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const result = await this._interface.signInWithMagicLink(code, tokenStore);
+    if (result instanceof KnownError) {
+      return result;
+    }
+    if (result.newUser) {
+      window.location.replace(this.urls.afterSignUp);
+    } else {
+      window.location.replace(this.urls.afterSignIn);
+    }
+    await neverResolve();
   }
 
   async callOAuthCallback() {
@@ -1273,6 +1288,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined>,
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined>,
+    signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,

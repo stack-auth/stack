@@ -574,6 +574,34 @@ export class StackClientInterface {
     });
   }
 
+  async signInWithMagicLink(code: string, tokenStore: TokenStore): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean }> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/magic-link-verification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code,
+        }),
+      },
+      null,
+      [KnownErrors.MagicLinkError]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+
+    const result = await res.data.json();
+    tokenStore.set({
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+    });
+    return { newUser: result.newUser };
+  }
+
   async getOAuthUrl(
     provider: string, 
     redirectUrl: string, 
