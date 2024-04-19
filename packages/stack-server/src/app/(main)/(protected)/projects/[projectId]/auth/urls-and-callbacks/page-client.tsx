@@ -156,6 +156,10 @@ export default function UrlsAndCallbacksClient() {
 
   return (
     <>
+      <Paragraph sidenote>
+        List the paths to the handlers that will receive callbacks from your project. Note, if a third-party gains control of your handler, they can potentially access your user data.
+      </Paragraph>
+    
       <SimpleCard title="Domains and Handler">
         <Box sx={{ my: 2 }}>
           <SmartSwitch
@@ -179,6 +183,11 @@ export default function UrlsAndCallbacksClient() {
               "--List-radius": "9px",
             }}
           >
+            {domains.size === 0 && (
+              <ListItem>
+                <Typography>No handlers added yet. Click the button below to add your first</Typography>
+              </ListItem>
+            )}
             {[...domains].map(({ domain, handlerPath }, i) => (
               <React.Fragment key={domain}>
                 {i !== 0 && <ListDivider />}

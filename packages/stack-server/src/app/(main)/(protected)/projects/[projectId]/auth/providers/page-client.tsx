@@ -73,7 +73,7 @@ export default function ProvidersClient() {
         </Paragraph>
 
         <Paragraph sidenote>
-          In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website. Pick an OAuth-compatible service from the list below to get started.
+          In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website.
         </Paragraph>
       </SimpleCard>
     </>
