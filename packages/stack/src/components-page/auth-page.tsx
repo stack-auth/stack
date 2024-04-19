@@ -50,7 +50,7 @@ export default function AuthPage({
       {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
       {project.credentialEnabled && project.magicLinkEnabled ? (
         <Tabs defaultValue='magic-link'>
-          <TabsList style={{ marginBottom: '1.5rem' }}>
+          <TabsList>
             <TabsTrigger value='magic-link'>Magic Link</TabsTrigger>
             <TabsTrigger value='password'>Password</TabsTrigger>
           </TabsList>

@@ -9,7 +9,7 @@ const StyledTabsList = styled(TabsPrimitive.List)<{
   $bgColor: string,
 }>`
   display: flex;
-  height: 40px;
+  height: 2.5rem
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
@@ -21,11 +21,17 @@ const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentProps<typeof TabsPrimitive.List>
 >((props, ref) => {
-  const { colors } = useDesign();
-  return <StyledTabsList $bgColor={colors.neutralColor} {...props} ref={ref} />;
+  const { colorMode } = useDesign();
+  return <StyledTabsList 
+    $bgColor={colorMode === 'dark' ? 'rgb(39, 39, 42)' : 'rgb(244, 244, 245)'}
+    {...props} 
+    ref={ref} 
+  />;
 });
 
-const TabsTrigger = styled(TabsPrimitive.Trigger)`
+const StayledTabsTrigger = styled(TabsPrimitive.Trigger)<{
+  $bgColor: string,
+}>`
   display: flex;
   flex-grow: 1;
   align-items: center;
@@ -42,18 +48,31 @@ const TabsTrigger = styled(TabsPrimitive.Trigger)`
   }
 
   &[data-state='active'] {
-    background-color: white;
+    background-color: ${props => props.$bgColor};
   }
 `;
 
-const TabsContent = styled(TabsPrimitive.Content)`
-  margin-top: 8px;
-  ring-offset-color: var(--color-background);
-  &:focus-visible {
-    outline: none;
-    ring: 2px solid var(--color-ring);
-    ring-offset: 2px;
-  }
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentProps<typeof TabsPrimitive.Trigger>
+>((props, ref) => {
+  const { colors } = useDesign();
+  return <StayledTabsTrigger 
+    $bgColor={colors.backgroundColor}
+    {...props} 
+    ref={ref} 
+  />;
+});
+
+const StyledTabsContent = styled(TabsPrimitive.Content)`
+  margin-top: 1.5rem;
 `;
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentProps<typeof TabsPrimitive.Content>
+>((props, ref) => {
+  return <StyledTabsContent {...props} ref={ref} />;
+});
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

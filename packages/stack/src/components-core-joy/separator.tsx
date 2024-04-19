@@ -5,7 +5,7 @@ import { Separator as DefaultDevider } from "../components-core";
 import { Divider as JoySeparator } from '@mui/joy';
 
 export const Separator = React.forwardRef<
-  HTMLDivElement,
+  React.ElementRef<typeof DefaultDevider>,
   React.ComponentProps<typeof DefaultDevider>
 >(({
   orientation,

@@ -5,7 +5,7 @@ import { Input as DefaultInput } from "../components-core";
 import { Input as JoyInput } from '@mui/joy';
 
 export const Input = React.forwardRef<
-  HTMLInputElement,
+  React.ElementRef<typeof DefaultInput>,
   React.ComponentProps<typeof DefaultInput>
 >(({
   color,

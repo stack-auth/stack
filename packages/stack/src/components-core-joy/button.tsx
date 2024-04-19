@@ -6,7 +6,7 @@ import { Button as JoyButton } from '@mui/joy';
 import Color from "color";
 
 export const Button = React.forwardRef<
-  HTMLButtonElement,
+  React.ElementRef<typeof DefaultButton>,
   React.ComponentProps<typeof DefaultButton>
 >(({
   variant = "primary",

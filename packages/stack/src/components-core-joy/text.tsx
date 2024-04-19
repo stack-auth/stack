@@ -5,7 +5,7 @@ import { Text as DefaultText } from "../components-core";
 import { Typography as JoyText } from '@mui/joy';
 
 export const Text = React.forwardRef<
-  HTMLParagraphElement,
+  React.ElementRef<typeof DefaultText>,
   React.ComponentProps<typeof DefaultText>
 >((props, ref) => {
   const { color, size, as, variant, ref: _, ...validProps } = props;
