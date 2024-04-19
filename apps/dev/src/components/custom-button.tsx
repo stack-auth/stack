@@ -4,7 +4,7 @@ import React from "react";
 import { Button as DefaultButton, useDesign } from "@stackframe/stack";
 
 export const Button = React.forwardRef<
-  HTMLButtonElement,
+  React.ElementRef<typeof DefaultButton>,
   React.ComponentProps<typeof DefaultButton>
 >(({
   variant = "primary",
