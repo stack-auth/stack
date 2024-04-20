@@ -8,6 +8,7 @@ import { updateClientUser, updateServerUser } from "@/lib/users";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 
 const putOrGetSchema = yup.object({
+  method: yup.string().oneOf(["GET", "PUT"]).required(),
   query: yup.object({
     server: yup.string().oneOf(["true", "false"]).default("false"),
   }).required(),
@@ -29,6 +30,7 @@ const putOrGetSchema = yup.object({
 
 const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
+    method,
     query: {
       server,
     },
@@ -73,7 +75,11 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
   if (accessTokenProjectId !== projectId) {
-    return NextResponse.json(null);
+    if (method === "GET") {
+      return NextResponse.json(null);
+    } else {
+      throw new StatusError(StatusError.NotFound);
+    }
   }
 
   let user;
@@ -105,6 +111,10 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
         clientMetadata,
       },
     );
+  }
+
+  if (method === "PUT" && !user) {
+    throw new StatusError(StatusError.NotFound);
   }
 
   return NextResponse.json(user);

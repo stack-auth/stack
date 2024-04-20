@@ -2,6 +2,7 @@ import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJ
 import { ProjectUser } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -51,26 +52,35 @@ export async function updateServerUser(
   userId: string,
   update: Partial<ServerUserCustomizableJson>,
 ): Promise<ServerUserJson | null> {
-  const user = await prismaClient.projectUser.update({
-    where: {
-      projectId_projectUserId: {
-        projectId,
-        projectUserId: userId,
+  let user;
+  try {
+    user = await prismaClient.projectUser.update({
+      where: {
+        projectId_projectUserId: {
+          projectId,
+          projectUserId: userId,
+        },
       },
-    },
-    include: {
-      project: {
-        include: fullProjectInclude,
-      }
-    },
-    data: Object.fromEntries(Object.entries({
-      displayName: update.displayName,
-      primaryEmail: update.primaryEmail,
-      primaryEmailVerified: update.primaryEmailVerified,
-      clientMetadata: update.clientMetadata as any,
-      serverMetadata: update.serverMetadata as any,
-    }).filter(([_, v]) => v !== undefined)),
-  });
+      include: {
+        project: {
+          include: fullProjectInclude,
+        }
+      },
+      data: filterUndefined({
+        displayName: update.displayName,
+        primaryEmail: update.primaryEmail,
+        primaryEmailVerified: update.primaryEmailVerified,
+        clientMetadata: update.clientMetadata as any,
+        serverMetadata: update.serverMetadata as any,
+      }),
+    });
+  } catch (e) {
+    // TODO this is kinda hacky, instead we should have the entire method throw an error instead of returning null and have a separate getServerUser function that may return null
+    if ((e as any)?.code === 'P2025') {
+      return null;
+    }
+    throw e;
+  }
 
   return getServerUserFromDbType(user, user.project);
 }

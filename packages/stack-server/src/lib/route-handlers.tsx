@@ -349,7 +349,6 @@ export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 30
         urlWithTrailingSlash.pathname += "/";
       }
       const newUrl = new URL(redirectPath, urlWithTrailingSlash);
-      console.log({ req, newUrl });
       return {
         statusCode,
         headers: {
