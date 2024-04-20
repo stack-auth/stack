@@ -47,7 +47,7 @@ function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvid
 }
 
 
-const fullProjectInclude = {
+export const fullProjectInclude = {
   config: {
     include: {
       oauthProviderConfigs: {
@@ -73,7 +73,7 @@ const fullProjectInclude = {
   },
 } as const satisfies Prisma.ProjectInclude;
 type FullProjectInclude = typeof fullProjectInclude;
-type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
+export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
   config: {
     oauthProviderConfigs: (Prisma.OAuthProviderConfigGetPayload<
       typeof fullProjectInclude.config.include.oauthProviderConfigs
@@ -160,7 +160,7 @@ export async function createProject(
               create: (['github', 'google'] as const).map((id) => ({
                 id,
                 proxiedOAuthConfig: {
-                  create: {                
+                  create: {
                     type: typedToUppercase(id),
                   }
                 },
@@ -404,7 +404,7 @@ export async function updateProject(
   return projectJsonFromDbType(updatedProject);
 }
 
-function projectJsonFromDbType(project: ProjectDB): ProjectJson {
+export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
   let emailConfig: EmailConfigJson | undefined;
   const emailServiceConfig = project.config.emailServiceConfig;
   if (emailServiceConfig) {

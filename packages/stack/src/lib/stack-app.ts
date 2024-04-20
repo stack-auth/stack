@@ -350,6 +350,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAt: new Date(json.signedUpAtMillis),
       clientMetadata: json.clientMetadata,
       authMethod: json.authMethod,
+      hasPassword: json.hasPassword,
+      authWithEmail: json.authWithEmail,
+      oauthProviders: json.oauthProviders,
       toJson() {
         return json;
       }
@@ -412,6 +415,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
       authMethod: user.authMethod,
+      hasPassword: user.hasPassword,
+      authWithEmail: user.authWithEmail,
+      oauthProviders: user.oauthProviders,
     };
   }
 
@@ -937,6 +943,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientMetadata: user.clientMetadata,
       serverMetadata: user.serverMetadata,
       authMethod: user.authMethod,
+      hasPassword: user.hasPassword,
+      authWithEmail: user.authWithEmail,
+      oauthProviders: user.oauthProviders,
     };
   }
 
@@ -1172,7 +1181,11 @@ export type User = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: ReadonlyJson,
-  readonly authMethod: 'credential' | 'oauth',
+
+  readonly authMethod: 'credential' | 'oauth', // not used anymore, for backwards compatibility
+  readonly hasPassword: boolean,
+  readonly authWithEmail: boolean,
+  readonly oauthProviders: readonly string[],
 
   toJson(this: CurrentUser): UserJson,
 };

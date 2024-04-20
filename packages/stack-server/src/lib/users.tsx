@@ -1,6 +1,7 @@
 import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJson } from "@stackframe/stack-shared";
 import { ProjectUser } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
+import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -15,9 +16,14 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
     where: {
       projectId,
     },
+    include: {
+      project: {
+        include: fullProjectInclude,
+      }
+    },
   });
 
-  return users.map((u) => getServerUserFromDbType(u));
+  return users.map((u) => getServerUserFromDbType(u, u.project));
 }
 
 export async function updateClientUser(
@@ -52,6 +58,11 @@ export async function updateServerUser(
         projectUserId: userId,
       },
     },
+    include: {
+      project: {
+        include: fullProjectInclude,
+      }
+    },
     data: Object.fromEntries(Object.entries({
       displayName: update.displayName,
       primaryEmail: update.primaryEmail,
@@ -61,7 +72,7 @@ export async function updateServerUser(
     }).filter(([_, v]) => v !== undefined)),
   });
 
-  return getServerUserFromDbType(user);
+  return getServerUserFromDbType(user, user.project);
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
@@ -85,11 +96,19 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     profileImageUrl: serverUser.profileImageUrl,
     signedUpAtMillis: serverUser.signedUpAtMillis,
     clientMetadata: serverUser.clientMetadata,
-    authMethod: serverUser.authMethod,
+    authMethod: serverUser.authMethod, // not used anymore, for backwards compatibility
+    authWithEmail: serverUser.authWithEmail,
+    hasPassword: serverUser.hasPassword,
+    oauthProviders: serverUser.oauthProviders,
   };
 }
 
-function getServerUserFromDbType(projectUser: ProjectUser): ServerUserJson {
+function getServerUserFromDbType(
+  projectUser: ProjectUser, 
+  projectDB: ProjectDB,
+): ServerUserJson {
+  const projectJson = projectJsonFromDbType(projectDB);
+
   return {
     projectId: projectUser.projectId,
     id: projectUser.projectUserId,
@@ -100,6 +119,9 @@ function getServerUserFromDbType(projectUser: ProjectUser): ServerUserJson {
     signedUpAtMillis: projectUser.createdAt.getTime(),
     clientMetadata: projectUser.clientMetadata as any,
     serverMetadata: projectUser.serverMetadata as any,
-    authMethod: projectUser.passwordHash ? 'credential' : 'oauth',
+    authMethod: projectUser.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
+    hasPassword: !!projectUser.passwordHash,
+    authWithEmail: projectUser.authWithEmail,
+    oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
   };
 }
