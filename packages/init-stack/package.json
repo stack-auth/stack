@@ -2,7 +2,8 @@
   "name": "@stackframe/init-stack",
   "version": "1.0.0",
   "description": "The setup wizard for Stack. https://stack-auth.com",
-  "main": "index.js",
+  "main": "index.mjs",
+  "bin": "./index.mjs",
   "scripts": {
     "init-stack": "node index.mjs"
   },
