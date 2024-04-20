@@ -85,7 +85,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   let user;
   if (server === "true") {
     if (!skValid && !asValid) {
-      throw new StatusError(StatusError.Forbidden);
+      throw new StatusError(StatusError.Forbidden, "Secret server key is invalid");
     }
     user = await updateServerUser(
       projectId,
@@ -100,7 +100,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     );
   } else {
     if (!pkValid && !asValid) {
-      throw new StatusError(StatusError.Forbidden);
+      throw new StatusError(StatusError.Forbidden, "Publishable client key is invalid");
     }
 
     user = await updateClientUser(
