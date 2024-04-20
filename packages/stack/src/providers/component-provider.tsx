@@ -20,6 +20,7 @@ import {
 } from '../components-core/dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '../components-core/avatar';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components-core/collapsible';
+import { Tabs, TabsList, TabsContent, TabsTrigger } from '../components-core/tabs';
 
 export const Components = {
   Input,
@@ -48,6 +49,10 @@ export const Components = {
   CardHeader,
   CardContent,
   CardFooter,
+  Tabs,
+  TabsList,
+  TabsContent,
+  TabsTrigger,
 } as const;
 
 export type ComponentConfig = {

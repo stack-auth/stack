@@ -35,6 +35,9 @@
     },
     "typecheck": {
       "cache": false
+    },
+    "email": {
+      "cache": false
     }
   }
 }

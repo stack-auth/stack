@@ -567,6 +567,50 @@ const EmailVerificationCodeAlreadyUsed = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const MagicLinkError = createKnownErrorConstructor(
+  KnownError,
+  "MAGIC_LINK_ERROR",
+  "inherit",
+  "inherit",
+);
+
+const MagicLinkCodeError = createKnownErrorConstructor(
+  MagicLinkError,
+  "MAGIC_LINK_CODE_ERROR",
+  "inherit",
+  "inherit",
+);
+
+const MagicLinkCodeNotFound = createKnownErrorConstructor(
+  MagicLinkCodeError,
+  "MAGIC_LINK_CODE_NOT_FOUND",
+  () => [
+    404,
+    "The e-mail verification code does not exist for this project.",
+  ] as const,
+  () => [] as const,
+);
+
+const MagicLinkCodeExpired = createKnownErrorConstructor(
+  MagicLinkCodeError,
+  "MAGIC_LINK_CODE_EXPIRED",
+  () => [
+    400,
+    "The e-mail verification code has expired.",
+  ] as const,
+  () => [] as const,
+);
+
+const MagicLinkCodeAlreadyUsed = createKnownErrorConstructor(
+  MagicLinkCodeError,
+  "MAGIC_LINK_CODE_ALREADY_USED",
+  () => [
+    400,
+    "The e-mail verification link has already been used.",
+  ] as const,
+  () => [] as const,
+);
+
 const PasswordMismatch = createKnownErrorConstructor(
   KnownError,
   "PASSWORD_MISMATCH",
@@ -681,6 +725,11 @@ export const KnownErrors = {
   EmailVerificationCodeNotFound,
   EmailVerificationCodeExpired,
   EmailVerificationCodeAlreadyUsed,
+  MagicLinkError,
+  MagicLinkCodeError,
+  MagicLinkCodeNotFound,
+  MagicLinkCodeExpired,
+  MagicLinkCodeAlreadyUsed,
   PasswordResetError,
   PasswordResetCodeError,
   PasswordResetCodeNotFound,

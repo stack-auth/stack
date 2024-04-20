@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
-import { encodeAccessToken } from "@/lib/access-token";
+import { createAuthTokens } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/email";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
@@ -57,13 +56,24 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
   }
 
+  if (
+    !validateUrl(
+      emailVerificationRedirectUrl,
+      project.evaluatedConfig.domains,
+      project?.evaluatedConfig.allowLocalhost 
+    )
+  ) {
+    throw new KnownErrors.RedirectUrlNotWhitelisted();
+  }
+
   // TODO: make this a transaction
-  // TODO: make this an upsert instead of two queries
-  const user = await prismaClient.projectUser.findFirst({
+  const user = await prismaClient.projectUser.findUnique({
     where: {
-      projectId,
-      primaryEmail: email,
-      passwordHash: { not: null },
+      projectId_primaryEmail_authWithEmail: {
+        projectId,
+        primaryEmail: email,
+        authWithEmail: true,
+      },
     },
   });
 
@@ -78,32 +88,11 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       primaryEmail: email,
       primaryEmailVerified: false,
       passwordHash: await hashPassword(password),
+      authWithEmail: true,
     },
   });
 
-  const refreshToken =  await generateSecureRandomString();
-  const accessToken = await encodeAccessToken({
-    projectId,
-    userId: newUser.projectUserId,
-  });
-
-  await prismaClient.projectUserRefreshToken.create({
-    data: {
-      projectId,
-      projectUserId: newUser.projectUserId,
-      refreshToken: refreshToken,
-    },
-  });
-
-  if (
-    !validateUrl(
-      emailVerificationRedirectUrl,
-      project.evaluatedConfig.domains,
-      project?.evaluatedConfig.allowLocalhost 
-    )
-  ) {
-    throw new KnownErrors.RedirectUrlNotWhitelisted();
-  }
+  const { refreshToken, accessToken } = await createAuthTokens({ projectId, projectUserId: newUser.projectUserId });
 
   try {
     await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);
@@ -112,7 +101,9 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   return NextResponse.json({
-    access_token: accessToken,
-    refresh_token: refreshToken,
+    access_token: accessToken, // backwards compatibility
+    refresh_token: refreshToken, // backwards compatibility
+    accessToken,
+    refreshToken,
   });
 });

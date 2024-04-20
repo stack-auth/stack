@@ -1,7 +1,7 @@
 import { OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken } from "./access-token";
+import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -47,7 +47,7 @@ function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvid
 }
 
 
-const fullProjectInclude = {
+export const fullProjectInclude = {
   config: {
     include: {
       oauthProviderConfigs: {
@@ -73,7 +73,7 @@ const fullProjectInclude = {
   },
 } as const satisfies Prisma.ProjectInclude;
 type FullProjectInclude = typeof fullProjectInclude;
-type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
+export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
   config: {
     oauthProviderConfigs: (Prisma.OAuthProviderConfigGetPayload<
       typeof fullProjectInclude.config.include.oauthProviderConfigs
@@ -155,11 +155,12 @@ export async function createProject(
           create: {
             allowLocalhost: true,
             credentialEnabled: true,
+            magicLinkEnabled: true,
             oauthProviderConfigs: {
               create: (['github', 'google'] as const).map((id) => ({
                 id,
                 proxiedOAuthConfig: {
-                  create: {                
+                  create: {
                     type: typedToUppercase(id),
                   }
                 },
@@ -403,7 +404,7 @@ export async function updateProject(
   return projectJsonFromDbType(updatedProject);
 }
 
-function projectJsonFromDbType(project: ProjectDB): ProjectJson {
+export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
   let emailConfig: EmailConfigJson | undefined;
   const emailServiceConfig = project.config.emailServiceConfig;
   if (emailServiceConfig) {
@@ -437,6 +438,7 @@ function projectJsonFromDbType(project: ProjectDB): ProjectJson {
       id: project.config.id,
       allowLocalhost: project.config.allowLocalhost,
       credentialEnabled: project.config.credentialEnabled,
+      magicLinkEnabled: project.config.magicLinkEnabled,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,

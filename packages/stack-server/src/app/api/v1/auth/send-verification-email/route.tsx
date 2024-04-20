@@ -3,10 +3,10 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
+import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/email";
-import { getClientUser } from "@/lib/users";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { prismaClient } from "@/prisma-client";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -47,7 +47,15 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden);
   }
 
-  const user = await getClientUser(projectId, userId);
+  const user = await prismaClient.projectUser.findUnique({
+    where: {
+      projectId_projectUserId: {
+        projectId,
+        projectUserId: userId,
+      },
+    },
+  });
+  
   if (!user) {
     throw new StatusError(StatusError.NotFound);
   }

@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { createProject, listProjects } from "@/lib/projects";
-import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/access-token";
+import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { getServerUser } from "@/lib/users";
 
 

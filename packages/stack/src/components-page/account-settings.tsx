@@ -118,7 +118,7 @@ function PasswordSection() {
   const [newPassword, setNewPassword] = useState<string>('');
   const [newPasswordError, setNewPasswordError] = useState<string>('');
 
-  if (user?.authMethod !== 'credential') {
+  if (!user?.hasPassword) {
     return null;
   }
 

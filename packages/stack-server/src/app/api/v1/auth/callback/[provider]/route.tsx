@@ -148,6 +148,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                     profileImageUrl: userInfo.profileImageUrl,
                     primaryEmail: userInfo.email,
                     primaryEmailVerified: true,
+                    authWithEmail: false,
                   },
                 },
               },

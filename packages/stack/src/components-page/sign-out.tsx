@@ -1,12 +1,11 @@
 'use client';
 
 import { use } from "react";
-import { useStackApp, useUser } from "..";
+import { useUser } from "..";
 import GoHomeMessageCard from "../components/redirect-message-card";
 
 export default function Signout() {
   const user = useUser();
-  const app = useStackApp();
   
   if (user) {
     use(user.signOut());

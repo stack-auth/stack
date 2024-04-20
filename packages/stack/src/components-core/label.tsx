@@ -6,10 +6,10 @@ import styled from 'styled-components';
 import { FONT_FAMILY, FONT_SIZES, SECONDARY_FONT_COLORS } from "../utils/constants";
 import { useDesign } from "../providers/design-provider";
 
-const Primitive = styled(LabelPrimitive.Root)<{ color: string }>`
+const Primitive = styled(LabelPrimitive.Root)<{ $color: string }>`
   font-size: ${FONT_SIZES.sm};
   line-height: 1;
-  color: ${props => props.color};
+  color: ${props => props.$color};
   font-weight: 500;
   font-family: ${FONT_FAMILY};
   display: block;
@@ -23,7 +23,7 @@ const Label = React.forwardRef<
   (props, ref) => {
     const { colorMode } = useDesign();
     return <Primitive
-      color={colorMode === 'dark' ? SECONDARY_FONT_COLORS.dark : SECONDARY_FONT_COLORS.light}
+      $color={colorMode === 'dark' ? SECONDARY_FONT_COLORS.dark : SECONDARY_FONT_COLORS.light}
       ref={ref}
       {...props}
     />;

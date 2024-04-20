@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
+import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";

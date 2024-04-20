@@ -21,12 +21,16 @@ export type UserJson = UserCustomizableJson & {
   readonly clientMetadata: ReadonlyJson,
   readonly profileImageUrl: string | null,
   readonly signedUpAtMillis: number,
-  readonly authMethod: "credential" | "oauth",
+  readonly authMethod: "credential" | "oauth", // not used anymore, for backwards compatibility
+  readonly hasPassword: boolean,
+  readonly authWithEmail: boolean,
+  readonly oauthProviders: readonly string[],
 };
 
 export type ClientProjectJson = {
   readonly id: string,
   readonly credentialEnabled: boolean,
+  readonly magicLinkEnabled: boolean,
   readonly oauthProviders: readonly {
     id: string,
     enabled: boolean,
@@ -90,6 +94,7 @@ export type ProjectJson = {
     id: string,
     allowLocalhost: boolean,
     credentialEnabled: boolean,
+    magicLinkEnabled: boolean,
     oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
@@ -409,6 +414,31 @@ export class StackClientInterface {
     }
   }
 
+  async sendMagicLinkEmail(
+    email: string, 
+    redirectUrl: string,
+  ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/send-magic-link",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          redirectUrl,
+        }),
+      },
+      null,
+      [KnownErrors.RedirectUrlNotWhitelisted]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
   async resetPassword(
     options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
   ): Promise<KnownErrors["PasswordResetError"] | undefined> {
@@ -508,8 +538,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
   }
 
@@ -542,9 +572,37 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     tokenStore.set({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
+  }
+
+  async signInWithMagicLink(code: string, tokenStore: TokenStore): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean }> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/magic-link-verification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code,
+        }),
+      },
+      null,
+      [KnownErrors.MagicLinkError]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+
+    const result = await res.data.json();
+    tokenStore.set({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    });
+    return { newUser: result.newUser };
   }
 
   async getOAuthUrl(

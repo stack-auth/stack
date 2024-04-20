@@ -1,5 +1,5 @@
 import React, { use, useCallback, useMemo } from "react";
-import { KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -37,6 +37,7 @@ export type HandlerUrls = {
   forgotPassword: string,
   home: string,
   oauthCallback: string,
+  magicLinkCallback: string,
   accountSettings: string,
 }
 
@@ -57,6 +58,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     passwordReset: `${handler}/password-reset`,
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
+    magicLinkCallback: `${handler}/magic-link-callback`,
     home: "/",
     accountSettings: `${handler}/account-settings`,
     ...filterUndefined(partial),
@@ -348,6 +350,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAt: new Date(json.signedUpAtMillis),
       clientMetadata: json.clientMetadata,
       authMethod: json.authMethod,
+      hasPassword: json.hasPassword,
+      authWithEmail: json.authWithEmail,
+      oauthProviders: json.oauthProviders,
       toJson() {
         return json;
       }
@@ -410,6 +415,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAtMillis: user.signedUpAt.getTime(),
       clientMetadata: user.clientMetadata,
       authMethod: user.authMethod,
+      hasPassword: user.hasPassword,
+      authWithEmail: user.authWithEmail,
+      oauthProviders: user.oauthProviders,
     };
   }
 
@@ -481,6 +489,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
   async redirectToHome() { return await this._redirectTo("home"); }
   async redirectToOAuthCallback() { return await this._redirectTo("oauthCallback"); }
+  async redirectToMagicLinkCallback() { return await this._redirectTo("magicLinkCallback"); }
   async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
@@ -489,6 +498,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
     const error = await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+    return error;
+  }
+
+  async sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
+    const error = await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
     return error;
   }
 
@@ -614,6 +629,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return errorCode;
   }
 
+  async signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined> {
+    this._ensurePersistentTokenStore();
+    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const result = await this._interface.signInWithMagicLink(code, tokenStore);
+    if (result instanceof KnownError) {
+      return result;
+    }
+    if (result.newUser) {
+      window.location.replace(this.urls.afterSignUp);
+    } else {
+      window.location.replace(this.urls.afterSignIn);
+    }
+    await neverResolve();
+  }
+
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
@@ -633,10 +663,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    return await this._interface.sendVerificationEmail(
-      emailVerificationRedirectUrl,
-      tokenStore
-    );
+    return await this._interface.sendVerificationEmail(emailVerificationRedirectUrl, tokenStore);
   }
 
   protected async _updatePassword(
@@ -916,6 +943,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientMetadata: user.clientMetadata,
       serverMetadata: user.serverMetadata,
       authMethod: user.authMethod,
+      hasPassword: user.hasPassword,
+      authWithEmail: user.authWithEmail,
+      oauthProviders: user.oauthProviders,
     };
   }
 
@@ -1151,7 +1181,11 @@ export type User = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: ReadonlyJson,
-  readonly authMethod: 'credential' | 'oauth',
+
+  readonly authMethod: 'credential' | 'oauth', // not used anymore, for backwards compatibility
+  readonly hasPassword: boolean,
+  readonly authWithEmail: boolean,
+  readonly oauthProviders: readonly string[],
 
   toJson(this: CurrentUser): UserJson,
 };
@@ -1263,9 +1297,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined>,
     callOAuthCallback(): Promise<void>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
+    sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined>,
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined>,
+    signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,

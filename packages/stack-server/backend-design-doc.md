@@ -57,6 +57,11 @@ Terminology: "Invalid" means it was found but not valid, "Not found" means it wa
     - `EmailVerificationCodeNotFound`: The e-mail verification code does not exist for this project. (404)
     - `EmailVerificationCodeExpired`: The e-mail verification code has expired. (400)
     - `EmailVerificationCodeAlreadyUsed`: The e-mail verification code has already been used. (400)
+- `MagicLinkError`:
+  - `MagicLinkCodeError`:
+    - `MagicLinkCodeNotFound`: The magic link code does not exist for this project. (404)
+    - `MagicLinkCodeExpired`: The magic link code has expired. (400)
+    - `MagicLinkCodeAlreadyUsed`: The magic link code has already been used. (400)
 - `PasswordResetError`:
   - `PasswordResetCodeError`:
     - `PasswordResetCodeNotFound`: The password reset code does not exist for this project. (404)

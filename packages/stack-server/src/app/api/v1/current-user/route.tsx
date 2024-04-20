@@ -5,7 +5,7 @@ import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { updateClientUser, updateServerUser } from "@/lib/users";
-import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/access-token";
+import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 
 const putOrGetSchema = yup.object({
   query: yup.object({

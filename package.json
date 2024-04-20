@@ -48,7 +48,5 @@
     "overrides": {}
   },
   "dependencies": {
-    "@radix-ui/react-separator": "^1.0.3",
-    "@stackframe/stack": "workspace:^"
   }
 }
