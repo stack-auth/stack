@@ -9,7 +9,7 @@ export const Tabs = React.forwardRef<
   React.ComponentProps<typeof DefaultTabs>
 >((props, ref) => {
   const { color, onChange, ref: _, ...validProps } = props; // TODO: add onChange
-  return <JoyTabs ref={ref} {...validProps}/>;
+  return <JoyTabs ref={ref} sx={{ bgcolor: "transparent" }} {...validProps}/>;
 });
 
 export const TabsList = React.forwardRef<
