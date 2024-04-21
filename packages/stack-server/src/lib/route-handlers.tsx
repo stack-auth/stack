@@ -218,6 +218,7 @@ function catchError(error: unknown): StatusError {
 export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
+    let hasRequestFinished = false;
     try {
       // censor long query parameters because they might contain sensitive data
       const censoredUrl = new URL(req.url);
@@ -229,7 +230,6 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       }
 
       // request duration warning
-      let hasRequestFinished = false;
       const warnAfterSeconds = 12;
       runAsynchronously(async () => {
         await wait(warnAfterSeconds * 1000);
@@ -241,7 +241,6 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
-      hasRequestFinished = true;
       const time = (performance.now() - timeStart);
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
@@ -266,6 +265,8 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
         },
       }, yup.mixed());
       return res;
+    } finally {
+      hasRequestFinished = true;
     }
   };
 };
