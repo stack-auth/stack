@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.4.0
+
+### Minor Changes
+
+- 96c26a7: added magic link
+
 ## 1.3.2
 
 ### Patch Changes

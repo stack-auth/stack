@@ -1,5 +1,19 @@
 # @stackframe/stack
 
+## 2.3.0
+
+### Minor Changes
+
+- 96c26a7: added magic link
+
+### Patch Changes
+
+- Various small improvements
+- Updated dependencies
+- Updated dependencies [96c26a7]
+  - @stackframe/stack-shared@2.3.0
+  - @stackframe/stack-sc@1.4.0
+
 ## 2.2.5
 
 ### Patch Changes

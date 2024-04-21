@@ -1,5 +1,15 @@
 # @stackframe/stack-shared
 
+## 2.3.0
+
+### Minor Changes
+
+- 96c26a7: added magic link
+
+### Patch Changes
+
+- Various small improvements
+
 ## 2.2.2
 
 ### Patch Changes
