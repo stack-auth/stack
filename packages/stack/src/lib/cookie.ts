@@ -1,6 +1,5 @@
 import { generateRandomCodeVerifier, generateRandomState, calculatePKCECodeChallenge } from "oauth4webapi";
 import Cookies from "js-cookie";
-import { isClient } from "../utils/next";
 import { cookies as rscCookies } from '@stackframe/stack-sc';
 
 export function getCookie(name: string): string | null {
@@ -32,7 +31,7 @@ export function setCookie(name: string, value: string) {
   if (rscCookies) {
     rscCookies().set(name, value);
   } else {
-    Cookies.set(name, value);
+    Cookies.set(name, value, { secure: window.location.protocol === "https:" });
   }
 }
 
