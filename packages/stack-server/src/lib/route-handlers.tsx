@@ -9,6 +9,7 @@ import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arra
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -227,9 +228,20 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
         censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
       }
 
+      // request duration warning
+      let hasRequestFinished = false;
+      const warnAfterSeconds = 12;
+      runAsynchronously(async () => {
+        await wait(warnAfterSeconds * 1000);
+        if (!hasRequestFinished) {
+          captureError("request-timeout-watcher", new Error(`Request with ID ${requestId} to endpoint ${req.url} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`));
+        }
+      });
+
       console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
+      hasRequestFinished = true;
       const time = (performance.now() - timeStart);
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
