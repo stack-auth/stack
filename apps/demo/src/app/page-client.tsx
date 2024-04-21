@@ -23,7 +23,7 @@ export default function PageClient() {
           <Text size='md'>Click on your user&apos;s image at the top right to see your account settings.</Text>
           <Text size='md'>Like what you see? <Link href="https://app.stackframe.co">Create your own project</Link> on our dashboard.</Text>
           {user.primaryEmail === "ycdemo@stack-auth.com" && (
-            <Text size='md' style={{ backgroundColor: "orange" }}>(It seems you&apos;re on the YC demo account. You can use the same credentials on the dashboard as you used here.)</Text>
+            <Text size='md' style={{ backgroundColor: "orange" }}>(It seems you&apos;re on the YC demo account. You can use the same credentials on the dashboard again.)</Text>
           )}
           <Link href={app.urls.signOut}>
             Sign Out
