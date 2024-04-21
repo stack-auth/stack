@@ -39,7 +39,8 @@
     "react-icons": "^5.0.1",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.8",
-    "tailwindcss-scoped-preflight": "^2.1.0"
+    "tailwindcss-scoped-preflight": "^2.1.0",
+    "yup": "^1.4.0"
   },
   "peerDependencies": {
     "@mui/joy": "^5.0.0-beta.30",

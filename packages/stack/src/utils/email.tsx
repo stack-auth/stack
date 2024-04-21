@@ -1,8 +1,6 @@
-export function validateEmail(email: string) {
-  // TODO prevent regex DoS
-  return String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
+import * as yup from "yup";
+
+export function validateEmail(email: string): boolean {
+  if (typeof email !== "string") throw new Error("Email must be a string");
+  return yup.string().email().isValidSync(email);
 };
