@@ -20,6 +20,7 @@
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
+    "README.md",
     "dist"
   ],
   "dependencies": {
