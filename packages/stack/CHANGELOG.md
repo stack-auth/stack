@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.3.1
+
+### Patch Changes
+
+- Improve e-mail validation and add request timeouts
+
 ## 2.3.0
 
 ### Minor Changes

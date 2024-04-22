@@ -1,5 +1,13 @@
 # @stackframe/stack-server
 
+## 0.3.1
+
+### Patch Changes
+
+- Improve e-mail validation and add request timeouts
+- Updated dependencies
+  - @stackframe/stack@2.3.1
+
 ## 0.3.0
 
 ### Minor Changes
