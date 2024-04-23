@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.3.1
+
+### Patch Changes
+
+- Add README file
+
 ## 2.3.0
 
 ### Minor Changes
