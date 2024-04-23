@@ -52,10 +52,11 @@ export function resolved<T>(value: T): ReactPromise<T> {
 /**
  * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
  */
-export function rejected<T>(reason: unknown): ReactPromise<T> {
-  return Object.assign(Promise.reject(reason), {
+export function rejected<T>(reason: unknown, options: { disableErrorWrapping?: boolean } = {}): ReactPromise<T> {
+  const actualReason = options.disableErrorWrapping ? reason : createReactPromiseErrorWrapper(reason);
+  return Object.assign(Promise.reject(actualReason), {
     status: "rejected",
-    reason,
+    reason: actualReason,
   } as const);
 }
 
@@ -63,21 +64,39 @@ export function neverResolve(): ReactPromise<never> {
   return pending(new Promise<never>(() => {}));
 }
 
-export function pending<T>(promise: Promise<T>): ReactPromise<T> {
-  const res = Object.assign(promise, {
-    status: "pending",
-  } as Pick<ReactPromise<T>, "status"> & { value: T, reason: unknown });
-  res.then(
+export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?: boolean } = {}): ReactPromise<T> {
+  const res = promise.then(
     value => {
       res.status = "fulfilled";
-      res.value = value;
+      (res as any).value = value;
+      return value;
     },
-    reason => {
+    actualReason => {
       res.status = "rejected";
-      res.reason = reason;
+      const reason = options.disableErrorWrapping ? actualReason : createReactPromiseErrorWrapper(actualReason);
+      (res as any).reason = reason;
+      throw reason;
     },
-  );
+  ) as ReactPromise<T>;
+  res.status = "pending";
   return res;
+}
+
+function createReactPromiseErrorWrapper(error: unknown): Error {
+  return new ReactPromiseErrorWrapper(error);
+}
+
+class ReactPromiseErrorWrapper extends StackAssertionError {
+  public readonly wrappedErrorMessage: string;
+  constructor(public readonly error: unknown) {
+    const wrappedErrorMessage = error instanceof ReactPromiseErrorWrapper ? error.wrappedErrorMessage : `${error}`;
+    super(
+      `Error occured while creating a ReactPromise: ${wrappedErrorMessage}\n\nSee the \`cause\` property for the original error. This error is a wrapper around the original error to preserve the stack trace (which would go lost when using Stack's pending(...) or rejected(...) functions).`,
+      { cause: error }
+    );
+    this.wrappedErrorMessage = wrappedErrorMessage;
+    this.name = "ReactPromiseErrorWrapper";
+  }
 }
 
 export async function wait(ms: number) {
