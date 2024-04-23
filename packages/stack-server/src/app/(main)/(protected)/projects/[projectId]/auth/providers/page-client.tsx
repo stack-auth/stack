@@ -16,7 +16,7 @@ export default function ProvidersClient() {
   return (
     <>
       <Paragraph h1>
-        Auth Providers
+        Auth Methods
       </Paragraph>
 
       <Paragraph body>

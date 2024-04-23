@@ -156,10 +156,10 @@ export default function UrlsAndCallbacksClient() {
 
   return (
     <>
-      <Paragraph sidenote>
-        List the paths to the handlers that will receive callbacks from your project. Note, if a third-party gains control of your handler, they can potentially access your user data.
+      <Paragraph h1>
+        Domains & Handlers
       </Paragraph>
-    
+
       <SimpleCard title="Domains and Handler">
         <Box sx={{ my: 2 }}>
           <SmartSwitch
