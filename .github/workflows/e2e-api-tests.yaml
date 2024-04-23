@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - name: Execute Tests
-      - run: pnpm build
-	    - run: pnpm test
+      - name: Building the project
+        run: pnpm build
+      - name: Running tests
+        run: pnpm test
