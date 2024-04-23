@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -26,5 +26,5 @@ jobs:
             version: 8
       - name: Install dependencies
         run: pnpm install
-      - name: Running server tests
-        run: pnpm test
+      - name: Running E2E API Tests
+        run: cd apps/e2e && pnpm test
