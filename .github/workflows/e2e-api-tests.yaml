@@ -28,5 +28,5 @@ jobs:
         run: pnpm install
       - name: Building the project
         run: pnpm build
-      - name: Running tests
-        run: pnpm test
+      - name: Running server tests
+        run: cd packages/stack-server && pnpm test
