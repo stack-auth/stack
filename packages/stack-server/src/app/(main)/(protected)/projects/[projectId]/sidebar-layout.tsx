@@ -13,9 +13,9 @@ const navigationItems = [
     icon: <Icon icon="people_outline" />,
   },
   {
-    name: "Providers",
+    name: "Auth Methods",
     href: "/auth/providers",
-    icon: <Icon icon="device_hub" />,
+    icon: <Icon icon="security" />,
   },
   {
     name: "Domains & Handlers",

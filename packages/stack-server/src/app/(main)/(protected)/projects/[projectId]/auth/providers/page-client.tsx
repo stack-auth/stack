@@ -10,9 +10,7 @@ import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
-
   const project = stackAdminApp.useProjectAdmin();
-
   const oauthProviders = project.evaluatedConfig.oauthProviders;
 
   return (
@@ -22,7 +20,7 @@ export default function ProvidersClient() {
       </Paragraph>
 
       <Paragraph body>
-        <SimpleCard title="Password authentication">
+        <SimpleCard title="Email authentication">
           <Paragraph body>
             <SmartSwitch
               checked={project.evaluatedConfig.credentialEnabled}
@@ -34,14 +32,28 @@ export default function ProvidersClient() {
                 });
               }}
             >
-              Enable password authentication
+              Password Authentication
+            </SmartSwitch>
+          </Paragraph>
+          <Paragraph body>
+            <SmartSwitch
+              checked={project.evaluatedConfig.magicLinkEnabled}
+              onChange={async (event) => {
+                await project.update({
+                  config: {
+                    magicLinkEnabled: event.target.checked,
+                  },
+                });
+              }}
+            >
+              Magic Link (email with login link)
             </SmartSwitch>
           </Paragraph>
         </SimpleCard>
       </Paragraph>
 
 
-      <SimpleCard title="OAuth">
+      <SimpleCard title="OAuth Providers">
         <Card variant="soft">
           <CardOverflow>
             <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
