@@ -419,9 +419,6 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.2.18
-      pgmock:
-        specifier: ^1.0.2
-        version: 1.0.2
       prisma:
         specifier: ^5.9.1
         version: 5.9.1
@@ -13382,10 +13379,6 @@ packages:
     optionalDependencies:
       pg-cloudflare: 1.1.1
     dev: false
-
-  /pgmock@1.0.2:
-    resolution: {integrity: sha512-U6ooXrTSfR96RRjoh/Bjjrt/UZVZPhI/WP7KJeDAZG8XfyL53VtqCZZ+xwk0a4z8mBmqcDrp5Vrdc09MHuS/gg==}
-    dev: true
 
   /pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
