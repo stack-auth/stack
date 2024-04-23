@@ -26,7 +26,5 @@ jobs:
             version: 8
       - name: Install dependencies
         run: pnpm install
-      - name: Building the project
-        run: pnpm build
       - name: Running server tests
-        run: cd packages/stack-server && pnpm test
+        run: pnpm test

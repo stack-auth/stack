@@ -158,6 +158,12 @@ importers:
         specifier: ^18
         version: 18.2.18
 
+  apps/e2e:
+    devDependencies:
+      dotenv-cli:
+        specifier: 7.4.1
+        version: 7.4.1
+
   docs:
     dependencies:
       '@docusaurus/core':
@@ -177,7 +183,7 @@ importers:
         version: 2.1.0
       dotenv-cli:
         specifier: ^7.3.0
-        version: 7.3.0
+        version: 7.4.1
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.3.1(react@18.2.0)
@@ -354,7 +360,7 @@ importers:
         version: 0.8.4(react@18.2.0)
       dotenv-cli:
         specifier: ^7.3.0
-        version: 7.3.0
+        version: 7.4.1
       geist:
         specifier: ^1
         version: 1.2.2(next@14.1.0)
@@ -8810,20 +8816,18 @@ packages:
       is-obj: 2.0.0
     dev: false
 
-  /dotenv-cli@7.3.0:
-    resolution: {integrity: sha512-314CA4TyK34YEJ6ntBf80eUY+t1XaFLyem1k9P0sX1gn30qThZ5qZr/ZwE318gEnzyYP9yj9HJk6SqwE0upkfw==}
+  /dotenv-cli@7.4.1:
+    resolution: {integrity: sha512-fE1aywjRrWGxV3miaiUr3d2zC/VAiuzEGghi+QzgIA9fEf/M5hLMaRSXb4IxbUAwGmaLi0IozdZddnVU96acag==}
     hasBin: true
     dependencies:
       cross-spawn: 7.0.3
       dotenv: 16.4.5
       dotenv-expand: 10.0.0
       minimist: 1.2.8
-    dev: false
 
   /dotenv-expand@10.0.0:
     resolution: {integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==}
     engines: {node: '>=12'}
-    dev: false
 
   /dotenv@16.0.3:
     resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
@@ -8833,7 +8837,6 @@ packages:
   /dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
-    dev: false
 
   /duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
