@@ -12,7 +12,7 @@ jobs:
 
     env:
       PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-      PROJECT_CLIENT_SECRET: ${{ secrets.PROJECT_CLIENT_SECRET }}
+      PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
       SERVER_BASE_URL: ${{ vars.SERVER_BASE_URL }}
 
     strategy:
