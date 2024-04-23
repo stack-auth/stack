@@ -13,7 +13,7 @@ jobs:
     env:
       PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
       PROJECT_CLIENT_SECRET: ${{ secrets.PROJECT_CLIENT_SECRET }}
-      SERVR_BASE_URL: ${{ vars.SERVR_BASE_URL }}
+      SERVER_BASE_URL: ${{ vars.SERVER_BASE_URL }}
 
     strategy:
       matrix:
