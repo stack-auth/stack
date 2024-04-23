@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.4.1
+
+### Patch Changes
+
+- Add README file
+
 ## 1.4.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.3.0",
+  "version": "2.3.2",
   "type": "module",
   "exports": {
     ".": {
@@ -20,6 +20,7 @@
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
+    "README.md",
     "dist"
   ],
   "dependencies": {

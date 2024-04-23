@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -11,6 +11,7 @@
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
+    "README.md",
     "dist"
   ],
   "peerDependencies": {

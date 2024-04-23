@@ -1,5 +1,22 @@
 # @stackframe/stack-server
 
+## 0.3.2
+
+### Patch Changes
+
+- Add README file
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.1
+  - @stackframe/stack@2.3.2
+
+## 0.3.1
+
+### Patch Changes
+
+- Improve e-mail validation and add request timeouts
+- Updated dependencies
+  - @stackframe/stack@2.3.1
+
 ## 0.3.0
 
 ### Minor Changes

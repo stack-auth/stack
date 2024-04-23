@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-sc",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "exports": {
     ".": {
       "types": "./dist/index.server.d.ts",
@@ -22,6 +22,7 @@
     "lint": "eslint --ext .tsx,.ts ."
   },
   "files": [
+    "README.md",
     "dist"
   ],
   "peerDependencies": {
