@@ -37,6 +37,7 @@ export type ProjectUpdateOptions = {
     }[],
     oauthProviders?: OAuthProviderUpdateOptions[],
     credentialEnabled?: boolean,
+    magicLinkEnabled?: boolean,
     allowLocalhost?: boolean,
   },
 };
