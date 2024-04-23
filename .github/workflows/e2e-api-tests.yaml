@@ -27,4 +27,4 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Running E2E API Tests
-        run: cd apps/e2e && pnpm test
+        run: cd apps/e2e && pnpm test:ci
