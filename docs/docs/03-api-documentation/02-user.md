@@ -12,7 +12,7 @@ sidebar_position: 1
 
 You can call `useUser()` or `stackApp.getUser()` to get the `CurrentUser` object.
 
-### Properties
+### Attributes
 
 - `id`: The user ID. This is the unique identifier of the user.
 - `displayName`: The display name of the user. Can be changed by the user.
@@ -23,16 +23,20 @@ You can call `useUser()` or `stackApp.getUser()` to get the `CurrentUser` object
 - `authWithEmail`: Whether the user has an email authentication method (magic link or password).
 - `hasPassword`: Whether the user has a password set.
 - `oauthProviders`: The list of OAuth provider ID s the user has connected.
+- `clientMetadata`: The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side.
 
 ### Methods
 
 #### `update`
 
-This method can update the user's profile information. Here is an example of how to update the user's display name:
+This method can update the user's profile information. Here is an example of how to update the user's display name and set the client metadata.
 
 ```typescript
 await user.update({
   displayName: "New Display Name",
+  clientMetadata: {
+    address: "123 Main St",
+  },
 });
 ```
 
@@ -40,6 +44,7 @@ await user.update({
 
 This will sign out the user and clear the session.
 
+Example: 
 ```typescript
 await user.signOut();
 ```
@@ -48,6 +53,7 @@ await user.signOut();
 
 This will send an email verification link to the user's primary email. It will return an error object (not throw an error) if the email is already verified. If successful, it will return undefined.
 
+Example:
 ```typescript
 const error = await user.sendEmailVerification();
 if (error) {
@@ -60,6 +66,8 @@ if (error) {
 #### `updatePassword`
 
 This will update the user's password. It will return an error object (not throw an error) if the passwords mismatch or if the new password does not meet the requirements. If successful, it will return undefined.
+
+Example: 
 ```typescript
 const error = await user.updatePassword({
   currentPassword: "oldPassword",
@@ -70,4 +78,25 @@ if (error) {
 } else {
   console.log("Password updated");
 }
+```
+
+## `CurrentServerUser` Object
+
+You can call `stackApp.getServerUser()` to get the `CurrentServerUser` object. `CurrentServerUser` has all the attributes and methods of `CurrentUser` and some additional ones shown below. 
+
+Note the `CurrentServerUser` should only be used on the server side because it contains server only metadata.
+
+### Attributes
+
+- `serverMetadata`: The JSON metadata that is visible on the server side. This contains information that should be kept private on the server side. Do not share this with the client.
+
+### Methods
+
+#### `delete`
+
+This will delete the user. Use it with caution as it is irreversible.
+
+Example:
+```typescript
+await serverUser.delete();
 ```
