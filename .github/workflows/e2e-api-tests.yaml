@@ -2,9 +2,8 @@ name: Runs E2E API Tests
 
 on:
   push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -29,6 +28,7 @@ jobs:
         run: |
           cat > packages/stack-server/.env.local <<EOF
           NEXT_PUBLIC_STACK_URL=http://localhost:8101
+          NEXT_PUBLIC_STACK_PROJECT_ID=internal
           NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=internal-project-client-api-key
           STACK_SECRET_SERVER_KEY=internal-project-server-api-key
           SERVER_SECRET=23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
