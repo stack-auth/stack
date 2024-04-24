@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export function Confetti() {
   useEffect(() => {
-    confetti.default();
+    confetti.default()?.catch((e) => console.error(e));
   }, []);
 
   return (<></>);

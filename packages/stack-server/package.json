@@ -2,6 +2,7 @@
   "name": "@stackframe/stack-server",
   "version": "0.3.3",
   "private": true,
+  "type": "module",
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
@@ -25,10 +26,6 @@
   },
   "prisma": {
     "seed": "npm run with-env -- ts-node prisma/seed.ts"
-  },
-  "engines": {
-    "npm": ">=10.0.0",
-    "node": ">=20.0.0"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
