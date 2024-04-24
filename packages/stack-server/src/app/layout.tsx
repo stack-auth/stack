@@ -14,8 +14,8 @@ import React from 'react';
 
 export const metadata: Metadata = {
   title: {
-    default: 'stack-server',
-    template: '%s | stack-server',
+    default: 'Stack',
+    template: '%s | Stack',
   },
   description: 'Some frontend with auth built by N2D4',
 };

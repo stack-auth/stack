@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "type": "module",
   "exports": {
     ".": {
@@ -12,6 +12,7 @@
       "default": "./dist/joy.js"
     }
   },
+  "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",

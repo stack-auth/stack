@@ -374,6 +374,14 @@ export async function updateProject(
     }));
   }
 
+  // Update magicLinkEnabled
+  if (options.config?.magicLinkEnabled !== undefined) {
+    transaction.push(prismaClient.projectConfig.update({
+      where: { id: project.config.id },
+      data: { magicLinkEnabled: options.config.magicLinkEnabled },
+    }));
+  }
+
   // Update allowLocalhost
   if (options.config?.allowLocalhost !== undefined) {
     transaction.push(prismaClient.projectConfig.update({

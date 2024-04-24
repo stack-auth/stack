@@ -436,6 +436,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       evaluatedConfig: {
         id: data.evaluatedConfig.id,
         credentialEnabled: data.evaluatedConfig.credentialEnabled,
+        magicLinkEnabled: data.evaluatedConfig.magicLinkEnabled,
         allowLocalhost: data.evaluatedConfig.allowLocalhost,
         oauthProviders: data.evaluatedConfig.oauthProviders,
         emailConfig: data.evaluatedConfig.emailConfig,
@@ -1229,6 +1230,7 @@ export type Project = {
     readonly id: string,
     readonly allowLocalhost: boolean,
     readonly credentialEnabled: boolean,
+    readonly magicLinkEnabled: boolean,
     readonly oauthProviders: OAuthProviderConfig[],
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],

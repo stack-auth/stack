@@ -1,0 +1,20 @@
+{
+  "name": "@stackframe/init-stack",
+  "version": "1.0.1",
+  "description": "The setup wizard for Stack. https://stack-auth.com",
+  "main": "index.mjs",
+  "bin": "./index.mjs",
+  "scripts": {
+    "init-stack": "node index.mjs"
+  },
+  "files": [
+    "index.mjs"
+  ],
+  "homepage": "https://stack-auth.com",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^9.2.19"
+  }
+}
