@@ -46,8 +46,8 @@ jobs:
         with:
             version: 8
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install && pnpm install -g wait-on
       - name: Build
         run: pnpm build:server
       - name: Start server & run tests
-        run: pnpm -C packages/stack-server start & sleep 10 && pnpm -C apps/e2e test:ci
+        run: pnpm -C packages/stack-server start & wait-on http://localhost:8101 && pnpm -C apps/e2e test:ci
