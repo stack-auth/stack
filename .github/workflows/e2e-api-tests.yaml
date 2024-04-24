@@ -2,21 +2,34 @@ name: Runs E2E API Tests
 
 on:
   push:
-    branches:
-      - dev
+    branches: [main, dev]
   pull_request:
-    types: [closed]
-    branches:
-      - dev
+    branches: [main, dev]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     env:
+      SERVER_BASE_URL: http://localhost:8101
       PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
       PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
-      SERVER_BASE_URL: ${{ vars.SERVER_BASE_URL }}
+
+      NEXT_PUBLIC_STACK_URL: http://localhost:8101
+      NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+      STACK_SECRET_SERVER_KEY: test
+      SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+
+      EMAIL_HOST: 0.0.0.0
+      EMAIL_PORT: 2500
+      EMAIL_SECURE: false
+      EMAIL_USERNAME: test
+      EMAIL_PASSWORD: none
+      EMAIL_SENDER: noreply@test.com
+
+      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      DIRECT_DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
 
     strategy:
       matrix:
@@ -33,8 +46,8 @@ jobs:
         with:
             version: 8
       - name: Install dependencies
-        run: pnpm install
-      - name: Wait for deployment (3 minutes)
-        run: sleep 180
-      - name: Running E2E API Tests
-        run: cd apps/e2e && pnpm test:ci
+        run: pnpm install && npm install -g wait-on
+      - name: Build
+        run: pnpm build:server
+      - name: Start server & run tests
+        run: cd packages/server && pnpm start & cd ../.. && wait-on $SERVER_BASE_URL && cd apps/e2e && pnpm test:ci
