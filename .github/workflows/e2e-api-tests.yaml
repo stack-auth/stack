@@ -52,8 +52,8 @@ jobs:
       - name: Initialize database
         run: pnpm run prisma:server -- migrate reset --force
 
-      - name: Build
-        run: pnpm build
+      - name: Build stack-server
+        run: pnpm build:server
   
 
       - name: Start stack-server in background
