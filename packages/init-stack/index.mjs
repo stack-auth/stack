@@ -4,6 +4,7 @@ import inquirer from 'inquirer';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as path from 'path';
+import open from 'open';
 
 const jsLikeFileExtensions = ['mtsx', 'ctsx', 'tsx', 'mts', 'cts', 'ts', 'mjsx', 'cjsx', 'jsx', 'mjs', 'cjs', 'js'];
 
@@ -100,24 +101,7 @@ async function main() {
   console.log("Installing dependencies...");
   await shellNicelyFormatted(`${installCommand} @stackframe/stack`, { shell: true, cwd: projectPath });
 }
-main().catch((err) => {
-  console.error(err);
-  console.error();
-  console.error();
-  console.error();
-  console.error();
-  console.error("===============================================");
-  console.error();
-  console.error("[ERR] An error occured during the initialization process. Please try manually installing Stack as described in https://docs.stack-auth.com/docs/getting-started/setup");
-  console.error("[ERR]");
-  console.error("[ERR] If you need assistance, please join our Discord where we're happy to help: https://discord.stack-auth.com");
-  console.error("[ERR]");
-  console.error(`[ERR] Error message: ${err.message}`);
-  console.error();
-  console.error("===============================================");
-  console.error();
-  process.exit(1);
-}).then(() => {
+main().then(async() => {
   console.log();
   console.log();
   console.log();
@@ -134,6 +118,24 @@ main().catch((err) => {
   console.log();
   console.log("===============================================");
   console.log();
+  await open("https://app.stack-auth.com/wizard-congrats");
+}).catch((err) => {
+  console.error(err);
+  console.error();
+  console.error();
+  console.error();
+  console.error();
+  console.error("===============================================");
+  console.error();
+  console.error("[ERR] An error occured during the initialization process. Please try manually installing Stack as described in https://docs.stack-auth.com/docs/getting-started/setup");
+  console.error("[ERR]");
+  console.error("[ERR] If you need assistance, please join our Discord where we're happy to help: https://discord.stack-auth.com");
+  console.error("[ERR]");
+  console.error(`[ERR] Error message: ${err.message}`);
+  console.error();
+  console.error("===============================================");
+  console.error();
+  process.exit(1);
 });
 
 async function getUpdatedLayout(originalLayout) {
