@@ -1,3 +1,4 @@
+import { KnownError } from "..";
 import { StackAssertionError, captureError } from "./errors";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
@@ -83,6 +84,7 @@ export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?
 }
 
 function createReactPromiseErrorWrapper(error: unknown): Error {
+  if (error instanceof KnownError) return error;
   return new ReactPromiseErrorWrapper(error);
 }
 

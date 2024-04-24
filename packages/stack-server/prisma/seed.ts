@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 const prisma = new PrismaClient();
 
 
@@ -42,7 +41,7 @@ async function seed() {
               id,
               proxiedOAuthConfig: {
                 create: {                
-                  type: typedToUppercase(id),
+                  type: id.toUpperCase() as any,
                 }
               },
               projectUserOAuthAccounts: {

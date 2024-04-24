@@ -10,27 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      SERVER_BASE_URL: http://localhost:8101
-      PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-      PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
-
-      NEXT_PUBLIC_STACK_URL: http://localhost:8101
-      NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
-      STACK_SECRET_SERVER_KEY: test
-      SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
-
-      EMAIL_HOST: 0.0.0.0
-      EMAIL_PORT: 2500
-      EMAIL_SECURE: false
-      EMAIL_USERNAME: test
-      EMAIL_PASSWORD: none
-      EMAIL_SENDER: noreply@test.com
-
-      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
-      DIRECT_DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
-
     strategy:
       matrix:
         node-version: [20.x]
@@ -45,9 +24,46 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
             version: 8
+            
+      - name: Create .env.local file for stack-server
+        run: |
+          cat > .env.local <<EOF
+          NEXT_PUBLIC_STACK_URL=http://localhost:8101
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=internal-project-client-api-key
+          STACK_SECRET_SERVER_KEY=internal-project-server-api-key
+          SERVER_SECRET=23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+
+          EMAIL_HOST=0.0.0.0
+          EMAIL_PORT=2500
+          EMAIL_SECURE=false
+          EMAIL_USERNAME=some-username
+          EMAIL_PASSWORD=some-password
+          EMAIL_SENDER=noreply@example.com
+    
+          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+          DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+          EOF
+          
+
+      - name: Start Docker Compose
+        run: docker-compose -f dependencies.compose.yml up -d
+      - name: Initialize database
+        run: pnpm run prisma:server -- migrate reset
+
       - name: Install dependencies
         run: pnpm install
       - name: Build
-        run: pnpm build:server
-      - name: Start server & run tests
-        run: pnpm -C packages/stack-server start & npx wait-on@7.2.0 http://localhost:8101 && pnpm -C apps/e2e test:ci
+        run: pnpm build
+  
+
+      - name: Start stack-server in background
+        run: pnpm -C packages/stack-server start &
+      - name: Wait for stack-server to start
+        run: npx wait-on@7.2.0 http://localhost:8101
+
+      - name: Run tests
+        run: pnpm -C apps/e2e test:ci
+        env:
+          SERVER_BASE_URL: http://localhost:8101
+          PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
+          PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
