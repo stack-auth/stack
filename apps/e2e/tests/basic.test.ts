@@ -18,7 +18,7 @@ function randomString() {
 async function signUpWithEmailPassword() {
   const email = randomString() + "@example.com";
   const password = randomString();
-  const response = await request(BASE_URL).post("/api/v1/auth/signup").set(AUTH_HEADER).set(JSON_HEADER).send({
+  const response = await request(BASE_URL).post("api/v1/auth/signup").set(AUTH_HEADER).set(JSON_HEADER).send({
     email,
     password,
     emailVerificationRedirectUrl: 'https://localhost:3000/verify-email',
@@ -28,7 +28,7 @@ async function signUpWithEmailPassword() {
 }
 
 async function signInWithEmailPassword(email: string, password: string) {
-  const response = await request(BASE_URL).post("/api/v1/auth/signin").set(AUTH_HEADER).set(JSON_HEADER).send({
+  const response = await request(BASE_URL).post("api/v1/auth/signin").set(AUTH_HEADER).set(JSON_HEADER).send({
     email,
     password,
   });
@@ -38,14 +38,14 @@ async function signInWithEmailPassword(email: string, password: string) {
 
 describe("Basic", () => {
   test("Main Page", async () => {
-    const response = await request(BASE_URL).get("/");
+    const response = await request(BASE_URL).get("");
     expect(response.status).toBe(307);
   });
 
   test("Test API", async () => {
-    const response = await request(BASE_URL).get("/api/v1/test");
+    const response = await request(BASE_URL).get("api/v1");
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ ok: true });
+    expect(response.text).contains("Stack API")
   });
 
   test("Credential Sign Up", async () => {
@@ -64,7 +64,7 @@ describe("Basic", () => {
     const { email, password, response } = await signUpWithEmailPassword();
     await signInWithEmailPassword(email, password);
 
-    const response2 = await request(BASE_URL).get("/api/v1/current-user").set({
+    const response2 = await request(BASE_URL).get("api/v1/current-user").set({
       ...AUTH_HEADER,
       'authorization': 'StackSession ' + response.body.accessToken,
     });
