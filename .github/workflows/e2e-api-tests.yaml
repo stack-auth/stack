@@ -2,9 +2,12 @@ name: Runs E2E API Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches:
+      - dev
   pull_request:
-    branches: [main, dev]
+    types: [closed]
+    branches:
+      - dev
 
 jobs:
   build:
@@ -31,5 +34,7 @@ jobs:
             version: 8
       - name: Install dependencies
         run: pnpm install
+      - name: Wait for deployment (3 minutes)
+        run: sleep 180
       - name: Running E2E API Tests
         run: cd apps/e2e && pnpm test:ci
