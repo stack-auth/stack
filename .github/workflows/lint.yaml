@@ -6,13 +6,29 @@ on:
       - '*'
 
 jobs:
-  build:
+  lint_and_build:
     runs-on: ubuntu-latest
 
     env:
+      SERVER_BASE_URL: http://localhost:8101
+      PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
+      PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+
       NEXT_PUBLIC_STACK_URL: http://localhost:8101
       NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
       NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+      STACK_SECRET_SERVER_KEY: test
+      SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+
+      EMAIL_HOST: 0.0.0.0
+      EMAIL_PORT: 2500
+      EMAIL_SECURE: false
+      EMAIL_USERNAME: test
+      EMAIL_PASSWORD: none
+      EMAIL_SENDER: noreply@test.com
+
+      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      DIRECT_DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
 
     strategy:
       matrix:
