@@ -35,7 +35,7 @@ function MyComponent() {
 }
 ```
 
-The same hook can also be used to protect a page. (You might also want to check out the server-side version [here](docs/getting-started/users))
+The same hook can also be used to protect a page. (You might also want to check out the server-side version [here](/docs/getting-started/users))
 ```jsx
 import { useUser } from "@stackframe/stack";
 
