@@ -2,6 +2,7 @@
   "name": "@stackframe/stack-server",
   "version": "0.3.3",
   "private": true,
+  "type": "module",
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
@@ -26,10 +27,6 @@
   "prisma": {
     "seed": "npm run with-env -- ts-node prisma/seed.ts"
   },
-  "engines": {
-    "npm": ">=10.0.0",
-    "node": ">=20.0.0"
-  },
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
@@ -53,6 +50,7 @@
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
     "bright": "^0.8.4",
+    "canvas-confetti": "^1.9.2",
     "dotenv-cli": "^7.3.0",
     "geist": "^1",
     "jose": "^5.2.2",
@@ -73,6 +71,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",

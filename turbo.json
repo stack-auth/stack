@@ -38,6 +38,9 @@
     },
     "email": {
       "cache": false
+    },
+    "test": {
+      "cache": false
     }
   }
 }

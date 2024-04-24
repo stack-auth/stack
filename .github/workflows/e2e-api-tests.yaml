@@ -1,0 +1,53 @@
+name: Runs E2E API Tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      SERVER_BASE_URL: http://localhost:8101
+      PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
+      PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+
+      NEXT_PUBLIC_STACK_URL: http://localhost:8101
+      NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+      STACK_SECRET_SERVER_KEY: test
+      SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+
+      EMAIL_HOST: 0.0.0.0
+      EMAIL_PORT: 2500
+      EMAIL_SECURE: false
+      EMAIL_USERNAME: test
+      EMAIL_PASSWORD: none
+      EMAIL_SENDER: noreply@test.com
+
+      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      DIRECT_DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+            version: 8
+      - name: Install dependencies
+        run: pnpm install && pnpm install -g wait-on
+      - name: Build
+        run: pnpm build:server
+      - name: Start server & run tests
+        run: pnpm -C packages/stack-server start & wait-on http://localhost:8101 && pnpm -C apps/e2e test:ci

@@ -66,11 +66,11 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
 }
 
 function getDefaultProjectId() {
-  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr("No project ID provided. Please copy your project ID from the Stack dashboard and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable.");
+  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr("Welcome to Stack! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable.");
 }
 
 function getDefaultPublishableClientKey() {
-  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr("No publishable client key provided. Please copy your publishable client key from the Stack dashboard and put it in the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable.");
+  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr("Welcome to Stack! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable.");
 }
 
 function getDefaultSecretServerKey() {
