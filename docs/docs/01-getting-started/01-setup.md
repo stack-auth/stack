@@ -19,7 +19,15 @@ To add Stack to a newly created or an existing project, you can run Stack's inst
 npx @stackframe/init-stack@latest
 ```
 
-You will be guided through the installation process. After that, you'll be able to see the Stack sign-up page at [https://your-website.example.com/handler/signup](http://localhost:3000/handler/signup).
+You will be guided through the installation process. To complete it, you must create an account on [our dashboard](https://app.stack-auth/projects), create a new project with an API key, and copy the project ID, publishable client key, and secret server key into the `.env.local` file in the root of your Next.js project:
+
+```sh
+NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
+STACK_SECRET_SERVER_KEY=<your-secret-server-key>
+```
+
+After that, you'll be able to see the Stack sign-up page at [https://your-website.example.com/handler/signup](http://localhost:3000/handler/signup).
 
 ## Manual installation
 
