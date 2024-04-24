@@ -44,14 +44,14 @@ jobs:
           DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
           EOF
           
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
       - name: Initialize database
         run: pnpm run prisma:server -- migrate reset
 
-      - name: Install dependencies
-        run: pnpm install
       - name: Build
         run: pnpm build
   
