@@ -50,4 +50,4 @@ jobs:
       - name: Build
         run: pnpm build:server
       - name: Start server & run tests
-        run: pnpm -C packages/stack-server start & npx wait-on http://localhost:8101 && pnpm -C apps/e2e test:ci
+        run: pnpm -C packages/stack-server start & npx wait-on@7.2.0 http://localhost:8101 && pnpm -C apps/e2e test:ci
