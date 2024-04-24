@@ -40,8 +40,8 @@ jobs:
           EMAIL_PASSWORD=some-password
           EMAIL_SENDER=noreply@example.com
     
-          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
-          DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+          DATABASE_CONNECTION_STRING=postgres://postgres:password@localhost:5432/stackframe
+          DIRECT_DATABASE_CONNECTION_STRING=postgres://postgres:password@localhost:5432/stackframe
           EOF
           
       - name: Install dependencies
