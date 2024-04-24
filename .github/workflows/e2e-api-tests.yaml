@@ -50,7 +50,7 @@ jobs:
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
       - name: Initialize database
-        run: pnpm run prisma:server -- migrate reset
+        run: pnpm run prisma:server -- migrate reset --force
 
       - name: Build
         run: pnpm build
