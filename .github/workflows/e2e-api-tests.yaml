@@ -27,7 +27,7 @@ jobs:
             
       - name: Create .env.local file for stack-server
         run: |
-          cat > .env.local <<EOF
+          cat > packages/stack-server/.env.local <<EOF
           NEXT_PUBLIC_STACK_URL=http://localhost:8101
           NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=internal-project-client-api-key
           STACK_SECRET_SERVER_KEY=internal-project-server-api-key
