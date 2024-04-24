@@ -30,7 +30,7 @@ jobs:
             version: 8
       - name: Install dependencies
         run: pnpm install
-      - name: Lint
-        run: pnpm lint
       - name: Build
         run: pnpm build
+      - name: Lint
+        run: pnpm lint
