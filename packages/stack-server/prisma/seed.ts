@@ -1,4 +1,5 @@
-const { PrismaClient } = require('@prisma/client');  // must use require due to ts-node shenanigans
+import { PrismaClient } from '@prisma/client';
+import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 const prisma = new PrismaClient();
 
 
@@ -37,11 +38,11 @@ async function seed() {
         create: {
           allowLocalhost: true,
           oauthProviderConfigs: {
-            create: ['github', 'facebook', 'google', 'microsoft'].map((id) => ({
+            create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
               id,
               proxiedOAuthConfig: {
                 create: {                
-                  type: id.toUpperCase(),
+                  type: typedToUppercase(id),
                 }
               },
               projectUserOAuthAccounts: {

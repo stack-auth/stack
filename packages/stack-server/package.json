@@ -25,7 +25,7 @@
     "todo-sh-error-blocker": "( echo && echo ========================================= && echo There are TODO\\ ASAPs in your code, please && echo review them with '`npm run todo`'. && echo && echo Press ENTER or wait 10s to continue. && echo ========================================= && echo && bash -c 'read -t 10'; exit 1 ) 1>&2"
   },
   "prisma": {
-    "seed": "npm run with-env -- ts-node prisma/seed.ts"
+    "seed": "npm run with-env -- tsx prisma/seed.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -77,6 +77,6 @@
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
     "prisma": "^5.9.1",
-    "ts-node": "^10.9.2"
+    "tsx": "^4.7.2"
   }
 }
