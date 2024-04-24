@@ -1,5 +1,14 @@
 # @stackframe/stack-server
 
+## 0.3.3
+
+### Patch Changes
+
+- Magic link configuration
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.2
+  - @stackframe/stack@2.3.3
+
 ## 0.3.2
 
 ### Patch Changes
