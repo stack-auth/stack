@@ -7,6 +7,8 @@ sidebar_position: 1
 
 `useUser` is a hook that returns the user object if the user is authenticated; otherwise, it returns `null` by default. However, if you pass in `{ or: "redirect" }` or `{ or: "throw" }` as an option, it will redirect to the login page or throw an error respectively when the user is not authenticated.
 
+If you want to learn more about the `User` object, check out the [User](./02-user.md) documentation.
+
 ## Default Usage
 
 Check if the user is authenticated and display the user's name.
