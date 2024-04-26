@@ -786,7 +786,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         };
       },
       setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
-        this._currentUserCache.forceSetCachedValueAsync([getTokenStore(this._tokenStoreOptions)], userJsonPromise);
+        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([getTokenStore(this._tokenStoreOptions)], userJsonPromise));
       },
     };
   };
