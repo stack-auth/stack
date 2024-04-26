@@ -61,7 +61,7 @@ function ProfileSection() {
       }}
     >
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <UserAvatar size={60}/>
+        <UserAvatar user={user} size={60}/>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Text size='lg'>{user?.displayName}</Text>
           <Text variant='secondary' size='sm'>{user?.primaryEmail}</Text>

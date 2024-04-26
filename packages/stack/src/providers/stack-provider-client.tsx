@@ -1,18 +1,20 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { StackClientApp, StackClientAppJson, stackAppInternalsSymbol } from "../lib/stack-app";
 import React from "react";
+import { UserJson } from "@stackframe/stack-shared";
+import { useStackApp } from "..";
 
 export const StackContext = React.createContext<null | {
   app: StackClientApp<true>,
 }>(null);
 
 export function StackProviderClient(props: {
-  appJsonPromise: Promise<StackClientAppJson<true, string>>,
+  appJson: StackClientAppJson<true, string>,
   children?: React.ReactNode,
 }) {
-  const appJson = use(props.appJsonPromise);
+  const appJson = props.appJson;
   const app = StackClientApp[stackAppInternalsSymbol].fromClientJson(appJson);
 
   if (process.env.NODE_ENV === "development") {
@@ -24,4 +26,13 @@ export function StackProviderClient(props: {
       {props.children}
     </StackContext.Provider>
   );
+}
+
+export function UserSetter(props: { userJsonPromise: Promise<UserJson | null> }) {
+  const app = useStackApp();
+  useEffect(() => {
+    const promise = (async () => await props.userJsonPromise)();  // there is a Next.js bug where Promises passed by server components return `undefined` as their `then` value, so wrap it in a normal promise
+    app[stackAppInternalsSymbol].setCurrentUser(promise);
+  }, []);
+  return null;
 }

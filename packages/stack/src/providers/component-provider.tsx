@@ -21,6 +21,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../components-core/avatar';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components-core/collapsible';
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '../components-core/tabs';
+import { Skeleton } from '../components-core/skeleton';
 
 export const Components = {
   Input,
@@ -53,6 +54,7 @@ export const Components = {
   TabsList,
   TabsContent,
   TabsTrigger,
+  Skeleton,
 } as const;
 
 export type ComponentConfig = {
