@@ -1,5 +1,12 @@
 # dev-app
 
+## 1.0.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.3.4
+
 ## 1.0.19
 
 ### Patch Changes

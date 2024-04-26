@@ -1,5 +1,13 @@
 # @stackframe/stack-server
 
+## 0.3.4
+
+### Patch Changes
+
+- E2E tests and various fixes
+- Updated dependencies
+  - @stackframe/stack@2.3.4
+
 ## 0.3.3
 
 ### Patch Changes
