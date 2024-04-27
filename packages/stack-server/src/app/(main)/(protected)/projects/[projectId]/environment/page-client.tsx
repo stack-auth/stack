@@ -9,7 +9,7 @@ import { Enumeration, EnumerationItem } from "@/components/enumeration";
 import { SmartLink } from "@/components/smart-link";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../use-admin-app";
+import { useAdminApp } from "../use-admin-app";
 
 export default function EnvironmentClient() {
   const stackAdminApp = useAdminApp();

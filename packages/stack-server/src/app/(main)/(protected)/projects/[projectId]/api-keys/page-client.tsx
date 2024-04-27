@@ -6,7 +6,7 @@ import { AsyncButton } from "@/components/async-button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
 import { ApiKeysTable } from "./api-keys-table";
-import { useAdminApp } from "../../use-admin-app";
+import { useAdminApp } from "../use-admin-app";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import EnvKeys from "@/components/env-keys";
 import { SmartLink } from "@/components/smart-link";

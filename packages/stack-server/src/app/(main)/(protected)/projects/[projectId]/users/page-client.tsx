@@ -2,7 +2,7 @@
 
 import { Paragraph } from "@/components/paragraph";
 import { UsersTable } from "./users-table";
-import { useAdminApp } from "../../use-admin-app";
+import { useAdminApp } from "../use-admin-app";
 import { Alert } from "@mui/joy";
 import { SmartLink } from "@/components/smart-link";
 

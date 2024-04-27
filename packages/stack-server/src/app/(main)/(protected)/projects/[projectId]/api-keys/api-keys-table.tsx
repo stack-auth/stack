@@ -4,7 +4,7 @@ import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Box, Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
 import { Dialog } from '@/components/dialog';
-import { useAdminApp } from '../../use-admin-app';
+import { useAdminApp } from '../use-admin-app';
 import { ApiKeySet } from '@stackframe/stack';
 
 export function ApiKeysTable(props: {

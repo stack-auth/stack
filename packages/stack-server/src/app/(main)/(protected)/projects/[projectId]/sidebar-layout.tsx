@@ -9,27 +9,32 @@ import { Icon } from '@/components/icon';
 const navigationItems = [
   {
     name: "Users",
-    href: "/auth/users",
+    href: "/users",
     icon: <Icon icon="people_outline" />,
   },
   {
+    name: "Organizations",
+    href: "/organizations",
+    icon: <Icon icon="business" />,
+  },
+  {
     name: "Auth Methods",
-    href: "/auth/providers",
+    href: "/providers",
     icon: <Icon icon="security" />,
   },
   {
     name: "Domains & Handlers",
-    href: "/auth/urls-and-callbacks",
+    href: "/urls-and-callbacks",
     icon: <Icon icon="link" />,
   },
   {
     name: "Environment",
-    href: "/settings/environment",
+    href: "/environment",
     icon: <Icon icon="list_alt" />,
   },
   {
     name: "API Keys",
-    href: "/settings/api-keys",
+    href: "/api-keys",
     icon: <Icon icon="key" />,
   },
 ];

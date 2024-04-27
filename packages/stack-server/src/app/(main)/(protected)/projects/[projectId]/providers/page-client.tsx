@@ -4,7 +4,7 @@ import { AccordionGroup, Card, CardOverflow } from "@mui/joy";
 import { Paragraph } from "@/components/paragraph";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../use-admin-app";
+import { useAdminApp } from "../use-admin-app";
 import { ProviderAccordion, availableProviders } from "./provider-accordion";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 
