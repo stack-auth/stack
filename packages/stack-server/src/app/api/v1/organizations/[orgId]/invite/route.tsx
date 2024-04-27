@@ -6,7 +6,6 @@ import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 
 const getSchema = yup.object({
-  method: yup.string().oneOf(["GET", "PUT"]).required(),
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.required(),
@@ -16,7 +15,6 @@ const getSchema = yup.object({
 
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { orgId: string } }) => {
   const {
-    method,
     headers: {
       authorization,
       "x-stack-project-id": projectId,
@@ -35,10 +33,10 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     throw new StatusError(StatusError.NotFound);
   }
 
-  // if (!hasPermission(userId, projectId, orgId, Permission.ReadOrganizationUsers)) {
+  // if (!hasPermission(userId, projectId, orgId, Permission.InviteUsers)) {
   //   throw new StatusError(StatusError.Forbidden);
   // }
   
-  // await listOrganizationUsers(userId, projectId, orgId);
+  // await updateOrganization(userId, projectId, orgId, { displayName });
   return NextResponse.json({});
 });
