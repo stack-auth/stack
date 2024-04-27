@@ -43,16 +43,4 @@ const Skeleton = React.forwardRef<
 );
 Skeleton.displayName = "Skeleton";
 
-
-export function Abc() {
-
-  return <>
-    <style>
-      .kljahsdflkjshdfjklashjlkdfjlhkasdfhjlks {
-
-      }
-    </style>
-  </>;
-}
-
 export { Skeleton };
