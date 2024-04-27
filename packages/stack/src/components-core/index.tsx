@@ -68,3 +68,4 @@ export const Tabs = createDynamicComponent('Tabs');
 export const TabsList = createDynamicComponent('TabsList');
 export const TabsContent = createDynamicComponent('TabsContent');
 export const TabsTrigger = createDynamicComponent('TabsTrigger');
+export const Skeleton = createDynamicComponent('Skeleton');

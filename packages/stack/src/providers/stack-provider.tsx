@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { StackClientApp, stackAppInternalsSymbol } from '../lib/stack-app';
-import { StackProviderClient } from './stack-provider-client';
+import { StackProviderClient, UserSetter } from './stack-provider-client';
 
 
 export default function StackProvider({
@@ -11,8 +11,16 @@ export default function StackProvider({
   app: StackClientApp<true>,
 }) {
   return (
-    <StackProviderClient appJsonPromise={app[stackAppInternalsSymbol].toClientJson()}>
+    <StackProviderClient appJson={app[stackAppInternalsSymbol].toClientJson()}>
+      <Suspense fallback={null}>
+        <UserFetcher app={app} />
+      </Suspense>
       {children}
     </StackProviderClient>
   );
+}
+
+function UserFetcher(props: { app: StackClientApp<true> }) {
+  const userPromise = props.app.getUser().then((user) => user?.toJson() ?? null);
+  return <UserSetter userJsonPromise={userPromise} />;
 }

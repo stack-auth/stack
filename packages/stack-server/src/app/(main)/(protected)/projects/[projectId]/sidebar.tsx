@@ -136,7 +136,7 @@ export function Sidebar(props: {
           <Divider sx={{ mt: 1 }} />
       
           <Box sx={{ py: 1 }}>
-            <UserButton showUserInfo />
+            <UserButton showUserInfo showColorMode />
           </Box>
         </Stack>
       </Stack>

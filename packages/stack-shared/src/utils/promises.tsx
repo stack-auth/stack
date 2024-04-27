@@ -83,6 +83,7 @@ export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?
 }
 
 function createReactPromiseErrorWrapper(error: unknown): Error {
+  console.log("AGHH", error);
   return new ReactPromiseErrorWrapper(error);
 }
 
@@ -91,7 +92,7 @@ class ReactPromiseErrorWrapper extends StackAssertionError {
   constructor(public readonly error: unknown) {
     const wrappedErrorMessage = error instanceof ReactPromiseErrorWrapper ? error.wrappedErrorMessage : `${error}`;
     super(
-      `Error occured while creating a ReactPromise: ${wrappedErrorMessage}\n\nSee the \`cause\` property for the original error. This error is a wrapper around the original error to preserve the stack trace (which would go lost when using Stack's pending(...) or rejected(...) functions).`,
+      `Error occured in a ReactPromise: ${wrappedErrorMessage}\n\nSee the \`cause\` property for the original error. This error is a wrapper around the original error to preserve the stack trace (which would go lost when using Stack's pending(...) or rejected(...) functions).`,
       { cause: error }
     );
     this.wrappedErrorMessage = wrappedErrorMessage;
