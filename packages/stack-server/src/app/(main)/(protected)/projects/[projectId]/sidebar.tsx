@@ -10,8 +10,8 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './use-admin-app';
 import { usePathname } from 'next/navigation';
-import { UserButton, useUser } from '@stackframe/stack';
-import { useColorScheme, Stack, Sheet } from '@mui/joy';
+import { UserButton } from '@stackframe/stack';
+import { Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Logo } from '@/components/logo';
 
@@ -62,7 +62,7 @@ function SidebarItem({
 export function Sidebar(props: { 
   isCompactMediaQuery: string,
   headerHeight: number, 
-  navigationItems: { name: string, href: string, icon: React.ReactNode }[],
+  navigationItems: { name: string, href?: string, icon?: React.ReactNode }[],
   mode: 'compact' | 'full',
 }) {
   const stackAdminApp = useAdminApp();
@@ -116,12 +116,21 @@ export function Sidebar(props: {
           >
             <List size="sm" sx={{ gap: 0.25  }}>
               {navigationItems.map((item) => (
-                <SidebarItem 
-                  key={item.name} 
-                  title={item.name} 
-                  icon={item.icon} 
-                  href={basePath + item.href}
-                />
+                item.href ? 
+                  <SidebarItem 
+                    key={item.name} 
+                    title={item.name} 
+                    icon={item.icon} 
+                    href={basePath + item.href}
+                  /> : 
+                  <Typography 
+                    key={item.name} 
+                    level="title-sm" 
+                    color="neutral"
+                    sx={{ my: 1 }}
+                  >
+                    {item.name}
+                  </Typography>
               ))}
               <Box style={{ flexGrow: 1 }}/>
               <SidebarItem

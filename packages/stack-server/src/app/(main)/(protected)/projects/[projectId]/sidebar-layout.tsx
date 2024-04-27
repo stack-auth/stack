@@ -8,6 +8,9 @@ import { Icon } from '@/components/icon';
 
 const navigationItems = [
   {
+    name: "Management",
+  },
+  {
     name: "Users",
     href: "/users",
     icon: <Icon icon="people_outline" />,
@@ -16,6 +19,9 @@ const navigationItems = [
     name: "Organizations",
     href: "/organizations",
     icon: <Icon icon="business" />,
+  },
+  {
+    name: "Settings",
   },
   {
     name: "Auth Methods",

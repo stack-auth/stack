@@ -85,7 +85,7 @@ export function Header(props: SheetProps & {
   headerHeight: number,
   isCompactMediaQuery: string,
   onShowSidebar: () => void,
-  navigationItems: { name: string, href: string, icon: React.ReactNode }[],
+  navigationItems: { name: string, href?: string, icon?: React.ReactNode }[],
 }) {
   const stackAdminApp = useAdminApp();
   const { isCompactMediaQuery, onShowSidebar, navigationItems, headerHeight, ...sheetProps } = props;
