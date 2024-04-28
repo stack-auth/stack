@@ -12,7 +12,7 @@ export default function ClientPage() {
         Organization Permissions
       </Paragraph>
 
-      <PermissionsTable rows={mockPermissions} />
+      <PermissionsTable rows={mockPermissions as any} />
     </>
   );
 }
