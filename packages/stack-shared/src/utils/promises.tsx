@@ -83,7 +83,6 @@ export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?
 }
 
 function createReactPromiseErrorWrapper(error: unknown): Error {
-  console.log("AGHH", error);
   return new ReactPromiseErrorWrapper(error);
 }
 
