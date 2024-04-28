@@ -1,23 +1,45 @@
 import { 
   ClientInterfaceOptions, 
-  UserCustomizableJson, 
   UserJson, 
   TokenStore, 
   StackClientInterface,
-  ReadonlyTokenStore, 
+  ReadonlyTokenStore,
+  OrglikeJson,
+  UserUpdateJson,
+  PermissionJson,
+  PermissionScopeJson,
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
 
 export type ServerUserJson = UserJson & {
   readonly serverMetadata: ReadonlyJson,
+  readonly organization: ServerOrganizationJson | null,
 };
 
-export type ServerUserCustomizableJson = UserCustomizableJson & {
-  readonly serverMetadata: ReadonlyJson,
-  readonly primaryEmail: string | null,
-  readonly primaryEmailVerified: boolean,
+export type ServerUserUpdateJson = UserUpdateJson & {
+  readonly serverMetadata?: ReadonlyJson,
+  readonly primaryEmail?: string | null,
+  readonly primaryEmailVerified?: boolean,
+  readonly organizationId?: string | null,
 }
+
+export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName">;
+export type ServerOrglikeJson = OrglikeJson & {};
+
+export type ServerOrganizationCustomizableJson = ServerOrglikeCustomizableJson;
+export type ServerOrganizationJson = ServerOrglikeJson;
+
+export type ServerPermissionCreateJson = {
+  readonly databaseUniqueId: string,
+  readonly id: string,
+  readonly scope: PermissionScopeJson,
+  readonly displayName: string,
+  readonly description: string,
+  readonly inheritFromPermissionIds: string[],
+};
+
+export type ServerPermissionJson = PermissionJson & ServerPermissionCreateJson & {};
 
 
 export type ServerAuthApplicationOptions = (
@@ -68,7 +90,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async setServerUserCustomizableData(userId: string, update: Partial<ServerUserCustomizableJson>) {
+  async setServerUserCustomizableData(userId: string, update: ServerUserUpdateJson) {
     await this.sendServerRequest(
       `/users/${userId}?server=true`,
       {

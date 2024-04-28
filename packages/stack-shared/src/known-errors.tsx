@@ -1,3 +1,4 @@
+import { PermissionJson, PermissionScopeJson } from "./interface/clientInterface";
 import { StatusError, throwErr, throwStackErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
@@ -675,6 +676,67 @@ const EmailAlreadyVerified = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const PermissionNotFound = createKnownErrorConstructor(
+  KnownError,
+  "PERMISSION_NOT_FOUND",
+  (permissionId: string) => [
+    404,
+    `Permission ${permissionId} not found. Make sure you created it on the dashboard.`,
+    {
+      permissionId,
+    },
+  ] as const,
+  (json: any) => [json.details.permissionId] as const,
+);
+
+const PermissionScopeMismatch = createKnownErrorConstructor(
+  KnownError,
+  "PERMISSION_SCOPE_MISMATCH",
+  (permissionId: string, permissionScope: PermissionScopeJson, testScope: PermissionScopeJson) => {
+    return [
+      400,
+      `The scope of the permission with ID ${permissionId} is \`${permissionScope.type}\` but you tested against permissions of scope \`${testScope.type}\`. ${{
+        "global": `Please don't specify any organizations when using global permissions. For example: \`user.hasPermission(${JSON.stringify(permissionId)})\`.`,
+        "any-organization": `Please specify the organization. For example: \`user.hasPermission(organization, ${JSON.stringify(permissionId)})\`.`,
+        "specific-organization": `Please specify the organization. For example: \`user.hasPermission(organization, ${JSON.stringify(permissionId)})\`.`,
+      }[permissionScope.type]}`,
+      {
+        permissionId,
+        permissionScope,
+        testScope,
+      },
+    ] as const;
+  },
+  (json: any) => [json.details.permissionId, json.details.permissionScope, json.details.testScope] as const,
+);
+
+const UserNotInOrganization = createKnownErrorConstructor(
+  KnownError,
+  "USER_NOT_IN_ORGANIZATION",
+  (userId: string, organizationId: string) => [
+    400,
+    `User ${userId} is not in organization ${organizationId}.`,
+    {
+      userId,
+      organizationId,
+    },
+  ] as const,
+  (json: any) => [json.details.userId, json.details.organizationId] as const,
+);
+
+const OrganizationNotFound = createKnownErrorConstructor(
+  KnownError,
+  "ORGANIZATION_NOT_FOUND",
+  (organizationId: string) => [
+    404,
+    `Organization ${organizationId} not found.`,
+    {
+      organizationId,
+    },
+  ] as const,
+  (json: any) => [json.details.organizationId] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -737,6 +799,9 @@ export const KnownErrors = {
   PasswordResetCodeAlreadyUsed,
   PasswordMismatch,
   EmailAlreadyVerified,
+  PermissionNotFound,
+  PermissionScopeMismatch,
+  OrganizationNotFound,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

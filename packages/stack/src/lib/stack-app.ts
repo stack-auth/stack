@@ -1,12 +1,12 @@
 import React, { use, useCallback, useMemo } from "react";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, OrganizationJson, UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
 import { RedirectType, redirect, useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import { neverResolve, resolved, runAsynchronously } from "@stackframe/stack-sha
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
+import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -130,6 +131,19 @@ function createEmptyTokenStore() {
     accessToken: null,
   });
   return store;
+}
+
+function organizationFromJson(json: OrganizationJson | null): Organization | null {
+  if (json === null) return null;
+
+  return {
+    id: json.id,
+    displayName: json.displayName,
+    createdAt: new Date(json.createdAtMillis),
+    toJson() {
+      return json;
+    },
+  };
 }
 
 const memoryTokenStore = createEmptyTokenStore();
@@ -353,6 +367,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      organization: organizationFromJson(json.organization),
       toJson() {
         return json;
       }
@@ -418,6 +433,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
+      organization: user.organization?.toJson() ?? null,
     };
   }
 
@@ -587,7 +603,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected async _updateUser(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
+  protected async _updateUser(update: UserUpdateJson, tokenStore: TokenStore) {
     const res = await this._interface.setClientUserCustomizableData(update, tokenStore);
     await this._refreshUser(tokenStore);
     return res;
@@ -861,7 +877,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUsers();
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await app._interface.setServerUserCustomizableData(this.id, update);
         await app._refreshUsers();
         return res;
@@ -889,7 +905,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(tokenStore);
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await nonCurrentServerUser.update(update);
         await app._refreshUser(tokenStore);
         return res;
@@ -947,6 +963,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
+      organization: user.organization?.toJson() ?? null,
     };
   }
 
@@ -1150,7 +1167,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
-  update(this: T, user: Partial<C>): Promise<void>,
+  update(this: T, user: C): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
@@ -1188,10 +1205,12 @@ export type User = {
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
 
+  readonly organization: Organization | null,
+
   toJson(this: CurrentUser): UserJson,
 };
 
-export type CurrentUser = Auth<User, UserCustomizableJson> & User;
+export type CurrentUser = Auth<User, UserUpdateJson> & User;
 
 export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
 
@@ -1209,11 +1228,11 @@ export type ServerUser = Omit<User, "toJson"> & {
 
   toJson(this: ServerUser): ServerUserJson,
 
-  update(this: ServerUser, user: Partial<ServerUserCustomizableJson>): Promise<void>,
+  update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
   delete(this: ServerUser): Promise<void>,
 };
 
-export type CurrentServerUser = Auth<ServerUser, ServerUserCustomizableJson> & Omit<ServerUser, "getClientUser"> & {
+export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
   getClientUser(this: CurrentServerUser): CurrentUser,
 };
 
@@ -1242,6 +1261,15 @@ export type Project = {
 
   getProductionModeErrors(this: Project): ProductionModeError[],
 };
+
+export type Organization = {
+  readonly id: string,
+  readonly displayName: string,
+  readonly createdAt: Date,
+  toJson(this: Organization): OrganizationJson,
+};
+
+export type ServerOrganization = Organization;
 
 export type ApiKeySetBase = {
   id: string,

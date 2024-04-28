@@ -7,13 +7,13 @@ import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
 
-export type UserCustomizableJson = {
-  readonly projectId: string,
+type UserCustomizableJson = {
   readonly displayName: string | null,
   readonly clientMetadata: ReadonlyJson,
 };
 
 export type UserJson = UserCustomizableJson & {
+  readonly projectId: string,
   readonly id: string,
   readonly primaryEmail: string | null,
   readonly primaryEmailVerified: boolean,
@@ -21,11 +21,17 @@ export type UserJson = UserCustomizableJson & {
   readonly clientMetadata: ReadonlyJson,
   readonly profileImageUrl: string | null,
   readonly signedUpAtMillis: number,
-  readonly authMethod: "credential" | "oauth", // not used anymore, for backwards compatibility
+  /**
+   * not used anymore, for backwards compatibility
+   */
+  readonly authMethod: "credential" | "oauth",
   readonly hasPassword: boolean,
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
+  readonly organization: OrganizationJson | null,
 };
+
+export type UserUpdateJson = Partial<UserCustomizableJson>;
 
 export type ClientProjectJson = {
   readonly id: string,
@@ -138,6 +144,25 @@ export type DomainConfigJson = {
 export type ProductionModeError = {
   errorMessage: string,
   fixUrlRelative: string,
+};
+
+
+export type OrglikeJson = {
+  id: string,
+  displayName: string,
+  createdAtMillis: number,
+};
+
+export type OrganizationJson = OrglikeJson;
+
+export type PermissionScopeJson =
+  | { type: "global" }
+  | { type: "any-organization" }
+  | { type: "specific-organization", organizationId: string };
+
+export type PermissionJson = {
+  id: string,
+  scope: PermissionScopeJson,
 };
 
 export class StackClientInterface {
@@ -728,7 +753,7 @@ export class StackClientInterface {
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
+  async setClientUserCustomizableData(update: UserUpdateJson, tokenStore: TokenStore) {
     await this.sendClientRequest(
       "/current-user",
       {

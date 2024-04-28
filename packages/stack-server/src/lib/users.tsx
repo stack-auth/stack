@@ -1,8 +1,11 @@
-import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJson } from "@stackframe/stack-shared";
-import { ProjectUser } from "@prisma/client";
+import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
+import { Organization, ProjectUser } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { fullOrganizationInclude } from "./organizations";
+import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -20,17 +23,20 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
     include: {
       project: {
         include: fullProjectInclude,
-      }
+      },
+      organization: {
+        include: fullOrganizationInclude,
+      },
     },
   });
 
-  return users.map((u) => getServerUserFromDbType(u, u.project));
+  return users.map((u) => getServerUserFromDbType(u, u.project, u.organization));
 }
 
 export async function updateClientUser(
   projectId: string,
   userId: string,
-  update: Partial<UserCustomizableJson>,
+  update: UserUpdateJson,
 ): Promise<UserJson | null> {
   const user = await updateServerUser(
     projectId,
@@ -50,7 +56,7 @@ export async function updateClientUser(
 export async function updateServerUser(
   projectId: string,
   userId: string,
-  update: Partial<ServerUserCustomizableJson>,
+  update: ServerUserUpdateJson,
 ): Promise<ServerUserJson | null> {
   let user;
   try {
@@ -64,7 +70,10 @@ export async function updateServerUser(
       include: {
         project: {
           include: fullProjectInclude,
-        }
+        },
+        organization: {
+          include: fullOrganizationInclude,
+        },
       },
       data: filterUndefined({
         displayName: update.displayName,
@@ -82,7 +91,7 @@ export async function updateServerUser(
     throw e;
   }
 
-  return getServerUserFromDbType(user, user.project);
+  return getServerUserFromDbType(user, user.project, user.organization);
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
@@ -110,12 +119,18 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     authWithEmail: serverUser.authWithEmail,
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
+    organization: serverUser.organization ? {
+      id: serverUser.organization.id,
+      displayName: serverUser.organization.displayName,
+      createdAtMillis: serverUser.organization.createdAtMillis,
+    } : null,
   };
 }
 
 function getServerUserFromDbType(
   projectUser: ProjectUser, 
   projectDB: ProjectDB,
+  organization: Organization | null,
 ): ServerUserJson {
   const projectJson = projectJsonFromDbType(projectDB);
 
@@ -133,5 +148,10 @@ function getServerUserFromDbType(
     hasPassword: !!projectUser.passwordHash,
     authWithEmail: projectUser.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
+    organization: organization ? {
+      id: organization.organizationId,
+      displayName: organization.displayName,
+      createdAtMillis: organization.createdAt.getTime(),
+    } : null,
   };
 }
