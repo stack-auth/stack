@@ -118,13 +118,13 @@ export function Sidebar(props: {
               {navigationItems.map((item) => (
                 item.href ? 
                   <SidebarItem 
-                    key={item.name} 
+                    key={item.name + '-item'}
                     title={item.name} 
                     icon={item.icon} 
                     href={basePath + item.href}
                   /> : 
                   <Typography 
-                    key={item.name} 
+                    key={item.name + '-label'}
                     level="title-sm" 
                     color="neutral"
                     sx={{ my: 1 }}

@@ -74,11 +74,11 @@ function getDefaultPublishableClientKey() {
 }
 
 function getDefaultSecretServerKey() {
-  return process.env.STACK_SECRET_SERVER_KEY || throwErr("No secret server key provided. Please copy your publishable client key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable.");
+  return process.env.STACK_SECRET_SERVER_KEY || throwErr("No secret server key provided. Please copy your key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable.");
 }
 
 function getDefaultSuperSecretAdminKey() {
-  return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your publishable client key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
+  return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
 }
 
 function getDefaultBaseUrl() {

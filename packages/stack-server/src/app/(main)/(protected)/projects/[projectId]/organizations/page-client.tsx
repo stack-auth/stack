@@ -1,15 +1,21 @@
 "use client";
 
 import { Paragraph } from "@/components/paragraph";
-import { Alert } from "@mui/joy";
-import { SmartLink } from "@/components/smart-link";
+import { OrganizationTable } from "./organization-table";
+import { useMockOrgs } from "./mock-org";
 
 
-export default function UsersDashboardClient() {
+export default function ClientPage() {
+  const mockOrgs = useMockOrgs();
+  
   return (
     <>
       <Paragraph h1>
         Organizations
+      </Paragraph>
+
+      <Paragraph body>
+        <OrganizationTable rows={mockOrgs} />
       </Paragraph>
     </>
   );

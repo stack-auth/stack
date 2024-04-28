@@ -8,7 +8,7 @@ import { Icon } from '@/components/icon';
 
 const navigationItems = [
   {
-    name: "Management",
+    name: "Users",
   },
   {
     name: "Users",
@@ -16,17 +16,25 @@ const navigationItems = [
     icon: <Icon icon="people_outline" />,
   },
   {
+    name: "Auth Methods",
+    href: "/providers",
+    icon: <Icon icon="security" />,
+  },
+  {
+    name: "Organizations",
+  },
+  {
     name: "Organizations",
     href: "/organizations",
     icon: <Icon icon="business" />,
   },
   {
-    name: "Settings",
+    name: "Permissions",
+    href: "/organization-permissions",
+    icon: <Icon icon="lock" />,
   },
   {
-    name: "Auth Methods",
-    href: "/providers",
-    icon: <Icon icon="security" />,
+    name: "Settings",
   },
   {
     name: "Domains & Handlers",

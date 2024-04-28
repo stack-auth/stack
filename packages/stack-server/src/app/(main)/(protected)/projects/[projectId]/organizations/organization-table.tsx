@@ -9,36 +9,17 @@ import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
+import { ServerOrganizaiton } from './mock-org';
 
-export function UsersTable(props: {
-  rows: ServerUser[],
+export function OrganizationTable(props: {
+  rows: ServerOrganizaiton[],
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
 
   const columns: (GridColDef & {
-    stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
+    stackOnProcessUpdate?: (updatedRow: ServerOrganizaiton, oldRow: ServerOrganizaiton) => Promise<void>,
   })[] = [
-    {
-      field: 'profilePicture',
-      headerName: 'Profile picture',
-      renderHeader: () => <></>,
-      width: 50,
-      filterable: false,
-      sortable: false,
-      renderCell: (params) => params.row.profileImageUrl ? (
-        <Avatar size='sm' src={params.row.profileImageUrl} alt={`${params.row.displayName}'s profile picture`} />
-      ) : (
-        <Avatar size='sm'>{
-          params.row.displayName
-            ?.split(/\s/)
-            .map((x: string) => x[0])
-            .filter((x: string) => x)
-            .join("")
-        }</Avatar>
-      ),
-    },
     {
       field: 'id',
       headerName: 'ID',
@@ -49,45 +30,10 @@ export function UsersTable(props: {
       headerName: 'Display name',
       width: 150,
       flex: 1,
-      // editable: true,
-      // stackOnProcessUpdate: async (updatedRow, originalRow) => {
-      //   if (updatedRow.displayName !== originalRow.displayName) {
-      //     await originalRow.update({ displayName: updatedRow.displayName });
-      //   }
-      // },
     },
     {
-      field: 'primaryEmail',
-      headerName: 'E-Mail',
-      width: 200,
-      // editable: true,
-      // stackOnProcessUpdate: async (updatedRow, originalRow) => {
-      //   if (updatedRow.primaryEmail !== originalRow.primaryEmail) {
-      //     await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
-      //   }
-      // },
-      renderCell: (params) => (
-        <>
-          <Box display="block" minWidth={0} overflow="hidden" textOverflow="ellipsis">
-            {params.row.primaryEmail}
-          </Box>
-          {!params.row.primaryEmailVerified && (
-            <>
-              <Box width={4} flexGrow={0} />
-              <Tooltip title="Unverified e-mail">
-                <Stack>
-                  <Icon icon='error' color="red" size={18} />
-                </Stack>
-              </Tooltip>
-              <Box width={0} flexGrow={1} />
-            </>
-          )}
-        </>
-      ),
-    },
-    {
-      field: 'signedUpAt',
-      headerName: 'Signed up',
+      field: 'createdAt',
+      headerName: 'Created at',
       type: 'dateTime',
       width: 200,
     },
@@ -98,7 +44,8 @@ export function UsersTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} />
+        // <Actions key="more_actions" params={params} />
+        <Box key='x'/>
       ],
     },
   ];
@@ -169,7 +116,7 @@ function Actions(props: { params: any }) {
         </Menu>
       </Dropdown>
 
-      <EditUserModal
+      <EditOrganizationModal
         user={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -195,7 +142,7 @@ function Actions(props: { params: any }) {
 }
 
 
-function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => void }) {
+function EditOrganizationModal(props: { user: ServerOrganizaiton, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);
