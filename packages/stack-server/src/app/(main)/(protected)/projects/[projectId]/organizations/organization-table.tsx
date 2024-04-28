@@ -123,11 +123,11 @@ function Actions(props: { params: any }) {
         </Menu>
       </Dropdown>
 
-      {/* <EditOrganizationModal
-        user={props.params.row}
+      <EditOrganizationModal
+        org={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-      /> */}
+      />
 
       <Dialog
         title
@@ -149,7 +149,7 @@ function Actions(props: { params: any }) {
 }
 
 
-function EditOrganizationModal(props: { user: ServerOrganizaiton, open: boolean, onClose: () => void }) {
+function EditOrganizationModal(props: { org: ServerOrganizaiton, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -160,7 +160,7 @@ function EditOrganizationModal(props: { user: ServerOrganizaiton, open: boolean,
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
-          Edit user
+          Edit Organization
         </DialogTitle>
         <Divider />
         <DialogContent>
@@ -172,12 +172,9 @@ function EditOrganizationModal(props: { user: ServerOrganizaiton, open: boolean,
                 try {
                   const formData = new FormData(event.currentTarget);
                   const formJson = {
-                    displayName: `${formData.get('displayName')}` || null,
-                    primaryEmail: `${formData.get('email')}` || null,
-                    primaryEmailVerified: formData.get('primaryEmailVerified') === "on",
-                    signedUpAtMillis: new Date(formData.get('signedUpAt') as string).getTime(),
+                    displayName: `${formData.get('displayName')}` || undefined,
                   };
-                  await props.user.update(formJson);
+                  await props.org.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -188,28 +185,11 @@ function EditOrganizationModal(props: { user: ServerOrganizaiton, open: boolean,
           >
             <Stack spacing={2}>
               <Box>
-                    ID: {props.user.id}
+                    ID: {props.org.id}
               </Box>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="displayName">Display name</FormLabel>
-                <Input name="displayName" placeholder="Display name" defaultValue={props.user.displayName ?? ""} required />
-              </FormControl>
-              <Stack direction="row" spacing={2} alignItems="flex-end">
-                <Box flexGrow={1}>
-                  <FormControl disabled={isSaving}>
-                    <FormLabel htmlFor="email">E-Mail</FormLabel>
-                    <Input name="email" type="email" placeholder="E-Mail" defaultValue={props.user.primaryEmail ?? ""} required />
-                  </FormControl>
-                </Box>
-                <Stack height={36} justifyContent="center">
-                  <FormControl disabled={isSaving}>
-                    <Checkbox name="primaryEmailVerified" defaultChecked={props.user.primaryEmailVerified} label="Verified" />
-                  </FormControl>
-                </Stack>
-              </Stack>
-              <FormControl disabled={isSaving}>
-                <FormLabel htmlFor="signedUpAt">Signed up</FormLabel>
-                <Input name="signedUpAt" type="datetime-local" defaultValue={getInputDatetimeLocalString(props.user.signedUpAt)} required />
+                <Input name="displayName" placeholder="Display name" defaultValue={props.org.displayName ?? ""} required />
               </FormControl>
             </Stack>
           </form>
