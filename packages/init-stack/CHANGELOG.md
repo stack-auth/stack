@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 1.0.3
+
+### Patch Changes
+
+- Partial pre-rendering
+
 ## 1.0.2
 
 ### Patch Changes

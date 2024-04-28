@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.3.5
+
+### Patch Changes
+
+- Partial pre-rendering
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.3
+
 ## 2.3.4
 
 ### Patch Changes
