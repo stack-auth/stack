@@ -121,7 +121,9 @@ class AsyncValueCache<T> {
   }
 
   private _setAsync(value: Promise<T>): ReactPromise<boolean> {
-    return pending(this._store.setAsync(value));
+    const promise = pending(value);
+    this._pendingPromise = promise;
+    return pending(this._store.setAsync(promise));
   }
 
   private _refetch(cacheStrategy: CacheStrategy): ReactPromise<T> {
@@ -132,7 +134,6 @@ class AsyncValueCache<T> {
     if (cacheStrategy === "never") {
       return promise;
     }
-    this._pendingPromise = promise;
     return pending(this._setAsync(promise).then(() => promise));
   }
 
