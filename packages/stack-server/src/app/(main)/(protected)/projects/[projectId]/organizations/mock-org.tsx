@@ -1,4 +1,4 @@
-import { ServerUser } from "@stackframe/stack";
+import { ServerUser, useUser } from "@stackframe/stack";
 import { useAdminApp } from "../use-admin-app";
 
 export type Organization = {
@@ -19,7 +19,7 @@ export type ServerOrganizaiton = Organization & {
 }
 
 export const useMockOrgs = () => {
-  const app =  useAdminApp();
+  const user = useUser({ or: 'throw' }) as unknown as ServerUser;
   const MockOrg: ServerOrganizaiton = {
     id: "mock-org",
     displayName: "Mock Organization",
@@ -29,14 +29,13 @@ export const useMockOrgs = () => {
       console.log(`Adding user ${userId} to organization`);
     },
     listUsers: async () => {
-      const user = await app.getServerUser();
       if (!user) {
         return [];
       }
       return [user];
     },
     getUser: async (userId: string) => {
-      return await app.getServerUser();
+      return user;
     },
     listPermissions: async () => {
       return ["admin"];

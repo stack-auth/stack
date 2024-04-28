@@ -195,7 +195,7 @@ function Actions(props: { params: any }) {
 }
 
 
-function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => void }) {
+export function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);

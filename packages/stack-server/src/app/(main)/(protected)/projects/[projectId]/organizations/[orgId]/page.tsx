@@ -1,9 +1,7 @@
-import { Paragraph } from "@/components/paragraph";
+import ClientPage from "./page-client";
 
 export default function Page() {
   return (
-    <>
-      <Paragraph h1>Organization Members</Paragraph>
-    </>
+    <ClientPage />
   );
 }
