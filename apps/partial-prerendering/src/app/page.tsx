@@ -36,7 +36,6 @@ async function UserInfo() {
 
   return (
     <div>
-      <UserButton /><br />
       {user && <>
         You are logged in.<br />
         Display name: {user.displayName}<br />
@@ -62,7 +61,6 @@ async function UserInfo() {
   
   return (
     <div>
-      <UserButton /><br />
       {user && <>
         You are logged in.<br />
         Display name: {user?.displayName ?? "None"}<br />
