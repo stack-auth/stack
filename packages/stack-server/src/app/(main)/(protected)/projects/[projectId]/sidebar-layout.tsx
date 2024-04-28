@@ -5,54 +5,7 @@ import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { Icon } from '@/components/icon';
-
-const navigationItems = [
-  {
-    name: "Users",
-  },
-  {
-    name: "Users",
-    href: "/users",
-    icon: <Icon icon="people_outline" />,
-  },
-  {
-    name: "Auth Methods",
-    href: "/providers",
-    icon: <Icon icon="security" />,
-  },
-  {
-    name: "Organizations",
-  },
-  {
-    name: "Organizations",
-    href: "/organizations",
-    icon: <Icon icon="business" />,
-  },
-  {
-    name: "Permissions",
-    href: "/organization-permissions",
-    icon: <Icon icon="lock" />,
-  },
-  {
-    name: "Settings",
-  },
-  {
-    name: "Domains & Handlers",
-    href: "/urls-and-callbacks",
-    icon: <Icon icon="link" />,
-  },
-  {
-    name: "Environment",
-    href: "/environment",
-    icon: <Icon icon="list_alt" />,
-  },
-  {
-    name: "API Keys",
-    href: "/api-keys",
-    icon: <Icon icon="key" />,
-  },
-];
-
+import { navigationItems } from "./navigation-data";
 
 export default function SidebarLayout(props: { children: React.ReactNode, params: { projectId: string } }) {
   const theme = useTheme();

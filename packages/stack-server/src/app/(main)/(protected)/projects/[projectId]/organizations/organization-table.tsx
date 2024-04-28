@@ -11,6 +11,7 @@ import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { ServerOrganizaiton } from './mock-org';
+import { useRouter } from 'next/navigation';
 
 export function OrganizationTable(props: {
   rows: ServerOrganizaiton[],
@@ -44,8 +45,7 @@ export function OrganizationTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        // <Actions key="more_actions" params={params} />
-        <Box key='x'/>
+        <Actions key="more_actions" params={params} />
       ],
     },
   ];
@@ -87,6 +87,7 @@ export function OrganizationTable(props: {
 
 function Actions(props: { params: any }) {
   const stackAdminApp = useAdminApp();
+  const router = useRouter();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -100,6 +101,12 @@ function Actions(props: { params: any }) {
           <Icon icon="more_vert" />
         </MenuButton>
         <Menu placement="bottom-end">
+          <MenuItem onClick={() => router.push(`/projects/${stackAdminApp.projectId}/organizations/${props.params.row.id}`)}>
+            <ListItemDecorator>
+              <Icon icon='person' />
+            </ListItemDecorator>{' '}
+            View Members
+          </MenuItem>
           <MenuItem onClick={() => setIsEditModalOpen(true)}>
             <ListItemDecorator>
               <Icon icon='edit' />
@@ -116,11 +123,11 @@ function Actions(props: { params: any }) {
         </Menu>
       </Dropdown>
 
-      <EditOrganizationModal
+      {/* <EditOrganizationModal
         user={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-      />
+      /> */}
 
       <Dialog
         title
