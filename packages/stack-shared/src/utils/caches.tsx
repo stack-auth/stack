@@ -64,6 +64,7 @@ export class AsyncCache<D extends any[], T> {
   readonly getIfCached = this._createKeyed("getIfCached");
   readonly getOrWait = this._createKeyed("getOrWait");
   readonly forceSetCachedValue = this._createKeyed("forceSetCachedValue");
+  readonly forceSetCachedValueAsync = this._createKeyed("forceSetCachedValueAsync");
   readonly refresh = this._createKeyed("refresh");
   readonly invalidate = this._createKeyed("invalidate");
   readonly onChange = this._createKeyed("onChange");
@@ -120,7 +121,9 @@ class AsyncValueCache<T> {
   }
 
   private _setAsync(value: Promise<T>): ReactPromise<boolean> {
-    return pending(this._store.setAsync(value));
+    const promise = pending(value);
+    this._pendingPromise = promise;
+    return pending(this._store.setAsync(promise));
   }
 
   private _refetch(cacheStrategy: CacheStrategy): ReactPromise<T> {
@@ -131,12 +134,15 @@ class AsyncValueCache<T> {
     if (cacheStrategy === "never") {
       return promise;
     }
-    this._pendingPromise = promise;
     return pending(this._setAsync(promise).then(() => promise));
   }
 
   forceSetCachedValue(value: T): void {
     this._set(value);
+  }
+
+  forceSetCachedValueAsync(value: Promise<T>): ReactPromise<boolean> {
+    return this._setAsync(value);
   }
 
   async refresh(): Promise<T> {

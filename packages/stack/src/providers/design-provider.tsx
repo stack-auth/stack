@@ -88,7 +88,6 @@ const useColorMode = (
 
 
 export function StackDesignProvider(props: { children?: React.ReactNode } & DesignConfig) {
-  const [mounted, setMounted] = useState(false);
   const [colorMode, setColorMode] = useColorMode(props);
   const [designValue, setDesignValue] = useState<DesignContextValue>({
     colors: getColors(colorMode, props.colors),
@@ -105,16 +104,10 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
     }));
   }, [colorMode]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <DesignContext.Provider value={designValue}>
       {props.children}
-    </DesignContext.Provider>
+    </DesignContext.Provider> 
   );
 }
 

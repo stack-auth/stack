@@ -87,6 +87,10 @@ async function main() {
   } catch (err) {
     throw new Error(`Could not run the package manager command ${versionCommand}. Please make sure ${packageManager} is installed on your system.`);
   }
+
+  console.log();
+  console.log("Installing dependencies...");
+  await shellNicelyFormatted(`${installCommand} @stackframe/stack`, { shell: true, cwd: projectPath });
   
   console.log();
   console.log("Writing files...");
@@ -96,10 +100,6 @@ async function main() {
   await writeFileIfNotExists(stackAppPath, `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`);
   await writeFile(layoutPath, updatedLayoutContent);
   console.log("Files written successfully!");
-
-  console.log();
-  console.log("Installing dependencies...");
-  await shellNicelyFormatted(`${installCommand} @stackframe/stack`, { shell: true, cwd: projectPath });
 }
 main().then(async() => {
   console.log();
@@ -172,7 +172,7 @@ async function getUpdatedLayout(originalLayout) {
   layout = layout.slice(0, bodyOpenEndIndex) + insertOpen + layout.slice(bodyOpenEndIndex);
 
   return {
-    content: `// Below is the old layout file.\n\n${layout}`,
+    content: `${layout}`,
     indentation,
   };
 }

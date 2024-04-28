@@ -9,11 +9,11 @@ import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, OrganizationJson, UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
-import { RedirectType, redirect, useRouter } from "next/navigation";
+import * as NextNavigation from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
-import { neverResolve, resolved, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
@@ -117,8 +117,6 @@ export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, Proje
 
 export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
   uniqueIdentifier: string,
-  currentClientUserJson: UserJson | null,
-  currentProjectJson: ClientProjectJson,
   // note: if you add more fields here, make sure to ensure the checkString in the constructor has/doesn't have them
 };
 
@@ -276,7 +274,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected readonly _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
 
+  private readonly __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
+
   private readonly _currentUserCache = createCacheByTokenStore(async (tokenStore) => {
+    if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
+      await wait(2000);
+    }
     const user = await this._interface.getClientUserByToken(tokenStore);
     return Result.or(user, null);
   });
@@ -291,8 +294,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     & {
       uniqueIdentifier?: string,
       checkString?: string,
-      currentClientUserJson?: UserJson | null,
-      currentProjectJson?: ClientProjectJson,
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
@@ -319,18 +320,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
     }
     allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
-
-    // For some important calls, either use the provided cached values or start fetching them now
-    if (options.currentClientUserJson !== undefined) {
-      this._currentUserCache.forceSetCachedValue([getTokenStore(this._tokenStoreOptions)], options.currentClientUserJson);
-    } else if (this.hasPersistentTokenStore()) {
-      runAsynchronously(this.getUser(), { ignoreErrors: true });
-    }
-    if (options.currentProjectJson !== undefined) {
-      this._currentProjectCache.forceSetCachedValue([], options.currentProjectJson);
-    } else {
-      runAsynchronously(this.getProject(), { ignoreErrors: true });
-    }
   }
 
   protected hasPersistentTokenStore(): this is StackClientApp<true, ProjectId> {
@@ -548,7 +537,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
-          redirect(this.urls.signIn, RedirectType.replace);
+          NextNavigation.redirect(this.urls.signIn, NextNavigation.RedirectType.replace);
           throw new Error("redirect should never return!");
         }
         case 'throw': {
@@ -569,7 +558,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null {
     this._ensurePersistentTokenStore();
 
-    const router = useRouter();
+    const router = NextNavigation.useRouter();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = useCache(this._currentUserCache, [tokenStore], "useUser()");
 
@@ -777,7 +766,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       fromClientJson: <HasTokenStore extends boolean, ProjectId extends string>(
         json: StackClientAppJson<HasTokenStore, ProjectId>
       ): StackClientApp<HasTokenStore, ProjectId> => {
-        const providedCheckString = JSON.stringify(omit(json, ["currentClientUserJson", "currentProjectJson"]));
+        const providedCheckString = JSON.stringify(omit(json, [/* none currently */]));
         const existing = allClientApps.get(json.uniqueIdentifier);
         if (existing) {
           const [existingCheckString, clientApp] = existing;
@@ -797,16 +786,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   get [stackAppInternalsSymbol]() {
     return {
-      toClientJson: async (): Promise<StackClientAppJson<HasTokenStore, ProjectId>> => {
+      toClientJson: (): StackClientAppJson<HasTokenStore, ProjectId> => {
         if (!("publishableClientKey" in this._interface.options)) {
           // TODO find a way to do this
           throw Error("Cannot serialize to JSON from an application without a publishable client key");
         }
-
-        const [user, project] = await Promise.all([
-          this.getUser(),
-          this.getProject(),
-        ]);
 
         return {
           baseUrl: this._interface.options.baseUrl,
@@ -815,10 +799,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           tokenStore: this._tokenStoreOptions,
           urls: this._urlOptions,
           uniqueIdentifier: this._uniqueIdentifier,
-          currentClientUserJson: user?.toJson() ?? null,
-          currentProjectJson: project,
         };
-      }
+      },
+      setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
+        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([getTokenStore(this._tokenStoreOptions)], userJsonPromise));
+      },
     };
   };
 }
@@ -1334,7 +1319,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
-      toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,
+      toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
+      setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
     },
   }
   & AsyncStoreProperty<"project", ClientProjectJson, false>
