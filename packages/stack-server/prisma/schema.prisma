@@ -26,6 +26,8 @@ model Project {
 
   users ProjectUser[] @relation("ProjectUsers")
 
+  organizations Organization[]
+
   apiKeySets ApiKeySet[]
 }
 
@@ -40,6 +42,10 @@ model ProjectConfig {
   allowLocalhost    Boolean
   credentialEnabled Boolean
   magicLinkEnabled  Boolean
+
+  permissions   Permission[]
+
+  organizationsEnabled Boolean @default(false)
 
   projects             Project[]
   oauthProviderConfigs OAuthProviderConfig[]
@@ -75,6 +81,67 @@ model ProjectConfigOverride {
   updatedAt DateTime @updatedAt
 }
 
+model Organization {
+  projectId               String
+  project                 Project @relation(fields: [projectId], references: [id])
+  organizationId          String @default(uuid()) @db.Uuid
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  displayName String
+  users       ProjectUser[]
+
+  permissions   Permission[]
+
+  @@id([projectId, organizationId])
+}
+
+model Permission {
+  // The ID of this permission, as is chosen by and exposed to the user. It is different from the database ID, which is randomly generated and only used internally.
+  queriableId  String
+  // The database ID of this permission. This is never exposed to any client and is only used to make sure the database has an ID column.
+  dbId         String @id @default(uuid()) @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  displayName String
+  description String
+
+  // exactly one of [projectConfigId && projectConfig] or [projectId && organizationId && organization] must be set
+  projectConfigId String? @db.Uuid
+  projectConfig   ProjectConfig? @relation(fields: [projectConfigId], references: [id])
+  projectId       String?
+  organizationId  String? @db.Uuid
+  organization    Organization? @relation(fields: [projectId, organizationId], references: [projectId, organizationId])
+
+  // The scope of the permission. If projectConfigId is set, may be GLOBAL or ORGANIZATION; if organizationId is set, must be ORGANIZATION.
+  scope  PermissionScope
+
+  parentEdges PermissionEdge[] @relation("ChildPermission")
+  childEdges  PermissionEdge[] @relation("ParentPermission")
+
+  directUsers ProjectUserDirectPermission[]
+
+  @@unique([projectConfigId, queriableId])
+  @@unique([projectId, organizationId, queriableId])
+}
+
+enum PermissionScope {
+  GLOBAL
+  ORGANIZATION
+}
+
+model PermissionEdge {
+  edgeId       String @id @default(uuid()) @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  parentPermissionDbId String @db.Uuid
+  parentPermission Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId])
+  childPermissionDbId  String @db.Uuid
+  childPermission  Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId])
+}
+
 model ProjectUser {
   projectId     String
   projectUserId String @default(uuid()) @db.Uuid
@@ -90,6 +157,11 @@ model ProjectUser {
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
 
+  organizationId String? @db.Uuid
+  organization   Organization? @relation(fields: [projectId, organizationId], references: [projectId, organizationId])
+  
+  directPermissions ProjectUserDirectPermission[]
+
   primaryEmail         String?
   primaryEmailVerified Boolean
   profileImageUrl      String?
@@ -101,7 +173,20 @@ model ProjectUser {
   clientMetadata Json?
 
   @@id([projectId, projectUserId])
-  @@unique([projectId, primaryEmail, authWithEmail])
+}
+
+model ProjectUserDirectPermission {
+  projectId       String
+  projectUserId   String @db.Uuid
+  projectUser     ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId])
+  permissionDbId  String @db.Uuid
+  permission      Permission  @relation(fields: [permissionDbId], references: [dbId])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+
+  @@id([projectId, projectUserId, permissionDbId])
+
 }
 
 model ProjectUserOAuthAccount {

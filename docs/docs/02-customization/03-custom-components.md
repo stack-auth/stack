@@ -85,6 +85,7 @@ Here is a list of low-level components that you can customize, stared ones are t
 - `Avatar`, `AvatarFallback`, `AvatarImage`
 - `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
 - `Card`, `CardHeader`, `CardContent`, `CardFooter`
+- `Skeleton`
 
 ## MUI Joy setup
 

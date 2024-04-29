@@ -45,15 +45,18 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
   }
 
-  let user = await prismaClient.projectUser.findUnique({
+  const users = await prismaClient.projectUser.findMany({
     where: {
-      projectId_primaryEmail_authWithEmail: {
-        projectId,
-        primaryEmail: email,
-        authWithEmail: true,
-      },
+      projectId,
+      primaryEmail: email,
+      authWithEmail: true,
     },
   });
+
+  if (users.length > 1) {
+    throw new StackAssertionError("Multiple users found with the same email");
+  }
+  let user = users.length > 0 ? users[0] : null;
 
   const newUser = !user;
 

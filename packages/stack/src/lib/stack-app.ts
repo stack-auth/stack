@@ -1,22 +1,23 @@
 import React, { use, useCallback, useMemo } from "react";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, OrganizationJson, UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
-import { RedirectType, redirect, useRouter } from "next/navigation";
+import * as NextNavigation from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
-import { neverResolve, resolved, runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
+import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -116,8 +117,6 @@ export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, Proje
 
 export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
   uniqueIdentifier: string,
-  currentClientUserJson: UserJson | null,
-  currentProjectJson: ClientProjectJson,
   // note: if you add more fields here, make sure to ensure the checkString in the constructor has/doesn't have them
 };
 
@@ -130,6 +129,19 @@ function createEmptyTokenStore() {
     accessToken: null,
   });
   return store;
+}
+
+function organizationFromJson(json: OrganizationJson | null): Organization | null {
+  if (json === null) return null;
+
+  return {
+    id: json.id,
+    displayName: json.displayName,
+    createdAt: new Date(json.createdAtMillis),
+    toJson() {
+      return json;
+    },
+  };
 }
 
 const memoryTokenStore = createEmptyTokenStore();
@@ -262,7 +274,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected readonly _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
 
+  private readonly __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
+
   private readonly _currentUserCache = createCacheByTokenStore(async (tokenStore) => {
+    if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
+      await wait(2000);
+    }
     const user = await this._interface.getClientUserByToken(tokenStore);
     return Result.or(user, null);
   });
@@ -277,8 +294,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     & {
       uniqueIdentifier?: string,
       checkString?: string,
-      currentClientUserJson?: UserJson | null,
-      currentProjectJson?: ClientProjectJson,
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
@@ -305,18 +320,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
     }
     allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
-
-    // For some important calls, either use the provided cached values or start fetching them now
-    if (options.currentClientUserJson !== undefined) {
-      this._currentUserCache.forceSetCachedValue([getTokenStore(this._tokenStoreOptions)], options.currentClientUserJson);
-    } else if (this.hasPersistentTokenStore()) {
-      runAsynchronously(this.getUser(), { ignoreErrors: true });
-    }
-    if (options.currentProjectJson !== undefined) {
-      this._currentProjectCache.forceSetCachedValue([], options.currentProjectJson);
-    } else {
-      runAsynchronously(this.getProject(), { ignoreErrors: true });
-    }
   }
 
   protected hasPersistentTokenStore(): this is StackClientApp<true, ProjectId> {
@@ -353,6 +356,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      organization: organizationFromJson(json.organization),
       toJson() {
         return json;
       }
@@ -418,6 +422,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
+      organization: user.organization?.toJson() ?? null,
     };
   }
 
@@ -532,7 +537,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
-          redirect(this.urls.signIn, RedirectType.replace);
+          NextNavigation.redirect(this.urls.signIn, NextNavigation.RedirectType.replace);
           throw new Error("redirect should never return!");
         }
         case 'throw': {
@@ -553,7 +558,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null {
     this._ensurePersistentTokenStore();
 
-    const router = useRouter();
+    const router = NextNavigation.useRouter();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = useCache(this._currentUserCache, [tokenStore], "useUser()");
 
@@ -587,7 +592,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected async _updateUser(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
+  protected async _updateUser(update: UserUpdateJson, tokenStore: TokenStore) {
     const res = await this._interface.setClientUserCustomizableData(update, tokenStore);
     await this._refreshUser(tokenStore);
     return res;
@@ -761,7 +766,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       fromClientJson: <HasTokenStore extends boolean, ProjectId extends string>(
         json: StackClientAppJson<HasTokenStore, ProjectId>
       ): StackClientApp<HasTokenStore, ProjectId> => {
-        const providedCheckString = JSON.stringify(omit(json, ["currentClientUserJson", "currentProjectJson"]));
+        const providedCheckString = JSON.stringify(omit(json, [/* none currently */]));
         const existing = allClientApps.get(json.uniqueIdentifier);
         if (existing) {
           const [existingCheckString, clientApp] = existing;
@@ -781,16 +786,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   get [stackAppInternalsSymbol]() {
     return {
-      toClientJson: async (): Promise<StackClientAppJson<HasTokenStore, ProjectId>> => {
+      toClientJson: (): StackClientAppJson<HasTokenStore, ProjectId> => {
         if (!("publishableClientKey" in this._interface.options)) {
           // TODO find a way to do this
           throw Error("Cannot serialize to JSON from an application without a publishable client key");
         }
-
-        const [user, project] = await Promise.all([
-          this.getUser(),
-          this.getProject(),
-        ]);
 
         return {
           baseUrl: this._interface.options.baseUrl,
@@ -799,10 +799,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           tokenStore: this._tokenStoreOptions,
           urls: this._urlOptions,
           uniqueIdentifier: this._uniqueIdentifier,
-          currentClientUserJson: user?.toJson() ?? null,
-          currentProjectJson: project,
         };
-      }
+      },
+      setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
+        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([getTokenStore(this._tokenStoreOptions)], userJsonPromise));
+      },
     };
   };
 }
@@ -861,7 +862,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUsers();
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await app._interface.setServerUserCustomizableData(this.id, update);
         await app._refreshUsers();
         return res;
@@ -889,7 +890,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(tokenStore);
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await nonCurrentServerUser.update(update);
         await app._refreshUser(tokenStore);
         return res;
@@ -947,6 +948,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
+      organization: user.organization?.toJson() ?? null,
     };
   }
 
@@ -1150,7 +1152,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
-  update(this: T, user: Partial<C>): Promise<void>,
+  update(this: T, user: C): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
@@ -1188,10 +1190,12 @@ export type User = {
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
 
+  readonly organization: Organization | null,
+
   toJson(this: CurrentUser): UserJson,
 };
 
-export type CurrentUser = Auth<User, UserCustomizableJson> & User;
+export type CurrentUser = Auth<User, UserUpdateJson> & User;
 
 export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
 
@@ -1209,11 +1213,11 @@ export type ServerUser = Omit<User, "toJson"> & {
 
   toJson(this: ServerUser): ServerUserJson,
 
-  update(this: ServerUser, user: Partial<ServerUserCustomizableJson>): Promise<void>,
+  update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
   delete(this: ServerUser): Promise<void>,
 };
 
-export type CurrentServerUser = Auth<ServerUser, ServerUserCustomizableJson> & Omit<ServerUser, "getClientUser"> & {
+export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
   getClientUser(this: CurrentServerUser): CurrentUser,
 };
 
@@ -1242,6 +1246,15 @@ export type Project = {
 
   getProductionModeErrors(this: Project): ProductionModeError[],
 };
+
+export type Organization = {
+  readonly id: string,
+  readonly displayName: string,
+  readonly createdAt: Date,
+  toJson(this: Organization): OrganizationJson,
+};
+
+export type ServerOrganization = Organization;
 
 export type ApiKeySetBase = {
   id: string,
@@ -1306,7 +1319,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined>,
 
     [stackAppInternalsSymbol]: {
-      toClientJson(): Promise<StackClientAppJson<HasTokenStore, ProjectId>>,
+      toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
+      setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
     },
   }
   & AsyncStoreProperty<"project", ClientProjectJson, false>

@@ -10,7 +10,7 @@ import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
@@ -67,17 +67,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   // TODO: make this a transaction
-  const user = await prismaClient.projectUser.findUnique({
+  const users = await prismaClient.projectUser.findMany({
     where: {
-      projectId_primaryEmail_authWithEmail: {
-        projectId,
-        primaryEmail: email,
-        authWithEmail: true,
-      },
+      projectId,
+      primaryEmail: email,
+      authWithEmail: true,
     },
   });
 
-  if (user) {
+  if (users.length > 0) {
     throw new KnownErrors.UserEmailAlreadyExists();
   }
 

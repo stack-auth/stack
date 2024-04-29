@@ -76,14 +76,13 @@ function pending<P>(progress?: P): AsyncResult<never, never, P> & { status: "pen
   };
 }
 
-function promiseToResult<T, E = unknown>(promise: Promise<T>): Promise<Result<T, E>> {
-  return promise.then(data => ({
-    status: "ok",
-    data,
-  }), error => ({
-    status: "error",
-    error,
-  }));
+async function promiseToResult<T>(promise: Promise<T>): Promise<Result<T>> {
+  try {
+    const value = await promise;
+    return Result.ok(value);
+  } catch (error) {
+    return Result.error(error);
+  }
 }
 
 function fromThrowing<T>(fn: () => T): Result<T, unknown> {

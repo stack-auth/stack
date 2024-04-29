@@ -68,7 +68,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
   if (!pkValid && !skValid && !asValid) {
-    throw new StatusError(StatusError.Forbidden);
+    throw new StatusError(StatusError.Forbidden, "API key is invalid");
   }
 
   const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);

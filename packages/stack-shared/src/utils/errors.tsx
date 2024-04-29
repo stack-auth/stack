@@ -6,7 +6,7 @@ export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
 export function throwErr(...args: any[]): never {
   if (typeof args[0] === "string") {
-    throw new Error(args[0]);
+    throw new StackAssertionError(args[0]);
   } else if (args[0] instanceof Error) {
     throw args[0];
   } else {

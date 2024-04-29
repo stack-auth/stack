@@ -46,15 +46,18 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
   }
 
-  const user = await prismaClient.projectUser.findUnique({
+  const users = await prismaClient.projectUser.findMany({
     where: {
-      projectId_primaryEmail_authWithEmail: {
-        projectId,
-        primaryEmail: email,
-        authWithEmail: true,
-      },
+      projectId,
+      primaryEmail: email,
+      authWithEmail: true,
     },
   });
+  if (users.length > 1) {
+    throw new StackAssertionError("Multiple users found with the same email", { users });
+  }
+  const user = users.length > 0 ? users[0] : null;
+
   if (!await comparePassword(password, user?.passwordHash || "")) {
     throw new KnownErrors.EmailPasswordMismatch();
   }
