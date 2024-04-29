@@ -9,7 +9,7 @@ export default function ClientPage() {
   return (
     <>
       <Paragraph h1>
-        Organization Permissions
+        Team Permissions
       </Paragraph>
 
       <PermissionsTable rows={mockPermissions as any} />

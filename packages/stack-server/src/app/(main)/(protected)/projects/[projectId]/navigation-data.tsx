@@ -30,7 +30,7 @@ export const navigationItems: (Label | Item | Hidden)[] = [
     name: "Users",
     href: "/users",
     regex: /^\/projects\/[^\/]+\/user\/[^\/]+$/,
-    icon: <Icon icon="people_outline" />,
+    icon: <Icon icon="person" />,
     type: 'item'
   },
   {
@@ -41,25 +41,25 @@ export const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: "Organizations",
+    name: "Teams",
     type: 'label'
   },
   {
-    name: "Organizations",
-    href: "/organizations",
-    regex: /^\/projects\/[^\/]+\/organizations$/,
-    icon: <Icon icon="business" />,
+    name: "Teams",
+    href: "/teams",
+    regex: /^\/projects\/[^\/]+\/teams$/,
+    icon: <Icon icon="group" />,
     type: 'item'
   },
   {
-    name: ["Organization", "Members"],
-    regex: /^\/projects\/[^\/]+\/organizations\/[^\/]+$/,
+    name: ["Team", "Members"],
+    regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
   },
   {
     name: "Permissions",
-    href: "/organization-permissions",
-    regex: /^\/projects\/[^\/]+\/organization-permissions$/,
+    href: "/team-permissions",
+    regex: /^\/projects\/[^\/]+\/team-permissions$/,
     icon: <Icon icon="lock" />,
     type: 'item'
   },

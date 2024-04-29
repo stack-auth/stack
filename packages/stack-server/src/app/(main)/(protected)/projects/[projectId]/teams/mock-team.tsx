@@ -1,32 +1,32 @@
 import { ServerUser, useUser } from "@stackframe/stack";
 import { useAdminApp } from "../use-admin-app";
 
-export type Organization = {
+export type Team = {
   id: string,
   displayName: string,
   memberCount: number,
   createdAt: Date,
 }
 
-export type ServerOrganizaiton = Organization & {
+export type ServerTeam = Team & {
   addUser: (userId: string) => Promise<void>,
   listUsers: () => Promise<ServerUser[]>,
   getUser(userId: string): Promise<ServerUser | null>,
   listPermissions: () => Promise<string[]>,
   removeUser: (userId: string) => Promise<void>,
-  update: (organization: Partial<Pick<Organization, "displayName">>) => Promise<void>,
+  update: (team: Partial<Pick<Team, "displayName">>) => Promise<void>,
   delete: () => Promise<void>,
 }
 
-export const useMockOrgs = () => {
+export const useMockTeams = () => {
   const user = useUser({ or: 'throw' }) as unknown as ServerUser;
-  const MockOrg: ServerOrganizaiton = {
-    id: "mock-org",
-    displayName: "Mock Organization",
+  const mockTeam: ServerTeam = {
+    id: "mock-team",
+    displayName: "Mock Team",
     memberCount: 2,
     createdAt: new Date(),
     addUser: async (userId: string) => {
-      console.log(`Adding user ${userId} to organization`);
+      console.log(`Adding user ${userId} to team`);
     },
     listUsers: async () => {
       if (!user) {
@@ -41,22 +41,22 @@ export const useMockOrgs = () => {
       return ["admin"];
     },
     removeUser: async (userId: string) => {
-      console.log(`Removing user ${userId} from organization`);
+      console.log(`Removing user ${userId} from team`);
     },
-    update: async (organization: Partial<Pick<Organization, "displayName">>) => {
-      console.log(`Updating organization to ${organization.displayName}`);
+    update: async (team: Partial<Pick<Team, "displayName">>) => {
+      console.log(`Updating team to ${team.displayName}`);
     },
     delete: async () => {
-      console.log("Deleting organization");
+      console.log("Deleting team");
     },
   };
 
   return [
-    MockOrg,
+    mockTeam,
     {
-      ...MockOrg,
-      id: "mock-org-2",
-      displayName: "Mock Organization 2",
+      ...mockTeam,
+      id: "mock-team-2",
+      displayName: "Mock Team 2",
       memberCount: 5,
     }
   ];

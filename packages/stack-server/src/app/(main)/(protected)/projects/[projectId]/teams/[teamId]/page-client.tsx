@@ -2,19 +2,19 @@
 
 import React, { use } from 'react';
 import { Paragraph } from "@/components/paragraph";
-import { useMockOrgs } from '../mock-org';
+import { useMockTeams } from '../mock-team';
 import { MemberTable } from './member-table';
 
 
 export default function ClientPage() {
-  const mockOrgs = useMockOrgs();
-  const org = mockOrgs[0];
-  const users = use(mockOrgs[0].listUsers());
+  const mockTeams = useMockTeams();
+  const team = mockTeams[0];
+  const users = use(mockTeams[0].listUsers());
   
   return (
     <>
       <Paragraph h1>
-        {org.displayName}
+        {team.displayName}
       </Paragraph>
 
       <Paragraph body>

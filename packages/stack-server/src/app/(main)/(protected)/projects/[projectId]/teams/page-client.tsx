@@ -1,21 +1,21 @@
 "use client";
 
 import { Paragraph } from "@/components/paragraph";
-import { OrganizationTable } from "./organization-table";
-import { useMockOrgs } from "./mock-org";
+import { TeamTable } from "./team-table";
+import { useMockTeams } from "./mock-team";
 
 
 export default function ClientPage() {
-  const mockOrgs = useMockOrgs();
+  const teams = useMockTeams();
   
   return (
     <>
       <Paragraph h1>
-        Organizations
+        Teams
       </Paragraph>
 
       <Paragraph body>
-        <OrganizationTable rows={mockOrgs} />
+        <TeamTable rows={teams} />
       </Paragraph>
     </>
   );

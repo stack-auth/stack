@@ -10,16 +10,16 @@ import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
-import { ServerOrganizaiton } from './mock-org';
+import { ServerTeam } from './mock-team';
 import { useRouter } from 'next/navigation';
 
-export function OrganizationTable(props: {
-  rows: ServerOrganizaiton[],
+export function TeamTable(props: {
+  rows: ServerTeam[],
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
 
   const columns: (GridColDef & {
-    stackOnProcessUpdate?: (updatedRow: ServerOrganizaiton, oldRow: ServerOrganizaiton) => Promise<void>,
+    stackOnProcessUpdate?: (updatedRow: ServerTeam, oldRow: ServerTeam) => Promise<void>,
   })[] = [
     {
       field: 'id',
@@ -101,7 +101,7 @@ function Actions(props: { params: any }) {
           <Icon icon="more_vert" />
         </MenuButton>
         <Menu placement="bottom-end">
-          <MenuItem onClick={() => router.push(`/projects/${stackAdminApp.projectId}/organizations/${props.params.row.id}`)}>
+          <MenuItem onClick={() => router.push(`/projects/${stackAdminApp.projectId}/teams/${props.params.row.id}`)}>
             <ListItemDecorator>
               <Icon icon='person' />
             </ListItemDecorator>{' '}
@@ -123,8 +123,8 @@ function Actions(props: { params: any }) {
         </Menu>
       </Dropdown>
 
-      <EditOrganizationModal
-        org={props.params.row}
+      <EditTeamModal
+        team={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
       />
@@ -149,7 +149,7 @@ function Actions(props: { params: any }) {
 }
 
 
-function EditOrganizationModal(props: { org: ServerOrganizaiton, open: boolean, onClose: () => void }) {
+function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -160,7 +160,7 @@ function EditOrganizationModal(props: { org: ServerOrganizaiton, open: boolean, 
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
-          Edit Organization
+          Edit Team
         </DialogTitle>
         <Divider />
         <DialogContent>
@@ -174,7 +174,7 @@ function EditOrganizationModal(props: { org: ServerOrganizaiton, open: boolean, 
                   const formJson = {
                     displayName: `${formData.get('displayName')}` || undefined,
                   };
-                  await props.org.update(formJson);
+                  await props.team.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -185,11 +185,11 @@ function EditOrganizationModal(props: { org: ServerOrganizaiton, open: boolean, 
           >
             <Stack spacing={2}>
               <Box>
-                ID: {props.org.id}
+                ID: {props.team.id}
               </Box>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="displayName">Display name</FormLabel>
-                <Input name="displayName" placeholder="Display name" defaultValue={props.org.displayName ?? ""} required />
+                <Input name="displayName" placeholder="Display name" defaultValue={props.team.displayName ?? ""} required />
               </FormControl>
             </Stack>
           </form>
