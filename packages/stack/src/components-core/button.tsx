@@ -177,7 +177,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
-          <LoadingIndicator color={'red'}/>
+          <LoadingIndicator color={{ light: light.textColor, dark: dark.textColor }}/>
         </div>
         <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
           {props.children}
