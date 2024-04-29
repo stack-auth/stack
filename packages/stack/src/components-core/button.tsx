@@ -11,12 +11,10 @@ function getColors({
   propsColor, 
   colors, 
   variant, 
-  colorMode,
 }: {
   propsColor?: string, 
   colors: { primaryColor: string, secondaryColor: string, backgroundColor: string },
   variant: 'primary' | 'secondary' | 'warning',
-  colorMode: 'dark' | 'light',
 }): { 
   bgColor: string, 
   hoverBgColor: string,
@@ -165,8 +163,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const { dark, light } = useMemo(() => {
       return {
-        dark: getColors({ propsColor: props.color, colors: colors.dark, variant, colorMode: 'dark' }),
-        light: getColors({ propsColor: props.color, colors: colors.light, variant, colorMode: 'light' }),
+        dark: getColors({ propsColor: props.color, colors: colors.dark, variant }),
+        light: getColors({ propsColor: props.color, colors: colors.light, variant }),
       };
     }, [props.color, colors, variant]);
 
