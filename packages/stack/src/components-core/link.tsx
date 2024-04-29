@@ -16,6 +16,7 @@ const StyledNextLink = styled(NextLink)<{
 }>`
   font-size: ${props => FONT_SIZES[props.$size]};
   line-height: ${props => LINE_HEIGHTS[props.$size]};
+  font-weight: 500;
   font-family: ${FONT_FAMILY};
   text-decoration: underline;
   margin: 0;

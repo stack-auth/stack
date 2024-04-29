@@ -29,7 +29,7 @@ export default function OAuthButton({
       style = {
         backgroundColor: '#fff',
         name: 'Google',
-        border: Color(colors.backgroundColor).isDark() ? undefined : '1px solid #ccc',
+        border: '1px solid #ccc',
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 24 24">
             <path
@@ -57,7 +57,7 @@ export default function OAuthButton({
     case 'github': {
       style = {
         backgroundColor: '#111',
-        border: Color(colors.backgroundColor).isDark() ? '1px solid #444' : undefined,
+        border: '1px solid #444',
         name: 'GitHub',
         icon: (
           <FaGithub color="#fff" size={iconSize} />
