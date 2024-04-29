@@ -3,6 +3,7 @@
 import { Paragraph } from "@/components/paragraph";
 import { PermissionsTable } from "./permissions-table";
 import { mockPermissions } from "./mock-permissions";
+import { EnableTeam } from "../enable-team";
 
 
 export default function ClientPage() {
@@ -12,7 +13,9 @@ export default function ClientPage() {
         Team Permissions
       </Paragraph>
 
-      <PermissionsTable rows={mockPermissions as any} />
+      <EnableTeam>
+        <PermissionsTable rows={mockPermissions as any} />
+      </EnableTeam>
     </>
   );
 }

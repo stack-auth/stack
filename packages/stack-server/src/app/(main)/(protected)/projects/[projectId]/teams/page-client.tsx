@@ -3,6 +3,7 @@
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
 import { useMockTeams } from "./mock-team";
+import { EnableTeam } from "../enable-team";
 
 
 export default function ClientPage() {
@@ -14,9 +15,9 @@ export default function ClientPage() {
         Teams
       </Paragraph>
 
-      <Paragraph body>
+      <EnableTeam>
         <TeamTable rows={teams} />
-      </Paragraph>
+      </EnableTeam>
     </>
   );
 }
