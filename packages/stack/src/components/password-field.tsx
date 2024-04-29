@@ -7,21 +7,15 @@ import { useDesign } from "..";
 import styled from "styled-components";
 import { ColorPalette } from "../providers/design-provider";
 
-const StyledEyeOff = styled(HiEyeOff)<{ colors: ColorPalette }>`
-  color: ${({ colors }) => colors.light.secondaryColor};
+const getIconStyle = (colors: ColorPalette) => `
+  color: ${colors.light.secondaryColor};
 
   html[data-theme='dark'] & {
-    color: ${({ colors }) => colors.dark.secondaryColor};
+    color: ${colors.dark.secondaryColor};
   }
 `;
-
-const StyledEye = styled(HiEye)<{ colors: ColorPalette }>`
-  color: ${({ colors }) => colors.light.secondaryColor};
-
-  html[data-theme='dark'] & {
-    color: ${({ colors }) => colors.dark.secondaryColor};
-  }
-`;
+const StyledEyeOff = styled(HiEyeOff)<{ colors: ColorPalette }>`${props => getIconStyle(props.colors)}`;
+const StyledEye = styled(HiEye)<{ colors: ColorPalette }>`${props => getIconStyle(props.colors)}`;
 
 const PasswordField = forwardRef<
   HTMLInputElement, 
