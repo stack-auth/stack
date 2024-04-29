@@ -9,12 +9,6 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<React.HTMLP
 
 
 const StyledInput = styled.input<{
-  // $borderColor: string,
-  // $focusShadowColor: string,
-  // $textColor: string,
-  // $placeholderColor: string,
-  // $fileSelectorColor: string,
-  // $fileSelectorButtonColor: string,
   $colors: ColorPalette,
 }>`
   font-family: ${FONT_FAMILY};
@@ -78,12 +72,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <StyledInput
         ref={ref}
         $colors={colors}
-        // $borderColor={colors.neutralColor}
-        // $placeholderColor={SECONDARY_FONT_COLORS[colorMode]}
-        // $textColor={PRIMARY_FONT_COLORS[colorMode]}
-        // $fileSelectorColor={SECONDARY_FONT_COLORS[colorMode]}
-        // $fileSelectorButtonColor={PRIMARY_FONT_COLORS[colorMode]}
-        // $focusShadowColor={colors.primaryColor}
         {...props}
       />
     );
