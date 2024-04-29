@@ -43,7 +43,7 @@ export function typedEntries<T extends {}>(obj: T): [keyof T, T[keyof T]][] {
   return Object.entries(obj) as any;
 }
 
-export function typedFromEntries<T extends {}>(entries: [keyof T, T[keyof T]][]): Partial<T> {
+export function typedFromEntries<K extends PropertyKey, V>(entries: [K, V][]): Record<K, V> {
   return Object.fromEntries(entries) as any;
 }
 

@@ -96,11 +96,10 @@ export default function PageClient() {
             <Separator orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Text color="primary">{text}</Text>
-              <Text color="secondary">{text}</Text>
-              <Text color="warning">{text}</Text>
-              <Text color="success">{text}</Text>
-              <Text color="orange">{text}</Text>
+              <Text variant="primary">{text}</Text>
+              <Text variant="secondary">{text}</Text>
+              <Text variant="warning">{text}</Text>
+              <Text variant="success">{text}</Text>
             </div>
           </div>
 
