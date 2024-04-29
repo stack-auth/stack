@@ -155,6 +155,11 @@ export function EditUserModal(props: { selectedPermission: Permission, permissio
 
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [newPermissions, setNewPermissions] = React.useState<Permission[]>(props.permissions.map((p) => ({ ...p })));
+  const newSelectedPermission = newPermissions.find((p) => p.id === props.selectedPermission.id);
+  if (!newSelectedPermission) {
+    return null;
+  }
 
   return (
     <Modal open={props.open} onClose={() => props.onClose()}>
@@ -197,30 +202,51 @@ export function EditUserModal(props: { selectedPermission: Permission, permissio
                 <Input name="description" placeholder="description" defaultValue={props.selectedPermission.description} required />
               </FormControl>
               <FormLabel htmlFor="contains">Contains permissions from</FormLabel>
-              <List>
-                {props.permissions.map((permission) => (
-                  permission.id !== props.selectedPermission.id &&
+              <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+                {newPermissions.map((permission) => {
+                  if (permission.id === newSelectedPermission.id) return null;
+                  const contain = newSelectedPermission.contains?.includes(permission.name);
+                  const inheritedFrom: string[] = [];
+                  // newSelectedPermission.contains?.find((p) => props.permissions.find((p2) => p2.name === p)?.has(p));  
+                  for (const p of newSelectedPermission.contains || []) {
+                    const p2 =newPermissions.find((p2) => p2.name === p);
+                    if (p2?.has(permission.name)) {
+                      inheritedFrom.push(p);
+                    }
+                  }
+                  const inherited = newSelectedPermission.has(permission.name) && !contain;
+                  return (
                     <>
                       <Stack key={permission.id} spacing={1} direction={"row"} alignItems={"center"}>
                         <Checkbox
                           key={permission.id}
                           value={permission.id}
-                          defaultChecked={props.selectedPermission.has(permission.name)}
+                          checked={contain}
+                          // variant={inherited ? "solid" : "outlined"}
+                          // color={'primary'}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setNewPermissions((permissions) => permissions.map((p) => {
+                              if (p.id === newSelectedPermission.id) {
+                                p.contains = p.contains?.filter((c) => c !== permission.name);
+                                if (checked) {
+                                  p.contains = [...(p.contains || []), permission.name];
+                                }
+                              }
+                              return p;
+                            }));
+                            console.log(newPermissions);
+                          }}
                         />
                         <Paragraph body>
                           {permission.name}
-                          {(() => {
-                            const inherited = props.selectedPermission.contains?.find((p) => props.permissions.find((p2) => p2.name === p)?.has(p));
-                            if (props.selectedPermission.has(permission.name) && !props.selectedPermission.contains?.includes(permission.name)) {
-                              return ` (inherited from ${inherited})`;
-                            }
-                            return '';
-                          })()}
+                          {inherited && <span> (inherited from {inheritedFrom.join(', ')})</span>}
                         </Paragraph>
                       </Stack>
                       <Divider sx={{ margin: 1 }} />
                     </>
-                ))}
+                  );
+                })}
               </List>
             </Stack>
           </form>

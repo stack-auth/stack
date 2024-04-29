@@ -9,11 +9,15 @@ export type Permission = {
 let mockPermissions = [
   {
     name: "admin",
-    contains: ["member", "edit:organization", "edit:user"],
+    contains: ["member", "editor", "special-permission"],
   },
   {
     name: "member",
     contains: ["view:organization", "view:user"],
+  },
+  {
+    name: "editor",
+    contains: ["edit:organization", "edit:user"],
   },
   {
     name: "view:organization",
@@ -27,6 +31,9 @@ let mockPermissions = [
   {
     name: "edit:user",
   },
+  {
+    name: "special-permission",
+  }
 ].map((permission, index) => ({
   id: index.toString(),
   description: "description",
