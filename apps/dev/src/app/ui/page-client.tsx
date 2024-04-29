@@ -1,16 +1,17 @@
 'use client';
 
-import { Button, Container, Separator, Input, Label, Link, Text, useDesign } from '@stackframe/stack';
+import { Button, Container, Separator, Input, Label, Link, Text } from '@stackframe/stack';
+import { useTheme } from 'next-themes';
 import { useCurrentUI } from 'src/components/provider';
 
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
-  const { colors, setColorMode, colorMode } = useDesign();
+  const { theme, setTheme } = useTheme();
   const [currentUI, setCurrentUI] = useCurrentUI();
   
   return (
-    <div style={{ backgroundColor: colors.backgroundColor }}>
+    <div>
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
           <select value={currentUI} onChange={e => setCurrentUI(e.target.value as 'default' | 'joy')}>
@@ -19,8 +20,8 @@ export default function PageClient() {
           </select>
           
           <div>
-            <Button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} variant="secondary">
-              { colorMode === 'dark' ? '☀️' : '🌙' } Toggle Theme
+            <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} variant="secondary">
+              Toggle Theme
             </Button>
           </div>
 
