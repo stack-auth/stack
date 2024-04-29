@@ -4,18 +4,23 @@ import React from 'react';
 import * as SeparatorPrimitive from '@radix-ui/react-separator';
 import styled from 'styled-components';
 import { useDesign } from '..';
+import { ColorPalette } from '../providers/design-provider';
 
 const StyledSeparator = styled(SeparatorPrimitive.Root)<{ 
   $orientation: string,
-  $color: string,
+  $color: ColorPalette,
 }>`
   flex-shrink: 0;
-  background-color: ${props => props.$color};
-  
   ${(props) =>
     props.$orientation === 'horizontal'
       ? 'height: 1px; width: 100%;'
       : 'height: 100%; width: 1px;'}
+  
+  background-color: ${props => props.$color.light.neutralColor};
+
+  html[data-theme='dark'] & {
+    background-color: ${props => props.$color.dark.neutralColor};
+  }
 `;
 
 const Separator = React.forwardRef<
@@ -28,7 +33,7 @@ const Separator = React.forwardRef<
     ref={ref}
     decorative={decorative}
     $orientation={orientation}
-    $color={colors.neutralColor}
+    $color={colors}
     {...props}
   />;
 });

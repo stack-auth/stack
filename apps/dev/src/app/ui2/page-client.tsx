@@ -11,6 +11,7 @@ export default function PageClient() {
       <Button variant="primary">Primary</Button>
       <Input placeholder="Input" />
       <Label>Label</Label>
+      <Separator />
     </>
   );
 }
