@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
@@ -100,14 +100,21 @@ export type ButtonProps = {
   onClick?: (() => void) | (() => Promise<void>),
 } & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type' | 'onClick'>
 
+type ButtonColors = {
+  bgColor: string, 
+  hoverBgColor: string,
+  activeBgColor: string,
+  textColor: string,
+}
+
 const StyledButton = styled.button<{
   $size: 'sm' | 'md' | 'lg',
-  $bgColor: string, 
-  $hoverBgColor: string,
-  $activeBgColor: string,
-  $textColor: string,
   $underline: boolean,
   $loading: boolean,
+  $colors: {
+    dark: ButtonColors,
+    light: ButtonColors,
+  },
 }>`
   border: 0;
   border-radius: ${BORDER_RADIUS};
@@ -125,27 +132,41 @@ const StyledButton = styled.button<{
       case 'lg': { return '3rem'; }
     }
   }};
+  font-family: ${FONT_FAMILY};
   font-size: ${FONT_SIZES.md};
-  background-color: ${props => props.$bgColor};
-  color: ${props => props.$textColor};
   opacity: ${props => props.disabled ? 0.5 : 1};
   transition: background-color 0.2s;
   cursor: pointer;
-  &:not([disabled]) {
-    &:active,&:hover:active {
-      background-color: ${props => props.$activeBgColor};
-    }
-    &:hover {
-      background-color: ${props => props.$hoverBgColor};
-    }
-  }
+  text-decoration: ${props => props.$underline ? 'underline' : 'none'};
+  position: relative;
   &:disabled {
     cursor: auto;
     opacity: 0.5;
   }
-  font-family: ${FONT_FAMILY};
-  text-decoration: ${props => props.$underline ? 'underline' : 'none'};
-  position: relative;
+
+  background-color: ${props => props.$colors.light.bgColor};
+  color: ${props => props.$colors.light.textColor};
+  &:not([disabled]) {
+    &:active,&:hover:active {
+      background-color: ${props => props.$colors.light.activeBgColor};
+    }
+    &:hover {
+      background-color: ${props => props.$colors.light.hoverBgColor};
+    }
+  }
+
+  html[data-theme='dark'] & {
+    background-color: ${props => props.$colors.dark.bgColor};
+    color: ${props => props.$colors.dark.textColor};
+    &:not([disabled]) {
+      &:active,&:hover:active {
+        background-color: ${props => props.$colors.dark.activeBgColor};
+      }
+      &:hover {
+        background-color: ${props => props.$colors.dark.hoverBgColor};
+      }
+    }
+  }
 `;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -155,28 +176,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     loading=false,
     ...props
   }, ref) => {
-    const { colors, colorMode } = useDesign();
-    const buttonColors = getColors({
-      propsColor: props.color,
-      colors,
-      variant,
-      colorMode,
-    });
+    const { colors } = useDesign();
+
+    const { dark, light } = useMemo(() => {
+      return {
+        dark: getColors({ propsColor: props.color, colors: colors.dark, variant, colorMode: 'dark' }),
+        light: getColors({ propsColor: props.color, colors: colors.light, variant, colorMode: 'light' }),
+      };
+    }, [props.color, colors, variant]);
 
     return (
       <StyledButton
         ref={ref}
         $size={size}
-        $bgColor={buttonColors.bgColor}
-        $hoverBgColor={buttonColors.hoverBgColor}
-        $activeBgColor={buttonColors.activeBgColor}
-        $textColor={buttonColors.textColor} 
         $underline={variant === 'link'}
         $loading={loading}
+        $colors={{ dark, light }}
         {...props}
       >
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
-          <LoadingIndicator color={buttonColors.textColor}/>
+          <LoadingIndicator color={'red'}/>
         </div>
         <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
           {props.children}
