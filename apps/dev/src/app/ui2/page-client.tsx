@@ -9,6 +9,7 @@ export default function PageClient() {
   return (
     <>
       <Button variant="primary">Primary</Button>
+      <Input placeholder="Input" />
     </>
   );
 }
