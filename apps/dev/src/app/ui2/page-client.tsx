@@ -7,6 +7,8 @@ const text = "This is a test sentence. ";
 
 export default function PageClient() {
   return (
-    <Button variant="primary">Primary</Button>
+    <>
+      <Button variant="primary">Primary</Button>
+    </>
   );
 }

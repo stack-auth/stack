@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
 import styled from 'styled-components';
-import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, LINK_COLORS } from "../utils/constants";
+import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";
 import LoadingIndicator from "./loading-indicator";
 
 function getColors({
@@ -15,7 +15,7 @@ function getColors({
 }: {
   propsColor?: string, 
   colors: { primaryColor: string, secondaryColor: string, backgroundColor: string },
-  variant: 'primary' | 'secondary' | 'warning' | 'link',
+  variant: 'primary' | 'secondary' | 'warning',
   colorMode: 'dark' | 'light',
 }): { 
   bgColor: string, 
@@ -37,10 +37,6 @@ function getColors({
       bgColor = '#ff4500';
       break;
     }
-    case 'link': {
-      bgColor = 'transparent';
-      break;
-    }
   }
   if (propsColor) {
     bgColor = propsColor;
@@ -58,15 +54,6 @@ function getColors({
       pc.isDark() ? 'white' : 'black'
     ).alpha(alpha).toString();
   };
-
-  if (variant === 'link') {
-    return {
-      bgColor: 'transparent',
-      hoverBgColor: getAlpha(0.1),
-      activeBgColor: getAlpha(0.2),
-      textColor: LINK_COLORS[colorMode],
-    };
-  }
 
   if (c.alpha() === 0) {
     return {
@@ -93,7 +80,7 @@ function getColors({
 }
 
 export type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'warning' | "link",
+  variant?: 'primary' | 'secondary' | 'warning',
   color?: string,
   size?: 'sm' | 'md' | 'lg',
   loading?: boolean,
@@ -109,7 +96,6 @@ type ButtonColors = {
 
 const StyledButton = styled.button<{
   $size: 'sm' | 'md' | 'lg',
-  $underline: boolean,
   $loading: boolean,
   $colors: {
     dark: ButtonColors,
@@ -137,7 +123,6 @@ const StyledButton = styled.button<{
   opacity: ${props => props.disabled ? 0.5 : 1};
   transition: background-color 0.2s;
   cursor: pointer;
-  text-decoration: ${props => props.$underline ? 'underline' : 'none'};
   position: relative;
   &:disabled {
     cursor: auto;
@@ -189,7 +174,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <StyledButton
         ref={ref}
         $size={size}
-        $underline={variant === 'link'}
         $loading={loading}
         $colors={{ dark, light }}
         {...props}
