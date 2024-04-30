@@ -4,18 +4,30 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./joy": {
-      "types": "./dist/joy.d.ts",
-      "default": "./dist/joy.js"
+      "import": {
+        "types": "./dist/joy.d.ts",
+        "default": "./dist/joy.js"
+      },
+      "require": {
+        "types": "./dist/joy.d.ts",
+        "default": "./dist/joy.cjs"
+      }
     }
   },
   "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "rimraf dist/ && tsup src/index.tsx src/joy.tsx --dts --clean --format cjs,esm --sourcemap",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
     "lint": "eslint --ext .tsx,.ts ."
@@ -36,7 +48,6 @@
     "@stackframe/stack-shared": "workspace:*",
     "color": "^4.2.3",
     "js-cookie": "^3.0.5",
-    "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.8",
@@ -55,6 +66,7 @@
   "devDependencies": {
     "@types/color": "^3.0.6",
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^18.2.66"
+    "@types/react": "^18.2.66",
+    "oauth4webapi": "^2.10.3"
   }
 }
