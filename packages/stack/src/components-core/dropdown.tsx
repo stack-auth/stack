@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { useDesign } from '..';
 import { SELECTED_BACKGROUND_COLORS } from '../utils/constants';
+import { ColorPalette } from '../providers/design-provider';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -24,17 +25,22 @@ const DropdownMenuTrigger = React.forwardRef<
 ));
 
 const StyledContent = styled(DropdownMenuPrimitive.Content)<{
-  $backgroundColor: string,
-  $neutralColor: string,
+  $colors: ColorPalette,
 }>`
   z-index: 50;
   min-width: 8rem;
   overflow: hidden;
   border-radius: 4px;
-  border: 1px solid ${({ $neutralColor }) => $neutralColor};
-  background: ${({ $backgroundColor }) => $backgroundColor};
   padding: 0.25rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  border: 1px solid ${({ $colors }) => $colors.light.neutralColor};
+  background: ${({ $colors }) => $colors.light.backgroundColor};
+
+  html[data-theme='dark'] & {
+    border-color: ${({ $colors }) => $colors.dark.neutralColor};
+    background: ${({ $colors }) => $colors.dark.backgroundColor};
+  }
 `;
 
 const DropdownMenuContent = React.forwardRef<
@@ -45,8 +51,7 @@ const DropdownMenuContent = React.forwardRef<
   return (
     <DropdownMenuPrimitive.Portal>
       <StyledContent 
-        $backgroundColor={colors.backgroundColor}
-        $neutralColor={colors.neutralColor}
+        $colors={colors}
         sideOffset={sideOffset} 
         ref={ref} 
         {...props}  
@@ -58,7 +63,6 @@ DropdownMenuContent.displayName = 'DropdownMenuContent';
 
 const StyledItem = styled(DropdownMenuPrimitive.Item)<{ 
   $inset?: boolean,
-  $colorMode: 'dark' | 'light',
 }>`
   display: flex;
   cursor: default;
@@ -72,10 +76,17 @@ const StyledItem = styled(DropdownMenuPrimitive.Item)<{
     background-color: var(--accent);
     color: var(--accent-foreground);
   }
-  &:hover {
-    background-color: ${({ $colorMode }) => SELECTED_BACKGROUND_COLORS[$colorMode]};
-  }
   ${({ $inset }) => $inset && 'padding-left: 2rem;'}
+
+  &:hover {
+    background-color: ${SELECTED_BACKGROUND_COLORS.light};
+  }
+
+  html[data-theme='dark'] & {
+    &:hover {
+      background-color: ${SELECTED_BACKGROUND_COLORS.dark};
+    }
+  }
 `;
 
 const DropdownMenuItem = React.forwardRef<
@@ -84,15 +95,13 @@ const DropdownMenuItem = React.forwardRef<
     inset?: boolean,
   }
 >(({ className, inset, ...props }, ref) => {
-  const { colorMode } = useDesign();
-  return <StyledItem ref={ref} {...props} $inset={inset} $colorMode={colorMode} />;
+  return <StyledItem ref={ref} {...props} $inset={inset} />;
 });
 DropdownMenuItem.displayName = 'DropdownMenuItem';
 
 const StyledLabel = styled(DropdownMenuPrimitive.Label)<{ inset?: boolean }>`
   padding: 0.375rem 0.5rem;
   font-size: 0.875rem;
-  font-weight: bold;
   ${({ inset }) => inset && 'padding-left: 2rem;'}
 `;
 
@@ -107,11 +116,15 @@ const DropdownMenuLabel = React.forwardRef<
 DropdownMenuLabel.displayName = 'DropdownMenuLabel';
 
 const StyledSeparator = styled(DropdownMenuPrimitive.Separator)<{
-  $color: string,
+  $colors: ColorPalette,
 }>`
   margin: 0.25rem -0.25rem;
   height: 1px;
-  background-color: ${({ $color }) => $color};
+  background-color: ${({ $colors }) => $colors.light.neutralColor};
+
+  html[data-theme='dark'] & {
+    background-color: ${({ $colors }) => $colors.dark.neutralColor};
+  }
 `;
 
 const DropdownMenuSeparator = React.forwardRef<
@@ -119,7 +132,7 @@ const DropdownMenuSeparator = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >(({ className, ...props }, ref) => {
   const { colors } = useDesign();
-  return <StyledSeparator ref={ref} {...props} $color={colors.neutralColor} />;
+  return <StyledSeparator ref={ref} {...props} $colors={colors} />;
 });
 DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 

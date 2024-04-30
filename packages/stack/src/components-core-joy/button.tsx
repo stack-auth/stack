@@ -19,7 +19,6 @@ export const Button = React.forwardRef<
     primary: "primary",
     secondary: "neutral",
     warning: "danger",
-    link: "primary",
   } as const)[variant] || "primary";
 
   const { children, action, ref: _, ...validProps } = props;
@@ -34,7 +33,6 @@ export const Button = React.forwardRef<
 
   return <JoyButton
     color={muiVariant}
-    variant={variant === 'link' ? 'plain' : 'solid'}
     sx={color ? {
       backgroundColor: color,
       color: c.isDark() ? 'white' : 'black',
@@ -44,7 +42,6 @@ export const Button = React.forwardRef<
       '&:active': {
         backgroundColor: changeColor(20)
       },
-      'textDecoration': variant === 'link' ? 'underline' : 'none',
     } : {}}
     size={size}
     loading={loading}

@@ -10,7 +10,7 @@ import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import { useAdminApp } from './use-admin-app';
 import { usePathname } from 'next/navigation';
-import { UserButton, useUser } from '@stackframe/stack';
+import { UserButton } from '@stackframe/stack';
 import { useColorScheme, Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Logo } from '@/components/logo';
@@ -65,6 +65,7 @@ export function Sidebar(props: {
   navigationItems: { name: string, href: string, icon: React.ReactNode }[],
   mode: 'compact' | 'full',
 }) {
+  const { mode, setMode } = useColorScheme();
   const stackAdminApp = useAdminApp();
   const basePath = `/projects/${stackAdminApp.projectId}`;
 
@@ -136,7 +137,7 @@ export function Sidebar(props: {
           <Divider sx={{ mt: 1 }} />
       
           <Box sx={{ py: 1 }}>
-            <UserButton showUserInfo showColorMode />
+            <UserButton showUserInfo colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
           </Box>
         </Stack>
       </Stack>

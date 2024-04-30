@@ -4,7 +4,7 @@ export const FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color E
 export const PRIMARY_FONT_COLORS = { 'dark': 'white', 'light': 'black' };
 export const SECONDARY_FONT_COLORS = { 'dark': '#a8a8a8', 'light': '#737373' };
 export const SELECTED_BACKGROUND_COLORS = { 'dark': 'rgba(255, 255, 255, 0.1)', 'light': 'rgba(0, 0, 0, 0.04)' };
-export const LINK_COLORS = { 'dark': '#3B82F6', 'light': '#2563EB' };
+export const LINK_COLORS = { 'dark': '#fff', 'light': '#000' };
 export const BORDER_RADIUS = '0.375rem';
 export const DEFAULT_COLORS = ({
   dark: {

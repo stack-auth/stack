@@ -4,8 +4,23 @@ import { Input } from "../components-core";
 import { forwardRef, useRef, useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { useDesign } from "..";
+import styled from "styled-components";
+import { ColorPalette } from "../providers/design-provider";
 
-const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(({ id, name, ...props }, ref) => {
+const getIconStyle = (colors: ColorPalette) => `
+  color: ${colors.light.secondaryColor};
+
+  html[data-theme='dark'] & {
+    color: ${colors.dark.secondaryColor};
+  }
+`;
+const StyledEyeOff = styled(HiEyeOff)<{ colors: ColorPalette }>`${props => getIconStyle(props.colors)}`;
+const StyledEye = styled(HiEye)<{ colors: ColorPalette }>`${props => getIconStyle(props.colors)}`;
+
+const PasswordField = forwardRef<
+  HTMLInputElement, 
+  React.InputHTMLAttributes<HTMLInputElement>
+>(({ id, name, ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const { colors } = useDesign();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -58,7 +73,7 @@ const PasswordField = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTM
         onClick={onClickReveal}
         aria-label={isOpen ? 'Mask password' : 'Reveal password'}
       >
-        {isOpen ? <HiEyeOff color={colors.secondaryColor} /> : <HiEye color={colors.secondaryColor} />}
+        {isOpen ? <StyledEyeOff colors={colors} /> : <StyledEye colors={colors} />}
       </button>
     </div>
   );

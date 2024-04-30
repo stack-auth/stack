@@ -1,16 +1,17 @@
 'use client';
-import { Button, useDesign } from "@stackframe/stack";
+import { Button } from "@stackframe/stack";
+import { useAdaptiveTheme } from "./provider";
 
 export default function ColorMode() {
-  const {colorMode, setColorMode} = useDesign();
+  const { theme, setTheme } = useAdaptiveTheme();
 
   return (
     <Button
       variant="secondary"
       size='sm' 
-      onClick={() => setColorMode(colorMode === 'light' ? 'dark' : 'light')}
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
     >
-      {colorMode === 'light' ? 'Dark' : 'Light'} Mode
+      Theme
     </Button>
   );
 }
