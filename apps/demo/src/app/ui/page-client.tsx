@@ -1,8 +1,6 @@
 'use client';
 
 import { Button, Container, Separator, Input, Label, Link, Text } from '@stackframe/stack';
-import { useTheme } from 'next-themes';
-import { useCurrentUI, useAdaptiveTheme } from 'src/components/provider';
 
 const text = "This is a test sentence. ";
 
