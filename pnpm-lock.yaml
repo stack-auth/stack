@@ -128,43 +128,6 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1
 
-  apps/dev:
-    dependencies:
-      '@emotion/react':
-        specifier: ^11.11.3
-        version: 11.11.3(@types/react@18.2.66)(react@18.2.0)
-      '@emotion/styled':
-        specifier: ^11.11.0
-        version: 11.11.0(@emotion/react@11.11.3)(@types/react@18.2.66)(react@18.2.0)
-      '@mui/joy':
-        specifier: ^5.0.0-beta.30
-        version: 5.0.0-beta.30(@emotion/react@11.11.3)(@emotion/styled@11.11.0)(@types/react@18.2.66)(react-dom@18.2.0)(react@18.2.0)
-      '@stackframe/stack':
-        specifier: workspace:*
-        version: link:../../packages/stack
-      '@stackframe/stack-shared':
-        specifier: workspace:*
-        version: link:../../packages/stack-shared
-      next:
-        specifier: ^14.1
-        version: 14.1.0(@babel/core@7.24.0)(react-dom@18.2.0)(react@18.2.0)
-      next-themes:
-        specifier: ^0.2.1
-        version: 0.2.1(next@14.1.0)(react-dom@18.2.0)(react@18.2.0)
-      react:
-        specifier: ^18.2
-        version: 18.2.0
-      react-dom:
-        specifier: ^18
-        version: 18.2.0(react@18.2.0)
-    devDependencies:
-      '@types/react':
-        specifier: ^18.2.66
-        version: 18.2.66
-      '@types/react-dom':
-        specifier: ^18
-        version: 18.2.18
-
   apps/e2e:
     devDependencies:
       dotenv-cli:

@@ -11,7 +11,7 @@ export default function ColorMode() {
       size='sm' 
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
     >
-      Toggle theme
+      Theme
     </Button>
   );
 }
