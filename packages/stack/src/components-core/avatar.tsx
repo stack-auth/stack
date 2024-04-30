@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import styled from 'styled-components';
 import { useDesign } from '..';
-import { SECONDARY_FONT_COLORS } from '../utils/constants';
 import { ColorPalette } from '../providers/design-provider';
 
 const StyledAvatar = styled(AvatarPrimitive.Root)`
