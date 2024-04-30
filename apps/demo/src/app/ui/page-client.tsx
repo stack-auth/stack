@@ -2,29 +2,16 @@
 
 import { Button, Container, Separator, Input, Label, Link, Text } from '@stackframe/stack';
 import { useTheme } from 'next-themes';
-import { useCurrentUI } from 'src/components/provider';
+import { useCurrentUI, useAdaptiveTheme } from 'src/components/provider';
 
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
-  const { theme, setTheme } = useTheme();
-  const [currentUI, setCurrentUI] = useCurrentUI();
   
   return (
     <div>
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
-          <select value={currentUI} onChange={e => setCurrentUI(e.target.value as 'default' | 'joy')}>
-            <option value='default'>Default</option>
-            <option value='joy'>Joy</option>
-          </select>
-          
-          <div>
-            <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} variant="secondary">
-              Toggle Theme
-            </Button>
-          </div>
-
           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
             <Button size='sm' variant="primary">
               Button
