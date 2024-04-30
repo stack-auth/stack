@@ -1,16 +1,17 @@
 'use client';
 import { Button, useDesign } from "@stackframe/stack";
+import { useTheme } from "next-themes";
 
 export default function ColorMode() {
-  const {colorMode, setColorMode} = useDesign();
+  const { theme, setTheme } = useTheme();
 
   return (
     <Button
       variant="secondary"
       size='sm' 
-      onClick={() => setColorMode(colorMode === 'light' ? 'dark' : 'light')}
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
     >
-      {colorMode === 'light' ? 'Dark' : 'Light'} Mode
+      Toggle theme
     </Button>
   );
 }
