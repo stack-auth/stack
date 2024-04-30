@@ -30,6 +30,9 @@ export type ServerOrglikeJson = OrglikeJson & {};
 export type ServerOrganizationCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerOrganizationJson = ServerOrglikeJson;
 
+export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
+export type ServerTeamJson = ServerOrglikeJson;
+
 export type ServerPermissionCreateJson = {
   readonly databaseUniqueId: string,
   readonly id: string,
@@ -88,6 +91,39 @@ export class StackServerInterface extends StackClientInterface {
   async listUsers(): Promise<ServerUserJson[]> {
     const response = await this.sendServerRequest("/users?server=true", {}, null);
     return await response.json();
+  }
+
+  async listTeams(): Promise<ServerTeamJson[]> {
+    const response = await this.sendServerRequest("/teams?server=true", {}, null);
+    return await response.json();
+  }
+
+  async addUserToTeam(userId: string, teamId: string) {
+    await this.sendServerRequest(
+      `/teams/${teamId}/users/${userId}?server=true`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
+  }
+
+  async removeUserFromTeam(userId: string, teamId: string) {
+    await this.sendServerRequest(
+      `/teams/${teamId}/users/${userId}?server=true`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
   }
 
   async setServerUserCustomizableData(userId: string, update: ServerUserUpdateJson) {

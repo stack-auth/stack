@@ -155,6 +155,9 @@ export type OrglikeJson = {
 
 export type OrganizationJson = OrglikeJson;
 
+export type TeamJson = OrglikeJson;
+
+
 export type PermissionScopeJson =
   | { type: "global" }
   | { type: "any-organization" }
@@ -744,6 +747,26 @@ export class StackClientInterface {
     const user: UserJson | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
     return Result.ok(user);
+  }
+
+  async listClientUserPermissions(tokenStore: TokenStore): Promise<PermissionJson[]> {
+    const response = await this.sendClientRequest(
+      "/current-user/permissions",
+      {},
+      tokenStore,
+    );
+    const permissions: PermissionJson[] = await response.json();
+    return permissions;
+  }
+
+  async listClientUserTeams(tokenStore: TokenStore): Promise<TeamJson[]> {
+    const response = await this.sendClientRequest(
+      "/current-user/teams",
+      {},
+      tokenStore,
+    );
+    const teams: TeamJson[] = await response.json();
+    return teams;
   }
 
   async getClientProject(): Promise<Result<ClientProjectJson>> {
