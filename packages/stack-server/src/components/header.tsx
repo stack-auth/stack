@@ -1,10 +1,11 @@
 "use client";
 import { Logo } from "@/components/logo";
-import { Box, Sheet, SheetProps, Stack } from "@mui/joy";
+import { Sheet, SheetProps, Stack, useColorScheme } from "@mui/joy";
 import { UserButton } from "@stackframe/stack";
 
 export function Header(props: SheetProps & { headerHeight: number }) {
   const { headerHeight, ...sheetProps } = props;
+  const { mode, setMode } = useColorScheme();
 
   return (
     <>
@@ -30,7 +31,7 @@ export function Header(props: SheetProps & { headerHeight: number }) {
         <Stack sx={{ marginLeft: 2, justifyContent: 'center', height: headerHeight - 1 }}>
           <Logo full height={24} href="/projects" />
         </Stack>
-        <UserButton showColorMode />
+        <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
       </Sheet>
     </>
   );
