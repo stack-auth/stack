@@ -102,7 +102,6 @@ DropdownMenuItem.displayName = 'DropdownMenuItem';
 const StyledLabel = styled(DropdownMenuPrimitive.Label)<{ inset?: boolean }>`
   padding: 0.375rem 0.5rem;
   font-size: 0.875rem;
-  font-weight: bold;
   ${({ inset }) => inset && 'padding-left: 2rem;'}
 `;
 

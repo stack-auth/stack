@@ -1,24 +1,33 @@
 'use client';
 
 import Link from "next/link";
-import { useDesign, UserButton } from "@stackframe/stack";
+import { useDesign, UserButton, ColorPalette } from "@stackframe/stack";
 import { useTheme } from "next-themes";
+import styled from "styled-components";
 import ColorMode from "./color-mode";
 import Select from "./select";
 import { useCurrentUI } from "./provider";
+
+const StyledHeader = styled.div<{ $colors: ColorPalette }>`
+  border-bottom: 1px solid ${props => props.$colors.light.neutralColor};
+  background-color: ${props => props.$colors.light.backgroundColor};
+
+  html[data-theme='dark'] & {
+    border-color: ${props => props.$colors.dark.neutralColor};
+    background-color: ${props => props.$colors.dark.backgroundColor};
+  }
+`;
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { colors } = useDesign();
   const [currentUI, setCurrentUI] = useCurrentUI();
+
   return (
     <>
-      <div 
+      <StyledHeader
+        $colors={colors}
         className={"fixed w-full z-50 p-4 h-12 flex items-center py-4 border-b justify-between"}
-        style={{
-          borderColor: colors.light.neutralColor,
-          backgroundColor: colors.light.backgroundColor,
-        }}
       >
         <Link href="/" className="font-semibold">
           Stack Demo
@@ -36,7 +45,7 @@ export default function Header() {
           <ColorMode />
           <UserButton colorModeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
         </div>
-      </div>
+      </StyledHeader>
       <div className="min-h-12"/> {/* Placeholder for fixed header */}
     </>
   );
