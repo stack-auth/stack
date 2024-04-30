@@ -21,7 +21,7 @@ const StyledHeader = styled.div<{ $colors: ColorPalette }>`
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { colors } = useDesign();
-  const [currentUI, setCurrentUI] = useCurrentUI();
+  const { ui, setUi } = useCurrentUI();
 
   return (
     <>
@@ -39,8 +39,8 @@ export default function Header() {
               { value: 'default', label: 'Default UI' },
               { value: 'joy', label: 'Joy UI' }
             ]}
-            value={currentUI}
-            onChange={(e) => setCurrentUI(e.target.value as any)}
+            value={ui}
+            onChange={(e) => setUi(e.target.value as any)}
           />
           <ColorMode />
           <UserButton colorModeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />

@@ -1,9 +1,9 @@
 'use client';
-import { Button, useDesign } from "@stackframe/stack";
-import { useTheme } from "next-themes";
+import { Button } from "@stackframe/stack";
+import { useAdaptiveTheme } from "./provider";
 
 export default function ColorMode() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useAdaptiveTheme();
 
   return (
     <Button
