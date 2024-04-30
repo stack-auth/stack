@@ -9,9 +9,14 @@ export default function PageClient() {
   const app = useStackApp();
 
   const authButtons = (
-    <div className='flex gap-5'>
-      <Button onClick={() => router.push(app.urls.signIn)}>Sign In</Button>
-      <Button onClick={() => router.push('/handler/signup')}>Sign Up</Button>
+    <div className='flex flex-col gap-5 justify-center items-center'>
+      <Text size='lg'>Welcome to the Stack demo app!</Text>
+      <Text size='md'>You can click on the buttons below to see the sign-in/sign-up pages you get out of the box.</Text>
+      <Text size='md'>Also feel free to check out the things on the top right corner.</Text>
+      <div className='flex gap-5'>
+        <Button onClick={() => router.push(app.urls.signIn)}>Sign In</Button>
+        <Button onClick={() => router.push('/handler/signup')}>Sign Up</Button>
+      </div>
     </div>
   );
   
