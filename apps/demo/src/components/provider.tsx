@@ -5,6 +5,7 @@ import { CssVarsProvider, getInitColorSchemeScript } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import { StackTheme } from "@stackframe/stack";
 import { StackJoyTheme } from "@stackframe/stack/joy";
+import { ThemeProvider } from "next-themes";
 
 type UI = 'default' | 'joy';
 const CurrentUIContext = React.createContext<[UI, React.Dispatch<React.SetStateAction<UI>>]>(['default', () => {}]);
@@ -26,9 +27,11 @@ function JoyProvider(props: any) {
 
 function DefaultProvider(props: any) {
   return (
-    <StackTheme>
-      {props.children}
-    </StackTheme>
+    <ThemeProvider>
+      <StackTheme>
+        {props.children}
+      </StackTheme>
+    </ThemeProvider>
   );
 }
 

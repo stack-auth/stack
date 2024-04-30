@@ -100,7 +100,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
             <div>
               {user && <Text>{user.displayName}</Text>}
               {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}
-              {!user && <Text variant="secondary">Not logged in</Text>}
+              {!user && <Text variant="secondary">Not signed in</Text>}
             </div>
           </div>
         </DropdownMenuLabel>
