@@ -1,22 +1,28 @@
 import React from 'react';
 import styled from 'styled-components';
 import { IoIosArrowDown } from 'react-icons/io';
-import { useDesign } from '@stackframe/stack';
+import { useDesign, ColorPalette } from '@stackframe/stack';
 
 const SelectWrapper = styled.div`
   position: relative;
   display: inline-block;
 `;
 
-const StyledSelect = styled.select<{$bgColor: string, $borderColor: string}>`
+const StyledSelect = styled.select<{ $colors: ColorPalette }>`
   padding: 3px 5px;
   padding-right: 30px;
   display: inline-block;
-  border: 1px solid ${props => props.$borderColor};
   border-radius: 4px;
   box-sizing: border-box;
-  background-color: ${props => props.$bgColor};
   appearance: none;
+
+  border: 1px solid ${props => props.$colors.light.neutralColor};
+  background-color: ${props => props.$colors.light.backgroundColor};
+
+  html[data-theme='dark'] & {
+    border-color: ${props => props.$colors.dark.neutralColor};
+    background-color: ${props => props.$colors.dark.backgroundColor};
+  }
 `;
 
 const StyledOption = styled.option`
@@ -34,7 +40,7 @@ const Select = ({ options, ...props }) => {
   const { colors } = useDesign();
   return (
     <SelectWrapper>
-      <StyledSelect {...props} $bgColor={colors.backgroundColor} $borderColor={colors.neutralColor}>
+      <StyledSelect {...props} $colors={colors}>
         {options.map(option => (
           <StyledOption key={option.value} value={option.value}>
             {option.label}
