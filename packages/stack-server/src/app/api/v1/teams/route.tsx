@@ -36,7 +36,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound);
   }
   
-  // const organizations = await listOrganizations(userId);
+  // const teams = await listTeams(userId);
 
   return NextResponse.json({});
 });
@@ -72,7 +72,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound);
   }
 
-  // const organization = await createOrganization(userId, { displayName });
+  // const team = await createTeam(userId, { displayName });
 
   return NextResponse.json({});
 });

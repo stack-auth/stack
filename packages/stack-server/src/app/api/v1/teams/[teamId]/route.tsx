@@ -5,7 +5,7 @@ import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
 
-const getSchema = yup.object({
+const putOrGetSchema = yup.object({
   method: yup.string().oneOf(["GET", "PUT"]).required(),
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
@@ -13,11 +13,11 @@ const getSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    permissions: yup.array(yup.string().required()).nullable(),
+    displayName: yup.string().nullable(),
   }).nullable(),
 });
 
-const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { orgId: string, userId: string } }) => {
+const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { teamId: string } }) => {
   const {
     method,
     headers: {
@@ -25,74 +25,71 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
     },
-    body
-  } = await deprecatedParseRequest(req, getSchema);
+    body,
+  } = await deprecatedParseRequest(req, putOrGetSchema);
+
+  let {
+    displayName,
+  } = body ?? {};
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
     throw new StatusError(StatusError.Forbidden);
   }
 
   const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
-  const { userId: currentUserId, projectId: accessTokenProjectId } = decodedAccessToken;
+  const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
   if (accessTokenProjectId !== projectId) {
     throw new StatusError(StatusError.NotFound);
   }
 
-  // if (!hasPermission(currentUserId, projectId, organizationId, Permission.ReadOrganizationUsers)) {
+  // if (!hasPermission(userId, projectId, teamId, Permission.ReadTeam)) {
   //   throw new StatusError(StatusError.Forbidden);
   // }
 
-  // if (body && !hasPermission(currentUserId, projectId, organizationId, Permission.UpdateOrganizationUserPermissions)) {
+  // if (displayName !== undefined && !hasPermission(userId, projectId, teamId, Permission.UpdateTeam)) {
   //   throw new StatusError(StatusError.Forbidden);
   // }
   
-  // await updateOrganizationUserPermissions(currentUserId, projectId, organizationId, userId, body);
+  // await updateTeam(userId, projectId, teamId, { displayName });
   return NextResponse.json({});
 });
-
 export const GET = handler;
 export const PUT = handler;
 
-
 const deleteSchema = yup.object({
-  method: yup.string().oneOf(["DELETE"]).required(),
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.required(),
     "x-stack-project-id": yup.string().required(),
-  }).required(),
+    "x-stack-team-id": yup.string().required(),
+  }),
 });
 
-export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { orgId: string, userId: string } }) => {
+export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
-    method,
     headers: {
       authorization,
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
+      "x-stack-team-id": teamId,
     },
   } = await deprecatedParseRequest(req, deleteSchema);
-
-  if (!authorization) {
-    return NextResponse.json(null);
-  }
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
     throw new StatusError(StatusError.Forbidden);
   }
 
-  const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
-  const { userId: currentUserId, projectId: accessTokenProjectId } = decodedAccessToken;
+  const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
 
   if (accessTokenProjectId !== projectId) {
     throw new StatusError(StatusError.NotFound);
   }
 
-  // if (userId !== currentUserId && !hasPermission(currentUserId, projectId, organizationId, Permission.RemoveOrganizationUser)) {
+  // if (!hasPermission(userId, projectId, teamId, Permission.DeleteTeam)) {
   //   throw new StatusError(StatusError.Forbidden);
   // }
-  
-  // await removeUserFromOrganization(projectId, organizationId, userId);
+
+  // await deleteTeam(userId, projectId, teamId);
   return NextResponse.json({});
 });

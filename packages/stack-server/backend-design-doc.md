@@ -69,9 +69,9 @@ Terminology: "Invalid" means it was found but not valid, "Not found" means it wa
     - `PasswordResetCodeAlreadyUsed`: The password reset code has already been used. (400)
 - `PasswordMismatch`: The given password does not match the user's password. (400)
 - `PermissionNotFound`: Permission not found. (404)
-- `PermissionScopeMismatch`: This permission's scope is `X` but you tested against permissions of scope `Y`. Please Z specify the organization, for example by doing `user.hasPermission(organization, "my-permission-id")`. (400)
-- `OrganizationNotFound`: Organization not found. (404)
-- `UserNotInOrganization`: User is not in the organization. (400)
+- `PermissionScopeMismatch`: This permission's scope is `X` but you tested against permissions of scope `Y`. Please Z specify the team, for example by doing `user.hasPermission(team, "my-permission-id")`. (400)
+- `TeamNotFound`: Team not found. (404)
+- `UserNotInTeam`: User is not in the team. (400)
 
 ## Project Authentication
 

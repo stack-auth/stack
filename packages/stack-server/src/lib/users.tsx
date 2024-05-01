@@ -1,9 +1,9 @@
 import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Organization, ProjectUser } from "@prisma/client";
+import { Team, ProjectUser } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { fullOrganizationInclude } from "./organizations";
+import { fullTeamInclude } from "./teams";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
@@ -24,13 +24,13 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
       project: {
         include: fullProjectInclude,
       },
-      organization: {
-        include: fullOrganizationInclude,
+      team: {
+        include: fullTeamInclude,
       },
     },
   });
 
-  return users.map((u) => getServerUserFromDbType(u, u.project, u.organization));
+  return users.map((u) => getServerUserFromDbType(u, u.project, u.team));
 }
 
 export async function updateClientUser(
@@ -71,8 +71,8 @@ export async function updateServerUser(
         project: {
           include: fullProjectInclude,
         },
-        organization: {
-          include: fullOrganizationInclude,
+        team: {
+          include: fullTeamInclude,
         },
       },
       data: filterUndefined({
@@ -91,7 +91,7 @@ export async function updateServerUser(
     throw e;
   }
 
-  return getServerUserFromDbType(user, user.project, user.organization);
+  return getServerUserFromDbType(user, user.project, user.team);
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
@@ -119,10 +119,10 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     authWithEmail: serverUser.authWithEmail,
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
-    organization: serverUser.organization ? {
-      id: serverUser.organization.id,
-      displayName: serverUser.organization.displayName,
-      createdAtMillis: serverUser.organization.createdAtMillis,
+    team: serverUser.team ? {
+      id: serverUser.team.id,
+      displayName: serverUser.team.displayName,
+      createdAtMillis: serverUser.team.createdAtMillis,
     } : null,
   };
 }
@@ -130,7 +130,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 function getServerUserFromDbType(
   projectUser: ProjectUser, 
   projectDB: ProjectDB,
-  organization: Organization | null,
+  team: Team | null,
 ): ServerUserJson {
   const projectJson = projectJsonFromDbType(projectDB);
 
@@ -148,10 +148,10 @@ function getServerUserFromDbType(
     hasPassword: !!projectUser.passwordHash,
     authWithEmail: projectUser.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
-    organization: organization ? {
-      id: organization.organizationId,
-      displayName: organization.displayName,
-      createdAtMillis: organization.createdAt.getTime(),
+    team: team ? {
+      id: team.teamId,
+      displayName: team.displayName,
+      createdAtMillis: team.createdAt.getTime(),
     } : null,
   };
 }

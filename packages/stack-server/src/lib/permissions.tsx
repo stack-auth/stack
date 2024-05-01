@@ -17,17 +17,17 @@ export const fullPermissionInclude = {
 
 
 function serverPermissionJsonFromDbType(db: any): ServerPermissionJson {
-  if (!db.projectConfigId && !db.organizationId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or organizationId`, { db });
-  if (db.projectConfigId && db.organizationId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or organizationId, not both`, { db });
-  if (db.scope === "GLOBAL" && db.organizationId) throw new StackAssertionError(`Permission DB object should not have organizationId when scope is GLOBAL`, { db });
+  if (!db.projectConfigId && !db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
+  if (db.projectConfigId && db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId, not both`, { db });
+  if (db.scope === "GLOBAL" && db.teamId) throw new StackAssertionError(`Permission DB object should not have teamId when scope is GLOBAL`, { db });
 
   return {
     databaseUniqueId: db.dbId,
     id: db.queriableId,
     scope: 
       db.scope === "GLOBAL" ? { type: "global" } :
-        db.organizationId ? { type: "specific-organization", organizationId: db.organizationId } :
-          db.projectConfigId ? { type: "any-organization" } :
+        db.teamId ? { type: "specific-team", teamId: db.teamId } :
+          db.projectConfigId ? { type: "any-team" } :
             throwErr(new StackAssertionError(`Unexpected permission scope`, { db })), 
     displayName: db.displayName,
     description: db.description,
@@ -47,12 +47,12 @@ export async function listPermissions(projectId: string, scope: PermissionScopeJ
 export async function listServerPermissions(projectId: string, scope: PermissionScopeJson): Promise<ServerPermissionJson[]> {
   let res;
   switch (scope.type) {
-    case "specific-organization": {
-      const organization = await prismaClient.organization.findUnique({
+    case "specific-team": {
+      const team = await prismaClient.team.findUnique({
         where: {
-          projectId_organizationId: {
+          projectId_teamId: {
             projectId,
-            organizationId: scope.organizationId,
+            teamId: scope.teamId,
           },
         },
         include: {
@@ -61,16 +61,16 @@ export async function listServerPermissions(projectId: string, scope: Permission
           },
         },
       });
-      if (!organization) throw new KnownErrors.OrganizationNotFound(scope.organizationId);
-      res = organization.permissions;
+      if (!team) throw new KnownErrors.TeamNotFound(scope.teamId);
+      res = team.permissions;
       break;
     }
     case "global":
-    case "any-organization": {
+    case "any-team": {
       res = await prismaClient.permission.findMany({
         where: {
           projectId,
-          scope: scope.type === "global" ? "GLOBAL" : "ORGANIZATION",
+          scope: scope.type === "global" ? "GLOBAL" : "TEAM",
         },
         include: fullPermissionInclude,
       });
@@ -85,10 +85,10 @@ export async function userHasPermission(projectId: string, userId: string, scope
   const allUserPermissions = await listUserPermissionsRecursive(projectId, userId, scope);
   const permission = allUserPermissions.find(p => p.id === permissionId);
   if (!permission) {
-    // maybe we can throw a better error message than "not found" (but be careful not to leak information as other organizations' permissions should be private)
+    // maybe we can throw a better error message than "not found" (but be careful not to leak information as other teams' permissions should be private)
     let tryScope: PermissionScopeJson | undefined;
-    if (scope.type === "global") tryScope = { type: "any-organization" };
-    else if (scope.type === "any-organization") tryScope = { type: "global" };
+    if (scope.type === "global") tryScope = { type: "any-team" };
+    else if (scope.type === "any-team") tryScope = { type: "global" };
     if (tryScope) {
       const allUserPermissionsWrongScope = await listUserPermissionsRecursive(projectId, userId, tryScope);
       if (allUserPermissionsWrongScope.find(p => p.id === permissionId)) {
@@ -175,9 +175,9 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
   const scopes: PermissionScopeJson[] = [
     { type: "global" } as const,
     ...scope.type === "global" ? [] : [
-      { type: "any-organization" } as const,
-      ...scope.type === "any-organization" ? [] : [
-        { type: "specific-organization", organizationId: scope.organizationId } as const,
+      { type: "any-team" } as const,
+      ...scope.type === "any-team" ? [] : [
+        { type: "specific-team", teamId: scope.teamId } as const,
       ],
     ],
   ];
@@ -201,13 +201,13 @@ export async function createPermission(projectId: string, scope: PermissionScope
   }
   await prismaClient.permission.create({
     data: {
-      scope: scope.type === "global" ? "GLOBAL" : "ORGANIZATION",
+      scope: scope.type === "global" ? "GLOBAL" : "TEAM",
       queriableId: permission.id,
       displayName: permission.displayName,
       description: permission.description,
-      ...scope.type === "specific-organization" ? {
+      ...scope.type === "specific-team" ? {
         projectId: project.id,
-        organizationId: scope.organizationId,
+        teamId: scope.teamId,
       } : {
         projectConfigId: project.configId,
       },
@@ -227,7 +227,7 @@ export async function createPermission(projectId: string, scope: PermissionScope
 export async function deletePermission(projectId: string, scope: PermissionScopeJson, permissionId: string) {
   switch (scope.type) {
     case "global":
-    case "any-organization": {
+    case "any-team": {
       const project = await prismaClient.project.findUnique({
         where: {
           id: projectId,
@@ -245,22 +245,22 @@ export async function deletePermission(projectId: string, scope: PermissionScope
       if (!deleted) throw new KnownErrors.PermissionNotFound(permissionId);
       break;
     }
-    case "specific-organization": {
-      const organization = await prismaClient.organization.findUnique({
+    case "specific-team": {
+      const team = await prismaClient.team.findUnique({
         where: {
-          projectId_organizationId: {
+          projectId_teamId: {
             projectId,
-            organizationId: scope.organizationId,
+            teamId: scope.teamId,
           },
         },
       });
-      if (!organization) throw new KnownErrors.OrganizationNotFound(scope.organizationId);
+      if (!team) throw new KnownErrors.TeamNotFound(scope.teamId);
       const deleted = await prismaClient.permission.delete({
         where: {
-          projectId_organizationId_queriableId: {
+          projectId_teamId_queriableId: {
             projectId,
             queriableId: permissionId,
-            organizationId: scope.organizationId,
+            teamId: scope.teamId,
           },
         },
       });

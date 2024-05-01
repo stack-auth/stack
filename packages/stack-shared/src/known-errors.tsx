@@ -696,9 +696,9 @@ const PermissionScopeMismatch = createKnownErrorConstructor(
     return [
       400,
       `The scope of the permission with ID ${permissionId} is \`${permissionScope.type}\` but you tested against permissions of scope \`${testScope.type}\`. ${{
-        "global": `Please don't specify any organizations when using global permissions. For example: \`user.hasPermission(${JSON.stringify(permissionId)})\`.`,
-        "any-organization": `Please specify the organization. For example: \`user.hasPermission(organization, ${JSON.stringify(permissionId)})\`.`,
-        "specific-organization": `Please specify the organization. For example: \`user.hasPermission(organization, ${JSON.stringify(permissionId)})\`.`,
+        "global": `Please don't specify any teams when using global permissions. For example: \`user.hasPermission(${JSON.stringify(permissionId)})\`.`,
+        "any-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
+        "specific-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
       }[permissionScope.type]}`,
       {
         permissionId,
@@ -710,31 +710,31 @@ const PermissionScopeMismatch = createKnownErrorConstructor(
   (json: any) => [json.details.permissionId, json.details.permissionScope, json.details.testScope] as const,
 );
 
-const UserNotInOrganization = createKnownErrorConstructor(
+const UserNotInTeam = createKnownErrorConstructor(
   KnownError,
-  "USER_NOT_IN_ORGANIZATION",
-  (userId: string, organizationId: string) => [
+  "USER_NOT_IN_TEAM",
+  (userId: string, teamId: string) => [
     400,
-    `User ${userId} is not in organization ${organizationId}.`,
+    `User ${userId} is not in team ${teamId}.`,
     {
       userId,
-      organizationId,
+      teamId,
     },
   ] as const,
-  (json: any) => [json.details.userId, json.details.organizationId] as const,
+  (json: any) => [json.details.userId, json.details.teamId] as const,
 );
 
-const OrganizationNotFound = createKnownErrorConstructor(
+const TeamNotFound = createKnownErrorConstructor(
   KnownError,
-  "ORGANIZATION_NOT_FOUND",
-  (organizationId: string) => [
+  "TEAM_NOT_FOUND",
+  (teamId: string) => [
     404,
-    `Organization ${organizationId} not found.`,
+    `Team ${teamId} not found.`,
     {
-      organizationId,
+      teamId,
     },
   ] as const,
-  (json: any) => [json.details.organizationId] as const,
+  (json: any) => [json.details.teamId] as const,
 );
 
 export type KnownErrors = {
@@ -801,7 +801,7 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   PermissionNotFound,
   PermissionScopeMismatch,
-  OrganizationNotFound,
+  TeamNotFound,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

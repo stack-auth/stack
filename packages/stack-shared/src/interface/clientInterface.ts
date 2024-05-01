@@ -28,7 +28,7 @@ export type UserJson = UserCustomizableJson & {
   readonly hasPassword: boolean,
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
-  readonly organization: OrganizationJson | null,
+  readonly team: TeamJson | null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
@@ -153,15 +153,15 @@ export type OrglikeJson = {
   createdAtMillis: number,
 };
 
-export type OrganizationJson = OrglikeJson;
-
 export type TeamJson = OrglikeJson;
+
+export type OrganizationJson = OrglikeJson;
 
 
 export type PermissionScopeJson =
   | { type: "global" }
-  | { type: "any-organization" }
-  | { type: "specific-organization", organizationId: string };
+  | { type: "any-team" }
+  | { type: "specific-team", teamId: string };
 
 export type PermissionJson = {
   id: string,

@@ -14,21 +14,18 @@ import { ReadonlyJson } from "../utils/json";
 
 export type ServerUserJson = UserJson & {
   readonly serverMetadata: ReadonlyJson,
-  readonly organization: ServerOrganizationJson | null,
+  readonly team: ServerTeamJson | null,
 };
 
 export type ServerUserUpdateJson = UserUpdateJson & {
   readonly serverMetadata?: ReadonlyJson,
   readonly primaryEmail?: string | null,
   readonly primaryEmailVerified?: boolean,
-  readonly organizationId?: string | null,
+  readonly teamId?: string | null,
 }
 
 export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName">;
 export type ServerOrglikeJson = OrglikeJson & {};
-
-export type ServerOrganizationCustomizableJson = ServerOrglikeCustomizableJson;
-export type ServerOrganizationJson = ServerOrglikeJson;
 
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;

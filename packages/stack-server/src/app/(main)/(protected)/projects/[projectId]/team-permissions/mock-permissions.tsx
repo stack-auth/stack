@@ -13,17 +13,17 @@ let mockPermissions = [
   },
   {
     name: "member",
-    contains: ["view:organization", "view:user"],
+    contains: ["view:team", "view:user"],
   },
   {
     name: "editor",
-    contains: ["edit:organization", "edit:user"],
+    contains: ["edit:team", "edit:user"],
   },
   {
-    name: "view:organization",
+    name: "view:team",
   },
   {
-    name: "edit:organization",
+    name: "edit:team",
   },
   {
     name: "view:user",

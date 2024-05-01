@@ -6,7 +6,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, OrganizationJson, UserUpdateJson, TeamJson, PermissionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigation from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
@@ -131,7 +131,7 @@ function createEmptyTokenStore() {
   return store;
 }
 
-function organizationFromJson(json: OrganizationJson | null): Organization | null {
+function teamFromJson(json: TeamJson | null): Team | null {
   if (json === null) return null;
 
   return {
@@ -386,7 +386,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
-      organization: organizationFromJson(json.organization),
+      team: teamFromJson(json.team),
       async hasPermission(team, permission) {
         return !!await this.getPermission(team, permission);
       },
@@ -507,7 +507,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      organization: user.organization?.toJson() ?? null,
+      team: user.team?.toJson() ?? null,
     };
   }
 
@@ -1037,7 +1037,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      organization: user.organization?.toJson() ?? null,
+      team: user.team?.toJson() ?? null,
     };
   }
 
@@ -1330,7 +1330,7 @@ export type User = (
     readonly authWithEmail: boolean,
     readonly oauthProviders: readonly string[],
 
-    readonly organization: Organization | null,
+    readonly team: Team | null,
 
     hasPermission(team: Team, permission: string | Permission): Promise<boolean>,
 
@@ -1394,15 +1394,6 @@ export type Project = {
   getProductionModeErrors(this: Project): ProductionModeError[],
 };
 
-export type Organization = {
-  readonly id: string,
-  readonly displayName: string,
-  readonly createdAt: Date,
-  toJson(this: Organization): OrganizationJson,
-};
-
-export type ServerOrganization = Organization;
-
 export type Team = {
   id: string,
   displayName: string,
@@ -1418,8 +1409,8 @@ export type ServerTeam = Team & {
 
 export type PermissionScope =
   | { type: "global" }
-  | { type: "any-organization" }
-  | { type: "specific-organization", organizationId: string };
+  | { type: "any-team" }
+  | { type: "specific-team", teamId: string };
 
 export type Permission = {
   id: string,
