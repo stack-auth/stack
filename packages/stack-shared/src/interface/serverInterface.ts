@@ -114,9 +114,12 @@ export class StackServerInterface extends StackClientInterface {
   }
   
 
-  async addUserToTeam(userId: string, teamId: string) {
+  async addUserToTeam(options: {
+    userId: string, 
+    teamId: string,
+  }) {
     await this.sendServerRequest(
-      `/teams/${teamId}/users/${userId}?server=true`,
+      `/teams/${options.teamId}/users/${options.userId}?server=true`,
       {
         method: "POST",
         headers: {
@@ -128,9 +131,12 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async removeUserFromTeam(userId: string, teamId: string) {
+  async removeUserFromTeam(options: {
+    userId: string, 
+    teamId: string,
+  }) {
     await this.sendServerRequest(
-      `/teams/${teamId}/users/${userId}?server=true`,
+      `/teams/${options.teamId}/users/${options.userId}?server=true`,
       {
         method: "DELETE",
         headers: {

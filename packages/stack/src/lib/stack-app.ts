@@ -906,6 +906,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const teams = await this._interface.listTeams();
     return teams.map((t) => this._serverTeamFromJson(t));
   });
+  private readonly _serverTeamUsersCache = createCache<string[], ServerUser[]>(async ([teamId]) => {
+    const users = await this._interface.listTeamUsers(teamId);
+    return users.map((u) => this._serverUserFromJson(u));
+  });
 
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -1046,11 +1050,20 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async listUsers() {
         return (await app._interface.listTeamUsers(json.id)).map((u) => app._serverUserFromJson(u));
       },
-      async addUser(user) {
-        await app._interface.addUserToTeam(json.id, user.id);
+      useUsers() {
+        return useCache(app._serverTeamUsersCache, [json.id], "team.useUsers()");
       },
-      async removeUser(user) {
-        await app._interface.removeUserFromTeam(json.id, user.id);
+      async addUser(userId) {
+        await app._interface.addUserToTeam({
+          teamId: json.id,
+          userId,
+        });
+      },
+      async removeUser(userId) {
+        await app._interface.removeUserFromTeam({
+          teamId: json.id,
+          userId,
+        });
       },
       toJson() {
         return json;
@@ -1408,8 +1421,9 @@ export type Team = {
 
 export type ServerTeam = Team & {
   listUsers(): Promise<ServerUser[]>,
-  addUser(user: ServerUser): Promise<void>,
-  removeUser(user: ServerUser): Promise<void>,
+  useUsers(): ServerUser[],
+  addUser(userId: string): Promise<void>,
+  removeUser(userId: string): Promise<void>,
 };
 
 export type PermissionScope =

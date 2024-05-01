@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from 'react';
+import React from 'react';
 import { Paragraph } from "@/components/paragraph";
 import { MemberTable } from './member-table';
 import { useAdminApp } from '../../use-admin-app';
@@ -10,7 +10,7 @@ import { notFound } from 'next/navigation';
 export default function ClientPage(props: { teamId: string }) {
   const stackAdminApp = useAdminApp();
   const team = stackAdminApp.useTeam(props.teamId);
-  // const users = team?.listUsers();
+  const users = team?.useUsers();
 
   if (!team) {
     return notFound();
@@ -23,7 +23,7 @@ export default function ClientPage(props: { teamId: string }) {
       </Paragraph>
 
       <Paragraph body>
-        {/* <MemberTable rows={users} /> */}
+        <MemberTable rows={users || []} />
       </Paragraph>
     </>
   );

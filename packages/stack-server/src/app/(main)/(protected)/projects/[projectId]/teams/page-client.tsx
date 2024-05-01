@@ -3,8 +3,6 @@
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
 import { EnableTeam } from "../enable-team";
-import { useUser } from "@stackframe/stack";
-import { useEffect } from "react";
 import { useAdminApp } from "../use-admin-app";
 
 
