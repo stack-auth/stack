@@ -1,29 +1,15 @@
 'use client';
 
-import { Button, Container, Separator, Input, Label, Link, Text, useDesign } from '@stackframe/stack';
-import { useCurrentUI } from 'src/components/provider';
+import { Button, Container, Separator, Input, Label, Link, Text } from '@stackframe/stack';
 
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
-  const { colors, setColorMode, colorMode } = useDesign();
-  const [currentUI, setCurrentUI] = useCurrentUI();
   
   return (
-    <div style={{ backgroundColor: colors.backgroundColor }}>
+    <div>
       <Container size='sm'>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
-          <select value={currentUI} onChange={e => setCurrentUI(e.target.value as 'default' | 'joy')}>
-            <option value='default'>Default</option>
-            <option value='joy'>Joy</option>
-          </select>
-          
-          <div>
-            <Button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} variant="secondary">
-              { colorMode === 'dark' ? '☀️' : '🌙' } Toggle Theme
-            </Button>
-          </div>
-
           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
             <Button size='sm' variant="primary">
               Button
@@ -95,11 +81,10 @@ export default function PageClient() {
             <Separator orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Text color="primary">{text}</Text>
-              <Text color="secondary">{text}</Text>
-              <Text color="warning">{text}</Text>
-              <Text color="success">{text}</Text>
-              <Text color="orange">{text}</Text>
+              <Text variant="primary">{text}</Text>
+              <Text variant="secondary">{text}</Text>
+              <Text variant="warning">{text}</Text>
+              <Text variant="success">{text}</Text>
             </div>
           </div>
 

@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import styled from 'styled-components';
 import { useDesign } from '..';
-import { SECONDARY_FONT_COLORS } from '../utils/constants';
+import { ColorPalette } from '../providers/design-provider';
 
 const StyledAvatar = styled(AvatarPrimitive.Root)`
   position: relative;
@@ -37,7 +37,7 @@ const AvatarImage = React.forwardRef<
 AvatarImage.displayName = 'AvatarImage';
 
 const StyledAvatarFallback = styled(AvatarPrimitive.Fallback)<{
-  $backgroundColor: string,
+  $colors: ColorPalette,
 }>`
   display: flex;
   height: 100%;
@@ -45,7 +45,12 @@ const StyledAvatarFallback = styled(AvatarPrimitive.Fallback)<{
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background-color: ${(p) => p.$backgroundColor};
+  
+  background-color: ${({ $colors }) => $colors.light.secondaryColor};
+
+  html[data-theme='dark'] & {
+    background-color: ${({ $colors }) => $colors.dark.secondaryColor};
+  }
 `;
 
 const AvatarFallback = React.forwardRef<
@@ -56,7 +61,7 @@ const AvatarFallback = React.forwardRef<
   return <StyledAvatarFallback 
     ref={ref} 
     className={className} 
-    $backgroundColor={colors.secondaryColor}
+    $colors={colors}
     {...props} 
   />;
 });

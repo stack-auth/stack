@@ -36,12 +36,10 @@
     "@stackframe/stack-shared": "workspace:*",
     "color": "^4.2.3",
     "js-cookie": "^3.0.5",
-    "next-themes": "^0.2.1",
     "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.8",
-    "tailwindcss-scoped-preflight": "^2.1.0",
     "yup": "^1.4.0"
   },
   "peerDependencies": {

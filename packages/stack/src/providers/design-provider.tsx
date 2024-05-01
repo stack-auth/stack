@@ -1,15 +1,19 @@
 'use client';
 
 import React from 'react';
-import { useTheme } from "next-themes";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import { DEFAULT_COLORS } from '../utils/constants';
 
-type ColorPalette = {
+type Colors = {
   primaryColor: string,
   secondaryColor: string,
   backgroundColor: string,
   neutralColor: string,
+}
+
+export type ColorPalette = {
+  light: Colors,
+  dark: Colors,
 };
 
 type Breakpoints = {
@@ -23,23 +27,12 @@ type Breakpoints = {
 type DesignContextValue = {
   colors: ColorPalette,
   breakpoints: Breakpoints,
-  colorMode: 'dark' | 'light',
-  setColorMode: (theme: 'dark' | 'light') => void,
 }
 
 export type DesignConfig = {
-  colors?: {
-    dark?: Partial<ColorPalette>,
-    light?: Partial<ColorPalette>,
-  },
+  colors?: Partial<ColorPalette>,
   breakpoints?: Partial<Breakpoints>,
-} & (
-  {} 
-  | {
-    colorMode: 'dark' | 'light',
-    setColorMode: (theme: 'dark' | 'light') => void,
-  }
-)
+}
 
 const DesignContext = createContext<DesignContextValue | undefined>(undefined);
 
@@ -51,58 +44,14 @@ const defaultBreakpoints: Breakpoints = {
   xl: 1536,
 };
 
-export function hasCustomColorMode(config: DesignConfig): config is DesignConfig & { 
-  colorMode: 'dark' | 'light', 
-  setColorMode: (theme: 'dark' | 'light') => void,
-} {
-  return 'colorMode' in config && 'setColorMode' in config;
-}
-
-function getColors(
-  theme: 'dark' | 'light', 
-  colors: { dark?: Partial<ColorPalette>, light?: Partial<ColorPalette> } | undefined,
-): ColorPalette {
-  return {
-    dark: { ...DEFAULT_COLORS.dark, ...colors?.dark },
-    light: { ...DEFAULT_COLORS.light, ...colors?.light },
-  }[theme || 'light'];
-}
-
-const useColorMode = (
-  props: DesignConfig, 
-): ['dark' | 'light', (theme: 'dark' | 'light') => void] => {
-  const { resolvedTheme: nextColorMode, setTheme: setNextColorMode } = useTheme();
-  const nextColorModeValue = nextColorMode === 'dark' ? 'dark' : 'light';
-  if (hasCustomColorMode(props)) {
-    return [
-      props.colorMode === 'dark' ? 'dark' : 'light',
-      props.setColorMode,
-    ];
-  } else {
-    return [
-      nextColorModeValue,
-      setNextColorMode,
-    ];
-  }
-};
-
-
 export function StackDesignProvider(props: { children?: React.ReactNode } & DesignConfig) {
-  const [colorMode, setColorMode] = useColorMode(props);
-  const [designValue, setDesignValue] = useState<DesignContextValue>({
-    colors: getColors(colorMode, props.colors),
+  const designValue = {
+    colors: { 
+      dark: { ...DEFAULT_COLORS.dark, ...props.colors?.dark }, 
+      light: { ...DEFAULT_COLORS.light, ...props.colors?.light } 
+    },
     breakpoints: { ...defaultBreakpoints, ...props.breakpoints },
-    colorMode,
-    setColorMode,
-  });
-
-  useEffect(() => {
-    setDesignValue((v) => ({
-      ...v,
-      colors: getColors(colorMode, props.colors),
-      colorMode,
-    }));
-  }, [colorMode]);
+  };
 
   return (
     <DesignContext.Provider value={designValue}>
