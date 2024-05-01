@@ -24,15 +24,11 @@ export async function getUserTeams(projectId: string, userId: string): Promise<T
   }));
 }
 
-export async function getUserServerTeams(projectId: string, userId: string): Promise<ServerTeamJson[]> {
+export async function listUserServerTeams(projectId: string, userId: string): Promise<ServerTeamJson[]> {
   return await getUserTeams(projectId, userId); // currently ServerTeam and ClientTeam are the same
 }
 
-export async function getTeams(projectId: string): Promise<TeamJson[]> {
-  return await getServerTeams(projectId);
-}
-
-export async function getServerTeams(projectId: string): Promise<ServerTeamJson[]> {
+export async function listTeams(projectId: string): Promise<TeamJson[]> {
   const result = await prismaClient.team.findMany({
     where: {
       projectId,
@@ -45,7 +41,11 @@ export async function getServerTeams(projectId: string): Promise<ServerTeamJson[
   }));
 }
 
-export async function listServerMembers(projectId: string, teamId: string): Promise<string[]> {
+export async function listServerTeams(projectId: string): Promise<ServerTeamJson[]> {
+  return await listServerTeams(projectId);  // currently ServerTeam and ClientTeam are the same
+}
+
+export async function listTeamMemberIds(projectId: string, teamId: string): Promise<string[]> {
   const members = await prismaClient.teamMember.findMany({
     where: {
       projectId,
@@ -58,13 +58,13 @@ export async function listServerMembers(projectId: string, teamId: string): Prom
 
 export async function getTeam(projectId: string, teamId: string): Promise<TeamJson | null> {
   // TODO more efficient filtering
-  const teams = await getTeams(projectId);
+  const teams = await listTeams(projectId);
   return teams.find(team => team.id === teamId) || null;
 }
 
 export async function getServerTeam(projectId: string, teamId: string): Promise<ServerTeamJson | null> {
   // TODO more efficient filtering
-  const teams = await getServerTeams(projectId);
+  const teams = await listServerTeams(projectId);
   return teams.find(team => team.id === teamId) || null;
 }
 
