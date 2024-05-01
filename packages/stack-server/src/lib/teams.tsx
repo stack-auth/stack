@@ -5,9 +5,9 @@ import { ServerTeamCustomizableJson, ServerTeamJson } from "@stackframe/stack-sh
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
 
-export const fullmemberProfileInclude = {
+export const fullmemberInclude = {
   team: true,
-} as const satisfies Prisma.TeamMemberProfileInclude;
+} as const satisfies Prisma.TeamMemberInclude;
 
 export async function getTeams(projectId: string): Promise<TeamJson[]> {
   return await getServerTeams(projectId);

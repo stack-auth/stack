@@ -3,13 +3,13 @@ import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { fullmemberProfileInclude as fullTeamMemberInclude } from "./teams";
+import { fullmemberInclude as fullTeamMemberInclude } from "./teams";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
   project: { include: typeof fullProjectInclude },
-  teamMemberProfiles: { include: typeof fullTeamMemberInclude },
+  teamMembers: { include: typeof fullTeamMemberInclude },
 }, }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
@@ -29,7 +29,7 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
       project: {
         include: fullProjectInclude,
       },
-      teamMemberProfiles: {
+      teamMembers: {
         include: fullTeamMemberInclude,
       },
     },
@@ -76,7 +76,7 @@ export async function updateServerUser(
         project: {
           include: fullProjectInclude,
         },
-        teamMemberProfiles: {
+        teamMembers: {
           include: fullTeamMemberInclude,
         },
       },
@@ -147,7 +147,7 @@ function getServerUserFromDbType(
     hasPassword: !!user.passwordHash,
     authWithEmail: user.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
-    teams: user.teamMemberProfiles.map((member) => ({
+    teams: user.teamMembers.map((member) => ({
       id: member.teamId,
       displayName: member.team.displayName,
       createdAtMillis: member.team.createdAt.getTime(),

@@ -119,7 +119,7 @@ export async function updateTeamMemberDirectPermissions(
     if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
 
     if (set) {
-      await prismaClient.teamMemberProfileDirectPermission.upsert({
+      await prismaClient.teamMemberDirectPermission.upsert({
         where: {
           projectId_projectUserId_teamId_permissionDbId: {
             projectId,
@@ -137,7 +137,7 @@ export async function updateTeamMemberDirectPermissions(
         update: {},
       });
     } else {
-      await prismaClient.teamMemberProfileDirectPermission.deleteMany({
+      await prismaClient.teamMemberDirectPermission.deleteMany({
         where: {
           projectId,
           projectUserId: userId,
@@ -157,7 +157,7 @@ export async function listUserPermissionsRecursive(
   const allPermissions = await listServerPermissions(projectId, scope);
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
 
-  const user = await prismaClient.teamMemberProfile.findUnique({
+  const user = await prismaClient.teamMember.findUnique({
     where: {
       projectId_projectUserId_teamId: {
         projectId,

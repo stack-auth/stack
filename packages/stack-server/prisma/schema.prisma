@@ -91,13 +91,13 @@ model Team {
 
   displayName String
 
-  permissions        Permission[]
-  teamMemberProfiles TeamMemberProfile[]
+  permissions Permission[]
+  teamMembers TeamMember[]
 
   @@id([projectId, teamId])
 }
 
-model TeamMemberProfile {
+model TeamMember {
   projectId     String
   projectUserId String @db.Uuid
   teamId        String @db.Uuid
@@ -105,20 +105,16 @@ model TeamMemberProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUser       ProjectUser                         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId])
-  team              Team                                @relation(fields: [projectId, teamId], references: [projectId, teamId])
-  directPermissions TeamMemberProfileDirectPermission[]
+  projectUser       ProjectUser                  @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId])
+  team              Team                         @relation(fields: [projectId, teamId], references: [projectId, teamId])
+  directPermissions TeamMemberDirectPermission[]
 
-  displayName     String?
-  profileImageUrl String?
-
-  serverMetadata Json?
-  clientMetadata Json?
+  displayName String?
 
   @@id([projectId, projectUserId, teamId])
 }
 
-model TeamMemberProfileDirectPermission {
+model TeamMemberDirectPermission {
   projectId      String
   projectUserId  String @db.Uuid
   teamId         String @db.Uuid
@@ -127,8 +123,8 @@ model TeamMemberProfileDirectPermission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teamMemberProfile TeamMemberProfile @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId])
-  permission        Permission        @relation(fields: [permissionDbId], references: [dbId])
+  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId])
+  permission Permission @relation(fields: [permissionDbId], references: [dbId])
 
   @@id([projectId, projectUserId, teamId, permissionDbId])
 }
@@ -155,12 +151,9 @@ model Permission {
   // The scope of the permission. If projectConfigId is set, may be GLOBAL or TEAM; if teamId is set, must be TEAM.
   scope PermissionScope
 
-  parentEdges                       PermissionEdge[]                    @relation("ChildPermission")
-  childEdges                        PermissionEdge[]                    @relation("ParentPermission")
-  teamMemberProfileProjectId        String?
-  teamMemberProfileProjectUserId    String?                             @db.Uuid
-  teamMemberProfileTeamId           String?                             @db.Uuid
-  teamMemberProfileDirectPermission TeamMemberProfileDirectPermission[]
+  parentEdges                PermissionEdge[]             @relation("ChildPermission")
+  childEdges                 PermissionEdge[]             @relation("ParentPermission")
+  teamMemberDirectPermission TeamMemberDirectPermission[]
 
   @@unique([projectConfigId, queriableId])
   @@unique([projectId, teamId, queriableId])
@@ -197,7 +190,7 @@ model ProjectUser {
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
-  teamMemberProfiles               TeamMemberProfile[]
+  teamMembers                      TeamMember[]
 
   teamId String? @db.Uuid
 
