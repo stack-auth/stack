@@ -17,7 +17,7 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -1107,6 +1107,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._serverTeamsCache.getOrWait([], "write-only");
   }
 
+  async createTeam(data: ServerTeamCustomizableJson) : Promise<ServerTeam> {
+    const team = await this._interface.createTeam(data);
+    await this._serverTeamsCache.refresh([]);
+    return this._serverTeamFromJson(team);
+  }
+
   useTeams(): ServerTeam[] {
     return useCache(this._serverTeamsCache, [], "useServerTeams()");
   }
@@ -1513,7 +1519,9 @@ export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 
 export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & StackClientApp<HasTokenStore, ProjectId>
-  & {}
+  & {
+    createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
+  }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>

@@ -18,6 +18,7 @@ export default function ClientPage() {
   useEffect(() => {
     async function fetchTeams() {
       // const teams = await user.listTeams();
+      // const newTeam = await stackAdminApp.createTeam({ displayName: "New Team" });
       const teams = await stackAdminApp.listTeams();
       console.log(teams);
     }
