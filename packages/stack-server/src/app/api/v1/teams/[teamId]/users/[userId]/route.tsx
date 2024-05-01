@@ -8,7 +8,6 @@ import { addUserToTeam, getTeam, getUserTeams } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 
 const getSchema = yup.object({
-  method: yup.string().oneOf(["GET", "PUT"]).required(),
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.required(),
@@ -21,7 +20,6 @@ const getSchema = yup.object({
 
 const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { teamId: string, userId: string } }) => {
   const {
-    method,
     headers: {
       authorization,
       "x-stack-project-id": projectId,
@@ -54,7 +52,6 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
 });
 
 export const GET = handler;
-export const PUT = handler;
 
 const postSchema = yup.object({
   query: yup.object({
