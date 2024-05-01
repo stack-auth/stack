@@ -28,7 +28,7 @@ export type UserJson = UserCustomizableJson & {
   readonly hasPassword: boolean,
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
-  readonly team: TeamJson | null,
+  readonly teams: TeamJson[],
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;

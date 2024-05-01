@@ -1,11 +1,16 @@
 import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Team, ProjectUser } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
+import { fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { fullTeamInclude } from "./teams";
+import { fullmemberProfileInclude as fullTeamMemberInclude } from "./teams";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+
+export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
+  project: { include: typeof fullProjectInclude },
+  teamMemberProfiles: { include: typeof fullTeamMemberInclude },
+}, }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -24,13 +29,13 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
       project: {
         include: fullProjectInclude,
       },
-      team: {
-        include: fullTeamInclude,
+      teamMemberProfiles: {
+        include: fullTeamMemberInclude,
       },
     },
   });
 
-  return users.map((u) => getServerUserFromDbType(u, u.project, u.team));
+  return users.map((u) => getServerUserFromDbType(u));
 }
 
 export async function updateClientUser(
@@ -71,8 +76,8 @@ export async function updateServerUser(
         project: {
           include: fullProjectInclude,
         },
-        team: {
-          include: fullTeamInclude,
+        teamMemberProfiles: {
+          include: fullTeamMemberInclude,
         },
       },
       data: filterUndefined({
@@ -91,7 +96,7 @@ export async function updateServerUser(
     throw e;
   }
 
-  return getServerUserFromDbType(user, user.project, user.team);
+  return getServerUserFromDbType(user);
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
@@ -119,39 +124,33 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     authWithEmail: serverUser.authWithEmail,
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
-    team: serverUser.team ? {
-      id: serverUser.team.id,
-      displayName: serverUser.team.displayName,
-      createdAtMillis: serverUser.team.createdAtMillis,
-    } : null,
+    teams: serverUser.teams,
   };
 }
 
 function getServerUserFromDbType(
-  projectUser: ProjectUser, 
-  projectDB: ProjectDB,
-  team: Team | null,
+  user: ServerUserDB,
 ): ServerUserJson {
-  const projectJson = projectJsonFromDbType(projectDB);
+  const projectJson = projectJsonFromDbType(user.project);
 
   return {
-    projectId: projectUser.projectId,
-    id: projectUser.projectUserId,
-    displayName: projectUser.displayName,
-    primaryEmail: projectUser.primaryEmail,
-    primaryEmailVerified: projectUser.primaryEmailVerified,
-    profileImageUrl: projectUser.profileImageUrl,
-    signedUpAtMillis: projectUser.createdAt.getTime(),
-    clientMetadata: projectUser.clientMetadata as any,
-    serverMetadata: projectUser.serverMetadata as any,
-    authMethod: projectUser.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
-    hasPassword: !!projectUser.passwordHash,
-    authWithEmail: projectUser.authWithEmail,
+    projectId: user.projectId,
+    id: user.projectUserId,
+    displayName: user.displayName,
+    primaryEmail: user.primaryEmail,
+    primaryEmailVerified: user.primaryEmailVerified,
+    profileImageUrl: user.profileImageUrl,
+    signedUpAtMillis: user.createdAt.getTime(),
+    clientMetadata: user.clientMetadata as any,
+    serverMetadata: user.serverMetadata as any,
+    authMethod: user.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
+    hasPassword: !!user.passwordHash,
+    authWithEmail: user.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
-    team: team ? {
-      id: team.teamId,
-      displayName: team.displayName,
-      createdAtMillis: team.createdAt.getTime(),
-    } : null,
+    teams: user.teamMemberProfiles.map((member) => ({
+      id: member.teamId,
+      displayName: member.team.displayName,
+      createdAtMillis: member.team.createdAt.getTime(),
+    })),
   };
 }

@@ -131,9 +131,7 @@ function createEmptyTokenStore() {
   return store;
 }
 
-function teamFromJson(json: TeamJson | null): Team | null {
-  if (json === null) return null;
-
+function teamFromJson(json: TeamJson): Team {
   return {
     id: json.id,
     displayName: json.displayName,
@@ -386,7 +384,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
-      team: teamFromJson(json.team),
+      teams: json.teams.map((team) => teamFromJson(team)),
       async hasPermission(team, permission) {
         return !!await this.getPermission(team, permission);
       },
@@ -507,7 +505,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      team: user.team?.toJson() ?? null,
+      teams: user.teams.map((team) => team.toJson()),
     };
   }
 
@@ -1037,7 +1035,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      team: user.team?.toJson() ?? null,
+      teams: user.teams.map((t) => t.toJson()),
     };
   }
 
@@ -1330,7 +1328,7 @@ export type User = (
     readonly authWithEmail: boolean,
     readonly oauthProviders: readonly string[],
 
-    readonly team: Team | null,
+    readonly teams: Team[],
 
     hasPermission(team: Team, permission: string | Permission): Promise<boolean>,
 

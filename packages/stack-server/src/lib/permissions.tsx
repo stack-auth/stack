@@ -4,8 +4,6 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { PermissionJson, PermissionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerPermissionCreateJson, ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const fullPermissionInclude = {
   parentEdges: {
@@ -80,9 +78,15 @@ export async function listServerPermissions(projectId: string, scope: Permission
   return res.map(serverPermissionJsonFromDbType);
 }
 
-export async function userHasPermission(projectId: string, userId: string, scope: PermissionScopeJson, permissionId: string) {
+export async function userHasPermission(
+  projectId: string, 
+  userId: string, 
+  teamId: string,
+  scope: PermissionScopeJson, 
+  permissionId: string
+) {
   // TODO optimize
-  const allUserPermissions = await listUserPermissionsRecursive(projectId, userId, scope);
+  const allUserPermissions = await listUserPermissionsRecursive(projectId, userId, teamId, scope);
   const permission = allUserPermissions.find(p => p.id === permissionId);
   if (!permission) {
     // maybe we can throw a better error message than "not found" (but be careful not to leak information as other teams' permissions should be private)
@@ -90,7 +94,7 @@ export async function userHasPermission(projectId: string, userId: string, scope
     if (scope.type === "global") tryScope = { type: "any-team" };
     else if (scope.type === "any-team") tryScope = { type: "global" };
     if (tryScope) {
-      const allUserPermissionsWrongScope = await listUserPermissionsRecursive(projectId, userId, tryScope);
+      const allUserPermissionsWrongScope = await listUserPermissionsRecursive(projectId, userId, teamId, tryScope);
       if (allUserPermissionsWrongScope.find(p => p.id === permissionId)) {
         throw new KnownErrors.PermissionScopeMismatch(permissionId, tryScope, scope);
       }
@@ -101,7 +105,13 @@ export async function userHasPermission(projectId: string, userId: string, scope
   return permission;
 }
 
-export async function updateUserDirectPermissions(projectId: string, userId: string, scope: PermissionScopeJson, permissionsToUpdate: { id: string, set: boolean }[]) {
+export async function updateTeamMemberDirectPermissions(
+  projectId: string,
+  teamId: string, 
+  userId: string,
+  scope: PermissionScopeJson, 
+  permissionsToUpdate: { id: string, set: boolean }[]
+) {
   // TODO optimize
   const allPermissions = await listServerPermissions(projectId, scope);
   for (const { id: permissionId, set } of permissionsToUpdate) {
@@ -109,23 +119,25 @@ export async function updateUserDirectPermissions(projectId: string, userId: str
     if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
 
     if (set) {
-      await prismaClient.projectUserDirectPermission.upsert({
+      await prismaClient.teamMemberProfileDirectPermission.upsert({
         where: {
-          projectId_projectUserId_permissionDbId: {
+          projectId_projectUserId_teamId_permissionDbId: {
             projectId,
             projectUserId: userId,
+            teamId,
             permissionDbId: permissionId,
           },
         },
         create: {
           projectId,
           projectUserId: userId,
+          teamId,
           permissionDbId: permissionId,
         },
         update: {},
       });
     } else {
-      await prismaClient.projectUserDirectPermission.deleteMany({
+      await prismaClient.teamMemberProfileDirectPermission.deleteMany({
         where: {
           projectId,
           projectUserId: userId,
@@ -136,23 +148,25 @@ export async function updateUserDirectPermissions(projectId: string, userId: str
   }
 }
 
-export async function listUserPermissionsRecursive(projectId: string, userId: string, scope: PermissionScopeJson): Promise<ServerPermissionJson[]> {
+export async function listUserPermissionsRecursive(
+  projectId: string, 
+  userId: string, 
+  teamId: string,
+  scope: PermissionScopeJson
+): Promise<ServerPermissionJson[]> {
   const allPermissions = await listServerPermissions(projectId, scope);
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
 
-  const user = await prismaClient.projectUser.findUnique({
+  const user = await prismaClient.teamMemberProfile.findUnique({
     where: {
-      projectId_projectUserId: {
+      projectId_projectUserId_teamId: {
         projectId,
         projectUserId: userId,
+        teamId,
       },
     },
     include: {
-      directPermissions: {
-        select: {
-          permissionDbId: true,
-        },
-      },
+      directPermissions: true,
     },
   });  
 
