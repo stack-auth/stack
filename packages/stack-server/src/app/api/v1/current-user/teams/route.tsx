@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { createServerTeam, listUserServerTeams, getUserTeams } from "@/lib/teams";
+import { createServerTeam, listUserServerTeams, listUserTeams } from "@/lib/teams";
 import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
@@ -64,7 +64,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new StatusError(StatusError.Forbidden, "Publishable client key is invalid");
     }
 
-    const teams = await getUserTeams(projectId, userId);
+    const teams = await listUserTeams(projectId, userId);
     return NextResponse.json(teams satisfies TeamJson[]);
   }
 });

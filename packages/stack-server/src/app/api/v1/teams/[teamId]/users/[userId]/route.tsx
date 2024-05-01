@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
-import { addUserToTeam, getTeam, getUserTeams } from "@/lib/teams";
+import { addUserToTeam, getTeam, listUserTeams } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 
 const getSchema = yup.object({
@@ -94,7 +94,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
     throw new StatusError(StatusError.NotFound, "User not found");
   }
 
-  const userTeams = await getUserTeams(projectId, options.params.userId);
+  const userTeams = await listUserTeams(projectId, options.params.userId);
   if (userTeams.some(t => t.id === options.params.teamId)) {
     throw new StatusError(StatusError.BadRequest, "User is already in the team");
   }

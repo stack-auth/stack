@@ -8,7 +8,7 @@ export const fullTeamMemberInclude = {
   team: true,
 } as const satisfies Prisma.TeamMemberInclude;
 
-export async function getUserTeams(projectId: string, userId: string): Promise<TeamJson[]> {
+export async function listUserTeams(projectId: string, userId: string): Promise<TeamJson[]> {
   const members = await prismaClient.teamMember.findMany({
     where: {
       projectId,
@@ -25,7 +25,7 @@ export async function getUserTeams(projectId: string, userId: string): Promise<T
 }
 
 export async function listUserServerTeams(projectId: string, userId: string): Promise<ServerTeamJson[]> {
-  return await getUserTeams(projectId, userId); // currently ServerTeam and ClientTeam are the same
+  return await listUserTeams(projectId, userId); // currently ServerTeam and ClientTeam are the same
 }
 
 export async function listTeams(projectId: string): Promise<TeamJson[]> {
@@ -42,7 +42,7 @@ export async function listTeams(projectId: string): Promise<TeamJson[]> {
 }
 
 export async function listServerTeams(projectId: string): Promise<ServerTeamJson[]> {
-  return await listServerTeams(projectId);  // currently ServerTeam and ClientTeam are the same
+  return await listTeams(projectId);  // currently ServerTeam and ClientTeam are the same
 }
 
 export async function listTeamMemberIds(projectId: string, teamId: string): Promise<string[]> {
