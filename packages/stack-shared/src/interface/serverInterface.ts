@@ -93,6 +93,11 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
+  async listTeamUsers(teamId: string): Promise<ServerUserJson[]> {
+    const response = await this.sendServerRequest(`/teams/${teamId}/users?server=true`, {}, null);
+    return await response.json();
+  }
+
   async createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
     const response = await this.sendServerRequest(
       "/teams?server=true",

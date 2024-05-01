@@ -12,17 +12,6 @@ export default function ClientPage() {
   const stackAdminApp = useAdminApp();
   const teams = stackAdminApp.useTeams();
 
-  // const user = useUser({ or: "throw" });
-  // useEffect(() => {
-  //   async function fetchTeams() {
-  //     // const teams = await user.listTeams();
-  //     // const newTeam = await stackAdminApp.createTeam({ displayName: "New Team" });
-  //     const teams = await stackAdminApp.listTeams();
-  //     console.log(teams);
-  //   }
-  //   fetchTeams().catch(console.error);
-  // }, []);
-  
   return (
     <>
       <Paragraph h1>

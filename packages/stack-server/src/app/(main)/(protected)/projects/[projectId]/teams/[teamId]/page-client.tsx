@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 export default function ClientPage(props: { teamId: string }) {
   const stackAdminApp = useAdminApp();
   const team = stackAdminApp.useTeam(props.teamId);
+  // const users = team?.listUsers();
 
   if (!team) {
     return notFound();

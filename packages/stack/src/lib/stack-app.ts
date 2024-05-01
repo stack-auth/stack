@@ -1043,6 +1043,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       id: json.id,
       displayName: json.displayName,
       createdAt: new Date(json.createdAtMillis),
+      async listUsers() {
+        return (await app._interface.listTeamUsers(json.id)).map((u) => app._serverUserFromJson(u));
+      },
       async addUser(user) {
         await app._interface.addUserToTeam(json.id, user.id);
       },
@@ -1404,6 +1407,7 @@ export type Team = {
 };
 
 export type ServerTeam = Team & {
+  listUsers(): Promise<ServerUser[]>,
   addUser(user: ServerUser): Promise<void>,
   removeUser(user: ServerUser): Promise<void>,
 };
