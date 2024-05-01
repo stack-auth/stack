@@ -22,7 +22,10 @@ export async function getUserTeams(projectId: string, userId: string): Promise<T
     displayName: member.team.displayName,
     createdAtMillis: member.team.createdAt.getTime(),
   }));
+}
 
+export async function getUserServerTeams(projectId: string, userId: string): Promise<ServerTeamJson[]> {
+  return await getUserTeams(projectId, userId); // currently ServerTeam and ClientTeam are the same
 }
 
 export async function getTeams(projectId: string): Promise<TeamJson[]> {

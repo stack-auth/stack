@@ -4,42 +4,69 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { createServerTeam, getUserTeams } from "@/lib/teams";
+import { createServerTeam, getUserServerTeams, getUserTeams } from "@/lib/teams";
+import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 
 const getSchema = yup.object({
+  query: yup.object({
+    server: yup.string().oneOf(["true", "false"]).default("false"),
+  }).required(),
   headers: yup.object({
-    authorization: authorizationHeaderSchema.required(),
+    authorization: authorizationHeaderSchema.default(undefined),
+    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
+    "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-project-id": yup.string().required(),
-    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.required(),
-  }),
+  }).required(),
 });
 
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
-    headers: { authorization },
-  } = await deprecatedParseRequest(req, getSchema);
-
-  const {
+    query: {
+      server,
+    },
     headers: {
+      authorization,
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
+      "x-stack-secret-server-key": secretServerKey,
     },
   } = await deprecatedParseRequest(req, getSchema);
 
-  if (!await checkApiKeySet(projectId, { publishableClientKey })) {
+  if (!authorization) {
+    return NextResponse.json(null);
+  }
+
+  const pkValid = await checkApiKeySet(projectId, { publishableClientKey });
+  const skValid = await checkApiKeySet(projectId, { secretServerKey });
+
+  if (!pkValid && !skValid) {
     throw new StatusError(StatusError.Forbidden);
   }
 
-  const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
+  const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
+  const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
   if (accessTokenProjectId !== projectId) {
     throw new StatusError(StatusError.NotFound);
   }
-  
-  const teams = await getUserTeams(projectId, userId);
 
-  return NextResponse.json(teams);
+  if (server === "true") {
+    if (!skValid) {
+      throw new StatusError(StatusError.Forbidden, "Secret server key is invalid");
+    }
+
+    const teams = await getUserServerTeams(projectId, userId);
+    return NextResponse.json(teams satisfies ServerTeamJson[]);
+  } else {
+    if (!pkValid) {
+      throw new StatusError(StatusError.Forbidden, "Publishable client key is invalid");
+    }
+
+    const teams = await getUserTeams(projectId, userId);
+    return NextResponse.json(teams satisfies TeamJson[]);
+  }
 });
 
 const postSchema = yup.object({
@@ -70,7 +97,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.BadRequest, "Not impelemented");
   }
 
-  if (!await checkApiKeySet(projectId, { secretServerKey })) {
+  if (!(await checkApiKeySet(projectId, { secretServerKey }))) {
     throw new StatusError(StatusError.Forbidden);
   }
 
