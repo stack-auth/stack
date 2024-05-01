@@ -1,11 +1,10 @@
 import { prismaClient } from "@/prisma-client";
-import { listServerUsers } from "./users";
 import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerTeamCustomizableJson, ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
 
-export const fullmemberInclude = {
+export const fullTeamMemberInclude = {
   team: true,
 } as const satisfies Prisma.TeamMemberInclude;
 
@@ -27,9 +26,14 @@ export async function getServerTeams(projectId: string): Promise<ServerTeamJson[
 }
 
 export async function listServerMembers(projectId: string, teamId: string): Promise<string[]> {
-  // TODO more efficient filtering
-  const users = await listServerUsers(projectId);
-  return users.filter(user => user.teams.map(t => t.id).includes(teamId)).map(user => user.id);
+  const members = await prismaClient.teamMember.findMany({
+    where: {
+      projectId,
+      teamId,
+    },
+  });
+
+  return members.map((member) => member.projectUserId);
 }
 
 export async function getTeam(projectId: string, teamId: string): Promise<TeamJson | null> {

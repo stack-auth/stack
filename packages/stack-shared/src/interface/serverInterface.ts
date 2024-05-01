@@ -14,7 +14,6 @@ import { ReadonlyJson } from "../utils/json";
 
 export type ServerUserJson = UserJson & {
   readonly serverMetadata: ReadonlyJson,
-  readonly teams: ServerTeamJson[],
 };
 
 export type ServerUserUpdateJson = UserUpdateJson & {

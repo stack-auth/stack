@@ -384,7 +384,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
-      teams: json.teams.map((team) => teamFromJson(team)),
       async hasPermission(team, permission) {
         return !!await this.getPermission(team, permission);
       },
@@ -505,7 +504,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      teams: user.teams.map((team) => team.toJson()),
     };
   }
 
@@ -1035,7 +1033,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: user.hasPassword,
       authWithEmail: user.authWithEmail,
       oauthProviders: user.oauthProviders,
-      teams: user.teams.map((t) => t.toJson()),
     };
   }
 
@@ -1327,8 +1324,6 @@ export type User = (
     readonly hasPassword: boolean,
     readonly authWithEmail: boolean,
     readonly oauthProviders: readonly string[],
-
-    readonly teams: Team[],
 
     hasPermission(team: Team, permission: string | Permission): Promise<boolean>,
 

@@ -3,13 +3,11 @@ import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { fullmemberInclude as fullTeamMemberInclude } from "./teams";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
   project: { include: typeof fullProjectInclude },
-  teamMembers: { include: typeof fullTeamMemberInclude },
 }, }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
@@ -28,9 +26,6 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
     include: {
       project: {
         include: fullProjectInclude,
-      },
-      teamMembers: {
-        include: fullTeamMemberInclude,
       },
     },
   });
@@ -75,9 +70,6 @@ export async function updateServerUser(
       include: {
         project: {
           include: fullProjectInclude,
-        },
-        teamMembers: {
-          include: fullTeamMemberInclude,
         },
       },
       data: filterUndefined({
@@ -124,11 +116,10 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     authWithEmail: serverUser.authWithEmail,
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
-    teams: serverUser.teams,
   };
 }
 
-function getServerUserFromDbType(
+export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
   const projectJson = projectJsonFromDbType(user.project);
@@ -147,10 +138,5 @@ function getServerUserFromDbType(
     hasPassword: !!user.passwordHash,
     authWithEmail: user.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
-    teams: user.teamMembers.map((member) => ({
-      id: member.teamId,
-      displayName: member.team.displayName,
-      createdAtMillis: member.team.createdAt.getTime(),
-    })),
   };
 }
