@@ -366,37 +366,22 @@ export async function updateProject(
     }
   }
 
-  // Update credentialEnabled
-  if (options.config?.credentialEnabled !== undefined) {
-    transaction.push(prismaClient.projectConfig.update({
-      where: { id: project.config.id },
-      data: { credentialEnabled: options.config.credentialEnabled },
-    }));
-  }
-
-  // Update magicLinkEnabled
-  if (options.config?.magicLinkEnabled !== undefined) {
-    transaction.push(prismaClient.projectConfig.update({
-      where: { id: project.config.id },
-      data: { magicLinkEnabled: options.config.magicLinkEnabled },
-    }));
-  }
-
-  // Update allowLocalhost
-  if (options.config?.allowLocalhost !== undefined) {
-    transaction.push(prismaClient.projectConfig.update({
-      where: { id: project.config.id },
-      data: { allowLocalhost: options.config.allowLocalhost },
-    }));
-  }
-
-  if (options.isProductionMode !== undefined) {
-    // Update production mode
-    transaction.push(prismaClient.project.update({
-      where: { id: projectId },
-      data: { isProductionMode: options.isProductionMode },
-    }));
-  }
+  transaction.push(prismaClient.projectConfig.update({
+    where: { id: project.config.id },
+    data: { 
+      credentialEnabled: options.config?.credentialEnabled,
+      magicLinkEnabled: options.config?.magicLinkEnabled,
+      teamsEnabled: options.config?.teamsEnabled,
+      allowLocalhost: options.config?.allowLocalhost,
+    },
+  }));
+  
+  transaction.push(prismaClient.project.update({
+    where: { id: projectId },
+    data: { 
+      isProductionMode: options.isProductionMode 
+    },
+  }));
 
   await prismaClient.$transaction(transaction);
   
@@ -447,6 +432,7 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
       allowLocalhost: project.config.allowLocalhost,
       credentialEnabled: project.config.credentialEnabled,
       magicLinkEnabled: project.config.magicLinkEnabled,
+      teamsEnabled: project.config.teamsEnabled,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,

@@ -36,6 +36,7 @@ export type ClientProjectJson = {
   readonly id: string,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly teamsEnabled: boolean,
   readonly oauthProviders: readonly {
     id: string,
     enabled: boolean,
@@ -100,6 +101,7 @@ export type ProjectJson = {
     allowLocalhost: boolean,
     credentialEnabled: boolean,
     magicLinkEnabled: boolean,
+    teamsEnabled: boolean,
     oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
