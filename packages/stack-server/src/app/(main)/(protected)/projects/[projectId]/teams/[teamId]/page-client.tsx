@@ -2,14 +2,18 @@
 
 import React, { use } from 'react';
 import { Paragraph } from "@/components/paragraph";
-import { useMockTeams } from '../mock-team';
 import { MemberTable } from './member-table';
+import { useAdminApp } from '../../use-admin-app';
+import { notFound } from 'next/navigation';
 
 
-export default function ClientPage() {
-  const mockTeams = useMockTeams();
-  const team = mockTeams[0];
-  const users = use(mockTeams[0].listUsers());
+export default function ClientPage(props: { teamId: string }) {
+  const stackAdminApp = useAdminApp();
+  const team = stackAdminApp.useTeam(props.teamId);
+
+  if (!team) {
+    return notFound();
+  }
   
   return (
     <>
@@ -18,7 +22,7 @@ export default function ClientPage() {
       </Paragraph>
 
       <Paragraph body>
-        <MemberTable rows={users} />
+        {/* <MemberTable rows={users} /> */}
       </Paragraph>
     </>
   );

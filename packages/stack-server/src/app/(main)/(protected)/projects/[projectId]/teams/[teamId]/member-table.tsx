@@ -1,13 +1,21 @@
-"use client";
-
+"use client";;
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
-import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
+import {
+  Avatar,
+  Box,
+  Dropdown,
+  IconButton,
+  ListDivider,
+  ListItemDecorator,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Stack,
+  Tooltip,
+} from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
-import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
@@ -50,23 +58,11 @@ export function MemberTable(props: {
       headerName: 'Display name',
       width: 150,
       flex: 1,
-      // editable: true,
-      // stackOnProcessUpdate: async (updatedRow, originalRow) => {
-      //   if (updatedRow.displayName !== originalRow.displayName) {
-      //     await originalRow.update({ displayName: updatedRow.displayName });
-      //   }
-      // },
     },
     {
       field: 'primaryEmail',
       headerName: 'E-Mail',
       width: 200,
-      // editable: true,
-      // stackOnProcessUpdate: async (updatedRow, originalRow) => {
-      //   if (updatedRow.primaryEmail !== originalRow.primaryEmail) {
-      //     await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
-      //   }
-      // },
       renderCell: (params) => (
         <>
           <Box display="block" minWidth={0} overflow="hidden" textOverflow="ellipsis">

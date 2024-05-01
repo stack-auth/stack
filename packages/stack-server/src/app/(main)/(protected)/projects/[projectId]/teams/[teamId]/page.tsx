@@ -1,7 +1,7 @@
 import ClientPage from "./page-client";
 
-export default function Page() {
+export default function Page({ params }: { params: { teamId: string } }) {
   return (
-    <ClientPage />
+    <ClientPage teamId={params.teamId} />
   );
 }
