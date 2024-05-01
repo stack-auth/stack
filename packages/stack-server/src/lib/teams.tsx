@@ -106,3 +106,13 @@ export async function deleteServerTeam(projectId: string, teamId: string): Promi
     throw new Error("Team not found");
   }
 }
+
+export async function addUserToTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+  await prismaClient.teamMember.create({
+    data: {
+      projectId,
+      teamId,
+      projectUserId: userId,
+    },
+  });
+}
