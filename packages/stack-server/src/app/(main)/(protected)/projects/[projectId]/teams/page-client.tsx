@@ -5,13 +5,21 @@ import { TeamTable } from "./team-table";
 import { useMockTeams } from "./mock-team";
 import { EnableTeam } from "../enable-team";
 import { useUser } from "@stackframe/stack";
+import { useEffect } from "react";
 
 
 export default function ClientPage() {
   const teams = useMockTeams();
-  const user = useUser();
+  const user = useUser({ or: "throw" });
 
-  console.log(user);
+  // async useEffect
+  useEffect(() => {
+    async function fetchTeams() {
+      const teams = await user.listTeams();
+      console.log(teams);
+    }
+    fetchTeams().catch(console.error);
+  }, [user]);
   
   return (
     <>

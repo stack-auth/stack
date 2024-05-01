@@ -760,7 +760,7 @@ export class StackClientInterface {
 
   async listClientUserTeams(tokenStore: TokenStore): Promise<TeamJson[]> {
     const response = await this.sendClientRequest(
-      "/current-user/teams",
+      "/teams",
       {},
       tokenStore,
     );

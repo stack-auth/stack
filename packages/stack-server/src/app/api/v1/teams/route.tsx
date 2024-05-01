@@ -4,6 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
+import { getUserTeams } from "@/lib/teams";
 
 
 const getSchema = yup.object({
@@ -36,9 +37,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound);
   }
   
-  // const teams = await listTeams(userId);
+  const teams = await getUserTeams(projectId, userId);
 
-  return NextResponse.json({});
+  return NextResponse.json(teams);
 });
 
 const postSchema = yup.object({
