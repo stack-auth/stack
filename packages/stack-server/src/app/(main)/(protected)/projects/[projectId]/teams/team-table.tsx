@@ -10,8 +10,8 @@ import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
-import { ServerTeam } from './mock-team';
 import { useRouter } from 'next/navigation';
+import { ServerTeam } from '@stackframe/stack';
 
 export function TeamTable(props: {
   rows: ServerTeam[],
@@ -174,7 +174,7 @@ function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => 
                   const formJson = {
                     displayName: `${formData.get('displayName')}` || undefined,
                   };
-                  await props.team.update(formJson);
+                  // await props.team.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);

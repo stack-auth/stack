@@ -2,7 +2,6 @@
 
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
-import { useMockTeams } from "./mock-team";
 import { EnableTeam } from "../enable-team";
 import { useUser } from "@stackframe/stack";
 import { useEffect } from "react";
@@ -10,8 +9,8 @@ import { useAdminApp } from "../use-admin-app";
 
 
 export default function ClientPage() {
-  const teams = useMockTeams();
   const stackAdminApp = useAdminApp();
+  const teams = stackAdminApp.useTeams();
   const user = useUser({ or: "throw" });
 
   // async useEffect
