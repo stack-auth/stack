@@ -3,8 +3,8 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler, deprecatedParseRequest } from "@/lib/route-handlers";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
-import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { getUserTeams } from "@/lib/teams";
+import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
+import { createServerTeam, getUserTeams } from "@/lib/teams";
 
 
 const getSchema = yup.object({
@@ -43,10 +43,13 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 });
 
 const postSchema = yup.object({
+  query: yup.object({
+    server: yup.string().oneOf(["true", "false"]).default("false"),
+  }).required(),
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
+    "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-project-id": yup.string().required(),
-    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.required(),
   }),
   body: yup.object({
     displayName: yup.string().required(),
@@ -55,25 +58,23 @@ const postSchema = yup.object({
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
-    headers: { 
-      authorization, 
+    headers: {
       "x-stack-project-id": projectId,
-      "x-stack-publishable-client-key": publishableClientKey,
+      "x-stack-secret-server-key": secretServerKey,
     },
+    query: { server },
     body: { displayName },
   } = await deprecatedParseRequest(req, postSchema);
 
-  if (!await checkApiKeySet(projectId, { publishableClientKey })) {
+  if (!server) {
+    throw new StatusError(StatusError.BadRequest, "Not impelemented");
+  }
+
+  if (!await checkApiKeySet(projectId, { secretServerKey })) {
     throw new StatusError(StatusError.Forbidden);
   }
 
-  const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
+  const team = await createServerTeam(projectId, { displayName });
 
-  if (accessTokenProjectId !== projectId) {
-    throw new StatusError(StatusError.NotFound);
-  }
-
-  // const team = await createTeam(userId, { displayName });
-
-  return NextResponse.json({});
+  return NextResponse.json(team);
 });
