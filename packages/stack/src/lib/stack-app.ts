@@ -1050,6 +1050,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async listUsers() {
         return (await app._interface.listTeamUsers(json.id)).map((u) => app._serverUserFromJson(u));
       },
+      update(update: Partial<ServerTeamCustomizableJson>) {
+        return app._interface.updateTeam(json.id, update);
+      },
       useUsers() {
         return useCache(app._serverTeamUsersCache, [json.id], "team.useUsers()");
       },
@@ -1422,6 +1425,7 @@ export type Team = {
 export type ServerTeam = Team & {
   listUsers(): Promise<ServerUser[]>,
   useUsers(): ServerUser[],
+  update(update: Partial<ServerTeamCustomizableJson>): Promise<void>,
   addUser(userId: string): Promise<void>,
   removeUser(userId: string): Promise<void>,
 };

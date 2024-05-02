@@ -191,7 +191,7 @@ function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => 
                   const formJson = {
                     displayName: `${formData.get('displayName')}` || undefined,
                   };
-                  // await props.team.update(formJson);
+                  await props.team.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -217,10 +217,10 @@ function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => 
             loading={isSaving}
             onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
           >
-              Save
+            Save
           </AsyncButton>
           <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
-              Cancel
+            Cancel
           </AsyncButton>
         </DialogActions>
       </ModalDialog>

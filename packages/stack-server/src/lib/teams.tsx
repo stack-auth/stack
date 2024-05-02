@@ -79,7 +79,7 @@ export async function getServerTeam(projectId: string, teamId: string): Promise<
   return teams.find(team => team.id === teamId) || null;
 }
 
-export async function updateServerTeam(projectId: string, teamId: string, update: ServerTeamCustomizableJson): Promise<void> {
+export async function updateServerTeam(projectId: string, teamId: string, update: Partial<ServerTeamCustomizableJson>): Promise<void> {
   await prismaClient.team.update({
     where: {
       projectId_teamId: {
@@ -87,9 +87,7 @@ export async function updateServerTeam(projectId: string, teamId: string, update
         teamId,
       },
     },
-    data: filterUndefined({
-      displayName: update.displayName,
-    }),
+    data: filterUndefined(update),
   });
 }
 
