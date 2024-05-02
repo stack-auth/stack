@@ -910,6 +910,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const users = await this._interface.listTeamUsers(teamId);
     return users.map((u) => this._serverUserFromJson(u));
   });
+  private readonly _serverPermissionsCache = createCache(async () => {
+    const permissions = await this._interface.listAnyTeamPermissions();
+    return permissions.map((p) => this._permissionFromJson(p));
+  });
 
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -1120,6 +1124,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._serverUsersCache.onChange([], (users) => {
       callback(users.map((j) => this._serverUserFromJson(j)));
     });
+  }
+
+  async listPermissions(): Promise<ServerPermission[]> {
+    return await this._serverPermissionsCache.getOrWait([], "write-only");
+  }
+
+  usePermissions(): ServerPermission[] {
+    return useCache(this._serverPermissionsCache, [], "usePermissions()");
   }
 
   async listTeams(): Promise<ServerTeam[]> {
@@ -1441,6 +1453,9 @@ export type Permission = {
   toJson(this: Permission): PermissionJson,
 };
 
+export type ServerPermission = Permission & {
+};
+
 export type ApiKeySetBase = {
   id: string,
   description: string,
@@ -1543,6 +1558,8 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & StackClientApp<HasTokenStore, ProjectId>
   & {
     createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
+    listPermissions(): Promise<ServerPermission[]>,
+    usePermissions(): ServerPermission[],
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>

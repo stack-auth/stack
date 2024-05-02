@@ -161,6 +161,11 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async listAnyTeamPermissions(): Promise<ServerPermissionJson[]> {
+    const response = await this.sendServerRequest(`/teams/permissions?server=true&scope=any-team`, {}, null);
+    return await response.json();
+  }
+
   async setServerUserCustomizableData(userId: string, update: ServerUserUpdateJson) {
     await this.sendServerRequest(
       `/users/${userId}?server=true`,
