@@ -192,8 +192,6 @@ model ProjectUser {
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
   teamMembers                      TeamMember[]
 
-  teamId String? @db.Uuid
-
   primaryEmail         String?
   primaryEmailVerified Boolean
   profileImageUrl      String?

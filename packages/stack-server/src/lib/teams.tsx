@@ -48,19 +48,23 @@ export async function listServerTeams(projectId: string): Promise<ServerTeamJson
 }
 
 export async function listTeamServerUsers(projectId: string, teamId: string): Promise<ServerUserJson[]> {
-  const members = await prismaClient.projectUser.findMany({
+  const members = await prismaClient.teamMember.findMany({
     where: {
       projectId,
       teamId,
     },
     include: {
-      project: {
-        include: fullProjectInclude,
-      },
+      projectUser: {
+        include: {
+          project: {
+            include: fullProjectInclude,
+          },
+        }
+      }
     },
   });
 
-  return members.map((member) => getServerUserFromDbType(member));
+  return members.map((member) => getServerUserFromDbType(member.projectUser));
 }
 
 export async function getTeam(projectId: string, teamId: string): Promise<TeamJson | null> {
