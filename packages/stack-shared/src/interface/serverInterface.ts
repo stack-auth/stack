@@ -29,15 +29,15 @@ export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
 
 export type ServerPermissionCreateJson = {
-  readonly databaseUniqueId: string,
   readonly id: string,
-  readonly scope: PermissionScopeJson,
-  readonly displayName: string,
-  readonly description: string,
+  readonly description?: string,
   readonly inheritFromPermissionIds: string[],
 };
 
-export type ServerPermissionJson = PermissionJson & ServerPermissionCreateJson & {};
+export type ServerPermissionJson = PermissionJson & ServerPermissionCreateJson & {
+  readonly __databaseUniqueId: string,
+  readonly scope: PermissionScopeJson,
+};
 
 
 export type ServerAuthApplicationOptions = (
@@ -81,6 +81,26 @@ export class StackServerInterface extends StackClientInterface {
     const user: ServerUserJson | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
     return Result.ok(user);
+  }
+
+  async createPermission(data: ServerPermissionCreateJson): Promise<ServerPermissionJson> {
+    const response = await this.sendServerRequest(
+      "/teams/permissions?server=true",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          scope: {
+            type: "any-team",
+          }
+        }),
+      },
+      null,
+    );
+    return await response.json();
   }
 
   async listUsers(): Promise<ServerUserJson[]> {

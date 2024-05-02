@@ -17,7 +17,7 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionCreateJson, ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -1134,6 +1134,20 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return useCache(this._serverPermissionsCache, [], "usePermissions()");
   }
 
+  _serverPermissionFromJson(json: PermissionJson): ServerPermission {
+    return {
+      id: json.id,
+      scope: json.scope,
+      toJson() {
+        return json;
+      },
+    };
+  }
+
+  async createPermission(data: ServerPermissionCreateJson): Promise<ServerPermission>{
+    return this._serverPermissionFromJson(await this._interface.createPermission(data));
+  }
+
   async listTeams(): Promise<ServerTeam[]> {
     return await this._serverTeamsCache.getOrWait([], "write-only");
   }
@@ -1558,6 +1572,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & StackClientApp<HasTokenStore, ProjectId>
   & {
     createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
+    createPermission(data: ServerPermissionCreateJson): Promise<ServerPermission>,
     listPermissions(): Promise<ServerPermission[]>,
     usePermissions(): ServerPermission[],
   }

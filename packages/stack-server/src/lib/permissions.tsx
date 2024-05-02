@@ -14,22 +14,23 @@ export const fullPermissionInclude = {
 } as const satisfies Prisma.PermissionInclude;
 
 
-function serverPermissionJsonFromDbType(db: any): ServerPermissionJson {
+function serverPermissionJsonFromDbType(
+  db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>
+): ServerPermissionJson {
   if (!db.projectConfigId && !db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
   if (db.projectConfigId && db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId, not both`, { db });
   if (db.scope === "GLOBAL" && db.teamId) throw new StackAssertionError(`Permission DB object should not have teamId when scope is GLOBAL`, { db });
 
   return {
-    databaseUniqueId: db.dbId,
+    __databaseUniqueId: db.dbId,
     id: db.queriableId,
     scope: 
       db.scope === "GLOBAL" ? { type: "global" } :
         db.teamId ? { type: "specific-team", teamId: db.teamId } :
           db.projectConfigId ? { type: "any-team" } :
             throwErr(new StackAssertionError(`Unexpected permission scope`, { db })), 
-    displayName: db.displayName,
-    description: db.description,
-    inheritFromPermissionIds: db.parentEdges.map((edge: any) => edge.parentPermission.queriableId),
+    description: db.description || undefined,
+    inheritFromPermissionIds: db.parentEdges.map((edge) => edge.parentPermission.queriableId),
   };
 }
 
@@ -43,7 +44,6 @@ export async function listPermissions(projectId: string, scope: PermissionScopeJ
 }
 
 export async function listServerPermissions(projectId: string, scope: PermissionScopeJson): Promise<ServerPermissionJson[]> {
-  let res;
   switch (scope.type) {
     case "specific-team": {
       const team = await prismaClient.team.findUnique({
@@ -60,22 +60,20 @@ export async function listServerPermissions(projectId: string, scope: Permission
         },
       });
       if (!team) throw new KnownErrors.TeamNotFound(scope.teamId);
-      res = team.permissions;
-      break;
+      return team.permissions.map(serverPermissionJsonFromDbType);
     }
     case "global":
     case "any-team": {
-      res = await prismaClient.permission.findMany({
+      const res = await prismaClient.permission.findMany({
         where: {
           projectId,
           scope: scope.type === "global" ? "GLOBAL" : "TEAM",
         },
         include: fullPermissionInclude,
       });
-      break;
+      return res.map(serverPermissionJsonFromDbType);
     }
   }
-  return res.map(serverPermissionJsonFromDbType);
 }
 
 export async function userHasPermission(
@@ -198,7 +196,11 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
   return (await Promise.all(scopes.map(s => listServerPermissions(projectId, s)))).flat(1);
 }
 
-export async function createPermission(projectId: string, scope: PermissionScopeJson, permission: ServerPermissionCreateJson) {
+export async function createPermission(
+  projectId: string, 
+  scope: PermissionScopeJson, 
+  permission: ServerPermissionCreateJson
+): Promise<ServerPermissionJson> {
   const project = await prismaClient.project.findUnique({
     where: {
       id: projectId,
@@ -211,13 +213,12 @@ export async function createPermission(projectId: string, scope: PermissionScope
   for (const parentPermissionId of permission.inheritFromPermissionIds) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
     if (!parentPermission) throw new KnownErrors.PermissionNotFound(parentPermissionId);
-    parentDbIds.push(parentPermission.databaseUniqueId);
+    parentDbIds.push(parentPermission.__databaseUniqueId);
   }
-  await prismaClient.permission.create({
+  const dbPermission = await prismaClient.permission.create({
     data: {
       scope: scope.type === "global" ? "GLOBAL" : "TEAM",
       queriableId: permission.id,
-      displayName: permission.displayName,
       description: permission.description,
       ...scope.type === "specific-team" ? {
         projectId: project.id,
@@ -235,7 +236,9 @@ export async function createPermission(projectId: string, scope: PermissionScope
         })),
       },
     },
+    include: fullPermissionInclude,
   });
+  return serverPermissionJsonFromDbType(dbPermission);
 }
 
 export async function deletePermission(projectId: string, scope: PermissionScopeJson, permissionId: string) {
