@@ -29,7 +29,7 @@ import { AsyncButton } from '@/components/async-button';
 import { Paragraph } from '@/components/paragraph';
 import { Permission, ServerPermission } from '@stackframe/stack';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { PermissionList } from './permission-list';
+import { PermissionGraph, PermissionList } from './permission-list';
 
 export function PermissionsTable(props: {
   rows: ServerPermission[],
@@ -176,8 +176,14 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
+  const [graph, setGraph] = React.useState<PermissionGraph>();
+  const [id, setId] = React.useState<string>(selectedPermission?.id || '');
 
-  if (!selectedPermission) return null;
+  React.useEffect(() => {
+    setGraph((new PermissionGraph(permissions)).replacePermission(props.selectedPermissionId));
+  }, [permissions, props.selectedPermissionId]);
+
+  if (!selectedPermission || !graph) return null;
 
   return (
     <Modal open={props.open} onClose={() => props.onClose()}>
@@ -215,13 +221,17 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
             <Stack spacing={2}>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="permissionId">ID</FormLabel>
-                <Input name="permissionId" placeholder="Permission ID" required defaultValue={selectedPermission.id} />
+                <Input name="permissionId" placeholder="Permission ID" required value={id} onChange={(event) => setId(event.target.value)}/>
               </FormControl>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input name="description" placeholder="Description" defaultValue={selectedPermission.description} />
               </FormControl>
-              <PermissionList onChange={setInheritFromPermissionIds} permissions={permissions} selectedPermissionId={props.selectedPermissionId}/>
+              <PermissionList 
+                updatePermission={(permissionId, permission) => setGraph(graph.updatePermission(permissionId, permission))}
+                permissionGraph={graph} 
+                selectedPermissionId={id}
+              />
             </Stack>
           </form>
         </DialogContent>

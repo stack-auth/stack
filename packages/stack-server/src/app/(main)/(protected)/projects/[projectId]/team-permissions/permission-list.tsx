@@ -5,6 +5,8 @@ import { useAdminApp } from "../use-admin-app";
 import { ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { ServerPermission } from "@stackframe/stack";
 
+const PLACEHOLDER_ID = 'f2j1290ajf9812elk';
+
 export class PermissionGraph {
   permissions: Record<string, ServerPermissionJson>;
 
@@ -44,6 +46,36 @@ export class PermissionGraph {
     return new PermissionGraph(Object.values(permissions));
   }
 
+  addPermission() {
+    const permissions = this._copyPermissions(Object.values(this.permissions));
+    permissions[PLACEHOLDER_ID] = {
+      id: PLACEHOLDER_ID,
+      description: 'none',
+      scope: { type: 'any-team' },
+      __databaseUniqueId: 'none',
+      inheritFromPermissionIds: []
+    };
+    return new PermissionGraph(Object.values(permissions));
+  }
+
+  replacePermission(permissionId: string) {
+    const permissions = this._copyPermissions(Object.values(this.permissions));
+    const oldPermission = permissions[permissionId];
+    delete permissions[permissionId];
+    permissions[PLACEHOLDER_ID] = {
+      ...oldPermission,
+      id: PLACEHOLDER_ID,
+    };
+    for (const [key, value] of Object.entries(permissions)) {
+      permissions[key] = {
+        ...value,
+        inheritFromPermissionIds: value.inheritFromPermissionIds.map(id => id === permissionId ? PLACEHOLDER_ID : id)
+      };
+    }
+
+    return new PermissionGraph(Object.values(permissions));
+  }
+
   recursiveContains(permissionId: string): ServerPermissionJson[] {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
@@ -73,34 +105,21 @@ export class PermissionGraph {
 
 export function PermissionList(props : {
   selectedPermissionId?: string,
-  permissions: ServerPermission[],
-  onChange: (inheritFromPermissionIds: string[]) => void, 
+  permissionGraph: PermissionGraph,
+  updatePermission: (permissionId: string, permission: ServerPermissionJson) => void,
 }) {
-  const [graph, setGraph] = useState<PermissionGraph>();
-  const selectedId = props.selectedPermissionId || "new-permission";
-
-  useEffect(() => {
-    setGraph(new PermissionGraph(props.permissions.map(p => p.toJson()).concat(props.selectedPermissionId ? {
-      id: "new-permission",
-      description: "Root permission",
-      inheritFromPermissionIds: [],
-      scope: { type: "any-team" },
-      __databaseUniqueId: 'placeholder',
-    } : [])));
-  }, [props.permissions, props.selectedPermissionId, graph, selectedId]);
-
-  if (!graph) return null;
-  const currentPermission = graph.permissions[selectedId];
+  const graph = props.permissionGraph;
+  const currentPermission = graph.permissions[PLACEHOLDER_ID];
   
   return (
     <List sx={{ maxHeight: 300, overflow: 'auto' }}>
       {Object.values(graph.permissions).map((permission) => {
-        if (permission.id === selectedId) return null;
+        if (permission.id === PLACEHOLDER_ID) return null;
 
         const selected = currentPermission.inheritFromPermissionIds.includes(permission.id);
-        const contain = graph.hasPermission(selectedId, permission.id);
+        const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
         const inheritedFrom = graph.recursiveAccestors(permission.id).map(p => p.id).filter(
-          id => id !== permission.id && id !== selectedId && currentPermission.inheritFromPermissionIds.includes(id)
+          id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.inheritFromPermissionIds.includes(id)
         );
 
         return (
@@ -113,16 +132,13 @@ export function PermissionList(props : {
                 onChange={(event) => {
                   const checked = event.target.checked;
                   const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
-                  const newGraph = graph.updatePermission(
-                    selectedId,
+                  props.updatePermission(
+                    PLACEHOLDER_ID,
                     {
                       ...currentPermission,
                       inheritFromPermissionIds: checked ? [...oldInherited, permission.id] : oldInherited
                     }
                   );
-
-                  setGraph(newGraph);
-                  props.onChange(newGraph.permissions[selectedId].inheritFromPermissionIds);
                 }}
               />
               <Paragraph body>
