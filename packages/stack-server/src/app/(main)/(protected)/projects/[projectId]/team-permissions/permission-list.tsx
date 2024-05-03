@@ -69,7 +69,7 @@ export class PermissionGraph {
     for (const [key, value] of Object.entries(permissions)) {
       permissions[key] = {
         ...value,
-        inheritFromPermissionIds: value.inheritFromPermissionIds.map(id => id === permissionId ? PLACEHOLDER_ID : id)
+        inheritFromPermissionIds: value.inheritFromPermissionIds?.map(id => id === permissionId ? PLACEHOLDER_ID : id) || [],
       };
     }
 

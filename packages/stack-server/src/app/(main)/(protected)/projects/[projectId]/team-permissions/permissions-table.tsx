@@ -20,13 +20,10 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Checkbox,
   DialogActions,
-  List,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
-import { Paragraph } from '@/components/paragraph';
 import { Permission, ServerPermission } from '@stackframe/stack';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PermissionGraph, PermissionList } from './permission-list';
@@ -34,10 +31,6 @@ import { PermissionGraph, PermissionList } from './permission-list';
 export function PermissionsTable(props: {
   rows: ServerPermission[],
 }) {
-  const stackAdminApp = useAdminApp();
-
-  const [deletePermissionId, setDeletePermissionId] = React.useState<string | null>(null);
-
   const columns: GridColDef[] = [
     {
       field: 'id',
@@ -68,7 +61,7 @@ export function PermissionsTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} rows={props.rows} setDeletePermissionId={setDeletePermissionId} />,
+        <Actions key="more_actions" params={params} rows={props.rows} />,
       ],
     },
   ];
@@ -92,29 +85,12 @@ export function PermissionsTable(props: {
         }}
         pageSizeOptions={[5, 15, 25]}
       />
-
-      <Dialog
-        title
-        danger
-        open={!!deletePermissionId}
-        onClose={() => setDeletePermissionId(null)}
-        okButton={{
-          label: "Delete Permission",
-          onClick: async () => {
-            if (!deletePermissionId) throw new Error('This should never happen');
-            stackAdminApp.deletePermission(deletePermissionId);
-          },
-        }}
-        cancelButton
-      >
-        {"Are you sure you want to delete the permission? All the permission on users will also be removed, and you won't be able to recover it."}
-      </Dialog>
     </>
   );
 }
 
 
-function Actions(props: { params: any, rows: Permission[], setDeletePermissionId: (permissionId: string) => void}) {
+function Actions(props: { params: any, rows: Permission[]}) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -138,7 +114,6 @@ function Actions(props: { params: any, rows: Permission[], setDeletePermissionId
           <ListDivider />
           <MenuItem color="danger" onClick={() => {
             setIsDeleteModalOpen(true);
-            props.setDeletePermissionId(props.params.row.id);
           }}>
             <ListItemDecorator sx={{ color: 'inherit' }}>
               <Icon icon='delete' />
@@ -156,8 +131,8 @@ function Actions(props: { params: any, rows: Permission[], setDeletePermissionId
         okButton={{
           label: "Delete permission",
           onClick: async () => {
-            // await props.params.row.delete();
-          }
+            stackAdminApp.deletePermission(props.params.row.id);
+          },
         }}
         cancelButton={true}
       >
