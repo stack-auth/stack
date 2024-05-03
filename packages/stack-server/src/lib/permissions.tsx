@@ -66,7 +66,13 @@ export async function listServerPermissions(projectId: string, scope: Permission
     case "any-team": {
       const res = await prismaClient.permission.findMany({
         where: {
-          projectId,
+          projectConfig: {
+            projects: {
+              some: {
+                id: projectId,
+              }
+            }
+          },
           scope: scope.type === "global" ? "GLOBAL" : "TEAM",
         },
         include: fullPermissionInclude,

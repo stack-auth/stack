@@ -17,7 +17,7 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionCreateJson, ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionCreateJson, ServerPermissionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -912,7 +912,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   });
   private readonly _serverPermissionsCache = createCache(async () => {
     const permissions = await this._interface.listAnyTeamPermissions();
-    return permissions.map((p) => this._permissionFromJson(p));
+    return permissions.map((p) => this._serverPermissionFromJson(p));
   });
 
   constructor(options: 
@@ -1134,10 +1134,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return useCache(this._serverPermissionsCache, [], "usePermissions()");
   }
 
-  _serverPermissionFromJson(json: PermissionJson): ServerPermission {
+  _serverPermissionFromJson(json: ServerPermissionJson): ServerPermission {
     return {
+      __databaseUniqueId: json.__databaseUniqueId,
       id: json.id,
+      description: json.description,
       scope: json.scope,
+      inheritFromPermissionIds: json.inheritFromPermissionIds,
       toJson() {
         return json;
       },
@@ -1468,6 +1471,9 @@ export type Permission = {
 };
 
 export type ServerPermission = Permission & {
+  readonly __databaseUniqueId: string,
+  readonly description?: string,
+  readonly inheritFromPermissionIds: string[],
 };
 
 export type ApiKeySetBase = {

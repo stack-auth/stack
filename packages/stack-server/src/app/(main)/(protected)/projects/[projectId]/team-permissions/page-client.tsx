@@ -2,7 +2,6 @@
 
 import { Paragraph } from "@/components/paragraph";
 import { PermissionsTable } from "./permissions-table";
-import { mockPermissions } from "./mock-permissions";
 import { EnableTeam } from "../enable-team";
 import { useAdminApp } from "../use-admin-app";
 import { AsyncButton } from "@/components/async-button";
@@ -11,6 +10,7 @@ import { AsyncButton } from "@/components/async-button";
 export default function ClientPage() {
   const stackAdminApp = useAdminApp();
   const permissions = stackAdminApp.usePermissions();
+  console.log(permissions);
 
   return (
     <>
@@ -29,7 +29,7 @@ export default function ClientPage() {
       </AsyncButton>
 
       <EnableTeam>
-        <PermissionsTable rows={mockPermissions as any} />
+        <PermissionsTable rows={permissions} />
       </EnableTeam>
     </>
   );

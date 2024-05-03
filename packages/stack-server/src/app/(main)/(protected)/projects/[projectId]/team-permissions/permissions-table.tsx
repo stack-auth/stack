@@ -1,18 +1,36 @@
-"use client";
-
+"use client";;
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
-import { Permission } from './mock-permissions';
-import { Dropdown, Menu, MenuButton, MenuItem, ListDivider, IconButton, ListItemDecorator, Modal, ModalDialog, DialogTitle, Divider, DialogContent, Stack, Box, FormControl, FormLabel, Input, Checkbox, DialogActions, List } from '@mui/joy';
+import {
+  Dropdown,
+  Menu,
+  MenuButton,
+  MenuItem,
+  ListDivider,
+  IconButton,
+  ListItemDecorator,
+  Modal,
+  ModalDialog,
+  DialogTitle,
+  Divider,
+  DialogContent,
+  Stack,
+  FormControl,
+  FormLabel,
+  Input,
+  Checkbox,
+  DialogActions,
+  List,
+} from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { AsyncButton } from '@/components/async-button';
 import { Paragraph } from '@/components/paragraph';
+import { Permission, ServerPermission } from '../../../../../../../../stack/dist/lib/stack-app';
 
 export function PermissionsTable(props: {
-  rows: Permission[],
+  rows: ServerPermission[],
 }) {
   const stackAdminApp = useAdminApp();
 
@@ -20,8 +38,8 @@ export function PermissionsTable(props: {
 
   const columns: GridColDef[] = [
     {
-      field: 'name',
-      headerName: 'Name',
+      field: 'id',
+      headerName: 'ID',
       width: 200,
       flex: 1,
     },
@@ -38,7 +56,7 @@ export function PermissionsTable(props: {
       flex: 1,
       renderCell: (params) => {
         const permission = props.rows.find((row) => row.id === params.id);
-        return permission?.contains?.join(", ") || "";
+        return permission?.inheritFromPermissionIds.join(', ') || '';
       },
     },
     {
@@ -140,130 +158,130 @@ function Actions(props: { params: any, rows: Permission[] }) {
         {`Are you sure you want to delete the permission "${props.params.row.name}"? All the permission "${props.params.row.name}" on the existing users will also be removed. All the other permissions that contain this permission will also lose it. and you won't be able to recover it.`}
       </Dialog>
 
-      <EditUserModal
+      {/* <EditUserModal
         selectedPermission={props.params.row}
         permissions={props.rows}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-      />
+      /> */}
     </>
   );
 }
 
-export function EditUserModal(props: { selectedPermission: Permission, permissions: Permission[], open: boolean, onClose: () => void }) {
-  const stackAdminApp = useAdminApp();
+// export function EditUserModal(props: { selectedPermission: Permission, permissions: Permission[], open: boolean, onClose: () => void }) {
+//   const stackAdminApp = useAdminApp();
 
-  const formRef = React.useRef<HTMLFormElement>(null);
-  const [isSaving, setIsSaving] = React.useState(false);
-  const [newPermissions, setNewPermissions] = React.useState<Permission[]>(props.permissions.map((p) => ({ ...p })));
-  const newSelectedPermission = newPermissions.find((p) => p.id === props.selectedPermission.id);
-  if (!newSelectedPermission) {
-    return null;
-  }
+//   const formRef = React.useRef<HTMLFormElement>(null);
+//   const [isSaving, setIsSaving] = React.useState(false);
+//   const [newPermissions, setNewPermissions] = React.useState<Permission[]>(props.permissions.map((p) => ({ ...p })));
+//   const newSelectedPermission = newPermissions.find((p) => p.id === props.selectedPermission.id);
+//   if (!newSelectedPermission) {
+//     return null;
+//   }
 
-  return (
-    <Modal open={props.open} onClose={() => props.onClose()}>
-      <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
-        <DialogTitle>
-          <Icon icon='edit' />
-          Edit permission
-        </DialogTitle>
-        <Divider />
-        <DialogContent>
-          <form
-            onSubmit={(event) => {
-              // runAsynchronously(async () => {
-              //   event.preventDefault();
-              //   setIsSaving(true);
-              //   try {
-              //     const formData = new FormData(event.currentTarget);
-              //     const formJson = {
-              //       displayName: `${formData.get('displayName')}` || null,
-              //       primaryEmail: `${formData.get('email')}` || null,
-              //       primaryEmailVerified: formData.get('primaryEmailVerified') === "on",
-              //       signedUpAtMillis: new Date(formData.get('signedUpAt') as string).getTime(),
-              //     };
-              //     await props.user.update(formJson);
-              //     props.onClose();
-              //   } finally {
-              //     setIsSaving(false);
-              //   }
-              // });
-            }}
-            ref={formRef}
-          >
-            <Stack spacing={2}>
-              <FormControl disabled={isSaving}>
-                <FormLabel htmlFor="displayName">Name</FormLabel>
-                <Input name="name" placeholder="name" defaultValue={props.selectedPermission.name} required />
-              </FormControl>
-              <FormControl disabled={isSaving}>
-                <FormLabel htmlFor="description">Description</FormLabel>
-                <Input name="description" placeholder="description" defaultValue={props.selectedPermission.description} required />
-              </FormControl>
-              <FormLabel htmlFor="contains">Contains permissions from</FormLabel>
-              <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-                {newPermissions.map((permission) => {
-                  if (permission.id === newSelectedPermission.id) return null;
-                  const contain = newSelectedPermission.contains?.includes(permission.name);
-                  const inheritedFrom: string[] = [];
-                  // newSelectedPermission.contains?.find((p) => props.permissions.find((p2) => p2.name === p)?.has(p));  
-                  for (const p of newSelectedPermission.contains || []) {
-                    const p2 =newPermissions.find((p2) => p2.name === p);
-                    if (p2?.has(permission.name)) {
-                      inheritedFrom.push(p);
-                    }
-                  }
-                  const inherited = newSelectedPermission.has(permission.name) && !contain;
-                  return (
-                    <>
-                      <Stack key={permission.id} spacing={1} direction={"row"} alignItems={"center"}>
-                        <Checkbox
-                          key={permission.id}
-                          value={permission.id}
-                          checked={contain}
-                          // variant={inherited ? "solid" : "outlined"}
-                          // color={'primary'}
-                          onChange={(event) => {
-                            const checked = event.target.checked;
-                            setNewPermissions((permissions) => permissions.map((p) => {
-                              if (p.id === newSelectedPermission.id) {
-                                p.contains = p.contains?.filter((c) => c !== permission.name);
-                                if (checked) {
-                                  p.contains = [...(p.contains || []), permission.name];
-                                }
-                              }
-                              return p;
-                            }));
-                            console.log(newPermissions);
-                          }}
-                        />
-                        <Paragraph body>
-                          {permission.name}
-                          {inherited && <span> (inherited from {inheritedFrom.join(', ')})</span>}
-                        </Paragraph>
-                      </Stack>
-                      <Divider sx={{ margin: 1 }} />
-                    </>
-                  );
-                })}
-              </List>
-            </Stack>
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <AsyncButton
-            color="primary"
-            loading={isSaving}
-            onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
-          >
-              Save
-          </AsyncButton>
-          <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
-              Cancel
-          </AsyncButton>
-        </DialogActions>
-      </ModalDialog>
-    </Modal>
-  );
-}
+//   return (
+//     <Modal open={props.open} onClose={() => props.onClose()}>
+//       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
+//         <DialogTitle>
+//           <Icon icon='edit' />
+//           Edit permission
+//         </DialogTitle>
+//         <Divider />
+//         <DialogContent>
+//           <form
+//             onSubmit={(event) => {
+//               // runAsynchronously(async () => {
+//               //   event.preventDefault();
+//               //   setIsSaving(true);
+//               //   try {
+//               //     const formData = new FormData(event.currentTarget);
+//               //     const formJson = {
+//               //       displayName: `${formData.get('displayName')}` || null,
+//               //       primaryEmail: `${formData.get('email')}` || null,
+//               //       primaryEmailVerified: formData.get('primaryEmailVerified') === "on",
+//               //       signedUpAtMillis: new Date(formData.get('signedUpAt') as string).getTime(),
+//               //     };
+//               //     await props.user.update(formJson);
+//               //     props.onClose();
+//               //   } finally {
+//               //     setIsSaving(false);
+//               //   }
+//               // });
+//             }}
+//             ref={formRef}
+//           >
+//             <Stack spacing={2}>
+//               <FormControl disabled={isSaving}>
+//                 <FormLabel htmlFor="displayName">Name</FormLabel>
+//                 <Input name="name" placeholder="name" defaultValue={props.selectedPermission.name} required />
+//               </FormControl>
+//               <FormControl disabled={isSaving}>
+//                 <FormLabel htmlFor="description">Description</FormLabel>
+//                 <Input name="description" placeholder="description" defaultValue={props.selectedPermission.description} required />
+//               </FormControl>
+//               <FormLabel htmlFor="contains">Contains permissions from</FormLabel>
+//               <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+//                 {newPermissions.map((permission) => {
+//                   if (permission.id === newSelectedPermission.id) return null;
+//                   const contain = newSelectedPermission.contains?.includes(permission.name);
+//                   const inheritedFrom: string[] = [];
+//                   // newSelectedPermission.contains?.find((p) => props.permissions.find((p2) => p2.name === p)?.has(p));  
+//                   for (const p of newSelectedPermission.contains || []) {
+//                     const p2 =newPermissions.find((p2) => p2.name === p);
+//                     if (p2?.has(permission.name)) {
+//                       inheritedFrom.push(p);
+//                     }
+//                   }
+//                   const inherited = newSelectedPermission.has(permission.name) && !contain;
+//                   return (
+//                     <>
+//                       <Stack key={permission.id} spacing={1} direction={"row"} alignItems={"center"}>
+//                         <Checkbox
+//                           key={permission.id}
+//                           value={permission.id}
+//                           checked={contain}
+//                           // variant={inherited ? "solid" : "outlined"}
+//                           // color={'primary'}
+//                           onChange={(event) => {
+//                             const checked = event.target.checked;
+//                             setNewPermissions((permissions) => permissions.map((p) => {
+//                               if (p.id === newSelectedPermission.id) {
+//                                 p.contains = p.contains?.filter((c) => c !== permission.name);
+//                                 if (checked) {
+//                                   p.contains = [...(p.contains || []), permission.name];
+//                                 }
+//                               }
+//                               return p;
+//                             }));
+//                             console.log(newPermissions);
+//                           }}
+//                         />
+//                         <Paragraph body>
+//                           {permission.name}
+//                           {inherited && <span> (inherited from {inheritedFrom.join(', ')})</span>}
+//                         </Paragraph>
+//                       </Stack>
+//                       <Divider sx={{ margin: 1 }} />
+//                     </>
+//                   );
+//                 })}
+//               </List>
+//             </Stack>
+//           </form>
+//         </DialogContent>
+//         <DialogActions>
+//           <AsyncButton
+//             color="primary"
+//             loading={isSaving}
+//             onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+//           >
+//               Save
+//           </AsyncButton>
+//           <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+//               Cancel
+//           </AsyncButton>
+//         </DialogActions>
+//       </ModalDialog>
+//     </Modal>
+//   );
+// }
