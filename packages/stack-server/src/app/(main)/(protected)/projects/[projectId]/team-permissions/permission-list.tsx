@@ -1,11 +1,9 @@
 import { Paragraph } from "@/components/paragraph";
 import { Box, Checkbox, Divider, FormLabel, List, Stack } from "@mui/joy";
-import { useEffect, useState } from "react";
-import { useAdminApp } from "../use-admin-app";
 import { ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { ServerPermission } from "@stackframe/stack";
 
-const PLACEHOLDER_ID = 'f2j1290ajf9812elk';
+// used to represent the permission being edited, so we don't need to update the id all the time
+const PLACEHOLDER_ID = 'f2j1290ajf9812elk'; 
 
 export class PermissionGraph {
   permissions: Record<string, ServerPermissionJson>;

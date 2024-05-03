@@ -207,7 +207,11 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                 <Input name="description" placeholder="Description" defaultValue={selectedPermission.description} />
               </FormControl>
               <PermissionList 
-                updatePermission={(permissionId, permission) => setGraph(graph.updatePermission(permissionId, permission))}
+                updatePermission={
+                  (permissionId, permission) => {
+                    setGraph(graph.updatePermission(permissionId, permission));
+                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                  }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
               />

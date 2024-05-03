@@ -107,7 +107,11 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                 <Input name="description" placeholder="Description" />
               </FormControl>
               <PermissionList 
-                updatePermission={(permissionId, permission) => setGraph(graph.updatePermission(permissionId, permission))}
+                updatePermission={
+                  (permissionId, permission) => {
+                    setGraph(graph.updatePermission(permissionId, permission));
+                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                  }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
               />
