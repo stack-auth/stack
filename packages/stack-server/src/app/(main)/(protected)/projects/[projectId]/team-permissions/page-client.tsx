@@ -56,7 +56,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = useState<PermissionGraph>();
-  const [id, setId] = useState<string>();
+  const [id, setId] = useState<string>('');
 
   useEffect(() => {
     setGraph((new PermissionGraph(permissions)).addPermission());
