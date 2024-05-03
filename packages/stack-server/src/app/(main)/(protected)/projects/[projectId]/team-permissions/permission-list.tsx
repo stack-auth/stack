@@ -1,5 +1,5 @@
 import { Paragraph } from "@/components/paragraph";
-import { Box, Checkbox, Divider, List, Stack } from "@mui/joy";
+import { Box, Checkbox, Divider, FormLabel, List, Stack } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "../use-admin-app";
 import { ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -112,44 +112,47 @@ export function PermissionList(props : {
   const currentPermission = graph.permissions[PLACEHOLDER_ID];
   
   return (
-    <List sx={{ maxHeight: 300, overflow: 'auto' }}>
-      {Object.values(graph.permissions).map((permission) => {
-        if (permission.id === PLACEHOLDER_ID) return null;
+    <>
+      <FormLabel>Contains permissions</FormLabel>
+      <List sx={{ maxHeight: 250, overflow: 'auto' }}>
+        {Object.values(graph.permissions).map((permission) => {
+          if (permission.id === PLACEHOLDER_ID) return null;
 
-        const selected = currentPermission.inheritFromPermissionIds.includes(permission.id);
-        const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
-        const inheritedFrom = graph.recursiveAccestors(permission.id).map(p => p.id).filter(
-          id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.inheritFromPermissionIds.includes(id)
-        );
+          const selected = currentPermission.inheritFromPermissionIds.includes(permission.id);
+          const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
+          const inheritedFrom = graph.recursiveAccestors(permission.id).map(p => p.id).filter(
+            id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.inheritFromPermissionIds.includes(id)
+          );
 
-        return (
-          <Box key={permission.id}>
-            <Stack spacing={1} direction={"row"} alignItems={"center"}>
-              <Checkbox
+          return (
+            <Box key={permission.id}>
+              <Stack spacing={1} direction={"row"} alignItems={"center"}>
+                <Checkbox
                 // checked={selected}
                 // variant={inheritedFrom.length > 0 ? "solid" : "outlined"}
-                color={'primary'}
-                onChange={(event) => {
-                  const checked = event.target.checked;
-                  const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
-                  props.updatePermission(
-                    PLACEHOLDER_ID,
-                    {
-                      ...currentPermission,
-                      inheritFromPermissionIds: checked ? [...oldInherited, permission.id] : oldInherited
-                    }
-                  );
-                }}
-              />
-              <Paragraph body>
-                {permission.id}
-                {contain && inheritedFrom.length > 0 && <span> (inherited from {inheritedFrom.join(', ')})</span>}
-              </Paragraph>
-            </Stack>
-            <Divider sx={{ margin: 1 }} />
-          </Box>
-        );
-      })}
-    </List>
+                // color={'primary'}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
+                    props.updatePermission(
+                      PLACEHOLDER_ID,
+                      {
+                        ...currentPermission,
+                        inheritFromPermissionIds: checked ? [...oldInherited, permission.id] : oldInherited
+                      }
+                    );
+                  }}
+                />
+                <Paragraph body>
+                  {permission.id}
+                  {contain && inheritedFrom.length > 0 && <span> (inherited from {inheritedFrom.join(', ')})</span>}
+                </Paragraph>
+              </Stack>
+              <Divider sx={{ margin: 1 }} />
+            </Box>
+          );
+        })}
+      </List>
+    </>
   );
 }
