@@ -51,6 +51,7 @@ export default function ClientPage() {
 
 function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
+  const permissions = stackAdminApp.usePermissions();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
@@ -97,7 +98,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input name="description" placeholder="Description" />
               </FormControl>
-              <PermissionList onChange={setInheritFromPermissionIds} />
+              <PermissionList onChange={setInheritFromPermissionIds} permissions={permissions}/>
             </Stack>
           </form>
         </DialogContent>
