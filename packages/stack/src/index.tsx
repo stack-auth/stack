@@ -23,6 +23,17 @@ export { useDesign, ColorPalette } from './providers/design-provider';
 export { useComponents } from './providers/component-provider';
 export { StackTheme, ThemeConfig } from './providers/theme-provider';
 
-export { CurrentUser, Project, ServerUser, ApiKeySetFirstView, ApiKeySet, ServerTeam, Team } from './lib/stack-app';
+export { 
+  CurrentUser, 
+  Project, 
+  ServerUser, 
+  ApiKeySetFirstView, 
+  ApiKeySet, 
+  ServerTeam, 
+  Team, 
+  Permission, 
+  PermissionScope, 
+  ServerPermission,
+} from './lib/stack-app';
 
 export * from './components-core';

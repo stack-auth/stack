@@ -27,7 +27,7 @@ import {
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Paragraph } from '@/components/paragraph';
-import { Permission, ServerPermission } from '../../../../../../../../stack/dist/lib/stack-app';
+import { Permission, ServerPermission } from '@stackframe/stack';
 
 export function PermissionsTable(props: {
   rows: ServerPermission[],

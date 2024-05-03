@@ -1470,10 +1470,11 @@ export type Permission = {
   toJson(this: Permission): PermissionJson,
 };
 
-export type ServerPermission = Permission & {
+export type ServerPermission = Omit<Permission, 'toJson'> & {
   readonly __databaseUniqueId: string,
   readonly description?: string,
   readonly inheritFromPermissionIds: string[],
+  toJson(this: ServerPermission): ServerPermissionJson,
 };
 
 export type ApiKeySetBase = {
