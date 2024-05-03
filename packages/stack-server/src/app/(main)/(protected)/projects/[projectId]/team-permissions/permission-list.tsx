@@ -87,15 +87,19 @@ export function PermissionList(props : {
       {Object.values(graph.permissions).map((permission) => {
         if (permission.id === targetId) return null;
 
+        const selected = currentPermission.inheritFromPermissionIds.includes(permission.id);
         const contain = graph.hasPermission(targetId, permission.id);
+        const inheritedFrom = graph.recursiveAccestors(permission.id).map(p => p.id).filter(
+          id => id !== permission.id && id !== targetId && currentPermission.inheritFromPermissionIds.includes(id)
+        );
 
         return (
           <Box key={permission.id}>
             <Stack spacing={1} direction={"row"} alignItems={"center"}>
               <Checkbox
-                checked={contain}
-                // variant={inherited ? "solid" : "outlined"}
-                // color={'primary'}
+                // checked={selected}
+                // variant={inheritedFrom.length > 0 ? "solid" : "outlined"}
+                color={'primary'}
                 onChange={(event) => {
                   const checked = event.target.checked;
                   const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
@@ -110,7 +114,7 @@ export function PermissionList(props : {
               />
               <Paragraph body>
                 {permission.id}
-                {/* {inherited && <span> (inherited from {inheritedFrom.join(', ')})</span>} */}
+                {contain && inheritedFrom.length > 0 && <span> (inherited from {inheritedFrom.join(', ')})</span>}
               </Paragraph>
             </Stack>
             <Divider sx={{ margin: 1 }} />

@@ -9,7 +9,7 @@ import React from "react";
 import { Box, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Stack } from "@mui/joy";
 import { Icon } from "@/components/icon";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { PermissionList } from "./permission";
+import { PermissionList } from "./permission-list";
 
 
 export default function ClientPage() {
