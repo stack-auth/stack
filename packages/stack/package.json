@@ -4,23 +4,21 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
-        "types": "./dist/index.d.ts",
         "default": "./dist/esm/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
         "default": "./dist/index.js"
       }
     },
     "./joy": {
+      "types": "./dist/joy.d.ts",
       "import": {
-        "types": "./dist/joy.d.ts",
-        "default": "./dist/joy.js"
+        "default": "./dist/esm/joy.js"
       },
       "require": {
-        "types": "./dist/joy.d.ts",
-        "default": "./dist/joy.cjs"
+        "default": "./dist/joy.js"
       }
     }
   },
