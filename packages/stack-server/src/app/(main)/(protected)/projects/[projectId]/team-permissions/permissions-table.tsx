@@ -36,7 +36,7 @@ export function PermissionsTable(props: {
 }) {
   const stackAdminApp = useAdminApp();
 
-  const [revokeDialogApiKeySet, setRevokeDialogApiKeySet] = React.useState<Permission | null>(null);
+  const [deletePermissionId, setDeletePermissionId] = React.useState<string | null>(null);
 
   const columns: GridColDef[] = [
     {
@@ -68,7 +68,7 @@ export function PermissionsTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} rows={props.rows} />
+        <Actions key="more_actions" params={params} rows={props.rows} setDeletePermissionId={setDeletePermissionId} />,
       ],
     },
   ];
@@ -96,12 +96,13 @@ export function PermissionsTable(props: {
       <Dialog
         title
         danger
-        open={!!revokeDialogApiKeySet}
-        onClose={() => setRevokeDialogApiKeySet(null)}
+        open={!!deletePermissionId}
+        onClose={() => setDeletePermissionId(null)}
         okButton={{
           label: "Delete Permission",
           onClick: async () => {
-            // TODO
+            if (!deletePermissionId) throw new Error('This should never happen');
+            stackAdminApp.deletePermission(deletePermissionId);
           },
         }}
         cancelButton
@@ -113,7 +114,7 @@ export function PermissionsTable(props: {
 }
 
 
-function Actions(props: { params: any, rows: Permission[] }) {
+function Actions(props: { params: any, rows: Permission[], setDeletePermissionId: (permissionId: string) => void}) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -135,7 +136,10 @@ function Actions(props: { params: any, rows: Permission[] }) {
             Edit
           </MenuItem>
           <ListDivider />
-          <MenuItem color="danger" onClick={() => setIsDeleteModalOpen(true)}>
+          <MenuItem color="danger" onClick={() => {
+            setIsDeleteModalOpen(true);
+            props.setDeletePermissionId(props.params.row.id);
+          }}>
             <ListItemDecorator sx={{ color: 'inherit' }}>
               <Icon icon='delete' />
             </ListItemDecorator>{' '}

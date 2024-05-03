@@ -1151,6 +1151,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._serverPermissionFromJson(await this._interface.createPermission(data));
   }
 
+  async deletePermission(permissionId: string): Promise<void> {
+    await this._interface.deletePermission(permissionId);
+    await this._serverPermissionsCache.refresh([]);
+  }
+
   async listTeams(): Promise<ServerTeam[]> {
     return await this._serverTeamsCache.getOrWait([], "write-only");
   }
@@ -1580,6 +1585,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & {
     createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
     createPermission(data: ServerPermissionCreateJson): Promise<ServerPermission>,
+    deletePermission(permissionId: string): Promise<void>,
     listPermissions(): Promise<ServerPermission[]>,
     usePermissions(): ServerPermission[],
   }

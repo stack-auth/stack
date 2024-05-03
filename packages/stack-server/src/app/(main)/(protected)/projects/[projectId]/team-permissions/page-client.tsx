@@ -69,7 +69,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
-          Edit Permission
+          Create Permission
         </DialogTitle>
         <Divider />
         <DialogContent>

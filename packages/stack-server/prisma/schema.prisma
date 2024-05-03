@@ -170,9 +170,9 @@ model PermissionEdge {
   updatedAt DateTime @updatedAt
 
   parentPermissionDbId String     @db.Uuid
-  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId])
+  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
   childPermissionDbId  String     @db.Uuid
-  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId])
+  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
 }
 
 model ProjectUser {

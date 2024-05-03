@@ -39,7 +39,6 @@ export type ServerPermissionJson = PermissionJson & ServerPermissionCreateJson &
   readonly scope: PermissionScopeJson,
 };
 
-
 export type ServerAuthApplicationOptions = (
   & ClientInterfaceOptions
   & (
@@ -101,6 +100,14 @@ export class StackServerInterface extends StackClientInterface {
       null,
     );
     return await response.json();
+  }
+
+  async deletePermission(permissionId: string): Promise<void> {
+    await this.sendServerRequest(
+      `/teams/permissions/${permissionId}?server=true`,
+      { method: "DELETE" },
+      null,
+    );
   }
 
   async listUsers(): Promise<ServerUserJson[]> {
