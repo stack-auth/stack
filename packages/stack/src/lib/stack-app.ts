@@ -1054,8 +1054,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async listUsers() {
         return (await app._interface.listTeamUsers(json.id)).map((u) => app._serverUserFromJson(u));
       },
-      update(update: Partial<ServerTeamCustomizableJson>) {
-        return app._interface.updateTeam(json.id, update);
+      async update(update: Partial<ServerTeamCustomizableJson>) {
+        await app._interface.updateTeam(json.id, update);
+        await app._serverTeamsCache.refresh([]);
       },
       useUsers() {
         return useCache(app._serverTeamUsersCache, [json.id], "team.useUsers()");
