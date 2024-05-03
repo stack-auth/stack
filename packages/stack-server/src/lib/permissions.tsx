@@ -260,7 +260,7 @@ export async function updatePermission(
   });
   if (!project) throw new KnownErrors.ProjectNotFound();
 
-  let parentDbIds = [];
+  let parentDbIds: string[] = [];
   if (permission.inheritFromPermissionIds) {
     const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
     for (const parentPermissionId of permission.inheritFromPermissionIds) {
@@ -269,15 +269,10 @@ export async function updatePermission(
       parentDbIds.push(parentPermission.__databaseUniqueId);
     }
   }
-  const dbPermission = await prismaClient.permission.update({
-    where: {
-      projectConfigId_queriableId: {
-        projectConfigId: project.configId,
-        queriableId: permissionId,
-      },
-    },
-    data: {
-      description: permission.description,
+
+  let edgeUpdateData = {};
+  if (permission.inheritFromPermissionIds) {
+    edgeUpdateData = {
       parentEdges: {
         deleteMany: {},
         create: parentDbIds.map(parentDbId => ({
@@ -288,6 +283,20 @@ export async function updatePermission(
           },
         })),
       },
+    };
+  }
+
+  const dbPermission = await prismaClient.permission.update({
+    where: {
+      projectConfigId_queriableId: {
+        projectConfigId: project.configId,
+        queriableId: permissionId,
+      },
+    },
+    data: {
+      queriableId: permission.id,
+      description: permission.description,
+      ...edgeUpdateData,
     },
     include: fullPermissionInclude,
   });
