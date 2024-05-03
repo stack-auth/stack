@@ -2,7 +2,7 @@ import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { PermissionJson, PermissionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerPermissionCreateJson, ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionCustomizableJson, ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const fullPermissionInclude = {
@@ -205,7 +205,7 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
 export async function createPermission(
   projectId: string, 
   scope: PermissionScopeJson, 
-  permission: ServerPermissionCreateJson
+  permission: ServerPermissionCustomizableJson
 ): Promise<ServerPermissionJson> {
   const project = await prismaClient.project.findUnique({
     where: {
@@ -233,6 +233,53 @@ export async function createPermission(
         projectConfigId: project.configId,
       },
       parentEdges: {
+        create: parentDbIds.map(parentDbId => ({
+          parentPermission: {
+            connect: {
+              dbId: parentDbId,
+            },
+          },
+        })),
+      },
+    },
+    include: fullPermissionInclude,
+  });
+  return serverPermissionJsonFromDbType(dbPermission);
+}
+
+export async function updatePermission(
+  projectId: string, 
+  scope: PermissionScopeJson, 
+  permissionId: string, 
+  permission: Partial<ServerPermissionCustomizableJson>
+): Promise<ServerPermissionJson> {
+  const project = await prismaClient.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+  if (!project) throw new KnownErrors.ProjectNotFound();
+
+  let parentDbIds = [];
+  if (permission.inheritFromPermissionIds) {
+    const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
+    for (const parentPermissionId of permission.inheritFromPermissionIds) {
+      const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
+      if (!parentPermission) throw new KnownErrors.PermissionNotFound(parentPermissionId);
+      parentDbIds.push(parentPermission.__databaseUniqueId);
+    }
+  }
+  const dbPermission = await prismaClient.permission.update({
+    where: {
+      projectConfigId_queriableId: {
+        projectConfigId: project.configId,
+        queriableId: permissionId,
+      },
+    },
+    data: {
+      description: permission.description,
+      parentEdges: {
+        deleteMany: {},
         create: parentDbIds.map(parentDbId => ({
           parentPermission: {
             connect: {

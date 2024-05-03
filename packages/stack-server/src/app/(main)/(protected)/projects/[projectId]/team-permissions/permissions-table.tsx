@@ -184,11 +184,14 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                     id: `${formData.get('permissionId')}`,
                     description: `${formData.get('description')}` || undefined,
                   };
-                  await stackAdminApp.createPermission({
-                    id: formJson.id,
-                    description: formJson.description,
-                    inheritFromPermissionIds,
-                  });
+                  await stackAdminApp.updatePermission(
+                    selectedPermission.id, 
+                    {
+                      id: formJson.id,
+                      description: formJson.description,
+                      inheritFromPermissionIds,
+                    }
+                  );
                   props.onClose();
                 } finally {
                   setIsSaving(false);

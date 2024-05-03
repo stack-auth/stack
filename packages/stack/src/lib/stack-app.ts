@@ -17,7 +17,7 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionCreateJson, ServerPermissionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionCustomizableJson, ServerPermissionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -1147,10 +1147,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  async createPermission(data: ServerPermissionCreateJson): Promise<ServerPermission>{
+  async createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermission>{
     const permission = await this._serverPermissionFromJson(await this._interface.createPermission(data));
     await this._serverPermissionsCache.refresh([]);
     return permission;
+  }
+
+  async updatePermission(permissionId: string, data: Partial<ServerPermissionCustomizableJson>) {
+    await this._interface.updatePermission(permissionId, data);
+    await this._serverPermissionsCache.refresh([]);
   }
 
   async deletePermission(permissionId: string): Promise<void> {
@@ -1586,7 +1591,8 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & StackClientApp<HasTokenStore, ProjectId>
   & {
     createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
-    createPermission(data: ServerPermissionCreateJson): Promise<ServerPermission>,
+    createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermission>,
+    updatePermission(permissionId: string, data: Partial<ServerPermissionCustomizableJson>): Promise<void>,
     deletePermission(permissionId: string): Promise<void>,
     listPermissions(): Promise<ServerPermission[]>,
     usePermissions(): ServerPermission[],

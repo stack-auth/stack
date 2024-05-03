@@ -28,13 +28,13 @@ export type ServerOrglikeJson = OrglikeJson & {};
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
 
-export type ServerPermissionCreateJson = {
+export type ServerPermissionCustomizableJson = {
   readonly id: string,
   readonly description?: string,
   readonly inheritFromPermissionIds: string[],
 };
 
-export type ServerPermissionJson = PermissionJson & ServerPermissionCreateJson & {
+export type ServerPermissionJson = PermissionJson & ServerPermissionCustomizableJson & {
   readonly __databaseUniqueId: string,
   readonly scope: PermissionScopeJson,
 };
@@ -82,7 +82,7 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
-  async createPermission(data: ServerPermissionCreateJson): Promise<ServerPermissionJson> {
+  async createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermissionJson> {
     const response = await this.sendServerRequest(
       "/teams/permissions?server=true",
       {
@@ -100,6 +100,20 @@ export class StackServerInterface extends StackClientInterface {
       null,
     );
     return await response.json();
+  }
+
+  async updatePermission(permissionId: string, data: Partial<ServerPermissionCustomizableJson>): Promise<void> {
+    await this.sendServerRequest(
+      `/teams/permissions/${permissionId}?server=true`,
+      {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
   }
 
   async deletePermission(permissionId: string): Promise<void> {
