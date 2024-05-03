@@ -131,7 +131,7 @@ function Actions(props: { params: any, rows: Permission[]}) {
         okButton={{
           label: "Delete permission",
           onClick: async () => {
-            stackAdminApp.deletePermission(props.params.row.id);
+            await stackAdminApp.deletePermission(props.params.row.id);
           },
         }}
         cancelButton={true}

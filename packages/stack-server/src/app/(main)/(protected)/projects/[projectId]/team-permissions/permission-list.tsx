@@ -126,9 +126,9 @@ export function PermissionList(props : {
             <Box key={permission.id}>
               <Stack spacing={1} direction={"row"} alignItems={"center"}>
                 <Checkbox
-                // checked={selected}
-                // variant={inheritedFrom.length > 0 ? "solid" : "outlined"}
-                // color={'primary'}
+                  // checked={selected}
+                  // variant={inheritedFrom.length > 0 ? "solid" : "outlined"}
+                  // color={'primary'}
                   onChange={(event) => {
                     const checked = event.target.checked;
                     const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
