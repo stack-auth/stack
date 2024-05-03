@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.3.5
+
+### Patch Changes
+
+- CommonJS support
+
 ## 2.3.4
 
 ### Patch Changes
