@@ -65,5 +65,5 @@ jobs:
         run: pnpm -C apps/e2e test:ci
         env:
           SERVER_BASE_URL: http://localhost:8101
-          PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-          PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
+          INTERNAL_PROJECT_ID: internal
+          INTERNAL_PROJECT_CLIENT_KEY: internal-project-client-api-key
