@@ -66,6 +66,7 @@
     "@types/color": "^3.0.6",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.66",
-    "esbuild": "^0.20.2"
+    "esbuild": "^0.20.2",
+    "tsup": "^8.0.2"
   }
 }

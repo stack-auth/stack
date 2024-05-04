@@ -28,7 +28,6 @@ const config: Options = {
         });
 
         build.onResolve({ filter: /^.*$/m }, async (args) => {
-          console.log('onResolve', args);
           if (args.kind === "entry-point" || customNoExternal.has(args.path)) {
             return undefined;
           }

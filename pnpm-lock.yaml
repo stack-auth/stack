@@ -329,6 +329,9 @@ importers:
       esbuild:
         specifier: ^0.20.2
         version: 0.20.2
+      tsup:
+        specifier: ^8.0.2
+        version: 8.0.2(typescript@5.3.3)
 
   packages/stack-sc:
     dependencies:

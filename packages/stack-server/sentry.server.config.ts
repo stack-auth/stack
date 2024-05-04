@@ -13,5 +13,5 @@ Sentry.init({
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: process.env.NODE_ENV === "development",
 
-  enabled: process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "test",
+  enabled: process.env.NODE_ENV !== "development" && !process.env.CI,
 });
