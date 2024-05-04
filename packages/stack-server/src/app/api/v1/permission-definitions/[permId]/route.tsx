@@ -18,7 +18,7 @@ const putSchema = yup.object({
   body: yup.object({
     id: yup.string(),
     description: yup.string(),
-    inheritFromPermissionIds: yup.array(yup.string().required()),
+    containPermissionIds: yup.array(yup.string().required()),
   }).required(),
 });
 

@@ -51,7 +51,7 @@ export function PermissionsTable(props: {
       flex: 1,
       renderCell: (params) => {
         const permission = props.rows.find((row) => row.id === params.id);
-        return permission?.inheritFromPermissionIds.join(', ') || '';
+        return permission?.containPermissionIds.join(', ') || '';
       },
     },
     {
@@ -154,7 +154,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
   const selectedPermission = permissions.find((permission) => permission.id === props.selectedPermissionId);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
+  const [containPermissionIds, setcontainPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = React.useState<PermissionGraph>();
   const [id, setId] = React.useState<string>(selectedPermission?.id || '');
 
@@ -189,7 +189,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                     {
                       id: formJson.id,
                       description: formJson.description,
-                      inheritFromPermissionIds,
+                      containPermissionIds,
                     }
                   );
                   props.onClose();
@@ -213,7 +213,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                 updatePermission={
                   (permissionId, permission) => {
                     setGraph(graph.updatePermission(permissionId, permission));
-                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                    setcontainPermissionIds(permission.containPermissionIds);
                   }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}

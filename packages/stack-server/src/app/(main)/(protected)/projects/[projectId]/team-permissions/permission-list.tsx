@@ -21,7 +21,7 @@ export class PermissionGraph {
     permissions.forEach(permission => {
       result[permission.id] = {
         ...permission, 
-        inheritFromPermissionIds: [...permission.inheritFromPermissionIds]
+        containPermissionIds: [...permission.containPermissionIds]
       };
     });
     return result;
@@ -37,21 +37,21 @@ export class PermissionGraph {
     for (const [key, value] of Object.entries(permissions)) {
       permissions[key] = {
         ...value,
-        inheritFromPermissionIds: value.inheritFromPermissionIds.map(id => id === permissionId ? permission.id : id)
+        containPermissionIds: value.containPermissionIds.map(id => id === permissionId ? permission.id : id)
       };
     }
     
     return new PermissionGraph(Object.values(permissions));
   }
 
-  addPermission(inheritFromPermissionIds?: string[]) {
+  addPermission(containPermissionIds?: string[]) {
     const permissions = this._copyPermissions(Object.values(this.permissions));
     permissions[PLACEHOLDER_ID] = {
       id: PLACEHOLDER_ID,
       description: 'none',
       scope: { type: 'any-team' },
       __databaseUniqueId: 'none',
-      inheritFromPermissionIds: inheritFromPermissionIds || [],
+      containPermissionIds: containPermissionIds || [],
     };
     return new PermissionGraph(Object.values(permissions));
   }
@@ -67,7 +67,7 @@ export class PermissionGraph {
     for (const [key, value] of Object.entries(permissions)) {
       permissions[key] = {
         ...value,
-        inheritFromPermissionIds: value.inheritFromPermissionIds?.map(id => id === permissionId ? PLACEHOLDER_ID : id) || [],
+        containPermissionIds: value.containPermissionIds?.map(id => id === permissionId ? PLACEHOLDER_ID : id) || [],
       };
     }
 
@@ -78,7 +78,7 @@ export class PermissionGraph {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
     return [permission].concat(
-      permission.inheritFromPermissionIds.flatMap(id => this.recursiveContains(id))
+      permission.containPermissionIds.flatMap(id => this.recursiveContains(id))
     );
   }
 
@@ -86,7 +86,7 @@ export class PermissionGraph {
     return this.recursiveContains(permissionId).some(permission => permission.id === targetPermissionId);
   }
 
-  recursiveAccestors(permissionId: string): ServerPermissionDefinitionJson[] {
+  recursiveAncestors(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
     
@@ -116,10 +116,10 @@ export function PermissionList(props : {
         {Object.values(graph.permissions).map((permission) => {
           if (permission.id === PLACEHOLDER_ID) return null;
 
-          const selected = currentPermission.inheritFromPermissionIds.includes(permission.id);
+          const selected = currentPermission.containPermissionIds.includes(permission.id);
           const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
-          const inheritedFrom = graph.recursiveAccestors(permission.id).map(p => p.id).filter(
-            id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.inheritFromPermissionIds.includes(id)
+          const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
+            id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.containPermissionIds.includes(id)
           );
 
           return (
@@ -131,19 +131,19 @@ export function PermissionList(props : {
                   // color={'primary'}
                   onChange={(event) => {
                     const checked = event.target.checked;
-                    const oldInherited = currentPermission.inheritFromPermissionIds.filter(id => id !== permission.id);
+                    const oldContains = currentPermission.containPermissionIds.filter(id => id !== permission.id);
                     props.updatePermission(
                       PLACEHOLDER_ID,
                       {
                         ...currentPermission,
-                        inheritFromPermissionIds: checked ? [...oldInherited, permission.id] : oldInherited
+                        containPermissionIds: checked ? [...oldContains, permission.id] : oldContains
                       }
                     );
                   }}
                 />
                 <Paragraph body>
                   {permission.id}
-                  {contain && inheritedFrom.length > 0 && <span> (inherited from {inheritedFrom.join(', ')})</span>}
+                  {contain && ancestors.length > 0 && <span> (from {ancestors.join(', ')})</span>}
                 </Paragraph>
               </Stack>
               <Divider sx={{ margin: 1 }} />

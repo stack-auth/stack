@@ -60,7 +60,7 @@ const postSchema = yup.object({
     scope: yup.object({
       type: yup.string().oneOf(["any-team"]).required(),
     }).required(),
-    inheritFromPermissionIds: yup.array(yup.string().required()).required(),
+    containPermissionIds: yup.array(yup.string().required()).required(),
   }).required(),
 });
 

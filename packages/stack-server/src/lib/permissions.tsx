@@ -30,7 +30,7 @@ function serverPermissionDefinitionJsonFromDbType(
           db.projectConfigId ? { type: "any-team" } :
             throwErr(new StackAssertionError(`Unexpected permission scope`, { db })), 
     description: db.description || undefined,
-    inheritFromPermissionIds: db.parentEdges.map((edge) => edge.parentPermission.queriableId),
+    containPermissionIds: db.parentEdges.map((edge) => edge.parentPermission.queriableId),
   };
 }
 
@@ -339,7 +339,7 @@ export async function listUserPermissionsRecursive({
     if (!current) throw new StackAssertionError(`Couldn't find permission in DB?`, { currentId, result, idsToProcess });
     if (result.has(current.id)) continue;
     result.set(current.id, current);
-    idsToProcess.push(...current.inheritFromPermissionIds);
+    idsToProcess.push(...current.containPermissionIds);
   }
   return [...result.values()];
 }
@@ -418,7 +418,7 @@ export async function createPermissionDefinition(
 
   let parentDbIds = [];
   const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
-  for (const parentPermissionId of permission.inheritFromPermissionIds) {
+  for (const parentPermissionId of permission.containPermissionIds) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
     if (!parentPermission) throw new KnownErrors.PermissionNotFound(parentPermissionId);
     parentDbIds.push(parentPermission.__databaseUniqueId);
@@ -463,9 +463,9 @@ export async function updatePermissionDefinitions(
   if (!project) throw new KnownErrors.ProjectNotFound();
 
   let parentDbIds: string[] = [];
-  if (permission.inheritFromPermissionIds) {
+  if (permission.containPermissionIds) {
     const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
-    for (const parentPermissionId of permission.inheritFromPermissionIds) {
+    for (const parentPermissionId of permission.containPermissionIds) {
       const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
       if (!parentPermission) throw new KnownErrors.PermissionNotFound(parentPermissionId);
       parentDbIds.push(parentPermission.__databaseUniqueId);
@@ -473,7 +473,7 @@ export async function updatePermissionDefinitions(
   }
 
   let edgeUpdateData = {};
-  if (permission.inheritFromPermissionIds) {
+  if (permission.containPermissionIds) {
     edgeUpdateData = {
       parentEdges: {
         deleteMany: {},

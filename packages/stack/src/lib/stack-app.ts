@@ -1158,7 +1158,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       __databaseUniqueId: json.__databaseUniqueId,
       id: json.id,
       description: json.description,
-      inheritFromPermissionIds: json.inheritFromPermissionIds,
+      containPermissionIds: json.containPermissionIds,
     };
 
     if (type === 'team') {
@@ -1513,7 +1513,7 @@ export type Permission = {
 export type ServerPermission = Permission & {
   readonly __databaseUniqueId: string,
   readonly description?: string,
-  readonly inheritFromPermissionIds: string[],
+  readonly containPermissionIds: string[],
 };
 
 

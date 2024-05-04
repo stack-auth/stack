@@ -32,7 +32,7 @@ export type ServerPermissionDefinitionCustomizableJson = {
   readonly id: string,
   readonly description?: string,
   readonly scope: PermissionDefinitionScopeJson,
-  readonly inheritFromPermissionIds: string[],
+  readonly containPermissionIds: string[],
 };
 
 export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {

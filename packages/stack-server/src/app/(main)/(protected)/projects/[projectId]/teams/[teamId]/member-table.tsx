@@ -280,7 +280,7 @@ function EditPermissionModal(props: {
   const permissions = stackAdminApp.usePermissionDefinitions();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
+  const [containPermissionIds, setContainPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = React.useState<PermissionGraph>();
 
   React.useEffect(() => {
@@ -309,11 +309,11 @@ function EditPermissionModal(props: {
                 event.preventDefault();
                 setIsSaving(true);
                 try {
-                  const promises = inheritFromPermissionIds.map(async permissionId => {
+                  const promises = containPermissionIds.map(async permissionId => {
                     await props.user.grantPermission(props.team, permissionId);
                   });
                   promises.push(...permissions.filter(
-                    p => !inheritFromPermissionIds.includes(p.id)
+                    p => !containPermissionIds.includes(p.id)
                   ).map(async permission => {
                     await props.user.revokePermission(props.team, permission.id);
                   }));
@@ -339,7 +339,7 @@ function EditPermissionModal(props: {
                 updatePermission={
                   (permissionId, permission) => {
                     setGraph(graph.updatePermission(permissionId, permission));
-                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                    setContainPermissionIds(permission.containPermissionIds);
                   }}
                 permissionGraph={graph}
               />

@@ -58,7 +58,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
   const permissions = stackAdminApp.usePermissionDefinitions();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
+  const [containPermissionIds, setContainPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = useState<PermissionGraph>();
   const [id, setId] = useState<string>('');
 
@@ -92,7 +92,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                     id: formJson.id,
                     description: formJson.description,
                     scope: { type: "any-team" },
-                    inheritFromPermissionIds,
+                    containPermissionIds,
                   });
                   props.onClose();
                 } finally {
@@ -115,7 +115,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                 updatePermission={
                   (permissionId, permission) => {
                     setGraph(graph.updatePermission(permissionId, permission));
-                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                    setContainPermissionIds(permission.containPermissionIds);
                   }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
