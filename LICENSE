@@ -1,1 +1,5 @@
-Stack is licensed per-package. The libraries and examples are licensed under a permissive MIT license. The server is licensed under AGPLv3. Please refer to the respective `LICENSE` files for more information.
+Stack is licensed per-package, and 100% open-source.
+
+Client libraries and examples are licensed under an open-source MIT license. Server components are licensed under an open-source AGPLv3 license. Please refer to each package's `LICENSE` files for more information.
+
+We also have enterprise licenses available, if you prefer; please contact [enterprise@stack-auth.com](mailto:enterprise@stack-auth.com).
