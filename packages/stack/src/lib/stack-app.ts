@@ -971,6 +971,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async listPermissions(scope: Team): Promise<ServerPermission[]> {
         return await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team'], "write-only");
       },
+      async grantPermission(scope: Team, permissionId: string): Promise<void> {
+        await app._interface.grantTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team']);
+      },
       toJson() {
         return app._serverUserToJson(this);
       },
@@ -1447,6 +1451,7 @@ export type ServerUser = Omit<User, "toJson"> & {
   delete(this: ServerUser): Promise<void>,
 
   listPermissions(scope: Team): Promise<ServerPermission[]>, // later add scope: 'global'
+  grantPermission(scope: Team, permissionId: string): Promise<void>,
 };
 
 export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {

@@ -9,10 +9,7 @@ import {
   DialogTitle,
   Divider,
   Dropdown,
-  FormControl,
-  FormLabel,
   IconButton,
-  Input,
   ListDivider,
   ListItemDecorator,
   Menu,
@@ -163,8 +160,6 @@ export function MemberTable(props: {
 }
 
 function Actions(props: { params: any, team: ServerTeam }) {
-  const stackAdminApp = useAdminApp();
-
   const [isEditUserModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isEditPermissionModalOpen, setIsEditPermissionModalOpen] = React.useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = React.useState(false);
@@ -291,21 +286,15 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, user: 
               runAsynchronously(async () => {
                 event.preventDefault();
                 setIsSaving(true);
-                // try {
-                //   const formData = new FormData(event.currentTarget);
-                //   const formJson = {
-                //     id: `${formData.get('permissionId')}`,
-                //     description: `${formData.get('description')}` || undefined,
-                //   };
-                //   await stackAdminApp.createPermission({
-                //     id: formJson.id,
-                //     description: formJson.description,
-                //     inheritFromPermissionIds,
-                //   });
-                //   props.onClose();
-                // } finally {
-                //   setIsSaving(false);
-                // }
+                try {
+                  const promises = inheritFromPermissionIds.map(async permissionId => {
+                    await props.user.grantPermission(props.team, permissionId);
+                  });
+                  await Promise.all(promises);
+                  props.onClose();
+                } finally {
+                  setIsSaving(false);
+                }
               });
             }}
             ref={formRef}

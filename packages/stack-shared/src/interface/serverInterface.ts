@@ -227,15 +227,15 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async grantTeamUserPermission(teamId: string, userId: string, permissionId: string) {
+  async grantTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
     await this.sendServerRequest(
       `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
-      {
+      { 
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ type }),
       },
       null,
     );

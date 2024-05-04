@@ -25,7 +25,7 @@ export { useComponents } from './providers/component-provider';
 export { StackTheme } from './providers/theme-provider';
 export type { ThemeConfig } from './providers/theme-provider';
 
-export { 
+export type { 
   CurrentUser, 
   Project, 
   ServerUser, 
