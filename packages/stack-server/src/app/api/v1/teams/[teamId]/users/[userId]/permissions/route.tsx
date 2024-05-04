@@ -62,7 +62,14 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
         type
       }));
     } else {
-      return NextResponse.json(await listUserPermissionsRecursive({
+      // return NextResponse.json(await listUserPermissionsRecursive({
+      //   projectId, 
+      //   teamId: options.params.teamId, 
+      //   userId: options.params.userId,
+      //   type
+      // }));
+      // TODO: ASAP
+      return NextResponse.json(await listUserDirectPermissions({
         projectId, 
         teamId: options.params.teamId, 
         userId: options.params.userId,

@@ -174,16 +174,23 @@ export async function grantTeamUserPermission({
           },
         }
       });
+      
+      const permission = teamSpecificPermission || anyTeamPermission;
+      if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
 
-      const teamPermission = teamSpecificPermission || anyTeamPermission;
-
-      if (!teamPermission) throw new KnownErrors.PermissionNotFound(permissionId);
-
-      await prismaClient.teamMemberDirectPermission.create({
-        data: {
+      await prismaClient.teamMemberDirectPermission.upsert({
+        where: {
+          projectId_projectUserId_teamId_permissionDbId: {
+            projectId,
+            projectUserId,
+            teamId,
+            permissionDbId: permission.dbId,
+          },
+        },
+        create: {
           permission: {
             connect: {
-              dbId: teamPermission.dbId,
+              dbId: permission.dbId,
             },
           },
           teamMember: {
@@ -196,6 +203,7 @@ export async function grantTeamUserPermission({
             },
           },
         },
+        update: {},
       });
 
       break;
