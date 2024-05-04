@@ -88,60 +88,45 @@ export async function listServerPermissionDefinitions(projectId: string, scope?:
   }
 }
 
-export async function userHasPermission(
+export async function userHasPermission({
+  projectId,
+  userId,
+  teamId,
+  type,
+  permissionId,
+}: {
   projectId: string, 
   userId: string, 
   teamId: string,
-  scope: PermissionDefinitionScopeJson, 
-  permissionId: string
-) {
+  type: 'team' | 'global',
+  permissionId: string,
+}) {
   // TODO optimize
-  const allUserPermissions = await listUserPermissionsRecursive(projectId, userId, teamId, scope);
+  const allUserPermissions = await listUserPermissionsRecursive({ projectId, userId, teamId, type });
   const permission = allUserPermissions.find(p => p.id === permissionId);
   if (!permission) {
-    // maybe we can throw a better error message than "not found" (but be careful not to leak information as other teams' permissions should be private)
-    let tryScope: PermissionDefinitionScopeJson | undefined;
-    if (scope.type === "global") tryScope = { type: "any-team" };
-    else if (scope.type === "any-team") tryScope = { type: "global" };
-    if (tryScope) {
-      const allUserPermissionsWrongScope = await listUserPermissionsRecursive(projectId, userId, teamId, tryScope);
-      if (allUserPermissionsWrongScope.find(p => p.id === permissionId)) {
-        throw new KnownErrors.PermissionScopeMismatch(permissionId, tryScope, scope);
-      }
-    }
-
     throw new KnownErrors.PermissionNotFound(permissionId);
   }
   return permission;
 }
 
-export async function updateTeamMemberDirectPermissions(
+export async function grantTeamUserPermission({
+  projectId,
+  teamId,
+  projectUserId,
+  type,
+  permissionId,
+}: {
   projectId: string,
   teamId: string, 
-  userId: string,
-  scope: PermissionDefinitionScopeJson, 
-  directPermissionIds: string[]
-) {
-  // TODO optimize
-  const allPermissions = await listServerPermissionDefinitions(projectId, scope);
-  for (const permissionId of directPermissionIds) {
-    const permission = allPermissions.find(p => p.id === permissionId);
-    if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
-  }
-
-  // delete all existing permissions and add the new ones
-  await prismaClient.teamMember.update({
-    where: {
-      projectId_projectUserId_teamId: {
-        projectId,
-        projectUserId: userId,
-        teamId,
-      },
-    },
-    data: {
-      directPermissions: {
-        deleteMany: {},
-        create: directPermissionIds.map(permissionId => ({
+  projectUserId: string, 
+  type: "team" | "global",
+  permissionId: string,
+}) {
+  switch (type) {
+    case "global": {
+      await prismaClient.teamMemberDirectPermission.create({
+        data: {
           permission: {
             connect: {
               projectConfigId_queriableId: {
@@ -150,19 +135,70 @@ export async function updateTeamMemberDirectPermissions(
               },
             },
           },
-        })),
-      },
-    },
-  });
+          teamMember: {
+            connect: {
+              projectId_projectUserId_teamId: {
+                projectId: projectId,
+                projectUserId: projectUserId,
+                teamId: teamId,
+              },
+            },
+          },
+        },
+      });
+      break;
+    }
+    case "team": {
+      const permission = await prismaClient.permission.findFirst({
+        where: {
+          teamId: teamId,
+          queriableId: permissionId,
+        },
+      });
+      if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
+
+      await prismaClient.teamMemberDirectPermission.create({
+        data: {
+          permission: {
+            connect: {
+              dbId: permission.dbId,
+            },
+          },
+          teamMember: {
+            connect: {
+              projectId_projectUserId_teamId: {
+                projectId: projectId,
+                projectUserId: projectUserId,
+                teamId: teamId,
+              },
+            },
+          },
+        },
+      });
+
+      break;
+    }
+  }
 }
 
-export async function listUserPermissionsRecursive(
+export async function listUserPermissionsRecursive({
+  projectId, 
+  teamId, 
+  userId, 
+  type,
+}: {
   projectId: string, 
   teamId: string,
   userId: string, 
-  scope: PermissionDefinitionScopeJson
-): Promise<ServerPermissionDefinitionJson[]> {
-  const allPermissions = await listServerPermissionDefinitions(projectId, scope);
+  type: 'team' | 'global',
+}): Promise<ServerPermissionDefinitionJson[]> {
+  const allPermissions = [];
+  if (type === 'team') {
+    allPermissions.push(...await listServerPermissionDefinitions(projectId, { type: "specific-team", teamId }));
+    allPermissions.push(...await listServerPermissionDefinitions(projectId, { type: "any-team" }));
+  } else {
+    allPermissions.push(...await listServerPermissionDefinitions(projectId, { type: "global" }));
+  }
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
 
   const user = await prismaClient.teamMember.findUnique({
@@ -191,6 +227,53 @@ export async function listUserPermissionsRecursive(
     idsToProcess.push(...current.inheritFromPermissionIds);
   }
   return [...result.values()];
+}
+
+export async function listUserDirectPermissions({
+  projectId, 
+  teamId, 
+  userId, 
+  type,
+}: {
+  projectId: string, 
+  teamId: string,
+  userId: string, 
+  type: 'team' | 'global',
+}): Promise<ServerPermissionDefinitionJson[]> {
+  const user = await prismaClient.teamMember.findUnique({
+    where: {
+      projectId_projectUserId_teamId: {
+        projectId,
+        projectUserId: userId,
+        teamId,
+      },
+    },
+    include: {
+      directPermissions: {
+        include: {
+          permission: {
+            include: fullPermissionInclude,
+          }
+        }
+      }
+    },
+  });
+  if (!user) throw new KnownErrors.UserNotFound();
+  return user.directPermissions.map(
+    p => serverPermissionDefinitionJsonFromDbType(p.permission)
+  ).filter(
+    p => {
+      switch(p.scope.type) {
+        case "global": {
+          return type === "global";
+        }
+        case "any-team":
+        case "specific-team": {
+          return type === "team";
+        }
+      }
+    }
+  );
 }
 
 export async function listPotentialParentPermissions(projectId: string, scope: PermissionDefinitionScopeJson): Promise<ServerPermissionDefinitionJson[]> {

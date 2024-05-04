@@ -227,6 +227,20 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
+  async grantTeamUserPermission(teamId: string, userId: string, permissionId: string) {
+    await this.sendServerRequest(
+      `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
+  }
+
   async deleteServerUser(userId: string) {
     await this.sendServerRequest(
       `/users/${userId}?server=true`,

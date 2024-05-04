@@ -3,9 +3,10 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { addUserToTeam, getTeam, listUserTeams, removeUserFromTeam } from "@/lib/teams";
+import { getTeam, listUserTeams } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 import { isProjectAdmin } from "@/lib/projects";
+import { grantTeamUserPermission } from "@/lib/permissions";
 
 const postSchema = yup.object({
   query: yup.object({
@@ -16,9 +17,12 @@ const postSchema = yup.object({
     "x-stack-admin-access-token": yup.string().default(""),
     "x-stack-project-id": yup.string().required(),
   }).required(),
+  body: yup.object({
+    type: yup.string().oneOf(["team"]).required(), // add global later
+  }).required(),
 });
 
-export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { teamId: string, userId: string } }) => {
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { teamId: string, userId: string, permId: string } }) => {
   const {
     headers: {
       "x-stack-project-id": projectId,
@@ -26,6 +30,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
       "x-stack-admin-access-token": adminAccessToken,
     },
     query: { server },
+    body: { type },
   } = await deprecatedParseRequest(req, postSchema);
 
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
@@ -47,49 +52,17 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
     }
 
     const userTeams = await listUserTeams(projectId, options.params.userId);
-    if (userTeams.some(t => t.id === options.params.teamId)) {
-      throw new StatusError(StatusError.BadRequest, "User is already in the team");
+    if (!userTeams.some(t => t.id === options.params.teamId)) {
+      throw new StatusError(StatusError.BadRequest, "User is not in the team");
     }
 
-    await addUserToTeam(projectId, options.params.teamId, options.params.userId);
-  }
-
-  return NextResponse.json(null);
-});
-
-
-const deleteSchema = yup.object({
-  query: yup.object({
-    server: yup.string().oneOf(["true"]).required(),
-  }).required(),
-  headers: yup.object({
-    "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
-    "x-stack-admin-access-token": yup.string().default(""),
-    "x-stack-project-id": yup.string().required(),
-  }).required(),
-});
-
-export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { teamId: string, userId: string } }) => {
-  const {
-    query: {
-      server,
-    },
-    headers: {
-      "x-stack-project-id": projectId,
-      "x-stack-secret-server-key": secretServerKey,
-      "x-stack-admin-access-token": adminAccessToken,
-    },
-  } = await deprecatedParseRequest(req, deleteSchema);
-
-  const skValid = await checkApiKeySet(projectId, { secretServerKey });
-  const asValid = await isProjectAdmin(projectId, adminAccessToken);
-
-  if (server === "true") {
-    if (!skValid && !asValid) {
-      throw new StatusError(StatusError.Forbidden);
-    }
-
-    await removeUserFromTeam(projectId, options.params.teamId, options.params.userId);
+    await grantTeamUserPermission({
+      projectId,
+      teamId: options.params.teamId,
+      projectUserId: options.params.userId,
+      permissionId: options.params.permId,
+      type,
+    });
   }
 
   return NextResponse.json(null);

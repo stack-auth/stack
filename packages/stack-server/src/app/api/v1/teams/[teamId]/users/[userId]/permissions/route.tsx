@@ -3,15 +3,16 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { addUserToTeam, getTeam, listUserTeams } from "@/lib/teams";
+import { getTeam, listUserTeams } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 import { isProjectAdmin } from "@/lib/projects";
-import { listUserPermissionsRecursive } from "@/lib/permissions";
+import { listUserDirectPermissions, listUserPermissionsRecursive } from "@/lib/permissions";
 
 const getSchema = yup.object({
   query: yup.object({
     server: yup.string().oneOf(["true"]).required(),
     direct: yup.string().oneOf(["true", "false"]).default("false"),
+    type: yup.string().oneOf(["team"]).required(), // add global later
   }).required(),
   headers: yup.object({
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
@@ -27,7 +28,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       "x-stack-secret-server-key": secretServerKey,
       "x-stack-admin-access-token": adminAccessToken,
     },
-    query: { server, direct },
+    query: { server, direct, type },
   } = await deprecatedParseRequest(req, getSchema);
 
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
@@ -54,12 +55,19 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     }
 
     if (direct === 'false') {
-      return NextResponse.json(await listUserPermissionsRecursive(
+      return NextResponse.json(await listUserPermissionsRecursive({
         projectId, 
-        options.params.teamId, 
-        options.params.userId,
-        { type: 'specific-team', teamId: options.params.teamId }
-      ));
+        teamId: options.params.teamId, 
+        userId: options.params.userId,
+        type
+      }));
+    } else {
+      return NextResponse.json(await listUserDirectPermissions({
+        projectId, 
+        teamId: options.params.teamId, 
+        userId: options.params.userId,
+        type
+      }));
     }
   }
 
