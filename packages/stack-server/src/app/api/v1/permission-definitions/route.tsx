@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { createPermission, listServerPermissions as listPermissionDefinitions } from "@/lib/permissions";
+import { createPermissionDefinition, listServerPermissionDefinitions } from "@/lib/permissions";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -37,7 +37,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new StatusError(StatusError.Forbidden);
     }
 
-    const permissions = await listPermissionDefinitions(projectId);
+    const permissions = await listServerPermissionDefinitions(projectId);
     return NextResponse.json(permissions);
   }
 
@@ -85,7 +85,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new StatusError(StatusError.Forbidden);
     }
 
-    const team = await createPermission(projectId, body.scope, body);
+    const team = await createPermissionDefinition(projectId, body.scope, body);
     return NextResponse.json(team);
   }
 

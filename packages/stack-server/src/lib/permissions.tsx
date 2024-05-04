@@ -2,7 +2,7 @@ import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { PermissionDefinitionJson, PermissionDefinitionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerPermissionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const fullPermissionInclude = {
@@ -34,16 +34,7 @@ function serverPermissionDefinitionJsonFromDbType(
   };
 }
 
-
-export async function listPermissions(projectId: string, scope: PermissionDefinitionScopeJson): Promise<PermissionDefinitionJson[]> {
-  const serverPermissions = await listServerPermissions(projectId, scope);
-  return serverPermissions.map(permission => ({
-    id: permission.id,
-    scope: permission.scope,
-  }));
-}
-
-export async function listServerPermissions(projectId: string, scope?: PermissionDefinitionScopeJson): Promise<ServerPermissionDefinitionJson[]> {
+export async function listServerPermissionDefinitions(projectId: string, scope?: PermissionDefinitionScopeJson): Promise<ServerPermissionDefinitionJson[]> {
   switch (scope?.type) {
     case "specific-team": {
       const team = await prismaClient.team.findUnique({
@@ -132,7 +123,7 @@ export async function updateTeamMemberDirectPermissions(
   directPermissionIds: string[]
 ) {
   // TODO optimize
-  const allPermissions = await listServerPermissions(projectId, scope);
+  const allPermissions = await listServerPermissionDefinitions(projectId, scope);
   for (const permissionId of directPermissionIds) {
     const permission = allPermissions.find(p => p.id === permissionId);
     if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
@@ -171,7 +162,7 @@ export async function listUserPermissionsRecursive(
   userId: string, 
   scope: PermissionDefinitionScopeJson
 ): Promise<ServerPermissionDefinitionJson[]> {
-  const allPermissions = await listServerPermissions(projectId, scope);
+  const allPermissions = await listServerPermissionDefinitions(projectId, scope);
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
 
   const user = await prismaClient.teamMember.findUnique({
@@ -212,13 +203,13 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
       ],
     ],
   ];
-  return (await Promise.all(scopes.map(s => listServerPermissions(projectId, s)))).flat(1);
+  return (await Promise.all(scopes.map(s => listServerPermissionDefinitions(projectId, s)))).flat(1);
 }
 
-export async function createPermission(
+export async function createPermissionDefinition(
   projectId: string, 
   scope: PermissionDefinitionScopeJson, 
-  permission: ServerPermissionCustomizableJson
+  permission: ServerPermissionDefinitionCustomizableJson
 ): Promise<ServerPermissionDefinitionJson> {
   const project = await prismaClient.project.findUnique({
     where: {
@@ -260,11 +251,11 @@ export async function createPermission(
   return serverPermissionDefinitionJsonFromDbType(dbPermission);
 }
 
-export async function updatePermission(
+export async function updatePermissionDefinitions(
   projectId: string, 
   scope: PermissionDefinitionScopeJson, 
   permissionId: string, 
-  permission: Partial<ServerPermissionCustomizableJson>
+  permission: Partial<ServerPermissionDefinitionCustomizableJson>
 ): Promise<ServerPermissionDefinitionJson> {
   const project = await prismaClient.project.findUnique({
     where: {
@@ -316,7 +307,7 @@ export async function updatePermission(
   return serverPermissionDefinitionJsonFromDbType(dbPermission);
 }
 
-export async function deletePermission(projectId: string, scope: PermissionDefinitionScopeJson, permissionId: string) {
+export async function deletePermissionDefinition(projectId: string, scope: PermissionDefinitionScopeJson, permissionId: string) {
   switch (scope.type) {
     case "global":
     case "any-team": {

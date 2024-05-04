@@ -6,7 +6,18 @@ import { EnableTeam } from "../enable-team";
 import { useAdminApp } from "../use-admin-app";
 import { AsyncButton } from "@/components/async-button";
 import React, { useEffect, useState } from "react";
-import { Box, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Stack } from "@mui/joy";
+import {
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  FormControl,
+  FormLabel,
+  Input,
+  Modal,
+  ModalDialog,
+  Stack,
+} from "@mui/joy";
 import { Icon } from "@/components/icon";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { PermissionGraph, PermissionList } from "./permission-list";
@@ -24,14 +35,7 @@ export default function ClientPage() {
       </Paragraph>
 
       <Stack alignItems={"flex-start"}>
-        <AsyncButton
-        // onClick={async () => await stackAdminApp.createPermission({
-        //   id: (Math.random() * 1000).toString(),
-        //   description: "New permission",
-        //   inheritFromPermissionIds: [],
-        // })}
-          onClick={() => setCreatePermissionModalOpen(true)}
-        >
+        <AsyncButton onClick={() => setCreatePermissionModalOpen(true)}>
         Create Permission
         </AsyncButton>
       </Stack>
@@ -84,9 +88,10 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                     id: `${formData.get('permissionId')}`,
                     description: `${formData.get('description')}` || undefined,
                   };
-                  await stackAdminApp.createPermission({
+                  await stackAdminApp.createPermissionDefinition({
                     id: formJson.id,
                     description: formJson.description,
+                    scope: { type: "any-team" },
                     inheritFromPermissionIds,
                   });
                   props.onClose();

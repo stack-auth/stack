@@ -24,7 +24,6 @@ import {
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
-import { Permission, ServerPermission } from '@stackframe/stack';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PermissionGraph, PermissionList } from './permission-list';
 import { ServerPermissionDefinitionJson } from '@stackframe/stack-shared/dist/interface/serverInterface';
@@ -132,7 +131,7 @@ function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) 
         okButton={{
           label: "Delete permission",
           onClick: async () => {
-            await stackAdminApp.deletePermission(props.params.row.id);
+            await stackAdminApp.deletePermissionDefinition(props.params.row.id);
           },
         }}
         cancelButton={true}
@@ -185,7 +184,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                     id: `${formData.get('permissionId')}`,
                     description: `${formData.get('description')}` || undefined,
                   };
-                  await stackAdminApp.updatePermission(
+                  await stackAdminApp.updatePermissionDefinition(
                     selectedPermission.id, 
                     {
                       id: formJson.id,

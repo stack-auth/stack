@@ -44,14 +44,14 @@ export class PermissionGraph {
     return new PermissionGraph(Object.values(permissions));
   }
 
-  addPermission() {
+  addPermission(inheritFromPermissionIds?: string[]) {
     const permissions = this._copyPermissions(Object.values(this.permissions));
     permissions[PLACEHOLDER_ID] = {
       id: PLACEHOLDER_ID,
       description: 'none',
       scope: { type: 'any-team' },
       __databaseUniqueId: 'none',
-      inheritFromPermissionIds: []
+      inheritFromPermissionIds: inheritFromPermissionIds || [],
     };
     return new PermissionGraph(Object.values(permissions));
   }

@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { deletePermission, updatePermission } from "@/lib/permissions";
+import { deletePermissionDefinition, updatePermissionDefinitions } from "@/lib/permissions";
 
 const putSchema = yup.object({
   query: yup.object({
@@ -43,7 +43,7 @@ export const PUT = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       throw new StatusError(StatusError.Forbidden);
     }
 
-    await updatePermission(
+    await updatePermissionDefinitions(
       projectId, 
       { type: "any-team" },
       options.params.permId,
@@ -86,7 +86,7 @@ export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, optio
       throw new StatusError(StatusError.Forbidden);
     }
 
-    await deletePermission(
+    await deletePermissionDefinition(
       projectId, 
       { type: "any-team" },
       options.params.permId

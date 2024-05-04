@@ -28,13 +28,14 @@ export type ServerOrglikeJson = OrglikeJson & {};
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
 
-export type ServerPermissionCustomizableJson = {
+export type ServerPermissionDefinitionCustomizableJson = {
   readonly id: string,
   readonly description?: string,
+  readonly scope: PermissionDefinitionScopeJson,
   readonly inheritFromPermissionIds: string[],
 };
 
-export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionCustomizableJson & {
+export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {
   readonly __databaseUniqueId: string,
   readonly scope: PermissionDefinitionScopeJson,
 };
@@ -82,9 +83,14 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
-  async createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermissionDefinitionJson> {
+  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
+    const response = await this.sendServerRequest(`/permission-definitions?server=true`, {}, null);
+    return await response.json();
+  }
+
+  async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermissionDefinitionJson> {
     const response = await this.sendServerRequest(
-      "/teams/permissions?server=true",
+      "/permission-definitions?server=true",
       {
         method: "POST",
         headers: {
@@ -102,9 +108,9 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async updatePermission(permissionId: string, data: Partial<ServerPermissionCustomizableJson>): Promise<void> {
+  async updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>): Promise<void> {
     await this.sendServerRequest(
-      `/teams/permissions/${permissionId}?server=true`,
+      `/permission-definitions/${permissionId}?server=true`,
       {
         method: "PUT",
         headers: {
@@ -116,9 +122,9 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async deletePermission(permissionId: string): Promise<void> {
+  async deletePermissionDefinition(permissionId: string): Promise<void> {
     await this.sendServerRequest(
-      `/teams/permissions/${permissionId}?server=true`,
+      `/permission-definitions/${permissionId}?server=true`,
       { method: "DELETE" },
       null,
     );
@@ -200,11 +206,6 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
-  }
-
-  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
-    const response = await this.sendServerRequest(`/teams/permissions?server=true`, {}, null);
-    return await response.json();
   }
 
   async setServerUserCustomizableData(userId: string, update: ServerUserUpdateJson) {

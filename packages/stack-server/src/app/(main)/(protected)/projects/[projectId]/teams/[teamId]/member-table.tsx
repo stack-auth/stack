@@ -4,13 +4,22 @@ import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import {
   Avatar,
   Box,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   Dropdown,
+  FormControl,
+  FormLabel,
   IconButton,
+  Input,
   ListDivider,
   ListItemDecorator,
   Menu,
   MenuButton,
   MenuItem,
+  Modal,
+  ModalDialog,
   Stack,
   Tooltip,
 } from '@mui/joy';
@@ -21,6 +30,9 @@ import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
 import { Paragraph } from '@/components/paragraph';
+import { PermissionGraph, PermissionList } from '../../team-permissions/permission-list';
+import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
+import { AsyncButton } from '@/components/async-button';
 
 export function MemberTable(props: {
   rows: ServerUser[],
@@ -149,7 +161,8 @@ export function MemberTable(props: {
 function Actions(props: { params: any, team: ServerTeam }) {
   const stackAdminApp = useAdminApp();
 
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isEditUserModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isEditPermissionModalOpen, setIsEditPermissionModalOpen] = React.useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   
@@ -162,7 +175,7 @@ function Actions(props: { params: any, team: ServerTeam }) {
           <Icon icon="more_vert" />
         </MenuButton>
         <Menu placement="bottom-end">
-          <MenuItem>
+          <MenuItem onClick={() => setIsEditPermissionModalOpen(true)}>
             <ListItemDecorator>
               <Icon icon='lock' />
             </ListItemDecorator>{' '}
@@ -193,8 +206,15 @@ function Actions(props: { params: any, team: ServerTeam }) {
 
       <EditUserModal
         user={props.params.row}
-        open={isEditModalOpen}
+        open={isEditUserModalOpen}
         onClose={() => setIsEditModalOpen(false)}
+      />
+
+      <EditPermissionModal
+        user={props.params.row}
+        team={props.team}
+        open={isEditPermissionModalOpen}
+        onClose={() => setIsEditPermissionModalOpen(false)}
       />
 
       <Dialog
@@ -231,3 +251,94 @@ function Actions(props: { params: any, team: ServerTeam }) {
     </>
   );
 }
+
+
+function EditPermissionModal(props: { open: boolean, onClose: () => void, user: ServerUser, team: ServerTeam }) {
+  const stackAdminApp = useAdminApp();
+  const permissions = stackAdminApp.usePermissionDefinitions();
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
+  const [graph, setGraph] = React.useState<PermissionGraph>();
+  const [id, setId] = React.useState<string>('');
+
+  React.useEffect(() => {
+    async function load() {
+      setGraph((new PermissionGraph(permissions)).addPermission(
+        (await props.user.listPermissions(props.team)).map(permission => permission.id)
+      ));
+    }
+    load().catch(console.error);
+  }, [permissions, props.user, props.team]);
+
+  if (!graph) return null;
+
+  return (
+    <Modal open={props.open} onClose={() => props.onClose()}>
+      <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
+        <DialogTitle>
+          <Icon icon='edit' />
+          Create Permission
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          <form
+            onSubmit={(event) => {
+              runAsynchronously(async () => {
+                event.preventDefault();
+                setIsSaving(true);
+                // try {
+                //   const formData = new FormData(event.currentTarget);
+                //   const formJson = {
+                //     id: `${formData.get('permissionId')}`,
+                //     description: `${formData.get('description')}` || undefined,
+                //   };
+                //   await stackAdminApp.createPermission({
+                //     id: formJson.id,
+                //     description: formJson.description,
+                //     inheritFromPermissionIds,
+                //   });
+                //   props.onClose();
+                // } finally {
+                //   setIsSaving(false);
+                // }
+              });
+            }}
+            ref={formRef}
+          >
+            <Stack spacing={2}>
+              <Paragraph body>
+                Display name: {props.user.displayName}
+              </Paragraph>
+              <Paragraph body>
+                ID: {props.user.id}
+              </Paragraph>
+              <PermissionList 
+                updatePermission={
+                  (permissionId, permission) => {
+                    setGraph(graph.updatePermission(permissionId, permission));
+                    setInheritFromPermissionIds(permission.inheritFromPermissionIds);
+                  }}
+                permissionGraph={graph} 
+                selectedPermissionId={id}
+              />
+            </Stack>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <AsyncButton
+            color="primary"
+            loading={isSaving}
+            onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+          >
+            Save
+          </AsyncButton>
+          <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+            Cancel
+          </AsyncButton>
+        </DialogActions>
+      </ModalDialog>
+    </Modal>
+  );
+}
+
