@@ -264,7 +264,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, user: 
   React.useEffect(() => {
     async function load() {
       setGraph((new PermissionGraph(permissions)).addPermission(
-        (await props.user.listPermissions(props.team)).map(permission => permission.id)
+        (await props.user.listPermissions(props.team, { direct: true })).map(permission => permission.id)
       ));
     }
     load().catch(console.error);
