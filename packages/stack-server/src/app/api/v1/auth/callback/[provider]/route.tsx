@@ -4,7 +4,8 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
-import { deprecatedSmartRouteHandler, deprecatedParseRequest as deprecatedParseRequest } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getAuthorizationCallback, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";

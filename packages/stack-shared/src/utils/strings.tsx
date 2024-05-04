@@ -6,6 +6,10 @@ export function typedToUppercase<S extends string>(s: S): Uppercase<S> {
   return s.toUpperCase() as Uppercase<S>;
 }
 
+export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
+  return s.charAt(0).toUpperCase() + s.slice(1) as Capitalize<S>;
+}
+
 /**
  * Returns all whitespace character at the start of the string.
  * 

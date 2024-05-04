@@ -1,6 +1,7 @@
 import { StatusError, throwErr, throwStackErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
+import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
   code: string,
@@ -160,7 +161,13 @@ const AllOverloadsFailed = createKnownErrorConstructor(
   "ALL_OVERLOADS_FAILED",
   (overloadErrors: Json[]) => [
     400,
-    "This endpoint has multiple overloads, but they all failed to process the request.",
+    deindent`
+      This endpoint has multiple overloads, but they all failed to process the request.
+
+        ${overloadErrors.map((e, i) => deindent`
+          Overload ${i + 1}: ${JSON.stringify(e, undefined, 2)}
+        `).join("\n\n")}
+    `,
     {
       overloads: overloadErrors,
     },
@@ -182,6 +189,41 @@ const InvalidProjectAuthentication = createKnownErrorConstructor(
   "INVALID_PROJECT_AUTHENTICATION",
   "inherit",
   "inherit",
+);
+
+const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
+  InvalidProjectAuthentication,
+  "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
+  () => [
+    400,
+    "Either an API key or an admin access token was provided, but the x-stack-request-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
+  ] as const,
+  () => [] as const,
+);
+
+const InvalidRequestType = createKnownErrorConstructor(
+  InvalidProjectAuthentication,
+  "INVALID_REQUEST_TYPE",
+  (requestType: string) => [
+    400,
+    `The x-stack-request-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
+  ] as const,
+  (json) => [
+    (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
+  ] as const,
+);
+
+const RequestTypeWithoutProjectId = createKnownErrorConstructor(
+  InvalidProjectAuthentication,
+  "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+  (requestType: "client" | "server" | "admin") => [
+    400,
+    `The x-stack-request-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
+    {
+      requestType,
+    },
+  ] as const,
+  (json: any) => [json.requestType] as const,
 );
 
 const InvalidPublishableClientKey = createKnownErrorConstructor(
@@ -247,6 +289,16 @@ const InvalidProjectForAdminAccessToken = createKnownErrorConstructor(
   () => [
     401,
     "Admin access token not valid for this project.",
+  ] as const,
+  () => [] as const,
+);
+
+const AdminAccessTokenIsNotAdmin = createKnownErrorConstructor(
+  InvalidAdminAccessToken,
+  "ADMIN_ACCESS_TOKEN_IS_NOT_ADMIN",
+  () => [
+    401,
+    "Admin access token does not have the required permissions to access this project.",
   ] as const,
   () => [] as const,
 );
@@ -685,6 +737,9 @@ export const KnownErrors = {
   AllOverloadsFailed,
   ProjectAuthenticationError,
   InvalidProjectAuthentication,
+  ProjectKeyWithoutRequestType,
+  InvalidRequestType,
+  RequestTypeWithoutProjectId,
   InvalidPublishableClientKey,
   InvalidSecretServerKey,
   InvalidSuperSecretAdminKey,
@@ -692,6 +747,7 @@ export const KnownErrors = {
   UnparsableAdminAccessToken,
   AdminAccessTokenExpired,
   InvalidProjectForAdminAccessToken,
+  AdminAccessTokenIsNotAdmin,
   ProjectAuthenticationRequired,
   ClientAuthenticationRequired,
   ServerAuthenticationRequired,

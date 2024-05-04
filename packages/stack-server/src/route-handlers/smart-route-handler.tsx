@@ -1,0 +1,155 @@
+import "../polyfills";
+
+import { NextRequest } from "next/server";
+import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import * as yup from "yup";
+import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { MergeSmartRequest, SmartRequest, SmartRequestAuth, parseRequest } from "./smart-request";
+import { SmartResponse, createResponse } from "./smart-response";
+import { ProjectJson, UserJson } from "@stackframe/stack-shared";
+
+/**
+ * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
+ * (such as Next.js redirects) will be rethrown.
+ */
+function catchError(error: unknown): StatusError {
+  // catch some Next.js non-errors and rethrow them
+  if (error instanceof Error) {
+    const digest = (error as any)?.digest;
+    if (typeof digest === "string") {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+        throw error;
+      }
+    }
+  }
+
+  if (error instanceof StatusError) return error;
+  captureError(`route-handler`, error);
+  return new StatusError(StatusError.InternalServerError);
+}
+
+/**
+ * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
+ * request details.
+ */
+export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+  return async (req: NextRequest, options: any) => {
+    const requestId = generateSecureRandomString(80);
+    let hasRequestFinished = false;
+    try {
+      // censor long query parameters because they might contain sensitive data
+      const censoredUrl = new URL(req.url);
+      for (const [key, value] of censoredUrl.searchParams.entries()) {
+        if (value.length <= 8) {
+          continue;
+        }
+        censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
+      }
+
+      // request duration warning
+      const warnAfterSeconds = 12;
+      runAsynchronously(async () => {
+        await wait(warnAfterSeconds * 1000);
+        if (!hasRequestFinished) {
+          captureError("request-timeout-watcher", new Error(`Request with ID ${requestId} to endpoint ${req.nextUrl.pathname} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`));
+        }
+      });
+
+      console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
+      const timeStart = performance.now();
+      const res = await handler(req, options, requestId);
+      const time = (performance.now() - timeStart);
+      console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
+      return res;
+    } catch (e) {
+      let statusError;
+      try {
+        statusError = catchError(e);
+      } catch (e) {
+        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        throw e;
+      }
+
+      console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+      console.log(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+
+      const res = await createResponse(req, requestId, {
+        statusCode: statusError.statusCode,
+        bodyType: "binary",
+        body: statusError.getBody(),
+        headers: {
+          ...statusError.getHeaders(),
+        },
+      }, yup.mixed());
+      return res;
+    } finally {
+      hasRequestFinished = true;
+    }
+  };
+};
+
+type SmartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> = {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+};
+
+export function smartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  handler: SmartRouteHandler<Req, Res>,
+): (req: NextRequest, options: any) => Promise<Response>;
+export function smartRouteHandler<
+  OverloadParam,
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  overloadParams: OverloadParam[],
+  overloadGenerator: (param: OverloadParam) => SmartRouteHandler<Req, Res>,
+): (req: NextRequest, options: any) => Promise<Response>;
+export function smartRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+>(
+  ...args: [unknown[], (param: unknown) => SmartRouteHandler<Req, Res>] | [SmartRouteHandler<Req, Res>]
+): (req: NextRequest, options: any) => Promise<Response> {
+  const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
+  const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
+
+  return deprecatedSmartRouteHandler(async (req, options, requestId) => {
+    const reqsParsed: [Req, SmartRouteHandler<Req, Res>][] = [];
+    const reqsErrors: unknown[] = [];
+    for (const overloadParam of overloadParams as unknown[]) {
+      const handler = overloadGenerator(overloadParam);
+      try {
+        const parsed = await parseRequest(req, handler.request, options);
+        reqsParsed.push([parsed, handler]);
+      } catch (e) {
+        reqsErrors.push(e);
+      }
+    }
+    if (reqsParsed.length === 0) {
+      if (reqsErrors.length === 1) {
+        throw reqsErrors[0];
+      } else {
+        const caughtErrors = reqsErrors.map(e => catchError(e));
+        throw new KnownErrors.AllOverloadsFailed(caughtErrors.map(e => e.toHttpJson()));
+      }
+    }
+
+    const smartReq = reqsParsed[0][0];
+    const handler = reqsParsed[0][1];
+
+    let smartRes = await handler.handler(smartReq as any);
+
+    return await createResponse(req, requestId, smartRes, handler.response);
+  });
+}
