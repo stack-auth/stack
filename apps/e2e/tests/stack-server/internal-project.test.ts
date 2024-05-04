@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import request from "supertest";
-import { BASE_URL, PROJECT_CLIENT_KEY, PROJECT_ID } from "./helpers";
+import { BASE_URL, INTERNAL_PROJECT_CLIENT_KEY, INTERNAL_PROJECT_ID } from "../helpers";
 
 const AUTH_HEADER = {
-  "x-stack-project-id": PROJECT_ID,
-  "x-stack-publishable-client-key": PROJECT_CLIENT_KEY,
+  "x-stack-project-id": INTERNAL_PROJECT_ID,
+  "x-stack-publishable-client-key": INTERNAL_PROJECT_CLIENT_KEY,
 };
 
 const JSON_HEADER = {
@@ -36,7 +36,7 @@ async function signInWithEmailPassword(email: string, password: string) {
   return { email, password, response };
 }
 
-describe("Basic", () => {
+describe("Various internal project tests", () => {
   test("Main Page", async () => {
     const response = await request(BASE_URL).get("/");
     expect(response.status).toBe(307);

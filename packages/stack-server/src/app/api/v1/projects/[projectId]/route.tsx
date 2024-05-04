@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
-import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
+import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
 import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";

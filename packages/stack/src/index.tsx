@@ -19,9 +19,11 @@ export { default as PasswordField } from "./components/password-field";
 export { default as UserButton } from "./components/user-button";
 export { default as AccountSettings } from "./components-page/account-settings";
 
-export { useDesign, ColorPalette } from './providers/design-provider';
+export { useDesign } from './providers/design-provider';
+export type { ColorPalette } from './providers/design-provider';
 export { useComponents } from './providers/component-provider';
-export { StackTheme, ThemeConfig } from './providers/theme-provider';
+export { StackTheme } from './providers/theme-provider';
+export type { ThemeConfig } from './providers/theme-provider';
 
 export { 
   CurrentUser, 

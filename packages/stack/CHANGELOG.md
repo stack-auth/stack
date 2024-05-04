@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.3.7
+
+### Patch Changes
+
+- CommonJS support
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.5
+
 ## 2.3.6
 
 ### Patch Changes

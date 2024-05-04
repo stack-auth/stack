@@ -1,3 +1,4 @@
+import { KnownError } from "..";
 import { StackAssertionError, captureError } from "./errors";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";

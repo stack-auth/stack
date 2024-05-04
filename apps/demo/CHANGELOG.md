@@ -1,5 +1,14 @@
 # demo-app
 
+## 1.0.23
+
+### Patch Changes
+
+- CommonJS support
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.5
+  - @stackframe/stack@2.3.7
+
 ## 1.0.22
 
 ### Patch Changes

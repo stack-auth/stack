@@ -1,15 +1,15 @@
 {
-  "name": "partial-prerendering",
-  "version": "0.1.3",
+  "name": "cjs-test",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8105",
+    "dev": "next dev --port 8106",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^14.3.0-canary.26",
+    "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
     "@stackframe/stack": "workspace:*"
@@ -20,6 +20,8 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
 }
