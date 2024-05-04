@@ -22,7 +22,7 @@ import {
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Dialog } from '@/components/dialog';
-import { ServerTeam, ServerUser } from '@stackframe/stack';
+import { ServerPermission, ServerTeam, ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
@@ -36,6 +36,23 @@ export function MemberTable(props: {
   team: ServerTeam,
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
+  const [userPermissions, setUserPermissions] = React.useState<Record<string, ServerPermission[]>>({});
+  const [updateCounter, setUpdateCounter] = React.useState(0);
+
+  React.useEffect(() => {
+    async function load() {
+      const promises = props.rows.map(async user => {
+        return await user.listPermissions(props.team, { direct: true });
+      });
+      return await Promise.all(promises);
+    }
+    
+    load().then((permissions) => {
+      setUserPermissions(Object.fromEntries(
+        props.rows.map((user, index) => [user.id, permissions[index]])
+      ));
+    }).catch(console.error);
+  }, [props.rows, props.team, updateCounter]);
 
   const columns: (GridColDef & {
     stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
@@ -98,10 +115,9 @@ export function MemberTable(props: {
       headerName: 'Permissions',
       width: 200,
       renderCell: async (params: { row: ServerUser }) => {
-        const permissions = await params.row.listPermissions(props.team, { direct: true });
         return (
           <Paragraph body>
-            {permissions.map(permission => permission.id).join(', ')}
+            {userPermissions[params.row.id]?.map(permission => permission.id).join(', ') || ''}
           </Paragraph>
         );
       }
@@ -119,7 +135,7 @@ export function MemberTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} team={props.team} />,
+        <Actions key="more_actions" params={params} team={props.team} setUpdateCounter={setUpdateCounter} />,
       ],
     },
   ];
@@ -159,7 +175,7 @@ export function MemberTable(props: {
   );
 }
 
-function Actions(props: { params: any, team: ServerTeam }) {
+function Actions(props: { params: any, team: ServerTeam, setUpdateCounter: React.Dispatch<React.SetStateAction<number>> }) {
   const [isEditUserModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isEditPermissionModalOpen, setIsEditPermissionModalOpen] = React.useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = React.useState(false);
@@ -214,6 +230,7 @@ function Actions(props: { params: any, team: ServerTeam }) {
         team={props.team}
         open={isEditPermissionModalOpen}
         onClose={() => setIsEditPermissionModalOpen(false)}
+        setUpdateCounter={props.setUpdateCounter}
       />
 
       <Dialog
@@ -252,14 +269,19 @@ function Actions(props: { params: any, team: ServerTeam }) {
 }
 
 
-function EditPermissionModal(props: { open: boolean, onClose: () => void, user: ServerUser, team: ServerTeam }) {
+function EditPermissionModal(props: { 
+  open: boolean, 
+  onClose: () => void, 
+  user: ServerUser, 
+  team: ServerTeam, 
+  setUpdateCounter: React.Dispatch<React.SetStateAction<number>>,
+}) {
   const stackAdminApp = useAdminApp();
   const permissions = stackAdminApp.usePermissionDefinitions();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = React.useState<PermissionGraph>();
-  const [id, setId] = React.useState<string>('');
 
   React.useEffect(() => {
     async function load() {
@@ -290,7 +312,14 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, user: 
                   const promises = inheritFromPermissionIds.map(async permissionId => {
                     await props.user.grantPermission(props.team, permissionId);
                   });
+                  promises.push(...permissions.filter(
+                    p => !inheritFromPermissionIds.includes(p.id)
+                  ).map(async permission => {
+                    await props.user.revokePermission(props.team, permission.id);
+                  }));
                   await Promise.all(promises);
+
+                  props.setUpdateCounter?.((c: number) => c + 1);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -312,8 +341,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, user: 
                     setGraph(graph.updatePermission(permissionId, permission));
                     setInheritFromPermissionIds(permission.inheritFromPermissionIds);
                   }}
-                permissionGraph={graph} 
-                selectedPermissionId={id}
+                permissionGraph={graph}
               />
             </Stack>
           </form>

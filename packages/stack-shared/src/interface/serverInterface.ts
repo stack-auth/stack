@@ -241,6 +241,20 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async revokeTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
+    await this.sendServerRequest(
+      `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
+      { 
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ type }),
+      },
+      null,
+    );
+  }
+
   async deleteServerUser(userId: string) {
     await this.sendServerRequest(
       `/users/${userId}?server=true`,

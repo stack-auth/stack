@@ -133,8 +133,16 @@ export async function grantTeamUserPermission({
 
   switch (type) {
     case "global": {
-      await prismaClient.teamMemberDirectPermission.create({
-        data: {
+      await prismaClient.teamMemberDirectPermission.upsert({
+        where: {
+          projectId_projectUserId_teamId_permissionDbId: {
+            projectId,
+            projectUserId,
+            teamId,
+            permissionDbId: permissionId,
+          },
+        },
+        create: {
           permission: {
             connect: {
               projectConfigId_queriableId: {
@@ -153,6 +161,7 @@ export async function grantTeamUserPermission({
             },
           },
         },
+        update: {},
       });
       break;
     }
@@ -204,6 +213,82 @@ export async function grantTeamUserPermission({
           },
         },
         update: {},
+      });
+
+      break;
+    }
+  }
+}
+
+export async function revokeTeamUserPermission({
+  projectId,
+  teamId,
+  projectUserId,
+  type,
+  permissionId,
+}: {
+  projectId: string,
+  teamId: string, 
+  projectUserId: string, 
+  type: "team" | "global",
+  permissionId: string,
+}) {
+  const project = await prismaClient.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+
+  if (!project) throw new KnownErrors.ProjectNotFound();
+
+  switch (type) {
+    case "global": {
+      await prismaClient.teamMemberDirectPermission.deleteMany({
+        where: {
+          permission: {
+            projectConfigId: project.configId,
+            queriableId: permissionId,
+          },
+          teamMember: {
+            projectId,
+            projectUserId,
+            teamId,
+          },
+        },
+      });
+      break;
+    }
+    case "team": {
+      const teamSpecificPermission = await prismaClient.permission.findUnique({
+        where: {
+          projectId_teamId_queriableId: {
+            projectId,
+            teamId,
+            queriableId: permissionId,
+          },
+        }
+      });
+      const anyTeamPermission = await prismaClient.permission.findUnique({
+        where: {
+          projectConfigId_queriableId: {
+            projectConfigId: project.configId,
+            queriableId: permissionId,
+          },
+        }
+      });
+      
+      const permission = teamSpecificPermission || anyTeamPermission;
+      if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
+
+      await prismaClient.teamMemberDirectPermission.deleteMany({
+        where: {
+          permissionDbId: permission.dbId,
+          teamMember: {
+            projectId,
+            projectUserId,
+            teamId,
+          },
+        },
       });
 
       break;
