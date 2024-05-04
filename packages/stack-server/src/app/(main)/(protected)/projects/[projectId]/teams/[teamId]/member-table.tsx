@@ -98,7 +98,7 @@ export function MemberTable(props: {
       headerName: 'Permissions',
       width: 200,
       renderCell: async (params: { row: ServerUser }) => {
-        const permissions = await params.row.listPermissions(props.team);
+        const permissions = await params.row.listPermissions(props.team, { direct: true });
         return (
           <Paragraph body>
             {permissions.map(permission => permission.id).join(', ')}

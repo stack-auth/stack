@@ -222,8 +222,8 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listTeamUserPermissions(teamId: string, userId: string, type: 'global' | 'team'): Promise<ServerPermissionDefinitionJson[]> {
-    const response = await this.sendServerRequest(`/teams/${teamId}/users/${userId}/permissions?server=true&type=${type}`, {}, null);
+  async listTeamUserPermissions(teamId: string, userId: string, type: 'global' | 'team', direct: boolean): Promise<ServerPermissionDefinitionJson[]> {
+    const response = await this.sendServerRequest(`/teams/${teamId}/users/${userId}/permissions?server=true&type=${type}&direct=${direct ? 'true' : 'false'}`, {}, null);
     return await response.json();
   }
 

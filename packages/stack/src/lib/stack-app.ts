@@ -914,8 +914,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
     return await this._interface.listPermissionDefinitions();
   });
-  private readonly _serverTeamUserPermissionsCache = createCache<string[], ServerPermission[]>(async ([teamId, userId, type]) => {
-    const permissions = await this._interface.listTeamUserPermissions(teamId, userId, type === 'team' ? 'team' : 'global');
+  private readonly _serverTeamUserPermissionsCache = createCache<string[], ServerPermission[]>(async ([teamId, userId, type, direct]) => {
+    const permissions = await this._interface.listTeamUserPermissions(teamId, userId, type === 'team' ? 'team' : 'global', direct === 'true');
     return permissions.map((p) => this._serverPermissionFromJson(p));
   });
 
@@ -968,8 +968,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       getClientUser() {
         return app._userFromJson(json);
       },
-      async listPermissions(scope: Team): Promise<ServerPermission[]> {
-        return await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team'], "write-only");
+      async listPermissions(scope: Team, { direct=false } : { direct: boolean }): Promise<ServerPermission[]> {
+        return await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', direct ? 'true' : 'false'], "write-only");
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
         await app._interface.grantTeamUserPermission(scope.id, json.id, permissionId, 'team');
@@ -1447,7 +1447,7 @@ export type ServerUser = Omit<User, "toJson"> & {
   update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
   delete(this: ServerUser): Promise<void>,
 
-  listPermissions(scope: Team): Promise<ServerPermission[]>, // later add scope: 'global'
+  listPermissions(scope: Team, options: { direct: boolean }): Promise<ServerPermission[]>, // later add scope: 'global'
   grantPermission(scope: Team, permissionId: string): Promise<void>,
 };
 

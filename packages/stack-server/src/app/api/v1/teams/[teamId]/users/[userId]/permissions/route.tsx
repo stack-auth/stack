@@ -54,7 +54,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       throw new StatusError(StatusError.BadRequest, "User is not in the team");
     }
 
-    if (direct === 'false') {
+    if (direct === 'true') {
       return NextResponse.json(await listUserDirectPermissions({
         projectId, 
         teamId: options.params.teamId, 

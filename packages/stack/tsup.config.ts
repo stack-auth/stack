@@ -6,8 +6,8 @@ const customNoExternal = new Set([
 
 const config: Options = {
   entryPoints: ['src/**/*.(ts|tsx|js|jsx)'],
-  sourcemap: false,
-  clean: true,
+  sourcemap: true,
+  clean: false,
   noExternal: [...customNoExternal],
   dts: true,
   outDir: 'dist',
