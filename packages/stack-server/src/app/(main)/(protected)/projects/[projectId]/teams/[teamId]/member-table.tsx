@@ -16,13 +16,14 @@ import {
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Dialog } from '@/components/dialog';
-import { ServerUser } from '@stackframe/stack';
+import { ServerTeam, ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
 
 export function MemberTable(props: {
   rows: ServerUser[],
+  team: ServerTeam,
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
 
@@ -95,7 +96,7 @@ export function MemberTable(props: {
       type: 'actions',
       width: 48,
       getActions: (params) => [
-        <Actions key="more_actions" params={params} />
+        <Actions key="more_actions" params={params} team={props.team} />,
       ],
     },
   ];
@@ -135,10 +136,11 @@ export function MemberTable(props: {
   );
 }
 
-function Actions(props: { params: any }) {
+function Actions(props: { params: any, team: ServerTeam }) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   
   return (
@@ -161,6 +163,13 @@ function Actions(props: { params: any }) {
               <Icon icon='edit' />
             </ListItemDecorator>{' '}
             Edit User
+          </MenuItem>
+          <ListDivider />
+          <MenuItem color="danger" onClick={() => setIsRemoveModalOpen(true)}>
+            <ListItemDecorator sx={{ color: 'inherit' }}>
+              <Icon icon='logout' />
+            </ListItemDecorator>{' '}
+            Remove from team
           </MenuItem>
           <ListDivider />
           <MenuItem color="danger" onClick={() => setIsDeleteModalOpen(true)}>
@@ -192,6 +201,22 @@ function Actions(props: { params: any }) {
         cancelButton={true}
       >
         Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
+      </Dialog>
+
+      <Dialog
+        title
+        danger
+        open={isRemoveModalOpen}
+        onClose={() => setIsRemoveModalOpen(false)}
+        okButton={{
+          label: "Remove user from team",
+          onClick: async () => {
+            await props.team.removeUser(props.params.row.id);
+          }
+        }}
+        cancelButton={true}
+      >
+        Are you sure you want to remove the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id} from the team?
       </Dialog>
     </>
   );

@@ -128,3 +128,13 @@ export async function addUserToTeam(projectId: string, teamId: string, userId: s
     },
   });
 }
+
+export async function removeUserFromTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+  await prismaClient.teamMember.deleteMany({
+    where: {
+      projectId,
+      teamId,
+      projectUserId: userId,
+    },
+  });
+}

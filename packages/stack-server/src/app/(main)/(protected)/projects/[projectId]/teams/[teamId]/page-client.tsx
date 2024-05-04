@@ -23,7 +23,7 @@ export default function ClientPage(props: { teamId: string }) {
       </Paragraph>
 
       <Paragraph body>
-        <MemberTable rows={users || []} />
+        <MemberTable rows={users || []} team={team} />
       </Paragraph>
     </>
   );

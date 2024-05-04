@@ -1066,12 +1066,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           teamId: json.id,
           userId,
         });
+        await app._serverTeamUsersCache.refresh([json.id]);
       },
       async removeUser(userId) {
         await app._interface.removeUserFromTeam({
           teamId: json.id,
           userId,
         });
+        await app._serverTeamUsersCache.refresh([json.id]);
       },
       toJson() {
         return json;
