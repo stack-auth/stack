@@ -1148,7 +1148,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return useCache(this._serverTeamPermissionDefinitionsCache, [], "usePermissions()");
   }
 
-  _serverPermissionFromJson(json: ServerPermissionDefinitionJson, teamId?: string): ServerPermission {
+  _serverPermissionFromJson(json: ServerPermissionDefinitionJson): ServerPermission {
     const type = permissionDefinitionScopeToType(json.scope);
     const common = {
       __databaseUniqueId: json.__databaseUniqueId,
@@ -1158,13 +1158,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
 
     if (type === 'team') {
-      if (!teamId) {
-        throw new Error("Expected teamId to be provided when creating a team permission");
-      }
       return {
         ...common,
         type,
-        teamId,
+        teamId: (json.scope as { teamId: string }).teamId,
       };
     } else {
       return {

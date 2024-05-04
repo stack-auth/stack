@@ -123,6 +123,14 @@ export async function grantTeamUserPermission({
   type: "team" | "global",
   permissionId: string,
 }) {
+  const project = await prismaClient.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+
+  if (!project) throw new KnownErrors.ProjectNotFound();
+
   switch (type) {
     case "global": {
       await prismaClient.teamMemberDirectPermission.create({
@@ -130,7 +138,7 @@ export async function grantTeamUserPermission({
           permission: {
             connect: {
               projectConfigId_queriableId: {
-                projectConfigId: projectId,
+                projectConfigId: project.configId,
                 queriableId: permissionId,
               },
             },
@@ -149,19 +157,33 @@ export async function grantTeamUserPermission({
       break;
     }
     case "team": {
-      const permission = await prismaClient.permission.findFirst({
+      const teamSpecificPermission = await prismaClient.permission.findUnique({
         where: {
-          teamId: teamId,
-          queriableId: permissionId,
-        },
+          projectId_teamId_queriableId: {
+            projectId,
+            teamId,
+            queriableId: permissionId,
+          },
+        }
       });
-      if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
+      const anyTeamPermission = await prismaClient.permission.findUnique({
+        where: {
+          projectConfigId_queriableId: {
+            projectConfigId: project.configId,
+            queriableId: permissionId,
+          },
+        }
+      });
+
+      const teamPermission = teamSpecificPermission || anyTeamPermission;
+
+      if (!teamPermission) throw new KnownErrors.PermissionNotFound(permissionId);
 
       await prismaClient.teamMemberDirectPermission.create({
         data: {
           permission: {
             connect: {
-              dbId: permission.dbId,
+              dbId: teamPermission.dbId,
             },
           },
           teamMember: {
