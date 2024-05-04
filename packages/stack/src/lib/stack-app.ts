@@ -914,8 +914,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
     return await this._interface.listPermissionDefinitions();
   });
-  private readonly _serverTeamUserPermissionsCache = createCache<string[], ServerPermission[]>(async ([teamId, userId]) => {
-    const permissions = await this._interface.listTeamUserPermissions(teamId, userId);
+  private readonly _serverTeamUserPermissionsCache = createCache<string[], ServerPermission[]>(async ([teamId, userId, type]) => {
+    const permissions = await this._interface.listTeamUserPermissions(teamId, userId, type === 'team' ? 'team' : 'global');
     return permissions.map((p) => this._serverPermissionFromJson(p));
   });
 
@@ -969,7 +969,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._userFromJson(json);
       },
       async listPermissions(scope: Team): Promise<ServerPermission[]> {
-        return await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id], "write-only");
+        return await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team'], "write-only");
       },
       toJson() {
         return app._serverUserToJson(this);

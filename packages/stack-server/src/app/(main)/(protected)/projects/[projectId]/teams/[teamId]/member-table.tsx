@@ -100,10 +100,14 @@ export function MemberTable(props: {
       field: 'permissions',
       headerName: 'Permissions',
       width: 200,
-      renderCell: (params) => (
-        <Paragraph body>
-        </Paragraph>
-      ),
+      renderCell: async (params: { row: ServerUser }) => {
+        const permissions = await params.row.listPermissions(props.team);
+        return (
+          <Paragraph body>
+            {permissions.map(permission => permission.id).join(', ')}
+          </Paragraph>
+        );
+      }
     },
     {
       field: 'signedUpAt',
