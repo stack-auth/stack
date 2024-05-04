@@ -4,12 +4,11 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { createPermission, listServerPermissions } from "@/lib/permissions";
+import { createPermission, listServerPermissions as listPermissionDefinitions } from "@/lib/permissions";
 
 const getSchema = yup.object({
   query: yup.object({
     server: yup.string().oneOf(["true"]).required(),
-    scope: yup.string().oneOf(["any-team"]).required(),
   }).required(),
   headers: yup.object({
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
@@ -22,7 +21,6 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     query: {
       server,
-      scope,
     },
     headers: {
       "x-stack-project-id": projectId,
@@ -39,7 +37,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new StatusError(StatusError.Forbidden);
     }
 
-    const permissions = await listServerPermissions(projectId, { type: scope });
+    const permissions = await listPermissionDefinitions(projectId);
     return NextResponse.json(permissions);
   }
 

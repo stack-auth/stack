@@ -1,4 +1,4 @@
-import { PermissionJson, PermissionScopeJson } from "./interface/clientInterface";
+import { PermissionDefinitionJson, PermissionDefinitionScopeJson } from "./interface/clientInterface";
 import { StatusError, throwErr, throwStackErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
@@ -692,7 +692,7 @@ const PermissionNotFound = createKnownErrorConstructor(
 const PermissionScopeMismatch = createKnownErrorConstructor(
   KnownError,
   "PERMISSION_SCOPE_MISMATCH",
-  (permissionId: string, permissionScope: PermissionScopeJson, testScope: PermissionScopeJson) => {
+  (permissionId: string, permissionScope: PermissionDefinitionScopeJson, testScope: PermissionDefinitionScopeJson) => {
     return [
       400,
       `The scope of the permission with ID ${permissionId} is \`${permissionScope.type}\` but you tested against permissions of scope \`${testScope.type}\`. ${{

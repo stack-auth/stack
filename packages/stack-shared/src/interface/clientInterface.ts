@@ -159,14 +159,14 @@ export type TeamJson = OrglikeJson;
 export type OrganizationJson = OrglikeJson;
 
 
-export type PermissionScopeJson =
+export type PermissionDefinitionScopeJson =
   | { type: "global" }
   | { type: "any-team" }
   | { type: "specific-team", teamId: string };
 
-export type PermissionJson = {
+export type PermissionDefinitionJson = {
   id: string,
-  scope: PermissionScopeJson,
+  scope: PermissionDefinitionScopeJson,
 };
 
 export class StackClientInterface {
@@ -750,13 +750,13 @@ export class StackClientInterface {
     return Result.ok(user);
   }
 
-  async listClientUserPermissions(tokenStore: TokenStore): Promise<PermissionJson[]> {
+  async listClientUserPermissions(tokenStore: TokenStore): Promise<PermissionDefinitionJson[]> {
     const response = await this.sendClientRequest(
       "/current-user/permissions",
       {},
       tokenStore,
     );
-    const permissions: PermissionJson[] = await response.json();
+    const permissions: PermissionDefinitionJson[] = await response.json();
     return permissions;
   }
 

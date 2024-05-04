@@ -1,14 +1,14 @@
 import { Paragraph } from "@/components/paragraph";
 import { Box, Checkbox, Divider, FormLabel, List, Stack } from "@mui/joy";
-import { ServerPermissionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 // used to represent the permission being edited, so we don't need to update the id all the time
 const PLACEHOLDER_ID = 'f2j1290ajf9812elk'; 
 
 export class PermissionGraph {
-  permissions: Record<string, ServerPermissionJson>;
+  permissions: Record<string, ServerPermissionDefinitionJson>;
 
-  constructor(permissions: ServerPermissionJson[]) {
+  constructor(permissions: ServerPermissionDefinitionJson[]) {
     this.permissions = this._copyPermissions(permissions);
   }
 
@@ -16,8 +16,8 @@ export class PermissionGraph {
     return new PermissionGraph(Object.values(this.permissions));
   }
 
-  _copyPermissions(permissions: ServerPermissionJson[]): Record<string, ServerPermissionJson> {
-    const result: Record<string, ServerPermissionJson> = {};
+  _copyPermissions(permissions: ServerPermissionDefinitionJson[]): Record<string, ServerPermissionDefinitionJson> {
+    const result: Record<string, ServerPermissionDefinitionJson> = {};
     permissions.forEach(permission => {
       result[permission.id] = {
         ...permission, 
@@ -29,7 +29,7 @@ export class PermissionGraph {
 
   updatePermission(
     permissionId: string,
-    permission: ServerPermissionJson
+    permission: ServerPermissionDefinitionJson
   ) {
     const permissions = this._copyPermissions(Object.values(this.permissions));
     permissions[permissionId] = permission;
@@ -74,7 +74,7 @@ export class PermissionGraph {
     return new PermissionGraph(Object.values(permissions));
   }
 
-  recursiveContains(permissionId: string): ServerPermissionJson[] {
+  recursiveContains(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
     return [permission].concat(
@@ -86,7 +86,7 @@ export class PermissionGraph {
     return this.recursiveContains(permissionId).some(permission => permission.id === targetPermissionId);
   }
 
-  recursiveAccestors(permissionId: string): ServerPermissionJson[] {
+  recursiveAccestors(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
     
@@ -104,7 +104,7 @@ export class PermissionGraph {
 export function PermissionList(props : {
   selectedPermissionId?: string,
   permissionGraph: PermissionGraph,
-  updatePermission: (permissionId: string, permission: ServerPermissionJson) => void,
+  updatePermission: (permissionId: string, permission: ServerPermissionDefinitionJson) => void,
 }) {
   const graph = props.permissionGraph;
   const currentPermission = graph.permissions[PLACEHOLDER_ID];

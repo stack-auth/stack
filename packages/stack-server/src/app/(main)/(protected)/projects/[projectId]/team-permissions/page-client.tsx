@@ -14,7 +14,7 @@ import { PermissionGraph, PermissionList } from "./permission-list";
 
 export default function ClientPage() {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissions();
+  const permissions = stackAdminApp.usePermissionDefinitions();
   const [createPermissionModalOpen, setCreatePermissionModalOpen] = React.useState(false);
 
   return (
@@ -51,7 +51,7 @@ export default function ClientPage() {
 
 function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissions();
+  const permissions = stackAdminApp.usePermissionDefinitions();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [inheritFromPermissionIds, setInheritFromPermissionIds] = React.useState<string[]>([]);

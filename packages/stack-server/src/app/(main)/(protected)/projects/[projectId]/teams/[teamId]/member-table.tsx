@@ -20,6 +20,7 @@ import { ServerTeam, ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
+import { Paragraph } from '@/components/paragraph';
 
 export function MemberTable(props: {
   rows: ServerUser[],
@@ -57,7 +58,7 @@ export function MemberTable(props: {
     {
       field: 'displayName',
       headerName: 'Display name',
-      width: 150,
+      width: 100,
       flex: 1,
     },
     {
@@ -81,6 +82,15 @@ export function MemberTable(props: {
             </>
           )}
         </>
+      ),
+    },
+    {
+      field: 'permissions',
+      headerName: 'Permissions',
+      width: 200,
+      renderCell: (params) => (
+        <Paragraph body>
+        </Paragraph>
       ),
     },
     {

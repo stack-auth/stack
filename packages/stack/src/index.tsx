@@ -32,7 +32,6 @@ export {
   ServerTeam, 
   Team, 
   Permission, 
-  PermissionScope, 
   ServerPermission,
 } from './lib/stack-app';
 

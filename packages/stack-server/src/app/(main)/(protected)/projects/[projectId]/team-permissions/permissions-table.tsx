@@ -27,9 +27,10 @@ import { AsyncButton } from '@/components/async-button';
 import { Permission, ServerPermission } from '@stackframe/stack';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PermissionGraph, PermissionList } from './permission-list';
+import { ServerPermissionDefinitionJson } from '@stackframe/stack-shared/dist/interface/serverInterface';
 
 export function PermissionsTable(props: {
-  rows: ServerPermission[],
+  rows: ServerPermissionDefinitionJson[],
 }) {
   const columns: GridColDef[] = [
     {
@@ -90,7 +91,7 @@ export function PermissionsTable(props: {
 }
 
 
-function Actions(props: { params: any, rows: Permission[]}) {
+function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) {
   const stackAdminApp = useAdminApp();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -150,7 +151,7 @@ function Actions(props: { params: any, rows: Permission[]}) {
 
 function EditPermissionModal(props: { open: boolean, onClose: () => void, selectedPermissionId: string }) {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissions();
+  const permissions = stackAdminApp.usePermissionDefinitions();
   const selectedPermission = permissions.find((permission) => permission.id === props.selectedPermissionId);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);

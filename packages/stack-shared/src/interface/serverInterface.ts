@@ -6,8 +6,8 @@ import {
   ReadonlyTokenStore,
   OrglikeJson,
   UserUpdateJson,
-  PermissionJson,
-  PermissionScopeJson,
+  PermissionDefinitionJson,
+  PermissionDefinitionScopeJson as PermissionDefinitionScopeJson,
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
@@ -34,9 +34,9 @@ export type ServerPermissionCustomizableJson = {
   readonly inheritFromPermissionIds: string[],
 };
 
-export type ServerPermissionJson = PermissionJson & ServerPermissionCustomizableJson & {
+export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionCustomizableJson & {
   readonly __databaseUniqueId: string,
-  readonly scope: PermissionScopeJson,
+  readonly scope: PermissionDefinitionScopeJson,
 };
 
 export type ServerAuthApplicationOptions = (
@@ -82,7 +82,7 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
-  async createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermissionJson> {
+  async createPermission(data: ServerPermissionCustomizableJson): Promise<ServerPermissionDefinitionJson> {
     const response = await this.sendServerRequest(
       "/teams/permissions?server=true",
       {
@@ -202,8 +202,8 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listAnyTeamPermissions(): Promise<ServerPermissionJson[]> {
-    const response = await this.sendServerRequest(`/teams/permissions?server=true&scope=any-team`, {}, null);
+  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
+    const response = await this.sendServerRequest(`/teams/permissions?server=true`, {}, null);
     return await response.json();
   }
 
@@ -219,6 +219,11 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
+  }
+
+  async listTeamUserPermissions(teamId: string, userId: string): Promise<ServerPermissionDefinitionJson[]> {
+    const response = await this.sendServerRequest(`/teams/${teamId}/users/${userId}/permissions?server=true`, {}, null);
+    return await response.json();
   }
 
   async deleteServerUser(userId: string) {
