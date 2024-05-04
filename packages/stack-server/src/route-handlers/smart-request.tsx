@@ -122,7 +122,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
-  if (!requestType && eitherKeyOrToken) return null;  // TODO in the future, throw KnownErrors.ProjectKeyWithoutRequestType() instead
+  if (!requestType && eitherKeyOrToken) throw new KnownErrors.ProjectKeyWithoutRequestType();
   if (!requestType) return null;
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
@@ -240,7 +240,7 @@ export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartReq
     headers: Object.fromEntries([...req.headers.entries()].map(([k, v]) => [k.toLowerCase(), v])),
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
-    auth: await parseAuth(req),
+    auth: null,
   };
 
   return await validate(toValidate, schema);
