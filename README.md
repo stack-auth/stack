@@ -9,7 +9,7 @@
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
 
-We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows. Think of it as Supabase Auth or next-auth, but better.
+We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows.
 
 Here are some of the components you get out-of-the-box:
 
@@ -40,10 +40,10 @@ We all know how much overhead there is when starting a new project. Developers n
 ## Roadmap
 
 - Organization, groups, and roles
-- More pre-built UI components (user profile display/edit, onboarding page)
-- Fraud/bot prevention
 - Feature-rich email/notification system
-- Cross-platform/language supports
+- React, React Native, and Vue.js support
+- Python backend library
+- SSO/SAML integration
 
 ## Installation
 

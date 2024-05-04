@@ -37,8 +37,8 @@ export const Button = React.forwardRef<
     style={{
       padding: ({ sm: 5, md: 10, lg: 15 } as const)[size],
       backgroundColor: color || ({
-        primary: colors.primaryColor,
-        secondary: colors.secondaryColor,
+        primary: colors.light.primaryColor,
+        secondary: colors.light.secondaryColor,
       } as const)[variant],
     }}
     disabled={loading || disabled}
@@ -85,6 +85,7 @@ Here is a list of low-level components that you can customize, stared ones are t
 - `Avatar`, `AvatarFallback`, `AvatarImage`
 - `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
 - `Card`, `CardHeader`, `CardContent`, `CardFooter`
+- `Skeleton`
 
 ## MUI Joy setup
 

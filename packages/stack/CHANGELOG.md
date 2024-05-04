@@ -1,5 +1,34 @@
 # @stackframe/stack
 
+## 2.3.7
+
+### Patch Changes
+
+- CommonJS support
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.5
+
+## 2.3.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.4
+
+## 2.3.5
+
+### Patch Changes
+
+- Partial pre-rendering
+- Updated dependencies
+  - @stackframe/stack-shared@2.3.3
+
+## 2.3.4
+
+### Patch Changes
+
+- E2E tests and various fixes
+
 ## 2.3.3
 
 ### Patch Changes

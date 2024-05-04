@@ -1,5 +1,23 @@
 # @stackframe/stack-shared
 
+## 2.3.5
+
+### Patch Changes
+
+- CommonJS support
+
+## 2.3.4
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.3.3
+
+### Patch Changes
+
+- Partial pre-rendering
+
 ## 2.3.2
 
 ### Patch Changes

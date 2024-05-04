@@ -2,35 +2,37 @@ import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import styled from 'styled-components';
 import { useDesign } from '..';
+import { ColorPalette } from '../providers/design-provider';
 
 const Tabs = TabsPrimitive.Root;
 
-const StyledTabsList = styled(TabsPrimitive.List)<{
-  $bgColor: string,
-}>`
+const StyledTabsList = styled(TabsPrimitive.List)`
   display: flex;
   height: 2.5rem
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
-  background-color: ${props => props.$bgColor};
   padding: 0.25rem;
+
+  background-color: rgb(244, 244, 245);
+
+  html[data-theme='dark'] & {
+    background-color: rgb(39, 39, 42);
+  }
 `;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentProps<typeof TabsPrimitive.List>
 >((props, ref) => {
-  const { colorMode } = useDesign();
-  return <StyledTabsList 
-    $bgColor={colorMode === 'dark' ? 'rgb(39, 39, 42)' : 'rgb(244, 244, 245)'}
+  return <StyledTabsList
     {...props} 
     ref={ref} 
   />;
 });
 
 const StayledTabsTrigger = styled(TabsPrimitive.Trigger)<{
-  $bgColor: string,
+  $colors: ColorPalette,
 }>`
   display: flex;
   flex-grow: 1;
@@ -48,7 +50,13 @@ const StayledTabsTrigger = styled(TabsPrimitive.Trigger)<{
   }
 
   &[data-state='active'] {
-    background-color: ${props => props.$bgColor};
+    background-color: ${({ $colors }) => $colors.light.backgroundColor};
+  }
+
+  html[data-theme='dark'] & {
+    &[data-state='active'] {
+      background-color: ${({ $colors }) => $colors.dark.backgroundColor};
+    }
   }
 `;
 
@@ -58,7 +66,7 @@ const TabsTrigger = React.forwardRef<
 >((props, ref) => {
   const { colors } = useDesign();
   return <StayledTabsTrigger 
-    $bgColor={colors.backgroundColor}
+    $colors={colors}
     {...props} 
     ref={ref} 
   />;
