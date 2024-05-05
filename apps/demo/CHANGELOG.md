@@ -1,5 +1,17 @@
 # demo-app
 
+## 1.1.0
+
+### Minor Changes
+
+- Middleware support
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.0
+  - @stackframe/stack@2.4.0
+
 ## 1.0.24
 
 ### Patch Changes

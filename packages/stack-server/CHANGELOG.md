@@ -1,5 +1,17 @@
 # @stackframe/stack-server
 
+## 0.4.0
+
+### Minor Changes
+
+- Middleware support
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.0
+  - @stackframe/stack@2.4.0
+
 ## 0.3.8
 
 ### Patch Changes
