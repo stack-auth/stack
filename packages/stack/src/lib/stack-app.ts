@@ -638,10 +638,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
-    if (result?.newUser) {
-      window.location.replace(this.urls.afterSignUp);
-    } else {
-      window.location.replace(this.urls.afterSignIn);
+    if (result) {
+      if (result.newUser) {
+        window.location.replace(this.urls.afterSignUp);
+      } else {
+        window.location.replace(this.urls.afterSignIn);
+      }
     }
     await neverResolve();
   }
