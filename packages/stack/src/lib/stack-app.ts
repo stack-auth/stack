@@ -158,8 +158,8 @@ const cookieTokenStoreInitializer = (): TokenStore => {
     }, 10);
     cookieTokenStore.onChange((value) => {
       try {
-        setOrDeleteCookie('stack-refresh', value.refreshToken);
-        setOrDeleteCookie('stack-access', value.accessToken);
+        setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+        setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         hasSucceededInWriting = true;
       } catch (e) {
         hasSucceededInWriting = false;
@@ -183,8 +183,8 @@ const tokenStoreInitializers = new Map<TokenStoreOptions, () => TokenStore>([
       });
       store.onChange((value) => {
         try {
-          setOrDeleteCookie('stack-refresh', value.refreshToken);
-          setOrDeleteCookie('stack-access', value.accessToken);
+          setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         } catch (e) {
           // ignore
         }
