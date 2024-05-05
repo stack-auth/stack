@@ -78,7 +78,6 @@ export async function callOAuthCallback(
   }
   const originalUrl = consumeOAuthCallbackQueryParams(state);
   if (!originalUrl) return null;
-  console.log("made it through");
 
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback)
