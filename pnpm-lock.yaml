@@ -511,6 +511,9 @@ importers:
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
+      yup:
+        specifier: ^1.4.0
+        version: 1.4.0
     devDependencies:
       '@types/bcrypt':
         specifier: ^5.0.2
