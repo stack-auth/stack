@@ -10,6 +10,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "noErrorTruncation": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,

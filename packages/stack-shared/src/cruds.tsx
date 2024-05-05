@@ -1,0 +1,121 @@
+import * as yup from 'yup';
+import { NullishCoalesce } from './utils/types';
+import { filterUndefined } from './utils/objects';
+
+type InnerCrudSchema<
+  CreateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
+  ReadSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
+  UpdateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
+  DeleteSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
+> = {
+  createSchema: CreateSchema,
+  readSchema: ReadSchema,
+  updateSchema: UpdateSchema,
+  deleteSchema: DeleteSchema,
+};
+
+export type CrudSchema<
+  ClientSchema extends InnerCrudSchema = InnerCrudSchema,
+  ServerSchema extends InnerCrudSchema = InnerCrudSchema,
+  AdminSchema extends InnerCrudSchema = InnerCrudSchema,
+> = {
+  client: ClientSchema,
+  server: ServerSchema,
+  admin: AdminSchema,
+};
+
+type CrudSchemaCreationOptions = {
+  clientCreateSchema?: yup.Schema<any>,
+  clientReadSchema?: yup.Schema<any>,
+  clientUpdateSchema?: yup.Schema<any>,
+  clientDeleteSchema?: yup.Schema<any>,
+  
+  serverCreateSchema?: yup.Schema<any>,
+  serverReadSchema?: yup.Schema<any>,
+  serverUpdateSchema?: yup.Schema<any>,
+  serverDeleteSchema?: yup.Schema<any>,
+
+  adminCreateSchema?: yup.Schema<any>,
+  adminReadSchema?: yup.Schema<any>,
+  adminUpdateSchema?: yup.Schema<any>,
+  adminDeleteSchema?: yup.Schema<any>,
+};
+
+type FillInOptionalsPrepareStep<O extends CrudSchemaCreationOptions> =
+  & { [K in keyof Required<CrudSchemaCreationOptions>]: K extends keyof O ? O[K] : undefined };
+
+type FillInOptionalsStep<O extends FillInOptionalsPrepareStep<CrudSchemaCreationOptions>> = {
+  clientCreateSchema: NullishCoalesce<O['clientCreateSchema'], undefined>,
+  clientReadSchema: NullishCoalesce<O['clientReadSchema'], undefined>,
+  clientUpdateSchema: NullishCoalesce<O['clientUpdateSchema'], undefined>,
+  clientDeleteSchema: NullishCoalesce<O['clientDeleteSchema'], undefined>,
+  
+  serverCreateSchema: NullishCoalesce<O['serverCreateSchema'], O['clientCreateSchema']>,
+  serverReadSchema: NullishCoalesce<O['serverReadSchema'], O['clientReadSchema']>,
+  serverUpdateSchema: NullishCoalesce<O['serverUpdateSchema'], O['clientUpdateSchema']>,
+  serverDeleteSchema: NullishCoalesce<O['serverDeleteSchema'], O['clientDeleteSchema']>,
+  
+  adminCreateSchema: NullishCoalesce<O['adminCreateSchema'], O['serverCreateSchema']>,
+  adminReadSchema: NullishCoalesce<O['adminReadSchema'], O['serverReadSchema']>,
+  adminUpdateSchema: NullishCoalesce<O['adminUpdateSchema'], O['serverUpdateSchema']>,
+  adminDeleteSchema: NullishCoalesce<O['adminDeleteSchema'], O['serverDeleteSchema']>,
+};
+
+type FillInOptionals<O extends CrudSchemaCreationOptions> = FillInOptionalsStep<FillInOptionalsStep<FillInOptionalsStep<FillInOptionalsPrepareStep<O>>>>;
+
+type CrudSchemaFromOptionsInner<O extends FillInOptionals<any>> = CrudSchema<
+  InnerCrudSchema<O['clientCreateSchema'], O['clientReadSchema'], O['clientUpdateSchema'], O['clientDeleteSchema']>,
+  InnerCrudSchema<O['serverCreateSchema'], O['serverReadSchema'], O['serverUpdateSchema'], O['serverDeleteSchema']>,
+  InnerCrudSchema<O['adminCreateSchema'], O['adminReadSchema'], O['adminUpdateSchema'], O['adminDeleteSchema']>
+>;
+
+type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
+
+type InnerCrudType<S extends InnerCrudSchema> =
+  & (S['createSchema'] extends {} ? { create: Parameters<S['createSchema']['validate']>[0] } : {})
+  & (S['readSchema'] extends {} ? { read: Parameters<S['readSchema']['validate']>[0] } : {})
+  & (S['updateSchema'] extends {} ? { update: Parameters<S['updateSchema']['validate']>[0] } : {})
+  & (S['deleteSchema'] extends {} ? { delete: Parameters<S['deleteSchema']['validate']>[0] } : {});
+
+export type CrudType<S extends CrudSchema> = {
+  Client: InnerCrudType<S['client']>,
+  Server: InnerCrudType<S['server']>,
+  Admin: InnerCrudType<S['admin']>,
+}
+
+export function createSerializableType<O extends CrudSchemaCreationOptions>(options: O): CrudSchemaFromOptions<O> {
+  const client = {
+    createSchema: options.clientCreateSchema,
+    readSchema: options.clientReadSchema,
+    updateSchema: options.clientUpdateSchema,
+    deleteSchema: options.clientDeleteSchema,
+  };
+
+  const serverOverrides = filterUndefined({
+    createSchema: options.serverCreateSchema,
+    readSchema: options.serverReadSchema,
+    updateSchema: options.serverUpdateSchema,
+    deleteSchema: options.serverDeleteSchema,
+  });
+  const server = {
+    ...client,
+    ...serverOverrides,
+  };
+
+  const adminOverrides = filterUndefined({
+    createSchema: options.adminCreateSchema,
+    readSchema: options.adminReadSchema,
+    updateSchema: options.adminUpdateSchema,
+    deleteSchema: options.adminDeleteSchema,
+  });
+  const admin = {
+    ...server,
+    ...adminOverrides,
+  };
+
+  return {
+    client,
+    server,
+    admin,
+  } as any;
+}
