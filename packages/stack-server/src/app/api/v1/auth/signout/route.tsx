@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
-import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 
 const postSchema = yup.object({
   body: yup.object({

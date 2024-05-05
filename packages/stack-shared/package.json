@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -15,7 +15,16 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": "^18.2"
+    "react": "^18.2",
+    "yup": "^1.4.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "yup": {
+      "optional": true
+    }
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

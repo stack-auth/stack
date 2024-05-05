@@ -1,4 +1,4 @@
-import { OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./tokens";
@@ -87,25 +87,36 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
   },
 };
 
-export async function isProjectAdmin(projectId: string, adminAccessToken: string) {
+export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-project-id" | "not-admin" | null> {
   let decoded;
-  try { 
+  try {
     decoded = await decodeAccessToken(adminAccessToken);
   } catch (error) {
-    return false;
+    if (error instanceof KnownErrors.AccessTokenExpired) {
+      return "access-token-expired";
+    }
+    return "unparsable-access-token";
   }
   const { userId, projectId: accessTokenProjectId } = decoded;
   if (accessTokenProjectId !== "internal") {
-    return false;
+    return "wrong-project-id";
   }
 
   const projectUser = await getServerUser("internal", userId);
   if (!projectUser) {
-    return false;
+    return "not-admin";
   }
 
   const allProjects = listProjectIds(projectUser);
-  return allProjects.includes(projectId);
+  if (!allProjects.includes(projectId)) {
+    return "not-admin";
+  }
+
+  return null;
+}
+
+export async function isProjectAdmin(projectId: string, adminAccessToken: string) {
+  return !await whyNotProjectAdmin(projectId, adminAccessToken);
 }
 
 function listProjectIds(projectUser: ServerUserJson) {

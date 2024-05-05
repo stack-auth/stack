@@ -1,10 +1,10 @@
 {
   "name": "e2e-tests",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "dotenv -c -- vitest run",
+    "test": "dotenv -c -- vitest watch",
     "test:ci": "vitest run"
   },
   "dependencies": {},

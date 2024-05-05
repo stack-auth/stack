@@ -256,7 +256,8 @@ export class StackClientInterface {
   protected async sendClientRequest(
     path: string, 
     requestOptions: RequestInit, 
-    tokenStoreOrNull: TokenStore | null
+    tokenStoreOrNull: TokenStore | null,
+    requestType: "client" | "server" | "admin" = "client",
   ) {
     const tokenStore = tokenStoreOrNull ?? new AsyncStore<TokenObject>({
       accessToken: null,
@@ -266,7 +267,7 @@ export class StackClientInterface {
 
     return await Result.orThrowAsync(
       Result.retry(
-        () => this.sendClientRequestInner(path, requestOptions, tokenStore!),
+        () => this.sendClientRequestInner(path, requestOptions, tokenStore!, requestType),
         5,
         { exponentialDelayBase: 1000 },
       )
@@ -303,6 +304,7 @@ export class StackClientInterface {
      * This object will be modified for future retries, so it should be passed by reference.
      */
     tokenStore: TokenStore,
+    requestType: "client" | "server" | "admin",
   ): Promise<Result<Response & {
     usedTokens: TokenObject,
   }>> {
@@ -326,6 +328,7 @@ export class StackClientInterface {
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
+        "X-Stack-Request-Type": requestType,
         ...tokenObj.accessToken ? {
           "Authorization": "StackSession " + tokenObj.accessToken,
         } : {},

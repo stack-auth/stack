@@ -22,7 +22,7 @@ async function seed() {
     },
     create: {
       id: 'internal',
-      displayName: 'Internal Project',
+      displayName: 'Stack Dashboard',
       description: 'This project is used for Stack\'s internal dashboard',
       isProductionMode: false,
       apiKeySets: {

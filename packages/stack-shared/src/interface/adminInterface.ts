@@ -82,7 +82,7 @@ export class StackAdminInterface extends StackServerInterface {
     super(options);
   }
 
-  protected async sendAdminRequest(path: string, options: RequestInit, tokenStore: TokenStore | null) {
+  protected async sendAdminRequest(path: string, options: RequestInit, tokenStore: TokenStore | null, requestType: "admin" = "admin") {
     return await this.sendServerRequest(
       path,
       {
@@ -93,6 +93,7 @@ export class StackAdminInterface extends StackServerInterface {
         },
       },
       tokenStore,
+      requestType,
     );
   }
 

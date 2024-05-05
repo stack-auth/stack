@@ -58,7 +58,7 @@ export class StackServerInterface extends StackClientInterface {
     super(options);
   }
 
-  protected async sendServerRequest(path: string, options: RequestInit, tokenStore: TokenStore | null) {
+  protected async sendServerRequest(path: string, options: RequestInit, tokenStore: TokenStore | null, requestType: "server" | "admin" = "server") {
     return await this.sendClientRequest(
       path,
       {
@@ -69,6 +69,7 @@ export class StackServerInterface extends StackClientInterface {
         },
       },
       tokenStore,
+      requestType,
     );
   }
 

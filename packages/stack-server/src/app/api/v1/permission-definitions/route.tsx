@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deprecatedParseRequest, deprecatedSmartRouteHandler } from "@/lib/route-handlers";
+import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { createPermissionDefinition, listServerPermissionDefinitions } from "@/lib/permissions";
