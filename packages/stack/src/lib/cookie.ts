@@ -2,12 +2,20 @@ import { generateRandomCodeVerifier, generateRandomState, calculatePKCECodeChall
 import Cookies from "js-cookie";
 import { cookies as rscCookies } from '@stackframe/stack-sc';
 
+function isCookieUnavailableError(e: any) {
+  const allowedMessageSnippets = ["was called outside a request scope", "cookies() expects to have requestAsyncStorage"];
+  return typeof e?.message === "string" && allowedMessageSnippets.some(msg => e.message.includes(msg));
+}
+
 export function getCookie(name: string): string | null {
-  // TODO the differentiating factor should be RCC vs. RSC, not whether it's a client
-  if (rscCookies) {
+  try {
     return rscCookies().get(name)?.value ?? null;
-  } else {
-    return Cookies.get(name) ?? null;
+  } catch (e: any) {
+    if (isCookieUnavailableError(e)) {
+      return Cookies.get(name) ?? null;
+    } else {
+      throw e;
+    }
   }
 }
 
@@ -20,18 +28,31 @@ export function setOrDeleteCookie(name: string, value: string | null) {
 }
 
 export function deleteCookie(name: string) {
-  if (rscCookies) {
+  try {
     rscCookies().delete(name);
-  } else {
-    Cookies.remove(name);
+  } catch (e: any) {
+    if (isCookieUnavailableError(e)) {
+      Cookies.remove(name);
+    } else {
+      throw e;
+    }
   }
 }
 
-export function setCookie(name: string, value: string) {
-  if (rscCookies) {
-    rscCookies().set(name, value);
-  } else {
-    Cookies.set(name, value, { secure: window.location.protocol === "https:" });
+export function setCookie(name: string, value: string, options: { maxAge?: number } = {}) {
+  try {
+    rscCookies().set(name, value, {
+      maxAge: options.maxAge,
+    });
+  } catch (e: any) {
+    if (isCookieUnavailableError(e)) {
+      Cookies.set(name, value, {
+        secure: window.location.protocol === "https:",
+        expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
+      });
+    } else {
+      throw e;
+    }
   }
 }
 

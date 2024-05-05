@@ -17,6 +17,7 @@
     "dev:app": "turbo run dev --continue --filter=@stackframe/dev-app...",
     "dev:server": "turbo run dev --continue --filter=@stackframe/stack-server...",
     "dev:email": "turbo run email --continue --filter=@stackframe/stack-server...",
+    "start": "turbo run start --parallel --continue",
     "start:server": "turbo run start --continue --filter=@stackframe/stack-server...",
     "docs": "turbo run dev --parallel --continue --filter=stack-docs...",
     "lint": "turbo run lint --no-cache -- --max-warnings=0",

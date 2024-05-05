@@ -6,7 +6,7 @@
     "docusaurus": "dotenv -c -- docusaurus",
     "clean": "pnpm docusaurus clear && rimraf node_modules",
     "dev": "pnpm docusaurus start --port 8104 --no-open",
-    "start": "pnpm docusaurus start",
+    "start": "pnpm docusaurus start --port 8104 --no-open",
     "build": "pnpm docusaurus build",
     "swizzle": "pnpm docusaurus swizzle",
     "deploy": "pnpm docusaurus deploy",

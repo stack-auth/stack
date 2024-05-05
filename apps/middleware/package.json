@@ -1,11 +1,11 @@
 {
-  "name": "partial-prerendering",
+  "name": "middleware-demo",
   "version": "0.1.4",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8105",
+    "dev": "next dev --port 8107",
     "build": "next build",
-    "start": "next start --port 8105",
+    "start": "next start --port 8107",
     "lint": "next lint"
   },
   "dependencies": {
