@@ -5,14 +5,22 @@ import type { NextRequest } from 'next/server';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 
 const corsAllowedRequestHeaders = [
+  // General
   'authorization',
   'content-type',
   'x-stack-project-id',
+  'x-stack-override-error-status',
+  
+  // Project auth
+  'x-stack-request-type',
   'x-stack-publishable-client-key',
   'x-stack-secret-server-key',
   'x-stack-super-secret-admin-key',
   'x-stack-admin-access-token',
-  'x-stack-override-error-status',
+
+  // User auth
+  'x-stack-user-refresh-token',
+  'x-stack-user-access-token',
 ];
 
 const corsAllowedResponseHeaders = [

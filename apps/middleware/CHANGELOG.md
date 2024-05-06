@@ -1,4 +1,4 @@
-# cjs-test
+# middleware-demo
 
 ## 0.2.0
 
@@ -10,11 +10,3 @@
 
 - Updated dependencies
   - @stackframe/stack@2.4.0
-
-## 0.1.2
-
-### Patch Changes
-
-- Bugfixes
-- Updated dependencies
-  - @stackframe/stack@2.3.8

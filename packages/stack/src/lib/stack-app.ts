@@ -236,8 +236,8 @@ const cookieTokenStoreInitializer = (): TokenStore => {
     }, 10);
     cookieTokenStore.onChange((value) => {
       try {
-        setOrDeleteCookie('stack-refresh', value.refreshToken);
-        setOrDeleteCookie('stack-access', value.accessToken);
+        setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+        setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         hasSucceededInWriting = true;
       } catch (e) {
         hasSucceededInWriting = false;
@@ -261,8 +261,8 @@ const tokenStoreInitializers = new Map<TokenStoreOptions, () => TokenStore>([
       });
       store.onChange((value) => {
         try {
-          setOrDeleteCookie('stack-refresh', value.refreshToken);
-          setOrDeleteCookie('stack-access', value.accessToken);
+          setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         } catch (e) {
           // ignore
         }
@@ -762,10 +762,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
-    if (result?.newUser) {
-      window.location.replace(this.urls.afterSignUp);
-    } else {
-      window.location.replace(this.urls.afterSignIn);
+    if (result) {
+      if (result.newUser) {
+        window.location.replace(this.urls.afterSignUp);
+      } else {
+        window.location.replace(this.urls.afterSignIn);
+      }
     }
     await neverResolve();
   }

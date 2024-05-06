@@ -2,7 +2,7 @@ import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export async function signInWithOAuth(

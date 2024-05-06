@@ -35,7 +35,12 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   }
   errorSinks.add(sink);
 }
-registerErrorSink((location, ...args) => console.error(`Error in ${location}:`, ...args));
+registerErrorSink((location, ...args) => {
+  console.error(`Error in ${location}:`, ...args);
+  if (process.env.NODE_ENV === "development") {
+    debugger;
+  }
+});
 
 export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {
