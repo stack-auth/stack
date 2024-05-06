@@ -103,7 +103,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async listServerUserTeams(tokenStore: TokenStore): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest(
-      "/current-user/teams",
+      "/current-user/teams?server=true",
       {},
       tokenStore,
     );
