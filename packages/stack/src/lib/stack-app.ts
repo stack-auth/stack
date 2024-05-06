@@ -197,17 +197,6 @@ function createEmptyTokenStore() {
   return store;
 }
 
-function teamFromJson(json: TeamJson): Team {
-  return {
-    id: json.id,
-    displayName: json.displayName,
-    createdAt: new Date(json.createdAtMillis),
-    toJson() {
-      return json;
-    },
-  };
-}
-
 const memoryTokenStore = createEmptyTokenStore();
 let cookieTokenStore: TokenStore | null = null;
 const cookieTokenStoreInitializer = (): TokenStore => {
@@ -1462,8 +1451,8 @@ export type User = (
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string], Permission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team], Permission[], true>
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>
 );
 
 export type CurrentUser = Auth<User, UserUpdateJson> & User;
@@ -1494,8 +1483,8 @@ export type ServerUser = (
   } 
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string], ServerPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team], ServerPermission[], true>
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>
 )
 
 export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
@@ -1599,9 +1588,14 @@ export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
 };
 
+type SplitArgs<T extends any[], U extends number> = [
+  ...Parameters<Extract<T[U], (...args: any) => any>>,
+  Omit<T, U>
+];
+
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
-  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: [...args: Args, callback: (value: Value) => void]) => void }
+  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: SplitArgs<Args, 0> & [(value: Value) => void]) => void }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
