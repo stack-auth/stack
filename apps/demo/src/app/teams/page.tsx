@@ -4,7 +4,7 @@ import { stackServerApp } from "src/stack";
 export default async function Page() {
   const teams = await stackServerApp.listTeams();
   const user = await stackServerApp.getUser({ or: 'redirect' });
-  const userTeams = await user?.listTeams();
+  const userTeams = await user.listTeams();
 
   return (
     <div className='flex-col gap-2'>
