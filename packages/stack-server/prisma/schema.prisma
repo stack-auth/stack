@@ -105,8 +105,8 @@ model TeamMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId])
-  team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId])
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
 
   directPermissions TeamMemberDirectPermission[]
 
@@ -124,8 +124,8 @@ model TeamMemberDirectPermission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId])
-  permission Permission @relation(fields: [permissionDbId], references: [dbId])
+  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
 
   @@id([projectId, projectUserId, teamId, permissionDbId])
 }
