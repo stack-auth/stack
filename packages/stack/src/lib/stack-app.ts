@@ -140,15 +140,6 @@ function getUserFunctions<P extends Permission, T extends Team>(appOptions: {
       const permissions = await this.listPermissions(scope);
       return permissions.some((p) => p.id === permissionId);
     },
-    onPermissionsChange(scope: Team, callback: (permissions: P[]) => void, options?: { direct?: boolean }) {
-      return appOptions.permissionsCache.onChange([getTokenStore(appOptions.tokenStoreOptions), scope.id, 'team', !!options?.direct], callback);
-    },
-    onPermissionChange(scope: Team, permissionId: string, callback: (permission: P | null) => void, options?: { direct?: boolean }) {
-      return this.onPermissionsChange(scope, (permissions) => {
-        const permission = permissions.find((p) => p.id === permissionId) ?? null;
-        callback(permission);
-      }, options);
-    },
   };
 }
 
@@ -1446,13 +1437,14 @@ export type User = (
     readonly authWithEmail: boolean,
     readonly oauthProviders: readonly string[],
 
-    toJson(this: CurrentUser): UserJson,
     hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
+
+    toJson(this: CurrentUser): UserJson,
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>
+  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>, "onPermissionChange">
+  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>, "onPermissionsChange">
 );
 
 export type CurrentUser = Auth<User, UserUpdateJson> & User;
@@ -1473,18 +1465,18 @@ export type ServerUser = (
      */
     getClientUser(this: ServerUser): User,
 
-    toJson(this: ServerUser): ServerUserJson,
-
     update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
     delete(this: ServerUser): Promise<void>,
 
     grantPermission(scope: Team, permissionId: string): Promise<void>,
     revokePermission(scope: Team, permissionId: string): Promise<void>,
+
+    toJson(this: ServerUser): ServerUserJson,
   } 
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>
+  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>, "onPermissionChange">
+  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>, "onPermissionsChange">
 )
 
 export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
@@ -1595,7 +1587,7 @@ type SplitArgs<T extends any[], U extends number> = [
 
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
-  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: SplitArgs<Args, 0> & [(value: Value) => void]) => void }
+  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: [...args: Args, callback: (value: Value) => void]) => void }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
