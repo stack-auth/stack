@@ -753,7 +753,7 @@ export class StackClientInterface {
     return Result.ok(user);
   }
 
-  async listClientUserTeamPermissions(
+  async listServerUserTeamPermissions(
     options: {
       teamId: string,
       type: 'global' | 'team', 

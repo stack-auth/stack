@@ -5,9 +5,6 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { listUserServerTeams, listUserTeams } from "@/lib/teams";
-import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { listUserDirectPermissions } from "@/lib/permissions";
 
 

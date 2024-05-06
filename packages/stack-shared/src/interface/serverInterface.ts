@@ -84,6 +84,33 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
+  async listServerUserTeamPermissions(
+    options: {
+      teamId: string,
+      type: 'global' | 'team', 
+      direct: boolean, 
+    },
+    tokenStore: TokenStore
+  ): Promise<ServerPermissionDefinitionJson[]> {
+    const response = await this.sendServerRequest(
+      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}&server=true`,
+      {},
+      tokenStore,
+    );
+    const permissions: ServerPermissionDefinitionJson[] = await response.json();
+    return permissions;
+  }
+
+  async listServerUserTeams(tokenStore: TokenStore): Promise<ServerTeamJson[]> {
+    const response = await this.sendServerRequest(
+      "/current-user/teams",
+      {},
+      tokenStore,
+    );
+    const teams: ServerTeamJson[] = await response.json();
+    return teams;
+  }
+
   async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
     const response = await this.sendServerRequest(`/permission-definitions?server=true`, {}, null);
     return await response.json();

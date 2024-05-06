@@ -357,7 +357,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, 'team' | 'global', boolean], 
     Permission[]
   >(async (tokenStore, [teamId, type, direct]) => {
-    const jsons = await this._interface.listClientUserTeamPermissions({ teamId, type, direct }, tokenStore);
+    const jsons = await this._interface.listServerUserTeamPermissions({ teamId, type, direct }, tokenStore);
     return jsons.map((json) => this._permissionFromJson(json));
   });
   private readonly _currentUserTeamsCache = createCacheByTokenStore(async (tokenStore) => {
@@ -950,13 +950,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, 'team' | 'global', boolean], 
     ServerPermission[]
   >(async (tokenStore, [teamId, type, direct]) => {
-    return [] satisfies ServerPermission[]; // TODO ASAP
+    const permissions = await this._interface.listServerUserTeamPermissions({ teamId, type, direct }, tokenStore);
+    return permissions.map((p) => this._serverPermissionFromJson(p));
   });
   private readonly _currentUserServerTeamsCache = createCacheByTokenStore<
     [],
     ServerTeam[]
   >(async (tokenStore) => {
-    return [] satisfies ServerTeam[]; // TODO ASAP
+    const teams = await this._interface.listServerUserTeams(tokenStore);
+    return teams.map((t) => this._serverTeamFromJson(t));
   });
 
 
