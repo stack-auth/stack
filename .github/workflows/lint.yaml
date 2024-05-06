@@ -10,14 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SERVER_BASE_URL: http://localhost:8101
-      PROJECT_CLIENT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-      PROJECT_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
-
       NEXT_PUBLIC_STACK_URL: http://localhost:8101
-      NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.PROJECT_CLIENT_ID }}
-      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.PROJECT_CLIENT_KEY }}
-      STACK_SECRET_SERVER_KEY: test
+      NEXT_PUBLIC_STACK_PROJECT_ID: internal
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: internal-project-publishable-client-key
+      STACK_SECRET_SERVER_KEY: internal-project-secret-server-key
       SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
 
       EMAIL_HOST: 0.0.0.0
@@ -27,8 +23,8 @@ jobs:
       EMAIL_PASSWORD: none
       EMAIL_SENDER: noreply@test.com
 
-      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
-      DIRECT_DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+      DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
 
     strategy:
       matrix:
