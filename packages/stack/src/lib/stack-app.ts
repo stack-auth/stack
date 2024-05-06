@@ -357,7 +357,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, 'team' | 'global', boolean], 
     Permission[]
   >(async (tokenStore, [teamId, type, direct]) => {
-    const jsons = await this._interface.listServerUserTeamPermissions({ teamId, type, direct }, tokenStore);
+    const jsons = await this._interface.listClientUserTeamPermissions({ teamId, type, direct }, tokenStore);
     return jsons.map((json) => this._permissionFromJson(json));
   });
   private readonly _currentUserTeamsCache = createCacheByTokenStore(async (tokenStore) => {
