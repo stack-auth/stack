@@ -102,7 +102,7 @@ export async function userHasPermission({
   permissionId: string,
 }) {
   // TODO optimize
-  const allUserPermissions = await listUserPermissionsRecursive({ projectId, userId, teamId, type });
+  const allUserPermissions = await listUserPermissionDefinitionsRecursive({ projectId, userId, teamId, type });
   const permission = allUserPermissions.find(p => p.id === permissionId);
   if (!permission) {
     throw new KnownErrors.PermissionNotFound(permissionId);
@@ -296,7 +296,7 @@ export async function revokeTeamUserPermission({
   }
 }
 
-export async function listUserPermissionsRecursive({
+export async function listUserPermissionDefinitionsRecursive({
   projectId, 
   teamId, 
   userId, 

@@ -753,9 +753,16 @@ export class StackClientInterface {
     return Result.ok(user);
   }
 
-  async listClientUserPermissions(tokenStore: TokenStore): Promise<PermissionDefinitionJson[]> {
+  async listClientUserTeamPermissions(
+    options: {
+      teamId: string,
+      type: 'global' | 'team', 
+      direct: boolean, 
+    },
+    tokenStore: TokenStore
+  ): Promise<PermissionDefinitionJson[]> {
     const response = await this.sendClientRequest(
-      "/current-user/permissions",
+      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
       {},
       tokenStore,
     );
@@ -830,7 +837,7 @@ export class StackClientInterface {
 
 export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
   const errors: ProductionModeError[] = [];
-  const fixUrlRelative = `/projects/${encodeURIComponent(project.id)}/auth/urls-and-callbacks`;
+  const fixUrlRelative = `/projects/${project.id}/auth/urls-and-callbacks`;
 
   if (project.evaluatedConfig.allowLocalhost) {
     errors.push({

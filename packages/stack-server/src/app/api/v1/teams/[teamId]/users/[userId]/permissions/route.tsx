@@ -7,7 +7,7 @@ import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { getTeam, listUserTeams } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 import { isProjectAdmin } from "@/lib/projects";
-import { listUserDirectPermissions, listUserPermissionsRecursive } from "@/lib/permissions";
+import { listUserDirectPermissions, listUserPermissionDefinitionsRecursive } from "@/lib/permissions";
 
 const getSchema = yup.object({
   query: yup.object({
