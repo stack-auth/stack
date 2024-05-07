@@ -77,9 +77,20 @@ export class PermissionGraph {
   recursiveContains(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions[permissionId];
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
-    return [permission].concat(
-      permission.containPermissionIds.flatMap(id => this.recursiveContains(id))
-    );
+    
+    const result = new Map<string, ServerPermissionDefinitionJson>();
+    const idsToProcess = [...permission.containPermissionIds];
+    while (idsToProcess.length > 0) {
+      const id = idsToProcess.pop();
+      if (result.has(id)) continue;
+
+      const p = this.permissions[id];
+      if (!p) throw new Error(`Permission with id ${id} not found`);
+      result.set(id, p);
+      idsToProcess.push(...p.containPermissionIds);
+    }
+
+    return [...result.values()];
   }
 
   hasPermission(permissionId: string, targetPermissionId: string): boolean {

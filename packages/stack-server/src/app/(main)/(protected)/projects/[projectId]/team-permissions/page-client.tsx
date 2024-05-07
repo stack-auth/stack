@@ -36,7 +36,7 @@ export default function ClientPage() {
 
       <Stack alignItems={"flex-start"}>
         <AsyncButton onClick={() => setCreatePermissionModalOpen(true)}>
-        Create Permission
+          Create Permission
         </AsyncButton>
       </Stack>
 
@@ -94,6 +94,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                     scope: { type: "any-team" },
                     containPermissionIds,
                   });
+                  setId('');
                   props.onClose();
                 } finally {
                   setIsSaving(false);
