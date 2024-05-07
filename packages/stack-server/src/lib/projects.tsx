@@ -382,7 +382,6 @@ export async function updateProject(
     data: { 
       credentialEnabled: options.config?.credentialEnabled,
       magicLinkEnabled: options.config?.magicLinkEnabled,
-      teamsEnabled: options.config?.teamsEnabled,
       allowLocalhost: options.config?.allowLocalhost,
     },
   }));
@@ -443,7 +442,6 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
       allowLocalhost: project.config.allowLocalhost,
       credentialEnabled: project.config.credentialEnabled,
       magicLinkEnabled: project.config.magicLinkEnabled,
-      teamsEnabled: project.config.teamsEnabled,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,

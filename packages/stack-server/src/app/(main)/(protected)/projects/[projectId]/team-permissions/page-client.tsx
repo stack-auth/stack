@@ -2,7 +2,6 @@
 
 import { Paragraph } from "@/components/paragraph";
 import { PermissionsTable } from "./permissions-table";
-import { EnableTeam } from "../enable-team";
 import { useAdminApp } from "../use-admin-app";
 import { AsyncButton } from "@/components/async-button";
 import React, { useEffect, useState } from "react";
@@ -40,9 +39,7 @@ export default function ClientPage() {
         </AsyncButton>
       </Stack>
 
-      <EnableTeam>
-        <PermissionsTable rows={permissions} />
-      </EnableTeam>
+      <PermissionsTable rows={permissions} />
 
       <CreatePermissionModal
         open={createPermissionModalOpen}

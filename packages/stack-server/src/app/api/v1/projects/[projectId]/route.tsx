@@ -35,7 +35,6 @@ const putOrGetSchema = yup.object({
       ).default(undefined),
       credentialEnabled: yup.boolean().default(undefined),
       magicLinkEnabled: yup.boolean().default(undefined),
-      teamsEnabled: yup.boolean().oneOf([true]).default(undefined),
       allowLocalhost: yup.boolean().default(undefined),
     }).default(undefined),
   }).default(undefined),
@@ -65,7 +64,6 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       allowLocalhost: update.config.allowLocalhost,
       credentialEnabled: update.config.credentialEnabled,
       magicLinkEnabled: update.config.magicLinkEnabled,
-      teamsEnabled: update.config.teamsEnabled,
       oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
         if (sharedProviders.includes(provider.type as SharedProvider)) {
           return {
@@ -115,7 +113,6 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       id: project.id,
       credentialEnabled: project.evaluatedConfig.credentialEnabled,
       magicLinkEnabled: project.evaluatedConfig.magicLinkEnabled,
-      teamsEnabled: project.evaluatedConfig.teamsEnabled,
       oauthProviders: project.evaluatedConfig.oauthProviders.map(
         (provider) => ({
           id: provider.id,

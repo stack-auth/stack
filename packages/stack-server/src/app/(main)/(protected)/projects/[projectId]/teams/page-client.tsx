@@ -2,7 +2,6 @@
 
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
-import { EnableTeam } from "../enable-team";
 import { useAdminApp } from "../use-admin-app";
 
 
@@ -16,9 +15,7 @@ export default function ClientPage() {
         Teams
       </Paragraph>
 
-      <EnableTeam>
-        <TeamTable rows={teams} />
-      </EnableTeam>
+      <TeamTable rows={teams} />
     </>
   );
 }

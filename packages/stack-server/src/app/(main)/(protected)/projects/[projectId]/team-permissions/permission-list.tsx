@@ -82,8 +82,8 @@ export class PermissionGraph {
     const idsToProcess = [...permission.containPermissionIds];
     while (idsToProcess.length > 0) {
       const id = idsToProcess.pop();
+      if (!id) throw new Error('Unexpected undefined id, this should not happen');
       if (result.has(id)) continue;
-
       const p = this.permissions[id];
       if (!p) throw new Error(`Permission with id ${id} not found`);
       result.set(id, p);

@@ -2,7 +2,6 @@
 CREATE TYPE "PermissionScope" AS ENUM ('GLOBAL', 'TEAM');
 
 -- AlterTable
-ALTER TABLE "ProjectConfig" ADD COLUMN     "teamsEnabled" BOOLEAN NOT NULL DEFAULT false,
 ALTER COLUMN "magicLinkEnabled" DROP DEFAULT;
 
 -- AlterTable
