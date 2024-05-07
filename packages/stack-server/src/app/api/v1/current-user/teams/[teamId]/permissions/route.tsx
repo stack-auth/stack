@@ -6,6 +6,7 @@ import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { listUserDirectPermissions } from "@/lib/permissions";
+import { listServerTeamMembers } from "@/lib/teams";
 
 
 const getSchema = yup.object({
@@ -59,6 +60,11 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     if (!pkValid) {
       throw new StatusError(StatusError.Forbidden, "Publishable client key is invalid");
     }
+  }
+
+  const users = await listServerTeamMembers(projectId, options.params.teamId);
+  if (!users.some((user) => user.userId === userId)) {
+    return NextResponse.json([]);
   }
 
   return NextResponse.json(await listUserDirectPermissions({

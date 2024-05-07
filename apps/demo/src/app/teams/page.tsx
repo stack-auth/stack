@@ -18,10 +18,10 @@ export default async function Page() {
       <Text size='xl'>All Teams</Text>
 
       {teams.map((team) => (
-        <div key={team.id} className="flex gap-2 items-center">
+        <div key={team.id} className="flex gap-4 items-center">
           <Text>{team.displayName}</Text>
-          <Text variant="secondary">{userTeams?.some(t => t.id === team.id) ? '(You are a member)' : ''}</Text>
           <Link href={`/teams/${team.id}`}>Open</Link>
+          <Text variant="secondary">{userTeams?.some(t => t.id === team.id) ? '(You are a member)' : ''}</Text>
         </div>
       ))}
     </div>

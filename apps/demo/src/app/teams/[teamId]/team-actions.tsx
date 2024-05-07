@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, useUser } from "@stackframe/stack";
-import { joinTeam, leaveTeam } from "./server-actions";
+import { grantReadContentPermission, joinTeam, leaveTeam } from "./server-actions";
 
 export default function TeamActions(props: { teamId: string }) {
   const user = useUser({ or: 'redirect' });
@@ -10,14 +10,33 @@ export default function TeamActions(props: { teamId: string }) {
   return (
     <div>
       {team ? 
-        <Button variant="secondary" onClick={async () => {
-          await leaveTeam(team.id);
-          window.location.reload();
-        }}>Leave Team</Button> : 
-        <Button onClick={async () => {
-          await joinTeam(props.teamId);
-          window.location.reload();
-        }}>Join Team</Button>
+        <div className="flex gap-5">
+          <Button 
+            onClick={async () => {
+              await grantReadContentPermission(team.id);
+              window.location.reload();
+            }}
+          >
+            {'Get the "read:content" permission'}
+          </Button>
+          <Button 
+            variant="secondary" 
+            onClick={async () => {
+              await leaveTeam(team.id);
+              window.location.reload();
+            }}
+          >
+            Leave Team
+          </Button>
+        </div> : 
+        <Button 
+          onClick={async () => {
+            await joinTeam(props.teamId);
+            window.location.reload();
+          }}
+        >
+          Join Team
+        </Button>
       }
     </div>
   );

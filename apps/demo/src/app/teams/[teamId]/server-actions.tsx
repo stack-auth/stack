@@ -19,3 +19,15 @@ export const joinTeam = async (teamId: string) => {
   }
   await team.addUser(user.id);
 };
+
+export const grantReadContentPermission = async (teamId: string) => {
+  const user = await stackServerApp.getServerUser();
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+  const team = await stackServerApp.getTeam(teamId);
+  if (!team) {
+    throw new Error('Team not found');
+  }
+  await user.grantPermission(team, 'read:content');
+};
