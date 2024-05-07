@@ -167,6 +167,7 @@ export async function createProject(
             allowLocalhost: true,
             credentialEnabled: true,
             magicLinkEnabled: true,
+            createTeamOnSignUp: false,
             oauthProviderConfigs: {
               create: (['github', 'google'] as const).map((id) => ({
                 id,
@@ -383,6 +384,7 @@ export async function updateProject(
       credentialEnabled: options.config?.credentialEnabled,
       magicLinkEnabled: options.config?.magicLinkEnabled,
       allowLocalhost: options.config?.allowLocalhost,
+      createTeamOnSignUp: options.config?.createTeamOnSignUp,
     },
   }));
   
@@ -442,6 +444,7 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
       allowLocalhost: project.config.allowLocalhost,
       credentialEnabled: project.config.credentialEnabled,
       magicLinkEnabled: project.config.magicLinkEnabled,
+      createTeamOnSignUp: project.config.createTeamOnSignUp,
       domains: project.config.domains.map((domain) => ({
         domain: domain.domain,
         handlerPath: domain.handlerPath,

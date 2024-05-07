@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
 import { useAdminApp } from "../use-admin-app";

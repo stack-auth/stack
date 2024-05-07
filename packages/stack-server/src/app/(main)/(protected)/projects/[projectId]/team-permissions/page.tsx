@@ -1,10 +1,10 @@
 import ClientPage from "./page-client";
 
 export const metadata = {
-  title: "Users",
+  title: "Team Permissions",
 };
 
-export default function UsersDashboard() {
+export default function TeamPermissions() {
   return (
     <ClientPage />
   );

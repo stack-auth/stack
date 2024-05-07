@@ -5,6 +5,7 @@ import { Paragraph } from "@/components/paragraph";
 import { MemberTable } from './member-table';
 import { useAdminApp } from '../../use-admin-app';
 import { notFound } from 'next/navigation';
+import { SmartSwitch } from '@/components/smart-switch';
 
 
 export default function ClientPage(props: { teamId: string }) {
@@ -21,6 +22,8 @@ export default function ClientPage(props: { teamId: string }) {
       <Paragraph h1>
         {team.displayName}
       </Paragraph>
+
+      <SmartSwitch />
 
       <Paragraph body>
         <MemberTable rows={users || []} team={team} />

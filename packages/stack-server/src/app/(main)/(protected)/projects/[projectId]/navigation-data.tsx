@@ -75,6 +75,13 @@ export const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
+    name: "Team Settings",
+    href: "/team-settings",
+    regex: /^\/projects\/[^\/]+\/team-settings$/,
+    icon: <Icon icon="settings" />,
+    type: 'item'
+  },
+  {
     name: "Environment",
     href: "/environment",
     regex: /^\/projects\/[^\/]+\/environment$/,

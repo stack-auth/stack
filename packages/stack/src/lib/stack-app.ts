@@ -534,6 +534,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         oauthProviders: data.evaluatedConfig.oauthProviders,
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
+        createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
       },
 
       async update(update: ProjectUpdateOptions) {
@@ -1553,6 +1554,7 @@ export type Project = {
     readonly oauthProviders: OAuthProviderConfig[],
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
+    readonly createTeamOnSignUp: boolean,
   },
 
   update(this: Project, update: ProjectUpdateOptions): Promise<void>,

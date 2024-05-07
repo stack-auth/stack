@@ -103,6 +103,7 @@ export type ProjectJson = {
     oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
+    createTeamOnSignUp: boolean,
   },
 };
 
