@@ -1,10 +1,11 @@
 import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
+import { fullProjectInclude, getProject, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { addUserToTeam, createServerTeam } from "./teams";
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
   project: { include: typeof fullProjectInclude },
@@ -139,4 +140,16 @@ export function getServerUserFromDbType(
     authWithEmail: user.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
   };
+}
+
+export async function createTeamOnSignUp(projectId: string, userId: string): Promise<void> {
+  const project = await getProject(projectId);
+  if (!project) { 
+    throw new Error('Project not found'); 
+  }
+  if (!project.evaluatedConfig.createTeamOnSignUp) {
+    return;
+  }
+  const team = await createServerTeam(projectId, { displayName: 'Personal Team' });
+  await addUserToTeam(projectId, team.id, userId);
 }

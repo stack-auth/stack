@@ -11,8 +11,9 @@ import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { createTeamOnSignUp } from "@/lib/users";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -92,6 +93,8 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   const { refreshToken, accessToken } = await createAuthTokens({ projectId, projectUserId: newUser.projectUserId });
+
+  await createTeamOnSignUp(projectId, newUser.projectUserId);
 
   try {
     await sendVerificationEmail(projectId, newUser.projectUserId, emailVerificationRedirectUrl);

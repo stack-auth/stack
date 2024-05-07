@@ -9,6 +9,7 @@ import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { createTeamOnSignUp } from "@/lib/users";
 
 const postSchema = yup.object({
   headers: yup.object({
@@ -70,6 +71,8 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
         authWithEmail: true,
       },
     });
+
+    await createTeamOnSignUp(projectId, user.projectUserId);
   }
   
   if (

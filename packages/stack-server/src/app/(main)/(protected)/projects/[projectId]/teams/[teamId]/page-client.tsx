@@ -23,8 +23,6 @@ export default function ClientPage(props: { teamId: string }) {
         {team.displayName}
       </Paragraph>
 
-      <SmartSwitch />
-
       <Paragraph body>
         <MemberTable rows={users || []} team={team} />
       </Paragraph>

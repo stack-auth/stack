@@ -1,6 +1,5 @@
 "use client";;
 import { Typography } from "@mui/joy";
-import { useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
@@ -30,7 +29,7 @@ export default function TeamSettingsClient() {
           }}
         >
           <Typography>
-            {`Create a personal team for each user on sign up`}
+            {`Create a personal team for each user on sign-up`}
           </Typography>
         </SmartSwitch>
       </SimpleCard>
