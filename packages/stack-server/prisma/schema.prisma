@@ -130,7 +130,7 @@ model TeamMemberDirectPermission {
 
 model Permission {
   // The ID of this permission, as is chosen by and exposed to the user. It is different from the database ID, which is randomly generated and only used internally.
-  queriableId     String
+  queryableId     String
   // The database ID of this permission. This is never exposed to any client and is only used to make sure the database has an ID column.
   dbId            String  @id @default(uuid()) @db.Uuid
   // exactly one of [projectConfigId && projectConfig] or [projectId && teamId && team] must be set
@@ -152,8 +152,8 @@ model Permission {
   childEdges                 PermissionEdge[]             @relation("ParentPermission")
   teamMemberDirectPermission TeamMemberDirectPermission[]
 
-  @@unique([projectConfigId, queriableId])
-  @@unique([projectId, teamId, queriableId])
+  @@unique([projectConfigId, queryableId])
+  @@unique([projectId, teamId, queryableId])
 }
 
 enum PermissionScope {

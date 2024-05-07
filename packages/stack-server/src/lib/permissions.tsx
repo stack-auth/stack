@@ -23,14 +23,14 @@ function serverPermissionDefinitionJsonFromDbType(
 
   return {
     __databaseUniqueId: db.dbId,
-    id: db.queriableId,
+    id: db.queryableId,
     scope: 
       db.scope === "GLOBAL" ? { type: "global" } :
         db.teamId ? { type: "specific-team", teamId: db.teamId } :
           db.projectConfigId ? { type: "any-team" } :
             throwErr(new StackAssertionError(`Unexpected permission scope`, { db })), 
     description: db.description || undefined,
-    containPermissionIds: db.parentEdges.map((edge) => edge.parentPermission.queriableId),
+    containPermissionIds: db.parentEdges.map((edge) => edge.parentPermission.queryableId),
   };
 }
 
@@ -123,9 +123,9 @@ export async function grantTeamUserPermission({
         create: {
           permission: {
             connect: {
-              projectConfigId_queriableId: {
+              projectConfigId_queryableId: {
                 projectConfigId: project.configId,
-                queriableId: permissionId,
+                queryableId: permissionId,
               },
             },
           },
@@ -146,18 +146,18 @@ export async function grantTeamUserPermission({
     case "team": {
       const teamSpecificPermission = await prismaClient.permission.findUnique({
         where: {
-          projectId_teamId_queriableId: {
+          projectId_teamId_queryableId: {
             projectId,
             teamId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
         }
       });
       const anyTeamPermission = await prismaClient.permission.findUnique({
         where: {
-          projectConfigId_queriableId: {
+          projectConfigId_queryableId: {
             projectConfigId: project.configId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
         }
       });
@@ -225,7 +225,7 @@ export async function revokeTeamUserPermission({
         where: {
           permission: {
             projectConfigId: project.configId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
           teamMember: {
             projectId,
@@ -239,18 +239,18 @@ export async function revokeTeamUserPermission({
     case "team": {
       const teamSpecificPermission = await prismaClient.permission.findUnique({
         where: {
-          projectId_teamId_queriableId: {
+          projectId_teamId_queryableId: {
             projectId,
             teamId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
         }
       });
       const anyTeamPermission = await prismaClient.permission.findUnique({
         where: {
-          projectConfigId_queriableId: {
+          projectConfigId_queryableId: {
             projectConfigId: project.configId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
         }
       });
@@ -314,7 +314,7 @@ export async function listUserPermissionDefinitionsRecursive({
   if (!user) throw new KnownErrors.UserNotFound();
   
   const result = new Map<string, ServerPermissionDefinitionJson>();
-  const idsToProcess = [...user.directPermissions.map(p => p.permission.queriableId)];
+  const idsToProcess = [...user.directPermissions.map(p => p.permission.queryableId)];
   while (idsToProcess.length > 0) {
     const currentId = idsToProcess.pop()!;
     const current = permissionsMap.get(currentId);
@@ -408,7 +408,7 @@ export async function createPermissionDefinition(
   const dbPermission = await prismaClient.permission.create({
     data: {
       scope: scope.type === "global" ? "GLOBAL" : "TEAM",
-      queriableId: permission.id,
+      queryableId: permission.id,
       description: permission.description,
       ...scope.type === "specific-team" ? {
         projectId: project.id,
@@ -472,13 +472,13 @@ export async function updatePermissionDefinitions(
 
   const dbPermission = await prismaClient.permission.update({
     where: {
-      projectConfigId_queriableId: {
+      projectConfigId_queryableId: {
         projectConfigId: project.configId,
-        queriableId: permissionId,
+        queryableId: permissionId,
       },
     },
     data: {
-      queriableId: permission.id,
+      queryableId: permission.id,
       description: permission.description,
       ...edgeUpdateData,
     },
@@ -499,9 +499,9 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
       if (!project) throw new KnownErrors.ProjectNotFound();
       const deleted = await prismaClient.permission.delete({
         where: {
-          projectConfigId_queriableId: {
+          projectConfigId_queryableId: {
             projectConfigId: project.configId,
-            queriableId: permissionId,
+            queryableId: permissionId,
           },
         },
       });
@@ -520,9 +520,9 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
       if (!team) throw new KnownErrors.TeamNotFound(scope.teamId);
       const deleted = await prismaClient.permission.delete({
         where: {
-          projectId_teamId_queriableId: {
+          projectId_teamId_queryableId: {
             projectId,
-            queriableId: permissionId,
+            queryableId: permissionId,
             teamId: scope.teamId,
           },
         },
