@@ -1,5 +1,6 @@
-import { Link, Text } from "@stackframe/stack";
+import { Link, Separator, Text } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
+import MyTeams from "./my-teams";
 
 export default async function Page() {
   const teams = await stackServerApp.listTeams();
@@ -7,7 +8,13 @@ export default async function Page() {
   const userTeams = await user.listTeams();
 
   return (
-    <div className='flex-col gap-2'>
+    <div>
+      <Text size='xl'>My Teams</Text>
+
+      <MyTeams />
+
+      <Separator className="my-10" />
+
       <Text size='xl'>All Teams</Text>
 
       {teams.map((team) => (

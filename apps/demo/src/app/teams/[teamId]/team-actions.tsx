@@ -1,7 +1,6 @@
 'use client';
 
-import { Button, Text, useUser } from "@stackframe/stack";
-import { stackServerApp } from "src/stack";
+import { Button, useUser } from "@stackframe/stack";
 import { joinTeam, leaveTeam } from "./server-actions";
 
 export default function TeamActions(props: { teamId: string }) {
