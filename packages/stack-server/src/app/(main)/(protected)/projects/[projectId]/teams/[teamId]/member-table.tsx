@@ -39,7 +39,7 @@ export function MemberTable(props: {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
   const [userPermissions, setUserPermissions] = React.useState<Record<string, ServerPermission[]>>({});
   const [updateCounter, setUpdateCounter] = React.useState(0);
-  const [users, setUsers] = React.useState<ServerUser[]>([]);
+  const [users, setUsers] = React.useState<ServerUser[]>();
 
   React.useEffect(() => {
     async function load() {
@@ -61,6 +61,8 @@ export function MemberTable(props: {
       setUsers(data.map(d => d.user));
     }).catch(console.error);
   }, [props.rows, props.team, updateCounter]);
+
+  if (!users) return null;
 
   const columns: (GridColDef & {
     stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
@@ -154,7 +156,6 @@ export function MemberTable(props: {
         <PageLoadingIndicator />
       )}
       <DataGrid
-        getRowId={(row) => row.userId}
         slots={{
           toolbar: GridToolbar,
         }}
