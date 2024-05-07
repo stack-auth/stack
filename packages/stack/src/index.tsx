@@ -33,7 +33,9 @@ export type {
   ApiKeySet, 
   ServerTeam, 
   Team, 
-  ServerPermission as Permission, 
+  TeamMember,
+  ServerTeamMember,
+  ServerPermission as Permission,
   ServerPermission,
 } from './lib/stack-app';
 

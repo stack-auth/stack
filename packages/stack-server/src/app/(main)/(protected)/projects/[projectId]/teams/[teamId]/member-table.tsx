@@ -22,7 +22,7 @@ import {
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Dialog } from '@/components/dialog';
-import { ServerPermission, ServerTeam, ServerUser } from '@stackframe/stack';
+import { ServerPermission, ServerTeam, ServerUser, ServerTeamMember } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
@@ -30,7 +30,6 @@ import { Paragraph } from '@/components/paragraph';
 import { PermissionGraph, PermissionList } from '../../team-permissions/permission-list';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { AsyncButton } from '@/components/async-button';
-import { ServerTeamMember } from '../../../../../../../../../stack/dist/lib/stack-app';
 
 export function MemberTable(props: {
   rows: ServerTeamMember[],
