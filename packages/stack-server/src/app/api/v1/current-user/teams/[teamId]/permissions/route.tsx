@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { listUserDirectPermissions } from "@/lib/permissions";
+import { listUserPermissionDefinitionsRecursive } from "@/lib/permissions";
 import { listServerTeamMembers } from "@/lib/teams";
 
 
@@ -67,7 +67,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     return NextResponse.json([]);
   }
 
-  return NextResponse.json(await listUserDirectPermissions({
+  return NextResponse.json(await listUserPermissionDefinitionsRecursive({
     projectId, 
     teamId: options.params.teamId, 
     userId,

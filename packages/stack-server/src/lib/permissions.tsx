@@ -88,28 +88,6 @@ export async function listServerPermissionDefinitions(projectId: string, scope?:
   }
 }
 
-export async function userHasPermission({
-  projectId,
-  userId,
-  teamId,
-  type,
-  permissionId,
-}: {
-  projectId: string, 
-  userId: string, 
-  teamId: string,
-  type: 'team' | 'global',
-  permissionId: string,
-}) {
-  // TODO optimize
-  const allUserPermissions = await listUserPermissionDefinitionsRecursive({ projectId, userId, teamId, type });
-  const permission = allUserPermissions.find(p => p.id === permissionId);
-  if (!permission) {
-    throw new KnownErrors.PermissionNotFound(permissionId);
-  }
-  return permission;
-}
-
 export async function grantTeamUserPermission({
   projectId,
   teamId,
@@ -325,14 +303,18 @@ export async function listUserPermissionDefinitionsRecursive({
       },
     },
     include: {
-      directPermissions: true,
+      directPermissions: {
+        include: {
+          permission: true,
+        }
+      }
     },
   });  
 
   if (!user) throw new KnownErrors.UserNotFound();
-
+  
   const result = new Map<string, ServerPermissionDefinitionJson>();
-  const idsToProcess = [...user.directPermissions.map(p => p.permissionDbId)];
+  const idsToProcess = [...user.directPermissions.map(p => p.permission.queriableId)];
   while (idsToProcess.length > 0) {
     const currentId = idsToProcess.pop()!;
     const current = permissionsMap.get(currentId);

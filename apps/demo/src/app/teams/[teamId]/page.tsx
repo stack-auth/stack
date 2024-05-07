@@ -25,9 +25,9 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
     <div className="mb-5"></div>
 
-    <Text>{'You can see this if you are a member (join team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</Text>
-    <Text>{'You can see this if you have the "read:content" permission (get access with the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</Text>
-    <Text>{'You can see this if you have the "read:secret" permission (only the creator of the team): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</Text>
+    <Text>{'You can see this if you are a member (get access by joining team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</Text>
+    <Text>{'You can see this if you have the "read:content" permission (get access by pressing the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</Text>
+    <Text>{'You can see this if you have the "read:secret" permission (only the creator of the team have access): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</Text>
 
     <div className="mb-10"></div>
 
