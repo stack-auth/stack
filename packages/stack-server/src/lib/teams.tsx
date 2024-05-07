@@ -1,14 +1,16 @@
 import { prismaClient } from "@/prisma-client";
 import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerTeamCustomizableJson, ServerTeamJson, ServerUserJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
-import { getServerUserFromDbType } from "./users";
-import { fullProjectInclude } from "./projects";
 
 export const fullTeamMemberInclude = {
   team: true,
 } as const satisfies Prisma.TeamMemberInclude;
+
+export type ServerTeamMemberDB = Prisma.TeamMemberGetPayload<{ include: {
+  projectUser: true,
+}, }>;
 
 export async function listUserTeams(projectId: string, userId: string): Promise<TeamJson[]> {
   const members = await prismaClient.teamMember.findMany({
@@ -47,24 +49,18 @@ export async function listServerTeams(projectId: string): Promise<ServerTeamJson
   return await listTeams(projectId);  // currently ServerTeam and ClientTeam are the same
 }
 
-export async function listTeamServerUsers(projectId: string, teamId: string): Promise<ServerUserJson[]> {
+export async function listServerTeamMembers(projectId: string, teamId: string): Promise<ServerTeamMemberJson[]> {
   const members = await prismaClient.teamMember.findMany({
     where: {
       projectId,
       teamId,
     },
     include: {
-      projectUser: {
-        include: {
-          project: {
-            include: fullProjectInclude,
-          },
-        }
-      }
+      projectUser: true
     },
   });
 
-  return members.map((member) => getServerUserFromDbType(member.projectUser));
+  return members.map((member) => getServerTeamMemberFromDbType(member));
 }
 
 export async function getTeam(projectId: string, teamId: string): Promise<TeamJson | null> {
@@ -137,4 +133,12 @@ export async function removeUserFromTeam(projectId: string, teamId: string, user
       projectUserId: userId,
     },
   });
+}
+
+export function getServerTeamMemberFromDbType(member: ServerTeamMemberDB): ServerTeamMemberJson {
+  return {
+    userId: member.projectUserId,
+    teamId: member.teamId,
+    displayName: member.projectUser.displayName,
+  };
 }

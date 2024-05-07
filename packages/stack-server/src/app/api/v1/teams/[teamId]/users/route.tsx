@@ -5,8 +5,8 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { listTeamServerUsers } from "@/lib/teams";
-import { ServerUserJson } from "@stackframe/stack-shared";
+import { listServerTeamMembers } from "@/lib/teams";
+import { ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -34,13 +34,13 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
-  let teams: ServerUserJson[] = [];
+  let members: ServerTeamMemberJson[] = [];
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);
     }
-    teams = await listTeamServerUsers(projectId, options.params.teamId);
+    members = await listServerTeamMembers(projectId, options.params.teamId);
   }
 
-  return NextResponse.json(teams);
+  return NextResponse.json(members);
 });

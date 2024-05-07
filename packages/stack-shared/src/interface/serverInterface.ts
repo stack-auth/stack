@@ -8,6 +8,7 @@ import {
   UserUpdateJson,
   PermissionDefinitionJson,
   PermissionDefinitionScopeJson as PermissionDefinitionScopeJson,
+  TeamMemberJson,
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
@@ -27,6 +28,8 @@ export type ServerOrglikeJson = OrglikeJson & {};
 
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
+
+export type ServerTeamMemberJson = TeamMemberJson
 
 export type ServerPermissionDefinitionCustomizableJson = {
   readonly id: string,
@@ -78,6 +81,17 @@ export class StackServerInterface extends StackClientInterface {
       "/current-user?server=true",
       {},
       tokenStore,
+    );
+    const user: ServerUserJson | null = await response.json();
+    if (!user) return Result.error(new Error("Failed to get user"));
+    return Result.ok(user);
+  }
+
+  async getServerUserById(userId: string): Promise<Result<ServerUserJson>> {
+    const response = await this.sendServerRequest(
+      `/users/${userId}?server=true`,
+      {},
+      null,
     );
     const user: ServerUserJson | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
@@ -168,7 +182,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async listTeamUsers(teamId: string): Promise<ServerUserJson[]> {
+  async listTeamMembers(teamId: string): Promise<ServerTeamMemberJson[]> {
     const response = await this.sendServerRequest(`/teams/${teamId}/users?server=true`, {}, null);
     return await response.json();
   }
@@ -250,7 +264,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listTeamUserPermissions(
+  async listTeamMemberPermissions(
     options: {
       teamId: string, 
       userId: string, 

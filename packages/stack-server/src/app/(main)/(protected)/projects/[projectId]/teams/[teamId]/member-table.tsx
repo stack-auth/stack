@@ -30,27 +30,35 @@ import { Paragraph } from '@/components/paragraph';
 import { PermissionGraph, PermissionList } from '../../team-permissions/permission-list';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { AsyncButton } from '@/components/async-button';
+import { ServerTeamMember } from '../../../../../../../../../stack/dist/lib/stack-app';
 
 export function MemberTable(props: {
-  rows: ServerUser[],
+  rows: ServerTeamMember[],
   team: ServerTeam,
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
   const [userPermissions, setUserPermissions] = React.useState<Record<string, ServerPermission[]>>({});
   const [updateCounter, setUpdateCounter] = React.useState(0);
+  const [users, setUsers] = React.useState<ServerUser[]>([]);
 
   React.useEffect(() => {
     async function load() {
-      const promises = props.rows.map(async user => {
-        return await user.listPermissions(props.team, { direct: true });
+      const promises = props.rows.map(async member => {
+        const user = await member.getUser();
+        const permissions = await user.listPermissions(props.team, { direct: true });
+        return {
+          user,
+          permissions,
+        };
       });
       return await Promise.all(promises);
     }
     
-    load().then((permissions) => {
+    load().then((data) => {
       setUserPermissions(Object.fromEntries(
-        props.rows.map((user, index) => [user.id, permissions[index]])
+        props.rows.map((member, index) => [member.userId, data[index].permissions])
       ));
+      setUsers(data.map(d => d.user));
     }).catch(console.error);
   }, [props.rows, props.team, updateCounter]);
 
@@ -146,11 +154,12 @@ export function MemberTable(props: {
         <PageLoadingIndicator />
       )}
       <DataGrid
+        getRowId={(row) => row.userId}
         slots={{
           toolbar: GridToolbar,
         }}
         autoHeight
-        rows={props.rows}
+        rows={users}
         columns={columns}
         initialState={{
           pagination: { paginationModel: { pageSize: 15 } },

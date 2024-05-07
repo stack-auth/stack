@@ -158,6 +158,12 @@ export type TeamJson = OrglikeJson;
 
 export type OrganizationJson = OrglikeJson;
 
+export type TeamMemberJson = {
+  userId: string,
+  teamId: string,
+  displayName: string | null,
+}
+
 
 export type PermissionDefinitionScopeJson =
   | { type: "global" }

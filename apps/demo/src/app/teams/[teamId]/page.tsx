@@ -10,7 +10,7 @@ export default async function Page({ params }: { params: { teamId: string } }) {
   }
   const user = await stackServerApp.getUser({ or: 'redirect' });
   const userTeams = await user.listTeams();
-  const teamUsers = await team.listUsers();
+  const members = await team.listMembers();
 
   return <div>
     <Text size='xl'>{team.displayName}</Text>
@@ -20,8 +20,8 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
     <Text size='lg'>Members</Text>
 
-    {teamUsers.map((teamUser) => (
-      <div key={teamUser.id}>
+    {members.map((teamUser) => (
+      <div key={teamUser.userId}>
         <Text>- {teamUser.displayName}</Text>
       </div>
     ))}

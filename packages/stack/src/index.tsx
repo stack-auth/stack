@@ -28,7 +28,7 @@ export type { ThemeConfig } from './providers/theme-provider';
 export type { 
   CurrentUser, 
   Project, 
-  ServerUser, 
+  ServerUser as ServerUser, 
   ApiKeySetFirstView, 
   ApiKeySet, 
   ServerTeam, 

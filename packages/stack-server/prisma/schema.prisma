@@ -110,8 +110,6 @@ model TeamMember {
 
   directPermissions TeamMemberDirectPermission[]
 
-  displayName String?
-
   @@id([projectId, projectUserId, teamId])
 }
 
