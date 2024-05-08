@@ -35,7 +35,7 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
     {members.map((teamUser) => (
       <div key={teamUser.userId}>
-        <Text>- {teamUser.displayName}</Text>
+        <Text>- {teamUser.displayName || '[no name]'}</Text>
       </div>
     ))}
 
