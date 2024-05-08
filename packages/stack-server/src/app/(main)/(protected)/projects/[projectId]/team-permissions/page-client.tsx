@@ -11,6 +11,7 @@ import {
   DialogTitle,
   Divider,
   FormControl,
+  FormHelperText,
   FormLabel,
   Input,
   Modal,
@@ -58,15 +59,30 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
   const [containPermissionIds, setContainPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = useState<PermissionGraph>();
   const [id, setId] = useState<string>('');
+  const [idError, setIdError] = useState<string>('');
 
   useEffect(() => {
     setGraph((new PermissionGraph(permissions)).addPermission());
   }, [permissions]);
 
+  useEffect(() => {
+    setIdError('');
+    if (permissions.map(p => p.id).includes(id)) {
+      setIdError('Permission ID already exists');
+      return;
+    }
+  }, [id, permissions]);
+
+  const onClose = () => {
+    setId('');
+    setIdError('');
+    props.onClose();
+  };
+
   if (!graph) return null;
 
   return (
-    <Modal open={props.open} onClose={() => props.onClose()}>
+    <Modal open={props.open} onClose={onClose}>
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
@@ -91,8 +107,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                     scope: { type: "any-team" },
                     containPermissionIds,
                   });
-                  setId('');
-                  props.onClose();
+                  onClose();
                 } finally {
                   setIsSaving(false);
                 }
@@ -101,9 +116,12 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
             ref={formRef}
           >
             <Stack spacing={2}>
-              <FormControl disabled={isSaving} required>
+              <FormControl disabled={isSaving} required error={idError !== ''}>
                 <FormLabel htmlFor="permissionId">ID</FormLabel>
                 <Input name="permissionId" placeholder="Permission ID" required value={id} onChange={(event) => setId(event.target.value)}/>
+                <FormHelperText>
+                  {idError}
+                </FormHelperText>
               </FormControl>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="description">Description</FormLabel>
@@ -126,6 +144,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
             color="primary"
             loading={isSaving}
             onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+            disabled={idError !== '' || id === ''}
           >
             Save
           </AsyncButton>

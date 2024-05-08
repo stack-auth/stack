@@ -21,6 +21,7 @@ import {
   FormLabel,
   Input,
   DialogActions,
+  FormHelperText,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
@@ -154,18 +155,33 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
   const selectedPermission = permissions.find((permission) => permission.id === props.selectedPermissionId);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [containPermissionIds, setcontainPermissionIds] = React.useState<string[]>([]);
+  const [containPermissionIds, setContainPermissionIds] = React.useState<string[]>([]);
   const [graph, setGraph] = React.useState<PermissionGraph>();
   const [id, setId] = React.useState<string>(selectedPermission?.id || '');
+  const [idError, setIdError] = React.useState<string>('');
 
   React.useEffect(() => {
     setGraph((new PermissionGraph(permissions)).replacePermission(props.selectedPermissionId));
   }, [permissions, props.selectedPermissionId]);
 
+  React.useEffect(() => {
+    setIdError('');
+    if (permissions.map(p => p.id).filter(id => id !== props.selectedPermissionId).includes(id)) {
+      setIdError('Permission ID already exists');
+      return;
+    }
+  }, [id, permissions, props.selectedPermissionId]);
+
+  const onClose = () => {
+    setId(selectedPermission?.id || '');
+    setIdError('');
+    props.onClose();
+  };
+
   if (!selectedPermission || !graph) return null;
 
   return (
-    <Modal open={props.open} onClose={() => props.onClose()}>
+    <Modal open={props.open} onClose={onClose}>
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
@@ -192,7 +208,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                       containPermissionIds,
                     }
                   );
-                  props.onClose();
+                  onClose();
                 } finally {
                   setIsSaving(false);
                 }
@@ -201,9 +217,12 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
             ref={formRef}
           >
             <Stack spacing={2}>
-              <FormControl disabled={isSaving}>
+              <FormControl disabled={isSaving} required error={idError !== ''}>
                 <FormLabel htmlFor="permissionId">ID</FormLabel>
                 <Input name="permissionId" placeholder="Permission ID" required value={id} onChange={(event) => setId(event.target.value)}/>
+                <FormHelperText>
+                  {idError}
+                </FormHelperText>
               </FormControl>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="description">Description</FormLabel>
@@ -213,7 +232,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                 updatePermission={
                   (permissionId, permission) => {
                     setGraph(graph.updatePermission(permissionId, permission));
-                    setcontainPermissionIds(permission.containPermissionIds);
+                    setContainPermissionIds(permission.containPermissionIds);
                   }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
