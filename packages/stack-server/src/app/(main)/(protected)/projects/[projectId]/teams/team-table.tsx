@@ -152,14 +152,14 @@ function Actions(props: { params: any }) {
         open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         okButton={{
-          label: "Delete user",
+          label: "Delete Team",
           onClick: async () => {
             await props.params.row.delete();
           }
         }}
         cancelButton={true}
       >
-        Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
+        Are you sure you want to delete the team &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone. All team members will be removed from the team.
       </Dialog>
     </>
   );

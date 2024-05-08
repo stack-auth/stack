@@ -1152,6 +1152,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._interface.updateTeam(json.id, update);
         await app._serverTeamsCache.refresh([]);
       },
+      async delete() {
+        await app._interface.deleteTeam(json.id);
+        await app._serverTeamsCache.refresh([]);
+      },
       useMembers() {
         const result = useCache(app._serverTeamMembersCache, [json.id], "team.useUsers()");
         return useMemo(() => result.map((u) => app._serverTeamMemberFromJson(u)), [result]);
@@ -1576,6 +1580,7 @@ export type ServerTeam = Team & {
   listMembers(): Promise<ServerTeamMember[]>,
   useMembers(): ServerTeamMember[],
   update(update: Partial<ServerTeamCustomizableJson>): Promise<void>,
+  delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
   removeUser(userId: string): Promise<void>,
 };

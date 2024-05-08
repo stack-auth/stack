@@ -216,6 +216,14 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async deleteTeam(teamId: string): Promise<void> {
+    await this.sendServerRequest(
+      `/teams/${teamId}?server=true`,
+      { method: "DELETE" },
+      null,
+    );
+  }
+
   async addUserToTeam(options: {
     userId: string, 
     teamId: string,
