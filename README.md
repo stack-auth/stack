@@ -39,7 +39,6 @@ We all know how much overhead there is when starting a new project. Developers n
 
 ## Roadmap
 
-- Team, groups, and roles
 - Feature-rich email/notification system
 - React, React Native, and Vue.js support
 - Python backend library
