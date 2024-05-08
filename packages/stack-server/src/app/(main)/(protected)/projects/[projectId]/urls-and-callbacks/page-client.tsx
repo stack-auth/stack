@@ -7,7 +7,7 @@ import { Icon } from "@/components/icon";
 import { Dialog } from "@/components/dialog";
 import { AsyncButton } from "@/components/async-button";
 import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../../use-admin-app";
+import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";

@@ -7,13 +7,13 @@ import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
 
-export type UserCustomizableJson = {
-  readonly projectId: string,
+type UserCustomizableJson = {
   readonly displayName: string | null,
   readonly clientMetadata: ReadonlyJson,
 };
 
 export type UserJson = UserCustomizableJson & {
+  readonly projectId: string,
   readonly id: string,
   readonly primaryEmail: string | null,
   readonly primaryEmailVerified: boolean,
@@ -21,11 +21,16 @@ export type UserJson = UserCustomizableJson & {
   readonly clientMetadata: ReadonlyJson,
   readonly profileImageUrl: string | null,
   readonly signedUpAtMillis: number,
-  readonly authMethod: "credential" | "oauth", // not used anymore, for backwards compatibility
+  /**
+   * not used anymore, for backwards compatibility
+   */
+  readonly authMethod: "credential" | "oauth",
   readonly hasPassword: boolean,
   readonly authWithEmail: boolean,
   readonly oauthProviders: readonly string[],
 };
+
+export type UserUpdateJson = Partial<UserCustomizableJson>;
 
 export type ClientProjectJson = {
   readonly id: string,
@@ -98,6 +103,7 @@ export type ProjectJson = {
     oauthProviders: OAuthProviderConfigJson[],
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
+    createTeamOnSignUp: boolean,
   },
 };
 
@@ -138,6 +144,34 @@ export type DomainConfigJson = {
 export type ProductionModeError = {
   errorMessage: string,
   fixUrlRelative: string,
+};
+
+
+export type OrglikeJson = {
+  id: string,
+  displayName: string,
+  createdAtMillis: number,
+};
+
+export type TeamJson = OrglikeJson;
+
+export type OrganizationJson = OrglikeJson;
+
+export type TeamMemberJson = {
+  userId: string,
+  teamId: string,
+  displayName: string | null,
+}
+
+
+export type PermissionDefinitionScopeJson =
+  | { type: "global" }
+  | { type: "any-team" }
+  | { type: "specific-team", teamId: string };
+
+export type PermissionDefinitionJson = {
+  id: string,
+  scope: PermissionDefinitionScopeJson,
 };
 
 export class StackClientInterface {
@@ -724,6 +758,33 @@ export class StackClientInterface {
     return Result.ok(user);
   }
 
+  async listClientUserTeamPermissions(
+    options: {
+      teamId: string,
+      type: 'global' | 'team', 
+      direct: boolean, 
+    },
+    tokenStore: TokenStore
+  ): Promise<PermissionDefinitionJson[]> {
+    const response = await this.sendClientRequest(
+      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
+      {},
+      tokenStore,
+    );
+    const permissions: PermissionDefinitionJson[] = await response.json();
+    return permissions;
+  }
+
+  async listClientUserTeams(tokenStore: TokenStore): Promise<TeamJson[]> {
+    const response = await this.sendClientRequest(
+      "/current-user/teams",
+      {},
+      tokenStore,
+    );
+    const teams: TeamJson[] = await response.json();
+    return teams;
+  }
+
   async getClientProject(): Promise<Result<ClientProjectJson>> {
     const response = await this.sendClientRequest("/projects/" + this.options.projectId, {}, null);
     const project: ClientProjectJson | null = await response.json();
@@ -731,7 +792,7 @@ export class StackClientInterface {
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
+  async setClientUserCustomizableData(update: UserUpdateJson, tokenStore: TokenStore) {
     await this.sendClientRequest(
       "/current-user",
       {
@@ -781,7 +842,7 @@ export class StackClientInterface {
 
 export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
   const errors: ProductionModeError[] = [];
-  const fixUrlRelative = `/projects/${encodeURIComponent(project.id)}/auth/urls-and-callbacks`;
+  const fixUrlRelative = `/projects/${project.id}/auth/urls-and-callbacks`;
 
   if (project.evaluatedConfig.allowLocalhost) {
     errors.push({

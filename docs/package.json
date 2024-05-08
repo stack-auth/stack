@@ -5,9 +5,9 @@
   "scripts": {
     "docusaurus": "dotenv -c -- docusaurus",
     "clean": "pnpm docusaurus clear && rimraf node_modules",
-    "dev": "pnpm docusaurus start --port 8104 --no-open",
+    "dev": "MINIMAL=1 pnpm docusaurus start --port 8104 --no-open",
     "start": "pnpm docusaurus start --port 8104 --no-open",
-    "build": "pnpm docusaurus build",
+    "build": "MINIMAL=1 pnpm docusaurus build",
     "swizzle": "pnpm docusaurus swizzle",
     "deploy": "pnpm docusaurus deploy",
     "clear": "pnpm docusaurus clear",

@@ -1,44 +1,43 @@
-"use client";
-
+"use client";;
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
-import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
+import {
+  Box,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Dropdown,
+  FormControl,
+  FormLabel,
+  IconButton,
+  Input,
+  ListDivider,
+  ListItemDecorator,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Modal,
+  ModalDialog,
+  Stack,
+} from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from '@/components/async-button';
 import { Dialog } from '@/components/dialog';
-import { useAdminApp } from '../../use-admin-app';
+import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { ServerUser } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
+import { useRouter } from 'next/navigation';
+import { ServerTeam } from '@stackframe/stack';
 
-export function UsersTable(props: {
-  rows: ServerUser[],
+export function TeamTable(props: {
+  rows: ServerTeam[],
 }) {
   const [pageLoadingIndicatorCount, setPageLoadingIndicatorCount] = React.useState(0);
 
   const columns: (GridColDef & {
-    stackOnProcessUpdate?: (updatedRow: ServerUser, oldRow: ServerUser) => Promise<void>,
+    stackOnProcessUpdate?: (updatedRow: ServerTeam, oldRow: ServerTeam) => Promise<void>,
   })[] = [
-    {
-      field: 'profilePicture',
-      headerName: 'Profile picture',
-      renderHeader: () => <></>,
-      width: 50,
-      filterable: false,
-      sortable: false,
-      renderCell: (params) => params.row.profileImageUrl ? (
-        <Avatar size='sm' src={params.row.profileImageUrl} alt={`${params.row.displayName}'s profile picture`} />
-      ) : (
-        <Avatar size='sm'>{
-          params.row.displayName
-            ?.split(/\s/)
-            .map((x: string) => x[0])
-            .filter((x: string) => x)
-            .join("")
-        }</Avatar>
-      ),
-    },
     {
       field: 'id',
       headerName: 'ID',
@@ -49,45 +48,10 @@ export function UsersTable(props: {
       headerName: 'Display name',
       width: 150,
       flex: 1,
-      editable: true,
-      stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        if (updatedRow.displayName !== originalRow.displayName) {
-          await originalRow.update({ displayName: updatedRow.displayName });
-        }
-      },
     },
     {
-      field: 'primaryEmail',
-      headerName: 'E-Mail',
-      width: 200,
-      editable: true,
-      stackOnProcessUpdate: async (updatedRow, originalRow) => {
-        if (updatedRow.primaryEmail !== originalRow.primaryEmail) {
-          await originalRow.update({ primaryEmail: updatedRow.primaryEmail, primaryEmailVerified: false });
-        }
-      },
-      renderCell: (params) => (
-        <>
-          <Box display="block" minWidth={0} overflow="hidden" textOverflow="ellipsis">
-            {params.row.primaryEmail}
-          </Box>
-          {!params.row.primaryEmailVerified && (
-            <>
-              <Box width={4} flexGrow={0} />
-              <Tooltip title="Unverified e-mail">
-                <Stack>
-                  <Icon icon='error' color="red" size={18} />
-                </Stack>
-              </Tooltip>
-              <Box width={0} flexGrow={1} />
-            </>
-          )}
-        </>
-      ),
-    },
-    {
-      field: 'signedUpAt',
-      headerName: 'Signed up',
+      field: 'createdAt',
+      headerName: 'Created at',
       type: 'dateTime',
       width: 200,
     },
@@ -140,6 +104,7 @@ export function UsersTable(props: {
 
 function Actions(props: { params: any }) {
   const stackAdminApp = useAdminApp();
+  const router = useRouter();
 
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -153,6 +118,12 @@ function Actions(props: { params: any }) {
           <Icon icon="more_vert" />
         </MenuButton>
         <Menu placement="bottom-end">
+          <MenuItem onClick={() => router.push(`/projects/${stackAdminApp.projectId}/teams/${props.params.row.id}`)}>
+            <ListItemDecorator>
+              <Icon icon='person' />
+            </ListItemDecorator>{' '}
+            View Members
+          </MenuItem>
           <MenuItem onClick={() => setIsEditModalOpen(true)}>
             <ListItemDecorator>
               <Icon icon='edit' />
@@ -169,8 +140,8 @@ function Actions(props: { params: any }) {
         </Menu>
       </Dropdown>
 
-      <EditUserModal
-        user={props.params.row}
+      <EditTeamModal
+        team={props.params.row}
         open={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
       />
@@ -195,7 +166,7 @@ function Actions(props: { params: any }) {
 }
 
 
-function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => void }) {
+function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => void }) {
   const stackAdminApp = useAdminApp();
 
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -206,7 +177,7 @@ function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => 
       <ModalDialog variant="outlined" role="alertdialog" minWidth="60vw">
         <DialogTitle>
           <Icon icon='edit' />
-          Edit user
+          Edit Team
         </DialogTitle>
         <Divider />
         <DialogContent>
@@ -218,12 +189,9 @@ function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => 
                 try {
                   const formData = new FormData(event.currentTarget);
                   const formJson = {
-                    displayName: `${formData.get('displayName')}` || null,
-                    primaryEmail: `${formData.get('email')}` || null,
-                    primaryEmailVerified: formData.get('primaryEmailVerified') === "on",
-                    signedUpAtMillis: new Date(formData.get('signedUpAt') as string).getTime(),
+                    displayName: `${formData.get('displayName')}` || undefined,
                   };
-                  await props.user.update(formJson);
+                  await props.team.update(formJson);
                   props.onClose();
                 } finally {
                   setIsSaving(false);
@@ -234,28 +202,11 @@ function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => 
           >
             <Stack spacing={2}>
               <Box>
-                    ID: {props.user.id}
+                ID: {props.team.id}
               </Box>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="displayName">Display name</FormLabel>
-                <Input name="displayName" placeholder="Display name" defaultValue={props.user.displayName ?? ""} required />
-              </FormControl>
-              <Stack direction="row" spacing={2} alignItems="flex-end">
-                <Box flexGrow={1}>
-                  <FormControl disabled={isSaving}>
-                    <FormLabel htmlFor="email">E-Mail</FormLabel>
-                    <Input name="email" type="email" placeholder="E-Mail" defaultValue={props.user.primaryEmail ?? ""} required />
-                  </FormControl>
-                </Box>
-                <Stack height={36} justifyContent="center">
-                  <FormControl disabled={isSaving}>
-                    <Checkbox name="primaryEmailVerified" defaultChecked={props.user.primaryEmailVerified} label="Verified" />
-                  </FormControl>
-                </Stack>
-              </Stack>
-              <FormControl disabled={isSaving}>
-                <FormLabel htmlFor="signedUpAt">Signed up</FormLabel>
-                <Input name="signedUpAt" type="datetime-local" defaultValue={getInputDatetimeLocalString(props.user.signedUpAt)} required />
+                <Input name="displayName" placeholder="Display name" defaultValue={props.team.displayName ?? ""} required />
               </FormControl>
             </Stack>
           </form>
@@ -266,10 +217,10 @@ function EditUserModal(props: { user: ServerUser, open: boolean, onClose: () => 
             loading={isSaving}
             onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
           >
-              Save
+            Save
           </AsyncButton>
           <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
-              Cancel
+            Cancel
           </AsyncButton>
         </DialogActions>
       </ModalDialog>

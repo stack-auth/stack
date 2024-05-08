@@ -14,6 +14,7 @@ import { UserButton } from '@stackframe/stack';
 import { useColorScheme, Stack, Sheet } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Logo } from '@/components/logo';
+import { NavigationItem } from './navigation-data';
 
 
 function SidebarItem({
@@ -62,7 +63,7 @@ function SidebarItem({
 export function Sidebar(props: { 
   isCompactMediaQuery: string,
   headerHeight: number, 
-  navigationItems: { name: string, href: string, icon: React.ReactNode }[],
+  navigationItems: NavigationItem[],
   mode: 'compact' | 'full',
 }) {
   const { mode, setMode } = useColorScheme();
@@ -117,12 +118,22 @@ export function Sidebar(props: {
           >
             <List size="sm" sx={{ gap: 0.25  }}>
               {navigationItems.map((item) => (
-                <SidebarItem 
-                  key={item.name} 
-                  title={item.name} 
-                  icon={item.icon} 
-                  href={basePath + item.href}
-                />
+                item.type === 'item' ? 
+                  <SidebarItem 
+                    key={item.name + '-item'}
+                    title={item.name} 
+                    icon={item.icon} 
+                    href={basePath + item.href}
+                  /> : 
+                  item.type === 'label' ?
+                    <Typography 
+                      key={item.name + '-label'}
+                      level="title-sm" 
+                      color="neutral"
+                      sx={{ my: 1 }}
+                    >
+                      {item.name}
+                    </Typography> : null
               ))}
               <Box style={{ flexGrow: 1 }}/>
               <SidebarItem

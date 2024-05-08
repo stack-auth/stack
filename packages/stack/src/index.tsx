@@ -25,6 +25,18 @@ export { useComponents } from './providers/component-provider';
 export { StackTheme } from './providers/theme-provider';
 export type { ThemeConfig } from './providers/theme-provider';
 
-export type { CurrentUser, Project, ServerUser, ApiKeySetFirstView, ApiKeySet } from './lib/stack-app';
+export type { 
+  CurrentUser, 
+  Project, 
+  ServerUser as ServerUser, 
+  ApiKeySetFirstView, 
+  ApiKeySet, 
+  ServerTeam, 
+  Team, 
+  TeamMember,
+  ServerTeamMember,
+  ServerPermission as Permission,
+  ServerPermission,
+} from './lib/stack-app';
 
 export * from './components-core';

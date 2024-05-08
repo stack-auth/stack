@@ -9,6 +9,7 @@ import { redirect, usePathname } from 'next/navigation';
 import { useUser } from '@stackframe/stack';
 import { Icon } from '@/components/icon';
 import Breadcrumbs from '@mui/joy/Breadcrumbs';
+import { NavigationItem } from "./navigation-data";
 
 
 function ProjectSwitchItem({ label }: { label: string }) {
@@ -69,7 +70,7 @@ function ProjectSwitch() {
       }}
       renderValue={renderValue}
       onChange={(event, newProjectId) => {
-        redirect(`/projects/${newProjectId}/auth/users`);
+        redirect(`/projects/${newProjectId}/users`);
       }}
     >
       {projects.map((projectInfo) => (
@@ -85,18 +86,19 @@ export function Header(props: SheetProps & {
   headerHeight: number,
   isCompactMediaQuery: string,
   onShowSidebar: () => void,
-  navigationItems: { name: string, href: string, icon: React.ReactNode }[],
+  navigationItems: NavigationItem[],
 }) {
-  const stackAdminApp = useAdminApp();
   const { isCompactMediaQuery, onShowSidebar, navigationItems, headerHeight, ...sheetProps } = props;
-  const basePath = `/projects/${stackAdminApp.projectId}`;
   const pathname = usePathname();
 
   const selectedItem = React.useMemo(() => {
     return navigationItems.find((item) => {
-      return new URL(basePath + item.href, "https://example.com").pathname === pathname;
+      if (item.type === 'label') {
+        return false;
+      }
+      return item.regex.test(pathname);
     });
-  }, [pathname, basePath, navigationItems]);
+  }, [pathname, navigationItems]);
 
   return (
     <Sheet
@@ -139,7 +141,14 @@ export function Header(props: SheetProps & {
         <Stack flexDirection="row" alignItems="center">
           <Breadcrumbs aria-label="breadcrumb">
             <ProjectSwitch />
-            <Typography level="title-md">{selectedItem?.name}</Typography>
+            {selectedItem ? (
+              typeof selectedItem.name === 'string' ? (
+                <Typography level="title-md">{selectedItem.name}</Typography>
+              ) : selectedItem.name.map((name, index) => (
+                <Typography key={name} level="title-md">{name}</Typography>
+              ))
+            ) : null}
+            
           </Breadcrumbs>
         </Stack>
       </Stack>
