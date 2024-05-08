@@ -31,9 +31,10 @@ const TabsList = React.forwardRef<
   />;
 });
 
-const StayledTabsTrigger = styled(TabsPrimitive.Trigger)<{
+const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
   $colors: ColorPalette,
 }>`
+  all: unset;
   display: flex;
   flex-grow: 1;
   align-items: center;
@@ -65,7 +66,7 @@ const TabsTrigger = React.forwardRef<
   React.ComponentProps<typeof TabsPrimitive.Trigger>
 >((props, ref) => {
   const { colors } = useDesign();
-  return <StayledTabsTrigger 
+  return <StyledTabsTrigger 
     $colors={colors}
     {...props} 
     ref={ref} 
