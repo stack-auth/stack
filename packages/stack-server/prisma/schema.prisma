@@ -13,7 +13,8 @@ datasource db {
 
 model Project {
   // Note that the project with ID `internal` is handled as a special case.
-  id        String   @id
+  id String @id
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -24,8 +25,8 @@ model Project {
   configOverride   ProjectConfigOverride?
   isProductionMode Boolean
 
-  users ProjectUser[] @relation("ProjectUsers")
-
+  users      ProjectUser[] @relation("ProjectUsers")
+  teams      Team[]
   apiKeySets ApiKeySet[]
 }
 
@@ -33,18 +34,21 @@ model Project {
 // 
 // More specifically, "configuration" is what we call those settings that only depend on environment variables and overrides between different deployments.
 model ProjectConfig {
-  id        String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost    Boolean
-  credentialEnabled Boolean
-  magicLinkEnabled  Boolean
+  allowLocalhost     Boolean
+  credentialEnabled  Boolean
+  magicLinkEnabled   Boolean
+  createTeamOnSignUp Boolean
 
   projects             Project[]
   oauthProviderConfigs OAuthProviderConfig[]
   emailServiceConfig   EmailServiceConfig?
   domains              ProjectDomain[]
+  permissions          Permission[]
 }
 
 model ProjectDomain {
@@ -69,10 +73,104 @@ model ProjectDomain {
 //
 // Note: Overrides (and environment variables) are currently unimplemented, so this model is empty.
 model ProjectConfigOverride {
-  projectId String   @id
-  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String @id
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Team {
+  projectId String
+  teamId    String @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  displayName String
+
+  project     Project      @relation(fields: [projectId], references: [id])
+  permissions Permission[]
+  teamMembers TeamMember[]
+
+  @@id([projectId, teamId])
+}
+
+model TeamMember {
+  projectId     String
+  projectUserId String @db.Uuid
+  teamId        String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+
+  directPermissions TeamMemberDirectPermission[]
+
+  @@id([projectId, projectUserId, teamId])
+}
+
+model TeamMemberDirectPermission {
+  projectId      String
+  projectUserId  String @db.Uuid
+  teamId         String @db.Uuid
+  permissionDbId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
+
+  @@id([projectId, projectUserId, teamId, permissionDbId])
+}
+
+model Permission {
+  // The ID of this permission, as is chosen by and exposed to the user. It is different from the database ID, which is randomly generated and only used internally.
+  queryableId     String
+  // The database ID of this permission. This is never exposed to any client and is only used to make sure the database has an ID column.
+  dbId            String  @id @default(uuid()) @db.Uuid
+  // exactly one of [projectConfigId && projectConfig] or [projectId && teamId && team] must be set
+  projectConfigId String? @db.Uuid
+  projectId       String?
+  teamId          String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  description String?
+
+  // The scope of the permission. If projectConfigId is set, may be GLOBAL or TEAM; if teamId is set, must be TEAM.
+  scope         PermissionScope
+  projectConfig ProjectConfig?  @relation(fields: [projectConfigId], references: [id])
+  team          Team?           @relation(fields: [projectId, teamId], references: [projectId, teamId])
+
+  parentEdges                PermissionEdge[]             @relation("ChildPermission")
+  childEdges                 PermissionEdge[]             @relation("ParentPermission")
+  teamMemberDirectPermission TeamMemberDirectPermission[]
+
+  @@unique([projectConfigId, queryableId])
+  @@unique([projectId, teamId, queryableId])
+}
+
+enum PermissionScope {
+  GLOBAL
+  TEAM
+}
+
+model PermissionEdge {
+  edgeId String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentPermissionDbId String     @db.Uuid
+  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
+  childPermissionDbId  String     @db.Uuid
+  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
 }
 
 model ProjectUser {
@@ -89,6 +187,7 @@ model ProjectUser {
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
+  teamMembers                      TeamMember[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
@@ -101,7 +200,6 @@ model ProjectUser {
   clientMetadata Json?
 
   @@id([projectId, projectUserId])
-  @@unique([projectId, primaryEmail, authWithEmail])
 }
 
 model ProjectUserOAuthAccount {

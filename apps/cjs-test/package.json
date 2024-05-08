@@ -1,11 +1,11 @@
 {
   "name": "cjs-test",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8106",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 8106",
     "lint": "next lint"
   },
   "dependencies": {

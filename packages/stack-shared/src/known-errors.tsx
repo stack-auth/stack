@@ -1,3 +1,4 @@
+import { PermissionDefinitionJson, PermissionDefinitionScopeJson } from "./interface/clientInterface";
 import { StatusError, throwErr, throwStackErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
@@ -727,6 +728,67 @@ const EmailAlreadyVerified = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const PermissionNotFound = createKnownErrorConstructor(
+  KnownError,
+  "PERMISSION_NOT_FOUND",
+  (permissionId: string) => [
+    404,
+    `Permission ${permissionId} not found. Make sure you created it on the dashboard.`,
+    {
+      permissionId,
+    },
+  ] as const,
+  (json: any) => [json.details.permissionId] as const,
+);
+
+const PermissionScopeMismatch = createKnownErrorConstructor(
+  KnownError,
+  "PERMISSION_SCOPE_MISMATCH",
+  (permissionId: string, permissionScope: PermissionDefinitionScopeJson, testScope: PermissionDefinitionScopeJson) => {
+    return [
+      400,
+      `The scope of the permission with ID ${permissionId} is \`${permissionScope.type}\` but you tested against permissions of scope \`${testScope.type}\`. ${{
+        "global": `Please don't specify any teams when using global permissions. For example: \`user.hasPermission(${JSON.stringify(permissionId)})\`.`,
+        "any-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
+        "specific-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
+      }[permissionScope.type]}`,
+      {
+        permissionId,
+        permissionScope,
+        testScope,
+      },
+    ] as const;
+  },
+  (json: any) => [json.details.permissionId, json.details.permissionScope, json.details.testScope] as const,
+);
+
+const UserNotInTeam = createKnownErrorConstructor(
+  KnownError,
+  "USER_NOT_IN_TEAM",
+  (userId: string, teamId: string) => [
+    400,
+    `User ${userId} is not in team ${teamId}.`,
+    {
+      userId,
+      teamId,
+    },
+  ] as const,
+  (json: any) => [json.details.userId, json.details.teamId] as const,
+);
+
+const TeamNotFound = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_NOT_FOUND",
+  (teamId: string) => [
+    404,
+    `Team ${teamId} not found.`,
+    {
+      teamId,
+    },
+  ] as const,
+  (json: any) => [json.details.teamId] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -793,6 +855,9 @@ export const KnownErrors = {
   PasswordResetCodeAlreadyUsed,
   PasswordMismatch,
   EmailAlreadyVerified,
+  PermissionNotFound,
+  PermissionScopeMismatch,
+  TeamNotFound,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.0
+
+### Minor Changes
+
+- Middleware support
+
 ## 2.3.6
 
 ### Patch Changes

@@ -45,7 +45,7 @@ jobs:
           EOF
           
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d

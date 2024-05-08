@@ -1,22 +1,23 @@
 import React, { use, useCallback, useMemo } from "react";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserCustomizableJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserCustomizableJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, TokenObject, TokenStore, ProjectJson, EmailConfigJson, DomainConfigJson, ReadonlyTokenStore, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isClient } from "../utils/next";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigation from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
@@ -43,6 +44,10 @@ export type HandlerUrls = {
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
 type ProjectCurrentSeverUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
+
+function permissionDefinitionScopeToType(scope: PermissionDefinitionScopeJson): 'team' | 'global' {
+  return ({"any-team": "team", "specific-team": "team", "global": "global"} as const)[scope.type];
+}
 
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   const handler = partial.handler ?? "/handler";
@@ -74,11 +79,11 @@ function getDefaultPublishableClientKey() {
 }
 
 function getDefaultSecretServerKey() {
-  return process.env.STACK_SECRET_SERVER_KEY || throwErr("No secret server key provided. Please copy your publishable client key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable.");
+  return process.env.STACK_SECRET_SERVER_KEY || throwErr("No secret server key provided. Please copy your key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable.");
 }
 
 function getDefaultSuperSecretAdminKey() {
-  return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your publishable client key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
+  return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr("No super secret admin key provided. Please copy your key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable.");
 }
 
 function getDefaultBaseUrl() {
@@ -158,8 +163,8 @@ const cookieTokenStoreInitializer = (): TokenStore => {
     }, 10);
     cookieTokenStore.onChange((value) => {
       try {
-        setOrDeleteCookie('stack-refresh', value.refreshToken);
-        setOrDeleteCookie('stack-access', value.accessToken);
+        setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+        setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         hasSucceededInWriting = true;
       } catch (e) {
         hasSucceededInWriting = false;
@@ -183,8 +188,8 @@ const tokenStoreInitializers = new Map<TokenStoreOptions, () => TokenStore>([
       });
       store.onChange((value) => {
         try {
-          setOrDeleteCookie('stack-refresh', value.refreshToken);
-          setOrDeleteCookie('stack-access', value.accessToken);
+          setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
         } catch (e) {
           // ignore
         }
@@ -236,7 +241,7 @@ const createCache = <D extends any[], T>(fetcher: (dependencies: D) => Promise<T
 };
 
 // note that we intentionally use TokenStore (a reference type) as a key instead of a stringified version of it, as different token stores with the same tokens should be treated differently
-// (if we wouldn't , we would cache users across requests, which may cause issues)
+// (if we wouldn't , we would cache users across requests on the server, which may cause issues)
 const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: TokenStore, extraDependencies: D) => Promise<T> ) => {
   return new AsyncCache<[TokenStore, ...D], T>(
     async ([tokenStore, ...extraDependencies]) => await fetcher(tokenStore, extraDependencies),
@@ -252,7 +257,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
     },
   );
 };
-  
+
 
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
   protected readonly _uniqueIdentifier: string;
@@ -274,6 +279,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   });
   private readonly _ownedProjectsCache = createCacheByTokenStore(async (tokenStore) => {
     return await this._interface.listProjects(tokenStore);
+  });
+  private readonly _currentUserPermissionsCache = createCacheByTokenStore<
+    [string, 'team' | 'global', boolean], 
+    PermissionDefinitionJson[]
+  >(async (tokenStore, [teamId, type, direct]) => {
+    return await this._interface.listClientUserTeamPermissions({ teamId, type, direct }, tokenStore);
+  });
+  private readonly _currentUserTeamsCache = createCacheByTokenStore(async (tokenStore) => {
+    return await this._interface.listClientUserTeams(tokenStore);
   });
 
   constructor(options:
@@ -328,7 +342,36 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
+  protected _permissionFromJson(json: PermissionDefinitionJson): Permission {
+    const type = permissionDefinitionScopeToType(json.scope);
+  
+    if (type === 'team') {
+      return {
+        id: json.id,
+        type,
+        teamId: (json.scope as { teamId: string }).teamId,
+      };
+    } else {
+      return {
+        id: json.id,
+        type,
+      };
+    }
+  }
+
+  protected _teamFromJson(json: TeamJson): Team {
+    return {
+      id: json.id,
+      displayName: json.displayName,
+      createdAt: new Date(json.createdAtMillis),
+      toJson() {
+        return json;
+      },
+    };
+  }
+
   protected _userFromJson(json: UserJson): User {
+    const app = this;
     return {
       projectId: json.projectId,
       id: json.id,
@@ -342,9 +385,70 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      async getTeam(teamId: string) {
+        const teams = await this.listTeams();
+        return teams.find((t) => t.id === teamId) ?? null;
+      },
+      useTeam(teamId: string) {
+        const teams = this.useTeams();
+        return useMemo(() => {
+          return teams.find((t) => t.id === teamId) ?? null;
+        }, [teams, teamId]);
+      },
+      onTeamChange(teamId: string, callback: (team: Team | null) => void) {
+        return this.onTeamsChange((teams) => {
+          // TODO only call callback if the team actually changed
+          const team = teams.find((t) => t.id === teamId) ?? null;
+          callback(team);
+        });
+      },
+      async listTeams() {
+        const teams = await app._currentUserTeamsCache.getOrWait([getTokenStore(app._tokenStoreOptions)], "write-only");
+        return teams.map((json) => app._teamFromJson(json));
+      },
+      useTeams() {
+        const teams = useCache(app._currentUserTeamsCache, [getTokenStore(app._tokenStoreOptions)], "user.useTeams()");
+        return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
+      },
+      onTeamsChange(callback: (value: Team[], oldValue: Team[] | undefined) => void) {
+        return app._currentUserTeamsCache.onChange([getTokenStore(app._tokenStoreOptions)], (value, oldValue) => {
+          callback(value.map((json) => app._teamFromJson(json)), oldValue?.map((json) => app._teamFromJson(json)));
+        });
+      },
+      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
+        const permissions = await app._currentUserPermissionsCache.getOrWait([getTokenStore(app._tokenStoreOptions), scope.id, 'team', !!options?.direct], "write-only");
+        return permissions.map((json) => app._permissionFromJson(json));
+      },
+      usePermissions(scope: Team, options?: { direct?: boolean }): Permission[] {
+        const permissions = useCache(app._currentUserPermissionsCache, [getTokenStore(app._tokenStoreOptions), scope.id, 'team', !!options?.direct], "user.usePermissions()");
+        return useMemo(() => permissions.map((json) => app._permissionFromJson(json)), [permissions]);
+      },
+      usePermission(scope: Team, permissionId: string): Permission | null {
+        const permissions = this.usePermissions(scope);
+        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
+      },
+      async getPermission(scope: Team, permissionId: string): Promise<Permission | null> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.find((p) => p.id === permissionId) ?? null;
+      },
+      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.some((p) => p.id === permissionId);
+      },
       toJson() {
         return json;
-      }
+      },
+    };
+  }
+
+  protected _teamMemberFromJson(json: TeamMemberJson): TeamMember;
+  protected _teamMemberFromJson(json: TeamMemberJson | null): TeamMember | null;
+  protected _teamMemberFromJson(json: TeamMemberJson): TeamMember | null {
+    if (json === null) return null;
+    return {
+      teamId: json.teamId,
+      userId: json.userId,
+      displayName: json.displayName,
     };
   }
 
@@ -430,6 +534,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         oauthProviders: data.evaluatedConfig.oauthProviders,
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
+        createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
       },
 
       async update(update: ProjectUpdateOptions) {
@@ -551,7 +656,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         case 'redirect': {
           router.replace(this.urls.signIn);
           suspend();
-          throw new Error("suspend should never return! This is a bug in Stack.");
+          throw new StackAssertionError("suspend should never return");
         }
         case 'throw': {
           throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
@@ -576,7 +681,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected async _updateUser(update: Partial<UserCustomizableJson>, tokenStore: TokenStore) {
+  protected async _updateUser(update: UserUpdateJson, tokenStore: TokenStore) {
     const res = await this._interface.setClientUserCustomizableData(update, tokenStore);
     await this._refreshUser(tokenStore);
     return res;
@@ -638,10 +743,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
-    if (result?.newUser) {
-      window.location.replace(this.urls.afterSignUp);
-    } else {
-      window.location.replace(this.urls.afterSignIn);
+    if (result) {
+      if (result.newUser) {
+        window.location.replace(this.urls.afterSignUp);
+      } else {
+        window.location.replace(this.urls.afterSignIn);
+      }
     }
     await neverResolve();
   }
@@ -804,6 +911,26 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverUsersCache = createCache(async () => {
     return await this._interface.listUsers();
   });
+  private readonly _serverUserCache = createCache<string[], ServerUserJson | null>(async ([userId]) => {
+    const user = await this._interface.getServerUserById(userId);
+    return Result.or(user, null);
+  });
+  private readonly _serverTeamsCache = createCache(async () => {
+    return await this._interface.listTeams();
+  });
+  private readonly _serverTeamMembersCache = createCache<string[], TeamMemberJson[]>(async ([teamId]) => {
+    return await this._interface.listTeamMembers(teamId);
+  });
+  private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
+    return await this._interface.listPermissionDefinitions();
+  });
+  private readonly _serverTeamUserPermissionsCache = createCache<
+    [string, string, 'team' | 'global', boolean], 
+    ServerPermissionDefinitionJson[]
+  >(async ([teamId, userId, type, direct]) => {
+    return await this._interface.listTeamMemberPermissions({ teamId, userId, type, direct });
+  });
+
 
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -846,13 +973,75 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUsers();
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await app._interface.setServerUserCustomizableData(this.id, update);
         await app._refreshUsers();
         return res;
       },
       getClientUser() {
         return app._userFromJson(json);
+      },
+      async grantPermission(scope: Team, permissionId: string): Promise<void> {
+        await app._interface.grantTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        for (const direct of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
+        }
+      },
+      async revokePermission(scope: Team, permissionId: string): Promise<void> {
+        await app._interface.revokeTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        for (const direct of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
+        }
+      },
+      async getTeam(teamId: string) {
+        const teams = await this.listTeams();
+        return teams.find((t) => t.id === teamId) ?? null;
+      },
+      useTeam(teamId: string) {
+        const teams = this.useTeams();
+        return useMemo(() => {
+          return teams.find((t) => t.id === teamId) ?? null;
+        }, [teams, teamId]);
+      },
+      onTeamChange(teamId: string, callback: (team: ServerTeam | null) => void) {
+        return this.onTeamsChange((teams) => {
+          // TODO only call callback if the team actually changed
+          const team = teams.find((t) => t.id === teamId) ?? null;
+          callback(team);
+        });
+      },
+      async listTeams() {
+        const teams = await app._serverTeamsCache.getOrWait([getTokenStore(app._tokenStoreOptions)], "write-only");
+        return teams.map((json) => app._serverTeamFromJson(json));
+      },
+      useTeams() {
+        const teams = useCache(app._serverTeamsCache, [getTokenStore(app._tokenStoreOptions)], "user.useTeams()");
+        return useMemo(() => teams.map((json) => app._serverTeamFromJson(json)), [teams]);
+      },
+      onTeamsChange(callback: (value: ServerTeam[], oldValue: ServerTeam[] | undefined) => void) {
+        return app._serverTeamsCache.onChange([getTokenStore(app._tokenStoreOptions)], (value, oldValue) => {
+          callback(value.map((json) => app._serverTeamFromJson(json)), oldValue?.map((json) => app._serverTeamFromJson(json)));
+        });
+      },
+      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
+        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
+        return permissions.map((json) => app._serverPermissionFromJson(json));
+      },
+      usePermissions(scope: Team, options?: { direct?: boolean }): ServerPermission[] {
+        const permissions = useCache(app._serverTeamUserPermissionsCache, [scope.id, json.id, 'team', !!options?.direct], "user.usePermissions()");
+        return useMemo(() => permissions.map((json) => app._serverPermissionFromJson(json)), [permissions]);
+      },
+      usePermission(scope: Team, permissionId: string): ServerPermission | null {
+        const permissions = this.usePermissions(scope);
+        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
+      },
+      async getPermission(scope: Team, permissionId: string): Promise<ServerPermission | null> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.find((p) => p.id === permissionId) ?? null;
+      },
+      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.some((p) => p.id === permissionId);
       },
       toJson() {
         return app._serverUserToJson(this);
@@ -874,7 +1063,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(tokenStore);
         return res;
       },
-      async update(update: Partial<ServerUserCustomizableJson>) {
+      async update(update: ServerUserUpdateJson) {
         const res = await nonCurrentServerUser.update(update);
         await app._refreshUser(tokenStore);
         return res;
@@ -917,6 +1106,21 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
+  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson): ServerTeamMember;
+  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson | null): ServerTeamMember | null;
+  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson | null): ServerTeamMember | null {
+    if (json === null) return null;
+    const app = this;
+    return {
+      ...app._teamMemberFromJson(json),
+      async getUser() {
+        const user = app._serverUserFromJson(await app._serverUserCache.getOrWait([json.userId], "write-only"));
+        if (!user) throw new Error(`User ${json.userId} not found`);
+        return user;
+      }
+    };
+  }
+
   protected _serverUserToJson(user: ServerUser): ServerUserJson {
     return {
       projectId: user.projectId,
@@ -935,11 +1139,57 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _serverTeamFromJson(json: ServerTeamJson): ServerTeam {
+    const app = this;
+    return {
+      id: json.id,
+      displayName: json.displayName,
+      createdAt: new Date(json.createdAtMillis),
+      async listMembers() {
+        return (await app._interface.listTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
+      },
+      async update(update: Partial<ServerTeamCustomizableJson>) {
+        await app._interface.updateTeam(json.id, update);
+        await app._serverTeamsCache.refresh([]);
+      },
+      async delete() {
+        await app._interface.deleteTeam(json.id);
+        await app._serverTeamsCache.refresh([]);
+      },
+      useMembers() {
+        const result = useCache(app._serverTeamMembersCache, [json.id], "team.useUsers()");
+        return useMemo(() => result.map((u) => app._serverTeamMemberFromJson(u)), [result]);
+      },
+      async addUser(userId) {
+        await app._interface.addUserToTeam({
+          teamId: json.id,
+          userId,
+        });
+        await app._serverTeamMembersCache.refresh([json.id]);
+      },
+      async removeUser(userId) {
+        await app._interface.removeUserFromTeam({
+          teamId: json.id,
+          userId,
+        });
+        await app._serverTeamMembersCache.refresh([json.id]);
+      },
+      toJson() {
+        return json;
+      },
+    };
+  }
+
   async getServerUser(): Promise<ProjectCurrentSeverUser<ProjectId> | null> {
     this._ensurePersistentTokenStore();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "write-only");
     return this._currentServerUserFromJson(userJson, tokenStore);
+  }
+
+  async getServerUserById(userId: string): Promise<ServerUser | null> {
+    const json = await this._serverUserCache.getOrWait([userId], "write-only");
+    return this._serverUserFromJson(json);
   }
 
   useServerUser(options?: { required: boolean }): ProjectCurrentSeverUser<ProjectId> | null {
@@ -981,6 +1231,69 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._serverUsersCache.onChange([], (users) => {
       callback(users.map((j) => this._serverUserFromJson(j)));
     });
+  }
+
+  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
+    return await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+  }
+
+  usePermissionDefinitions(): ServerPermissionDefinitionJson[] {
+    return useCache(this._serverTeamPermissionDefinitionsCache, [], "usePermissions()");
+  }
+
+  _serverPermissionFromJson(json: ServerPermissionDefinitionJson): ServerPermission {
+    return {
+      ...this._permissionFromJson(json),
+      __databaseUniqueId: json.__databaseUniqueId,
+      description: json.description,
+      containPermissionIds: json.containPermissionIds,
+    };
+  }
+
+  async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>{
+    const permission = await this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
+    await this._serverTeamPermissionDefinitionsCache.refresh([]);
+    return permission;
+  }
+
+  async updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>) {
+    await this._interface.updatePermissionDefinition(permissionId, data);
+    await this._serverTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async deletePermissionDefinition(permissionId: string): Promise<void> {
+    await this._interface.deletePermissionDefinition(permissionId);
+    await this._serverTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async listTeams(): Promise<ServerTeam[]> {
+    const teams = await this._serverTeamsCache.getOrWait([], "write-only");
+    return teams.map((t) => this._serverTeamFromJson(t));
+  }
+
+  async createTeam(data: ServerTeamCustomizableJson) : Promise<ServerTeam> {
+    const team = await this._interface.createTeam(data);
+    await this._serverTeamsCache.refresh([]);
+    return this._serverTeamFromJson(team);
+  }
+
+  useTeams(): ServerTeam[] {
+    const teams = useCache(this._serverTeamsCache, [], "useServerTeams()");
+    return useMemo(() => {
+      return teams.map((t) => this._serverTeamFromJson(t));
+    }, [teams]);
+  }
+
+  async getTeam(teamId: string): Promise<ServerTeam | null> {
+    const teams = await this.listTeams();
+    return teams.find((t) => t.id === teamId) ?? null;
+  }
+
+  useTeam(teamId: string): ServerTeam | null {
+    const teams = this.useTeams();
+    return useMemo(() => {
+      return teams.find((t) => t.id === teamId) ?? null;
+    }, [teams, teamId]);
   }
 
   protected override async _refreshUser(tokenStore: TokenStore) {
@@ -1135,7 +1448,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
-  update(this: T, user: Partial<C>): Promise<void>,
+  update(this: T, user: C): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
@@ -1146,37 +1459,45 @@ type InternalAuth<T> = {
   listOwnedProjects(this: T): Promise<Project[]>,
   useOwnedProjects(this: T): Project[],
   onOwnedProjectsChange(this: T, callback: (projects: Project[]) => void): void,
-}
-
-export type User = {
-  readonly projectId: string,
-  readonly id: string,
-
-  readonly displayName: string | null,
-
-  /**
-   * The user's email address.
-   *
-   * Note: This might NOT be unique across multiple users, so always use `id` for unique identification.
-   */
-  readonly primaryEmail: string | null,
-  readonly primaryEmailVerified: boolean,
-
-  readonly profileImageUrl: string | null,
-
-  readonly signedUpAt: Date,
-
-  readonly clientMetadata: ReadonlyJson,
-
-  readonly authMethod: 'credential' | 'oauth', // not used anymore, for backwards compatibility
-  readonly hasPassword: boolean,
-  readonly authWithEmail: boolean,
-  readonly oauthProviders: readonly string[],
-
-  toJson(this: CurrentUser): UserJson,
 };
 
-export type CurrentUser = Auth<User, UserCustomizableJson> & User;
+export type User = (
+  & {
+    readonly projectId: string,
+    readonly id: string,
+
+    readonly displayName: string | null,
+
+    /**
+     * The user's email address.
+     *
+     * Note: This might NOT be unique across multiple users, so always use `id` for unique identification.
+     */
+    readonly primaryEmail: string | null,
+    readonly primaryEmailVerified: boolean,
+
+    readonly profileImageUrl: string | null,
+
+    readonly signedUpAt: Date,
+
+    readonly clientMetadata: ReadonlyJson,
+
+    readonly authMethod: 'credential' | 'oauth', // not used anymore, for backwards compatibility
+    readonly hasPassword: boolean,
+    readonly authWithEmail: boolean,
+    readonly oauthProviders: readonly string[],
+
+    hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
+
+    toJson(this: CurrentUser): UserJson,
+  }
+  & AsyncStoreProperty<"team", [id: string], Team | null, false>
+  & AsyncStoreProperty<"teams", [], Team[], true>
+  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>, "onPermissionChange">
+  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>, "onPermissionsChange">
+);
+
+export type CurrentUser = Auth<User, UserUpdateJson> & User;
 
 export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
 
@@ -1184,21 +1505,39 @@ export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
  * A user including sensitive fields that should only be used on the server, never sent to the client
  * (such as sensitive information and serverMetadata).
  */
-export type ServerUser = Omit<User, "toJson"> & {
-  readonly serverMetadata: ReadonlyJson,
+export type ServerUser = (
+  Omit<
+    User, 
+    'hasPermission' | 'toJson' 
+      | keyof AsyncStoreProperty<"team", [], Team | null, false>
+      | keyof AsyncStoreProperty<"teams", [], Team[], true>
+      | keyof AsyncStoreProperty<"permission", [], Permission[], false> 
+      | keyof AsyncStoreProperty<"permissions", [], Permission[], true> 
+  > & {
+    readonly serverMetadata: ReadonlyJson,
 
-  /**
-   * Returns a new user object with the sensitive fields removed.
-   */
-  getClientUser(this: ServerUser): User,
+    /**
+     * Returns a new user object with the sensitive fields removed.
+     */
+    getClientUser(this: ServerUser): User,
 
-  toJson(this: ServerUser): ServerUserJson,
+    update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
+    delete(this: ServerUser): Promise<void>,
 
-  update(this: ServerUser, user: Partial<ServerUserCustomizableJson>): Promise<void>,
-  delete(this: ServerUser): Promise<void>,
-};
+    grantPermission(scope: Team, permissionId: string): Promise<void>,
+    revokePermission(scope: Team, permissionId: string): Promise<void>,
 
-export type CurrentServerUser = Auth<ServerUser, ServerUserCustomizableJson> & Omit<ServerUser, "getClientUser"> & {
+    hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+
+    toJson(this: ServerUser): ServerUserJson,
+  } 
+  & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
+  & AsyncStoreProperty<"teams", [], ServerTeam[], true>
+  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>, "onPermissionChange">
+  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>, "onPermissionsChange">
+)
+
+export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
   getClientUser(this: CurrentServerUser): CurrentUser,
 };
 
@@ -1219,6 +1558,7 @@ export type Project = {
     readonly oauthProviders: OAuthProviderConfig[],
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
+    readonly createTeamOnSignUp: boolean,
   },
 
   update(this: Project, update: ProjectUpdateOptions): Promise<void>,
@@ -1227,6 +1567,47 @@ export type Project = {
 
   getProductionModeErrors(this: Project): ProductionModeError[],
 };
+
+export type Team = {
+  id: string,
+  displayName: string,
+  createdAt: Date,
+
+  toJson(this: Team): TeamJson,
+};
+
+export type ServerTeam = Team & {
+  listMembers(): Promise<ServerTeamMember[]>,
+  useMembers(): ServerTeamMember[],
+  update(update: Partial<ServerTeamCustomizableJson>): Promise<void>,
+  delete(): Promise<void>,
+  addUser(userId: string): Promise<void>,
+  removeUser(userId: string): Promise<void>,
+};
+
+export type TeamMember = {
+  userId: string,
+  teamId: string,
+  displayName: string | null,
+}
+
+export type ServerTeamMember = TeamMember & {
+  getUser(): Promise<ServerUser>,
+}
+
+export type Permission = {
+  id: string,
+} & (
+  | { type: "global" }
+  | { type: "team", teamId: string }
+);
+
+export type ServerPermission = Permission & {
+  readonly __databaseUniqueId: string,
+  readonly description?: string,
+  readonly containPermissionIds: string[],
+};
+
 
 export type ApiKeySetBase = {
   id: string,
@@ -1268,10 +1649,15 @@ export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
 };
 
-type AsyncStoreProperty<Name extends string, Value, IsMultiple extends boolean> =
-  & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: () => Promise<Value> }
-  & { [key in `on${Capitalize<Name>}Change`]: (callback: (value: Value) => void) => void }
-  & { [key in `use${Capitalize<Name>}`]: () => Value }
+type SplitArgs<T extends any[], U extends number> = [
+  ...Parameters<Extract<T[U], (...args: any) => any>>,
+  Omit<T, U>
+];
+
+type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
+  & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
+  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: [...args: Args, callback: (value: Value) => void]) => void }
+  & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & {
@@ -1295,7 +1681,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
       setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
     },
   }
-  & AsyncStoreProperty<"project", ClientProjectJson, false>
+  & AsyncStoreProperty<"project", [], ClientProjectJson, false>
   & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<never> }
   & (HasTokenStore extends false
     ? {}
@@ -1307,7 +1693,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
       getUser(options: GetUserOptions & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>,
       getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>,
       getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>,
-      onUserChange: AsyncStoreProperty<"user", CurrentUser | null, false>["onUserChange"],
+      onUserChange: AsyncStoreProperty<"user", [], CurrentUser | null, false>["onUserChange"],
     })
 );
 type StackClientAppConstructor = {
@@ -1328,9 +1714,18 @@ export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 
 export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & StackClientApp<HasTokenStore, ProjectId>
-  & AsyncStoreProperty<"serverUser", CurrentServerUser | null, false>
-  & AsyncStoreProperty<"serverUsers", ServerUser[], true>
-  & {}
+  & {
+    createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
+    createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>,
+    updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>): Promise<void>,
+    deletePermissionDefinition(permissionId: string): Promise<void>,
+    listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
+    usePermissionDefinitions(): ServerPermissionDefinitionJson[],
+  }
+  & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
+  & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>
+  & Omit<AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>, "onTeamChange">
+  & Omit<AsyncStoreProperty<"teams", [], ServerTeam[], true>, "onTeamsChange">
 );
 type StackServerAppConstructor = {
   new <
@@ -1344,8 +1739,8 @@ export const StackServerApp: StackServerAppConstructor = _StackServerAppImpl;
 
 export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & StackServerApp<HasTokenStore, ProjectId>
-  & AsyncStoreProperty<"projectAdmin", Project, false>
-  & AsyncStoreProperty<"apiKeySets", ApiKeySet[], true>
+  & AsyncStoreProperty<"projectAdmin", [], Project, false>
+  & AsyncStoreProperty<"apiKeySets", [], ApiKeySet[], true>
   & {
     createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView>,
   }

@@ -1,13 +1,13 @@
 {
   "name": "stack-docs",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "docusaurus": "dotenv -c -- docusaurus",
     "clean": "pnpm docusaurus clear && rimraf node_modules",
-    "dev": "pnpm docusaurus start --port 8104 --no-open",
-    "start": "pnpm docusaurus start",
-    "build": "pnpm docusaurus build",
+    "dev": "MINIMAL=1 pnpm docusaurus start --port 8104 --no-open",
+    "start": "pnpm docusaurus start --port 8104 --no-open",
+    "build": "MINIMAL=1 pnpm docusaurus build",
     "swizzle": "pnpm docusaurus swizzle",
     "deploy": "pnpm docusaurus deploy",
     "clear": "pnpm docusaurus clear",

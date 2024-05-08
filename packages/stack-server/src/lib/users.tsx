@@ -1,8 +1,15 @@
-import { UserCustomizableJson, UserJson, ServerUserCustomizableJson, ServerUserJson } from "@stackframe/stack-shared";
-import { ProjectUser } from "@prisma/client";
+import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
+import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { ProjectDB, fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
+import { fullProjectInclude, getProject, projectJsonFromDbType } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { addUserToTeam, createServerTeam } from "./teams";
+
+export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
+  project: { include: typeof fullProjectInclude },
+}, }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -20,17 +27,17 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
     include: {
       project: {
         include: fullProjectInclude,
-      }
+      },
     },
   });
 
-  return users.map((u) => getServerUserFromDbType(u, u.project));
+  return users.map((u) => getServerUserFromDbType(u));
 }
 
 export async function updateClientUser(
   projectId: string,
   userId: string,
-  update: Partial<UserCustomizableJson>,
+  update: UserUpdateJson,
 ): Promise<UserJson | null> {
   const user = await updateServerUser(
     projectId,
@@ -50,7 +57,7 @@ export async function updateClientUser(
 export async function updateServerUser(
   projectId: string,
   userId: string,
-  update: Partial<ServerUserCustomizableJson>,
+  update: ServerUserUpdateJson,
 ): Promise<ServerUserJson | null> {
   let user;
   try {
@@ -64,7 +71,7 @@ export async function updateServerUser(
       include: {
         project: {
           include: fullProjectInclude,
-        }
+        },
       },
       data: filterUndefined({
         displayName: update.displayName,
@@ -82,7 +89,7 @@ export async function updateServerUser(
     throw e;
   }
 
-  return getServerUserFromDbType(user, user.project);
+  return getServerUserFromDbType(user);
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
@@ -113,25 +120,44 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
   };
 }
 
-function getServerUserFromDbType(
-  projectUser: ProjectUser, 
-  projectDB: ProjectDB,
+export function getServerUserFromDbType(
+  user: ServerUserDB,
 ): ServerUserJson {
-  const projectJson = projectJsonFromDbType(projectDB);
+  const projectJson = projectJsonFromDbType(user.project);
 
   return {
-    projectId: projectUser.projectId,
-    id: projectUser.projectUserId,
-    displayName: projectUser.displayName,
-    primaryEmail: projectUser.primaryEmail,
-    primaryEmailVerified: projectUser.primaryEmailVerified,
-    profileImageUrl: projectUser.profileImageUrl,
-    signedUpAtMillis: projectUser.createdAt.getTime(),
-    clientMetadata: projectUser.clientMetadata as any,
-    serverMetadata: projectUser.serverMetadata as any,
-    authMethod: projectUser.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
-    hasPassword: !!projectUser.passwordHash,
-    authWithEmail: projectUser.authWithEmail,
+    projectId: user.projectId,
+    id: user.projectUserId,
+    displayName: user.displayName,
+    primaryEmail: user.primaryEmail,
+    primaryEmailVerified: user.primaryEmailVerified,
+    profileImageUrl: user.profileImageUrl,
+    signedUpAtMillis: user.createdAt.getTime(),
+    clientMetadata: user.clientMetadata as any,
+    serverMetadata: user.serverMetadata as any,
+    authMethod: user.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
+    hasPassword: !!user.passwordHash,
+    authWithEmail: user.authWithEmail,
     oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
   };
+}
+
+export async function createTeamOnSignUp(projectId: string, userId: string): Promise<void> {
+  const project = await getProject(projectId);
+  if (!project) { 
+    throw new Error('Project not found'); 
+  }
+  if (!project.evaluatedConfig.createTeamOnSignUp) {
+    return;
+  }
+  const user = await getServerUser(projectId, userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const team = await createServerTeam(
+    projectId, 
+    { displayName: user.displayName ? `${user.displayName}'s personal team` : 'Personal team' }
+  );
+  await addUserToTeam(projectId, team.id, userId);
 }

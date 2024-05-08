@@ -1,7 +1,6 @@
 export { 
   StackClientInterface, 
   UserJson as UserJson, 
-  UserCustomizableJson,
   ClientProjectJson,
   ProjectJson,
   OAuthProviderConfigJson,
@@ -10,7 +9,6 @@ export {
 export { 
   StackServerInterface, 
   ServerUserJson, 
-  ServerUserCustomizableJson,
 } from "./interface/serverInterface";
 export { 
   StackAdminInterface, 

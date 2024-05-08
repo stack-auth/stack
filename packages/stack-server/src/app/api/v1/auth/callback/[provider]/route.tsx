@@ -11,6 +11,7 @@ import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { createTeamOnSignUp } from "@/lib/users";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -154,6 +155,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                 },
               },
             });
+
+            await createTeamOnSignUp(projectId, newAccount.projectUserId);
 
             return {
               id: newAccount.projectUserId,

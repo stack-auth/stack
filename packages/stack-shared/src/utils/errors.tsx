@@ -6,7 +6,7 @@ export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
 export function throwErr(...args: any[]): never {
   if (typeof args[0] === "string") {
-    throw new Error(args[0]);
+    throw new StackAssertionError(args[0]);
   } else if (args[0] instanceof Error) {
     throw args[0];
   } else {
@@ -35,7 +35,12 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   }
   errorSinks.add(sink);
 }
-registerErrorSink((location, ...args) => console.error(`Error in ${location}:`, ...args));
+registerErrorSink((location, ...args) => {
+  console.error(`Error in ${location}:`, ...args);
+  if (process.env.NODE_ENV === "development") {
+    debugger;
+  }
+});
 
 export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {

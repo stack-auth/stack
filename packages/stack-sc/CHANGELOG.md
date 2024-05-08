@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.5.0
+
+### Minor Changes
+
+- Middleware support
+
 ## 1.4.1
 
 ### Patch Changes

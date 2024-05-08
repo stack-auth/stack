@@ -1,6 +1,6 @@
 {
   "name": "demo-app",
-  "version": "1.0.24",
+  "version": "1.1.0",
   "description": "",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "clean": "rimraf .next && rimraf node_modules",
     "dev": "next dev --port 8103",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 8103",
     "lint": "next lint"
   },
   "dependencies": {
