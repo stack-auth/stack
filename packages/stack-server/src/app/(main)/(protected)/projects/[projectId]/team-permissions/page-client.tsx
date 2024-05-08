@@ -127,6 +127,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input name="description" placeholder="Description" />
               </FormControl>
+              {permissions.length > 0 &&
               <PermissionList 
                 updatePermission={
                   (permissionId, permission) => {
@@ -135,7 +136,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
                   }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
-              />
+              />}
             </Stack>
           </form>
         </DialogContent>

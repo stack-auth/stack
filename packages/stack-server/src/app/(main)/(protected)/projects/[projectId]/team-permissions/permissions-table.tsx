@@ -228,6 +228,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                 <FormLabel htmlFor="description">Description</FormLabel>
                 <Input name="description" placeholder="Description" defaultValue={selectedPermission.description} />
               </FormControl>
+              {permissions.length > 0 &&
               <PermissionList 
                 updatePermission={
                   (permissionId, permission) => {
@@ -236,7 +237,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                   }}
                 permissionGraph={graph} 
                 selectedPermissionId={id}
-              />
+              />}
             </Stack>
           </form>
         </DialogContent>

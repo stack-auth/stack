@@ -19,6 +19,7 @@ import {
   ModalDialog,
   Stack,
   Tooltip,
+  Typography,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { Dialog } from '@/components/dialog';
@@ -344,14 +345,15 @@ function EditPermissionModal(props: {
               <Paragraph body>
                 ID: {props.user.id}
               </Paragraph>
-              <PermissionList 
-                updatePermission={
-                  (permissionId, permission) => {
-                    setGraph(graph.updatePermission(permissionId, permission));
-                    setContainPermissionIds(permission.containPermissionIds);
-                  }}
-                permissionGraph={graph}
-              />
+              {permissions.length > 0 ?
+                <PermissionList 
+                  updatePermission={
+                    (permissionId, permission) => {
+                      setGraph(graph.updatePermission(permissionId, permission));
+                      setContainPermissionIds(permission.containPermissionIds);
+                    }}
+                  permissionGraph={graph}
+                /> : <Typography>No permissions available. Please create a permission first.</Typography>}
             </Stack>
           </form>
         </DialogContent>
