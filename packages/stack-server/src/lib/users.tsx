@@ -150,6 +150,14 @@ export async function createTeamOnSignUp(projectId: string, userId: string): Pro
   if (!project.evaluatedConfig.createTeamOnSignUp) {
     return;
   }
-  const team = await createServerTeam(projectId, { displayName: 'Personal Team' });
+  const user = await getServerUser(projectId, userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const team = await createServerTeam(
+    projectId, 
+    { displayName: user.displayName ? `${user.displayName}'s personal team` : 'Personal team' }
+  );
   await addUserToTeam(projectId, team.id, userId);
 }
