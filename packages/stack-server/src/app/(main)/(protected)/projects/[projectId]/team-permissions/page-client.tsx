@@ -101,7 +101,7 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
             ref={formRef}
           >
             <Stack spacing={2}>
-              <FormControl disabled={isSaving}>
+              <FormControl disabled={isSaving} required>
                 <FormLabel htmlFor="permissionId">ID</FormLabel>
                 <Input name="permissionId" placeholder="Permission ID" required value={id} onChange={(event) => setId(event.target.value)}/>
               </FormControl>
