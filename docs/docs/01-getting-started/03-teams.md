@@ -6,13 +6,15 @@ import TabItem from '@theme/TabItem';
 
 # Teams & Permissions
 
-Teams are a way to group users together and manage their permissions. Each user can be a member of multiple teams, and each team can have multiple users. Teams can be used to manage, departments, B2B customers, or projects.
+Teams provide a structured way to group users and manage their permissions. Users can belong to multiple teams, which can represent departments, B2B customers, or projects.
+
+To assign users to a default team upon sign-up, activate the corresponding toggle in the Stack dashboard under the team settings tab. This setting automatically assigns each new user to a team.
 
 ## Teams
 
 ### Creating a Team
 
-To create a team, you can call the `createTeam` method on the `stackServerApp`, this is an example:
+To create a team, you can call the `createTeam` method on the `stackServerApp`. Here is an example:
 
 ```tsx
 const team = await stackServerApp.createTeam({
@@ -22,7 +24,7 @@ const team = await stackServerApp.createTeam({
 
 ### Adding a User to a Team
 
-To add a user to a team, you can call the `addUserToTeam` method on the `stackServerApp`, this is an example:
+To add a user to a team, you can call the `addUserToTeam` method on the `stackServerApp`. Here is an example:
 
 ```tsx
 await stackServerApp.addUserToTeam({
@@ -33,7 +35,7 @@ await stackServerApp.addUserToTeam({
 
 ### List All the Teams of a User
 
-On the User object, you can call the `listTeams` method or `useTeams` hook to get all the teams a user is a member of. this is an example:
+You can list all the teams a user belongs to by using the `listTeams` method or `useTeams` hook on the User object. Here is how you can do it:
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
@@ -71,7 +73,7 @@ On the User object, you can call the `listTeams` method or `useTeams` hook to ge
 
 ### Get Specific Team of a User
 
-On the User object, you can call the `getTeam` method or `useTeam` hook to get a specific team a user is a member of. Note that this might return `null` if the user is not a member of the team. This is basically the same as `listTeams()[teamId]`. Here is an example:
+To obtain details of a specific team that a user belongs to, use the `getTeam` method or `useTeam` hook. Note, this may return `null` if the user is not a member of the team. Here is an example:
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
@@ -116,7 +118,7 @@ const teams = await stackServerApp.listTeams();
 
 ### Update a Team
 
-To update a team, you can call the update method on a server side team object, this is an example:
+To update a team, use the `update` method on a server-side team object. Here is an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
@@ -151,20 +153,14 @@ for (const member of members) {
 
 ## Permissions
 
-Permissions are a way to control what each user can do in your application. You can create permissions on the Stack dashboard and assign them to users. Then you can check in your app if a user has a specific permission.
+Permissions control what each user can do within your application. Create permissions on the Stack dashboard and assign them to users. You can then verify in your app whether a user has a specific permission.
 
-A permission can contain other permissions. For example, you can have `admin` permission that contains `moderator` and `user` permissions. You can create arbitrary permission structure (any directed graph) and we help you check if a user has a permission directly or indirectly (recursively).
+Permissions can be nested, allowing you to create a hierarchical structure. For instance, an `admin` permission can include `moderator` and `user` permissions. We provide tools to help you verify whether a user has a permission directly or indirectly.
 
 
-## Check if a User has a Permission
+### Check if a User has a Permission
 
-You can use the `getPermission` method or `usePermission` hook on the `User` object to check if a user has a specific permission. This will return the Permission object if the user has the permission, otherwise it will return `null`. Note if the permission is not created on the dashboard, it will also return `null`
-
-These functions will check all the direct and indirect permissions of the user. So with the above example, if a user has the `admin` permission, it will also return `true` for `moderator` and `user` permissions.
-
-Be careful with client-side permission checks, as they can be easily bypassed by the user. The client-side permission checks are only for UI purposes, and you should always check the permissions on the server side for business logic.
-
-Here is an example:
+You can check if a user has a specific permission by using the `getPermission` method or `usePermission` hook on the `User` object. This returns the `Permission` object if the user has it; otherwise, it returns `null`. Be cautious with client-side checks for permissions, as they can be bypassed. Always perform permission checks on the server side for business logic. Here is an example:
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
@@ -204,9 +200,7 @@ Here is an example:
 
 ### List All the Permissions of a User
 
-You can use the `listPermissions` method or `usePermissions` hook on the `User` object to get all the permissions a user has. This will return a list of Permission objects. 
-
-This method will return all the permissions the user has directly or indirectly. This is an example:
+To get all permissions a user has, use the `listPermissions` method or `usePermissions` hook on the User object. This method retrieves all direct and indirect permissions. Here is an example:
 
 <Tabs>
   <TabItem value="client" label="Client Component" default>
@@ -243,7 +237,7 @@ This method will return all the permissions the user has directly or indirectly.
 
 ### Grant a Permission to a User
 
-To grant a permission to a user, you can call the `grantPermission` method on the `ServerUser`, this is an example:
+To grant a permission to a user, you can call the `grantPermission` method on the `ServerUser`. Here is an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
@@ -253,7 +247,7 @@ await user.grantPermission(team, 'read');
 
 ### Revoke a Permission from a User
 
-To revoke a permission from a user, you can call the `revokePermission` method on the `ServerUser`, this is an example:
+To revoke a permission from a user, you can call the `revokePermission` method on the `ServerUser`. Here is an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
