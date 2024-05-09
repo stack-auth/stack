@@ -1,5 +1,5 @@
 {
-  "name": "middleware-demo",
+  "name": "@stackframe/example-middleware-demo",
   "version": "0.2.1",
   "private": true,
   "scripts": {
