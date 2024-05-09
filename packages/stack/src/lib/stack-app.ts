@@ -1682,11 +1682,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", [], ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<never> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<void> }
   & (HasTokenStore extends false
     ? {}
     : {
-      redirectToOAuthCallback(): Promise<never>,
+      redirectToOAuthCallback(): Promise<void>,
       useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
       useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
       useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null,
