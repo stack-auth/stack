@@ -13,34 +13,17 @@ export default function PageFooter () {
         <div className="flex flex-col gap-4 md:flex-1">
           {/* <Logo full height={24} href="/projects" className="h-6"/> */}
           <ul className="flex gap-4 flex-grow">
-            {/* <li>
-              <Link href="https://discord.stack-auth.com/">
-                <FaDiscord size={20} />
-              </Link>
-            </li>
-            <li className="ml-2">
-              <Link href="https://www.linkedin.com/company/stackframe-inc">
-                <FaLinkedin size={20} />
-              </Link>
-            </li>
-            <li className="ml-2">
-              <Link href="https://github.com/stackframe-projects/stack" >
-                <FaGithub size={20} />
-              </Link>
-            </li> */}
-            {
-              [
-                { href: "https://discord.stack-auth.com/", icon: FaDiscord },
-                { href: "https://www.linkedin.com/company/stackframe-inc", icon: FaLinkedin },
-                { href: "https://github.com/stackframe-projects/stack", icon: FaGithub },
-              ].map(({ href, icon: Icon }) => (
-                <li key={href}>
-                  <Link href={href}>
-                    <Icon size={20} className="text-gray-700 dark:text-gray-300" />
-                  </Link>
-                </li>
-              ))
-            }
+            {[
+              { href: "https://discord.stack-auth.com/", icon: FaDiscord },
+              { href: "https://www.linkedin.com/company/stackframe-inc", icon: FaLinkedin },
+              { href: "https://github.com/stackframe-projects/stack", icon: FaGithub },
+            ].map(({ href, icon: Icon }) => (
+              <li key={href}>
+                <Link href={href}>
+                  <Icon size={20} className="text-gray-700 dark:text-gray-300" />
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
