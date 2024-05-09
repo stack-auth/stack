@@ -8,12 +8,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
+import { Text } from "@stackframe/stack";
 
 const projectFormSchema = z.object({
   displayName: z.string({ required_error: "Please enter a project name." }),
   description: z.string(),
-  emailProviders: z.array(z.enum(["credentialEnabled", "magicLinkEnabled"])),
-  oauthProviders: z.array(z.enum(["google", "github", "microsoft", "facebook"])),
+  signInMethods: z.array(z.enum(["google", "github", "microsoft", "facebook", "credential", "magicLink"])),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>
@@ -21,8 +21,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>
 const defaultValues: Partial<ProjectFormValues> = {
   displayName: "",
   description: "",
-  emailProviders: ["credentialEnabled", "magicLinkEnabled"],
-  oauthProviders: ["google", "github"],
+  signInMethods: ["credential", "magicLink", "google", "github"],
 };
 
 function SwitchField<F extends FieldValues>(props: { 
@@ -136,6 +135,9 @@ export function ProjectForm() {
 
   return (
     <Form {...form}>
+      <div className="flex justify-center mb-4">
+        <Text size="xl" as='h2' className="font-bold">Create a new project</Text>
+      </div>
       <form onSubmit={() => form.handleSubmit(onSubmit)} className="space-y-6">
 
         <InputField control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
@@ -143,26 +145,21 @@ export function ProjectForm() {
 
         <ListSwitchField
           control={form.control}
-          name="emailProviders"
-          label="Email Sign-In methods"
+          name="signInMethods"
+          label="Sign-In Methods"
           options={[
-            { value: "credentialEnabled", label: "Email password" },
-            { value: "magicLinkEnabled", label: "Magic link" },
-          ]}
-        />
-
-        <ListSwitchField
-          control={form.control}
-          name="oauthProviders"
-          label="OAuth Providers"
-          options={[
+            { value: "credential", label: "Email password" },
+            { value: "magicLink", label: "Magic link" },
             { value: "google", label: "Google" },
             { value: "github", label: "GitHub" },
             { value: "microsoft", label: "Microsoft" },
             { value: "facebook", label: "Facebook" },
           ]}
         />
-        <Button type="submit">Create project</Button>
+
+        <div className="flex justify-center">
+          <Button type="submit" size='lg'>Create project</Button>
+        </div>
       </form>
     </Form>
   );

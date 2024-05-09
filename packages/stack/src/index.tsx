@@ -18,6 +18,7 @@ export { default as OAuthGroup } from "./components/oauth-group";
 export { default as PasswordField } from "./components/password-field";
 export { default as UserButton } from "./components/user-button";
 export { default as AccountSettings } from "./components-page/account-settings";
+export { default as AuthPage } from "./components-page/auth-page";
 
 export { useDesign } from './providers/design-provider';
 export type { ColorPalette } from './providers/design-provider';
