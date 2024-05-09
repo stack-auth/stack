@@ -3,8 +3,8 @@
 import { ProjectCard } from "@/components/project-card";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Project, useUser } from "@stackframe/stack";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser } from "@stackframe/stack";
 import { useMemo, useState } from "react";
 
 
@@ -32,12 +32,12 @@ export default function PageClient() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center gap-4 mb-4">
+      <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
         <SearchBar placeholder="Search project name" value={search} onChange={(e) => setSearch(e.target.value)} />
 
         <div className="flex gap-4">
           <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger>
               <SelectValue>Sort by {sort === "recency" ? "recency" : "name"}</SelectValue>
             </SelectTrigger>
             <SelectContent>

@@ -1,5 +1,5 @@
 'use client';;
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
+import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
 import { CardContent } from '@mui/joy';
 import { Project } from '@stackframe/stack';
 import { useFromNow } from '@/hooks/use-from-now';
