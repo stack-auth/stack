@@ -31,7 +31,7 @@ export default function PageClient() {
   }, [rawProjects, sort, search]);
 
   return (
-    <div className="p-4">
+    <>
       <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
         <SearchBar placeholder="Search project name" value={search} onChange={(e) => setSearch(e.target.value)} />
 
@@ -57,6 +57,6 @@ export default function PageClient() {
           <ProjectCard key={project.id} project={project} />
         ))}
       </div>
-    </div>
+    </>
   );
 }

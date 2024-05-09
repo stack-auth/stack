@@ -1,11 +1,15 @@
 import { Navbar } from "@/components/navbar";
 import PageClient from "./page-client";
+import PageFooter from "./page-footer";
 
 export default function Page() {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <PageClient />
+      <div className="flex-grow p-4">
+        <PageClient />
+      </div>
+      <PageFooter />
     </div>
   );
 }

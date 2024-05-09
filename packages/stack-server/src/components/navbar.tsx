@@ -2,7 +2,6 @@ import { UserButton } from "@stackframe/stack";
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
-import { Button } from "./ui/button";
 
 export function Navbar({ ...props }) {
   return (
@@ -16,10 +15,10 @@ export function Navbar({ ...props }) {
         </div>
         <div className="flex items-center">
           <div className="flex gap-4 mr-8 items-center">
-            <Link href="/projects" className=" text-gray-500 font-medium text-sm">
+            <Link href="mailto:team@stack-auth.com" className=" text-gray-500 font-medium text-sm">
               Feedback
             </Link>
-            <Link href="/projects" className=" text-gray-500 font-medium text-sm">
+            <Link href="https://docs.stack-auth.com/" className=" text-gray-500 font-medium text-sm">
               Docs
             </Link>
           </div>

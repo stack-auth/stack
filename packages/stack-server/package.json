@@ -95,6 +95,7 @@
     "react-dom": "^18",
     "react-email": "2.1.0",
     "react-hook-form": "^7.51.4",
+    "react-icons": "^5.0.1",
     "rehype-katex": "^7",
     "remark-gfm": "^4",
     "remark-heading-id": "^1.0.1",
