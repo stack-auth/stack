@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import styled from 'styled-components';
-import { useDesign } from '..';
+import { Text, useDesign } from '..';
 import { ColorPalette } from '../providers/design-provider';
 
 const Tabs = TabsPrimitive.Root;
@@ -64,13 +64,15 @@ const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentProps<typeof TabsPrimitive.Trigger>
->((props, ref) => {
+>(({children, ...props}, ref) => {
   const { colors } = useDesign();
   return <StyledTabsTrigger 
     $colors={colors}
     {...props} 
     ref={ref} 
-  />;
+  >
+    <Text>{children}</Text>
+  </StyledTabsTrigger>;
 });
 
 const StyledTabsContent = styled(TabsPrimitive.Content)`
