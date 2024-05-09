@@ -7,6 +7,7 @@ import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
 import { cookies } from '@stackframe/stack-sc';
+import { generateSecureRandomString } from '../utils/crypto';
 
 type UserCustomizableJson = {
   readonly displayName: string | null,
@@ -347,7 +348,7 @@ export class StackClientInterface {
         ...'projectOwnerTokens' in this.options ? {
           "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
         } : {},
-        "X-Stack-Random-Nonce": Math.random().toString(),
+        "X-Stack-Random-Nonce": generateSecureRandomString(),
         ...options.headers,
       },
       cache: "no-store",
