@@ -913,7 +913,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   });
   private readonly _serverUserCache = createCache<string[], ServerUserJson | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
-    return Result.or(user, null);
+    return await Result.or(user, null);
   });
   private readonly _serverTeamsCache = createCache(async () => {
     return await this._interface.listTeams();

@@ -6,6 +6,7 @@ import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
+import { cookies } from '@stackframe/stack-sc';
 
 type UserCustomizableJson = {
   readonly displayName: string | null,
@@ -318,6 +319,9 @@ export class StackClientInterface {
       await this.refreshAccessToken(tokenStore);
       tokenObj = await tokenStore.getOrWait();
     }
+
+    // all requests should be dynamic to prevent Next.js caching
+    cookies?.();
 
     const url = this.getApiUrl() + path;
     const params: RequestInit = {

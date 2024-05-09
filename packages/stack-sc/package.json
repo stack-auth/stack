@@ -2,16 +2,24 @@
   "name": "@stackframe/stack-sc",
   "version": "1.5.0",
   "exports": {
-    ".": {
+    "./force-server": {
       "types": "./dist/index.server.d.ts",
-      "react-server": {
+      "default": {
         "browser": "./dist/index.server.js",
         "node": "./dist/index.server.js"
-      },
+      }
+    },
+    "./force-client": {
+      "types": "./dist/index.client.d.ts",
       "default": {
         "browser": "./dist/index.client.js",
         "node": "./dist/index.client.js"
       }
+    },
+    ".": {
+      "types": "./dist/index.combined.d.ts",
+      "react-server": "./dist/index.server.js",
+      "default": "./dist/index.client.js"
     }
   },
   "scripts": {

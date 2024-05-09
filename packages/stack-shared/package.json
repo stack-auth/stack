@@ -30,7 +30,8 @@
     "bcrypt": "^5.1.1",
     "jose": "^5.2.2",
     "oauth4webapi": "^2.10.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "@stackframe/stack-sc": "workspace:*"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
