@@ -347,8 +347,10 @@ export class StackClientInterface {
         ...'projectOwnerTokens' in this.options ? {
           "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
         } : {},
+        "X-Stack-Random-Nonce": Math.random().toString(),
         ...options.headers,
       },
+      cache: "no-store",
     };
 
     const rawRes = await fetch(url, params);
