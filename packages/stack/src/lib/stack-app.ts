@@ -573,7 +573,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
     window.location.href = this.urls[handlerName];
-    return neverResolve();
+    return wait(2000);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
