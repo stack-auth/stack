@@ -75,7 +75,10 @@
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.38",
     "prisma": "^5.9.1",
+    "tailwindcss": "^3.4.1",
     "tsx": "^4.7.2"
   }
 }

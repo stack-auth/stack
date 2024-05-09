@@ -518,9 +518,18 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.2.18
+      autoprefixer:
+        specifier: ^10.4.17
+        version: 10.4.17(postcss@8.4.38)
+      postcss:
+        specifier: ^8.4.38
+        version: 8.4.38
       prisma:
         specifier: ^5.9.1
         version: 5.9.1
+      tailwindcss:
+        specifier: ^3.4.1
+        version: 3.4.1
       tsx:
         specifier: ^4.7.2
         version: 4.7.2
@@ -7758,7 +7767,6 @@ packages:
       picocolors: 1.0.0
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
-    dev: false
 
   /available-typed-arrays@1.0.6:
     resolution: {integrity: sha512-j1QzY8iPNPG4o4xmO3ptzpRxTciqD3MgEHtifP/YnJpIo58Xu+ne4BejlbkuaLfXn/nz6HFiw29bLpj2PNMdGg==}
