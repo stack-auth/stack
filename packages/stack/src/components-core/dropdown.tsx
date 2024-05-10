@@ -37,7 +37,7 @@ const StyledContent = styled(DropdownMenuPrimitive.Content)<{
   border: 1px solid ${({ $colors }) => $colors.light.neutralColor};
   background: ${({ $colors }) => $colors.light.backgroundColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     border-color: ${({ $colors }) => $colors.dark.neutralColor};
     background: ${({ $colors }) => $colors.dark.backgroundColor};
   }
@@ -82,7 +82,7 @@ const StyledItem = styled(DropdownMenuPrimitive.Item)<{
     background-color: ${SELECTED_BACKGROUND_COLORS.light};
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     &:hover {
       background-color: ${SELECTED_BACKGROUND_COLORS.dark};
     }
@@ -122,7 +122,7 @@ const StyledSeparator = styled(DropdownMenuPrimitive.Separator)<{
   height: 1px;
   background-color: ${({ $colors }) => $colors.light.neutralColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: ${({ $colors }) => $colors.dark.neutralColor};
   }
 `;

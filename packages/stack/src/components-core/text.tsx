@@ -21,7 +21,7 @@ const StyledComponents = typedFromEntries(components.map((component) => {
       padding: 0;
       color: ${props => props.$textColor.light};
       
-      html[data-theme='dark'] & {
+      html[data-stack-theme='dark'] & {
         color: ${props => props.$textColor.dark};
       }
     `

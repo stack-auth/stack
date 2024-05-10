@@ -16,7 +16,7 @@ const StyledTabsList = styled(TabsPrimitive.List)`
 
   background-color: rgb(244, 244, 245);
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: rgb(39, 39, 42);
   }
 `;
@@ -54,7 +54,7 @@ const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
     background-color: ${({ $colors }) => $colors.light.backgroundColor};
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     &[data-state='active'] {
       background-color: ${({ $colors }) => $colors.dark.backgroundColor};
     }

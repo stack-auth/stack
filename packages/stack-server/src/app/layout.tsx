@@ -35,6 +35,25 @@ type TagConfigJson = {
   innerHTML: string,
 };
 
+const script = () => {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'data-joy-color-scheme') {
+        const colorTheme = document.documentElement.getAttribute('data-joy-color-scheme');
+        if (!colorTheme) {
+          return;
+        }
+        document.documentElement.setAttribute('class', colorTheme);
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-joy-color-scheme'],
+  });
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -65,6 +84,7 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
+        <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
         <Analytics />
         <ThemeProvider>
           <SnackbarProvider>

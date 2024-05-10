@@ -24,7 +24,7 @@ const StyledNextLink = styled(NextLink)<{
 
   color: ${LINK_COLORS.light};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     color: ${LINK_COLORS.dark};
   }
 `;

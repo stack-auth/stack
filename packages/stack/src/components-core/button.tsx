@@ -138,7 +138,7 @@ const StyledButton = styled.button<{
     }
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: ${props => props.$colors.dark.bgColor};
     color: ${props => props.$colors.dark.textColor};
     &:not([disabled]) {

@@ -16,7 +16,7 @@ const Primitive = styled(LabelPrimitive.Root)`
 
   color: ${SECONDARY_FONT_COLORS.light};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     color: ${SECONDARY_FONT_COLORS.dark};
   }
 `;
