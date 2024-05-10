@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Box, Button, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
-import { AsyncButton } from "@/components/async-button";
+import { Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
+import { AsyncButton } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
 import { ApiKeysTable } from "./api-keys-table";
@@ -26,9 +26,9 @@ export default function ApiKeysDashboardClient() {
           <Box>
           API Keys
           </Box>
-          <Button onClick={() => setIsNewApiKeyDialogOpen(true)}>
+          <AsyncButton onClick={() => setIsNewApiKeyDialogOpen(true)}>
             Create new
-          </Button>
+          </AsyncButton>
         </Stack>
       </Paragraph>
         
@@ -167,7 +167,7 @@ function CreateNewDialog(props: { open: boolean, onClose(): void }) {
               >
                 Create
               </AsyncButton>
-              <AsyncButton disabled={isCreating} variant="plain" color="neutral" onClick={() => close()}>
+              <AsyncButton disabled={isCreating} variant="secondary" color="neutral" onClick={() => close()}>
                 Cancel
               </AsyncButton>
             </DialogActions>

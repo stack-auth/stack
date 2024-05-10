@@ -22,7 +22,7 @@ import {
   Stack,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from '@/components/async-button';
+import { AsyncButton } from "@/components/ui/button";
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
@@ -215,11 +215,11 @@ function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => 
           <AsyncButton
             color="primary"
             loading={isSaving}
-            onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+            onClick={() => {formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
             Save
           </AsyncButton>
-          <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
           </AsyncButton>
         </DialogActions>

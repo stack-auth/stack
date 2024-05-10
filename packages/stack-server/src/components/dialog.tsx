@@ -1,6 +1,6 @@
 import { Modal, ModalDialog, DialogTitle, Divider, DialogContent, DialogActions } from "@mui/joy";
 import React from "react";
-import { AsyncButton } from "./async-button";
+import { AsyncButton } from "@/components/ui/button";
 import { Icon } from "./icon";
 
 type DialogProps = {
@@ -53,7 +53,6 @@ export function Dialog(props: DialogProps) {
             {okButton && (
               <AsyncButton
                 disabled={props.disableButtons}
-                variant="solid"
                 color={color}
                 onClick={async () => {
                   if (await okButton.onClick?.() !== "prevent-close") {
@@ -68,7 +67,7 @@ export function Dialog(props: DialogProps) {
             {cancelButton && (
               <AsyncButton
                 disabled={props.disableButtons}
-                variant="plain"
+                variant="secondary"
                 color="neutral"
                 onClick={async () => {
                   if (await cancelButton.onClick?.() !== "prevent-close") {
