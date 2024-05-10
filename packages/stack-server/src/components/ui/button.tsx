@@ -1,8 +1,10 @@
 import * as React from "react";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
@@ -53,5 +55,41 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 Button.displayName = "Button";
+
+export interface AsyncButtonProps extends ButtonProps {
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
+  loading?: boolean,
+}
+
+export const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
+  ({ onClick, loading: loadingProp, children, ...props }, ref) => {
+    const [isLoading, setLoading] = React.useState(false);
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (onClick) {
+        setLoading(true);
+        try {
+          await onClick(e);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    const loading = loadingProp ?? isLoading;
+
+    return (
+      <Button
+        ref={ref}
+        onClick={(e) => runAsynchronously(handleClick(e))}
+        disabled={loading}
+        {...props}
+      >
+        {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+        {children}
+      </Button>
+    );
+  }
+);
+AsyncButton.displayName = "AsyncButton";
 
 export { Button, buttonVariants };

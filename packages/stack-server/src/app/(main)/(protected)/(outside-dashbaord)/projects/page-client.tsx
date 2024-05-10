@@ -5,6 +5,7 @@ import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 
@@ -13,6 +14,7 @@ export default function PageClient() {
   const rawProjects = user.useOwnedProjects();
   const [sort, setSort] = useState<"recency" | "name">("recency");
   const [search, setSearch] = useState<string>("");
+  const router = useRouter();
 
   const projects = useMemo(() => {
     let newProjects = [...rawProjects];
@@ -48,7 +50,7 @@ export default function PageClient() {
             </SelectContent>
           </Select>
           
-          <Button>Create Project</Button>
+          <Button onClick={() => router.push('/new-project')}>Create Project</Button>
         </div>
       </div>
 
