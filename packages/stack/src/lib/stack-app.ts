@@ -573,7 +573,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
     window.location.href = this.urls[handlerName];
-    return neverResolve();
+    return wait(2000);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
@@ -1682,11 +1682,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", [], ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<never> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<void> }
   & (HasTokenStore extends false
     ? {}
     : {
-      redirectToOAuthCallback(): Promise<never>,
+      redirectToOAuthCallback(): Promise<void>,
       useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
       useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
       useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null,

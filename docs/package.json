@@ -1,6 +1,6 @@
 {
-  "name": "stack-docs",
-  "version": "0.1.0",
+  "name": "@stackframe/stack-docs",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "docusaurus": "dotenv -c -- docusaurus",

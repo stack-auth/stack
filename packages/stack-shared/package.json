@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -30,7 +30,8 @@
     "bcrypt": "^5.1.1",
     "jose": "^5.2.2",
     "oauth4webapi": "^2.10.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "@stackframe/stack-sc": "workspace:*"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

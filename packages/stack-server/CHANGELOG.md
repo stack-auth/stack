@@ -1,5 +1,22 @@
 # @stackframe/stack-server
 
+## 0.4.2
+
+### Patch Changes
+
+- @stackframe package namespace
+- Updated dependencies
+  - @stackframe/stack@2.4.2
+
+## 0.4.1
+
+### Patch Changes
+
+- Teams, permissions and RBAC
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.1
+  - @stackframe/stack@2.4.1
+
 ## 0.4.0
 
 ### Minor Changes

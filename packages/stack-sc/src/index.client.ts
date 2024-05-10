@@ -1,1 +1,1 @@
-export { cookies } from 'next/headers';
+export const cookies = undefined;

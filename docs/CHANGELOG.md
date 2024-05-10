@@ -1,5 +1,17 @@
 # stack-docs
 
+## 0.1.2
+
+### Patch Changes
+
+- @stackframe package namespace
+
+## 0.1.1
+
+### Patch Changes
+
+- Teams, permissions and RBAC
+
 ## 0.1.0
 
 ### Minor Changes

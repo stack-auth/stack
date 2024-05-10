@@ -653,6 +653,9 @@ importers:
 
   packages/stack-shared:
     dependencies:
+      '@stackframe/stack-sc':
+        specifier: workspace:*
+        version: link:../stack-sc
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1

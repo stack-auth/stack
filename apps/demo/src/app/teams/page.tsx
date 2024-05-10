@@ -2,8 +2,6 @@ import { Link, Separator, Text } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
 import MyTeams from "./my-teams";
 
-export const dynamic = 'force-dynamic';
-
 export default async function Page() {
   const teams = await stackServerApp.listTeams();
   const user = await stackServerApp.getUser({ or: 'redirect' });

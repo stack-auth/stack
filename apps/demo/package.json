@@ -1,6 +1,6 @@
 {
-  "name": "demo-app",
-  "version": "1.1.0",
+  "name": "@stackframe/example-demo-app",
+  "version": "1.1.2",
   "description": "",
   "private": true,
   "scripts": {
