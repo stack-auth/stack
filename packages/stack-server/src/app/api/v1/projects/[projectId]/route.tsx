@@ -4,9 +4,8 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
-import { getProject, isProjectAdmin, updateProject } from "@/lib/projects";
-import { ClientProjectJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { getProject, isProjectAdmin, getProjectUpdateSchema, projectSchemaToUpdateOptions, updateProject } from "@/lib/projects";
+import { ClientProjectJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const putOrGetSchema = yup.object({
@@ -16,29 +15,7 @@ const putOrGetSchema = yup.object({
     "x-stack-admin-access-token": yup.string().default(""),
     "x-stack-project-id": yup.string().required(),
   }).required(),
-  body: yup.object({
-    isProductionMode: yup.boolean().default(undefined),
-    config: yup.object({
-      domains: yup.array(yup.object({
-        domain: yup.string().required(),
-        handlerPath: yup.string().required(),
-      })).default(undefined),
-      oauthProviders: yup.array(
-        yup.object({
-          id: yup.string().required(),
-          enabled: yup.boolean().required(),
-          type: yup.string().required(),
-          clientId: yup.string().default(undefined),
-          clientSecret: yup.string().default(undefined),
-          tenantId: yup.string().default(undefined),
-        })
-      ).default(undefined),
-      credentialEnabled: yup.boolean().default(undefined),
-      magicLinkEnabled: yup.boolean().default(undefined),
-      allowLocalhost: yup.boolean().default(undefined),
-      createTeamOnSignUp: yup.boolean().default(undefined),
-    }).default(undefined),
-  }).default(undefined),
+  body: getProjectUpdateSchema().default(undefined),
 });
 
 const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { apiKeyId: string } }) => {
@@ -58,43 +35,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
   const saValid = await checkApiKeySet(projectId, { superSecretAdminKey });
 
-  const typedUpdate: ProjectUpdateOptions = {
-    isProductionMode: update.isProductionMode,
-    config: update.config && {
-      domains: update.config.domains,
-      allowLocalhost: update.config.allowLocalhost,
-      credentialEnabled: update.config.credentialEnabled,
-      magicLinkEnabled: update.config.magicLinkEnabled,
-      createTeamOnSignUp: update.config.createTeamOnSignUp,
-      oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
-        if (sharedProviders.includes(provider.type as SharedProvider)) {
-          return {
-            id: provider.id,
-            enabled: provider.enabled,
-            type: provider.type as SharedProvider,
-          };
-        } else if (standardProviders.includes(provider.type as StandardProvider)) {
-          if (!provider.clientId) {
-            throw new StatusError(StatusError.BadRequest, "Missing clientId");
-          }
-          if (!provider.clientSecret) {
-            throw new StatusError(StatusError.BadRequest, "Missing clientSecret");
-          }
-          
-          return {
-            id: provider.id,
-            enabled: provider.enabled,
-            type: provider.type as StandardProvider,
-            clientId: provider.clientId,
-            clientSecret: provider.clientSecret,
-            tenantId: provider.tenantId,
-          };
-        } else {
-          throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
-        }
-      }),
-    },
-  };
+  const typedUpdate = projectSchemaToUpdateOptions(update);
 
   if (asValid || saValid) {
     const project = await updateProject(
