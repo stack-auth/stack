@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.4.2
+
+### Patch Changes
+
+- @stackframe package namespace
+
 ## 2.4.1
 
 ### Patch Changes
