@@ -49,7 +49,7 @@ export default function AuthPage({
           </Text>
         )}
       </div>
-      <OAuthGroup type='signin'/>
+      <OAuthGroup type='signin' mockProject={mockProject} />
       {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
       {project.credentialEnabled && project.magicLinkEnabled ? (
         <Tabs defaultValue='magic-link'>

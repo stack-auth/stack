@@ -1,11 +1,9 @@
-'use client';
-
+'use client';;
 import { useState } from "react";
 import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { Button, Input, Label } from "../components-core";
-import { ClientProjectJson } from "@stackframe/stack-shared";
 
 export default function MagicLinkSignIn() {
   const [email, setEmail] = useState('');

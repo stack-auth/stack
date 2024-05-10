@@ -1,6 +1,5 @@
 "use client";;
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Control, FieldValues, Path, useFieldArray, useForm } from "react-hook-form";
+import { Control, FieldValues, Path, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -10,19 +9,12 @@ import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@stackframe/stack";
 
-const projectFormSchema = z.object({
+export const projectFormSchema = z.object({
   displayName: z.string({ required_error: "Please enter a project name." }),
-  description: z.string(),
   signInMethods: z.array(z.enum(["google", "github", "microsoft", "facebook", "credential", "magicLink"])),
 });
 
-type ProjectFormValues = z.infer<typeof projectFormSchema>
-
-const defaultValues: Partial<ProjectFormValues> = {
-  displayName: "",
-  description: "",
-  signInMethods: ["credential", "magicLink", "google", "github"],
-};
+export type ProjectFormValues = z.infer<typeof projectFormSchema>
 
 function SwitchField<F extends FieldValues>(props: { 
   control: Control<F>, 
@@ -50,7 +42,7 @@ function SwitchField<F extends FieldValues>(props: {
       )}
     />
   );
-};
+}
 
 function InputField<F extends FieldValues>(props: { 
   control: Control<F>, 
@@ -115,13 +107,7 @@ function ListSwitchField<F extends FieldValues>(props: {
   );
 }
 
-export function ProjectForm() {
-  const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectFormSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-
+export function ProjectForm({ form } : { form: UseFormReturn<ProjectFormValues> }) {
   function onSubmit(data: ProjectFormValues) {
     toast({
       title: "You submitted the following values:",
@@ -141,7 +127,6 @@ export function ProjectForm() {
       <form onSubmit={() => form.handleSubmit(onSubmit)} className="space-y-6">
 
         <InputField control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
-        <InputField control={form.control} name="description" label="Description" placeholder="A short description of your project" />
 
         <ListSwitchField
           control={form.control}
