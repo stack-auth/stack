@@ -95,7 +95,7 @@ export default function PageClient () {
       </div>
       <Separator orientation="vertical" />
 
-      <div className="w-1/2 self-stretch p-4 bg-gray-300 dark:bg-gray-700 hidden md:flex">
+      <div className="w-1/2 self-stretch p-4 bg-zinc-300 dark:bg-zinc-800 hidden md:flex">
         {mockProject ? 
           (
             <div className='w-full sm:max-w-sm m-auto scale-90'>

@@ -1,9 +1,13 @@
+'use client';
+
 import { Text, UserButton } from "@stackframe/stack";
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
+import { useColorScheme } from "@mui/joy";
 
 export function Navbar({ ...props }) {
+  const { mode, setMode } = useColorScheme();
   return (
     <div>
       <header
@@ -22,7 +26,7 @@ export function Navbar({ ...props }) {
               <Text size='sm' variant='secondary'>Docs</Text>
             </Link>
           </div>
-          <UserButton />
+          <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')}/>
         </div>
       </header>
       <Separator/>
