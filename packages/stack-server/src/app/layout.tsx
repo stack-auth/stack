@@ -11,6 +11,9 @@ import ThemeProvider from '@/theme';
 import { StyleLink } from '@/components/style-link';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import React from 'react';
+import { stackServerApp } from '@/stack';
+import { StackProvider } from '@stackframe/stack';
+import { StackJoyTheme } from '@stackframe/stack/joy';
 
 export const metadata: Metadata = {
   title: {
@@ -64,7 +67,11 @@ export default function RootLayout({
         <Analytics />
         <ThemeProvider>
           <SnackbarProvider>
-            {children}
+            <StackProvider app={stackServerApp}>
+              <StackJoyTheme>
+                {children}
+              </StackJoyTheme>
+            </StackProvider>
           </SnackbarProvider>
         </ThemeProvider>
       </body>
