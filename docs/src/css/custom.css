@@ -1,4 +1,4 @@
-html[data-theme='dark'] {
+html[data-stack-theme='dark'] {
   --ifm-background-color: #030712;
   --ifm-background-surface-color: #030712;
 }

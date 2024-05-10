@@ -6,6 +6,7 @@ import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
+import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
 
@@ -824,7 +825,7 @@ export class StackClientInterface {
   }
 
   async createProject(
-    project: Pick<ProjectJson, "displayName" | "description">,
+    project: ProjectUpdateOptions & { displayName: string },
     tokenStore: TokenStore,
   ): Promise<ProjectJson> {
     const fetchResponse = await this.sendClientRequest(

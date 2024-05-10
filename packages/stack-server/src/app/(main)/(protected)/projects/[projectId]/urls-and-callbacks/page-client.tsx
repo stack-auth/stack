@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { Dialog } from "@/components/dialog";
-import { AsyncButton } from "@/components/async-button";
+import { AsyncButton } from "@/components/ui/button";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
@@ -225,9 +225,8 @@ export default function UrlsAndCallbacksClient() {
 
         <AsyncButton
           onClick={() => setAddNewDialogOpen(true)}
-          variant="soft"
           color="neutral"
-          sx={{ mt: 3 }}
+          className="mt-4"
         >
           Add new domain
         </AsyncButton>

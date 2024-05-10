@@ -18,7 +18,7 @@ const LoadingIndicator = styled.div<{ color: { light: string, dark: string }, si
 
   --_g: no-repeat radial-gradient(circle closest-side, ${props => props.color.light} 90%, #0000);
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     --_g: no-repeat radial-gradient(circle closest-side, ${props => props.color.dark} 90%, #0000);
   }
 `;

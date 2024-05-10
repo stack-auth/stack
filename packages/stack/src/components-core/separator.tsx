@@ -18,7 +18,7 @@ const StyledSeparator = styled(SeparatorPrimitive.Root)<{
   
   background-color: ${props => props.$color.light.neutralColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: ${props => props.$color.dark.neutralColor};
   }
 `;

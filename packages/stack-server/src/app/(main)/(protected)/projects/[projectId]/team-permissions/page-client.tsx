@@ -3,7 +3,7 @@
 import { Paragraph } from "@/components/paragraph";
 import { PermissionsTable } from "./permissions-table";
 import { useAdminApp } from "../use-admin-app";
-import { AsyncButton } from "@/components/async-button";
+import { AsyncButton } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import {
   DialogActions,
@@ -144,12 +144,12 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
           <AsyncButton
             color="primary"
             loading={isSaving}
-            onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+            onClick={() => { formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
             disabled={idError !== '' || id === ''}
           >
             Save
           </AsyncButton>
-          <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
           </AsyncButton>
         </DialogActions>

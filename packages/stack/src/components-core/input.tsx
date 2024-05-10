@@ -46,7 +46,7 @@ const StyledInput = styled.input<{
     color: ${PRIMARY_FONT_COLORS.light};
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     border-color: ${props => props.$colors.dark.neutralColor};
     color: ${PRIMARY_FONT_COLORS.dark};
     &::placeholder {

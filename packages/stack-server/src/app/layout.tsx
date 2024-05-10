@@ -5,6 +5,7 @@ import {GeistSans} from 'geist/font/sans';
 import {GeistMono} from "geist/font/mono";
 import { SnackbarProvider } from '@/hooks/use-snackbar';
 import { Analytics } from "@vercel/analytics/react";
+import { Inter as FontSans } from "next/font/google";
 
 import './globals.css';
 import ThemeProvider from '@/theme';
@@ -12,8 +13,8 @@ import { StyleLink } from '@/components/style-link';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import React from 'react';
 import { stackServerApp } from '@/stack';
-import { StackProvider } from '@stackframe/stack';
-import { StackJoyTheme } from '@stackframe/stack/joy';
+import { StackProvider, StackTheme } from '@stackframe/stack';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: {
@@ -23,10 +24,51 @@ export const metadata: Metadata = {
   description: 'Some frontend with auth built by N2D4',
 };
 
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
 type TagConfigJson = {
   tagName: string,
   attributes: { [key: string]: string },
   innerHTML: string,
+};
+
+const script = () => {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'data-joy-color-scheme') {
+        const colorTheme = document.documentElement.getAttribute('data-joy-color-scheme');
+        if (!colorTheme) {
+          return;
+        }
+        document.documentElement.setAttribute('class', colorTheme);
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-joy-color-scheme'],
+  });
+};
+
+const theme = {
+  colors: {
+    dark: {
+      primaryColor: '#fff',
+      secondaryColor: '#444',
+      backgroundColor: 'black',
+      neutralColor: '#27272a',
+    },
+    light: {
+      primaryColor: '#000',
+      secondaryColor: '#ccc',
+      backgroundColor: 'white',
+      neutralColor: '#e4e4e7',
+    },
+  }
 };
 
 export default function RootLayout({
@@ -52,25 +94,21 @@ export default function RootLayout({
           });
         })}
       </head>
-      <body
-        style={{
-          /**
-           * NOTE: The font family is configured in the Joy UI theme config, at src/theme.tsx.
-           * 
-           * The font here is used as a fallback, and is intentionally egregious to make it obvious
-           * when you forgot to wrap your text in a <Typography /> or <Paragraph /> component.
-           */
-          fontFamily: '"Brush Script MT", "Zapfino", "Comic Sans MS", cursive',
-        }}
+      <body 
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
         suppressHydrationWarning
       >
+        <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
         <Analytics />
         <ThemeProvider>
           <SnackbarProvider>
             <StackProvider app={stackServerApp}>
-              <StackJoyTheme>
+              <StackTheme theme={theme}>
                 {children}
-              </StackJoyTheme>
+              </StackTheme>
             </StackProvider>
           </SnackbarProvider>
         </ThemeProvider>

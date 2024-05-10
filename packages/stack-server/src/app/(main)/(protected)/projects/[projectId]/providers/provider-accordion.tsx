@@ -24,7 +24,7 @@ import {
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { useEffect, useMemo, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { AsyncButton } from "@/components/async-button";
+import { AsyncButton } from "@/components/ui/button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
@@ -280,7 +280,7 @@ function ProviderForm(props: Props & { provider: OAuthProviderConfigJson }) {
           {!!props.provider && hasChanges && (
             <AsyncButton
               type="reset"
-              variant="plain"
+              variant="secondary"
               color="neutral"
               disabled={!hasChanges}
               onClick={async () => {

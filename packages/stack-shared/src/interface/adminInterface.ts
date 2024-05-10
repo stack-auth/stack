@@ -29,6 +29,8 @@ export type OAuthProviderUpdateOptions = {
 )
 
 export type ProjectUpdateOptions = {
+  displayName?: string,
+  description?: string,
   isProductionMode?: boolean,
   config?: {
     domains?: {

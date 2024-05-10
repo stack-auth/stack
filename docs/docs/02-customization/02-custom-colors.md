@@ -45,7 +45,7 @@ const theme = {
 
 ## Color Mode
 
-Stack components support light and dark mode out of the box. You can switch between light and dark mode using [next-themes](https://github.com/pacocoursey/next-themes) (or any other library that changes the `data-theme` attribute of the `html` element).
+Stack components support light and dark mode out of the box. You can switch between light and dark mode using [next-themes](https://github.com/pacocoursey/next-themes) (or any other library that changes the `data-theme` or `class` to `dark` or `light` attribute of the `html` element).
 
 Here is an example of how to set up next-themes with Stack (find more details in the [next-themes documentation](https://github.com/pacocoursey/next-themes)):
 

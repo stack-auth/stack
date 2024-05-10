@@ -48,7 +48,7 @@ const StyledAvatarFallback = styled(AvatarPrimitive.Fallback)<{
   
   background-color: ${({ $colors }) => $colors.light.secondaryColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: ${({ $colors }) => $colors.dark.secondaryColor};
   }
 `;

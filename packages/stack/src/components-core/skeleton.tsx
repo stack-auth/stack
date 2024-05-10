@@ -30,7 +30,7 @@ const Primitive = styled("span")`
     animation: ${animationLight} 1s infinite alternate-reverse !important;
   }
 
-  html[data-theme='dark'] &[data-stack-state="activated"] {
+  html[data-stack-theme='dark'] &[data-stack-state="activated"] {
     animation: ${animationDark} 1s infinite alternate-reverse !important;
   }
 `;

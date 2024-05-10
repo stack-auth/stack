@@ -19,7 +19,7 @@ const StyledSelect = styled.select<{ $colors: ColorPalette }>`
   border: 1px solid ${props => props.$colors.light.neutralColor};
   background-color: ${props => props.$colors.light.backgroundColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     border-color: ${props => props.$colors.dark.neutralColor};
     background-color: ${props => props.$colors.dark.backgroundColor};
   }

@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { createProject, listProjects } from "@/lib/projects";
+import { createProject, getProjectCreateSchema, getProjectUpdateSchema, listProjects, projectSchemaToCreateOptions, projectSchemaToUpdateOptions } from "@/lib/projects";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { getServerUser } from "@/lib/users";
 
@@ -39,16 +39,13 @@ const postRequestSchema = yup.object({
   headers: yup.object({
     authorization: authorizationHeaderSchema.required(),
   }),
-  body: yup.object({
-    displayName: yup.string().required(),
-    description: yup.string().default(undefined),
-  }),
+  body: getProjectCreateSchema().required(),
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const {
     headers: { authorization },
-    body: { displayName, description },
+    body,
   } = await deprecatedParseRequest(req, postRequestSchema);
 
   const { userId, projectId: accessTokenProjectId } = await decodeAccessToken(authorization.split(" ")[1]);
@@ -61,7 +58,9 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Invalid project user");
   }
 
-  const project = await createProject(projectUser, { displayName, description });
+  const { ...update } = body ?? {};
+  const typedUpdate = projectSchemaToCreateOptions(update);
+  const project = await createProject(projectUser, typedUpdate);
 
   return NextResponse.json(project);
 });

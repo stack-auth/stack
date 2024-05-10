@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import styled from 'styled-components';
-import { useDesign } from '..';
+import { Text, useDesign } from '..';
 import { ColorPalette } from '../providers/design-provider';
 
 const Tabs = TabsPrimitive.Root;
@@ -16,7 +16,7 @@ const StyledTabsList = styled(TabsPrimitive.List)`
 
   background-color: rgb(244, 244, 245);
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: rgb(39, 39, 42);
   }
 `;
@@ -54,7 +54,7 @@ const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
     background-color: ${({ $colors }) => $colors.light.backgroundColor};
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     &[data-state='active'] {
       background-color: ${({ $colors }) => $colors.dark.backgroundColor};
     }
@@ -64,13 +64,15 @@ const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentProps<typeof TabsPrimitive.Trigger>
->((props, ref) => {
+>(({children, ...props}, ref) => {
   const { colors } = useDesign();
   return <StyledTabsTrigger 
     $colors={colors}
     {...props} 
     ref={ref} 
-  />;
+  >
+    <Text>{children}</Text>
+  </StyledTabsTrigger>;
 });
 
 const StyledTabsContent = styled(TabsPrimitive.Content)`
