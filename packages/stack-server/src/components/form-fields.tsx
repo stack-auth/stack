@@ -4,11 +4,18 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
+
+export function Label({ required, children }: { children?: string, required?: boolean }) {
+  return <FormLabel>{children} {required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}</FormLabel>;
+}
+
+
 export function InputField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>,
   label: string, 
   placeholder?: string,
+  required?: boolean,
 }) {
   return (
     <FormField
@@ -16,7 +23,7 @@ export function InputField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{props.label}</FormLabel>
+          <Label required={props.required}>{props.label}</Label>
           <FormControl>
             <Input {...field} placeholder={props.placeholder} />
           </FormControl>
@@ -30,7 +37,8 @@ export function InputField<F extends FieldValues>(props: {
 export function SwitchField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>, 
-  label: string, 
+  label: string,
+  required?: boolean,
 }) {
   return (
     <FormField
@@ -40,7 +48,7 @@ export function SwitchField<F extends FieldValues>(props: {
         <FormItem>
           <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>{props.label}</FormLabel>
+              <Label required={props.required}>{props.label}</Label>
             </div>
             <FormControl>
               <Switch
@@ -60,6 +68,7 @@ export function ListSwitchField<F extends FieldValues>(props: {
   name: Path<F>, 
   label: string, 
   options: { value: string, label: string }[], 
+  required?: boolean,
 }) {
   return (
     <FormField
@@ -72,7 +81,7 @@ export function ListSwitchField<F extends FieldValues>(props: {
             {props.options.map(provider => (
               <div className="flex flex-row items-center justify-between" key={provider.value}>
                 <div className="space-y-0.5">
-                  <FormLabel>{provider.label}</FormLabel>
+                  <Label required={props.required}>{provider.label}</Label>
                 </div>
                 <FormControl>
                   <Switch

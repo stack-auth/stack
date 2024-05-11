@@ -6,6 +6,7 @@ import {
   KeyRound,
   LockKeyhole,
   LucideIcon,
+  Menu,
   Settings2,
   ShieldEllipsis,
   User,
@@ -19,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Project, UserButton, useUser } from "@stackframe/stack";
 import { useColorScheme } from "@mui/joy";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,6 +29,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ProjectSwitcher } from "@/components/project-switcher";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type Label = {
   name: string,
@@ -135,7 +137,7 @@ export function NavItem({ item, projectId }: { item: Item, projectId: string }) 
       href={`/projects/${projectId}${item.href}`}
       className={cn(
         buttonVariants({ variant: 'ghost', size: "default" }),
-        selected && "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white w-full",
+        selected && "bg-muted",
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300"
       )}
     >
@@ -238,14 +240,28 @@ export function HeaderBreadcrumb({ projectId }: { projectId: string }) {
 }
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="w-full flex">
-      <div className="flex-col border-r w-[240px] h-screen sticky hidden md:flex">
+      <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
         <SidebarContent projectId={props.projectId} />
       </div>
-      <div className="flex-grow">
-        <div className="h-14 border-b flex items-center justify-between px-4">
-          <HeaderBreadcrumb projectId={props.projectId} />
+      <div className="flex-grow w-0">
+        <div className="h-14 border-b flex items-center justify-between px-4 sticky top-0 bg-white dark:bg-black z-10">
+          <div className="hidden md:flex">
+            <HeaderBreadcrumb projectId={props.projectId} />
+          </div>
+
+          <Sheet>
+            <SheetTrigger>
+              <Button variant="outline" className="p-2 md:hidden">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side='left' className="w-[240px] p-0">
+              <SidebarContent projectId={props.projectId} />
+            </SheetContent>
+          </Sheet>
 
           <Button variant="outline" onClick={() => window.open("mailto:team@stack-auth.com")}>
             Feedback

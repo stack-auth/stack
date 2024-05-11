@@ -2,9 +2,10 @@
 
 import { ProjectCard } from "@/components/project-card";
 import { SearchBar } from "@/components/search-bar";
-import { Button } from "@/components/ui/button";
+import { AsyncButton } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -54,7 +55,13 @@ export default function PageClient() {
             </SelectContent>
           </Select>
           
-          <Button onClick={() => router.push('/new-project')}>Create Project</Button>
+          <AsyncButton
+            onClick={async () => {
+              await router.push('/new-project');
+              return await wait(2000);
+            }}
+          >Create Project
+          </AsyncButton>
         </div>
       </div>
 
