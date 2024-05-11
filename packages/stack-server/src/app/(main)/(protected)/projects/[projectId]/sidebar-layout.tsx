@@ -126,7 +126,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
 ];
 
-export function NavItem({ item, projectId }: { item: Item, projectId: string }) {
+export function NavItem({ item, projectId, onClick }: { item: Item, projectId: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -140,6 +140,7 @@ export function NavItem({ item, projectId }: { item: Item, projectId: string }) 
         selected && "bg-muted",
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300"
       )}
+      onClick={onClick}
     >
       <item.icon className="mr-2 h-4 w-4" />
       {item.name}
@@ -147,7 +148,7 @@ export function NavItem({ item, projectId }: { item: Item, projectId: string }) 
   );
 }
 
-export function SidebarContent({ projectId }: { projectId: string }) {
+export function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
   const { mode, setMode } = useColorScheme();
 
   return (
@@ -163,7 +164,7 @@ export function SidebarContent({ projectId }: { projectId: string }) {
             </div>;
           } else if (item.type === 'item') {
             return <div key={index} className="flex px-1">
-              <NavItem item={item} projectId={projectId} />
+              <NavItem item={item} projectId={projectId} onClick={onNavigate} />
             </div>;
           }
         })}
@@ -173,6 +174,7 @@ export function SidebarContent({ projectId }: { projectId: string }) {
 
       <div className="py-2 px-1 flex">
         <NavItem
+          onClick={onNavigate}
           item={{
             name: "Documentation",
             type: "item",
@@ -252,14 +254,14 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
 
-          <Sheet>
+          <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
             <SheetTrigger>
               <Button variant="outline" className="p-2 md:hidden">
                 <Menu />
               </Button>
             </SheetTrigger>
-            <SheetContent side='left' className="w-[240px] p-0">
-              <SidebarContent projectId={props.projectId} />
+            <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
+              <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
             </SheetContent>
           </Sheet>
 
