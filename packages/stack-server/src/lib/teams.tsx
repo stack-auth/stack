@@ -38,6 +38,7 @@ export async function listTeams(projectId: string): Promise<TeamJson[]> {
       projectId,
     },
   });
+
   return result.map(team => ({
     id: team.teamId,
     displayName: team.displayName,

@@ -476,7 +476,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (this.isInternalProject()) {
       const internalUser: CurrentInternalUser = {
         ...currentUser,
-        createProject(newProject: Pick<Project, "displayName" | "description">) {
+        createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
           return app._createProject(newProject);
         },
         listOwnedProjects() {
@@ -573,7 +573,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
     window.location.href = this.urls[handlerName];
-    return neverResolve();
+    return wait(2000);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
@@ -823,7 +823,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected async _createProject(newProject: Pick<Project, "displayName" | "description">): Promise<Project> {
+  protected async _createProject(newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
     this._ensureInternalProject();
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const json = await this._interface.createProject(newProject, tokenStore);
@@ -1085,7 +1085,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (this.isInternalProject()) {
       const internalUser: CurrentInternalServerUser = {
         ...currentUser,
-        createProject(newProject: Pick<Project, "displayName" | "description">) {
+        createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
           return app._createProject(newProject);
         },
         listOwnedProjects() {
@@ -1455,7 +1455,7 @@ type Auth<T, C> = {
 };
 
 type InternalAuth<T> = {
-  createProject(this: T, newProject: Pick<Project, "displayName" | "description">): Promise<Project>,
+  createProject(this: T, newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project>,
   listOwnedProjects(this: T): Promise<Project[]>,
   useOwnedProjects(this: T): Project[],
   onOwnedProjectsChange(this: T, callback: (projects: Project[]) => void): void,
@@ -1682,11 +1682,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", [], ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<never> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<void> }
   & (HasTokenStore extends false
     ? {}
     : {
-      redirectToOAuthCallback(): Promise<never>,
+      redirectToOAuthCallback(): Promise<void>,
       useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
       useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
       useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null,

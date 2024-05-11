@@ -3,8 +3,6 @@
 import { FaGithub, FaFacebook, FaApple } from 'react-icons/fa';
 import { useStackApp } from '..';
 import { Button } from "../components-core";
-import { useDesign } from "../providers/design-provider";
-import Color from 'color';
 
 const iconSize = 22;
 
@@ -15,7 +13,6 @@ export default function OAuthButton({
   provider: string,
   type: 'signin' | 'signup',
 }) {
-  const { colors } = useDesign();
   const stackApp = useStackApp();
 
   let style : {

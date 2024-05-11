@@ -21,7 +21,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<{
   border: 1px solid ${({ $colors }) => $colors.light.neutralColor};
   background-color: ${({ $colors }) => $colors.light.backgroundColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     border-color: ${({ $colors }) => $colors.dark.neutralColor};
     background-color: ${({ $colors }) => $colors.dark.backgroundColor};
   }

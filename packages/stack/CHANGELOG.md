@@ -1,5 +1,28 @@
 # @stackframe/stack
 
+## 2.4.3
+
+### Patch Changes
+
+- New projects page
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.2
+
+## 2.4.2
+
+### Patch Changes
+
+- @stackframe package namespace
+
+## 2.4.1
+
+### Patch Changes
+
+- Teams, permissions and RBAC
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.1
+  - @stackframe/stack-sc@1.5.1
+
 ## 2.4.0
 
 ### Minor Changes

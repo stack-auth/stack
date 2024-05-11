@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.5.1
+
+### Patch Changes
+
+- Teams, permissions and RBAC
+
 ## 1.5.0
 
 ### Minor Changes

@@ -35,7 +35,7 @@ export default function MagicLinkCallback({
     </MessageCard>
   );
 
-  const allredyUsedJsx = (
+  const alreadyUsedJsx = (
     <MessageCard title="Magic Link Already Used" fullPage={fullPage}>
       <p>The magic link has already been used. The link can only be used once. Please request a new magic link if you need to sign-in again.</p>
     </MessageCard>
@@ -52,7 +52,7 @@ export default function MagicLinkCallback({
   } else if (error instanceof KnownErrors.MagicLinkCodeExpired) {
     return expiredJsx;
   } else if (error instanceof KnownErrors.MagicLinkCodeAlreadyUsed) {
-    return allredyUsedJsx;
+    return alreadyUsedJsx;
   } else if (error) {
     throw error;
   }

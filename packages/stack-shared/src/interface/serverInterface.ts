@@ -179,7 +179,8 @@ export class StackServerInterface extends StackClientInterface {
 
   async listTeams(): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest("/teams?server=true", {}, null);
-    return await response.json();
+    const json = await response.json();
+    return json;
   }
 
   async listTeamMembers(teamId: string): Promise<ServerTeamMemberJson[]> {

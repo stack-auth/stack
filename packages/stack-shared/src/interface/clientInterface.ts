@@ -6,6 +6,9 @@ import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError } from '../utils/errors';
+import { ProjectUpdateOptions } from './adminInterface';
+import { cookies } from '@stackframe/stack-sc';
+import { generateSecureRandomString } from '../utils/crypto';
 
 type UserCustomizableJson = {
   readonly displayName: string | null,
@@ -319,6 +322,9 @@ export class StackClientInterface {
       tokenObj = await tokenStore.getOrWait();
     }
 
+    // all requests should be dynamic to prevent Next.js caching
+    cookies?.();
+
     const url = this.getApiUrl() + path;
     const params: RequestInit = {
       /**
@@ -343,8 +349,10 @@ export class StackClientInterface {
         ...'projectOwnerTokens' in this.options ? {
           "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
         } : {},
+        "X-Stack-Random-Nonce": generateSecureRandomString(),
         ...options.headers,
       },
+      cache: "no-store",
     };
 
     const rawRes = await fetch(url, params);
@@ -817,7 +825,7 @@ export class StackClientInterface {
   }
 
   async createProject(
-    project: Pick<ProjectJson, "displayName" | "description">,
+    project: ProjectUpdateOptions & { displayName: string },
     tokenStore: TokenStore,
   ): Promise<ProjectJson> {
     const fetchResponse = await this.sendClientRequest(

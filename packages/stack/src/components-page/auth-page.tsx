@@ -8,19 +8,22 @@ import { useUser, useStackApp, CredentialSignUp } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
+import { ClientProjectJson } from "@stackframe/stack-shared";
 
 export default function AuthPage({ 
   fullPage=false,
-  type
+  type,
+  mockProject,
 }: { 
   fullPage?: boolean, 
   type: 'sign-in' | 'sign-up',
+  mockProject?: ClientProjectJson,
 }) {
   const stackApp = useStackApp();
   const user = useUser();
-  const project = stackApp.useProject();
+  const project = mockProject || stackApp.useProject();
 
-  if (user) {
+  if (user && !mockProject) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
@@ -46,7 +49,7 @@ export default function AuthPage({
           </Text>
         )}
       </div>
-      <OAuthGroup type='signin'/>
+      <OAuthGroup type='signin' mockProject={mockProject} />
       {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
       {project.credentialEnabled && project.magicLinkEnabled ? (
         <Tabs defaultValue='magic-link'>

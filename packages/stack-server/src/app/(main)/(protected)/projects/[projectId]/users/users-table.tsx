@@ -5,7 +5,7 @@ import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
 import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from '@/components/async-button';
+import { AsyncButton } from "@/components/ui/button";
 import { Dialog } from '@/components/dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
@@ -264,11 +264,11 @@ export function EditUserModal(props: { user: ServerUser, open: boolean, onClose:
           <AsyncButton
             color="primary"
             loading={isSaving}
-            onClick={() => formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+            onClick={() => {formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
               Save
           </AsyncButton>
-          <AsyncButton variant="plain" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
               Cancel
           </AsyncButton>
         </DialogActions>

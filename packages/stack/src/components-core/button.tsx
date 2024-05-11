@@ -138,7 +138,7 @@ const StyledButton = styled.button<{
     }
   }
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     background-color: ${props => props.$colors.dark.bgColor};
     color: ${props => props.$colors.dark.textColor};
     &:not([disabled]) {
@@ -176,12 +176,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         $colors={{ dark, light }}
         {...props}
       >
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
+        <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
           <LoadingIndicator color={{ light: light.textColor, dark: dark.textColor }}/>
-        </div>
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+        </span>
+        <span style={{ visibility: loading ? 'hidden' : 'visible', whiteSpace: 'nowrap' }}>
           {props.children}
-        </div>
+        </span>
       </StyledButton>
     );
   }

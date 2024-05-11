@@ -81,6 +81,10 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
   headers.set("x-stack-request-id", [requestId]);
 
 
+  // Disable caching by default
+  headers.set("cache-control", ["no-store, max-age=0"]);
+
+
   // If the x-stack-override-error-status header is given, override error statuses to 200
   if (req.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
     status = 200;

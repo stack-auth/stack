@@ -10,7 +10,7 @@ import { ColorPalette } from "../providers/design-provider";
 const getIconStyle = (colors: ColorPalette) => `
   color: ${colors.light.secondaryColor};
 
-  html[data-theme='dark'] & {
+  html[data-stack-theme='dark'] & {
     color: ${colors.dark.secondaryColor};
   }
 `;
