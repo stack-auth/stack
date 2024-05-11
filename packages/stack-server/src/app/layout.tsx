@@ -1,17 +1,15 @@
 import '../polyfills';
-
+import './globals.css';
+import React from 'react';
 import type { Metadata } from 'next';
 import {GeistSans} from 'geist/font/sans';
 import {GeistMono} from "geist/font/mono";
 import { SnackbarProvider } from '@/hooks/use-snackbar';
 import { Analytics } from "@vercel/analytics/react";
 import { Inter as FontSans } from "next/font/google";
-
-import './globals.css';
 import ThemeProvider from '@/theme';
 import { StyleLink } from '@/components/style-link';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import React from 'react';
 import { stackServerApp } from '@/stack';
 import { StackProvider, StackTheme } from '@stackframe/stack';
 import { cn } from '@/lib/utils';
@@ -68,7 +66,7 @@ const theme = {
       backgroundColor: 'white',
       neutralColor: '#e4e4e7',
     },
-  }
+  },
 };
 
 export default function RootLayout({
