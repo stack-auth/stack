@@ -568,12 +568,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return getUrls(this._urlOptions);
   }
 
-  protected _redirectTo(handlerName: keyof HandlerUrls) {
+  protected async _redirectTo(handlerName: keyof HandlerUrls) {
     if (!this.urls[handlerName]) {
       throw new Error(`No URL for handler name ${handlerName}`);
     }
     window.location.href = this.urls[handlerName];
-    return wait(2000);
+    return await wait(2000);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }

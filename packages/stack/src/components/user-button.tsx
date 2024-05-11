@@ -79,7 +79,8 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const textStyles = {
     textOverflow: 'ellipsis', 
     whiteSpace: 'nowrap', 
-    overflow: 'hidden'
+    overflow: 'hidden',
+    margin: 0,
   };
 
   return (

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { InputField, ListSwitchField } from "@/components/form-fields";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AsyncButton } from "@/components/ui/button";
@@ -55,6 +55,7 @@ export default function PageClient () {
         ...projectUpdate,
       });
       await router.push('/projects/' + newProject.id);
+      await wait(2000);
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export default function PageClient () {
             </div>
             <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-6">
 
-              <InputField control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
+              <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 
               <ListSwitchField
                 control={form.control}
@@ -98,7 +99,8 @@ export default function PageClient () {
       <div className="w-1/2 self-stretch p-4 bg-zinc-300 dark:bg-zinc-800 hidden md:flex">
         {mockProject ? 
           (
-            <div className='w-full sm:max-w-sm m-auto scale-90'>
+            // The inert attribute is not available in typescript, so this is a hack to make type works
+            <div className='w-full sm:max-w-sm m-auto scale-90' {...{ inert: '' }}>
               {/* a transparent cover that prevents the card being clicked */}
               <div className="absolute inset-0 bg-transparent z-10"></div>
               <Card className="p-6">

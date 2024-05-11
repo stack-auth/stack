@@ -2,9 +2,10 @@
 
 import { ProjectCard } from "@/components/project-card";
 import { SearchBar } from "@/components/search-bar";
-import { Button } from "@/components/ui/button";
+import { AsyncButton } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -35,7 +36,11 @@ export default function PageClient() {
   return (
     <>
       <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
-        <SearchBar placeholder="Search project name" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <SearchBar 
+          placeholder="Search project name" 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+        />
 
         <div className="flex gap-4">
           <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
@@ -50,7 +55,13 @@ export default function PageClient() {
             </SelectContent>
           </Select>
           
-          <Button onClick={() => router.push('/new-project')}>Create Project</Button>
+          <AsyncButton
+            onClick={async () => {
+              await router.push('/new-project');
+              return await wait(2000);
+            }}
+          >Create Project
+          </AsyncButton>
         </div>
       </div>
 
