@@ -5,7 +5,7 @@ import { UsersTable } from "./users-table";
 import { useAdminApp } from "../use-admin-app";
 import { Alert } from "@mui/joy";
 import { SmartLink } from "@/components/smart-link";
-import Typography from "@/components/ui/typography";
+import { PageLayout } from "../page-layout";
 
 
 export default function UsersDashboardClient() {
@@ -13,12 +13,7 @@ export default function UsersDashboardClient() {
   const allUsers = stackAdminApp.useServerUsers();
 
   return (
-    <>
-      <Typography type="h1">
-        Users
-      </Typography>
-
-
+    <PageLayout title="Users" description="Manage your project's users">
       {allUsers.length > 0 ? null : (
         <Paragraph body>
           <Alert color="success">
@@ -30,6 +25,6 @@ export default function UsersDashboardClient() {
       <Paragraph body>
         <UsersTable rows={allUsers} />
       </Paragraph>
-    </>
+    </PageLayout>
   );
 }

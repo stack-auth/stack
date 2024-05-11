@@ -320,7 +320,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             Feedback
           </Button>
         </div>
-        <div className="px-4">
+        <div>
           {props.children}
         </div>
       </div>
