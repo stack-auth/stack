@@ -1,10 +1,11 @@
 'use client';
 
-import { Text, UserButton } from "@stackframe/stack";
+import { UserButton } from "@stackframe/stack";
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
 import { useColorScheme } from "@mui/joy";
+import Typography from "./ui/typography";
 
 export function Navbar({ ...props }) {
   const { mode, setMode } = useColorScheme();
@@ -20,10 +21,10 @@ export function Navbar({ ...props }) {
         <div className="flex items-center">
           <div className="flex gap-4 mr-8 items-center">
             <Link href="mailto:team@stack-auth.com">
-              <Text size='sm' variant='secondary'>Feedback</Text>
+              <Typography type='label'>Feedback</Typography>
             </Link>
             <Link href="https://docs.stack-auth.com/">
-              <Text size='sm' variant='secondary'>Docs</Text>
+              <Typography type='label'>Docs</Typography>
             </Link>
           </div>
           <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')}/>

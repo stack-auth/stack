@@ -34,6 +34,7 @@ import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Typography from "@/components/ui/typography";
 
 type Label = {
   name: string,
@@ -163,9 +164,9 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
       <div className="flex flex-col gap-1 pt-2">
         {navigationItems.map((item, index) => {
           if (item.type === 'label') {
-            return <div key={index} className="pl-2 text-sm text-gray-500">
+            return <Typography key={index} className="pl-2" type="label" variant="secondary">
               {item.name}
-            </div>;
+            </Typography>;
           } else if (item.type === 'item') {
             return <div key={index} className="flex px-1">
               <NavItem item={item} projectId={projectId} onClick={onNavigate} />

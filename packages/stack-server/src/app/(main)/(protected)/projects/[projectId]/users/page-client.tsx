@@ -5,6 +5,7 @@ import { UsersTable } from "./users-table";
 import { useAdminApp } from "../use-admin-app";
 import { Alert } from "@mui/joy";
 import { SmartLink } from "@/components/smart-link";
+import Typography from "@/components/ui/typography";
 
 
 export default function UsersDashboardClient() {
@@ -13,9 +14,9 @@ export default function UsersDashboardClient() {
 
   return (
     <>
-      <Paragraph h1>
+      <Typography type="h1">
         Users
-      </Paragraph>
+      </Typography>
 
 
       {allUsers.length > 0 ? null : (
