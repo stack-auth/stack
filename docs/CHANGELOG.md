@@ -1,5 +1,11 @@
 # stack-docs
 
+## 0.1.3
+
+### Patch Changes
+
+- New projects page
+
 ## 0.1.2
 
 ### Patch Changes
