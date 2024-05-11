@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.2
+
+### Patch Changes
+
+- New projects page
+
 ## 2.4.1
 
 ### Patch Changes

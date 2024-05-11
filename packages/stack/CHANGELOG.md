@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.4.3
+
+### Patch Changes
+
+- New projects page
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.2
+
 ## 2.4.2
 
 ### Patch Changes
