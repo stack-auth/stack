@@ -191,8 +191,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
         />
       </div>
       <Separator />
-      {/* <div className="m-2 p-2 border rounded-md self-stretch"> */}
-      <div className="px-2 flex items-center">
+      <div className="px-4 py-2 flex items-center">
         <UserButton showUserInfo colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
       </div>
     </div>
