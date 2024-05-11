@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 export function ProjectAvatar(props: { displayName: string }) {
   return (
@@ -22,8 +23,12 @@ export function ProjectAvatar(props: { displayName: string }) {
 export function ProjectSwitcher(props: { currentProjectId: string }) {
   const router = useRouter();
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
-  const projects = user.useOwnedProjects();
-  const currentProject = projects.find((project) => project.id === props.currentProjectId);
+  const rawProjects = user.useOwnedProjects();
+  const { currentProject, projects } = useMemo(() => {
+    const currentProject = rawProjects.find((project) => project.id === props.currentProjectId);
+    const projects = rawProjects.sort((a, b) => b.id === props.currentProjectId ? 1 : -1);
+    return { currentProject, projects };
+  }, [props.currentProjectId, rawProjects]);
 
   return (
     <Select defaultValue={props.currentProjectId} onValueChange={(value) => { router.push(`/projects/${value}`); }}>
