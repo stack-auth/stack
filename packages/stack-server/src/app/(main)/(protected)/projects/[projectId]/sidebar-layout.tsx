@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {
   Book,
+  ChevronDownIcon,
   Globe,
   KeyRound,
   LockKeyhole,
@@ -23,6 +24,7 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
@@ -30,6 +32,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type Label = {
   name: string,
@@ -193,7 +197,13 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
   );
 }
 
-export function HeaderBreadcrumb({ projectId }: { projectId: string }) {
+export function HeaderBreadcrumb({ 
+  mobile,
+  projectId 
+}: { 
+  projectId: string, 
+  mobile?: boolean,
+}) {
   const pathname = usePathname();
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
@@ -220,25 +230,58 @@ export function HeaderBreadcrumb({ projectId }: { projectId: string }) {
     return projects.find((project) => project.id === projectId);
   }, [projectId, projects]);
 
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <Link href="/projects">Home</Link>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        {selectedItemNames.map((name, index) => (
-          <BreadcrumbItem key={index}>
-            <BreadcrumbPage>{name}</BreadcrumbPage>
+  if (mobile) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <Link href="/projects">Home</Link>
           </BreadcrumbItem>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1">
+                <BreadcrumbEllipsis />
+                <ChevronDownIcon className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem>
+                  <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  {selectedItemNames.map((name, index) => (
+                    <BreadcrumbItem key={index}>
+                      <BreadcrumbPage>{name}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  ))}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  } else {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <Link href="/projects">Home</Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          {selectedItemNames.map((name, index) => (
+            <BreadcrumbItem key={index}>
+              <BreadcrumbPage>{name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 }
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
@@ -254,16 +297,22 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
 
-          <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
-            <SheetTrigger>
-              <Button variant="outline" className="p-2 md:hidden">
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
-              <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
-            </SheetContent>
-          </Sheet>
+          <div className="flex md:hidden items-center">
+            <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
+              <SheetTrigger>
+                <Button variant="outline" className="p-2 md:hidden">
+                  <Menu />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
+                <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
+              </SheetContent>
+            </Sheet>
+
+            <div className="ml-4 flex md:hidden">
+              <HeaderBreadcrumb projectId={props.projectId} mobile />
+            </div>
+          </div>
 
           <Button variant="outline" onClick={() => window.open("mailto:team@stack-auth.com")}>
             Feedback
