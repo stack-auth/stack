@@ -18,7 +18,7 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
     ? (options: {
       params: Params,
       data: (K extends "Read" ? void : GetAdminKey<T, K>),
-      auth: SmartRequestAuth,
+      auth: SmartRequestAuth | null,
     }) => Promise<
       K extends "Delete"
         ? void

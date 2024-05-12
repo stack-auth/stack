@@ -6,12 +6,12 @@ import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/cu
 export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
   paramNames: [],
   async onRead({ auth }) {
-    return auth.user;
+    return auth?.user ?? null;
   },
   async onUpdate({ auth, data }) {
-    const userId = auth.user?.id;
-    const projectId = auth.project.id;
-    if (!userId) throw new KnownErrors.UserNotFound();
+    const userId = auth?.user?.id;
+    const projectId = auth?.project.id;
+    if (!projectId || !userId) throw new KnownErrors.UserNotFound();
 
     const user = await updateServerUser(
       projectId,
