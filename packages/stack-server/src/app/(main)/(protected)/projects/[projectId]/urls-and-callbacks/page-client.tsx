@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PageLayout } from "../page-layout";
-import { SettingCard } from "@/components/setting-card";
-import { Switch } from "@/components/ui/switch";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";
 import Typography from "@/components/ui/typography";
 
@@ -180,9 +179,10 @@ export default function UrlsAndCallbacksClient() {
   const domains = new Set(project.evaluatedConfig.domains);
 
   return (
-    <PageLayout title="Domains and Handler" description="Specify trusted domains and handler URLs">
+    <PageLayout title="Domains and Handler" description="Callback URLs that are allowed to send requests to your project">
       <SettingCard 
         title="Domains and Handlers"
+        description="Trusted domains of your app and their handler paths"
         actions={
           <EditDialog
             trigger={<Button>Add new domain</Button>}
@@ -192,18 +192,6 @@ export default function UrlsAndCallbacksClient() {
           />
         }
       >
-        <div className="mb-4 flex items-center gap-4">
-          <Switch
-            checked={project.evaluatedConfig.allowLocalhost}
-            onCheckedChange={async (checked) => {
-              await project.update({
-                config: { allowLocalhost: checked },
-              });
-            }}
-          />
-          <Typography>Allow all localhost callbacks for development</Typography>
-        </div>
-
         {domains.size >= 0 && (
           <List
             variant="soft"
@@ -252,6 +240,18 @@ export default function UrlsAndCallbacksClient() {
             ))}
           </List>
         )}
+      </SettingCard>
+
+      <SettingCard title="Development settings" description="Help you to have a better development experience">
+        <SettingSwitch
+          checked={project.evaluatedConfig.allowLocalhost}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: { allowLocalhost: checked },
+            });
+          }}
+          label="Allow all localhost callbacks for development"
+        />
       </SettingCard>
     </PageLayout>
   );

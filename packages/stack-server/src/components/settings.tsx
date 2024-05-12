@@ -6,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Switch } from "./ui/switch";
+import Typography from "./ui/typography";
 
 
 export function SettingCard(props: {
@@ -23,11 +25,27 @@ export function SettingCard(props: {
       <CardContent>
         {props.children}
       </CardContent>
-      <CardFooter>
+      {props.actions && <CardFooter>
         <div className="w-full flex justify-end">
           {props.actions}
         </div>
-      </CardFooter>
+      </CardFooter>}
     </Card>
+  );
+}
+
+export function SettingSwitch(props: {
+  label: string,
+  checked: boolean,
+  onCheckedChange: (checked: boolean) => void | Promise<void>,
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      <Switch
+        checked={props.checked}
+        onCheckedChange={props.onCheckedChange}
+      />
+      <Typography>{props.label}</Typography>
+    </div>
   );
 }

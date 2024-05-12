@@ -10,7 +10,7 @@ export function PageLayout(props: {
     <div className="px-4 py-2">
       <div className="flex justify-between items-end">
         <div>
-          <Typography type="h2">
+          <Typography type="h3">
             {props.title}
           </Typography>
           {props.description && (
@@ -21,7 +21,7 @@ export function PageLayout(props: {
         </div>
         {props.actions}
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-4">
         {props.children}
       </div>
     </div>
