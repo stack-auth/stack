@@ -497,23 +497,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected _userToJson(user: User): UserJson {
-    return {
-      projectId: user.projectId,
-      id: user.id,
-      displayName: user.displayName,
-      primaryEmail: user.primaryEmail,
-      primaryEmailVerified: user.primaryEmailVerified,
-      profileImageUrl: user.profileImageUrl,
-      signedUpAtMillis: user.signedUpAt.getTime(),
-      clientMetadata: user.clientMetadata,
-      authMethod: user.authMethod,
-      hasPassword: user.hasPassword,
-      authWithEmail: user.authWithEmail,
-      oauthProviders: user.oauthProviders,
-    };
-  }
-
   protected _projectAdminFromJson(data: ProjectJson, adminInterface: StackAdminInterface, onRefresh: () => Promise<void>): Project {
     if (data.id !== adminInterface.projectId) {
       throw new Error(`The project ID of the provided project JSON (${data.id}) does not match the project ID of the app (${adminInterface.projectId})! This is a Stack bug.`);
@@ -1044,7 +1027,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return permissions.some((p) => p.id === permissionId);
       },
       toJson() {
-        return app._serverUserToJson(this);
+        return json;
       },
     };
   }
@@ -1118,24 +1101,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (!user) throw new Error(`User ${json.userId} not found`);
         return user;
       }
-    };
-  }
-
-  protected _serverUserToJson(user: ServerUser): ServerUserJson {
-    return {
-      projectId: user.projectId,
-      id: user.id,
-      displayName: user.displayName,
-      primaryEmail: user.primaryEmail,
-      primaryEmailVerified: user.primaryEmailVerified,
-      profileImageUrl: user.profileImageUrl,
-      signedUpAtMillis: user.signedUpAt.getTime(),
-      clientMetadata: user.clientMetadata,
-      serverMetadata: user.serverMetadata,
-      authMethod: user.authMethod,
-      hasPassword: user.hasPassword,
-      authWithEmail: user.authWithEmail,
-      oauthProviders: user.oauthProviders,
     };
   }
 

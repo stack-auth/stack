@@ -11,6 +11,7 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { isProjectAdmin, updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { updateServerUser } from "@/lib/users";
 import { decodeAccessToken } from "@/lib/tokens";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -54,10 +55,10 @@ export type SmartRequest = {
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  IsAny<T> extends true ? MSQ :
-  T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : MSQ)
-  : T;
-
+  IsAny<T> extends true ? MSQ : (
+    T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : MSQ)
+    : T
+  );
 
 async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
@@ -67,53 +68,65 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
-      throw new StatusError(400, error.errors.join("\n\n"));
+      throw new KnownErrors.SchemaError(
+        deindent`
+          Request validation failed:
+            ${error.toString()}
+        `,
+      );
     }
     throw error;
   }
 }
 
 
-async function parseBody(req: NextRequest): Promise<SmartRequest["body"]> {
+async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<SmartRequest["body"]> {
   const contentType = req.headers.get("content-type")?.split(";")[0];
+
+  const getText = () => {
+    try {
+      return new TextDecoder().decode(bodyBuffer);
+    } catch (e) {
+      throw new KnownErrors.BodyParsingError("Request body cannot be parsed as UTF-8");
+    }
+  };
+
   switch (contentType) {
     case "":
     case undefined: {
       return undefined;
     }
     case "application/json": {
+      const text = getText();
       try {
-        return await req.json();
+        return JSON.parse(text);
       } catch (e) {
-        throw new StatusError(400, "Invalid JSON in request body");
+        throw new KnownErrors.BodyParsingError("Invalid JSON in request body");
       }
     }
     case "application/octet-stream": {
-      return await req.arrayBuffer();
+      return bodyBuffer;
     }
     case "text/plain": {
-      try {
-        return await req.text();
-      } catch (e) {
-        throw new StatusError(400, "Invalid text in request body");
-      }
+      return getText();
     }
     case "application/x-www-form-urlencoded": {
+      const text = getText();
       try {
-        return Object.fromEntries(new URLSearchParams(await req.text()).entries());
+        return Object.fromEntries(new URLSearchParams(text).entries());
       } catch (e) {
-        throw new StatusError(400, "Invalid form data in request body");
+        throw new KnownErrors.BodyParsingError("Invalid form data in request body");
       }
     }
     default: {
-      throw new StatusError(400, "Unknown content type in request body: " + contentType);
+      throw new KnownErrors.BodyParsingError("Unknown content type in request body: " + contentType);
     }
   }
 }
 
 async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const projectId = req.headers.get("x-stack-project-id");
-  const requestType = req.headers.get("x-stack-request-type");
+  let requestType = req.headers.get("x-stack-request-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
   const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
@@ -122,7 +135,16 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
-  if (!requestType && eitherKeyOrToken) throw new KnownErrors.ProjectKeyWithoutRequestType();
+  if (!requestType && eitherKeyOrToken) {
+    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutRequestType instead of guessing
+    if (adminAccessToken || superSecretAdminKey) {
+      requestType = "admin";
+    } else if (secretServerKey) {
+      requestType = "server";
+    } else if (publishableClientKey) {
+      requestType = "client";
+    }
+  }
   if (!requestType) return null;
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
@@ -213,12 +235,12 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   };
 }
 
-export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
+export async function createLazyRequestParser<T extends DeepPartial<SmartRequest>>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
   const urlObject = new URL(req.url);  
   const toValidate: SmartRequest = {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
-    body: await parseBody(req),
+    body: await parseBody(req, bodyBuffer),
     headers: Object.fromEntries(
       [...groupBy(req.headers.entries(), ([key, _]) => key.toLowerCase())]
         .map(([key, values]) => [key, values.map(([_, value]) => value)]),
@@ -228,7 +250,7 @@ export async function parseRequest<T extends DeepPartial<SmartRequest>>(req: Nex
     auth: await parseAuth(req),
   };
 
-  return await validate(toValidate, schema);
+  return async () => [await validate(toValidate, schema), toValidate];
 }
 
 export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartRequest, "headers" | "auth"> & { headers: Record<string, string> }>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
@@ -236,7 +258,7 @@ export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartReq
   const toValidate: Omit<SmartRequest, "headers"> & { headers: Record<string, string> } = {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
-    body: await parseBody(req),
+    body: await parseBody(req, await req.arrayBuffer()),
     headers: Object.fromEntries([...req.headers.entries()].map(([k, v]) => [k.toLowerCase(), v])),
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
