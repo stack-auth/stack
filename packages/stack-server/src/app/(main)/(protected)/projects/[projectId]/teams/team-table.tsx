@@ -23,7 +23,7 @@ import {
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from "@/components/ui/button";
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
@@ -146,7 +146,7 @@ function Actions(props: { params: any }) {
         onClose={() => setIsEditModalOpen(false)}
       />
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -160,7 +160,7 @@ function Actions(props: { params: any }) {
         cancelButton={true}
       >
         Are you sure you want to delete the team &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone. All team members will be removed from the team.
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }

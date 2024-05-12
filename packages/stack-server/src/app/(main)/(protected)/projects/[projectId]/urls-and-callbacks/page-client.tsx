@@ -4,7 +4,7 @@ import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel,
 import React, { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
-import { Dialog } from "@/components/dialog";
+import { ActionDialog } from "@/components/action-dialog";
 import { AsyncButton } from "@/components/ui/button";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../use-admin-app";
@@ -23,8 +23,7 @@ function isValidUrl(urlString: string) {
 }
 
 function EditDialog(props: { 
-  open: boolean, 
-  onClose: () => void,
+  trigger: React.ReactNode,
   domains: Set<DomainConfigJson>,
   project: Project,
   type: 'update' | 'create',
@@ -45,13 +44,12 @@ function EditDialog(props: {
   }, [props.editIndex, props.domains]);
 
   return (
-    <Dialog
+    <ActionDialog
+      trigger={props.trigger}
       title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
-      open={props.open}
       onClose={() => {
         setNewDomain("");
         setNewDomainError(null);
-        props.onClose();
       }}
       okButton={{
         label: props.type === 'create' ? "Create" : "Update",
@@ -139,21 +137,46 @@ function EditDialog(props: {
           {newHandlerPathError}
         </FormHelperText>
       </FormControl>
-    </Dialog>
+    </ActionDialog>
+  );
+}
+
+function DeleteDialog(props: {
+  trigger: React.ReactNode,
+  domain: string,
+  project: Project,
+}) {
+  return (
+    <ActionDialog
+      trigger={props.trigger}
+      title="Delete domain"
+      danger
+      okButton={{
+        label: "Delete",
+        onClick: async () => {
+          await props.project.update({
+            config: {
+              domains: [...props.project.evaluatedConfig.domains].filter(({ domain }) => domain !== props.domain),
+            }
+          });
+        }
+      }}
+      cancelButton
+    >
+      <Paragraph body sx={{ mt: 0 }}>
+        Do you really want to remove <b>{props.domain}</b> from the allow list ?
+      </Paragraph>
+      <Paragraph body sx={{ mb: 0 }}>
+        Your project will no longer be able to receive callbacks from this domain.
+      </Paragraph>
+    </ActionDialog>
   );
 }
 
 export default function UrlsAndCallbacksClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-
   const domains = new Set(project.evaluatedConfig.domains);
-
-  const [deleteDialogDomain, setDeleteDialogDomain] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [addNewDialogOpen, setAddNewDialogOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | undefined>(undefined);
-
 
   return (
     <PageLayout title="Domains and Handler" description="Specify trusted domains and handler URLs">
@@ -192,24 +215,26 @@ export default function UrlsAndCallbacksClient() {
                 <ListItem
                   endAction={
                     <>
-                      <IconButton
-                        aria-label="Edit"
-                        size="sm"
-                        onClick={() => {
-                          setEditIndex(i);
-                          setEditDialogOpen(true);
-                        }}
-                      >
-                        <Icon icon="edit" />
-                      </IconButton>
-                      <IconButton
-                        aria-label="Delete"
-                        size="sm"
-                        color="danger"
-                        onClick={() => setDeleteDialogDomain(domain)}
-                      >
-                        <Icon icon="delete" />
-                      </IconButton>
+                      <EditDialog
+                        trigger={
+                          <IconButton aria-label="Edit" size="sm">
+                            <Icon icon="edit" />
+                          </IconButton>
+                        }
+                        domains={domains}
+                        project={project}
+                        type="update"
+                        editIndex={i}
+                      />
+                      <DeleteDialog
+                        trigger={
+                          <IconButton aria-label="Delete" size="sm" color="danger">
+                            <Icon icon="delete" />
+                          </IconButton>
+                        }
+                        domain={domain}
+                        project={project}
+                      />
                     </>
                   }
                 >
@@ -221,56 +246,13 @@ export default function UrlsAndCallbacksClient() {
           </List>
         )}
 
-        <AsyncButton
-          onClick={() => setAddNewDialogOpen(true)}
-          color="neutral"
-          className="mt-4"
-        >
-          Add new domain
-        </AsyncButton>
+        <EditDialog
+          trigger={<AsyncButton>Add new domain</AsyncButton>}
+          domains={domains}
+          project={project}
+          type="create"
+        />
       </SimpleCard>
-
-      <EditDialog 
-        type='create' 
-        open={addNewDialogOpen} 
-        onClose={() => setAddNewDialogOpen(false)} 
-        domains={domains} 
-        project={project} 
-      />
-
-      <EditDialog 
-        type='update' 
-        open={editDialogOpen} 
-        onClose={() => setEditDialogOpen(false)} 
-        editIndex={editIndex}
-        domains={domains}
-        project={project}
-      />
-
-      <Dialog
-        title
-        open={deleteDialogDomain !== null}
-        onClose={() => setDeleteDialogDomain(null)}
-        danger
-        okButton={{
-          label: "Delete",
-          onClick: async () => {
-            await project.update({
-              config: {
-                domains: [...domains].filter(({ domain }) => domain !== deleteDialogDomain),
-              }
-            });
-          }
-        }}
-        cancelButton
-      >
-        <Paragraph body sx={{ mt: 0 }}>
-          Do you really want to remove <b>{deleteDialogDomain}</b> from the allow list ?
-        </Paragraph>
-        <Paragraph body sx={{ mb: 0 }}>
-          Your project will no longer be able to receive callbacks from this domain.
-        </Paragraph>
-      </Dialog>
     </PageLayout>
   );
 }

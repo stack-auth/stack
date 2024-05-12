@@ -1,7 +1,7 @@
 "use client";;
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import {
   Dropdown,
@@ -124,7 +124,7 @@ function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) 
         </Menu>
       </Dropdown>
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -138,7 +138,7 @@ function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) 
         cancelButton={true}
       >
         {`Are you sure you want to delete the permission "${props.params.row.name}"? All the permission "${props.params.row.name}" on the existing users will also be removed. All the other permissions that contain this permission will also lose it. and you won't be able to recover it.`}
-      </Dialog>
+      </ActionDialog>
 
       <EditPermissionModal
         selectedPermissionId={props.params.row.id}

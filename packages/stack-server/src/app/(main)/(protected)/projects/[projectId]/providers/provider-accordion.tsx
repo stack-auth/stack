@@ -28,7 +28,7 @@ import { AsyncButton } from "@/components/ui/button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
-import { Dialog } from "@/components/dialog";
+import { ActionDialog } from "@/components/action-dialog";
 import { DialogContent, Icon } from "@mui/material";
 
 /**

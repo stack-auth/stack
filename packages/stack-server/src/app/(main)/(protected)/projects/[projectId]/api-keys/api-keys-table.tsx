@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Box, Checkbox, Stack, Tooltip, Typography } from '@mui/joy';
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import { ApiKeySet } from '@stackframe/stack';
 
@@ -118,7 +118,7 @@ export function ApiKeysTable(props: {
       />
       
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={!!revokeDialogApiKeySet}
@@ -135,7 +135,7 @@ export function ApiKeysTable(props: {
         cancelButton
       >
         Are you sure you want to revoke this API key? This action cannot be undone.
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }

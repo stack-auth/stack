@@ -6,7 +6,7 @@ import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divid
 import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
 import { AsyncButton } from "@/components/ui/button";
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { ServerUser } from '@stackframe/stack';
@@ -175,7 +175,7 @@ function Actions(props: { params: any }) {
         onClose={() => setIsEditModalOpen(false)}
       />
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -189,7 +189,7 @@ function Actions(props: { params: any }) {
         cancelButton={true}
       >
         Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }

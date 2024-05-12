@@ -22,7 +22,7 @@ import {
   Typography,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { ServerPermission, ServerTeam, ServerUser, ServerTeamMember } from '@stackframe/stack';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
@@ -243,7 +243,7 @@ function Actions(props: { params: any, team: ServerTeam, setUpdateCounter: React
         setUpdateCounter={props.setUpdateCounter}
       />
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -257,9 +257,9 @@ function Actions(props: { params: any, team: ServerTeam, setUpdateCounter: React
         cancelButton={true}
       >
         Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
-      </Dialog>
+      </ActionDialog>
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isRemoveModalOpen}
@@ -273,7 +273,7 @@ function Actions(props: { params: any, team: ServerTeam, setUpdateCounter: React
         cancelButton={true}
       >
         Are you sure you want to remove the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id} from the team?
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }

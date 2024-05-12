@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog } from "@/components/dialog";
+import { ActionDialog } from "@/components/action-dialog";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
 import { Stack } from "@mui/joy";
@@ -36,7 +36,7 @@ export function OnboardingDialog() {
   }, [apiKeySets, stackAdminApp]);
 
   return (
-    <Dialog
+    <ActionDialog
       titleIcon="library_add"
       title="Onboarding"
       okButton={{
@@ -56,6 +56,6 @@ export function OnboardingDialog() {
           Note that these keys will only be shown right now, so copy them to a safe place. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
         </Paragraph>
       </Stack>
-    </Dialog>
+    </ActionDialog>
   );
 }
