@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
@@ -16,12 +16,12 @@ type DialogProps = {
   okButton?: boolean | Readonly<{
     label?: string,
     onClick?: () => Promise<"prevent-close" | undefined | void>,
-    props?: Partial<React.ComponentProps<typeof AsyncButton>>,
+    props?: Partial<React.ComponentProps<typeof Button>>,
   }>,
   cancelButton?: boolean | Readonly<{
     label?: string,
     onClick?: () => Promise<"prevent-close" | undefined | void>,
-    props?: Partial<React.ComponentProps<typeof AsyncButton>>,
+    props?: Partial<React.ComponentProps<typeof Button>>,
   }>,
   onClose?: () => void | Promise<void>,
   disableButtons?: boolean,
@@ -51,7 +51,7 @@ export function ActionDialog(props: DialogProps) {
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center">
             <TitleIcon className="h-4 w-4 mr-2"/>
             {title}
           </DialogTitle>
@@ -66,7 +66,7 @@ export function ActionDialog(props: DialogProps) {
 
         {anyButton && <DialogFooter>
           {okButton && (
-            <AsyncButton
+            <Button
               disabled={props.disableButtons}
               color={color}
               onClick={async () => {
@@ -77,10 +77,10 @@ export function ActionDialog(props: DialogProps) {
               {...okButton.props}
             >
               {okButton.label ?? "OK"}
-            </AsyncButton>
+            </Button>
           )}
           {cancelButton && (
-            <AsyncButton
+            <Button
               disabled={props.disableButtons}
               variant="secondary"
               color="neutral"
@@ -92,7 +92,7 @@ export function ActionDialog(props: DialogProps) {
               {...cancelButton.props}
             >
             Cancel
-            </AsyncButton>
+            </Button>
           )}
         </DialogFooter>}
       </DialogContent>

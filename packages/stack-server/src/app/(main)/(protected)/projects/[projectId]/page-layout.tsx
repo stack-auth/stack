@@ -8,7 +8,7 @@ export function PageLayout(props: {
 }) {
   return (
     <div className="px-4 py-2">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
         <div>
           <Typography type="h2">
             {props.title}
