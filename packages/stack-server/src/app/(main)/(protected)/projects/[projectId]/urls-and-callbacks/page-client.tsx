@@ -1,17 +1,18 @@
 "use client";
 
-import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Typography, Box, FormHelperText } from "@mui/joy";
+import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Box, FormHelperText } from "@mui/joy";
 import React, { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { ActionDialog } from "@/components/action-dialog";
 import { AsyncButton } from "@/components/ui/button";
-import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../use-admin-app";
-import { SmartSwitch } from "@/components/smart-switch";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PageLayout } from "../page-layout";
+import { SettingCard } from "@/components/setting-card";
+import { AsyncSwitch } from "@/components/ui/switch";
+import { useAdminApp } from "../use-admin-app";
+import Typography from "@/components/ui/typography";
 
 function isValidUrl(urlString: string) {
   try { 
@@ -180,22 +181,28 @@ export default function UrlsAndCallbacksClient() {
 
   return (
     <PageLayout title="Domains and Handler" description="Specify trusted domains and handler URLs">
-
-      <SimpleCard title="Domains and Handler">
-        <Box sx={{ my: 2 }}>
-          <SmartSwitch
+      <SettingCard 
+        title="Domains and Handlers"
+        actions={
+          <EditDialog
+            trigger={<AsyncButton>Add new domain</AsyncButton>}
+            domains={domains}
+            project={project}
+            type="create"
+          />
+        }
+      >
+        <div className="mb-4 flex items-center gap-4">
+          <AsyncSwitch
             checked={project.evaluatedConfig.allowLocalhost}
-            onChange={async (event) => {
+            onCheckedChange={async (checked) => {
               await project.update({
-                config: {
-                  allowLocalhost: event.target.checked,
-                },
+                config: { allowLocalhost: checked },
               });
             }}
-          >
-            <Typography>Allow all localhost callbacks for development</Typography>
-          </SmartSwitch>
-        </Box>
+          />
+          <Typography>Allow all localhost callbacks for development</Typography>
+        </div>
 
         {domains.size >= 0 && (
           <List
@@ -238,21 +245,14 @@ export default function UrlsAndCallbacksClient() {
                     </>
                   }
                 >
-                  <Typography paddingRight={1}>{domain}</Typography>
+                  <Typography>{domain}</Typography>
                   <Typography>{handlerPath}</Typography>
                 </ListItem>
               </React.Fragment>
             ))}
           </List>
         )}
-
-        <EditDialog
-          trigger={<AsyncButton>Add new domain</AsyncButton>}
-          domains={domains}
-          project={project}
-          type="create"
-        />
-      </SimpleCard>
+      </SettingCard>
     </PageLayout>
   );
 }

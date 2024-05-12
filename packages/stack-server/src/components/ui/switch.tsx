@@ -4,10 +4,13 @@ import * as React from "react";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 
 import { cn } from "@/lib/utils";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+
+interface SwitchProps extends React.ComponentProps<typeof SwitchPrimitives.Root> {}
 
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+  SwitchProps
 >(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
@@ -25,5 +28,51 @@ const Switch = React.forwardRef<
   </SwitchPrimitives.Root>
 ));
 Switch.displayName = SwitchPrimitives.Root.displayName;
+interface AsyncSwitchProps extends SwitchProps {
+  onCheckedChange?: (checked: boolean) => Promise<void> | void,
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void> | void,
+  loading?: boolean,
+}
 
-export { Switch };
+const AsyncSwitch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  AsyncSwitchProps
+>(({ loading: loadingProp, onClick, ...props }, ref) => {
+  const [isLoading, setLoading] = React.useState(false);
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) {
+      setLoading(true);
+      try {
+        await onClick(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleCheckedChange = async (checked: boolean) => {
+    if (props.onCheckedChange) {
+      setLoading(true);
+      try {
+        await props.onCheckedChange(checked);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const loading = loadingProp ?? isLoading;
+
+  return (
+    <Switch
+      {...props}
+      onClick={(e) => runAsynchronously(handleClick(e))}
+      onCheckedChange={(checked) => runAsynchronously(handleCheckedChange(checked))}
+      disabled={loading}
+      ref={ref}
+    />
+  );
+});
+AsyncSwitch.displayName = "Switch";
+
+export { Switch, AsyncSwitch };

@@ -56,12 +56,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export interface AsyncButtonProps extends ButtonProps {
+interface AsyncButtonProps extends ButtonProps {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
   loading?: boolean,
 }
 
-export const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
+const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
   ({ onClick, loading: loadingProp, children, ...props }, ref) => {
     const [isLoading, setLoading] = React.useState(false);
     const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -79,10 +79,10 @@ export const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>
 
     return (
       <Button
+        {...props}
         ref={ref}
         onClick={(e) => runAsynchronously(handleClick(e))}
         disabled={loading}
-        {...props}
       >
         {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
         {children}
@@ -92,4 +92,4 @@ export const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>
 );
 AsyncButton.displayName = "AsyncButton";
 
-export { Button, buttonVariants };
+export { Button, buttonVariants, AsyncButton };
