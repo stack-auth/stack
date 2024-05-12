@@ -43,10 +43,9 @@ export function ActionDialog(props: DialogProps) {
     }
     setOpen(open);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         {props.trigger}
       </DialogTrigger>
 
