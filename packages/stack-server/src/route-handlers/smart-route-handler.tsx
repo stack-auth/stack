@@ -118,14 +118,14 @@ export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  overloadParams: OverloadParam[],
+  overloadParams: readonly OverloadParam[],
   overloadGenerator: SmartRouteHandlerGenerator<OverloadParam, Req, Res>
 ): (req: NextRequest, options: any) => Promise<Response>;
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  ...args: [unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
+  ...args: [readonly unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
 ): (req: NextRequest, options: any) => Promise<Response> {
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
   const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
