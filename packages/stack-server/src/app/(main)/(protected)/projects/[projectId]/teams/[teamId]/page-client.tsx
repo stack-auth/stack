@@ -6,6 +6,7 @@ import { MemberTable } from './member-table';
 import { useAdminApp } from '../../use-admin-app';
 import { notFound } from 'next/navigation';
 import { SmartSwitch } from '@/components/smart-switch';
+import { PageLayout } from '../../page-layout';
 
 
 export default function ClientPage(props: { teamId: string }) {
@@ -18,14 +19,11 @@ export default function ClientPage(props: { teamId: string }) {
   }
   
   return (
-    <>
-      <Paragraph h1>
-        {team.displayName}
-      </Paragraph>
+    <PageLayout title="Team Members" description={`Manage team members of "${team.displayName}"`}>
 
       <Paragraph body>
         <MemberTable rows={users || []} team={team} />
       </Paragraph>
-    </>
+    </PageLayout>
   );
 }

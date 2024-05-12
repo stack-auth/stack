@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.4.4
+
+### Patch Changes
+
+- Theme updates
+
 ## 2.4.3
 
 ### Patch Changes

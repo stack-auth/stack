@@ -15,6 +15,9 @@ const StyledTrigger = styled(DropdownMenuPrimitive.Trigger)`
     outline: none;
     box-shadow: 0;
   }
+  &:hover {
+    cursor: pointer;
+  }
 `;
 
 const DropdownMenuTrigger = React.forwardRef<

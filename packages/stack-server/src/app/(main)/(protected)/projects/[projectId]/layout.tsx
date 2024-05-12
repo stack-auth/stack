@@ -6,7 +6,7 @@ export default function Layout(props: { children: React.ReactNode, params: { pro
   return (
     <AdminAppProvider projectId={props.params.projectId}>
       <OnboardingDialog />
-      <SidebarLayout params={props.params}>
+      <SidebarLayout projectId={props.params.projectId}>
         {props.children}
       </SidebarLayout>
     </AdminAppProvider>

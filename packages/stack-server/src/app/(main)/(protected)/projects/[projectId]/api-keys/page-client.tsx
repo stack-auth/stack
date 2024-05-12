@@ -11,6 +11,7 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import EnvKeys from "@/components/env-keys";
 import { SmartLink } from "@/components/smart-link";
 import { ApiKeySetFirstView } from "@stackframe/stack";
+import { PageLayout } from "../page-layout";
 
 
 export default function ApiKeysDashboardClient() {
@@ -20,22 +21,15 @@ export default function ApiKeysDashboardClient() {
   const [isNewApiKeyDialogOpen, setIsNewApiKeyDialogOpen] = useState(false);
 
   return (
-    <>
-      <Paragraph h1>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-          API Keys
-          </Box>
-          <AsyncButton onClick={() => setIsNewApiKeyDialogOpen(true)}>
-            Create new
-          </AsyncButton>
-        </Stack>
-      </Paragraph>
-        
-      <Paragraph body>
-        Please note that API keys cannot be viewed anymore after they have been created. If you lose them, you will have to create new ones.
-      </Paragraph>
-
+    <PageLayout 
+      title="API Keys"
+      description="Manage your project's API keys" 
+      actions={
+        <AsyncButton onClick={() => setIsNewApiKeyDialogOpen(true)}>
+          Create new
+        </AsyncButton>
+      }
+    >
       <ApiKeysTable rows={apiKeySets} />
 
       <CreateNewDialog
@@ -43,7 +37,7 @@ export default function ApiKeysDashboardClient() {
         open={isNewApiKeyDialogOpen}
         onClose={() => setIsNewApiKeyDialogOpen(false)}
       />
-    </>
+    </PageLayout>
   );
 }
 

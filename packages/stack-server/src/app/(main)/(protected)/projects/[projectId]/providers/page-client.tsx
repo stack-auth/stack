@@ -7,6 +7,7 @@ import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderAccordion, availableProviders } from "./provider-accordion";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
+import { PageLayout } from "../page-layout";
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
@@ -14,10 +15,7 @@ export default function ProvidersClient() {
   const oauthProviders = project.evaluatedConfig.oauthProviders;
 
   return (
-    <>
-      <Paragraph h1>
-        Auth Methods
-      </Paragraph>
+    <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
 
       <Paragraph body>
         <SimpleCard title="Email authentication">
@@ -88,6 +86,6 @@ export default function ProvidersClient() {
           In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website.
         </Paragraph>
       </SimpleCard>
-    </>
+    </PageLayout>
   );
 }

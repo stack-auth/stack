@@ -11,6 +11,7 @@ import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { PageLayout } from "../page-layout";
 
 function isValidUrl(urlString: string) {
   try { 
@@ -155,10 +156,7 @@ export default function UrlsAndCallbacksClient() {
 
 
   return (
-    <>
-      <Paragraph h1>
-        Domains & Handlers
-      </Paragraph>
+    <PageLayout title="Domains and Handler" description="Specify trusted domains and handler URLs">
 
       <SimpleCard title="Domains and Handler">
         <Box sx={{ my: 2 }}>
@@ -273,6 +271,6 @@ export default function UrlsAndCallbacksClient() {
           Your project will no longer be able to receive callbacks from this domain.
         </Paragraph>
       </Dialog>
-    </>
+    </PageLayout>
   );
 }

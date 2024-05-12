@@ -2,6 +2,7 @@
 import { Paragraph } from "@/components/paragraph";
 import { TeamTable } from "./team-table";
 import { useAdminApp } from "../use-admin-app";
+import { PageLayout } from "../page-layout";
 
 
 export default function ClientPage() {
@@ -9,12 +10,8 @@ export default function ClientPage() {
   const teams = stackAdminApp.useTeams();
 
   return (
-    <>
-      <Paragraph h1>
-        Teams
-      </Paragraph>
-
+    <PageLayout title="Teams" description="Manage your project's teams">
       <TeamTable rows={teams} />
-    </>
+    </PageLayout>
   );
 }
