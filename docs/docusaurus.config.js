@@ -78,7 +78,7 @@ const config = {
             label: "Documentation",
           },
           {
-            href: "https://github.com/stackframe-projects/stack",
+            href: "https://github.com/stack-auth/stack",
             label: "GitHub",
             position: "right",
           },
