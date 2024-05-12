@@ -10,6 +10,7 @@ import { SmartLink } from "@/components/smart-link";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../use-admin-app";
+import { PageLayout } from "../page-layout";
 
 export default function EnvironmentClient() {
   const stackAdminApp = useAdminApp();
@@ -21,12 +22,7 @@ export default function EnvironmentClient() {
 
 
   return (
-    <>
-      <Paragraph h1>
-        Environment
-      </Paragraph>
-
-
+    <PageLayout title="Environment" description="Development and production settings">
       <SimpleCard title="Production mode">
         <SmartSwitch
           checked={project.isProductionMode}
@@ -78,6 +74,6 @@ export default function EnvironmentClient() {
           </IconAlert>
         )}
       </SimpleCard>
-    </>
+    </PageLayout>
   );
 }

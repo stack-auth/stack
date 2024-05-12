@@ -4,18 +4,14 @@ import { Paragraph } from "@/components/paragraph";
 import { SmartSwitch } from "@/components/smart-switch";
 import { SimpleCard } from "@/components/simple-card";
 import { useAdminApp } from "../use-admin-app";
+import { PageLayout } from "../page-layout";
 
 export default function TeamSettingsClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
 
   return (
-    <>
-      <Paragraph h1>
-        Environment
-      </Paragraph>
-
-
+    <PageLayout title="Team Settings" description="Configure how teams are created and managed">
       <SimpleCard title="Automatic Team Creation">
         <SmartSwitch
           checked={project.evaluatedConfig.createTeamOnSignUp}
@@ -33,6 +29,6 @@ export default function TeamSettingsClient() {
           </Typography>
         </SmartSwitch>
       </SimpleCard>
-    </>
+    </PageLayout>
   );
 }

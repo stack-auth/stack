@@ -21,6 +21,7 @@ import {
 import { Icon } from "@/components/icon";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { PermissionGraph, PermissionList } from "./permission-list";
+import { PageLayout } from "../page-layout";
 
 
 export default function ClientPage() {
@@ -29,16 +30,14 @@ export default function ClientPage() {
   const [createPermissionModalOpen, setCreatePermissionModalOpen] = React.useState(false);
 
   return (
-    <>
-      <Paragraph h1>
-        Team Permissions
-      </Paragraph>
-
-      <Stack alignItems={"flex-start"}>
+    <PageLayout 
+      title="Team Permissions" 
+      description="Manage team permissions" 
+      actions={
         <AsyncButton onClick={() => setCreatePermissionModalOpen(true)}>
           Create Permission
         </AsyncButton>
-      </Stack>
+      }>
 
       <PermissionsTable rows={permissions} />
 
@@ -46,7 +45,7 @@ export default function ClientPage() {
         open={createPermissionModalOpen}
         onClose={() => setCreatePermissionModalOpen(false)}
       />
-    </>
+    </PageLayout>
   );
 }
 

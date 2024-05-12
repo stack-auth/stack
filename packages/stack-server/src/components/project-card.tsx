@@ -1,9 +1,9 @@
 'use client';;
 import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
-import { CardContent } from '@mui/joy';
 import { Project } from '@stackframe/stack';
 import { useFromNow } from '@/hooks/use-from-now';
 import { useRouter } from 'next/navigation';
+import Typography from './ui/typography';
 
 export function ProjectCard({ project }: { project: Project }) {
   const createdAt = useFromNow(project.createdAt);
@@ -15,15 +15,13 @@ export function ProjectCard({ project }: { project: Project }) {
         <CardTitle>{project.displayName}</CardTitle>
         <CardDescription>{project.description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
-      </CardContent>
       <CardFooter className="flex justify-between">
-        <p className='text-sm text-gray-500'>
+        <Typography type='label' variant='secondary'>
           {project.userCount} users
-        </p>
-        <p className='text-sm text-gray-500'>
+        </Typography>
+        <Typography type='label' variant='secondary'>
           {createdAt}
-        </p>
+        </Typography>
       </CardFooter>
     </ClickableCard>
   );
