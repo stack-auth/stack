@@ -59,17 +59,17 @@ export function typedAssign<T extends {}, U extends {}>(target: T, source: U): a
   Object.assign(target, source);
 }
 
+export type FilterUndefined<T> =
+  & { [k in keyof T as (undefined extends T[k] ? (T[k] extends undefined | void ? never : k) : never)]+?: T[k] & ({} | null) }
+  & { [k in keyof T as (undefined extends T[k] ? never : k)]: T[k] & ({} | null) }
+
 /**
  * Returns a new object with all undefined values removed. Useful when spreading optional parameters on an object, as
  * TypeScript's `Partial<XYZ>` type allows `undefined` values.
  */
-export function filterUndefined<T extends {}>(obj: T): (
-  & { [k in keyof T as (undefined extends T[k] ? k : never)]+?: T[k] & ({} | null) }
-  & { [k in keyof T as (undefined extends T[k] ? never : k)]: T[k] & ({} | null) }
-) {
+export function filterUndefined<T extends {}>(obj: T): FilterUndefined<T> {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as any;
 }
-
 
 export function pick<T extends {}, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
   return Object.fromEntries(Object.entries(obj).filter(([k]) => keys.includes(k as K))) as any;

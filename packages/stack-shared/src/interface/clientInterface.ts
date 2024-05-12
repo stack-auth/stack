@@ -342,6 +342,10 @@ export class StackClientInterface {
         "X-Stack-Request-Type": requestType,
         ...tokenObj.accessToken ? {
           "Authorization": "StackSession " + tokenObj.accessToken,
+          "X-Stack-Access-Token": tokenObj.accessToken,
+        } : {},
+        ...tokenObj.refreshToken ? {
+          "X-Stack-Refresh-Token": tokenObj.refreshToken,
         } : {},
         ...'publishableClientKey' in this.options ? {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,

@@ -19,7 +19,8 @@ export function throwErr(...args: any[]): never {
 export class StackAssertionError extends Error {
   public name = "StackAssertionError";
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
-    super(`${message}\n\nThis is likely an error in Stack. Please report it.`, options);
+    const disclaimer = `\n\nThis is likely an error in Stack. Please report it.`;
+    super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, options);
   }
 }
 

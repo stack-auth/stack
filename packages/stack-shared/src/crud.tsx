@@ -2,6 +2,8 @@ import * as yup from 'yup';
 import { NullishCoalesce } from './utils/types';
 import { filterUndefined } from './utils/objects';
 
+export type CrudOperation = "create" | "read" | "update" | "delete";
+
 type InnerCrudSchema<
   CreateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
   ReadSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
@@ -22,6 +24,11 @@ export type CrudSchema<
   client: ClientSchema,
   server: ServerSchema,
   admin: AdminSchema,
+
+  hasCreate: boolean,
+  hasRead: boolean,
+  hasUpdate: boolean,
+  hasDelete: boolean,
 };
 
 type CrudSchemaCreationOptions = {
@@ -71,16 +78,16 @@ type CrudSchemaFromOptionsInner<O extends FillInOptionals<any>> = CrudSchema<
 
 type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
 
-type InnerCrudType<S extends InnerCrudSchema> =
-  & (S['createSchema'] extends {} ? { create: Parameters<S['createSchema']['validate']>[0] } : {})
-  & (S['readSchema'] extends {} ? { read: Parameters<S['readSchema']['validate']>[0] } : {})
-  & (S['updateSchema'] extends {} ? { update: Parameters<S['updateSchema']['validate']>[0] } : {})
-  & (S['deleteSchema'] extends {} ? { delete: Parameters<S['deleteSchema']['validate']>[0] } : {});
+type InnerCrudTypeOf<S extends InnerCrudSchema> =
+  & (S['createSchema'] extends {} ? { Create: Parameters<S['createSchema']['validate']>[0] } : {})
+  & (S['readSchema'] extends {} ? { Read: Parameters<S['readSchema']['validate']>[0] } : {})
+  & (S['updateSchema'] extends {} ? { Update: Parameters<S['updateSchema']['validate']>[0] } : {})
+  & (S['deleteSchema'] extends {} ? { Delete: Parameters<S['deleteSchema']['validate']>[0] } : {});
 
-export type CrudType<S extends CrudSchema> = {
-  Client: InnerCrudType<S['client']>,
-  Server: InnerCrudType<S['server']>,
-  Admin: InnerCrudType<S['admin']>,
+export type CrudTypeOf<S extends CrudSchema> = {
+  Client: InnerCrudTypeOf<S['client']>,
+  Server: InnerCrudTypeOf<S['server']>,
+  Admin: InnerCrudTypeOf<S['admin']>,
 }
 
 export function createSerializableType<O extends CrudSchemaCreationOptions>(options: O): CrudSchemaFromOptions<O> {
@@ -114,8 +121,13 @@ export function createSerializableType<O extends CrudSchemaCreationOptions>(opti
   };
 
   return {
-    client,
-    server,
-    admin,
-  } as any;
+    client: client as any,
+    server: server as any,
+    admin: admin as any,
+
+    hasCreate: !!admin.createSchema,
+    hasRead: !!admin.readSchema,
+    hasUpdate: !!admin.updateSchema,
+    hasDelete: !!admin.deleteSchema,
+  };
 }

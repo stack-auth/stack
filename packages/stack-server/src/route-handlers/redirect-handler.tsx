@@ -11,7 +11,7 @@ export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 30
       method: yup.string().oneOf(["GET"]).required(),
     }),
     response: yup.object({
-      statusCode: yup.number().oneOf([301, 302, 303, 307, 308]).required(),
+      statusCode: yup.number().oneOf([statusCode]).required(),
       headers: yup.object().shape({
         location: yup.array(yup.string().required()),
       }),

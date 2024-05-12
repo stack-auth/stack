@@ -101,6 +101,12 @@ type SmartRouteHandler<
   handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
 };
 
+type SmartRouteHandlerGenerator<
+  OverloadParam,
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> = (param: OverloadParam) => SmartRouteHandler<Req, Res>;
+
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
@@ -113,13 +119,13 @@ export function smartRouteHandler<
   Res extends SmartResponse,
 >(
   overloadParams: OverloadParam[],
-  overloadGenerator: (param: OverloadParam) => SmartRouteHandler<Req, Res>,
+  overloadGenerator: SmartRouteHandlerGenerator<OverloadParam, Req, Res>
 ): (req: NextRequest, options: any) => Promise<Response>;
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  ...args: [unknown[], (param: unknown) => SmartRouteHandler<Req, Res>] | [SmartRouteHandler<Req, Res>]
+  ...args: [unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
 ): (req: NextRequest, options: any) => Promise<Response> {
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
   const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
@@ -152,4 +158,21 @@ export function smartRouteHandler<
 
     return await createResponse(req, requestId, smartRes, handler.response);
   });
+}
+
+/**
+ * needed in the multi-overload smartRouteHandler for weird TypeScript reasons that I don't understand
+ *
+ * if you can remove this wherever it's used without causing type errors, it's safe to remove
+ */
+export function routeHandlerTypeHelper<Req extends DeepPartial<SmartRequest>, Res extends SmartResponse>(handler: {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+}): {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+} {
+  return handler;
 }

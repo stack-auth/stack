@@ -54,10 +54,10 @@ export type SmartRequest = {
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  IsAny<T> extends true ? MSQ :
-  T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : MSQ)
-  : T;
-
+  IsAny<T> extends true ? MSQ : (
+    T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : MSQ)
+    : T
+  );
 
 async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
