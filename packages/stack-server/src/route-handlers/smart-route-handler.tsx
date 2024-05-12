@@ -169,11 +169,11 @@ export function smartRouteHandler<
 export function routeHandlerTypeHelper<Req extends DeepPartial<SmartRequest>, Res extends SmartResponse>(handler: {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 }): {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 } {
   return handler;
 }
