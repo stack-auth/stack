@@ -24,7 +24,7 @@ import {
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { useEffect, useMemo, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
@@ -75,7 +75,7 @@ function ConfirmDialog(props: { open: boolean, onClose(): void, onConfirm(): Pro
           </Stack>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             onClick={async () => {
               await props.onConfirm();
@@ -84,13 +84,13 @@ function ConfirmDialog(props: { open: boolean, onClose(): void, onConfirm(): Pro
             disabled={!confirmed}
           >
             Disable Provider
-          </AsyncButton>
-          <AsyncButton
+          </Button>
+          <Button
             color="neutral"
             onClick={() => props.onClose()}
           >
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>
@@ -278,7 +278,7 @@ function ProviderForm(props: Props & { provider: OAuthProviderConfigJson }) {
         <Stack direction="row" spacing={2}>
           <Box flexGrow={1} />
           {!!props.provider && hasChanges && (
-            <AsyncButton
+            <Button
               type="reset"
               variant="secondary"
               color="neutral"
@@ -289,9 +289,9 @@ function ProviderForm(props: Props & { provider: OAuthProviderConfigJson }) {
               }}
             >
               Undo changes
-            </AsyncButton>
+            </Button>
           )}
-          <AsyncButton
+          <Button
             type="submit"
             color="primary"
             disabled={!!props.provider && !hasChanges}
@@ -301,7 +301,7 @@ function ProviderForm(props: Props & { provider: OAuthProviderConfigJson }) {
             }}
           >
             {props.provider ? "Save" : "Create"}
-          </AsyncButton>
+          </Button>
         </Stack>
       </Stack>
     </form>

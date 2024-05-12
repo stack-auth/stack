@@ -30,7 +30,7 @@ import { EditUserModal } from '../../users/users-table';
 import { Paragraph } from '@/components/paragraph';
 import { PermissionGraph, PermissionList } from '../../team-permissions/permission-list';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export function MemberTable(props: {
   rows: ServerTeamMember[],
@@ -358,16 +358,16 @@ function EditPermissionModal(props: {
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => {formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
             Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

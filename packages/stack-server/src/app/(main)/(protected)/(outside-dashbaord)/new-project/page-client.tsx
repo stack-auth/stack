@@ -10,7 +10,7 @@ import { InputField, ListSwitchField } from "@/components/form-fields";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export const projectFormSchema = z.object({
   displayName: z.string().min(1, "Project name is required"),
@@ -88,7 +88,7 @@ export default function PageClient () {
               />
 
               <div className="flex justify-center">
-                <AsyncButton loading={loading}>Create project</AsyncButton>
+                <Button loading={loading}>Create project</Button>
               </div>
             </form>
           </Form>

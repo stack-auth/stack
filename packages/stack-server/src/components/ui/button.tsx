@@ -36,13 +36,13 @@ const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps
+export interface OriginalButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean,
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const OriginalButton = React.forwardRef<HTMLButtonElement, OriginalButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -54,14 +54,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     );
   }
 );
-Button.displayName = "Button";
+OriginalButton.displayName = "Button";
 
-interface AsyncButtonProps extends ButtonProps {
+interface ButtonProps extends OriginalButtonProps {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
   loading?: boolean,
 }
 
-const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ onClick, loading: loadingProp, children, ...props }, ref) => {
     const [isLoading, setLoading] = React.useState(false);
     const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,7 +78,7 @@ const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
     const loading = loadingProp ?? isLoading;
 
     return (
-      <Button
+      <OriginalButton
         {...props}
         ref={ref}
         onClick={(e) => runAsynchronously(handleClick(e))}
@@ -86,10 +86,10 @@ const AsyncButton = React.forwardRef<HTMLButtonElement, AsyncButtonProps>(
       >
         {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
         {children}
-      </Button>
+      </OriginalButton>
     );
   }
 );
-AsyncButton.displayName = "AsyncButton";
+Button.displayName = "AsyncButton";
 
-export { Button, buttonVariants, AsyncButton };
+export { Button, buttonVariants };

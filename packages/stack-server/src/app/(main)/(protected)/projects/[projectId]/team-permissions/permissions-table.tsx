@@ -24,7 +24,7 @@ import {
   FormHelperText,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PermissionGraph, PermissionList } from './permission-list';
 import { ServerPermissionDefinitionJson } from '@stackframe/stack-shared/dist/interface/serverInterface';
@@ -242,16 +242,16 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => { formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
             Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

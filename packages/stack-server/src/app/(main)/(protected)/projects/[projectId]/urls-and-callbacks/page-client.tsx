@@ -5,12 +5,12 @@ import React, { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { ActionDialog } from "@/components/action-dialog";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PageLayout } from "../page-layout";
 import { SettingCard } from "@/components/setting-card";
-import { AsyncSwitch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch";
 import { useAdminApp } from "../use-admin-app";
 import Typography from "@/components/ui/typography";
 
@@ -185,7 +185,7 @@ export default function UrlsAndCallbacksClient() {
         title="Domains and Handlers"
         actions={
           <EditDialog
-            trigger={<AsyncButton>Add new domain</AsyncButton>}
+            trigger={<Button>Add new domain</Button>}
             domains={domains}
             project={project}
             type="create"
@@ -193,7 +193,7 @@ export default function UrlsAndCallbacksClient() {
         }
       >
         <div className="mb-4 flex items-center gap-4">
-          <AsyncSwitch
+          <Switch
             checked={project.evaluatedConfig.allowLocalhost}
             onCheckedChange={async (checked) => {
               await project.update({
