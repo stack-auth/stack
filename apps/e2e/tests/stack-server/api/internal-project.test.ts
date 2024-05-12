@@ -62,6 +62,12 @@ describe("Various internal project tests", () => {
     expect(response.status).toBe(200);
   });
 
+  test("No current user without authentication", async () => {
+    const response = await request(BASE_URL).get("/api/v1/current-user").set(AUTH_HEADER);
+    expect(response.status).toBe(200);
+    expect(response.body).toBe(null);
+  });
+
   test("Get current user", async () => {
     const { email, password, response } = await signUpWithEmailPassword();
     await signInWithEmailPassword(email, password);
@@ -72,9 +78,68 @@ describe("Various internal project tests", () => {
         ...AUTH_HEADER,
         'authorization': 'StackSession ' + response.body.accessToken,
       });
-    console.log(response2.body);
     expect(response2.status).toBe(200);
     expect(response2.body.primaryEmail).toBe(email)
+  });
+
+  test("Can't get current user with invalid token", async () => {
+    const response = await request(BASE_URL)
+      .get("/api/v1/current-user")
+      .set({
+        ...AUTH_HEADER,
+        'authorization': 'StackSession invalid-token',
+      });
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+  });
+
+  test("Update current user's display name", async () => {
+    const { email, password, response } = await signUpWithEmailPassword();
+    await signInWithEmailPassword(email, password);
+
+    const response2 = await request(BASE_URL)
+      .put("/api/v1/current-user")
+      .set({
+        ...AUTH_HEADER,
+        'authorization': 'StackSession ' + response.body.accessToken,
+      })
+      .set(JSON_HEADER)
+      .send({
+        displayName: "New display name",
+      });
+    expect(response2.status).toBe(200);
+    expect(response2.body.displayName).toBe("New display name");
+  });
+
+  test("Can't update current user's primary e-mail with client keys", async () => {
+    const { email, password, response } = await signUpWithEmailPassword();
+    await signInWithEmailPassword(email, password);
+
+    const response2 = await request(BASE_URL)
+      .put("/api/v1/current-user")
+      .set({
+        ...AUTH_HEADER,
+        'authorization': 'StackSession ' + response.body.accessToken,
+      })
+      .set(JSON_HEADER)
+      .send({
+        primaryEmail: "thismailshouldntupdate@stack-test.example.com",
+      });
+    console.log(response2.body);
+    expect(response2.status).toBe(200);
+    expect(response2.body.primaryEmail).toBe(email);
+  });
+
+  test("Can't update non-existing user's display name", async () => {
+    const response = await request(BASE_URL)
+      .put("/api/v1/current-user")
+      .set(AUTH_HEADER)
+      .set(JSON_HEADER)
+      .send({
+        displayName: "New username",
+      });
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
   });
 
   test("API root (signed in)", async () => {
