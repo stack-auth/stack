@@ -1,5 +1,5 @@
 'use client';;
-import { AuthPage, Button, Text, useUser } from "@stackframe/stack";
+import { AuthPage, useUser } from "@stackframe/stack";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/pro
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Typography from "@/components/ui/typography";
 
 export const projectFormSchema = z.object({
   displayName: z.string().min(1, "Project name is required"),
@@ -67,7 +68,7 @@ export default function PageClient () {
         <div className='max-w-xs m-auto'>
           <Form {...form}>
             <div className="flex justify-center mb-4">
-              <Text size="xl" as='h2' className="font-bold">Create a new project</Text>
+              <Typography type='h2'>Create a new project</Typography>
             </div>
             <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-6">
 
