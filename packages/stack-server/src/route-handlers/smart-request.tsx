@@ -126,7 +126,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
 
 async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const projectId = req.headers.get("x-stack-project-id");
-  const requestType = req.headers.get("x-stack-request-type");
+  let requestType = req.headers.get("x-stack-request-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
   const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
@@ -135,7 +135,16 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
-  if (!requestType && eitherKeyOrToken) throw new KnownErrors.ProjectKeyWithoutRequestType();
+  if (!requestType && eitherKeyOrToken) {
+    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutRequestType instead of guessing
+    if (adminAccessToken || superSecretAdminKey) {
+      requestType = "admin";
+    } else if (secretServerKey) {
+      requestType = "server";
+    } else if (publishableClientKey) {
+      requestType = "client";
+    }
+  }
   if (!requestType) return null;
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);

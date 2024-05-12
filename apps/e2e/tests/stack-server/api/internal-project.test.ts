@@ -66,10 +66,13 @@ describe("Various internal project tests", () => {
     const { email, password, response } = await signUpWithEmailPassword();
     await signInWithEmailPassword(email, password);
 
-    const response2 = await request(BASE_URL).get("/api/v1/current-user").set({
-      ...AUTH_HEADER,
-      'authorization': 'StackSession ' + response.body.accessToken,
-    });
+    const response2 = await request(BASE_URL)
+      .get("/api/v1/current-user")
+      .set({
+        ...AUTH_HEADER,
+        'authorization': 'StackSession ' + response.body.accessToken,
+      });
+    console.log(response2.body);
     expect(response2.status).toBe(200);
     expect(response2.body.primaryEmail).toBe(email)
   });
