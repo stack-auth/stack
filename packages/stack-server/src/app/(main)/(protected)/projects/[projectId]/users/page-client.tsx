@@ -1,6 +1,5 @@
 "use client";
 
-import { Paragraph } from "@/components/paragraph";
 import { UsersTable } from "./users-table";
 import { useAdminApp } from "../use-admin-app";
 import { SmartLink } from "@/components/smart-link";
@@ -15,16 +14,12 @@ export default function UsersDashboardClient() {
   return (
     <PageLayout title="Users" description="Manage your project's users">
       {allUsers.length > 0 ? null : (
-        <Paragraph body>
-          <Alert className="mb-4">
-            Congratulations on starting your project! Check the <SmartLink href="https://docs.stack-auth.com">documentation</SmartLink> to add your first users.
-          </Alert>
-        </Paragraph>
+        <Alert>
+          Congratulations on starting your project! Check the <SmartLink href="https://docs.stack-auth.com">documentation</SmartLink> to add your first users.
+        </Alert>
       )}
 
-      <Paragraph body>
-        <UsersTable rows={allUsers} />
-      </Paragraph>
+      <UsersTable rows={allUsers} />
     </PageLayout>
   );
 }
