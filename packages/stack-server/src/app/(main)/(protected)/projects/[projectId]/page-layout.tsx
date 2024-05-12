@@ -10,7 +10,7 @@ export function PageLayout(props: {
     <div className="px-4 py-2">
       <div className="flex justify-between items-end">
         <div>
-          <Typography type="h3">
+          <Typography type="h2">
             {props.title}
           </Typography>
           {props.description && (
