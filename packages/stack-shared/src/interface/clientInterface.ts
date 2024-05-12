@@ -11,47 +11,47 @@ import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
 
 type UserCustomizableJson = {
-  readonly displayName: string | null,
-  readonly clientMetadata: ReadonlyJson,
+  displayName: string | null,
+  clientMetadata: ReadonlyJson,
 };
 
 export type UserJson = UserCustomizableJson & {
-  readonly projectId: string,
-  readonly id: string,
-  readonly primaryEmail: string | null,
-  readonly primaryEmailVerified: boolean,
-  readonly displayName: string | null,
-  readonly clientMetadata: ReadonlyJson,
-  readonly profileImageUrl: string | null,
-  readonly signedUpAtMillis: number,
+  projectId: string,
+  id: string,
+  primaryEmail: string | null,
+  primaryEmailVerified: boolean,
+  displayName: string | null,
+  clientMetadata: ReadonlyJson,
+  profileImageUrl: string | null,
+  signedUpAtMillis: number,
   /**
    * not used anymore, for backwards compatibility
    */
-  readonly authMethod: "credential" | "oauth",
-  readonly hasPassword: boolean,
-  readonly authWithEmail: boolean,
-  readonly oauthProviders: readonly string[],
+  authMethod: "credential" | "oauth",
+  hasPassword: boolean,
+  authWithEmail: boolean,
+  oauthProviders: string[],
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
 
 export type ClientProjectJson = {
-  readonly id: string,
-  readonly credentialEnabled: boolean,
-  readonly magicLinkEnabled: boolean,
-  readonly oauthProviders: readonly {
+  id: string,
+  credentialEnabled: boolean,
+  magicLinkEnabled: boolean,
+  oauthProviders: {
     id: string,
     enabled: boolean,
   }[],
 };
 
 export type ClientInterfaceOptions = {
-  readonly baseUrl: string,
-  readonly projectId: string,
+  baseUrl: string,
+  projectId: string,
 } & ({
-  readonly publishableClientKey: string,
+  publishableClientKey: string,
 } | {
-  readonly projectOwnerTokens: ReadonlyTokenStore,
+  projectOwnerTokens: ReadonlyTokenStore,
 });
 
 export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft";

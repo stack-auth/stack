@@ -79,10 +79,10 @@ type CrudSchemaFromOptionsInner<O extends FillInOptionals<any>> = CrudSchema<
 type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
 
 type InnerCrudTypeOf<S extends InnerCrudSchema> =
-  & (S['createSchema'] extends {} ? { Create: Parameters<S['createSchema']['validate']>[0] } : {})
-  & (S['readSchema'] extends {} ? { Read: Parameters<S['readSchema']['validate']>[0] } : {})
-  & (S['updateSchema'] extends {} ? { Update: Parameters<S['updateSchema']['validate']>[0] } : {})
-  & (S['deleteSchema'] extends {} ? { Delete: Parameters<S['deleteSchema']['validate']>[0] } : {});
+  & (S['createSchema'] extends {} ? { Create: yup.InferType<S['createSchema']> } : {})
+  & (S['readSchema'] extends {} ? { Read: yup.InferType<S['readSchema']> } : {})
+  & (S['updateSchema'] extends {} ? { Update: yup.InferType<S['updateSchema']> } : {})
+  & (S['deleteSchema'] extends {} ? { Delete: yup.InferType<S['deleteSchema']> } : {});
 
 export type CrudTypeOf<S extends CrudSchema> = {
   Client: InnerCrudTypeOf<S['client']>,
@@ -90,7 +90,7 @@ export type CrudTypeOf<S extends CrudSchema> = {
   Admin: InnerCrudTypeOf<S['admin']>,
 }
 
-export function createSerializableType<O extends CrudSchemaCreationOptions>(options: O): CrudSchemaFromOptions<O> {
+export function createCrud<O extends CrudSchemaCreationOptions>(options: O): CrudSchemaFromOptions<O> {
   const client = {
     createSchema: options.clientCreateSchema,
     readSchema: options.clientReadSchema,

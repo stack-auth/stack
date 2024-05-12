@@ -147,6 +147,16 @@ const UnsupportedError = createKnownErrorConstructor(
   ] as const,
 );
 
+const BodyParsingError = createKnownErrorConstructor(
+  KnownError,
+  "BODY_PARSING_ERROR",
+  (message: string) => [
+    400,
+    message,
+  ] as const,
+  (json) => [json.message] as const,
+);
+
 const SchemaError = createKnownErrorConstructor(
   KnownError,
   "SCHEMA_ERROR",
@@ -170,7 +180,7 @@ const AllOverloadsFailed = createKnownErrorConstructor(
         `).join("\n\n")}
     `,
     {
-      overloads: overloadErrors,
+      overloadErrors,
     },
   ] as const,
   (json) => [
@@ -795,6 +805,7 @@ export type KnownErrors = {
 
 export const KnownErrors = {
   UnsupportedError,
+  BodyParsingError,
   SchemaError,
   AllOverloadsFailed,
   ProjectAuthenticationError,

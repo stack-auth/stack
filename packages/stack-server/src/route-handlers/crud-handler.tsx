@@ -6,14 +6,20 @@ import { routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { outerProduct, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
+import { SmartRequestAuth } from "./smart-request";
 
-type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends (keyof T["Admin"] & Exclude<Capitalize<CrudOperation>, "Read">) ? T["Admin"][K] : void;
+type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
 type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Multi extends boolean = false> =
   K extends keyof T["Admin"]
-    ? (params: Params, data: GetAdminKey<T, K>) => Promise<
+    ? (options: {
+      params: Params,
+      data: (K extends "Read" ? void : GetAdminKey<T, K>),
+      auth: SmartRequestAuth,
+    }) => Promise<
       K extends "Delete"
         ? void
         : (
@@ -38,6 +44,9 @@ type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
     paramNames: ParamNames[],
   };
 
+type A = CurrentUserCrud["Admin"];
+type B = CrudSingleRouteHandler<CurrentUserCrud, "Read", never>;
+type C = GetAdminKey<CurrentUserCrud, "Read">;
 
 type SingleCrudHandler = (
   req: NextRequest,
@@ -90,22 +99,25 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
             bodyType: yup.string().oneOf(["json"]).required(),
             body: (crud[accessType].readSchema ?? yup.mixed().oneOf([undefined])).optional(),
           }),
-          handler: async (req) => {
+          handler: async (req, fullReq) => {
             const adminInputSchema = typedIncludes(["Read", "List"] as const, crudOperation) ? undefined : crud.admin[`${typedToLowercase(crudOperation)}Schema`];
-            const adminReadSchema = crud.admin.readSchema;
-            const accessReadSchema = crud[accessType].readSchema;
+            const adminReadSchema = crud.admin.readSchema ?? yup.mixed().oneOf([undefined]);
+            const accessReadSchema = crud[accessType].readSchema ?? yup.mixed().oneOf([undefined]);
             const adminResultSchema = crudOperation === "List" ? yup.array(adminReadSchema) : adminReadSchema;
             const accessResultSchema = crudOperation === "List" ? yup.array(accessReadSchema) : accessReadSchema;
-            if (!adminInputSchema || !adminResultSchema || !accessResultSchema) {
-              throw new StackAssertionError(`Schema not available for ${crudOperation}; this should never happen`);
-            }
 
             const handlersUnfiltered = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
             const data = req.body;
-            const adminData = adminInputSchema ? await validate(data, adminInputSchema, true) : undefined;
-            const result = await handlersUnfiltered[`on${crudOperation}`]?.(req.params, adminData);
-            const resultAdminValidated = crudOperation === "Delete" ? undefined : await validate(result, adminResultSchema, false);
-            const resultAccessValidated = crudOperation === "Delete" ? undefined : await validate(resultAdminValidated, accessResultSchema, false);
+            const adminData = adminInputSchema ? await validate(data, adminInputSchema, true, "Input validation") : undefined;
+
+            const result = await handlersUnfiltered[`on${crudOperation}`]?.({
+              params: req.params,
+              data: adminData,
+              auth: fullReq.auth,
+            });
+
+            const resultAdminValidated = crudOperation === "Delete" ? undefined : await validate(result, adminResultSchema, false, "Result admin validation");
+            const resultAccessValidated = crudOperation === "Delete" ? undefined : await validate(resultAdminValidated, accessResultSchema, false, `Result ${accessType} validation`);
 
             return {
               statusCode: crudOperation === "Create" ? 201 : 200,
@@ -124,7 +136,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
   })) as any;
 }
 
-async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, name: string): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -133,7 +145,16 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean):
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
-      throw new StackAssertionError(`CRUD handler validation failed. This indicates a bug in the code. Errors:\n\n${error.errors.join("\n\n")}`, undefined, { cause: error });
+      throw new StackAssertionError(
+        deindent`
+          ${name} failed in CRUD handler.
+          
+          Errors:
+            ${error.errors.join("\n")}
+        `,
+        { obj, schema, cast },
+        { cause: error }
+      );
     }
     throw error;
   }

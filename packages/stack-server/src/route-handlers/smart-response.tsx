@@ -104,7 +104,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
         ...Object.entries({
           ...Object.fromEntries(headers),
           ...validated.headers ?? {}
-        }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
+        }).flatMap(([key, values]) => values?.map(v => [key.toLowerCase(), v!] as [string, string]) ?? []),
       ],
     },
   );
