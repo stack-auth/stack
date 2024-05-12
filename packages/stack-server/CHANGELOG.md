@@ -1,5 +1,13 @@
 # @stackframe/stack-server
 
+## 0.4.4
+
+### Patch Changes
+
+- Theme updates
+- Updated dependencies
+  - @stackframe/stack@2.4.4
+
 ## 0.4.3
 
 ### Patch Changes
