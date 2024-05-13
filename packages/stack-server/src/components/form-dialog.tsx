@@ -1,6 +1,6 @@
 "use client";;
 import * as yup from "yup";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ActionDialog, ActionDialogProps } from "@/components/action-dialog";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,7 +11,7 @@ import { Form } from "@/components/ui/form";
 export function FormDialog<F extends FieldValues>(
   props: Omit<ActionDialogProps, 'children'> & { 
     defaultValues: Partial<F>, 
-    onSubmit: (values: F) => Promise<void> | void,
+    onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
     render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
     formSchema: yup.ObjectSchema<F>,
   }
@@ -29,13 +29,19 @@ export function FormDialog<F extends FieldValues>(
     e?.preventDefault();
     setSubmitting(true);
     try {
-      await props.onSubmit(values);
-      form.reset(values);
-      setOpen(false);
+      const result = await props.onSubmit(values);
+      form.reset();
+      if (result !== 'prevent-close') {
+        setOpen(false);
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    form.reset(props.defaultValues);
+  }, [props.defaultValues, form]);
 
   return (
     <ActionDialog

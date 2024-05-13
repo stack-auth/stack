@@ -1,8 +1,8 @@
 "use client";
 
 import * as yup from "yup";
-import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Box, FormHelperText } from "@mui/joy";
-import React, { useEffect, useState } from "react";
+import { IconButton, List, ListItem, ListDivider } from "@mui/joy";
+import React, { useMemo } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
 import { ActionDialog } from "@/components/action-dialog";
@@ -14,9 +14,11 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";
 import Typography from "@/components/ui/typography";
 import { Alert } from "@/components/ui/alert";
+import { FormDialog } from "@/components/form-dialog";
+import { InputField } from "@/components/form-fields";
 
 export const domainFormSchema = yup.object({
-  domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url().required(),
+  domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url("Domain must a valid URL").required(),
   handlerPath: yup.string().matches(/^\//, "Handler path must start with /").required(),
 });
 
@@ -28,99 +30,84 @@ function EditDialog(props: {
   type: 'update' | 'create',
   editIndex?: number,
 }) {
-  const [newDomain, setNewDomain] = useState("");
-  const [newDomainError, setNewDomainError] = useState<string | null>(null);
-
-  const [newHandlerPath, setNewHandlerPath] = useState("/handler");
-  const [newHandlerPathError, setNewHandlerPathError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const defaultValues = useMemo(() => {
     if (props.editIndex !== undefined) {
       const domain = [...props.domains][props.editIndex];
-      setNewDomain(domain.domain);
-      setNewHandlerPath(domain.handlerPath);
+      return {
+        domain: domain.domain,
+        handler: domain.handlerPath,
+      };
+    } else {
+      return { domain: '', handlerPath: '/handler' };
     }
   }, [props.editIndex, props.domains]);
 
-  return (
-    <ActionDialog
-      trigger={props.trigger}
-      title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
-      onClose={() => {
-        setNewDomain("");
-        setNewDomainError(null);
-      }}
-      okButton={{
-        label: props.type === 'create' ? "Create" : "Update",
-        onClick: async () => {
-          const domainAlreadyExists = [...props.domains].some(({ domain }) => domain === newDomain);
-          if (props.type === 'create' && domainAlreadyExists ) {
-            setNewDomainError("Domain already exists");
-            return "prevent-close";
-          }
+  const domainFormSchema = yup.object({
+    domain: yup.string()
+      .matches(/^https?:\/\//, "Domain must start with http:// or https://")
+      .url("Domain must a valid URL")
+      .notOneOf([...props.domains].map(({ domain }) => domain), "Domain already exists")
+      .required(),
+    handlerPath: yup.string()
+      .matches(/^\//, "Handler path must start with /")
+      .required(),
+  });
 
-          if (props.type === 'create') {
-            await props.project.update({
-              config: {
-                domains: [...props.domains, {
-                  domain: newDomain,
-                  handlerPath: newHandlerPath,
-                }],
-              },
-            });
-          } else {
-            await props.project.update({
-              config: {
-                domains: [...props.domains].map((domain, i) => {
-                  if (i === props.editIndex) {
-                    return {
-                      domain: newDomain,
-                      handlerPath: newHandlerPath,
-                    };
-                  }
-                  return domain;
-                })
-              },
-            });
+  return <FormDialog
+    trigger={props.trigger}
+    title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
+    defaultValues={defaultValues}
+    formSchema={domainFormSchema}
+    onSubmit={async (values) => {
+      if (props.type === 'create') {
+        await props.project.update({
+          config: {
+            domains: [...props.domains, {
+              domain: values.domain,
+              handlerPath: values.handlerPath,
+            }],
+          },
+        });
+      } else {
+        await props.project.update({
+          config: {
+            domains: [...props.domains].map((domain, i) => {
+              if (i === props.editIndex) {
+                return {
+                  domain: values.domain,
+                  handlerPath: values.handlerPath,
+                };
+              }
+              return domain;
+            })
+          },
+        });
+      }
+    }}
+    render={(form) => (
+      <>
+        <Alert>
+          Make sure this is a trusted domain or a URL that you control.
+        </Alert>
+
+        <InputField
+          control={form.control}
+          name="domain"
+          label="Domain (http:// or https://)"
+          placeholder="https://example.com"
+          required
+        />
           
-          }
-        }
-      }}
-      cancelButton
-    >
-      <Alert>
-        <b>Warning:</b> Make sure this is a trusted domain or a URL that you control.
-      </Alert>
-
-      {/* <FormControl required error={!!newDomainError} sx={{ mt: 2}}>
-        <FormLabel>
-        Domain (http:// or https://)
-        </FormLabel>
-        <Input
-          type="text"
-          value={newDomain}
-          onChange={(e) => setNewDomain(e.target.value)}
+        <InputField
+          control={form.control}
+          name="handlerPath"
+          label="Handler path"
+          placeholder="/handler"
+          required
         />
-        <FormHelperText>
-          {newDomainError}
-        </FormHelperText>
-      </FormControl>
-
-      <FormControl required error={!!newHandlerPathError} sx={{ mt: 2}}>
-        <FormLabel>
-        Handler path
-        </FormLabel>
-        <Input
-          type="text"
-          value={newHandlerPath}
-          onChange={(e) => setNewHandlerPath(e.target.value)}
-        />
-        <FormHelperText>
-          {newHandlerPathError}
-        </FormHelperText>
-      </FormControl> */}
-    </ActionDialog>
-  );
+      </>
+    )}
+  />;
 }
 
 function DeleteDialog(props: {
