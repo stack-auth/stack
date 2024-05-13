@@ -73,6 +73,7 @@
     "@sentry/nextjs": "^7.105.0",
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
+    "@tanstack/react-table": "^8.17.0",
     "@types/mdx": "^2",
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",

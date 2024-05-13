@@ -517,6 +517,9 @@ importers:
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../stack-shared
+      '@tanstack/react-table':
+        specifier: ^8.17.0
+        version: 8.17.0(react-dom@18.2.0)(react@18.2.0)
       '@types/mdx':
         specifier: ^2
         version: 2.0.11
@@ -7253,6 +7256,23 @@ packages:
     engines: {node: '>=14.16'}
     dependencies:
       defer-to-connect: 2.0.1
+    dev: false
+
+  /@tanstack/react-table@8.17.0(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-LSJxTDzlKGs8EN7/UHB1l3yLR9HUIxoHFkTbTjHaUUGL4kgYZFYhsQsdDJSIykG86qpIA/6gSWmtwNfy5Iprhw==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+    dependencies:
+      '@tanstack/table-core': 8.16.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@tanstack/table-core@8.16.0:
+    resolution: {integrity: sha512-dCG8vQGk4js5v88/k83tTedWOwjGnIyONrKpHpfmSJB8jwFHl8GSu1sBBxbtACVAPtAQgwNxl0rw1d3RqRM1Tg==}
+    engines: {node: '>=12'}
     dev: false
 
   /@testing-library/dom@10.0.0:
