@@ -25,7 +25,7 @@ export function SettingCard(props: {
         <CardTitle>{props.title}</CardTitle>
         {props.description && <CardDescription>{props.description}</CardDescription>}
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
+      <CardContent className="flex flex-col gap-4">
         {props.children}
       </CardContent>
       {props.actions && <CardFooter>
@@ -40,6 +40,7 @@ export function SettingCard(props: {
 export function SettingSwitch(props: {
   label: string | React.ReactNode,
   checked: boolean,
+  disabled?: boolean,
   onCheckedChange: (checked: boolean) => void | Promise<void>,
   actions?: React.ReactNode,
   onlyShowActionsWhenChecked?: boolean,
@@ -58,6 +59,7 @@ export function SettingSwitch(props: {
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
+        disabled={props.disabled}
       />
       <Typography>{props.label}</Typography>
       {showActions && props.actions}
