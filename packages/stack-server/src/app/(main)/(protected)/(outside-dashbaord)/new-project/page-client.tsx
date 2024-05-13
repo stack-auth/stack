@@ -98,7 +98,7 @@ export default function PageClient () {
               />
 
               <div className="flex justify-center">
-                <Button loading={loading}>Create project</Button>
+                <Button loading={loading} type="submit">Create project</Button>
               </div>
             </form>
           </Form>
