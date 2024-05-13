@@ -1,5 +1,6 @@
 "use client";
 
+import * as yup from "yup";
 import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Box, FormHelperText } from "@mui/joy";
 import React, { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
@@ -12,15 +13,13 @@ import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";
 import Typography from "@/components/ui/typography";
+import { Alert } from "@/components/ui/alert";
 
-function isValidUrl(urlString: string) {
-  try { 
-    return Boolean(new URL(urlString)); 
-  }
-  catch(e){ 
-    return false; 
-  }
-}
+export const domainFormSchema = yup.object({
+  domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url().required(),
+  handlerPath: yup.string().matches(/^\//, "Handler path must start with /").required(),
+});
+
 
 function EditDialog(props: { 
   trigger: React.ReactNode,
@@ -54,23 +53,6 @@ function EditDialog(props: {
       okButton={{
         label: props.type === 'create' ? "Create" : "Update",
         onClick: async () => {
-          if (!newDomain.startsWith("http://") && !newDomain.startsWith("https://")) {
-            setNewDomainError("Domain must start with http:// or https://");
-            return "prevent-close";
-          }
-          if (!newHandlerPath.startsWith("/")) {
-            setNewHandlerPathError("Handler path must start with /");
-            return "prevent-close";
-          }
-          if (!isValidUrl(newDomain)) {
-            setNewDomainError("Invalid domain");
-            return "prevent-close";
-          }
-          if (!isValidUrl(newDomain + newHandlerPath)) {
-            setNewHandlerPathError("Invalid handler path");
-            return "prevent-close";
-          }
-
           const domainAlreadyExists = [...props.domains].some(({ domain }) => domain === newDomain);
           if (props.type === 'create' && domainAlreadyExists ) {
             setNewDomainError("Domain already exists");
@@ -106,11 +88,11 @@ function EditDialog(props: {
       }}
       cancelButton
     >
-      <Paragraph body>
+      <Alert>
         <b>Warning:</b> Make sure this is a trusted domain or a URL that you control.
-      </Paragraph>
+      </Alert>
 
-      <FormControl required error={!!newDomainError} sx={{ mt: 2}}>
+      {/* <FormControl required error={!!newDomainError} sx={{ mt: 2}}>
         <FormLabel>
         Domain (http:// or https://)
         </FormLabel>
@@ -136,7 +118,7 @@ function EditDialog(props: {
         <FormHelperText>
           {newHandlerPathError}
         </FormHelperText>
-      </FormControl>
+      </FormControl> */}
     </ActionDialog>
   );
 }

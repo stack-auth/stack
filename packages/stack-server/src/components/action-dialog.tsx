@@ -9,10 +9,11 @@ import { Checkbox } from "./ui/checkbox";
 import { Alert } from "./ui/alert";
 import { Typography } from "@mui/joy";
 
-type DialogProps = {
+export type ActionDialogProps = {
   trigger?: React.ReactNode,
   open?: boolean,
   onClose?: () => void | Promise<void>,
+  onOpenChange?: (open: boolean) => void,
   titleIcon?: LucideIcon,
   title: boolean | React.ReactNode,
   description?: React.ReactNode,
@@ -31,7 +32,7 @@ type DialogProps = {
   children?: React.ReactNode,
 };
 
-export function ActionDialog(props: DialogProps) {
+export function ActionDialog(props: ActionDialogProps) {
   const okButton = props.okButton === true ? {} : props.okButton;
   const cancelButton = props.cancelButton === true ? {} : props.cancelButton;
   const anyButton = !!(okButton || cancelButton);
@@ -47,6 +48,7 @@ export function ActionDialog(props: DialogProps) {
       runAsynchronously(props.onClose());
     }
     setOpenState(open);
+    props.onOpenChange?.(open);
   };
   
   return (
