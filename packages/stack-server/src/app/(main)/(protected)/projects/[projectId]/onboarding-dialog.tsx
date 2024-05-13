@@ -10,6 +10,7 @@ import { SmartLink } from "@/components/smart-link";
 import { InlineCode } from "@/components/inline-code";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ApiKeySetFirstView } from "@stackframe/stack";
+import { SquarePlus } from "lucide-react";
 
 export function OnboardingDialog() {
   const stackAdminApp = useAdminApp();
@@ -37,7 +38,7 @@ export function OnboardingDialog() {
 
   return (
     <ActionDialog
-      titleIcon="library_add"
+      titleIcon={SquarePlus}
       title="Onboarding"
       okButton={{
         label: "Continue",
