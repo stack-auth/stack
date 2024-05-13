@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
+import { toSharedProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Project name is required").required(),
@@ -48,12 +49,19 @@ export default function PageClient () {
   const onSubmit = async (values: ProjectFormValues, e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     setLoading(true);
-    const { id, ...projectUpdate } = mockProject;
     let newProject;
     try {
       newProject = await user.createProject({
         displayName: values.displayName,
-        ...projectUpdate,
+        config: {
+          credentialEnabled: values.signInMethods.includes("credential"),
+          magicLinkEnabled: values.signInMethods.includes("magicLink"),
+          oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
+            id: provider,
+            enabled: values.signInMethods.includes(provider),
+            type: toSharedProvider(provider),
+          })).filter(({ enabled }) => enabled),
+        }
       });
       await router.push('/projects/' + newProject.id);
       await wait(2000);
@@ -66,11 +74,12 @@ export default function PageClient () {
     <div className="w-full flex-grow flex items-center justify-center">
       <div className="w-full md:w-1/2 p-4">
         <div className='max-w-xs m-auto'>
+          <div className="flex justify-center mb-4">
+            <Typography type='h2'>Create a new project</Typography>
+          </div>
+            
           <Form {...form}>
-            <div className="flex justify-center mb-4">
-              <Typography type='h2'>Create a new project</Typography>
-            </div>
-            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-6">
+            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 

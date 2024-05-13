@@ -1,7 +1,5 @@
 "use client";;
 import {
-  Accordion,
-  AccordionDetails,
   AccordionSummary,
   Select,
   Option,
@@ -18,8 +16,9 @@ import {
   Checkbox,
   DialogActions,
 } from "@mui/joy";
+import * as yup from "yup";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Button } from "@/components/ui/button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -30,6 +29,10 @@ import { Badge } from "@/components/ui/badge";
 import { ActionDialog } from "@/components/action-dialog";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Typography from "@/components/ui/typography";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
+import { InputField, SwitchField } from "@/components/form-fields";
+import { Form } from "@/components/ui/form";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -146,14 +149,76 @@ function AccordionSummaryContent(props: Props) {
   );
 }
 
+export const providerFormSchema = yup.object({
+  shared: yup.boolean().required(),
+  clientId: yup.string(),
+  clientSecret: yup.string(),
+});
+
+export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
+
 export function ProviderSettingDialog(props: Props) {
+  const ref = useRef<HTMLFormElement>(null);
+  const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
+  const form = useForm<ProviderFormValues>({
+    resolver: yupResolver<ProviderFormValues>(providerFormSchema),
+    defaultValues: { 
+      shared: isShared, 
+      clientId: (props.provider as any)?.clientId ?? "", 
+      clientSecret: (props.provider as any)?.clientSecret ?? "" 
+    },
+    mode: "onChange",
+  });
+
+  const onSubmit = async (values: ProviderFormValues, e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
+    console.log(values);
+  };
+
   return (
     <ActionDialog
       trigger={<SettingIconButton/>}
       title={`${toTitle(props.id)} OAuth provider`}
       cancelButton
-      okButton={{ label: 'Save' }}
+      okButton={{ 
+        label: 'Save', 
+        onClick: async () => {
+          if (ref.current) {
+            await ref.current.submit();
+          }
+        } 
+      }}
+      onClose={() => form.reset()}
     >
+      <Form {...form}>
+        <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4" ref={ref}>
+          <SwitchField
+            control={form.control}
+            name="shared"
+            label="Shared keys"
+          />
+
+          {!form.watch("shared") && (
+            <>
+              <InputField
+                control={form.control}
+                name="clientId"
+                label="Client ID"
+                placeholder="Client ID"
+                required
+              />
+
+              <InputField
+                control={form.control}
+                name="clientSecret"
+                label="Client Secret"
+                placeholder="Client Secret"
+                required
+              />
+            </>
+          )}
+        </form>
+      </Form>
     </ActionDialog>
   );
 }
