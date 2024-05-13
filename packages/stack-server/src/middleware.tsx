@@ -20,8 +20,8 @@ const corsAllowedRequestHeaders = [
   'x-stack-admin-access-token',
 
   // User auth
-  'x-stack-user-refresh-token',
-  'x-stack-user-access-token',
+  'x-stack-refresh-token',
+  'x-stack-access-token',
 ];
 
 const corsAllowedResponseHeaders = [

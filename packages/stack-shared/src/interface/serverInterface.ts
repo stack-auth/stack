@@ -14,13 +14,13 @@ import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
 
 export type ServerUserJson = UserJson & {
-  readonly serverMetadata: ReadonlyJson,
+  serverMetadata: ReadonlyJson,
 };
 
 export type ServerUserUpdateJson = UserUpdateJson & {
-  readonly serverMetadata?: ReadonlyJson,
-  readonly primaryEmail?: string | null,
-  readonly primaryEmailVerified?: boolean,
+  serverMetadata?: ReadonlyJson,
+  primaryEmail?: string | null,
+  primaryEmailVerified?: boolean,
 }
 
 export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName">;

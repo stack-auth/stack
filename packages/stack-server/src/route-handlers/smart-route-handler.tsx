@@ -4,13 +4,11 @@ import { NextRequest } from "next/server";
 import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, SmartRequestAuth, parseRequest } from "./smart-request";
+import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
-import { ProjectJson, UserJson } from "@stackframe/stack-shared";
 
 /**
  * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
@@ -98,8 +96,14 @@ type SmartRouteHandler<
 > = {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>) => Promise<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 };
+
+type SmartRouteHandlerGenerator<
+  OverloadParam,
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> = (param: OverloadParam) => SmartRouteHandler<Req, Res>;
 
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
@@ -112,26 +116,28 @@ export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  overloadParams: OverloadParam[],
-  overloadGenerator: (param: OverloadParam) => SmartRouteHandler<Req, Res>,
+  overloadParams: readonly OverloadParam[],
+  overloadGenerator: SmartRouteHandlerGenerator<OverloadParam, Req, Res>
 ): (req: NextRequest, options: any) => Promise<Response>;
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  ...args: [unknown[], (param: unknown) => SmartRouteHandler<Req, Res>] | [SmartRouteHandler<Req, Res>]
+  ...args: [readonly unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
 ): (req: NextRequest, options: any) => Promise<Response> {
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
   const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
 
   return deprecatedSmartRouteHandler(async (req, options, requestId) => {
-    const reqsParsed: [Req, SmartRouteHandler<Req, Res>][] = [];
+    const reqsParsed: [[Req, SmartRequest], SmartRouteHandler<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
+    const bodyBuffer = await req.arrayBuffer();
     for (const overloadParam of overloadParams as unknown[]) {
       const handler = overloadGenerator(overloadParam);
+      const requestParser = await createLazyRequestParser(req, bodyBuffer, handler.request, options);
       try {
-        const parsed = await parseRequest(req, handler.request, options);
-        reqsParsed.push([parsed, handler]);
+        const parserRes = await requestParser();
+        reqsParsed.push([parserRes, handler]);
       } catch (e) {
         reqsErrors.push(e);
       }
@@ -145,11 +151,29 @@ export function smartRouteHandler<
       }
     }
 
-    const smartReq = reqsParsed[0][0];
+    const smartReq = reqsParsed[0][0][0];
+    const fullReq = reqsParsed[0][0][1];
     const handler = reqsParsed[0][1];
 
-    let smartRes = await handler.handler(smartReq as any);
+    let smartRes = await handler.handler(smartReq as any, fullReq);
 
     return await createResponse(req, requestId, smartRes, handler.response);
   });
+}
+
+/**
+ * needed in the multi-overload smartRouteHandler for weird TypeScript reasons that I don't understand
+ *
+ * if you can remove this wherever it's used without causing type errors, it's safe to remove
+ */
+export function routeHandlerTypeHelper<Req extends DeepPartial<SmartRequest>, Res extends SmartResponse>(handler: {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+}): {
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+} {
+  return handler;
 }

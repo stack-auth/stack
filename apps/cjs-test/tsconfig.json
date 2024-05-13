@@ -6,6 +6,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "noErrorTruncation": true,
     "module": "nodenext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
