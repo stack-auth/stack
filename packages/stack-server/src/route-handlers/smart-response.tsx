@@ -27,7 +27,7 @@ export type SmartResponse = {
   }
 );
 
-async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
+async function validate<T>(req: NextRequest, obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -35,7 +35,7 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
       strict: true,
     });
   } catch (error) {
-    throw new StackAssertionError(`Error occured during response validation: ${error}`, { cause: error });
+    throw new StackAssertionError(`Error occured during ${req.url} response validation: ${error}`, { cause: error });
   }
 }
 
@@ -48,7 +48,7 @@ function isBinaryBody(body: unknown): body is BodyInit {
 }
 
 export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
-  const validated = await validate(obj, schema);
+  const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;
   const headers = new Map<string, string[]>;

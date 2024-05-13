@@ -28,7 +28,7 @@ export const usersCrudServerReadSchema = yup.object({
   serverMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
 }).required();
 
-const serverDeleteSchema = yup.mixed().oneOf([undefined]);
+const serverDeleteSchema = yup.mixed();
 
 export const usersCrud = createCrud({
   serverReadSchema: usersCrudServerReadSchema,
