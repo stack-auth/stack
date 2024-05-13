@@ -174,6 +174,17 @@ export function TurnOffProviderDialog(props: {
   );
 }
 
+export function ProviderSettingDialog(props: Props) {
+  return (
+    <ActionDialog
+      trigger={<SettingIconButton/>}
+      title={`${toTitle(props.id)} OAuth provider`}
+      cancelButton
+      okButton={{ label: 'Save' }}
+    />
+  );
+}
+
 export function ProviderSettingSwitch(props: Props) {
   const enabled = !!props.provider?.enabled;
   const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
@@ -207,7 +218,7 @@ export function ProviderSettingSwitch(props: Props) {
           }
         }}
         actions={
-          <SettingIconButton/>
+          <ProviderSettingDialog {...props} />
         }
         onlyShowActionsWhenChecked
       />

@@ -126,7 +126,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
 ];
 
-export function NavItem({ item, projectId, onClick }: { item: Item, projectId: string, onClick?: () => void}) {
+export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -134,7 +134,7 @@ export function NavItem({ item, projectId, onClick }: { item: Item, projectId: s
   
   return (
     <Link
-      href={`/projects/${projectId}${item.href}`}
+      href={href}
       className={cn(
         buttonVariants({ variant: 'ghost', size: "default" }),
         selected && "bg-muted",
@@ -162,7 +162,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
             </Typography>;
           } else if (item.type === 'item') {
             return <div key={index} className="flex px-1">
-              <NavItem item={item} projectId={projectId} onClick={onNavigate} />
+              <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`}/>
             </div>;
           }
         })}
@@ -176,11 +176,11 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
           item={{
             name: "Documentation",
             type: "item",
-            href: "/search",
+            href: "",
             icon: Book,
             regex: /^$/,
           }}
-          projectId={projectId}
+          href={"https://docs.stack-auth.com/"}
         />
       </div>
     </div>
@@ -287,7 +287,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
 
           <div className="flex gap-4">
             <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
-            Feedback
+              Feedback
             </Button>
             <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
           </div>

@@ -70,10 +70,10 @@ export function ActionDialog(props: DialogProps) {
           {props.children}
         </div>
         
-        <Alert className="flex gap-4 items-center">
+        {props.confirmText && <Alert className="flex gap-4 items-center">
           <Checkbox checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
           <Typography>{props.confirmText}</Typography>
-        </Alert>
+        </Alert>}
 
 
         {anyButton && <DialogFooter>
