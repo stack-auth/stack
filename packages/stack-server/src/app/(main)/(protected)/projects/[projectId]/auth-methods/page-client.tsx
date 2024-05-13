@@ -8,6 +8,7 @@ import { useAdminApp } from "../use-admin-app";
 import { ProviderAccordion, availableProviders } from "./provider-accordion";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { PageLayout } from "../page-layout";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 
 export default function ProvidersClient() {
   const stackAdminApp = useAdminApp();
@@ -17,41 +18,33 @@ export default function ProvidersClient() {
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
 
-      <Paragraph body>
-        <SimpleCard title="Email authentication">
-          <Paragraph body>
-            <SmartSwitch
-              checked={project.evaluatedConfig.credentialEnabled}
-              onChange={async (event) => {
-                await project.update({
-                  config: {
-                    credentialEnabled: event.target.checked,
-                  },
-                });
-              }}
-            >
-              Password Authentication
-            </SmartSwitch>
-          </Paragraph>
-          <Paragraph body>
-            <SmartSwitch
-              checked={project.evaluatedConfig.magicLinkEnabled}
-              onChange={async (event) => {
-                await project.update({
-                  config: {
-                    magicLinkEnabled: event.target.checked,
-                  },
-                });
-              }}
-            >
-              Magic Link (email with login link)
-            </SmartSwitch>
-          </Paragraph>
-        </SimpleCard>
-      </Paragraph>
+      <SettingCard title="Email Authentication" description="Email address based sign in.">
+        <SettingSwitch
+          label="Password Authentication"
+          checked={project.evaluatedConfig.credentialEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                credentialEnabled: checked,
+              },
+            });
+          }}
+        />
+        <SettingSwitch
+          label="Magic Link (email with login link)"
+          checked={project.evaluatedConfig.magicLinkEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                magicLinkEnabled: checked,
+              },
+            });
+          }}
+        />
+      </SettingCard>
 
 
-      <SimpleCard title="OAuth Providers">
+      <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
         <Card variant="soft">
           <CardOverflow>
             <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
@@ -85,7 +78,7 @@ export default function ProvidersClient() {
         <Paragraph sidenote>
           In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website.
         </Paragraph>
-      </SimpleCard>
+      </SettingCard>
     </PageLayout>
   );
 }

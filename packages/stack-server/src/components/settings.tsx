@@ -22,7 +22,7 @@ export function SettingCard(props: {
         <CardTitle>{props.title}</CardTitle>
         {props.description && <CardDescription>{props.description}</CardDescription>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-2">
         {props.children}
       </CardContent>
       {props.actions && <CardFooter>
