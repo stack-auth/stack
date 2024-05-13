@@ -2,7 +2,6 @@
 import Link from "next/link";
 import {
   Book,
-  ChevronDownIcon,
   Globe,
   KeyRound,
   LockKeyhole,
@@ -23,7 +22,6 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
@@ -31,8 +29,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Typography from "@/components/ui/typography";
 
 type Label = {
@@ -68,8 +64,8 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: "Auth Methods",
-    href: "/providers",
-    regex: /^\/projects\/[^\/]+\/providers$/,
+    href: "/auth-methods",
+    regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
     type: 'item'
   },
