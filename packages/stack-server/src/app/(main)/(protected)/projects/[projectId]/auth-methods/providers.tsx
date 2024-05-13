@@ -146,6 +146,18 @@ function AccordionSummaryContent(props: Props) {
   );
 }
 
+export function ProviderSettingDialog(props: Props) {
+  return (
+    <ActionDialog
+      trigger={<SettingIconButton/>}
+      title={`${toTitle(props.id)} OAuth provider`}
+      cancelButton
+      okButton={{ label: 'Save' }}
+    >
+    </ActionDialog>
+  );
+}
+
 export function TurnOffProviderDialog(props: { 
   open: boolean, 
   onClose: () => void,
@@ -171,17 +183,6 @@ export function TurnOffProviderDialog(props: {
         Disabling this provider will prevent users from signing in with it, including existing users who have used it before. They might not be able to log in anymore. Are you sure you want to do this?
       </Typography>
     </ActionDialog>
-  );
-}
-
-export function ProviderSettingDialog(props: Props) {
-  return (
-    <ActionDialog
-      trigger={<SettingIconButton/>}
-      title={`${toTitle(props.id)} OAuth provider`}
-      cancelButton
-      okButton={{ label: 'Save' }}
-    />
   );
 }
 
