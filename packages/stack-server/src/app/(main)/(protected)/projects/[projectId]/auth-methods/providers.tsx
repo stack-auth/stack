@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import {
   Accordion,
   AccordionDetails,
@@ -12,8 +11,6 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Switch,
-  Typography,
   Modal,
   ModalDialog,
   DialogTitle,
@@ -22,14 +19,14 @@ import {
   DialogActions,
 } from "@mui/joy";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Button } from "@/components/ui/button";
 import { SharedProvider, StandardProvider, sharedProviders, standardProviders, toSharedProvider, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { useAdminApp } from "../use-admin-app";
 import { SmartSwitch } from "@/components/smart-switch";
-import { ActionDialog } from "@/components/action-dialog";
-import { DialogContent, Icon } from "@mui/material";
+import { DialogContent } from "@mui/material";
+import { SettingIconButton, SettingSwitch } from "@/components/settings";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -146,22 +143,32 @@ function AccordionSummaryContent(props: Props) {
   );
 }
 
-export function ProviderAccordion(props: Props) {
-  if (!props.provider?.enabled) {
-    return (
-      <Accordion>
-        <AccordionSummaryContent {...props}/>
-      </Accordion>
-    );
-  }
+export function ProviderSettingSwitch(props: Props) {
+  const enabled = !!props.provider?.enabled;
+  const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
 
   return (
-    <Accordion>
-      <AccordionSummaryContent {...props} />
-      <AccordionDetails>
-        <ProviderForm {...props} provider={props.provider} />
-      </AccordionDetails>
-    </Accordion>
+    <SettingSwitch
+      label={
+        <div className="flex items-center gap-2">
+          {toTitle(props.id)}
+          {isShared && enabled && <Badge variant="outline">shared keys</Badge>}
+        </div>
+      }
+      checked={enabled}
+      onCheckedChange={async (checked) => {
+        await props.updateProvider({
+          id: props.id,
+          type: toSharedProvider(props.id),
+          ...props.provider,
+          enabled: checked 
+        });
+      }}
+      actions={
+        <SettingIconButton/>
+      }
+      onlyShowActionsWhenChecked
+    />
   );
 }
 
