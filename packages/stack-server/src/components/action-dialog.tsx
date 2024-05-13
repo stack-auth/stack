@@ -1,17 +1,21 @@
 'use client';
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Checkbox } from "./ui/checkbox";
+import { Alert } from "./ui/alert";
+import { Typography } from "@mui/joy";
 
 type DialogProps = {
-  trigger: React.ReactNode,
+  trigger?: React.ReactNode,
+  open?: boolean,
+  onClose?: () => void | Promise<void>,
   titleIcon?: LucideIcon,
   title: boolean | React.ReactNode,
   description?: React.ReactNode,
-  retainContentsWhenClosed?: boolean,
   danger?: boolean,
   okButton?: boolean | Readonly<{
     label?: string,
@@ -23,31 +27,33 @@ type DialogProps = {
     onClick?: () => Promise<"prevent-close" | undefined | void>,
     props?: Partial<React.ComponentProps<typeof Button>>,
   }>,
-  onClose?: () => void | Promise<void>,
-  disableButtons?: boolean,
+  confirmText?: string,
   children?: React.ReactNode,
 };
 
 export function ActionDialog(props: DialogProps) {
-  const color = props.danger ? "danger" : "primary";
   const okButton = props.okButton === true ? {} : props.okButton;
   const cancelButton = props.cancelButton === true ? {} : props.cancelButton;
   const anyButton = !!(okButton || cancelButton);
   const title = props.title === true ? (props.cancelButton ? "Confirmation" : "Alert") : props.title;
   const TitleIcon = props.titleIcon || (props.danger ? CircleAlert : Info);
-  const [open, setOpen] = React.useState(false);
+  const [openState, setOpenState] = React.useState(!!props.open);
+  const open = props.open ?? openState;
+  const [confirmed, setConfirmed] = React.useState(false);
   
   const onOpenChange = (open: boolean) => {
     if (!open && props.onClose) {
+      setConfirmed(false);
       runAsynchronously(props.onClose());
     }
-    setOpen(open);
+    setOpenState(open);
   };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+      {props.trigger && <DialogTrigger asChild>
         {props.trigger}
-      </DialogTrigger>
+      </DialogTrigger>}
 
       <DialogContent>
         <DialogHeader>
@@ -63,25 +69,16 @@ export function ActionDialog(props: DialogProps) {
         <div>
           {props.children}
         </div>
+        
+        <Alert className="flex gap-4 items-center">
+          <Checkbox checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
+          <Typography>{props.confirmText}</Typography>
+        </Alert>
+
 
         {anyButton && <DialogFooter>
-          {okButton && (
-            <Button
-              disabled={props.disableButtons}
-              color={color}
-              onClick={async () => {
-                if (await okButton.onClick?.() !== "prevent-close") {
-                  onOpenChange(false);
-                }
-              }}
-              {...okButton.props}
-            >
-              {okButton.label ?? "OK"}
-            </Button>
-          )}
           {cancelButton && (
             <Button
-              disabled={props.disableButtons}
               variant="secondary"
               color="neutral"
               onClick={async () => {
@@ -92,6 +89,20 @@ export function ActionDialog(props: DialogProps) {
               {...cancelButton.props}
             >
             Cancel
+            </Button>
+          )}
+          {okButton && (
+            <Button
+              disabled={!!props.confirmText && !confirmed}
+              variant={props.danger ? "destructive" : "default"}
+              onClick={async () => {
+                if (await okButton.onClick?.() !== "prevent-close") {
+                  onOpenChange(false);
+                }
+              }}
+              {...okButton.props}
+            >
+              {okButton.label ?? "OK"}
             </Button>
           )}
         </DialogFooter>}

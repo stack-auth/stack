@@ -79,10 +79,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <OriginalButton
-        {...props}
         ref={ref}
         onClick={(e) => runAsynchronously(handleClick(e))}
         disabled={loading}
+        {...props}
       >
         {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
         {children}

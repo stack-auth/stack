@@ -50,7 +50,6 @@ export default function ProvidersClient() {
               if (!alreadyExist) {
                 newOAuthProviders.push(provider);
               }
-
               await project.update({
                 config: { oauthProviders: newOAuthProviders },
               });

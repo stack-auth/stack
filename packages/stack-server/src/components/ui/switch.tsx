@@ -65,11 +65,11 @@ const Switch = React.forwardRef<
 
   return (
     <OriginalSwitch
-      {...props}
       onClick={(e) => runAsynchronously(handleClick(e))}
       onCheckedChange={(checked) => runAsynchronously(handleCheckedChange(checked))}
       disabled={loading}
       ref={ref}
+      {...props}
     />
   );
 });

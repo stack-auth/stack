@@ -27,6 +27,9 @@ import { SmartSwitch } from "@/components/smart-switch";
 import { DialogContent } from "@mui/material";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
 import { Badge } from "@/components/ui/badge";
+import { ActionDialog } from "@/components/action-dialog";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import Typography from "@/components/ui/typography";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -143,32 +146,79 @@ function AccordionSummaryContent(props: Props) {
   );
 }
 
+export function TurnOffProviderDialog(props: { 
+  open: boolean, 
+  onClose: () => void,
+  onConfirm: () => void,
+  providerId: ProviderType,
+}) {
+  return (
+    <ActionDialog
+      title={`Disable ${toTitle(props.providerId)} OAuth provider`}
+      open={props.open}
+      onClose={props.onClose}
+      danger
+      okButton={{
+        label: `Disable ${toTitle(props.providerId)}`,
+        onClick: async () => {
+          props.onConfirm();
+        },
+      }}
+      cancelButton
+      confirmText="I understand that this will disable sign-in and sign-up for new and existing users with this provider"
+    >
+      <Typography>
+        Disabling this provider will prevent users from signing in with it, including existing users who have used it before. They might not be able to log in anymore. Are you sure you want to do this?
+      </Typography>
+    </ActionDialog>
+  );
+}
+
 export function ProviderSettingSwitch(props: Props) {
   const enabled = !!props.provider?.enabled;
   const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
+  const [TurnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+
+  const updateProvider = async (checked: boolean) => {
+    await props.updateProvider({
+      id: props.id,
+      type: toSharedProvider(props.id),
+      ...props.provider,
+      enabled: checked 
+    });
+  };
 
   return (
-    <SettingSwitch
-      label={
-        <div className="flex items-center gap-2">
-          {toTitle(props.id)}
-          {isShared && enabled && <Badge variant="outline">shared keys</Badge>}
-        </div>
-      }
-      checked={enabled}
-      onCheckedChange={async (checked) => {
-        await props.updateProvider({
-          id: props.id,
-          type: toSharedProvider(props.id),
-          ...props.provider,
-          enabled: checked 
-        });
-      }}
-      actions={
-        <SettingIconButton/>
-      }
-      onlyShowActionsWhenChecked
-    />
+    <>
+      <SettingSwitch
+        label={
+          <div className="flex items-center gap-2">
+            {toTitle(props.id)}
+            {isShared && enabled && <Badge variant="outline">shared keys</Badge>}
+          </div>
+        }
+        checked={enabled}
+        onCheckedChange={async (checked) => {
+          if (!checked) {
+            setTurnOffProviderDialogOpen(true);
+            return;
+          } else {
+            await updateProvider(checked);
+          }
+        }}
+        actions={
+          <SettingIconButton/>
+        }
+        onlyShowActionsWhenChecked
+      />
+      
+      <TurnOffProviderDialog 
+        open={TurnOffProviderDialogOpen}
+        onClose={() => setTurnOffProviderDialogOpen(false)}
+        providerId={props.id}
+        onConfirm={() => runAsynchronously(updateProvider(false))}
+      />
+    </>
   );
 }
 
