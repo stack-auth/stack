@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormLabel, Input, Modal, ModalDialog, Select, Option, Stack, FormHelperText, Typography } from "@mui/joy";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
 import { ApiKeysTable } from "./api-keys-table";
@@ -25,9 +25,9 @@ export default function ApiKeysDashboardClient() {
       title="API Keys"
       description="Manage your project's API keys" 
       actions={
-        <AsyncButton onClick={() => setIsNewApiKeyDialogOpen(true)}>
+        <Button onClick={() => setIsNewApiKeyDialogOpen(true)}>
           Create new
-        </AsyncButton>
+        </Button>
       }
     >
       <ApiKeysTable rows={apiKeySets} />
@@ -94,13 +94,13 @@ function CreateNewDialog(props: { open: boolean, onClose(): void }) {
               </Stack>
             </DialogContent>
             <DialogActions>
-              <AsyncButton
+              <Button
                 color="primary"
                 onClick={() => close()}
                 disabled={!confirmedOnlyOnce}
               >
                 Close
-              </AsyncButton>
+              </Button>
             </DialogActions>
           </>
         ) : (
@@ -153,17 +153,17 @@ function CreateNewDialog(props: { open: boolean, onClose(): void }) {
               </form>
             </DialogContent>
             <DialogActions>
-              <AsyncButton
+              <Button
                 color="primary"
                 loading={isCreating}
                 type="submit"
                 form={formId}
               >
                 Create
-              </AsyncButton>
-              <AsyncButton disabled={isCreating} variant="secondary" color="neutral" onClick={() => close()}>
+              </Button>
+              <Button disabled={isCreating} variant="secondary" color="neutral" onClick={() => close()}>
                 Cancel
-              </AsyncButton>
+              </Button>
             </DialogActions>
           </>
         )}

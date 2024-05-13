@@ -2,7 +2,6 @@
 import Link from "next/link";
 import {
   Book,
-  ChevronDownIcon,
   Globe,
   KeyRound,
   LockKeyhole,
@@ -17,14 +16,12 @@ import { Link as LinkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Project, UserButton, useUser } from "@stackframe/stack";
 import { useColorScheme } from "@mui/joy";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
@@ -32,8 +29,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Typography from "@/components/ui/typography";
 
 type Label = {
@@ -69,8 +64,8 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: "Auth Methods",
-    href: "/providers",
-    regex: /^\/projects\/[^\/]+\/providers$/,
+    href: "/auth-methods",
+    regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
     type: 'item'
   },
@@ -131,7 +126,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
 ];
 
-export function NavItem({ item, projectId, onClick }: { item: Item, projectId: string, onClick?: () => void}) {
+export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -139,7 +134,7 @@ export function NavItem({ item, projectId, onClick }: { item: Item, projectId: s
   
   return (
     <Link
-      href={`/projects/${projectId}${item.href}`}
+      href={href}
       className={cn(
         buttonVariants({ variant: 'ghost', size: "default" }),
         selected && "bg-muted",
@@ -154,8 +149,6 @@ export function NavItem({ item, projectId, onClick }: { item: Item, projectId: s
 }
 
 export function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
-  const { mode, setMode } = useColorScheme();
-
   return (
     <div className="flex flex-col h-full items-stretch">
       <div className="h-14 border-b flex items-center px-2">
@@ -169,7 +162,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
             </Typography>;
           } else if (item.type === 'item') {
             return <div key={index} className="flex px-1">
-              <NavItem item={item} projectId={projectId} onClick={onNavigate} />
+              <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`}/>
             </div>;
           }
         })}
@@ -183,16 +176,12 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
           item={{
             name: "Documentation",
             type: "item",
-            href: "/search",
+            href: "",
             icon: Book,
             regex: /^$/,
           }}
-          projectId={projectId}
+          href={"https://docs.stack-auth.com/"}
         />
-      </div>
-      <Separator />
-      <div className="px-4 py-2 flex items-center">
-        <UserButton showUserInfo colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
       </div>
     </div>
   );
@@ -238,27 +227,6 @@ export function HeaderBreadcrumb({
           <BreadcrumbItem>
             <Link href="/projects">Home</Link>
           </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1">
-                <BreadcrumbEllipsis />
-                <ChevronDownIcon className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem>
-                  <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  {selectedItemNames.map((name, index) => (
-                    <BreadcrumbItem key={index}>
-                      <BreadcrumbPage>{name}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  ))}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
     );
@@ -287,6 +255,8 @@ export function HeaderBreadcrumb({
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { mode, setMode } = useColorScheme();
+
   return (
     <div className="w-full flex">
       <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
@@ -315,9 +285,12 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             </div>
           </div>
 
-          <Button variant="outline" onClick={() => window.open("mailto:team@stack-auth.com")}>
-            Feedback
-          </Button>
+          <div className="flex gap-4">
+            <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
+              Feedback
+            </Button>
+            <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
+          </div>
         </div>
         <div>
           {props.children}

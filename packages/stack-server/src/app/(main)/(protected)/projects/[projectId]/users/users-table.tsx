@@ -5,8 +5,8 @@ import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Avatar, Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Dropdown, FormControl, FormLabel, IconButton, Input, ListDivider, ListItemDecorator, Menu, MenuButton, MenuItem, Modal, ModalDialog, Stack, Tooltip } from '@mui/joy';
 import { getInputDatetimeLocalString } from '@stackframe/stack-shared/dist/utils/dates';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from "@/components/ui/button";
-import { Dialog } from '@/components/dialog';
+import { Button } from "@/components/ui/button";
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { ServerUser } from '@stackframe/stack';
@@ -175,7 +175,7 @@ function Actions(props: { params: any }) {
         onClose={() => setIsEditModalOpen(false)}
       />
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -189,7 +189,7 @@ function Actions(props: { params: any }) {
         cancelButton={true}
       >
         Are you sure you want to delete the user &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone.
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }
@@ -261,16 +261,16 @@ export function EditUserModal(props: { user: ServerUser, open: boolean, onClose:
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => {formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
               Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
               Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

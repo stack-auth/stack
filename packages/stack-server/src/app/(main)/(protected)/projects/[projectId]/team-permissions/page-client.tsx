@@ -3,7 +3,7 @@
 import { Paragraph } from "@/components/paragraph";
 import { PermissionsTable } from "./permissions-table";
 import { useAdminApp } from "../use-admin-app";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import {
   DialogActions,
@@ -34,9 +34,9 @@ export default function ClientPage() {
       title="Team Permissions" 
       description="Manage team permissions" 
       actions={
-        <AsyncButton onClick={() => setCreatePermissionModalOpen(true)}>
+        <Button onClick={() => setCreatePermissionModalOpen(true)}>
           Create Permission
-        </AsyncButton>
+        </Button>
       }>
 
       <PermissionsTable rows={permissions} />
@@ -140,17 +140,17 @@ function CreatePermissionModal(props: { open: boolean, onClose: () => void }) {
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => { formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
             disabled={idError !== '' || id === ''}
           >
             Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

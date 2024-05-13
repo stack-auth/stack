@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog } from "@/components/dialog";
+import { ActionDialog } from "@/components/action-dialog";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
 import { Stack } from "@mui/joy";
@@ -10,6 +10,7 @@ import { SmartLink } from "@/components/smart-link";
 import { InlineCode } from "@/components/inline-code";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ApiKeySetFirstView } from "@stackframe/stack";
+import { SquarePlus } from "lucide-react";
 
 export function OnboardingDialog() {
   const stackAdminApp = useAdminApp();
@@ -36,8 +37,8 @@ export function OnboardingDialog() {
   }, [apiKeySets, stackAdminApp]);
 
   return (
-    <Dialog
-      titleIcon="library_add"
+    <ActionDialog
+      titleIcon={SquarePlus}
       title="Onboarding"
       okButton={{
         label: "Continue",
@@ -56,6 +57,6 @@ export function OnboardingDialog() {
           Note that these keys will only be shown right now, so copy them to a safe place. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
         </Paragraph>
       </Stack>
-    </Dialog>
+    </ActionDialog>
   );
 }

@@ -1,179 +1,166 @@
 "use client";
 
-import { IconButton, List, ListItem, ListDivider, Input, FormControl, FormLabel, Typography, Box, FormHelperText } from "@mui/joy";
-import React, { useEffect, useState } from "react";
+import * as yup from "yup";
+import { IconButton, List, ListItem, ListDivider } from "@mui/joy";
+import React, { useMemo } from "react";
 import { Paragraph } from "@/components/paragraph";
 import { Icon } from "@/components/icon";
-import { Dialog } from "@/components/dialog";
-import { AsyncButton } from "@/components/ui/button";
-import { SimpleCard } from "@/components/simple-card";
-import { useAdminApp } from "../use-admin-app";
-import { SmartSwitch } from "@/components/smart-switch";
+import { ActionDialog } from "@/components/action-dialog";
+import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PageLayout } from "../page-layout";
+import { SettingCard, SettingSwitch } from "@/components/settings";
+import { useAdminApp } from "../use-admin-app";
+import Typography from "@/components/ui/typography";
+import { Alert } from "@/components/ui/alert";
+import { FormDialog } from "@/components/form-dialog";
+import { InputField } from "@/components/form-fields";
 
-function isValidUrl(urlString: string) {
-  try { 
-    return Boolean(new URL(urlString)); 
-  }
-  catch(e){ 
-    return false; 
-  }
-}
+export const domainFormSchema = yup.object({
+  domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url("Domain must a valid URL").required(),
+  handlerPath: yup.string().matches(/^\//, "Handler path must start with /").required(),
+});
+
 
 function EditDialog(props: { 
-  open: boolean, 
-  onClose: () => void,
+  trigger: React.ReactNode,
   domains: Set<DomainConfigJson>,
   project: Project,
   type: 'update' | 'create',
   editIndex?: number,
 }) {
-  const [newDomain, setNewDomain] = useState("");
-  const [newDomainError, setNewDomainError] = useState<string | null>(null);
-
-  const [newHandlerPath, setNewHandlerPath] = useState("/handler");
-  const [newHandlerPathError, setNewHandlerPathError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const defaultValues = useMemo(() => {
     if (props.editIndex !== undefined) {
       const domain = [...props.domains][props.editIndex];
-      setNewDomain(domain.domain);
-      setNewHandlerPath(domain.handlerPath);
+      return {
+        domain: domain.domain,
+        handler: domain.handlerPath,
+      };
+    } else {
+      return { domain: '', handlerPath: '/handler' };
     }
   }, [props.editIndex, props.domains]);
 
-  return (
-    <Dialog
-      title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
-      open={props.open}
-      onClose={() => {
-        setNewDomain("");
-        setNewDomainError(null);
-        props.onClose();
-      }}
-      okButton={{
-        label: props.type === 'create' ? "Create" : "Update",
-        onClick: async () => {
-          if (!newDomain.startsWith("http://") && !newDomain.startsWith("https://")) {
-            setNewDomainError("Domain must start with http:// or https://");
-            return "prevent-close";
-          }
-          if (!newHandlerPath.startsWith("/")) {
-            setNewHandlerPathError("Handler path must start with /");
-            return "prevent-close";
-          }
-          if (!isValidUrl(newDomain)) {
-            setNewDomainError("Invalid domain");
-            return "prevent-close";
-          }
-          if (!isValidUrl(newDomain + newHandlerPath)) {
-            setNewHandlerPathError("Invalid handler path");
-            return "prevent-close";
-          }
+  const domainFormSchema = yup.object({
+    domain: yup.string()
+      .matches(/^https?:\/\//, "Domain must start with http:// or https://")
+      .url("Domain must a valid URL")
+      .notOneOf([...props.domains].map(({ domain }) => domain), "Domain already exists")
+      .required(),
+    handlerPath: yup.string()
+      .matches(/^\//, "Handler path must start with /")
+      .required(),
+  });
 
-          const domainAlreadyExists = [...props.domains].some(({ domain }) => domain === newDomain);
-          if (props.type === 'create' && domainAlreadyExists ) {
-            setNewDomainError("Domain already exists");
-            return "prevent-close";
-          }
+  return <FormDialog
+    trigger={props.trigger}
+    title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
+    defaultValues={defaultValues}
+    formSchema={domainFormSchema}
+    onSubmit={async (values) => {
+      if (props.type === 'create') {
+        await props.project.update({
+          config: {
+            domains: [...props.domains, {
+              domain: values.domain,
+              handlerPath: values.handlerPath,
+            }],
+          },
+        });
+      } else {
+        await props.project.update({
+          config: {
+            domains: [...props.domains].map((domain, i) => {
+              if (i === props.editIndex) {
+                return {
+                  domain: values.domain,
+                  handlerPath: values.handlerPath,
+                };
+              }
+              return domain;
+            })
+          },
+        });
+      }
+    }}
+    render={(form) => (
+      <>
+        <Alert>
+          Make sure this is a trusted domain or a URL that you control.
+        </Alert>
 
-          if (props.type === 'create') {
-            await props.project.update({
-              config: {
-                domains: [...props.domains, {
-                  domain: newDomain,
-                  handlerPath: newHandlerPath,
-                }],
-              },
-            });
-          } else {
-            await props.project.update({
-              config: {
-                domains: [...props.domains].map((domain, i) => {
-                  if (i === props.editIndex) {
-                    return {
-                      domain: newDomain,
-                      handlerPath: newHandlerPath,
-                    };
-                  }
-                  return domain;
-                })
-              },
-            });
+        <InputField
+          control={form.control}
+          name="domain"
+          label="Domain (http:// or https://)"
+          placeholder="https://example.com"
+          required
+        />
           
-          }
+        <InputField
+          control={form.control}
+          name="handlerPath"
+          label="Handler path"
+          placeholder="/handler"
+          required
+        />
+      </>
+    )}
+  />;
+}
+
+function DeleteDialog(props: {
+  trigger: React.ReactNode,
+  domain: string,
+  project: Project,
+}) {
+  return (
+    <ActionDialog
+      trigger={props.trigger}
+      title="Delete domain"
+      danger
+      okButton={{
+        label: "Delete",
+        onClick: async () => {
+          await props.project.update({
+            config: {
+              domains: [...props.project.evaluatedConfig.domains].filter(({ domain }) => domain !== props.domain),
+            }
+          });
         }
       }}
       cancelButton
     >
-      <Paragraph body>
-        <b>Warning:</b> Make sure this is a trusted domain or a URL that you control.
+      <Paragraph body sx={{ mt: 0 }}>
+        Do you really want to remove <b>{props.domain}</b> from the allow list ?
       </Paragraph>
-
-      <FormControl required error={!!newDomainError} sx={{ mt: 2}}>
-        <FormLabel>
-        Domain (http:// or https://)
-        </FormLabel>
-        <Input
-          type="text"
-          value={newDomain}
-          onChange={(e) => setNewDomain(e.target.value)}
-        />
-        <FormHelperText>
-          {newDomainError}
-        </FormHelperText>
-      </FormControl>
-
-      <FormControl required error={!!newHandlerPathError} sx={{ mt: 2}}>
-        <FormLabel>
-        Handler path
-        </FormLabel>
-        <Input
-          type="text"
-          value={newHandlerPath}
-          onChange={(e) => setNewHandlerPath(e.target.value)}
-        />
-        <FormHelperText>
-          {newHandlerPathError}
-        </FormHelperText>
-      </FormControl>
-    </Dialog>
+      <Paragraph body sx={{ mb: 0 }}>
+        Your project will no longer be able to receive callbacks from this domain.
+      </Paragraph>
+    </ActionDialog>
   );
 }
 
 export default function UrlsAndCallbacksClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-
   const domains = new Set(project.evaluatedConfig.domains);
 
-  const [deleteDialogDomain, setDeleteDialogDomain] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [addNewDialogOpen, setAddNewDialogOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | undefined>(undefined);
-
-
   return (
-    <PageLayout title="Domains and Handler" description="Specify trusted domains and handler URLs">
-
-      <SimpleCard title="Domains and Handler">
-        <Box sx={{ my: 2 }}>
-          <SmartSwitch
-            checked={project.evaluatedConfig.allowLocalhost}
-            onChange={async (event) => {
-              await project.update({
-                config: {
-                  allowLocalhost: event.target.checked,
-                },
-              });
-            }}
-          >
-            <Typography>Allow all localhost callbacks for development</Typography>
-          </SmartSwitch>
-        </Box>
-
+    <PageLayout title="Domains and Handler" description="Callback URLs that are allowed to send requests to your project">
+      <SettingCard 
+        title="Domains and Handlers"
+        description="Trusted domains of your app and their handler paths"
+        actions={
+          <EditDialog
+            trigger={<Button>Add new domain</Button>}
+            domains={domains}
+            project={project}
+            type="create"
+          />
+        }
+      >
         {domains.size >= 0 && (
           <List
             variant="soft"
@@ -192,85 +179,49 @@ export default function UrlsAndCallbacksClient() {
                 <ListItem
                   endAction={
                     <>
-                      <IconButton
-                        aria-label="Edit"
-                        size="sm"
-                        onClick={() => {
-                          setEditIndex(i);
-                          setEditDialogOpen(true);
-                        }}
-                      >
-                        <Icon icon="edit" />
-                      </IconButton>
-                      <IconButton
-                        aria-label="Delete"
-                        size="sm"
-                        color="danger"
-                        onClick={() => setDeleteDialogDomain(domain)}
-                      >
-                        <Icon icon="delete" />
-                      </IconButton>
+                      <EditDialog
+                        trigger={
+                          <IconButton aria-label="Edit" size="sm">
+                            <Icon icon="edit" />
+                          </IconButton>
+                        }
+                        domains={domains}
+                        project={project}
+                        type="update"
+                        editIndex={i}
+                      />
+                      <DeleteDialog
+                        trigger={
+                          <IconButton aria-label="Delete" size="sm" color="danger">
+                            <Icon icon="delete" />
+                          </IconButton>
+                        }
+                        domain={domain}
+                        project={project}
+                      />
                     </>
                   }
                 >
-                  <Typography paddingRight={1}>{domain}</Typography>
+                  <Typography>{domain}</Typography>
                   <Typography>{handlerPath}</Typography>
                 </ListItem>
               </React.Fragment>
             ))}
           </List>
         )}
+      </SettingCard>
 
-        <AsyncButton
-          onClick={() => setAddNewDialogOpen(true)}
-          color="neutral"
-          className="mt-4"
-        >
-          Add new domain
-        </AsyncButton>
-      </SimpleCard>
-
-      <EditDialog 
-        type='create' 
-        open={addNewDialogOpen} 
-        onClose={() => setAddNewDialogOpen(false)} 
-        domains={domains} 
-        project={project} 
-      />
-
-      <EditDialog 
-        type='update' 
-        open={editDialogOpen} 
-        onClose={() => setEditDialogOpen(false)} 
-        editIndex={editIndex}
-        domains={domains}
-        project={project}
-      />
-
-      <Dialog
-        title
-        open={deleteDialogDomain !== null}
-        onClose={() => setDeleteDialogDomain(null)}
-        danger
-        okButton={{
-          label: "Delete",
-          onClick: async () => {
+      <SettingCard title="Development settings" description="Help you to have a better development experience">
+        <SettingSwitch
+          checked={project.evaluatedConfig.allowLocalhost}
+          onCheckedChange={async (checked) => {
             await project.update({
-              config: {
-                domains: [...domains].filter(({ domain }) => domain !== deleteDialogDomain),
-              }
+              config: { allowLocalhost: checked },
             });
-          }
-        }}
-        cancelButton
-      >
-        <Paragraph body sx={{ mt: 0 }}>
-          Do you really want to remove <b>{deleteDialogDomain}</b> from the allow list ?
-        </Paragraph>
-        <Paragraph body sx={{ mb: 0 }}>
-          Your project will no longer be able to receive callbacks from this domain.
-        </Paragraph>
-      </Dialog>
+          }}
+          label="Allow all localhost callbacks for development"
+        />
+      </SettingCard>
     </PageLayout>
   );
 }
