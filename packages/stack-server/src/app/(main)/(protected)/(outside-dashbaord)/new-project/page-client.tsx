@@ -1,10 +1,10 @@
 'use client';;
 import { AuthPage, useUser } from "@stackframe/stack";
-import { z } from "zod";
+import * as yup from "yup";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, ListSwitchField } from "@/components/form-fields";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
@@ -13,12 +13,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 
-export const projectFormSchema = z.object({
-  displayName: z.string().min(1, "Project name is required"),
-  signInMethods: z.array(z.enum(["google", "github", "microsoft", "facebook", "credential", "magicLink"])),
+export const projectFormSchema = yup.object({
+  displayName: yup.string().min(1, "Project name is required").required(),
+  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink"]).required()).required(),
 });
 
-export type ProjectFormValues = z.infer<typeof projectFormSchema>
+export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
 
 export const defaultValues: Partial<ProjectFormValues> = {
   displayName: "",
@@ -29,7 +29,7 @@ export default function PageClient () {
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const [loading, setLoading] = useState(false);
   const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectFormSchema),
+    resolver: yupResolver<ProjectFormValues>(projectFormSchema),
     defaultValues,
     mode: "onChange",
   });
