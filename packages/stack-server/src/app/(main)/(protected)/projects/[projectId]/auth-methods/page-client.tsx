@@ -17,7 +17,6 @@ export default function ProvidersClient() {
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
-
       <SettingCard title="Email Authentication" description="Email address based sign in.">
         <SettingSwitch
           label="Password Authentication"
@@ -43,41 +42,28 @@ export default function ProvidersClient() {
         />
       </SettingCard>
 
-
       <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
-        <Card variant="soft">
-          <CardOverflow>
-            <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
-              {availableProviders.map((id) => {
-                const provider = oauthProviders.find((provider) => provider.id === id);
-                return <ProviderAccordion 
-                  key={id} 
-                  id={id} 
-                  provider={provider}
-                  updateProvider={async (provider: OAuthProviderConfigJson) => {
-                    const alreadyExist = oauthProviders.some((p) => p.id === id);
-                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
-                    if (!alreadyExist) {
-                      newOAuthProviders.push(provider);
-                    }
+        <AccordionGroup sx={{ margin: "var(--AspectRatio-margin)" }}>
+          {availableProviders.map((id) => {
+            const provider = oauthProviders.find((provider) => provider.id === id);
+            return <ProviderAccordion 
+              key={id} 
+              id={id} 
+              provider={provider}
+              updateProvider={async (provider: OAuthProviderConfigJson) => {
+                const alreadyExist = oauthProviders.some((p) => p.id === id);
+                const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+                if (!alreadyExist) {
+                  newOAuthProviders.push(provider);
+                }
 
-                    await project.update({
-                      config: { oauthProviders: newOAuthProviders },
-                    });
-                  }}
-                />;
-              })}
-            </AccordionGroup>
-          </CardOverflow>
-        </Card>
-
-        <Paragraph sidenote>
-          Add an OAuth provider to enable &quot;Sign in with XYZ&quot; on your app. You can enable multiple providers, and users will be able to sign in with any of them.
-        </Paragraph>
-
-        <Paragraph sidenote>
-          In order to add a new provider, you can choose to use shared credentials created by us, or create your own OAuth client on the provider&apos;s website.
-        </Paragraph>
+                await project.update({
+                  config: { oauthProviders: newOAuthProviders },
+                });
+              }}
+            />;
+          })}
+        </AccordionGroup>
       </SettingCard>
     </PageLayout>
   );
