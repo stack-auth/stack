@@ -1,9 +1,10 @@
 
 'use client';;
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
+  DropdownMenuButtonItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -38,9 +39,14 @@ export function DateCell(props: { date: Date }) {
   );
 }
 
+type ActionItem = {
+  item: React.ReactNode,
+  onClick: (e: React.MouseEvent) => void,
+}
+
 export function ActionCell(props: {
-  items?: React.ReactNode[],
-  dangerItems?: React.ReactNode[],
+  items?: ActionItem[],
+  dangerItems?: ActionItem[],
 }) {
   return (
     <DropdownMenu>
@@ -55,14 +61,14 @@ export function ActionCell(props: {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         {props.items?.map((item, index) => (
-          <DropdownMenuItem key={index}>
-            {item}
+          <DropdownMenuItem key={index} onClick={item.onClick}>
+            {item.item}
           </DropdownMenuItem>
         ))}
         {props.items && props.dangerItems && <DropdownMenuSeparator />}
         {props.dangerItems?.map((item, index) => (
-          <DropdownMenuItem key={index} className="text-destructive">
-            {item}
+          <DropdownMenuItem key={index} className="text-destructive" onClick={item.onClick}>
+            {item.item}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

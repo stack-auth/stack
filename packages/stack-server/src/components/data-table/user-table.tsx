@@ -1,13 +1,18 @@
 'use client';;
 import { useMemo } from "react";
 import { ServerUser } from '@stackframe/stack';
-import { ColumnDef, Table } from "@tanstack/react-table";
+import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
+import { Button } from "../ui/button";
+
+type ExtendedServerUser = ServerUser & {
+  authType: string,
+};
 
 export function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -25,9 +30,14 @@ export function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-type ExtendedServerUser = ServerUser & {
-  authType: string,
-};
+export function Actions({ row }: { row: Row<ExtendedServerUser> }) {
+  return (
+    <ActionCell
+      items={["Edit"]}
+      dangerItems={["Delete"]}
+    />
+  );
+}
 
 const columns: ColumnDef<ExtendedServerUser>[] =  [
   {
@@ -67,7 +77,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   },
   {
     id: "actions",
-    cell: ({ row }) => <ActionCell dangerItems={['delete']}/>,
+    cell: ({ row }) => <Actions row={row} />,
   },
 ];
 
