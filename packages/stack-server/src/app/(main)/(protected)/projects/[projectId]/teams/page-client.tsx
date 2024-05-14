@@ -1,8 +1,7 @@
 "use client";;
-import { Paragraph } from "@/components/paragraph";
-import { TeamTable } from "./team-table";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
+import { TeamTable } from "@/components/data-table/team-table";
 
 
 export default function ClientPage() {
@@ -11,7 +10,7 @@ export default function ClientPage() {
 
   return (
     <PageLayout title="Teams" description="Manage your project's teams">
-      <TeamTable rows={teams} />
+      <TeamTable teams={teams} />
     </PageLayout>
   );
 }
