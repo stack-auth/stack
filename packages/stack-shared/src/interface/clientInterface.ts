@@ -5,7 +5,7 @@ import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError } from '../utils/errors';
+import { StackAssertionError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
@@ -46,6 +46,7 @@ export type ClientProjectJson = {
 };
 
 export type ClientInterfaceOptions = {
+  clientVersion: string,
   baseUrl: string,
   projectId: string,
 } & ({
@@ -340,6 +341,7 @@ export class StackClientInterface {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
         "X-Stack-Request-Type": requestType,
+        "X-Stack-Client-Version": this.options.clientVersion,
         ...tokenObj.accessToken ? {
           "Authorization": "StackSession " + tokenObj.accessToken,
           "X-Stack-Access-Token": tokenObj.accessToken,
