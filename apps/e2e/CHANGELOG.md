@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 0.1.2
+
+### Patch Changes
+
+- CRUD schemas
+
 ## 0.1.1
 
 ### Patch Changes

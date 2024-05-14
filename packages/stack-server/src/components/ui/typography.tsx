@@ -5,17 +5,16 @@ import React from "react";
 export const typographyVariants = cva("text-md", {
   variants: {
     type: {
-      h1: "text-4xl font-bold",
-      h2: "text-3xl font-bold",
-      h3: "text-2xl font-semibold",
-      h4: "text-xl",
+      h1: "text-3xl font-bold",
+      h2: "text-2xl font-semibold",
+      h3: "text-xl font-medium",
       p: "text-md",
       label: "text-sm",
       footnote: "text-xs",
     },
     variant: {
       primary: "text-black dark:text-white",
-      secondary: "text-zinc-500",
+      secondary: "text-zinc-600 dark:text-zinc-400",
       destructive: "text-red-500",
       success: "text-green-500",
     },

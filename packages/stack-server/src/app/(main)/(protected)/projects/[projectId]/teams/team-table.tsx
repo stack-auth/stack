@@ -22,8 +22,8 @@ import {
   Stack,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from "@/components/ui/button";
-import { Dialog } from '@/components/dialog';
+import { Button } from "@/components/ui/button";
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PageLoadingIndicator } from '@/components/page-loading-indicator';
@@ -146,7 +146,7 @@ function Actions(props: { params: any }) {
         onClose={() => setIsEditModalOpen(false)}
       />
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -160,7 +160,7 @@ function Actions(props: { params: any }) {
         cancelButton={true}
       >
         Are you sure you want to delete the team &apos;{props.params.row.displayName}&apos; with ID {props.params.row.id}? This action cannot be undone. All team members will be removed from the team.
-      </Dialog>
+      </ActionDialog>
     </>
   );
 }
@@ -212,16 +212,16 @@ function EditTeamModal(props: { team: ServerTeam, open: boolean, onClose: () => 
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => {formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
             Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

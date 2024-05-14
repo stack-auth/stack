@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-server",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -106,8 +106,7 @@
     "sharp": "^0.32.6",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "yup": "^1.4.0",
-    "zod": "^3.23.8"
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

@@ -1,23 +1,25 @@
 'use client';;
-import { AuthPage, Button, Text, useUser } from "@stackframe/stack";
-import { z } from "zod";
+import { AuthPage, useUser } from "@stackframe/stack";
+import * as yup from "yup";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, ListSwitchField } from "@/components/form-fields";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import Typography from "@/components/ui/typography";
+import { toSharedProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
-export const projectFormSchema = z.object({
-  displayName: z.string().min(1, "Project name is required"),
-  signInMethods: z.array(z.enum(["google", "github", "microsoft", "facebook", "credential", "magicLink"])),
+export const projectFormSchema = yup.object({
+  displayName: yup.string().min(1, "Project name is required").required(),
+  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink"]).required()).required(),
 });
 
-export type ProjectFormValues = z.infer<typeof projectFormSchema>
+export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
 
 export const defaultValues: Partial<ProjectFormValues> = {
   displayName: "",
@@ -28,7 +30,7 @@ export default function PageClient () {
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const [loading, setLoading] = useState(false);
   const form = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectFormSchema),
+    resolver: yupResolver<ProjectFormValues>(projectFormSchema),
     defaultValues,
     mode: "onChange",
   });
@@ -47,12 +49,19 @@ export default function PageClient () {
   const onSubmit = async (values: ProjectFormValues, e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     setLoading(true);
-    const { id, ...projectUpdate } = mockProject;
     let newProject;
     try {
       newProject = await user.createProject({
         displayName: values.displayName,
-        ...projectUpdate,
+        config: {
+          credentialEnabled: values.signInMethods.includes("credential"),
+          magicLinkEnabled: values.signInMethods.includes("magicLink"),
+          oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
+            id: provider,
+            enabled: values.signInMethods.includes(provider),
+            type: toSharedProvider(provider),
+          })).filter(({ enabled }) => enabled),
+        }
       });
       await router.push('/projects/' + newProject.id);
       await wait(2000);
@@ -65,11 +74,12 @@ export default function PageClient () {
     <div className="w-full flex-grow flex items-center justify-center">
       <div className="w-full md:w-1/2 p-4">
         <div className='max-w-xs m-auto'>
+          <div className="flex justify-center mb-4">
+            <Typography type='h2'>Create a new project</Typography>
+          </div>
+            
           <Form {...form}>
-            <div className="flex justify-center mb-4">
-              <Text size="xl" as='h2' className="font-bold">Create a new project</Text>
-            </div>
-            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-6">
+            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 
@@ -88,7 +98,7 @@ export default function PageClient () {
               />
 
               <div className="flex justify-center">
-                <AsyncButton loading={loading}>Create project</AsyncButton>
+                <Button loading={loading} type="submit">Create project</Button>
               </div>
             </form>
           </Form>

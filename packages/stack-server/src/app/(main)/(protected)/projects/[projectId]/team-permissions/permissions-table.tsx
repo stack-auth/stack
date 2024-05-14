@@ -1,7 +1,7 @@
 "use client";;
 import * as React from 'react';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { Dialog } from '@/components/dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { useAdminApp } from '../use-admin-app';
 import {
   Dropdown,
@@ -24,7 +24,7 @@ import {
   FormHelperText,
 } from '@mui/joy';
 import { Icon } from '@/components/icon';
-import { AsyncButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { PermissionGraph, PermissionList } from './permission-list';
 import { ServerPermissionDefinitionJson } from '@stackframe/stack-shared/dist/interface/serverInterface';
@@ -124,7 +124,7 @@ function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) 
         </Menu>
       </Dropdown>
 
-      <Dialog
+      <ActionDialog
         title
         danger
         open={isDeleteModalOpen}
@@ -138,7 +138,7 @@ function Actions(props: { params: any, rows: ServerPermissionDefinitionJson[]}) 
         cancelButton={true}
       >
         {`Are you sure you want to delete the permission "${props.params.row.name}"? All the permission "${props.params.row.name}" on the existing users will also be removed. All the other permissions that contain this permission will also lose it. and you won't be able to recover it.`}
-      </Dialog>
+      </ActionDialog>
 
       <EditPermissionModal
         selectedPermissionId={props.params.row.id}
@@ -242,16 +242,16 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
           </form>
         </DialogContent>
         <DialogActions>
-          <AsyncButton
+          <Button
             color="primary"
             loading={isSaving}
             onClick={() => { formRef.current!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));}}
           >
             Save
-          </AsyncButton>
-          <AsyncButton variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
+          </Button>
+          <Button variant="secondary" color="neutral" disabled={isSaving} onClick={() => props.onClose()}>
             Cancel
-          </AsyncButton>
+          </Button>
         </DialogActions>
       </ModalDialog>
     </Modal>

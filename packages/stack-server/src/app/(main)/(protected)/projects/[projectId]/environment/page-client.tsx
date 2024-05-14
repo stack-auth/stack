@@ -1,16 +1,10 @@
-"use client";
-
-import { Typography } from "@mui/joy";
-import React, { useState } from "react";
-import { InlineCode } from "@/components/inline-code";
-import { Paragraph } from "@/components/paragraph";
-import { IconAlert } from "@/components/icon-alert";
-import { Enumeration, EnumerationItem } from "@/components/enumeration";
-import { SmartLink } from "@/components/smart-link";
-import { SmartSwitch } from "@/components/smart-switch";
-import { SimpleCard } from "@/components/simple-card";
+"use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
+import { SettingCard, SettingSwitch } from "@/components/settings";
+import { Alert } from "@/components/ui/alert";
+import Typography from "@/components/ui/typography";
+import { Link } from "@/components/link";
 
 export default function EnvironmentClient() {
   const stackAdminApp = useAdminApp();
@@ -18,62 +12,37 @@ export default function EnvironmentClient() {
 
   const productionModeErrors = project.getProductionModeErrors();
 
-  const [productionModeUpdateLoading, setProductionModeUpdateLoading] = useState(false);
-
-
   return (
     <PageLayout title="Environment" description="Development and production settings">
-      <SimpleCard title="Production mode">
-        <SmartSwitch
+      <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations it is strongly recommended to enable production mode on your production environments.">
+        <SettingSwitch
+          label="Enable production mode"
           checked={project.isProductionMode}
           disabled={!project.isProductionMode && productionModeErrors.length > 0}
-          size="lg"
-          sx={{
-            visibility: productionModeUpdateLoading ? "hidden" : "visible",
+          onCheckedChange={async (checked) => {
+            await project.update({
+              isProductionMode: checked,
+            });
           }}
-          onChange={async (event) => {
-            setProductionModeUpdateLoading(true);
-            try {
-              await project.update({
-                isProductionMode: event.target.checked,
-              });
-            } finally {
-              setProductionModeUpdateLoading(false);
-            }
-          }}
-        >
-          <Typography>
-            Enable production mode
-          </Typography>
-        </SmartSwitch>
-        
-        <Paragraph sidenote>
-          Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage (such as using <InlineCode>localhost</InlineCode> in authentication callback URLs). While your app will behave exactly the same in development and production modes, to prevent accidental misconfigurations it is strongly recommended to enable production mode on your production environments.
-        </Paragraph>
-        
-        <Paragraph sidenote sx={{ mt: 0 }}>
-          Before enabling production mode, you may need to first manually edit the configuration options listed below.
-        </Paragraph>
+        />
 
         {productionModeErrors.length === 0 ? (
-          <IconAlert color="success">
+          <Alert>
             Your configuration is ready for production and production mode can be enabled. Good job!
-          </IconAlert>
+          </Alert>
         ) : (
-          <IconAlert color="danger">
-            Your configuration is not ready for production mode. Please fix the following issues:
-            <Enumeration type="bulleted">
-              {productionModeErrors.map((error, index) => (
-                <EnumerationItem
-                  key={error.errorMessage}
-                >
-                  {error.errorMessage} (<SmartLink href={error.fixUrlRelative} fontSize="inherit">show configuration</SmartLink>)
-                </EnumerationItem>
+          <Alert variant='destructive'>
+            <Typography variant="destructive">Your configuration is not ready for production mode. Please fix the following issues:</Typography>
+            <ul className="mt-2 list-disc pl-5">
+              {productionModeErrors.map((error) => (
+                <li key={error.errorMessage}>
+                  {error.errorMessage} (<Link href={error.fixUrlRelative}>show configuration</Link>)
+                </li>
               ))}
-            </Enumeration>
-          </IconAlert>
+            </ul>
+          </Alert>
         )}
-      </SimpleCard>
+      </SettingCard>
     </PageLayout>
   );
 }
