@@ -1,4 +1,5 @@
 import { defineConfig, Options } from 'tsup';
+import packageJson from './package.json';
 
 const customNoExternal = new Set([
   "oauth4webapi",
@@ -13,6 +14,9 @@ const config: Options = {
   outDir: 'dist',
   format: ['esm', 'cjs'],
   legacyOutput: true,
+  env: {
+    STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION: `js ${packageJson.name}@${packageJson.version}`,
+  },
   esbuildPlugins: [
     {
       name: 'stackframe tsup plugin (private)',

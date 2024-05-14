@@ -19,6 +19,7 @@ import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiK
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
+const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
 
 export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
   HasTokenStore extends true ? "cookie" | "nextjs-cookie" | "memory" :
@@ -308,6 +309,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._interface = new StackClientInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
+        clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
       });
     }
@@ -539,6 +541,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return new StackAdminInterface({
       baseUrl: this._interface.options.baseUrl,
       projectId: forProjectId,
+      clientVersion,
       projectOwnerTokens: tokenStore,
     });
   }
@@ -931,6 +934,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       interface: new StackServerInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
+        clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
         secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
       }),
@@ -1288,6 +1292,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       interface: new StackAdminInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
+        clientVersion,
         ..."projectOwnerTokens" in options ? {
           projectOwnerTokens: options.projectOwnerTokens,
         } : {
