@@ -165,44 +165,50 @@ export default function UrlsAndCallbacksClient() {
           />
         }
       >
-        {domains.length >= 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[200px]">Domain</TableHead>
-                <TableHead className="w-[100px]">Handler</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {domains.map(({ domain, handlerPath }, i) => (
-                <TableRow key={domain}>
-                  <TableCell>{domain}</TableCell>
-                  <TableCell>{handlerPath}</TableCell>
-                  <TableCell className="flex justify-end gap-4">
-                    <EditDialog
-                      open={isEditModalOpen}
-                      onOpenChange={setIsEditModalOpen}
-                      domains={domains}
-                      project={project}
-                      type="update"
-                      editIndex={i}
-                    />
-                    <DeleteDialog
-                      open={isDeleteModalOpen}
-                      onOpenChange={setIsDeleteModalOpen}
-                      domain={domain}
-                      project={project}
-                    />
-                    <ActionCell 
-                      items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
-                      dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
-                    />
-                  </TableCell>
+        {domains.length > 0 ? (
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Domain</TableHead>
+                  <TableHead className="w-[100px]">Handler</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {domains.map(({ domain, handlerPath }, i) => (
+                  <TableRow key={domain}>
+                    <TableCell>{domain}</TableCell>
+                    <TableCell>{handlerPath}</TableCell>
+                    <TableCell className="flex justify-end gap-4">
+                      <EditDialog
+                        open={isEditModalOpen}
+                        onOpenChange={setIsEditModalOpen}
+                        domains={domains}
+                        project={project}
+                        type="update"
+                        editIndex={i}
+                      />
+                      <DeleteDialog
+                        open={isDeleteModalOpen}
+                        onOpenChange={setIsDeleteModalOpen}
+                        domain={domain}
+                        project={project}
+                      />
+                      <ActionCell 
+                        items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
+                        dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <Alert>
+            No domains added yet.
+          </Alert>
         )}
       </SettingCard>
 
