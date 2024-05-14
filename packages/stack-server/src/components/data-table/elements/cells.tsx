@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 
 export function TextCell(props: { children: React.ReactNode, size?: number }) {
@@ -46,13 +47,17 @@ type ActionItem = {
 export function ActionCell(props: {
   items?: ActionItem[],
   dangerItems?: ActionItem[],
+  invisible?: boolean,
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          className={cn(
+            "flex h-8 w-8 p-0 data-[state=open]:bg-muted",
+            props.invisible && "invisible",
+          )}
         >
           <DotsHorizontalIcon className="h-4 w-4" />
           <span className="sr-only">Open menu</span>

@@ -1,123 +1,80 @@
 'use client';;
-import { useState } from "react";
-import * as yup from "yup";
-import { ApiKeySet, ServerUser } from '@stackframe/stack';
+import { useMemo, useState } from "react";
+import { ApiKeySet } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ActionCell, DateCell, TextCell } from "./elements/cells";
+import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
-import Typography from "../ui/typography";
+import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardFilterFn } from "./elements/utils";
 
-type ExtendedServerUser = ServerUser & {
-  authType: string,
-  emailVerified: 'verified' | 'unverified',
+type ExtendedApiKeySet = ApiKeySet & {
+  status: 'valid' | 'expired' | 'revoked',
 };
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} keyName="description" placeholder="Filter by description" />
+      <DataTableFacetedFilter
+        column={table.getColumn("status")}
+        title="Status"
+        options={['valid', 'expired', 'revoked'].map((provider) => ({
+          value: provider,
+          label: provider,
+        }))}
+      />
     </>
   );
 }
 
-const userFormSchema = yup.object({
-  displayName: yup.string(),
-  primaryEmail: yup.string().email(),
-  signedUpAt: yup.date().required(),
-  primaryEmailVerified: yup.boolean().required(),
-});
-
-function EditUserDialog(props: { 
-  user: ServerUser,
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
-}) {
-  const defaultValues = {
-    displayName: props.user.displayName || undefined,
-    primaryEmail: props.user.primaryEmail || undefined,
-    primaryEmailVerified: props.user.primaryEmailVerified,
-    signedUpAt: props.user.signedUpAt,
-  };
-
-  return <FormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Edit User"
-    formSchema={userFormSchema}
-    defaultValues={defaultValues}
-    okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <Typography variant='secondary'>ID: {props.user.id}</Typography>
-        <InputField control={form.control} label="Display Name" name="displayName" />
-        
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" />
-          </div>
-          <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" noCard />
-        </div>
-
-        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
-      </>
-    )}
-    onSubmit={async (values) => await props.user.update(values)}
-    cancelButton
-  />;
-}
-
-function DeleteUserDialog(props: {
-  user: ServerUser,
+function RevokeDialog(props: {
+  apiKey: ExtendedApiKeySet,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
   return <ActionDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
-    title="Delete User"
+    title="Revoke API Key"
     danger
     cancelButton
-    okButton={{ label: "Delete User", onClick: async () => { await props.user.delete(); } }}
-    confirmText="I understand that this action cannot be undone."
+    okButton={{ label: "Revoke Key", onClick: async () => { await props.apiKey.revoke(); } }}
+    confirmText="I understand this will unlink all the apps using this API key"
   >
-    {`Are you sure you want to delete the user ${props.user.displayName ? '"' + props.user.displayName + '"' : ''} with ID ${props.user.id}?`}
+    {`Are you sure you want to revoke client key *****${props.apiKey.publishableClientKey?.lastFour} and server key *****${props.apiKey.secretServerKey?.lastFour}?`}
   </ActionDialog>;
 }
 
-function Actions({ row }: { row: Row<ExtendedServerUser> }) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+function Actions({ row }: { row: Row<ExtendedApiKeySet> }) {
+  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   return (
     <>
-      <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
-      <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
+      <RevokeDialog apiKey={row.original} open={isRevokeModalOpen} onOpenChange={setIsRevokeModalOpen} />
       <ActionCell
-        items={[{
-          item: "Edit",
-          onClick: () => setIsEditModalOpen(true),
-        }]}
+        invisible={row.original.status !== 'valid'}
         dangerItems={[{
-          item: "Delete",
-          onClick: () => setIsDeleteModalOpen(true),
+          item: "Revoke",
+          onClick: () => setIsRevokeModalOpen(true),
         }]}
       />
     </>
   );
 }
 
-const columns: ColumnDef<ApiKeySet>[] =  [
+const columns: ColumnDef<ExtendedApiKeySet>[] =  [
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
     cell: ({ row }) => <TextCell size={300}>{row.original.description}</TextCell>,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    cell: ({ row }) => <BadgeCell badges={[row.original.status]} />,
+    filterFn: standardFilterFn,
   },
   {
     accessorKey: "clientKey",
@@ -136,8 +93,17 @@ const columns: ColumnDef<ApiKeySet>[] =  [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Expires At" />,
     cell: ({ row }) => <DateCell date={row.original.expiresAt} />,
   },
+  {
+    id: "actions",
+    cell: ({ row }) => <Actions row={row} />,
+  },
 ];
 
 export function ApiKeyTable(props: { apiKeys: ApiKeySet[] }) {
-  return <DataTable data={props.apiKeys} columns={columns} toolbarRender={toolbarRender} />;
+  const extendedApiKeys = useMemo(() => props.apiKeys.map((apiKey) => ({
+    ...apiKey,
+    status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
+  } satisfies ExtendedApiKeySet)), [props.apiKeys]);
+
+  return <DataTable data={extendedApiKeys} columns={columns} toolbarRender={toolbarRender} />;
 }
