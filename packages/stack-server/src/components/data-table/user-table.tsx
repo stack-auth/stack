@@ -10,7 +10,7 @@ import { standardProviders } from "@stackframe/stack-shared/dist/interface/clien
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
-import { InputField } from "../form-fields";
+import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 
 type ExtendedServerUser = ServerUser & {
@@ -35,6 +35,9 @@ function toolbarRender<TData>(table: Table<TData>) {
 
 const userFormSchema = yup.object({
   displayName: yup.string(),
+  primaryEmail: yup.string().email(),
+  signedUpAt: yup.date().required(),
+  primaryEmailVerified: yup.boolean().required(),
 });
 
 function EditUserDialog(props: { 
@@ -44,7 +47,11 @@ function EditUserDialog(props: {
 }) {
   const defaultValues = {
     displayName: props.user.displayName || undefined,
+    primaryEmail: props.user.primaryEmail || undefined,
+    primaryEmailVerified: props.user.primaryEmailVerified,
+    signedUpAt: props.user.signedUpAt,
   };
+
   return <FormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
@@ -54,6 +61,15 @@ function EditUserDialog(props: {
     render={(form) => (
       <>
         <InputField control={form.control} label="Display Name" name="displayName" />
+        
+        <div className="flex gap-4 items-end">
+          <div className="flex-1">
+            <InputField control={form.control} label="Primary Email" name="primaryEmail" />
+          </div>
+          <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" noCard />
+        </div>
+
+        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
       </>
     )}
     onSubmit={async (values) => {
