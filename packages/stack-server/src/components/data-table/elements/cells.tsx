@@ -14,7 +14,7 @@ import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 
 
-export function TextCell(props: { children: React.ReactNode, size: number }) {
+export function TextCell(props: { children: React.ReactNode, size?: number }) {
   return (
     <div className="text-ellipsis text-nowrap overflow-x-hidden" style={{ width: props.size }}>
       {props.children}

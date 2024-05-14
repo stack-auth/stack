@@ -13,9 +13,11 @@ import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
+import { CircleCheck, CircleX } from "lucide-react";
 
 type ExtendedServerUser = ServerUser & {
   authType: string,
+  emailVerified: 'verified' | 'unverified',
 };
 
 function toolbarRender<TData>(table: Table<TData>) {
@@ -29,6 +31,14 @@ function toolbarRender<TData>(table: Table<TData>) {
           value: provider,
           label: provider,
         }))}
+      />
+      <DataTableFacetedFilter
+        column={table.getColumn("emailVerified")}
+        title="Email Verified"
+        options={[
+          { value: "verified", label: "verified" },
+          { value: "unverified", label: "unverified" },
+        ]}
       />
     </>
   );
@@ -146,6 +156,18 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
     cell: ({ row }) => <TextCell size={180}>{row.getValue("primaryEmail")}</TextCell>,
   },
   {
+    accessorKey: "emailVerified",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
+    cell: ({ row }) => <TextCell>
+      {row.getValue("emailVerified") === 'verified' ? 
+        <CircleCheck className="w-4 h-4 text-green-500/60"/> : 
+        <CircleX className="w-4 h-4 text-destructive/60"/>}
+    </TextCell>,
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    }
+  },
+  {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={[row.getValue("authType")]} />,
@@ -167,7 +189,8 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
 export function UserTable(props: { users: ServerUser[] }) {
   const extendedUsers: ExtendedServerUser[] = useMemo(() => props.users.map((user) => ({
     ...user,
-    authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || ""
+    authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
+    emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   })), [props.users]);
 
   return <DataTable data={extendedUsers} columns={columns} toolbarRender={toolbarRender} />;
