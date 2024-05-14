@@ -1,10 +1,10 @@
 "use client";
 
-import { UsersTable } from "./users-table";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
+import { UserTable } from "@/components/data-table/user-table";
 
 
 export default function UsersDashboardClient() {
@@ -19,7 +19,8 @@ export default function UsersDashboardClient() {
         </Alert>
       )}
 
-      <UsersTable rows={allUsers} />
+      {/* <UsersTable rows={allUsers} /> */}
+      <UserTable users={allUsers} />
     </PageLayout>
   );
 }

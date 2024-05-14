@@ -2,7 +2,7 @@
 
 import { Table } from "@tanstack/react-table";
 import { Input } from "../ui/input";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import { DataTableFacetedFilter } from "./elements/data-table-faceted-filter";
 import { priorities, statuses } from "./data/data";
 
 export function toolbarRender<TData>(table: Table<TData>) {
