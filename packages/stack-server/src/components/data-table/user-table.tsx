@@ -1,12 +1,10 @@
-'use client';
-
+'use client';;
 import React, { useMemo } from "react";
 import { ServerUser } from '@stackframe/stack';
 import { ColumnDef, Table } from "@tanstack/react-table";
-import { DataTableColumnHeader } from "./elements/data-table-column-header";
+import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Checkbox } from "../ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +15,7 @@ import {
 import { Button } from "../ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Input } from "../ui/input";
-import { DataTableFacetedFilter } from "./elements/data-table-faceted-filter";
+import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { Badge } from "../ui/badge";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
@@ -53,11 +51,11 @@ function TextCell(props: { children: React.ReactNode, size: number }) {
       {props.children}
     </div>
   );
-};
+}
 
 function AvatarCell(props: { displayName?: string, src?: string }) {
   return (
-    <Avatar className="h-8 w-8">
+    <Avatar className="h-6 w-6">
       <AvatarImage src={props.src} alt={props.displayName} />
       <AvatarFallback>{(props.displayName || "").slice(0, 1).toUpperCase()}</AvatarFallback>
     </Avatar>
@@ -119,30 +117,6 @@ type ExtendedServerUser = ServerUser & {
 };
 
 const columns: ColumnDef<ExtendedServerUser>[] =  [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-        (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
