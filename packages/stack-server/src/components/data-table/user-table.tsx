@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useMemo } from "react";
 import { ServerUser } from '@stackframe/stack';
 import { ColumnDef, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/data-table-column-header";
@@ -18,6 +18,8 @@ import { Button } from "../ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Input } from "../ui/input";
 import { DataTableFacetedFilter } from "./elements/data-table-faceted-filter";
+import { Badge } from "../ui/badge";
+import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 export function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -29,6 +31,16 @@ export function toolbarRender<TData>(table: Table<TData>) {
           table.getColumn("primaryEmail")?.setFilterValue(event.target.value)
         }
         className="h-8 w-[150px] lg:w-[250px]"
+      />
+      <DataTableFacetedFilter
+        column={table.getColumn("authType")}
+        title="Auth Method"
+        options={
+          ['email', ...standardProviders].map((provider) => ({
+            value: provider,
+            label: provider,
+          }))
+        }
       />
     </>
   );
@@ -92,7 +104,21 @@ function ActionCell(props: {
   );
 }
 
-const columns: ColumnDef<ServerUser>[] =  [
+function BadgeCell(props: { badges: string[] }) {
+  return (
+    <div className="flex items-center space-x-1">
+      {props.badges.map((badge, index) => (
+        <Badge key={index} variant="outline">{badge}</Badge>
+      ))}
+    </div>
+  );
+}
+
+type ExtendedServerUser = ServerUser & {
+  authType: string,
+};
+
+const columns: ColumnDef<ExtendedServerUser>[] =  [
   {
     id: "select",
     header: ({ table }) => (
@@ -140,6 +166,14 @@ const columns: ColumnDef<ServerUser>[] =  [
     cell: ({ row }) => <TextCell size={180}>{row.getValue("primaryEmail")}</TextCell>,
   },
   {
+    accessorKey: "authType",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
+    cell: ({ row }) => <BadgeCell badges={[row.getValue("authType")]} />,
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
+  },
+  {
     accessorKey: "signedUpAt",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Signed Up At" />,
     cell: ({ row }) => <DateCell date={row.getValue("signedUpAt")} />,
@@ -151,5 +185,10 @@ const columns: ColumnDef<ServerUser>[] =  [
 ];
 
 export function UserTable(props: { users: ServerUser[] }) {
-  return (<DataTable data={props.users} columns={columns} toolbarRender={toolbarRender} />);
+  const extendedUsers: ExtendedServerUser[] = useMemo(() => props.users.map((user) => ({
+    ...user,
+    authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || ""
+  })), [props.users]);
+
+  return <DataTable data={extendedUsers} columns={columns} toolbarRender={toolbarRender} />;
 }

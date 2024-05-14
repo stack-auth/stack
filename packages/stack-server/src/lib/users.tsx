@@ -1,14 +1,14 @@
 import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
-import { fullProjectInclude, getProject, projectJsonFromDbType } from "@/lib/projects";
+import { getProject } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { addUserToTeam, createServerTeam } from "./teams";
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
-  project: { include: typeof fullProjectInclude },
+  projectUserOAuthAccounts: true,
 }, }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
@@ -25,9 +25,7 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
       projectId,
     },
     include: {
-      project: {
-        include: fullProjectInclude,
-      },
+      projectUserOAuthAccounts: true,
     },
   });
 
@@ -69,9 +67,7 @@ export async function updateServerUser(
         },
       },
       include: {
-        project: {
-          include: fullProjectInclude,
-        },
+        projectUserOAuthAccounts: true,
       },
       data: filterUndefined({
         displayName: update.displayName,
@@ -123,8 +119,6 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
-  const projectJson = projectJsonFromDbType(user.project);
-
   return {
     projectId: user.projectId,
     id: user.projectUserId,
@@ -138,7 +132,7 @@ export function getServerUserFromDbType(
     authMethod: user.passwordHash ? 'credential' : 'oauth', // not used anymore, for backwards compatibility
     hasPassword: !!user.passwordHash,
     authWithEmail: user.authWithEmail,
-    oauthProviders: projectJson.evaluatedConfig.oauthProviders.map((provider) => provider.id),
+    oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
   };
 }
 
