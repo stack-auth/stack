@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ServerUser } from '@stackframe/stack';
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/data-table-column-header";
 import { DataTable } from "./elements/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -16,6 +16,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { Input } from "../ui/input";
+import { DataTableFacetedFilter } from "./elements/data-table-faceted-filter";
+
+export function toolbarRender<TData>(table: Table<TData>) {
+  return (
+    <>
+      <Input
+        placeholder="Filter primary email"
+        value={(table.getColumn("primaryEmail")?.getFilterValue() as string) ?? ""}
+        onChange={(event) =>
+          table.getColumn("primaryEmail")?.setFilterValue(event.target.value)
+        }
+        className="h-8 w-[150px] lg:w-[250px]"
+      />
+    </>
+  );
+}
 
 
 function TextCell(props: { children: React.ReactNode, size: number }) {
@@ -134,5 +151,5 @@ const columns: ColumnDef<ServerUser>[] =  [
 ];
 
 export function UserTable(props: { users: ServerUser[] }) {
-  return (<DataTable data={props.users} columns={columns}  />);
+  return (<DataTable data={props.users} columns={columns} toolbarRender={toolbarRender} />);
 }
