@@ -43,7 +43,10 @@ function DateCell(props: { date: Date }) {
   );
 }
 
-function ActionCell(props: {}) {
+function ActionCell(props: {
+  items?: React.ReactNode[],
+  dangerItems?: React.ReactNode[],
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -56,13 +59,17 @@ function ActionCell(props: {}) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem>Make a copy</DropdownMenuItem>
-        <DropdownMenuItem>Favorite</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          Delete
-        </DropdownMenuItem>
+        {props.items?.map((item, index) => (
+          <DropdownMenuItem key={index}>
+            {item}
+          </DropdownMenuItem>
+        ))}
+        {props.items && props.dangerItems && <DropdownMenuSeparator />}
+        {props.dangerItems?.map((item, index) => (
+          <DropdownMenuItem key={index} className="text-destructive">
+            {item}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -122,7 +129,7 @@ const columns: ColumnDef<ServerUser>[] =  [
   },
   {
     id: "actions",
-    cell: ({ row }) => <ActionCell />,
+    cell: ({ row }) => <ActionCell dangerItems={['delete']}/>,
   },
 ];
 
