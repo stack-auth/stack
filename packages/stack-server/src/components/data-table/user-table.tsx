@@ -8,7 +8,7 @@ import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -17,7 +17,7 @@ type ExtendedServerUser = ServerUser & {
 export function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} key="primaryEmail" placeholder="Filter by primary email" />
+      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by primary email" />
       <DataTableFacetedFilter
         column={table.getColumn("authType")}
         title="Auth Method"
@@ -33,8 +33,8 @@ export function toolbarRender<TData>(table: Table<TData>) {
 export function Actions({ row }: { row: Row<ExtendedServerUser> }) {
   return (
     <ActionCell
-      items={["Edit"]}
-      dangerItems={["Delete"]}
+      items={[{ item: "Edit", onClick: () => console.log('adf') }]}
+      dangerItems={[{ item: "Delete", onClick: () => {} }]}
     />
   );
 }

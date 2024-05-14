@@ -4,7 +4,6 @@ import React from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
-  DropdownMenuButtonItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
