@@ -5,13 +5,13 @@ import { Box, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, Form
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/icon";
 import { Paragraph } from "@/components/paragraph";
-import { ApiKeysTable } from "./api-keys-table";
 import { useAdminApp } from "../use-admin-app";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import EnvKeys from "@/components/env-keys";
 import { SmartLink } from "@/components/smart-link";
 import { ApiKeySetFirstView } from "@stackframe/stack";
 import { PageLayout } from "../page-layout";
+import { ApiKeyTable } from "@/components/data-table/api-key-table";
 
 
 export default function ApiKeysDashboardClient() {
@@ -30,7 +30,8 @@ export default function ApiKeysDashboardClient() {
         </Button>
       }
     >
-      <ApiKeysTable rows={apiKeySets} />
+      {/* <ApiKeysTable rows={apiKeySets} /> */}
+      <ApiKeyTable apiKeys={apiKeySets} />
 
       <CreateNewDialog
         key={`${isNewApiKeyDialogOpen}`}

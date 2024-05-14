@@ -93,7 +93,14 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: "Settings",
+    name: "Team Settings",
+    href: "/team-settings",
+    regex: /^\/projects\/[^\/]+\/team-settings$/,
+    icon: Settings2,
+    type: 'item'
+  },
+  {
+    name: "Configuration",
     type: 'label'
   },
   {
@@ -101,13 +108,6 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/urls-and-callbacks",
     regex: /^\/projects\/[^\/]+\/urls-and-callbacks$/,
     icon: LinkIcon,
-    type: 'item'
-  },
-  {
-    name: "Team Settings",
-    href: "/team-settings",
-    regex: /^\/projects\/[^\/]+\/team-settings$/,
-    icon: Settings2,
     type: 'item'
   },
   {
@@ -136,9 +136,9 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: 'ghost', size: "default" }),
+        buttonVariants({ variant: 'ghost', size: "sm" }),
         selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300"
+        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
       )}
       onClick={onClick}
     >
@@ -157,11 +157,11 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
       <div className="flex flex-col gap-1 pt-2">
         {navigationItems.map((item, index) => {
           if (item.type === 'label') {
-            return <Typography key={index} className="pl-2" type="label" variant="secondary">
+            return <Typography key={index} className="pl-2 my-1" type="label" variant="secondary">
               {item.name}
             </Typography>;
           } else if (item.type === 'item') {
-            return <div key={index} className="flex px-1">
+            return <div key={index} className="flex px-2">
               <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`}/>
             </div>;
           }
@@ -170,7 +170,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
       
       <div className="flex-grow"/>
 
-      <div className="py-2 px-1 flex">
+      <div className="py-2 px-2 flex">
         <NavItem
           onClick={onNavigate}
           item={{
@@ -263,7 +263,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
         <SidebarContent projectId={props.projectId} />
       </div>
       <div className="flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between px-4 sticky top-0 bg-white dark:bg-black z-10">
+        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
           <div className="hidden md:flex">
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
@@ -271,9 +271,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
           <div className="flex md:hidden items-center">
             <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
               <SheetTrigger>
-                <Button variant="outline" className="p-2 md:hidden">
-                  <Menu />
-                </Button>
+                <Menu />
               </SheetTrigger>
               <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
                 <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
@@ -292,7 +290,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
-        <div>
+        <div className="py-4 px-4 md:px-6">
           {props.children}
         </div>
       </div>

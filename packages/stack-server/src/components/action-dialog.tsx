@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect } from "react";
+import React, { useEffect, useId } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Checkbox } from "./ui/checkbox";
 import { Alert } from "./ui/alert";
-import { Typography } from "@mui/joy";
+import { Label } from "./ui/label";
 
 export type ActionDialogProps = {
   trigger?: React.ReactNode,
@@ -41,11 +41,14 @@ export function ActionDialog(props: ActionDialogProps) {
   const [openState, setOpenState] = React.useState(!!props.open);
   const open = props.open ?? openState;
   const [confirmed, setConfirmed] = React.useState(false);
+  const confirmId = useId();
   
   const onOpenChange = (open: boolean) => {
     if (!open && props.onClose) {
-      setConfirmed(false);
       runAsynchronously(props.onClose());
+    }
+    if (!open) {
+      setConfirmed(false);
     }
     setOpenState(open);
     props.onOpenChange?.(open);
@@ -73,12 +76,12 @@ export function ActionDialog(props: ActionDialogProps) {
         </div>
         
         {props.confirmText && <Alert className="flex gap-4 items-center">
-          <Checkbox checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
-          <Typography>{props.confirmText}</Typography>
+          <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
+          <Label htmlFor={confirmId}>{props.confirmText}</Label>
         </Alert>}
 
 
-        {anyButton && <DialogFooter>
+        {anyButton && <DialogFooter className="gap-2">
           {cancelButton && (
             <Button
               variant="secondary"

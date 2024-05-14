@@ -1,6 +1,3 @@
-/**
- * https://n2d4.github.io/frontend-starter/guides/advanced-concepts#clickable-parents
- */
 export function hasClickableParent(element: HTMLElement): boolean {
   const parent = element.parentElement;
   if (!parent) return false;

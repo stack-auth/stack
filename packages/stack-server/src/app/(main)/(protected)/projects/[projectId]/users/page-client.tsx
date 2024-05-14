@@ -1,10 +1,10 @@
 "use client";
 
-import { UsersTable } from "./users-table";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
+import { UserTable } from "@/components/data-table/user-table";
 
 
 export default function UsersDashboardClient() {
@@ -18,8 +18,7 @@ export default function UsersDashboardClient() {
           Congratulations on starting your project! Check the <Link href="https://docs.stack-auth.com">documentation</Link> to add your first users.
         </Alert>
       )}
-
-      <UsersTable rows={allUsers} />
+      <UserTable users={allUsers} />
     </PageLayout>
   );
 }

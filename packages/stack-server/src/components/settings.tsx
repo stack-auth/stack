@@ -7,10 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "./ui/switch";
-import Typography from "./ui/typography";
 import { Settings } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { Label } from "./ui/label";
 
 
 export function SettingCard(props: {
@@ -45,6 +45,7 @@ export function SettingSwitch(props: {
   actions?: React.ReactNode,
   onlyShowActionsWhenChecked?: boolean,
 }) {
+  const id = useId();
   const [checkedState, setCheckedState] = useState(props.checked);
   const checked = props.checked ?? checkedState;
   const showActions = !props.onlyShowActionsWhenChecked || checked;
@@ -57,11 +58,12 @@ export function SettingSwitch(props: {
   return (
     <div className="flex items-center gap-2">
       <Switch
+        id={id}
         checked={checked}
         onCheckedChange={onCheckedChange}
         disabled={props.disabled}
       />
-      <Typography>{props.label}</Typography>
+      <Label htmlFor={id}>{props.label}</Label>
       {showActions && props.actions}
     </div>
   );

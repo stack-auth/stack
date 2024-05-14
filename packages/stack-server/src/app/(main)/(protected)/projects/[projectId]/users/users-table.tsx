@@ -234,7 +234,7 @@ export function EditUserModal(props: { user: ServerUser, open: boolean, onClose:
           >
             <Stack spacing={2}>
               <Box>
-                    ID: {props.user.id}
+                  ID: {props.user.id}
               </Box>
               <FormControl disabled={isSaving}>
                 <FormLabel htmlFor="displayName">Display name</FormLabel>
