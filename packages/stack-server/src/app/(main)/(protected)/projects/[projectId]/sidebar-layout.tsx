@@ -271,9 +271,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
           <div className="flex md:hidden items-center">
             <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
               <SheetTrigger>
-                <Button variant="outline" className="p-2 md:hidden">
-                  <Menu />
-                </Button>
+                <Menu />
               </SheetTrigger>
               <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
                 <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />

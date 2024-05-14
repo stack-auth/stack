@@ -8,7 +8,6 @@ import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { Input } from "../ui/input";
 
 type ExtendedServerUser = ServerUser & {
   authType: string,
