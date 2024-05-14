@@ -46,7 +46,6 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
-      console.log("AAAAAAAAAAA", obj, (schema as any).fields.body, error);
       throw new KnownErrors.SchemaError(
         deindent`
           Request validation failed:

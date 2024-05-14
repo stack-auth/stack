@@ -1,44 +1,53 @@
-import { deleteServerUser, listServerUsers, updateServerUser } from "@/lib/users";
-import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { fullProjectInclude, projectJsonFromDbType } from "@/lib/projects";
+import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
-export const usersCrudHandlers = createCrudHandlers(usersCrud, {
-  paramNames: ["userId"] as const,
-  async onRead({ auth, params }) {
-    const userId = params.userId;
+export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
+  paramNames: ["userId"],
+  baseFields: async ({ auth, params }) => {
     const projectId = auth?.project.id;
-    if (!projectId || !userId) throw new KnownErrors.UserNotFound();
-
-    return await updateServerUser(
+    const userId = params.userId;
+    return {
       projectId,
-      userId,
-      {},
-    ) ?? throwErr(new KnownErrors.UserNotFound());
+      projectUserId: userId,
+    };
   },
-  async onUpdate({ auth, data, params }) {
+  whereUnique: async ({ auth, params }) => {
+    const projectId = auth.project.id;
     const userId = params.userId;
-    const projectId = auth?.project.id;
-    if (!projectId || !userId) throw new KnownErrors.UserNotFound();
-
-    return await updateServerUser(
+    return {
+      projectId_projectUserId: {
+        projectId,
+        projectUserId: userId,
+      },
+    };
+  },
+  include: async () => ({}),
+  createNotFoundError: () => new KnownErrors.UserNotFound(),
+  crudToPrisma: async (crud, { auth }) => {
+    const projectId = auth.project.id;
+    return {
+      displayName: crud.displayName,
+      clientMetadata: crud.clientMetadata,
       projectId,
-      userId,
-      data,
-    ) ?? throwErr(new KnownErrors.UserNotFound());
+    };
   },
-  async onDelete({ auth, params }) {
-    const userId = params.userId;
-    const projectId = auth?.project.id;
-    if (!projectId || !userId) throw new KnownErrors.UserNotFound();
-
-    await deleteServerUser(projectId, userId);
+  prismaToCrud: async (prisma, { auth }) => {    
+    return {
+      projectId: prisma.projectId,
+      id: prisma.projectUserId,
+      displayName: prisma.displayName,
+      primaryEmail: prisma.primaryEmail,
+      primaryEmailVerified: prisma.primaryEmailVerified,
+      profileImageUrl: prisma.profileImageUrl,
+      signedUpAtMillis: prisma.createdAt.getTime(),
+      clientMetadata: prisma.clientMetadata,
+      serverMetadata: prisma.serverMetadata,
+      authMethod: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
+      hasPassword: !!prisma.passwordHash,
+      authWithEmail: prisma.authWithEmail,
+      oauthProviders: auth.project.evaluatedConfig.oauthProviders.map((provider) => provider.id),
+    };
   },
-  async onList({ auth }) {
-    const projectId = auth?.project.id;
-    if (!projectId) throw new KnownErrors.UserNotFound();
-
-    return await listServerUsers(projectId);
-  }
 });

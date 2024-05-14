@@ -4,13 +4,11 @@ import { NextRequest } from "next/server";
 import * as yup from "yup";
 import { routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { FilterUndefined, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import { outerProduct, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { SmartRequestAuth } from "./smart-request";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -19,7 +17,7 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
     ? (options: {
       params: Params,
       data: (K extends "Read" ? void : GetAdminKey<T, K>),
-      auth: SmartRequestAuth | null,
+      auth: SmartRequestAuth,
     }) => Promise<
       K extends "Delete"
         ? void
@@ -39,29 +37,30 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
   onDelete: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
-export type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
+type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
   & FilterUndefined<CrudRouteHandlersUnfiltered<T, Record<ParamNames, string>>>
   & {
     paramNames: ParamNames[],
   };
-
-type A = CrudHandlerOptions<UsersCrud, "userId">
-type B = CrudRouteHandlersUnfiltered<UsersCrud, any>
 
 type SingleCrudHandler = (
   req: NextRequest,
   options: { params: any },
 ) => Promise<Response>;
 
-type CrudHandlers<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = {
-  createHandler: "onCreate" extends keyof O ? SingleCrudHandler : void,
-  readHandler: "onRead" extends keyof O ? SingleCrudHandler : void,
-  listHandler: "onList" extends keyof O ? SingleCrudHandler : void,
-  updateHandler: "onUpdate" extends keyof O ? SingleCrudHandler : void,
-  deleteHandler: "onDelete" extends keyof O ? SingleCrudHandler : void,
+type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = CrudHandlers<
+  | ("onCreate" extends keyof O ? "Create" : never)
+  | ("onRead" extends keyof O ? "Read" : never)
+  | ("onList" extends keyof O ? "List" : never)
+  | ("onUpdate" extends keyof O ? "Update" : never)
+  | ("onDelete" extends keyof O ? "Delete" : never)
+>;
+
+export type CrudHandlers<T extends "Create" | "Read" | "List" | "Update" | "Delete"> = {
+  [K in `${Lowercase<T>}Handler`]: SingleCrudHandler
 };
 
-export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(crud: S, options: O): CrudHandlers<O> {
+export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(crud: S, options: O): CrudHandlersFromOptions<O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
 
   const operations = [
@@ -131,7 +130,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 const result = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: req.params,
                   data: adminData,
-                  auth: fullReq.auth,
+                  auth: fullReq.auth ?? throwErr("Auth not found in CRUD handler; this should never happen! (all clients are at least client to access CRUD handler)"),
                 });
 
                 const resultAdminValidated = await validate(result, adminSchemas.output, false, "Result admin validation");
@@ -171,7 +170,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, 
           Errors:
             ${error.errors.join("\n")}
         `,
-        { obj, schema, cast },
+        { obj: JSON.stringify(obj), schema, cast },
         { cause: error }
       );
     }

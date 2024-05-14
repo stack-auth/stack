@@ -63,6 +63,7 @@ export async function updateServerUser(
   try {
     user = await prismaClient.projectUser.update({
       where: {
+        projectId: projectId,
         projectId_projectUserId: {
           projectId,
           projectUserId: userId,
@@ -96,6 +97,7 @@ export async function deleteServerUser(projectId: string, userId: string): Promi
   try {
     await prismaClient.projectUser.delete({
       where: {
+        projectId: projectId,
         projectId_projectUserId: {
           projectId,
           projectUserId: userId,
