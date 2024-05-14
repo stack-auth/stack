@@ -81,7 +81,7 @@ export function ActionDialog(props: ActionDialogProps) {
         </Alert>}
 
 
-        {anyButton && <DialogFooter>
+        {anyButton && <DialogFooter className="gap-2">
           {cancelButton && (
             <Button
               variant="secondary"

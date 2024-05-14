@@ -1,10 +1,7 @@
-"use client";
-
+"use client";;
 import * as yup from "yup";
-import { IconButton, List, ListItem, ListDivider } from "@mui/joy";
 import React, { useMemo } from "react";
 import { Paragraph } from "@/components/paragraph";
-import { Icon } from "@/components/icon";
 import { ActionDialog } from "@/components/action-dialog";
 import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
@@ -12,27 +9,30 @@ import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/client
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";
-import Typography from "@/components/ui/typography";
 import { Alert } from "@/components/ui/alert";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField } from "@/components/form-fields";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ActionCell } from "@/components/data-table/elements/cells";
 
 export const domainFormSchema = yup.object({
   domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url("Domain must a valid URL").required(),
   handlerPath: yup.string().matches(/^\//, "Handler path must start with /").required(),
 });
 
-
 function EditDialog(props: { 
-  trigger: React.ReactNode,
-  domains: Set<DomainConfigJson>,
+  open?: boolean,
+  onOpenChange?: (open: boolean) => void,
+  trigger?: React.ReactNode,
+  domains: DomainConfigJson[],
   project: Project,
   type: 'update' | 'create',
   editIndex?: number,
 }) {
   const defaultValues = useMemo(() => {
     if (props.editIndex !== undefined) {
-      const domain = [...props.domains][props.editIndex];
+      const domain = props.domains[props.editIndex];
+      console.log(domain);
       return {
         domain: domain.domain,
         handler: domain.handlerPath,
@@ -54,6 +54,8 @@ function EditDialog(props: {
   });
 
   return <FormDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
     trigger={props.trigger}
     title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
     defaultValues={defaultValues}
@@ -111,13 +113,15 @@ function EditDialog(props: {
 }
 
 function DeleteDialog(props: {
-  trigger: React.ReactNode,
+  open?: boolean,
+  onOpenChange?: (open: boolean) => void,
   domain: string,
   project: Project,
 }) {
   return (
     <ActionDialog
-      trigger={props.trigger}
+      open={props.open}
+      onOpenChange={props.onOpenChange}
       title="Delete domain"
       danger
       okButton={{
@@ -145,7 +149,9 @@ function DeleteDialog(props: {
 export default function UrlsAndCallbacksClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-  const domains = new Set(project.evaluatedConfig.domains);
+  const domains = project.evaluatedConfig.domains;
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   return (
     <PageLayout title="Domains and Handler" description="Callback URLs that are allowed to send requests to your project">
@@ -161,53 +167,44 @@ export default function UrlsAndCallbacksClient() {
           />
         }
       >
-        {domains.size >= 0 && (
-          <List
-            variant="soft"
-            sx={{
-              "--List-radius": "9px",
-            }}
-          >
-            {domains.size === 0 && (
-              <ListItem>
-                <Typography>No handlers added yet. Click the button below to add your first</Typography>
-              </ListItem>
-            )}
-            {[...domains].map(({ domain, handlerPath }, i) => (
-              <React.Fragment key={domain}>
-                {i !== 0 && <ListDivider />}
-                <ListItem
-                  endAction={
-                    <>
-                      <EditDialog
-                        trigger={
-                          <IconButton aria-label="Edit" size="sm">
-                            <Icon icon="edit" />
-                          </IconButton>
-                        }
-                        domains={domains}
-                        project={project}
-                        type="update"
-                        editIndex={i}
-                      />
-                      <DeleteDialog
-                        trigger={
-                          <IconButton aria-label="Delete" size="sm" color="danger">
-                            <Icon icon="delete" />
-                          </IconButton>
-                        }
-                        domain={domain}
-                        project={project}
-                      />
-                    </>
-                  }
-                >
-                  <Typography>{domain}</Typography>
-                  <Typography>{handlerPath}</Typography>
-                </ListItem>
-              </React.Fragment>
-            ))}
-          </List>
+        {domains.length >= 0 && (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">Domain</TableHead>
+                <TableHead className="w-[100px]">Handler</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {domains.map(({ domain, handlerPath }, i) => (
+                <TableRow key={domain}>
+                  <TableCell>{domain}</TableCell>
+                  <TableCell>{handlerPath}</TableCell>
+                  <TableCell className="flex justify-end gap-4">
+                    <EditDialog
+                      open={isEditModalOpen}
+                      onOpenChange={setIsEditModalOpen}
+                      domains={domains}
+                      project={project}
+                      type="update"
+                      editIndex={i}
+                    />
+                    <DeleteDialog
+                      open={isDeleteModalOpen}
+                      onOpenChange={setIsDeleteModalOpen}
+                      domain={domain}
+                      project={project}
+                    />
+                    <ActionCell 
+                      items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
+                      dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </SettingCard>
 
