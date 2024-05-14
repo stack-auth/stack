@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "sideEffects": false,
   "exports": {
     ".": {
