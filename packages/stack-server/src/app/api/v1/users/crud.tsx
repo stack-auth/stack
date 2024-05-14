@@ -6,7 +6,7 @@ import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
   paramNames: ["userId"],
   baseFields: async ({ auth, params }) => {
-    const projectId = auth?.project.id;
+    const projectId = auth.project.id;
     const userId = params.userId;
     return {
       projectId,
