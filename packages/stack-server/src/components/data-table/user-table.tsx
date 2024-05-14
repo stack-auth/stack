@@ -1,114 +1,27 @@
 'use client';;
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { ServerUser } from '@stackframe/stack';
 import { ColumnDef, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Input } from "../ui/input";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { Badge } from "../ui/badge";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
+import { SearchToolbarItem } from "./elements/toolbar-items";
 
 export function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <Input
-        placeholder="Filter primary email"
-        value={(table.getColumn("primaryEmail")?.getFilterValue() as string) ?? ""}
-        onChange={(event) =>
-          table.getColumn("primaryEmail")?.setFilterValue(event.target.value)
-        }
-        className="h-8 w-[150px] lg:w-[250px]"
-      />
+      <SearchToolbarItem table={table} key="primaryEmail" placeholder="Filter by primary email" />
       <DataTableFacetedFilter
         column={table.getColumn("authType")}
         title="Auth Method"
-        options={
-          ['email', ...standardProviders].map((provider) => ({
-            value: provider,
-            label: provider,
-          }))
-        }
+        options={['email', ...standardProviders].map((provider) => ({
+          value: provider,
+          label: provider,
+        }))}
       />
     </>
-  );
-}
-
-
-function TextCell(props: { children: React.ReactNode, size: number }) {
-  return (
-    <div className="text-ellipsis text-nowrap overflow-x-hidden" style={{ width: props.size }}>
-      {props.children}
-    </div>
-  );
-}
-
-function AvatarCell(props: { displayName?: string, src?: string }) {
-  return (
-    <Avatar className="h-6 w-6">
-      <AvatarImage src={props.src} alt={props.displayName} />
-      <AvatarFallback>{(props.displayName || "").slice(0, 1).toUpperCase()}</AvatarFallback>
-    </Avatar>
-  );
-}
-
-function DateCell(props: { date: Date }) {
-  return (
-    <TextCell size={140}>
-      {props.date.toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
-    </TextCell>
-  );
-}
-
-function ActionCell(props: {
-  items?: React.ReactNode[],
-  dangerItems?: React.ReactNode[],
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-        >
-          <DotsHorizontalIcon className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        {props.items?.map((item, index) => (
-          <DropdownMenuItem key={index}>
-            {item}
-          </DropdownMenuItem>
-        ))}
-        {props.items && props.dangerItems && <DropdownMenuSeparator />}
-        {props.dangerItems?.map((item, index) => (
-          <DropdownMenuItem key={index} className="text-destructive">
-            {item}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function BadgeCell(props: { badges: string[] }) {
-  return (
-    <div className="flex items-center space-x-1">
-      {props.badges.map((badge, index) => (
-        <Badge key={index} variant="outline">{badge}</Badge>
-      ))}
-    </div>
   );
 }
 
@@ -126,7 +39,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
-    cell: ({ row }) => <AvatarCell src={row.getValue("profileImageUrl")} displayName={row.getValue("displayName")} />,
+    cell: ({ row }) => <AvatarCell src={row.getValue("profileImageUrl")} />,
     enableSorting: false,
   },
   {

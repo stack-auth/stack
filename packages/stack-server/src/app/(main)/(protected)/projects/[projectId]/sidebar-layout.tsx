@@ -292,7 +292,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
-        <div>
+        <div className="py-4 px-4 md:px-6">
           {props.children}
         </div>
       </div>
