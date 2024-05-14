@@ -44,8 +44,10 @@ export function ActionDialog(props: ActionDialogProps) {
   
   const onOpenChange = (open: boolean) => {
     if (!open && props.onClose) {
-      setConfirmed(false);
       runAsynchronously(props.onClose());
+    }
+    if (!open) {
+      setConfirmed(false);
     }
     setOpenState(open);
     props.onOpenChange?.(open);

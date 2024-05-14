@@ -1,5 +1,6 @@
 'use client';;
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import * as yup from "yup";
 import { ServerUser } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
@@ -8,12 +9,15 @@ import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
+import { FormDialog } from "../form-dialog";
+import { InputField } from "../form-fields";
+import { ActionDialog } from "../action-dialog";
 
 type ExtendedServerUser = ServerUser & {
   authType: string,
 };
 
-export function toolbarRender<TData>(table: Table<TData>) {
+function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by primary email" />
@@ -29,12 +33,73 @@ export function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-export function Actions({ row }: { row: Row<ExtendedServerUser> }) {
+const userFormSchema = yup.object({
+  displayName: yup.string(),
+});
+
+function EditUserDialog(props: { 
+  user: ServerUser,
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+}) {
+  const defaultValues = {
+    displayName: props.user.displayName || undefined,
+  };
+  return <FormDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
+    title="Edit User"
+    formSchema={userFormSchema}
+    defaultValues={defaultValues}
+    render={(form) => (
+      <>
+        <InputField control={form.control} label="Display Name" name="displayName" />
+      </>
+    )}
+    onSubmit={async (values) => {
+      await props.user.update(values);
+      props.onOpenChange(false);
+    }}
+    cancelButton
+  />;
+}
+
+function DeleteUserDialog(props: {
+  user: ServerUser,
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+}) {
+  return <ActionDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
+    title="Delete User"
+    danger
+    cancelButton
+    okButton={{ label: "Delete User", onClick: async () => { await props.user.delete(); } }}
+    confirmText="I understand that this action cannot be undone."
+  >
+    {`Are you sure you want to delete the user ${props.user.displayName ? '"' + props.user.displayName + '"' : ''} with ID ${props.user.id}?`}
+  </ActionDialog>;
+}
+
+function Actions({ row }: { row: Row<ExtendedServerUser> }) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   return (
-    <ActionCell
-      items={[{ item: "Edit", onClick: () => console.log('adf') }]}
-      dangerItems={[{ item: "Delete", onClick: () => {} }]}
-    />
+    <>
+      <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
+      <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
+      <ActionCell
+        items={[{
+          item: "Edit",
+          onClick: () => setIsEditModalOpen(true),
+        }]}
+        dangerItems={[{
+          item: "Delete",
+          onClick: () => setIsDeleteModalOpen(true),
+        }]}
+      />
+    </>
   );
 }
 

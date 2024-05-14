@@ -22,7 +22,7 @@ export function FormDialog<F extends FieldValues>(
     defaultValues: props.defaultValues as any,
     mode: "onChange",
   });
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async (values: F, e?: React.BaseSyntheticEvent) => {
@@ -32,7 +32,7 @@ export function FormDialog<F extends FieldValues>(
       const result = await props.onSubmit(values);
       form.reset();
       if (result !== 'prevent-close') {
-        setOpen(false);
+        setOpenState(false);
       }
     } finally {
       setSubmitting(false);
@@ -46,9 +46,9 @@ export function FormDialog<F extends FieldValues>(
   return (
     <ActionDialog
       {...props}
-      open={open}
-      onOpenChange={(open) => { if(open) setOpen(true); }}
-      onClose={async () => { form.reset(); setOpen(false); await props.onClose?.(); }}
+      open={props.open ?? openState}
+      onOpenChange={(open) => { if(open) setOpenState(true); props.onOpenChange?.(open); }}
+      onClose={async () => { form.reset(); setOpenState(false); await props.onClose?.(); }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
