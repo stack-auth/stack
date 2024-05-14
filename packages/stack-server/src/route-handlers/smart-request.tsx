@@ -20,29 +20,7 @@ export type SmartRequestAuth = {
   user: ServerUserJson | null,
   projectAccessType: "key" | "internal-user-token",
   type: "client" | "server" | "admin",
-  allowClient: boolean,
-  allowServer: boolean,
-  allowAdmin: boolean,
-} /*& (
-  | {
-    type: "client",
-    allowClient: true,
-    allowServer: false,
-    allowAdmin: false,
-  }
-  | {
-    type: "server",
-    allowClient: true,
-    allowServer: true,
-    allowAdmin: false,
-  }
-  | {
-    type: "admin",
-    allowClient: true,
-    allowServer: true,
-    allowAdmin: true,
-  }
-)*/;
+};
 
 export type SmartRequest = {
   auth: SmartRequestAuth | null,
@@ -71,7 +49,9 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
       throw new KnownErrors.SchemaError(
         deindent`
           Request validation failed:
-            ${error.toString()}
+            ${(error.inner.length ? error.inner : [error]).map(e => deindent`
+              - ${e.message}
+            `).join("\n")}
         `,
       );
     }
@@ -150,53 +130,52 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
-  switch (requestType) {
-    case "client": {
-      if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
-      const isValid = await checkApiKeySet(projectId, { publishableClientKey });
-      if (!isValid) throw new KnownErrors.InvalidPublishableClientKey();
-      projectAccessType = "key";
-      break;
+  if (adminAccessToken) {
+    const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
+    switch (reason) {
+      case null: {
+        projectAccessType = "internal-user-token";
+        break;
+      }
+      case "unparsable-access-token": {
+        throw new KnownErrors.UnparsableAdminAccessToken();
+      }
+      case "not-admin": {
+        throw new KnownErrors.AdminAccessTokenIsNotAdmin();
+      }
+      case "wrong-project-id": {
+        throw new KnownErrors.InvalidProjectForAdminAccessToken();
+      }
+      case "access-token-expired": {
+        throw new KnownErrors.AdminAccessTokenExpired();
+      }
+      default: {
+        throw new StackAssertionError(`Unexpected reason for lack of project admin: ${reason}`);
+      }
     }
-    case "server": {
-      if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
-      const isValid = await checkApiKeySet(projectId, { secretServerKey });
-      if (!isValid) throw new KnownErrors.InvalidSecretServerKey();
-      projectAccessType = "key";
-      break;
-    }
-    case "admin": {
-      if (superSecretAdminKey) {
-        const isValid = await checkApiKeySet(projectId, { secretServerKey: superSecretAdminKey });
+  } else {
+    switch (requestType) {
+      case "client": {
+        if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
+        const isValid = await checkApiKeySet(projectId, { publishableClientKey });
+        if (!isValid) throw new KnownErrors.InvalidPublishableClientKey();
+        projectAccessType = "key";
+        break;
+      }
+      case "server": {
+        if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
+        const isValid = await checkApiKeySet(projectId, { secretServerKey });
+        if (!isValid) throw new KnownErrors.InvalidSecretServerKey();
+        projectAccessType = "key";
+        break;
+      }
+      case "admin": {
+        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
+        const isValid = await checkApiKeySet(projectId, { superSecretAdminKey });
         if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey();
         projectAccessType = "key";
-      } else if (adminAccessToken) {
-        const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
-        switch (reason) {
-          case null: {
-            projectAccessType = "internal-user-token";
-            break;
-          }
-          case "unparsable-access-token": {
-            throw new KnownErrors.UnparsableAdminAccessToken();
-          }
-          case "not-admin": {
-            throw new KnownErrors.AdminAccessTokenIsNotAdmin();
-          }
-          case "wrong-project-id": {
-            throw new KnownErrors.InvalidProjectForAdminAccessToken();
-          }
-          case "access-token-expired": {
-            throw new KnownErrors.AdminAccessTokenExpired();
-          }
-          default: {
-            throw new StackAssertionError(`Unexpected reason for lack of project admin: ${reason}`);
-          }
-        }
-      } else {
-        throw new KnownErrors.AdminAuthenticationRequired();
+        break;
       }
-      break;
     }
   }
 
@@ -229,9 +208,6 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     user,
     projectAccessType,
     type: requestType,
-    allowClient: true,
-    allowServer: requestType === "server" || requestType === "admin",
-    allowAdmin: requestType === "admin",
   };
 }
 

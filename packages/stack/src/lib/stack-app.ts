@@ -926,25 +926,21 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       urls: Partial<HandlerUrls> | undefined,
     }
   ) {
-    if ("interface" in options) {
-      super({
-        interface: options.interface,
-        tokenStore: options.tokenStore,
-        urls: options.urls,
-      });
-    } else {
-      super({
-        interface: new StackServerInterface({
-          baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
-          projectId: options.projectId ?? getDefaultProjectId(),
-          clientVersion,
-          publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
-          secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
-        }),
-        tokenStore: options.tokenStore,
-        urls: options.urls ?? {},
-      });
-    }
+    super("interface" in options ? {
+      interface: options.interface,
+      tokenStore: options.tokenStore,
+      urls: options.urls,
+    } : {
+      interface: new StackServerInterface({
+        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        projectId: options.projectId ?? getDefaultProjectId(),
+        clientVersion,
+        publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
+        secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
+      }),
+      tokenStore: options.tokenStore,
+      urls: options.urls ?? {},
+    });
   }
 
   protected _serverUserFromJson(json: ServerUserJson): ServerUser;

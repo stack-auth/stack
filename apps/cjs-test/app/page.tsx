@@ -1,11 +1,7 @@
 const { default: Image } = require("next/image");
 const Stack = require('@stackframe/stack');
-// const StackImport = import('@stackframe/stack');
 
 function Home() {
-  // console.log("aaaaa", { Stack, Image, SignIn: Stack.SignIn, SignInDefault: Stack.SignIn, Button: Stack.Button });
-  // StackImport.then(Stack => console.log("bbbbbb", { Stack, SignIn: Stack.SignIn, Button: Stack.Button }));
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
