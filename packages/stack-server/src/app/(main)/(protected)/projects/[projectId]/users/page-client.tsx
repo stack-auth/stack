@@ -18,8 +18,6 @@ export default function UsersDashboardClient() {
           Congratulations on starting your project! Check the <Link href="https://docs.stack-auth.com">documentation</Link> to add your first users.
         </Alert>
       )}
-
-      {/* <UsersTable rows={allUsers} /> */}
       <UserTable users={allUsers} />
     </PageLayout>
   );

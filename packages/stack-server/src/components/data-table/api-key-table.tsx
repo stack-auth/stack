@@ -1,19 +1,18 @@
 'use client';;
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import * as yup from "yup";
-import { ServerUser } from '@stackframe/stack';
+import { ApiKeySet, ServerUser } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
+import { ActionCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
-import { CircleCheck, CircleX } from "lucide-react";
 import { standardFilterFn } from "./elements/utils";
 
 type ExtendedServerUser = ServerUser & {
@@ -24,23 +23,7 @@ type ExtendedServerUser = ServerUser & {
 function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
-      <DataTableFacetedFilter
-        column={table.getColumn("authType")}
-        title="Auth Method"
-        options={['email', ...standardProviders].map((provider) => ({
-          value: provider,
-          label: provider,
-        }))}
-      />
-      <DataTableFacetedFilter
-        column={table.getColumn("emailVerified")}
-        title="Email Verified"
-        options={[
-          { value: "verified", label: "verified" },
-          { value: "unverified", label: "unverified" },
-        ]}
-      />
+      <SearchToolbarItem table={table} keyName="description" placeholder="Filter by description" />
     </>
   );
 }
@@ -130,62 +113,31 @@ function Actions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
-const columns: ColumnDef<ExtendedServerUser>[] =  [
+const columns: ColumnDef<ApiKeySet>[] =  [
   {
-    accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
+    accessorKey: "description",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    cell: ({ row }) => <TextCell size={300}>{row.original.description}</TextCell>,
+  },
+  {
+    accessorKey: "clientKey",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Client Key" />,
+    cell: ({ row }) => <TextCell>*******{row.original.publishableClientKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
-    accessorKey: "profileImageUrl",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
-    cell: ({ row }) => <AvatarCell src={row.getValue("profileImageUrl")} />,
+    accessorKey: "serverKey",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Server Key" />,
+    cell: ({ row }) => <TextCell>*******{row.original.secretServerKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
-    accessorKey: "displayName",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
-    cell: ({ row }) => <TextCell size={120}>{row.getValue("displayName")}</TextCell>,
-  },
-  {
-    accessorKey: "primaryEmail",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Primary Email" />,
-    cell: ({ row }) => <TextCell size={180}>{row.getValue("primaryEmail")}</TextCell>,
-  },
-  {
-    accessorKey: "emailVerified",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
-    cell: ({ row }) => <TextCell>
-      {row.getValue("emailVerified") === 'verified' ? 
-        <CircleCheck className="w-4 h-4 text-green-500/60"/> : 
-        <CircleX className="w-4 h-4 text-destructive/60"/>}
-    </TextCell>,
-    filterFn: standardFilterFn
-  },
-  {
-    accessorKey: "authType",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
-    cell: ({ row }) => <BadgeCell badges={[row.getValue("authType")]} />,
-    filterFn: standardFilterFn,
-  },
-  {
-    accessorKey: "signedUpAt",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Signed Up At" />,
-    cell: ({ row }) => <DateCell date={row.getValue("signedUpAt")} />,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => <Actions row={row} />,
+    accessorKey: "expiresAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Expires At" />,
+    cell: ({ row }) => <DateCell date={row.original.expiresAt} />,
   },
 ];
 
-export function UserTable(props: { users: ServerUser[] }) {
-  const extendedUsers: ExtendedServerUser[] = useMemo(() => props.users.map((user) => ({
-    ...user,
-    authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
-    emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
-  })), [props.users]);
-
-  return <DataTable data={extendedUsers} columns={columns} toolbarRender={toolbarRender} />;
+export function ApiKeyTable(props: { apiKeys: ApiKeySet[] }) {
+  return <DataTable data={props.apiKeys} columns={columns} toolbarRender={toolbarRender} />;
 }

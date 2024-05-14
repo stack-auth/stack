@@ -12,6 +12,7 @@ import EnvKeys from "@/components/env-keys";
 import { SmartLink } from "@/components/smart-link";
 import { ApiKeySetFirstView } from "@stackframe/stack";
 import { PageLayout } from "../page-layout";
+import { ApiKeyTable } from "@/components/data-table/api-key-table";
 
 
 export default function ApiKeysDashboardClient() {
@@ -30,7 +31,8 @@ export default function ApiKeysDashboardClient() {
         </Button>
       }
     >
-      <ApiKeysTable rows={apiKeySets} />
+      {/* <ApiKeysTable rows={apiKeySets} /> */}
+      <ApiKeyTable apiKeys={apiKeySets} />
 
       <CreateNewDialog
         key={`${isNewApiKeyDialogOpen}`}
