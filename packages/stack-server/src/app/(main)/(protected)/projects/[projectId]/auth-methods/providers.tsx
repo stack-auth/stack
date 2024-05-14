@@ -1,7 +1,7 @@
 "use client";;
 import * as yup from "yup";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { useId, useState } from "react";
+import { useState } from "react";
 import {
   SharedProvider,
   sharedProviders,
@@ -14,11 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { ActionDialog } from "@/components/action-dialog";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import Typography from "@/components/ui/typography";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
 import { InputField, SwitchField } from "@/components/form-fields";
-import { Form } from "@/components/ui/form";
 import { FormDialog } from "@/components/form-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -175,7 +173,18 @@ export function ProviderSettingSwitch(props: Props) {
         label={
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
-            {isShared && enabled && <Badge variant="outline">shared keys</Badge>}
+            {isShared && enabled && 
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline">shared keys</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Shared keys are created by the Stack team for easy development experience
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            }
           </div>
         }
         checked={enabled}

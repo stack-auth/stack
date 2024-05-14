@@ -12,6 +12,7 @@ import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
+import Typography from "../ui/typography";
 
 type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -58,8 +59,10 @@ function EditUserDialog(props: {
     title="Edit User"
     formSchema={userFormSchema}
     defaultValues={defaultValues}
+    okButton={{ label: "Save" }}
     render={(form) => (
       <>
+        <Typography variant='secondary'>ID: {props.user.id}</Typography>
         <InputField control={form.control} label="Display Name" name="displayName" />
         
         <div className="flex gap-4 items-end">
