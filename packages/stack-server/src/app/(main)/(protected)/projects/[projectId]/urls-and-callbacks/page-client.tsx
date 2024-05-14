@@ -32,11 +32,7 @@ function EditDialog(props: {
   const defaultValues = useMemo(() => {
     if (props.editIndex !== undefined) {
       const domain = props.domains[props.editIndex];
-      console.log(domain);
-      return {
-        domain: domain.domain,
-        handler: domain.handlerPath,
-      };
+      return domain;
     } else {
       return { domain: '', handlerPath: '/handler' };
     }
@@ -46,7 +42,9 @@ function EditDialog(props: {
     domain: yup.string()
       .matches(/^https?:\/\//, "Domain must start with http:// or https://")
       .url("Domain must a valid URL")
-      .notOneOf([...props.domains].map(({ domain }) => domain), "Domain already exists")
+      .notOneOf(props.domains
+        .filter((_, i) => i !== props.editIndex)
+        .map(({ domain }) => domain), "Domain already exists")
       .required(),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")

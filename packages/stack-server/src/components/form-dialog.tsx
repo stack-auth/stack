@@ -33,6 +33,8 @@ export function FormDialog<F extends FieldValues>(
       form.reset();
       if (result !== 'prevent-close') {
         setOpenState(false);
+        await props.onClose?.();
+        await props.onOpenChange?.(false);
       }
     } finally {
       setSubmitting(false);
@@ -52,7 +54,12 @@ export function FormDialog<F extends FieldValues>(
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
-        props: { form: formId, type: "submit", loading: submitting, ...((typeof props.okButton == "boolean") ? {} : props.okButton?.props) },
+        props: { 
+          form: formId, 
+          type: "submit", 
+          loading: submitting, 
+          ...((typeof props.okButton == "boolean") ? {} : props.okButton?.props) 
+        },
       }}
     >
       <Form {...form}>

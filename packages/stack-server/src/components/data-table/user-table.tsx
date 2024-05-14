@@ -85,10 +85,7 @@ function EditUserDialog(props: {
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
       </>
     )}
-    onSubmit={async (values) => {
-      await props.user.update(values);
-      props.onOpenChange(false);
-    }}
+    onSubmit={async (values) => await props.user.update(values)}
     cancelButton
   />;
 }
