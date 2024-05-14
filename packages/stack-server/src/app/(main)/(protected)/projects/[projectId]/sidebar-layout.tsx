@@ -136,9 +136,9 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: 'ghost', size: "default" }),
+        buttonVariants({ variant: 'ghost', size: "sm" }),
         selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300"
+        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
       )}
       onClick={onClick}
     >
@@ -161,7 +161,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
               {item.name}
             </Typography>;
           } else if (item.type === 'item') {
-            return <div key={index} className="flex px-1">
+            return <div key={index} className="flex px-2">
               <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`}/>
             </div>;
           }
@@ -170,7 +170,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
       
       <div className="flex-grow"/>
 
-      <div className="py-2 px-1 flex">
+      <div className="py-2 px-2 flex">
         <NavItem
           onClick={onNavigate}
           item={{
