@@ -1,20 +1,18 @@
 'use client';;
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import * as yup from "yup";
-import { ServerTeam, ServerUser } from '@stackframe/stack';
+import { ServerTeam } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
+import { ActionCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField } from "../form-fields";
+import { InputField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
-import { CircleCheck, CircleX } from "lucide-react";
-import { standardFilterFn } from "./elements/utils";
+import { useRouter } from "next/navigation";
+import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -24,48 +22,33 @@ function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-const userFormSchema = yup.object({
+const teamFormSchema = yup.object({
   displayName: yup.string(),
-  primaryEmail: yup.string().email(),
-  signedUpAt: yup.date().required(),
-  primaryEmailVerified: yup.boolean().required(),
 });
 
-function EditUserDialog(props: { 
-  user: ServerUser,
+function EditDialog(props: { 
+  team: ServerTeam,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
   const defaultValues = {
-    displayName: props.user.displayName || undefined,
-    primaryEmail: props.user.primaryEmail || undefined,
-    primaryEmailVerified: props.user.primaryEmailVerified,
-    signedUpAt: props.user.signedUpAt,
+    displayName: props.team.displayName,
   };
 
   return <FormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
-    title="Edit User"
-    formSchema={userFormSchema}
+    title="Edit Team"
+    formSchema={teamFormSchema}
     defaultValues={defaultValues}
     okButton={{ label: "Save" }}
     render={(form) => (
       <>
-        <Typography variant='secondary'>ID: {props.user.id}</Typography>
+        <Typography variant='secondary'>ID: {props.team.id}</Typography>
         <InputField control={form.control} label="Display Name" name="displayName" />
-        
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" />
-          </div>
-          <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" noCard />
-        </div>
-
-        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
       </>
     )}
-    onSubmit={async (values) => await props.user.update(values)}
+    onSubmit={async (values) => await props.team.update(values)}
     cancelButton
   />;
 }
@@ -84,22 +67,31 @@ function DeleteDialog(props: {
     okButton={{ label: "Delete Team", onClick: async () => { await props.team.delete(); } }}
     confirmText="I understand that this action cannot be undone and all the team members will be also removed from the team."
   >
-    {`Are you sure you want to delete the team ${props.team.displayName ? '"' + props.team.displayName + '"' : ''} with ID ${props.team.id}?`}
+    {`Are you sure you want to delete the team "${props.team.displayName}" with ID ${props.team.id}?`}
   </ActionDialog>;
 }
 
 function Actions({ row }: { row: Row<ServerTeam> }) {
+  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const adminApp = useAdminApp();
+
   return (
     <>
-      {/* <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} /> */}
+      <EditDialog team={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteDialog team={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ActionCell
-        items={[{
-          item: "Edit",
-          onClick: () => setIsEditModalOpen(true),
-        }]}
+        items={[
+          {
+            item: "View Members",
+            onClick: () => router.push(`/projects/${adminApp.projectId}/teams/${row.original.id}`),
+          },
+          {
+            item: "Edit",
+            onClick: () => setIsEditModalOpen(true),
+          }
+        ]}
         dangerItems={[{
           item: "Delete",
           onClick: () => setIsDeleteModalOpen(true),
