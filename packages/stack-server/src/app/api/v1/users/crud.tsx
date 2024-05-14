@@ -31,6 +31,8 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       displayName: crud.displayName,
       clientMetadata: crud.clientMetadata,
       projectId,
+      primaryEmail: crud.primaryEmail,
+      primaryEmailVerified: crud.primaryEmailVerified,
     };
   },
   prismaToCrud: async (prisma, { auth }) => {    
