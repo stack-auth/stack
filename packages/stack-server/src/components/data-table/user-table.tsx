@@ -155,11 +155,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
-    cell: ({ row }) => <TextCell>
-      {row.getValue("emailVerified") === 'verified' ? 
-        <CircleCheck className="w-4 h-4 text-green-500/60"/> : 
-        <CircleX className="w-4 h-4 text-destructive/60"/>}
-    </TextCell>,
+    cell: ({ row }) => <BadgeCell badges={[row.getValue("emailVerified") === 'verified' ? '✓' : '✗']} />,
     filterFn: standardFilterFn
   },
   {
