@@ -1,5 +1,13 @@
 # @stackframe/stack-shared
 
+## 2.4.3
+
+### Patch Changes
+
+- CRUD schemas
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.2
+
 ## 2.4.2
 
 ### Patch Changes

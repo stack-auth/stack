@@ -1,4 +1,4 @@
-import { UserJson, ServerUserJson } from "@stackframe/stack-shared";
+import { UserJson, ServerUserJson, KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { getProject } from "@/lib/projects";
@@ -61,6 +61,7 @@ export async function updateServerUser(
   try {
     user = await prismaClient.projectUser.update({
       where: {
+        projectId: projectId,
         projectId_projectUserId: {
           projectId,
           projectUserId: userId,
@@ -89,14 +90,22 @@ export async function updateServerUser(
 }
 
 export async function deleteServerUser(projectId: string, userId: string): Promise<void> {
-  await prismaClient.projectUser.delete({
-    where: {
-      projectId_projectUserId: {
-        projectId,
-        projectUserId: userId,
+  try {
+    await prismaClient.projectUser.delete({
+      where: {
+        projectId: projectId,
+        projectId_projectUserId: {
+          projectId,
+          projectUserId: userId,
+        },
       },
-    },
-  });
+    });
+  } catch (e) {
+    if ((e as any)?.code === 'P2025') {
+      throw new KnownErrors.UserNotFound();
+    }
+    throw e;
+  }
 }
 
 function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {

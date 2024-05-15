@@ -1,5 +1,13 @@
 # cjs-test
 
+## 0.2.5
+
+### Patch Changes
+
+- CRUD schemas
+- Updated dependencies
+  - @stackframe/stack@2.4.5
+
 ## 0.2.4
 
 ### Patch Changes

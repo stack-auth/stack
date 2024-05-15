@@ -11,6 +11,7 @@ const corsAllowedRequestHeaders = [
   'x-stack-project-id',
   'x-stack-override-error-status',
   'x-stack-random-nonce',  // used to forcefully disable some caches
+  'x-stack-client-version',
   
   // Project auth
   'x-stack-request-type',
