@@ -113,7 +113,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
+    cell: ({ row }) => <TextCell size={160}>{row.getValue("id")}</TextCell>,
   },
   {
     accessorKey: "description",
