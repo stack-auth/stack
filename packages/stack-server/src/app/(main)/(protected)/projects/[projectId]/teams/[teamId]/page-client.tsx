@@ -17,11 +17,7 @@ export default function ClientPage(props: { teamId: string }) {
   
   return (
     <PageLayout title="Team Members" description={`Manage team members of "${team.displayName}"`}>
-
-      <Paragraph body>
-        {/* <MemberTable rows={users || []} team={team} /> */}
-        <TeamMemberTable members={users || []} team={team} />
-      </Paragraph>
+      <TeamMemberTable members={users || []} team={team} />
     </PageLayout>
   );
 }
