@@ -1,49 +1,41 @@
 "use client";
 
-import { Box, Sheet, Stack } from "@mui/joy";
 import { Logo } from "@/components/logo";
-import { Paragraph } from "@/components/paragraph";
-import { SmartLink } from "@/components/smart-link";
+import { Link } from "@/components/link";
 import { useIsHydrated } from "@/hooks/use-is-hydrated";
+import Typography from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 export default function NotFound() {
+  const router = useRouter();
   const isHydrated = useIsHydrated();
   const customBasePath = process.env.__NEXT_ROUTER_BASEPATH;
   const isDevelopment = process.env.NODE_ENV === "development";
   const showBasePathDisclaimer = isDevelopment && isHydrated && customBasePath && !window.location.pathname.startsWith(customBasePath);
 
   return (
-    <Sheet
-      component={Stack}
-      width="100vw"
-      height="100vh"
-      justifyContent="center"
-      alignItems="center"
-      textAlign="center"
-    >
-      <Box
-        component="main"
-        maxWidth="400px"
-      >
-        <Paragraph body>
-          <Logo width={128} />
-        </Paragraph>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-4">
+      <main className="max-w-lg flex flex-col gap-4 items-center text-center">
+        <Logo width={128} />
 
-        <Paragraph h1>
+        <Typography type='h1'>
           Oh no! 404
-        </Paragraph>
+        </Typography>
 
-        <Paragraph body>
-          Page not found.<br />
-          <SmartLink href="/">Go back home</SmartLink>
-        </Paragraph>
+        <Typography>
+          Page not found.
+        </Typography>
+
+        <Button onClick={() => runAsynchronously(router.push('/'))}>Go back home</Button>
 
         {showBasePathDisclaimer && (
-          <Paragraph body>
-            [Developer hint: This is probably because the base path was set to <SmartLink href="/">{customBasePath}</SmartLink> in next.config.js, but your current path is outside of that.]<br />
-          </Paragraph>
+          <Typography variant="secondary">
+            Developer hint: This is probably because the base path was set to <Link href="/">{customBasePath}</Link> in next.config.js, but your current path is outside of that.<br />
+          </Typography>
         )}
-      </Box>
-    </Sheet>
+      </main>
+    </div>
   );
 }
