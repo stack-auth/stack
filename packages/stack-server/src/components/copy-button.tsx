@@ -1,9 +1,9 @@
-"use client";;
-import { useSnackbar } from "@/hooks/use-snackbar";
+"use client";
 import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useToast } from "./ui/use-toast";
 
 const CopyButton = React.forwardRef<
   React.ElementRef<typeof Button>,
@@ -11,7 +11,7 @@ const CopyButton = React.forwardRef<
     content: string,
   }
 >((props, ref) => {
-  const snackbar = useSnackbar();
+  const { toast } = useToast();
 
   return (
     <Button
@@ -23,9 +23,9 @@ const CopyButton = React.forwardRef<
         await props.onClick?.(...args);
         try {
           await navigator.clipboard.writeText(props.content);
-          snackbar.showSuccess('Copied to clipboard!');
+          toast({ description: 'Copied to clipboard!' });
         } catch (e) {
-          snackbar.showError('Failed to copy to clipboard!');
+          toast({ description: 'Failed to copy to clipboard', variant: 'destructive' });
         }
       }}
     >

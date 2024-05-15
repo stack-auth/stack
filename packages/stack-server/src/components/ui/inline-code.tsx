@@ -4,14 +4,14 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import { hasClickableParent } from "@stackframe/stack-shared/dist/utils/dom";
 import { getNodeText } from "@stackframe/stack-shared/dist/utils/react";
-import { useSnackbar } from "@/hooks/use-snackbar";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { useToast } from "./use-toast";
 
 const InlineCode = React.forwardRef<
   React.ElementRef<"code">,
   React.ComponentPropsWithoutRef<"code">
 >((props, ref) => {
-  const snackbar = useSnackbar();
+  const { toast }  = useToast();
 
   return <code 
     ref={ref} 
@@ -25,9 +25,9 @@ const InlineCode = React.forwardRef<
         runAsynchronously(async () => {
           try {
             await navigator.clipboard.writeText(getNodeText(props.children));
-            snackbar.showSuccess('Copied to clipboard!');
+            toast({ description: 'Copied to clipboard!' });
           } catch (e) {
-            snackbar.showError('Failed to copy to clipboard!');
+            toast({ description: 'Failed to copy to clipboard', variant: 'destructive' });
           }
         });
       }
