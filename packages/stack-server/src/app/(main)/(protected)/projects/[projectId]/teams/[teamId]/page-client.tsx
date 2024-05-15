@@ -1,5 +1,4 @@
-"use client";;
-import { Paragraph } from "@/components/paragraph";
+"use client";
 import { useAdminApp } from '../../use-admin-app';
 import { notFound } from 'next/navigation';
 import { PageLayout } from '../../page-layout';
