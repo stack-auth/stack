@@ -8,9 +8,10 @@ import { Calendar } from "./ui/calendar";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "./ui/checkbox";
 
 
-export function Label({ required, children }: { children?: string, required?: boolean }) {
+export function Label({ required, children }: { children?: React.ReactNode, required?: boolean }) {
   return <FormLabel>{children} {required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}</FormLabel>;
 }
 
@@ -97,13 +98,16 @@ export function SmallSwitchField<F extends FieldValues>(props: {
   );
 }
 
-export function ListSwitchField<F extends FieldValues>(props: { 
+export function SwitchListField<F extends FieldValues>(props: { 
+  variant: "switch" | "checkbox",
   control: Control<F>, 
   name: Path<F>, 
   label: string, 
   options: { value: string, label: string }[], 
   required?: boolean,
 }) {
+  const Trigger = props.variant === "checkbox" ? Checkbox : Switch;
+
   return (
     <FormField
       control={props.control}
@@ -116,7 +120,7 @@ export function ListSwitchField<F extends FieldValues>(props: {
               <div className="flex flex-row items-center justify-between" key={provider.value}>
                 <Label required={props.required}>{provider.label}</Label>
                 <FormControl>
-                  <Switch
+                  <Trigger
                     checked={field.value.includes(provider.value)}
                     onCheckedChange={(checked) => {
                       if (checked) {

@@ -1,6 +1,11 @@
+import { Label } from "@/components/form-fields";
 import { Paragraph } from "@/components/paragraph";
-import { Box, Checkbox, Divider, FormLabel, List, Stack } from "@mui/joy";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ServerTeam, ServerUser } from "@stackframe/stack";
 import { ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { useEffect, useMemo, useState } from "react";
+import { Control, FieldValues, Path } from "react-hook-form";
 
 // used to represent the permission being edited, so we don't need to update the id all the time
 const PLACEHOLDER_ID = 'f2j1290ajf9812elk'; 
@@ -40,7 +45,7 @@ export class PermissionGraph {
         containPermissionIds: value.containPermissionIds.map(id => id === permissionId ? permission.id : id)
       };
     }
-    
+
     return new PermissionGraph(Object.values(permissions));
   }
 
@@ -112,56 +117,101 @@ export class PermissionGraph {
   }
 }
 
-export function PermissionList(props : {
-  selectedPermissionId?: string,
-  permissionGraph: PermissionGraph,
-  updatePermission: (permissionId: string, permission: ServerPermissionDefinitionJson) => void,
-}) {
-  const graph = props.permissionGraph;
+export function PermissionListField<F extends FieldValues>(props: {
+  control: Control<F>,
+  name: Path<F>,
+  permissions: ServerPermissionDefinitionJson[],
+  type: 'new' | 'edit' | 'edit-user',
+} & ({
+    type: 'new',
+  } | {
+    type: 'edit',
+    selectedPermissionId: string,
+  } | {
+    type: 'edit-user',
+    user: ServerUser,
+    team: ServerTeam,
+  })) {
+  const [graph, setGraph] = useState<PermissionGraph>();
+
+  useEffect(() => {
+    async function load() {
+      const newGraph = new PermissionGraph(props.permissions);
+
+      switch (props.type) {
+        case 'edit-user': {
+          setGraph((new PermissionGraph(props.permissions)).addPermission(
+            (await props.user.listPermissions(props.team, { direct: true })).map(permission => permission.id)
+          ));
+          break;
+        }
+        case 'edit': {
+          setGraph(newGraph.replacePermission(props.selectedPermissionId));
+          break;
+        }
+        case 'new': {
+          setGraph(newGraph.addPermission());
+          break;
+        }
+      }
+    }
+    load().catch(console.error);
+  // @ts-ignore
+  }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team]);
+
+  if (!graph) return null;
+
   const currentPermission = graph.permissions[PLACEHOLDER_ID];
   
   return (
-    <>
-      <FormLabel>Contains permissions</FormLabel>
-      <List sx={{ maxHeight: 250, overflow: 'auto' }}>
-        {Object.values(graph.permissions).map((permission) => {
-          if (permission.id === PLACEHOLDER_ID) return null;
+    <FormField
+      control={props.control}
+      name={props.name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Contained Permissions</FormLabel>
+          <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4">
+            {Object.values(graph.permissions).map(permission => {
+              if (permission.id === PLACEHOLDER_ID) return null;
 
-          const selected = currentPermission.containPermissionIds.includes(permission.id);
-          const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
-          const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
-            id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.containPermissionIds.includes(id)
-          );
+              const selected = currentPermission.containPermissionIds.includes(permission.id);
+              const contain = graph.hasPermission(PLACEHOLDER_ID, permission.id);
+              const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
+                id => id !== permission.id && id !== PLACEHOLDER_ID && currentPermission.containPermissionIds.includes(id)
+              );
+              const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
+              return (
+                <div className="flex flex-row items-center justify-between" key={permission.id}>
+                  <Label>
+                    {permission.id} 
+                    {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
+                  </Label>
+                  <FormControl>
+                    <Checkbox
+                      checked={selected}
+                      onCheckedChange={(checked) => {
+                        let newContains;
+                        if (checked) {
+                          newContains = [...field.value, permission.id];
+                        } else {
+                          newContains = field.value.filter((v: any) => v !== permission.id);
+                        }
 
-          return (
-            <Box key={permission.id}>
-              <Stack spacing={1} direction={"row"} alignItems={"center"}>
-                <Checkbox
-                  checked={selected}
-                  // variant={inheritedFrom.length > 0 ? "solid" : "outlined"}
-                  // color={'primary'}
-                  onChange={(event) => {
-                    const checked = event.target.checked;
-                    const oldContains = currentPermission.containPermissionIds.filter(id => id !== permission.id);
-                    props.updatePermission(
-                      PLACEHOLDER_ID,
-                      {
-                        ...currentPermission,
-                        containPermissionIds: checked ? [...oldContains, permission.id] : oldContains
-                      }
-                    );
-                  }}
-                />
-                <Paragraph body>
-                  {permission.id}
-                  {contain && ancestors.length > 0 && <span> (from {ancestors.join(', ')})</span>}
-                </Paragraph>
-              </Stack>
-              <Divider sx={{ margin: 1 }} />
-            </Box>
-          );
-        })}
-      </List>
-    </>
+                        field.onChange(newContains);
+                        setGraph(graph.updatePermission(PLACEHOLDER_ID, {
+                          ...currentPermission,
+                          containPermissionIds: newContains
+                        }));
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </div>
+              );
+            })}
+          </div>
+        </FormItem>
+      )}
+    />
   );
 }

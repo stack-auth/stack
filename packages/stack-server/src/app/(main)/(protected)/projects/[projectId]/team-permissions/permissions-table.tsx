@@ -26,7 +26,7 @@ import {
 import { Icon } from '@/components/icon';
 import { Button } from "@/components/ui/button";
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { PermissionGraph, PermissionList } from './permission-list';
+import { PermissionGraph, PermissionListField } from '../../../../../../components/permission-field';
 import { ServerPermissionDefinitionJson } from '@stackframe/stack-shared/dist/interface/serverInterface';
 
 export function PermissionsTable(props: {
@@ -229,7 +229,7 @@ function EditPermissionModal(props: { open: boolean, onClose: () => void, select
                 <Input name="description" placeholder="Description" defaultValue={selectedPermission.description} />
               </FormControl>
               {permissions.length > 0 &&
-              <PermissionList 
+              <PermissionListField 
                 updatePermission={
                   (permissionId, permission) => {
                     setGraph(graph.updatePermission(permissionId, permission));

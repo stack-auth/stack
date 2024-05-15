@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
-import { InputField, ListSwitchField } from "@/components/form-fields";
+import { InputField, SwitchListField } from "@/components/form-fields";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -83,7 +83,7 @@ export default function PageClient () {
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 
-              <ListSwitchField
+              <SwitchListField
                 control={form.control}
                 name="signInMethods"
                 label="Sign-In Methods"
