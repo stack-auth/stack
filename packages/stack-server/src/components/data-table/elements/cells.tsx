@@ -31,10 +31,12 @@ export function AvatarCell(props: { src?: string }) {
   );
 }
 
-export function DateCell(props: { date: Date }) {
+export function DateCell(props: { date: Date, ignoreAfterYears?: number }) {
+  const ignore = !!props.ignoreAfterYears && new Date(new Date().setFullYear(new Date().getFullYear() + props.ignoreAfterYears)) < props.date;
+  const timeString = props.date.toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'});
   return (
     <TextCell size={140}>
-      {props.date.toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
+      {ignore ? 'Never' : timeString}
     </TextCell>
   );
 }

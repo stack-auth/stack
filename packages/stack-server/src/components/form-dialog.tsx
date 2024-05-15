@@ -10,7 +10,7 @@ import { Form } from "@/components/ui/form";
 
 export function FormDialog<F extends FieldValues>(
   props: Omit<ActionDialogProps, 'children'> & { 
-    defaultValues: Partial<F>, 
+    defaultValues?: Partial<F>,
     onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
     render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
     formSchema: yup.ObjectSchema<F>,

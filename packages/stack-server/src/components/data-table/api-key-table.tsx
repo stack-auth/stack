@@ -91,7 +91,7 @@ const columns: ColumnDef<ExtendedApiKeySet>[] =  [
   {
     accessorKey: "expiresAt",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Expires At" />,
-    cell: ({ row }) => <DateCell date={row.original.expiresAt} />,
+    cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={100} />
   },
   {
     id: "actions",

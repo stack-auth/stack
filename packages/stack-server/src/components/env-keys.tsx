@@ -17,7 +17,7 @@ export default function EnvKeys(props: {
         <TabsTrigger value='env' className="flex-grow">Next.js</TabsTrigger>
         <TabsTrigger value='keys' className="flex-grow">API Keys</TabsTrigger>
       </TabsList>
-      <TabsContent value={'env'} className="pt-4 pb-6">
+      <TabsContent value={'env'}>
         <CopyField
           height={160}
           value={Object.entries({
@@ -29,7 +29,7 @@ export default function EnvKeys(props: {
           label="Next.js Environment variables"
         />
       </TabsContent>
-      <TabsContent value={'keys'} className="pt-4 pb-6">
+      <TabsContent value={'keys'}>
         <div className="flex flex-col gap-2">
           {props.publishableClientKey && (
             <CopyField

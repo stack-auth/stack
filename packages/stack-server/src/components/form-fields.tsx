@@ -9,9 +9,10 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "./ui/checkbox";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 
-export function Label({ required, children }: { children?: React.ReactNode, required?: boolean }) {
+export function FieldLabel({ required, children }: { children?: React.ReactNode, required?: boolean }) {
   return <FormLabel>{children} {required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}</FormLabel>;
 }
 
@@ -29,7 +30,7 @@ export function InputField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <Label required={props.required}>{props.label}</Label>
+          <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
             <Input {...field} placeholder={props.placeholder} />
           </FormControl>
@@ -57,7 +58,7 @@ export function SwitchField<F extends FieldValues>(props: {
             "flex flex-row items-center justify-between p-2 gap-2",
             props.noCard ? "" : "rounded-lg border p-3 shadow-sm"
           )}>
-            <Label required={props.required}>{props.label}</Label>
+            <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
               <Switch
                 checked={field.value}
@@ -84,7 +85,7 @@ export function SmallSwitchField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <Label required={props.required}>{props.label}</Label>
+          <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
             <Switch
               checked={field.value}
@@ -118,7 +119,7 @@ export function SwitchListField<F extends FieldValues>(props: {
           <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4">
             {props.options.map(provider => (
               <div className="flex flex-row items-center justify-between" key={provider.value}>
-                <Label required={props.required}>{provider.label}</Label>
+                <FieldLabel required={props.required}>{provider.label}</FieldLabel>
                 <FormControl>
                   <Trigger
                     checked={field.value.includes(provider.value)}
@@ -153,7 +154,7 @@ export function DateField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <Label required={props.required}>{props.label}</Label>
+          <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -178,6 +179,44 @@ export function DateField<F extends FieldValues>(props: {
               />
             </PopoverContent>
           </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+export function SelectField<F extends FieldValues>(props: {
+  control: Control<F>,
+  name: Path<F>,
+  label: string,
+  options: { value: string, label: string }[],
+  placeholder?: string,
+  required?: boolean,
+}) {
+  return (
+    <FormField
+      control={props.control}
+      name={props.name}
+      render={({ field }) => (
+        <FormItem>
+          <FieldLabel required={props.required}>{props.label}</FieldLabel>
+          <FormControl>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <SelectTrigger>
+                <SelectValue placeholder={props.placeholder}/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {props.options.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </FormControl>
           <FormMessage />
         </FormItem>
       )}

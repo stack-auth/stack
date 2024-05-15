@@ -43,14 +43,15 @@ export function OnboardingDialog() {
       open={!!apiKey}
       onClose={() => setApiKey(null)}
     >
-      {/* TODO: Add document link */}
-      <Typography className="mb-4">
+      <div className="flex flex-col gap-2">
+        <Typography className="mb-4">
           Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <Link target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>getting started guide</Link>.
-      </Typography>
-      <EnvKeys projectId={project.id} publishableClientKey={apiKey?.publishableClientKey} secretServerKey={apiKey?.secretServerKey} />
-      <Typography type="label">
-        Note that these keys will only be shown once. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
-      </Typography>
+        </Typography>
+        <EnvKeys projectId={project.id} publishableClientKey={apiKey?.publishableClientKey} secretServerKey={apiKey?.secretServerKey} />
+        <Typography type="label">
+          Note that these keys will only be shown once. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
+        </Typography>
+      </div>
     </ActionDialog>
   );
 }

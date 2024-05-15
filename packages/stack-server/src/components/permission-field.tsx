@@ -1,4 +1,4 @@
-import { Label } from "@/components/form-fields";
+import { FieldLabel } from "@/components/form-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ServerTeam, ServerUser } from "@stackframe/stack";
@@ -181,10 +181,10 @@ export function PermissionListField<F extends FieldValues>(props: {
               const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
               return (
                 <div className="flex flex-row items-center justify-between" key={permission.id}>
-                  <Label>
+                  <FieldLabel>
                     {permission.id} 
                     {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
-                  </Label>
+                  </FieldLabel>
                   <FormControl>
                     <Checkbox
                       checked={selected}
