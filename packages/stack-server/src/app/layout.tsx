@@ -6,13 +6,13 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/react";
 import { Inter as FontSans } from "next/font/google";
-import ThemeProvider from '@/theme';
 import { StyleLink } from '@/components/style-link';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { stackServerApp } from '@/stack';
 import { StackProvider, StackTheme } from '@stackframe/stack';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: {

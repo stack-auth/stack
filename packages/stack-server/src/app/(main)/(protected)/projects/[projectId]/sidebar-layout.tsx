@@ -17,7 +17,6 @@ import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
-import { useColorScheme } from "@mui/joy";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import {
@@ -30,6 +29,7 @@ import {
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
+import { useTheme } from "next-themes";
 
 type Label = {
   name: string,
@@ -258,7 +258,7 @@ export function HeaderBreadcrumb({
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { mode, setMode } = useColorScheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="w-full flex">
@@ -290,7 +290,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
               Feedback
             </Button>
-            <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
+            <UserButton colorModeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
         <div className="py-4 px-4 md:px-6">

@@ -3,11 +3,11 @@
 import { UserButton } from "@stackframe/stack";
 import { Logo } from "./logo";
 import Link from "next/link";
-import { useColorScheme } from "@mui/joy";
 import Typography from "./ui/typography";
+import { useTheme } from "next-themes";
 
 export function Navbar({ ...props }) {
-  const { mode, setMode } = useColorScheme();
+  const { theme, setTheme } = useTheme();
   return (
     <header
       className={`sticky top-0 z-30 flex items-center justify-between border-b bg-white dark:bg-black px-4 ${props.className || ""}`}
@@ -25,7 +25,7 @@ export function Navbar({ ...props }) {
             <Typography type='label'>Docs</Typography>
           </Link>
         </div>
-        <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')}/>
+        <UserButton colorModeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}/>
       </div>
     </header>
   );
