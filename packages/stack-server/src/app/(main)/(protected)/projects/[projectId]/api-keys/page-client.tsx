@@ -1,6 +1,5 @@
 "use client";;
 import { useState } from "react";
-import { Typography } from "@mui/joy";
 import { Button } from "@/components/ui/button";
 import { useAdminApp } from "../use-admin-app";
 import EnvKeys from "@/components/env-keys";
@@ -11,6 +10,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import * as yup from "yup";
 import { ActionDialog } from "@/components/action-dialog";
+import Typography from "@/components/ui/typography";
 
 
 export default function ApiKeysDashboardClient() {

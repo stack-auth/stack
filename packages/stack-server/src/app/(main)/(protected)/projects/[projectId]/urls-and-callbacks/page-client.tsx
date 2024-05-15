@@ -1,7 +1,6 @@
 "use client";;
 import * as yup from "yup";
 import React, { useMemo } from "react";
-import { Paragraph } from "@/components/paragraph";
 import { ActionDialog } from "@/components/action-dialog";
 import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
@@ -14,6 +13,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField } from "@/components/form-fields";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ActionCell } from "@/components/data-table/elements/cells";
+import Typography from "@/components/ui/typography";
 
 export const domainFormSchema = yup.object({
   domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url("Domain must a valid URL").required(),
@@ -134,12 +134,12 @@ function DeleteDialog(props: {
       }}
       cancelButton
     >
-      <Paragraph body sx={{ mt: 0 }}>
+      <Typography>
         Do you really want to remove <b>{props.domain}</b> from the allow list ?
-      </Paragraph>
-      <Paragraph body sx={{ mb: 0 }}>
+      </Typography>
+      <Typography>
         Your project will no longer be able to receive callbacks from this domain.
-      </Paragraph>
+      </Typography>
     </ActionDialog>
   );
 }
