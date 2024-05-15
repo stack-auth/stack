@@ -1,16 +1,13 @@
-"use client";
-
+"use client";;
 import { ActionDialog } from "@/components/action-dialog";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
-import { Stack } from "@mui/joy";
-import { Paragraph } from "@/components/paragraph";
 import EnvKeys from "@/components/env-keys";
-import { SmartLink } from "@/components/smart-link";
-import { InlineCode } from "@/components/inline-code";
+import { InlineCode } from "@/components/ui/inline-code";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ApiKeySetFirstView } from "@stackframe/stack";
-import { SquarePlus } from "lucide-react";
+import Typography from "@/components/ui/typography";
+import { Link } from "@/components/link";
 
 export function OnboardingDialog() {
   const stackAdminApp = useAdminApp();
@@ -38,7 +35,6 @@ export function OnboardingDialog() {
 
   return (
     <ActionDialog
-      titleIcon={SquarePlus}
       title="Onboarding"
       okButton={{
         label: "Continue",
@@ -47,16 +43,15 @@ export function OnboardingDialog() {
       open={!!apiKey}
       onClose={() => setApiKey(null)}
     >
-      {/* TODO: Add document link */}
-      <Stack spacing={1}>
-        <Paragraph body>
-          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file; please see the  <SmartLink target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL}>Getting Started guide</SmartLink>.
-        </Paragraph>
+      <div className="flex flex-col gap-2">
+        <Typography className="mb-4">
+          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <Link target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>getting started guide</Link>.
+        </Typography>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey?.publishableClientKey} secretServerKey={apiKey?.secretServerKey} />
-        <Paragraph body>
-          Note that these keys will only be shown right now, so copy them to a safe place. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
-        </Paragraph>
-      </Stack>
+        <Typography type="label">
+          Note that these keys will only be shown once. If you lose them, you can always generate a new one on the API Keys section of the dashboard.
+        </Typography>
+      </div>
     </ActionDialog>
   );
 }

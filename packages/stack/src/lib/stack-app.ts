@@ -434,8 +434,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return permissions.find((p) => p.id === permissionId) ?? null;
       },
       async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
-        const permissions = await this.listPermissions(scope);
-        return permissions.some((p) => p.id === permissionId);
+        return (await this.getPermission(scope, permissionId)) !== null;
       },
       toJson() {
         return json;

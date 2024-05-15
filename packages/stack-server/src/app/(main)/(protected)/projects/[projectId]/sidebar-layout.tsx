@@ -17,9 +17,8 @@ import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
-import { useColorScheme } from "@mui/joy";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,6 +29,7 @@ import {
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
+import { useTheme } from "next-themes";
 
 type Label = {
   name: string,
@@ -81,7 +81,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: ["Team", "Members"],
+    name: ["Teams", "Members"],
     regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
   },
@@ -243,9 +243,12 @@ export function HeaderBreadcrumb({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           {selectedItemNames.map((name, index) => (
-            <BreadcrumbItem key={index}>
-              <BreadcrumbPage>{name}</BreadcrumbPage>
-            </BreadcrumbItem>
+            index < selectedItemNames.length - 1 ?
+              <Fragment key={index}>
+                <BreadcrumbItem>{name}</BreadcrumbItem>
+                <BreadcrumbSeparator/>
+              </Fragment> :
+              <BreadcrumbPage key={index}>{name}</BreadcrumbPage>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
@@ -255,7 +258,7 @@ export function HeaderBreadcrumb({
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { mode, setMode } = useColorScheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="w-full flex">
@@ -287,7 +290,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
               Feedback
             </Button>
-            <UserButton colorModeToggle={() => setMode(mode === 'light' ? 'dark' : 'light')} />
+            <UserButton colorModeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
         <div className="py-4 px-4 md:px-6">

@@ -1,9 +1,8 @@
-import { Button, Card, Stack } from "@mui/joy";
-import { Header } from '@/components/header';
-import { Paragraph } from "@/components/paragraph";
-import { InlineCode } from "@/components/inline-code";
+import { InlineCode } from "@/components/ui/inline-code";
 import { Confetti } from "@/components/confetti";
-import { SmartLink } from "@/components/smart-link";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import Typography from "@/components/ui/typography";
+import Actions from "./actions";
 
 export const metadata = {
   title: "Projects",
@@ -27,31 +26,26 @@ export default function WizardCongratsPage() {
           }
         `}
       </style>
-      <Stack alignItems="center" justifyContent="center" minHeight="100vh">
-        <Card>
-          <Stack alignItems="center" justifyContent="center">
-            <Paragraph h1>
-              Congrats! 🎉
-            </Paragraph>
-            <Paragraph body maxWidth="600px" textAlign="center">
+      <div className="flex items-center justify-center min-h-screen text-center">
+        <Card className="max-w-lg">
+          <CardHeader>
+            <Typography type='h1'>
+                Congrats! 🎉
+            </Typography>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <Typography>
               You successfully installed Stack in your project! 🚀
-            </Paragraph>
-            <Paragraph body maxWidth="600px" textAlign="center">
+            </Typography>
+            <Typography>
               Next, please sign up on our dashboard to create a new API key, and paste it into your <InlineCode>.env.local</InlineCode> file.
-            </Paragraph>
-            <Paragraph body alignSelf="end">
-              <Stack direction="row" gap={2}>
-                <Button component={SmartLink} variant="plain" href="https://docs.stack-auth.com" target="_blank">
-                  Visit docs
-                </Button>
-                <Button component={SmartLink} href="/projects">
-                  Continue
-                </Button>
-              </Stack>
-            </Paragraph>
-          </Stack>
+            </Typography>
+          </CardContent>
+          <CardFooter className="flex justify-center mt-4">
+            <Actions />
+          </CardFooter>
         </Card>
-      </Stack>
+      </div>
     </>
   );
 }

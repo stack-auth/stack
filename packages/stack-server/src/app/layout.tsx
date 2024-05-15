@@ -2,17 +2,17 @@ import '../polyfills';
 import './globals.css';
 import React from 'react';
 import type { Metadata } from 'next';
-import {GeistSans} from 'geist/font/sans';
-import {GeistMono} from "geist/font/mono";
-import { SnackbarProvider } from '@/hooks/use-snackbar';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/react";
 import { Inter as FontSans } from "next/font/google";
-import ThemeProvider from '@/theme';
 import { StyleLink } from '@/components/style-link';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { stackServerApp } from '@/stack';
 import { StackProvider, StackTheme } from '@stackframe/stack';
 import { cn } from '@/lib/utils';
+import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: {
@@ -102,14 +102,13 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
         <Analytics />
         <ThemeProvider>
-          <SnackbarProvider>
-            <StackProvider app={stackServerApp}>
-              <StackTheme theme={theme}>
-                {children}
-              </StackTheme>
-            </StackProvider>
-          </SnackbarProvider>
+          <StackProvider app={stackServerApp}>
+            <StackTheme theme={theme}>
+              {children}
+            </StackTheme>
+          </StackProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

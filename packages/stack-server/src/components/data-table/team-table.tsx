@@ -106,7 +106,6 @@ const columns: ColumnDef<ServerTeam>[] =  [
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
-    enableSorting: false,
   },
   {
     accessorKey: "displayName",

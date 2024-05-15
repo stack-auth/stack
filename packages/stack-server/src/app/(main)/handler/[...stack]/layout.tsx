@@ -1,15 +1,12 @@
-import React from 'react';
-import { Header } from '@/components/header';
-import { Box, Stack } from '@mui/joy';
+import { Navbar } from "@/components/navbar";
 
-export default function Layout(props: { children: React.ReactNode }) {
-  const headerHeight = 50;
+export default function Page ({ children } : { children?: React.ReactNode }) {
   return (
-    <Stack direction="column" height='100vh'>
-      <Header headerHeight={headerHeight} />
-      <Box flexGrow={1}>
-        {props.children}
-      </Box>
-    </Stack>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex-grow h-0">
+        {children}
+      </div>
+    </div>
   );
 }

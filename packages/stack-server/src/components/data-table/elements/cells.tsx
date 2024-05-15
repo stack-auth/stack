@@ -31,10 +31,12 @@ export function AvatarCell(props: { src?: string }) {
   );
 }
 
-export function DateCell(props: { date: Date }) {
+export function DateCell(props: { date: Date, ignoreAfterYears?: number }) {
+  const ignore = !!props.ignoreAfterYears && new Date(new Date().setFullYear(new Date().getFullYear() + props.ignoreAfterYears)) < props.date;
+  const timeString = props.date.toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'});
   return (
     <TextCell size={140}>
-      {props.date.toLocaleTimeString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
+      {ignore ? 'Never' : timeString}
     </TextCell>
   );
 }
@@ -82,9 +84,9 @@ export function ActionCell(props: {
   );
 }
 
-export function BadgeCell(props: { badges: string[] }) {
+export function BadgeCell(props: { badges: string[], size?: number }) {
   return (
-    <div className="flex items-center space-x-1">
+    <div className="flex items-center gap-1 flex-wrap">
       {props.badges.map((badge, index) => (
         <Badge key={index} variant="outline">{badge}</Badge>
       ))}
