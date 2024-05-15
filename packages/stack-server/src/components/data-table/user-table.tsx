@@ -1,7 +1,7 @@
 'use client';;
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
-import { ServerUser } from '@stackframe/stack';
+import { ServerPermission, ServerTeam, ServerTeamMember, ServerUser } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
@@ -13,7 +13,6 @@ import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
-import { CircleCheck, CircleX } from "lucide-react";
 import { standardFilterFn } from "./elements/utils";
 
 type ExtendedServerUser = ServerUser & {
@@ -21,7 +20,11 @@ type ExtendedServerUser = ServerUser & {
   emailVerified: 'verified' | 'unverified',
 };
 
-function toolbarRender<TData>(table: Table<TData>) {
+type ExtendedServerUserForTeam = ExtendedServerUser & {
+  permissions: string[],
+};
+
+function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
@@ -45,14 +48,22 @@ function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-const userFormSchema = yup.object({
+function teamMemberToolbarRender<TData>(table: Table<TData>) {
+  return (
+    <>
+      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
+    </>
+  );
+}
+
+const userEditFormSchema = yup.object({
   displayName: yup.string(),
   primaryEmail: yup.string().email(),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
 });
 
-function EditDialog(props: { 
+function EditUserDialog(props: { 
   user: ServerUser,
   open: boolean,
   onOpenChange: (open: boolean) => void,
@@ -68,7 +79,7 @@ function EditDialog(props: {
     open={props.open}
     onOpenChange={props.onOpenChange}
     title="Edit User"
-    formSchema={userFormSchema}
+    formSchema={userEditFormSchema}
     defaultValues={defaultValues}
     okButton={{ label: "Save" }}
     render={(form) => (
@@ -91,7 +102,7 @@ function EditDialog(props: {
   />;
 }
 
-function DeleteDialog(props: {
+function DeleteUserDialog(props: {
   user: ServerUser,
   open: boolean,
   onOpenChange: (open: boolean) => void,
@@ -109,13 +120,13 @@ function DeleteDialog(props: {
   </ActionDialog>;
 }
 
-function Actions({ row }: { row: Row<ExtendedServerUser> }) {
+function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   return (
     <>
-      <EditDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
-      <DeleteDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
+      <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
+      <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ActionCell
         items={[{
           item: "Edit",
@@ -130,57 +141,106 @@ function Actions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
-const columns: ColumnDef<ExtendedServerUser>[] =  [
+const commonColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
+    cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
   },
   {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
-    cell: ({ row }) => <AvatarCell src={row.getValue("profileImageUrl")} />,
+    cell: ({ row }) => <AvatarCell src={row.original.profileImageUrl || undefined} />,
     enableSorting: false,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
-    cell: ({ row }) => <TextCell size={120}>{row.getValue("displayName")}</TextCell>,
+    cell: ({ row }) => <TextCell size={120}>{row.original.displayName}</TextCell>,
   },
   {
     accessorKey: "primaryEmail",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Primary Email" />,
-    cell: ({ row }) => <TextCell size={180}>{row.getValue("primaryEmail")}</TextCell>,
+    cell: ({ row }) => <TextCell size={180}>{row.original.primaryEmail}</TextCell>,
   },
+];
+
+const userColumns: ColumnDef<ExtendedServerUser>[] =  [
+  ...commonColumns,
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
-    cell: ({ row }) => <BadgeCell badges={[row.getValue("emailVerified") === 'verified' ? '✓' : '✗']} />,
+    cell: ({ row }) => <BadgeCell badges={[row.original.emailVerified === 'verified' ? '✓' : '✗']} />,
     filterFn: standardFilterFn
   },
   {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
-    cell: ({ row }) => <BadgeCell badges={[row.getValue("authType")]} />,
+    cell: ({ row }) => <BadgeCell badges={[row.original.authType]} />,
     filterFn: standardFilterFn,
   },
   {
     accessorKey: "signedUpAt",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Signed Up At" />,
-    cell: ({ row }) => <DateCell date={row.getValue("signedUpAt")} />,
+    cell: ({ row }) => <DateCell date={row.original.signedUpAt} />,
   },
   {
     id: "actions",
-    cell: ({ row }) => <Actions row={row} />,
+    cell: ({ row }) => <UserActions row={row} />,
   },
 ];
 
-export function UserTable(props: { users: ServerUser[] }) {
-  const extendedUsers: ExtendedServerUser[] = useMemo(() => props.users.map((user) => ({
+const teamMemberColumns: ColumnDef<ExtendedServerUser>[] = [
+  ...commonColumns,
+];
+
+function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
+  return users.map((user) => ({
     ...user,
     authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
-  })), [props.users]);
+  }));
+}
 
-  return <DataTable data={extendedUsers} columns={columns} toolbarRender={toolbarRender} />;
+
+export function UserTable(props: { users: ServerUser[] }) {
+  const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
+  return <DataTable data={extendedUsers} columns={userColumns} toolbarRender={userToolbarRender} />;
+}
+
+export function TeamMemberTable(props: { members: ServerTeamMember[], team: ServerTeam }) {
+  console.log(props.members.length);
+  // TODO: Optimize this
+  const [users, setUsers] = useState<ServerUser[]>([]);
+  const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});
+
+  const extendedUsers: ExtendedServerUserForTeam[] = useMemo(() => {
+    return extendUsers(users).map((user) => ({
+      ...user,
+      permissions: userPermissions[user.id] || [],
+    }));
+  }, [users, userPermissions]);
+  
+  useEffect(() => {
+    async function load() {
+      const promises = props.members.map(async member => {
+        const user = await member.getUser();
+        const permissions = await user.listPermissions(props.team, { direct: true });
+        return {
+          user,
+          permissions,
+        };
+      });
+      return await Promise.all(promises);
+    }
+    
+    load().then((data) => {
+      setUserPermissions(Object.fromEntries(
+        props.members.map((member, index) => [member.userId, data[index].permissions.map(p => p.id)])
+      ));
+      setUsers(data.map(d => d.user));
+    }).catch(console.error);
+  }, [props.members, props.team]);
+
+  return <DataTable data={extendedUsers} columns={teamMemberColumns} toolbarRender={teamMemberToolbarRender} />;
 }

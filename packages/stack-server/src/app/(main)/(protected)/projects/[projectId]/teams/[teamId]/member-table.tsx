@@ -28,7 +28,7 @@ import { PageLoadingIndicator } from '@/components/page-loading-indicator';
 import { useAdminApp } from '../../use-admin-app';
 import { EditUserModal } from '../../users/users-table';
 import { Paragraph } from '@/components/paragraph';
-import { PermissionGraph, PermissionListField } from '../../../../../../../components/permission-field';
+import { PermissionGraph, PermissionListField } from '@/components/permission-field';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { Button } from "@/components/ui/button";
 
