@@ -209,7 +209,6 @@ export function UserTable(props: { users: ServerUser[] }) {
 }
 
 export function TeamMemberTable(props: { members: ServerTeamMember[], team: ServerTeam }) {
-  console.log(props.members.length);
   // TODO: Optimize this
   const [users, setUsers] = useState<ServerUser[]>([]);
   const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});

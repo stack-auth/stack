@@ -19,7 +19,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
 import { useColorScheme } from "@mui/joy";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -81,7 +81,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: ["Team", "Members"],
+    name: ["Teams", "Members"],
     regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
   },
@@ -243,9 +243,12 @@ export function HeaderBreadcrumb({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           {selectedItemNames.map((name, index) => (
-            <BreadcrumbItem key={index}>
-              <BreadcrumbPage>{name}</BreadcrumbPage>
-            </BreadcrumbItem>
+            index < selectedItemNames.length - 1 ?
+              <Fragment key={index}>
+                <BreadcrumbItem>{name}</BreadcrumbItem>
+                <BreadcrumbSeparator/>
+              </Fragment> :
+              <BreadcrumbPage key={index}>{name}</BreadcrumbPage>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
