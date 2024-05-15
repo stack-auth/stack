@@ -99,7 +99,7 @@ export function SmallSwitchField<F extends FieldValues>(props: {
 }
 
 export function SwitchListField<F extends FieldValues>(props: { 
-  variant: "switch" | "checkbox",
+  variant?: "switch" | "checkbox",
   control: Control<F>, 
   name: Path<F>, 
   label: string, 
