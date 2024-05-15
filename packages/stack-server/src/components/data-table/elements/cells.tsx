@@ -82,9 +82,9 @@ export function ActionCell(props: {
   );
 }
 
-export function BadgeCell(props: { badges: string[] }) {
+export function BadgeCell(props: { badges: string[], size?: number }) {
   return (
-    <div className="flex items-center space-x-1">
+    <div className="flex items-center gap-1 flex-wrap">
       {props.badges.map((badge, index) => (
         <Badge key={index} variant="outline">{badge}</Badge>
       ))}

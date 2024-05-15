@@ -1,14 +1,13 @@
 import { Label } from "@/components/form-fields";
-import { Paragraph } from "@/components/paragraph";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ServerTeam, ServerUser } from "@stackframe/stack";
 import { ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Control, FieldValues, Path } from "react-hook-form";
 
 // used to represent the permission being edited, so we don't need to update the id all the time
-const PLACEHOLDER_ID = 'f2j1290ajf9812elk'; 
+const PLACEHOLDER_ID = 'f2j1290ajf9812elk';
 
 export class PermissionGraph {
   permissions: Record<string, ServerPermissionDefinitionJson>;
@@ -170,7 +169,7 @@ export function PermissionListField<F extends FieldValues>(props: {
       render={({ field }) => (
         <FormItem>
           <FormLabel>Contained Permissions</FormLabel>
-          <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4">
+          <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4 max-h-64 overflow-y-auto">
             {Object.values(graph.permissions).map(permission => {
               if (permission.id === PLACEHOLDER_ID) return null;
 

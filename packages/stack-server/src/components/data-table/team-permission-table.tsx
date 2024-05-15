@@ -1,11 +1,11 @@
 'use client';;
 import { useState } from "react";
 import * as yup from "yup";
-import { ServerTeam } from '@stackframe/stack';
+import { ServerTeam, useStackApp } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { ActionCell, DateCell, TextCell } from "./elements/cells";
+import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
@@ -13,11 +13,12 @@ import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { useRouter } from "next/navigation";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
+import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="displayName" placeholder="Filter by name" />
+      <SearchToolbarItem table={table} keyName="id" placeholder="Filter by ID" />
     </>
   );
 }
@@ -54,24 +55,25 @@ function EditDialog(props: {
 }
 
 function DeleteDialog(props: {
-  team: ServerTeam,
+  permission: PermissionDefinitionJson,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
+  const stackApp = useAdminApp();
   return <ActionDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
-    title="Delete Team"
+    title="Delete Permission"
     danger
     cancelButton
-    okButton={{ label: "Delete Team", onClick: async () => { await props.team.delete(); } }}
-    confirmText="I understand that this action cannot be undone and all the team members will be also removed from the team."
+    okButton={{ label: "Delete Permission", onClick: async () => { await stackApp.deletePermissionDefinition(props.permission.id); } }}
+    confirmText="I understand this will remove the permission from all users and other permissions that contain it."
   >
-    {`Are you sure you want to delete the team "${props.team.displayName}" with ID ${props.team.id}?`}
+    {`Are you sure you want to delete the permission "${props.permission.id}"?`}
   </ActionDialog>;
 }
 
-function Actions({ row }: { row: Row<ServerTeam> }) {
+function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -79,14 +81,10 @@ function Actions({ row }: { row: Row<ServerTeam> }) {
 
   return (
     <>
-      <EditDialog team={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
-      <DeleteDialog team={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
+      {/* <EditDialog team={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} /> */}
+      <DeleteDialog permission={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ActionCell
         items={[
-          {
-            item: "View Members",
-            onClick: () => router.push(`/projects/${adminApp.projectId}/teams/${row.original.id}`),
-          },
           {
             item: "Edit",
             onClick: () => setIsEditModalOpen(true),
@@ -101,21 +99,21 @@ function Actions({ row }: { row: Row<ServerTeam> }) {
   );
 }
 
-const columns: ColumnDef<ServerTeam>[] =  [
+const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
   },
   {
-    accessorKey: "displayName",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
-    cell: ({ row }) => <TextCell size={200}>{row.getValue("displayName")}</TextCell>,
+    accessorKey: "description",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    cell: ({ row }) => <TextCell size={200}>{row.getValue("description")}</TextCell>,
   },
   {
-    accessorKey: "createdAt",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
-    cell: ({ row }) => <DateCell date={row.getValue("createdAt")}></DateCell>,
+    accessorKey: "containPermissionIds",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Contain Permissions" />,
+    cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
   },
   {
     id: "actions",
@@ -123,6 +121,6 @@ const columns: ColumnDef<ServerTeam>[] =  [
   },
 ];
 
-export function TeamTable(props: { teams: ServerTeam[] }) {
-  return <DataTable data={props.teams} columns={columns} toolbarRender={toolbarRender} />;
+export function TeamPermissionTable(props: { permissions: PermissionDefinitionJson[] }) {
+  return <DataTable data={props.permissions} columns={columns} toolbarRender={toolbarRender} />;
 }

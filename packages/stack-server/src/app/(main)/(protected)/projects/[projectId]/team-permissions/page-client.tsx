@@ -8,6 +8,7 @@ import { PermissionListField } from "../../../../../../components/permission-fie
 import { PageLayout } from "../page-layout";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField } from "@/components/form-fields";
+import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
 
 
 export default function ClientPage() {
@@ -25,8 +26,9 @@ export default function ClientPage() {
         </Button>
       }>
 
-      <PermissionsTable rows={permissions} />
-      
+      {/* <PermissionsTable rows={permissions} /> */}
+      <TeamPermissionTable permissions={permissions}/>
+
       <CreateDialog
         open={createPermissionModalOpen}
         onOpenChange={setCreatePermissionModalOpen}
@@ -44,7 +46,7 @@ function CreateDialog(props: {
   const permissions = stackAdminApp.usePermissionDefinitions();
 
   const formSchema = yup.object({
-    id: yup.string().required(),
+    id: yup.string().required().notOneOf(permissions.map((p) => p.id), "ID already exists"),
     description: yup.string(),
     containPermissionIds: yup.array().of(yup.string().required()).required(),
   });
