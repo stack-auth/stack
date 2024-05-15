@@ -1,7 +1,7 @@
 'use client';;
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import * as yup from "yup";
-import { ServerPermission, ServerTeam, ServerTeamMember, ServerUser } from '@stackframe/stack';
+import { ServerUser } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
@@ -15,13 +15,9 @@ import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
 
-type ExtendedServerUser = ServerUser & {
+export type ExtendedServerUser = ServerUser & {
   authType: string,
   emailVerified: 'verified' | 'unverified',
-};
-
-type ExtendedServerUserForTeam = ExtendedServerUser & {
-  permissions: string[],
 };
 
 function userToolbarRender<TData>(table: Table<TData>) {
@@ -44,14 +40,6 @@ function userToolbarRender<TData>(table: Table<TData>) {
           { value: "unverified", label: "unverified" },
         ]}
       />
-    </>
-  );
-}
-
-function teamMemberToolbarRender<TData>(table: Table<TData>) {
-  return (
-    <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
     </>
   );
 }
@@ -141,7 +129,7 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
-const commonColumns: ColumnDef<ExtendedServerUser>[] = [
+export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
@@ -165,8 +153,8 @@ const commonColumns: ColumnDef<ExtendedServerUser>[] = [
   },
 ];
 
-const userColumns: ColumnDef<ExtendedServerUser>[] =  [
-  ...commonColumns,
+const columns: ColumnDef<ExtendedServerUser>[] =  [
+  ...commonUserColumns,
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
@@ -190,11 +178,7 @@ const userColumns: ColumnDef<ExtendedServerUser>[] =  [
   },
 ];
 
-const teamMemberColumns: ColumnDef<ExtendedServerUser>[] = [
-  ...commonColumns,
-];
-
-function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
+export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
     authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
@@ -202,44 +186,7 @@ function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   }));
 }
 
-
 export function UserTable(props: { users: ServerUser[] }) {
   const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable data={extendedUsers} columns={userColumns} toolbarRender={userToolbarRender} />;
-}
-
-export function TeamMemberTable(props: { members: ServerTeamMember[], team: ServerTeam }) {
-  // TODO: Optimize this
-  const [users, setUsers] = useState<ServerUser[]>([]);
-  const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});
-
-  const extendedUsers: ExtendedServerUserForTeam[] = useMemo(() => {
-    return extendUsers(users).map((user) => ({
-      ...user,
-      permissions: userPermissions[user.id] || [],
-    }));
-  }, [users, userPermissions]);
-  
-  useEffect(() => {
-    async function load() {
-      const promises = props.members.map(async member => {
-        const user = await member.getUser();
-        const permissions = await user.listPermissions(props.team, { direct: true });
-        return {
-          user,
-          permissions,
-        };
-      });
-      return await Promise.all(promises);
-    }
-    
-    load().then((data) => {
-      setUserPermissions(Object.fromEntries(
-        props.members.map((member, index) => [member.userId, data[index].permissions.map(p => p.id)])
-      ));
-      setUsers(data.map(d => d.user));
-    }).catch(console.error);
-  }, [props.members, props.team]);
-
-  return <DataTable data={extendedUsers} columns={teamMemberColumns} toolbarRender={teamMemberToolbarRender} />;
+  return <DataTable data={extendedUsers} columns={columns} toolbarRender={userToolbarRender} />;
 }

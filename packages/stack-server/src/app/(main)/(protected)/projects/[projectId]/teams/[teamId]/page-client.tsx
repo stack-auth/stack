@@ -1,13 +1,9 @@
-"use client";
-
-import React from 'react';
+"use client";;
 import { Paragraph } from "@/components/paragraph";
-import { MemberTable } from './member-table';
 import { useAdminApp } from '../../use-admin-app';
 import { notFound } from 'next/navigation';
-import { SmartSwitch } from '@/components/smart-switch';
 import { PageLayout } from '../../page-layout';
-import { TeamMemberTable, UserTable } from '@/components/data-table/user-table';
+import { TeamMemberTable } from '@/components/data-table/team-member-table';
 
 
 export default function ClientPage(props: { teamId: string }) {
