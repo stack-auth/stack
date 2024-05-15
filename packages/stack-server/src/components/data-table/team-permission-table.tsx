@@ -1,19 +1,17 @@
 'use client';;
 import { useState } from "react";
 import * as yup from "yup";
-import { ServerTeam, useStackApp } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
+import { ActionCell, BadgeCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
-import Typography from "../ui/typography";
-import { useRouter } from "next/navigation";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { PermissionListField } from "../permission-field";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -23,33 +21,47 @@ function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-const teamFormSchema = yup.object({
-  displayName: yup.string(),
-});
-
-function EditDialog(props: { 
-  team: ServerTeam,
+function EditDialog(props: {
   open: boolean,
   onOpenChange: (open: boolean) => void,
+  selectedPermissionId: string,
 }) {
-  const defaultValues = {
-    displayName: props.team.displayName,
-  };
+  const stackAdminApp = useAdminApp();
+  const permissions = stackAdminApp.usePermissionDefinitions();
+  const currentPermission = permissions.find((p) => p.id === props.selectedPermissionId);
+  if (!currentPermission) {
+    return null;
+  }
+
+  const formSchema = yup.object({
+    id: yup.string().required().notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists"),
+    description: yup.string(),
+    containPermissionIds: yup.array().of(yup.string().required()).required(),
+  });
 
   return <FormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
-    title="Edit Team"
-    formSchema={teamFormSchema}
-    defaultValues={defaultValues}
+    title="Edit Permission"
+    formSchema={formSchema}
+    defaultValues={currentPermission}
     okButton={{ label: "Save" }}
     render={(form) => (
       <>
-        <Typography variant='secondary'>ID: {props.team.id}</Typography>
-        <InputField control={form.control} label="Display Name" name="displayName" />
+        <InputField control={form.control} label="ID" name="id" />
+        <InputField control={form.control} label="Description" name="description" />
+        {permissions && <PermissionListField
+          control={form.control} 
+          name="containPermissionIds" 
+          permissions={permissions} 
+          type="edit" 
+          selectedPermissionId={props.selectedPermissionId} 
+        />}
       </>
     )}
-    onSubmit={async (values) => await props.team.update(values)}
+    onSubmit={async (values) => {
+      await stackAdminApp.updatePermissionDefinition(props.selectedPermissionId, values);
+    }}
     cancelButton
   />;
 }
@@ -74,14 +86,12 @@ function DeleteDialog(props: {
 }
 
 function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
-  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const adminApp = useAdminApp();
 
   return (
     <>
-      {/* <EditDialog team={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} /> */}
+      <EditDialog selectedPermissionId={row.original.id} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteDialog permission={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ActionCell
         items={[

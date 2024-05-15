@@ -1,10 +1,9 @@
 "use client";;
 import React from "react";
 import * as yup from "yup";
-import { PermissionsTable } from "./permissions-table";
 import { useAdminApp } from "../use-admin-app";
 import { Button } from "@/components/ui/button";
-import { PermissionListField } from "../../../../../../components/permission-field";
+import { PermissionListField } from "@/components/permission-field";
 import { PageLayout } from "../page-layout";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField } from "@/components/form-fields";
@@ -26,7 +25,6 @@ export default function ClientPage() {
         </Button>
       }>
 
-      {/* <PermissionsTable rows={permissions} /> */}
       <TeamPermissionTable permissions={permissions}/>
 
       <CreateDialog
@@ -36,7 +34,6 @@ export default function ClientPage() {
     </PageLayout>
   );
 }
-
 
 function CreateDialog(props: {
   open: boolean,

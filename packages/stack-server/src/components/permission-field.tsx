@@ -189,12 +189,13 @@ export function PermissionListField<F extends FieldValues>(props: {
                     <Checkbox
                       checked={selected}
                       onCheckedChange={(checked) => {
-                        let newContains;
+                        let newContains: string[];
                         if (checked) {
                           newContains = [...field.value, permission.id];
                         } else {
                           newContains = field.value.filter((v: any) => v !== permission.id);
                         }
+                        newContains = [...new Set(newContains)];
 
                         field.onChange(newContains);
                         setGraph(graph.updatePermission(PLACEHOLDER_ID, {
