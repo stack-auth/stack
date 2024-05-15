@@ -1,7 +1,7 @@
 import { CodeBlock } from '@/components/code-block';
 import { Enumeration, EnumerationItem } from '@/components/enumeration';
 import { SmartImage } from '@/components/smart-image';
-import { InlineCode } from '@/components/inline-code';
+import { InlineCode } from '@/components/ui/inline-code';
 import { Paragraph } from '@/components/paragraph';
 import { QuoteBlock } from '@/components/quote-block';
 import { SmartLink } from '@/components/smart-link';

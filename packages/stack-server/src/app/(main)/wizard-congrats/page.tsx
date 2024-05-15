@@ -1,7 +1,7 @@
 import { Button, Card, Stack } from "@mui/joy";
 import { Header } from '@/components/header';
 import { Paragraph } from "@/components/paragraph";
-import { InlineCode } from "@/components/inline-code";
+import { InlineCode } from "@/components/ui/inline-code";
 import { Confetti } from "@/components/confetti";
 import { SmartLink } from "@/components/smart-link";
 
