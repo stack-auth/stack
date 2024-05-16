@@ -14,6 +14,8 @@ import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
+import { CircleAlert } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -85,7 +87,7 @@ function EditUserDialog(props: {
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
       </>
     )}
-    onSubmit={async (values) => await props.user.update(values)}
+    onSubmit={async (values) => { await props.user.update(values); }}
     cancelButton
   />;
 }
@@ -153,18 +155,30 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "primaryEmail",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Primary Email" />,
-    cell: ({ row }) => <TextCell size={180}>{row.original.primaryEmail}</TextCell>,
+    cell: ({ row }) => <TextCell size={180} icon={row.original.emailVerified === "unverified" && 
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <CircleAlert className="text-zinc-500 h-4 w-4" />
+        </TooltipTrigger>
+        <TooltipContent>
+          Email not verified
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>}>
+      {row.original.primaryEmail}
+    </TextCell>,
+  },
+  {
+    accessorKey: "emailVerified",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
+    cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
+    filterFn: standardFilterFn
   },
 ];
 
 const columns: ColumnDef<ExtendedServerUser>[] =  [
   ...commonUserColumns,
-  {
-    accessorKey: "emailVerified",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
-    cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : ''}</TextCell>,
-    filterFn: standardFilterFn
-  },
   {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
@@ -192,5 +206,10 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 
 export function UserTable(props: { users: ServerUser[] }) {
   const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable data={extendedUsers} columns={columns} toolbarRender={userToolbarRender} />;
+  return <DataTable 
+    data={extendedUsers} 
+    columns={columns} 
+    toolbarRender={userToolbarRender} 
+    defaultVisibility={{ emailVerified: false }} 
+  />;
 }

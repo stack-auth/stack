@@ -34,7 +34,7 @@ function RemoveUserDialog(props: {
     onOpenChange={props.onOpenChange}
     okButton={{
       label: "Remove user from team",
-      onClick: async () => await props.team.removeUser(props.user.id)
+      onClick: async () => { await props.team.removeUser(props.user.id); }
     }}
     cancelButton
     confirmText="I understand this will cause the user to lose access to the team."
@@ -99,5 +99,10 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
     }).catch(console.error);
   }, [props.members, props.team]);
 
-  return <DataTable data={extendedUsers} columns={teamMemberColumns} toolbarRender={teamMemberToolbarRender} />;
+  return <DataTable 
+    data={extendedUsers}
+    columns={teamMemberColumns} 
+    toolbarRender={teamMemberToolbarRender} 
+    defaultVisibility={{ emailVerified: false }} 
+  />;
 }

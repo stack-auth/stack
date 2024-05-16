@@ -15,10 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 
-export function TextCell(props: { children: React.ReactNode, size?: number }) {
+export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
   return (
-    <div className="text-ellipsis text-nowrap overflow-x-hidden" style={{ width: props.size }}>
-      {props.children}
+    <div className="flex items-center gap-2" style={{ width: props.size }}>
+      <div className="text-ellipsis text-nowrap overflow-x-hidden">
+        {props.children}
+      </div>
+      {props.icon && <div>{props.icon}</div>}
     </div>
   );
 }
