@@ -1,5 +1,13 @@
 # cjs-test
 
+## 0.2.6
+
+### Patch Changes
+
+- UX improvements
+- Updated dependencies
+  - @stackframe/stack@2.4.6
+
 ## 0.2.5
 
 ### Patch Changes

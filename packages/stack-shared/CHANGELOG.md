@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.4
+
+### Patch Changes
+
+- UX improvements
+
 ## 2.4.3
 
 ### Patch Changes
