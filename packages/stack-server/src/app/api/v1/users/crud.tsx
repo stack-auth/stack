@@ -23,7 +23,9 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       },
     };
   },
-  include: async () => ({}),
+  include: async () => ({
+    projectUserOAuthAccounts: true,
+  }),
   createNotFoundError: () => new KnownErrors.UserNotFound(),
   crudToPrisma: async (crud, { auth }) => {
     const projectId = auth.project.id;
@@ -49,7 +51,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       authMethod: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
       hasPassword: !!prisma.passwordHash,
       authWithEmail: prisma.authWithEmail,
-      oauthProviders: auth.project.evaluatedConfig.oauthProviders.map((provider) => provider.id),
+      oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
     };
   },
 });
