@@ -100,10 +100,19 @@ const columns: ColumnDef<ExtendedApiKeySet>[] =  [
 ];
 
 export function ApiKeyTable(props: { apiKeys: ApiKeySet[] }) {
-  const extendedApiKeys = useMemo(() => props.apiKeys.map((apiKey) => ({
-    ...apiKey,
-    status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
-  } satisfies ExtendedApiKeySet)), [props.apiKeys]);
+  const extendedApiKeys = useMemo(() => {
+    const keys = props.apiKeys.map((apiKey) => ({
+      ...apiKey,
+      status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
+    } satisfies ExtendedApiKeySet));
+    // first soft based on status, then by expiresAt
+    return keys.sort((a, b) => {
+      if (a.status === b.status) {
+        return a.expiresAt < b.expiresAt ? 1 : -1;
+      }
+      return a.status === 'valid' ? -1 : 1;
+    });
+  }, [props.apiKeys]);
 
   return <DataTable data={extendedApiKeys} columns={columns} toolbarRender={toolbarRender} />;
 }

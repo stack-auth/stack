@@ -1,5 +1,5 @@
 'use client';;
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { ServerTeam } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
@@ -124,5 +124,7 @@ const columns: ColumnDef<ServerTeam>[] =  [
 ];
 
 export function TeamTable(props: { teams: ServerTeam[] }) {
+  const teams = useMemo(() => props.teams.sort((a, b) => b.createdAt - a.createdAt), [props.teams]);
+
   return <DataTable data={props.teams} columns={columns} toolbarRender={toolbarRender} />;
 }
