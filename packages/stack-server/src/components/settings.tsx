@@ -56,14 +56,14 @@ export function SettingSwitch(props: {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <Switch
         id={id}
         checked={checked}
         onCheckedChange={onCheckedChange}
         disabled={props.disabled}
       />
-      <Label htmlFor={id}>{props.label}</Label>
+      <Label className='px-2' htmlFor={id}>{props.label}</Label>
       {showActions && props.actions}
     </div>
   );

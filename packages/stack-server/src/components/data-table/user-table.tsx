@@ -129,6 +129,10 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
+function capitalizeFirstLetter(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "id",
@@ -158,13 +162,13 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
-    cell: ({ row }) => <BadgeCell badges={[row.original.emailVerified === 'verified' ? '✓' : '✗']} />,
+    cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : ''}</TextCell>,
     filterFn: standardFilterFn
   },
   {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
-    cell: ({ row }) => <BadgeCell badges={[row.original.authType]} />,
+    cell: ({ row }) => <BadgeCell badges={[capitalizeFirstLetter(row.original.authType)]} />,
     filterFn: standardFilterFn,
   },
   {
