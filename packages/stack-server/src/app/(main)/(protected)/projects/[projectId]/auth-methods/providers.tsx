@@ -177,7 +177,7 @@ export function ProviderSettingSwitch(props: Props) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="secondary">shared keys</Badge>
+                    <Badge variant="secondary">Shared keys</Badge>
                   </TooltipTrigger>
                   <TooltipContent>
                     Shared keys are created by the Stack team for easy development experience
