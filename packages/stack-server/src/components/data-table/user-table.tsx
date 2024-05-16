@@ -46,7 +46,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
 
 const userEditFormSchema = yup.object({
   displayName: yup.string(),
-  primaryEmail: yup.string().email(),
+  primaryEmail: yup.string().email("Primary Email must be a valid email address"),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
 });

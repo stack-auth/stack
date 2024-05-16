@@ -157,7 +157,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
       <div className="flex flex-col gap-1 pt-2">
         {navigationItems.map((item, index) => {
           if (item.type === 'label') {
-            return <Typography key={index} className="pl-2 my-1" type="label" variant="secondary">
+            return <Typography key={index} className="pl-2 mt-3" type="label" variant="secondary">
               {item.name}
             </Typography>;
           } else if (item.type === 'item') {
