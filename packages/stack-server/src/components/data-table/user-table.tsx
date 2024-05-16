@@ -135,15 +135,15 @@ function capitalizeFirstLetter(s: string) {
 
 export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
-    accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
-  },
-  {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
     cell: ({ row }) => <AvatarCell src={row.original.profileImageUrl || undefined} />,
     enableSorting: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
   },
   {
     accessorKey: "displayName",
