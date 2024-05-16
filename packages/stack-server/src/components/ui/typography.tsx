@@ -15,7 +15,7 @@ export const typographyVariants = cva("text-md", {
     variant: {
       primary: "text-black dark:text-white",
       secondary: "text-zinc-600 dark:text-zinc-400",
-      destructive: "text-red-500",
+      destructive: "text-destructive",
       success: "text-green-500",
     },
   },

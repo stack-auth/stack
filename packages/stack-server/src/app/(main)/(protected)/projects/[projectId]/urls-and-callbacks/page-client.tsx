@@ -58,6 +58,7 @@ function EditDialog(props: {
     title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
     defaultValues={defaultValues}
     formSchema={domainFormSchema}
+    okButton={{ label: props.type === 'create' ? "Create" : "Save" }}
     onSubmit={async (values) => {
       if (props.type === 'create') {
         await props.project.update({

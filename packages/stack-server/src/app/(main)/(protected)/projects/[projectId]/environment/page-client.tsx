@@ -32,7 +32,7 @@ export default function EnvironmentClient() {
           </Alert>
         ) : (
           <Alert variant='destructive'>
-            <Typography variant="destructive">Your configuration is not ready for production mode. Please fix the following issues:</Typography>
+            Your configuration is not ready for production mode. Please fix the following issues:
             <ul className="mt-2 list-disc pl-5">
               {productionModeErrors.map((error) => (
                 <li key={error.errorMessage}>
