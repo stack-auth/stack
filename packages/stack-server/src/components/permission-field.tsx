@@ -158,7 +158,9 @@ export function PermissionListField<F extends FieldValues>(props: {
   // @ts-ignore
   }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team]);
 
-  if (!graph) return null;
+  if (!graph || Object.values(graph.permissions).length <= 1) {
+    return null;
+  }
 
   const currentPermission = graph.permissions[PLACEHOLDER_ID];
   

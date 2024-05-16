@@ -50,13 +50,13 @@ function EditDialog(props: {
       <>
         <InputField control={form.control} label="ID" name="id" />
         <InputField control={form.control} label="Description" name="description" />
-        {permissions && <PermissionListField
+        <PermissionListField
           control={form.control} 
           name="containPermissionIds" 
           permissions={permissions} 
           type="edit" 
           selectedPermissionId={props.selectedPermissionId} 
-        />}
+        />
       </>
     )}
     onSubmit={async (values) => {

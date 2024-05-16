@@ -62,7 +62,7 @@ function CreateDialog(props: {
       <>
         <InputField control={form.control} label="ID" name="id" />
         <InputField control={form.control} label="Description" name="description" />
-        {permissions && <PermissionListField control={form.control} name="containPermissionIds" permissions={permissions} type="new" />}
+        <PermissionListField control={form.control} name="containPermissionIds" permissions={permissions} type="new" />
       </>
     )}
     onSubmit={async (values) => {
