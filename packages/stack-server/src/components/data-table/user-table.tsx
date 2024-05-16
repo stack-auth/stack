@@ -187,7 +187,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
     ...user,
     authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
-  })).sort((a, b) => b.signedUpAt - a.signedUpAt);
+  } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }
 
 export function UserTable(props: { users: ServerUser[] }) {

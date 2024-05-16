@@ -124,7 +124,5 @@ const columns: ColumnDef<ServerTeam>[] =  [
 ];
 
 export function TeamTable(props: { teams: ServerTeam[] }) {
-  const teams = useMemo(() => props.teams.sort((a, b) => b.createdAt - a.createdAt), [props.teams]);
-
   return <DataTable data={props.teams} columns={columns} toolbarRender={toolbarRender} />;
 }
