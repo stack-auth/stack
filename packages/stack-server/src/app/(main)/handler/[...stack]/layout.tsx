@@ -2,9 +2,9 @@ import { Navbar } from "@/components/navbar";
 
 export default function Page ({ children } : { children?: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="flex-grow h-0">
+      <div className="flex-1">
         {children}
       </div>
     </div>
