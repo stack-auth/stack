@@ -16,15 +16,19 @@ export function DataTableToolbar<TData>({
   toolbarRender
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const isSorted = table.getState().sorting.length > 0;
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center gap-2 flex-wrap">
         {toolbarRender?.(table)}
-        {isFiltered && (
+        {(isFiltered || isSorted) && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={() => {
+              table.resetColumnFilters();
+              table.resetSorting();
+            }}
             className="h-8 px-2 lg:px-3"
           >
             Reset
