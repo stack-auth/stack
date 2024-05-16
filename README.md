@@ -2,8 +2,8 @@
 
 <h3 align="center">
     <a href="https://docs.stack-auth.com">📘 Documentation</a>
-    | <a href="https://demo.stack-auth.com/">Demo</a>
-    | <a href="https://stack-auth.com/">Website</a>
+    | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
+    | <a href="https://demo.stack-auth.com/">✨ Demo</a>
     | <a href="https://discord.gg/pD4nyYyKrb">Discord</a>
 </h4>
 
