@@ -7,6 +7,8 @@
     | <a href="https://discord.gg/pD4nyYyKrb">Discord</a>
 </h4>
 
+## 💬 What is Stack?
+
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
 
 We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows.
@@ -19,42 +21,48 @@ Here is the user/project management dashboard:
 
 ![Stack Dashboard](/assets/dashboard.png)
 
-## Features
+## ✨ Features
 
 - Composable React components & hooks
 - OAuth (Google, Facebook, GitHub, etc.)
-- Email and password authentication (with email verification and password reset)
+- Magic link and email password authentication (with email verification and password reset)
 - Easy to set up with proxied providers (no need to sign up and create OAuth endpoints yourself on all the providers)
 - User management & analytics
+- Teams & permissions
 - User-associated metadata with client-/server-specific permissions
-- Out-of-the-box Dark/Light mode support
-- suports switching out the underlying UI library, support MUI Joy out of the box
+- Out-of-the-box dark/light mode support
+- Fully customizable UI, or build your own UI with our functions like `signInWithOAuth`
 - **100% open-source!**
 
-Currently, only Next.js is supported, but we are working on adding other frameworks.
-
-## Vision
+## 🔭 Vision
 
 We all know how much overhead there is when starting a new project. Developers need to handle so many things that aren't even part of their core business, like user authentication, user profiles, payments, dashboards, hosting, and more. Our vision is to build a full-stack framework that handles all of this out-of-the-box with less than 10 minutes of setup, so developers can focus on what they really want to build. Authentication is the first step towards this vision.
 
-## Roadmap
+## 🗺️ Roadmap
 
-- Feature-rich email/notification system
-- React, React Native, and Vue.js support
-- Python backend library
-- SSO/SAML integration
+- [x] Customizable frontend [20. April 2024]
+- [x] Teams [8. May 2024]
+- [x] Permissions [10. May 2024]
+- [x] New dashboard with Shadcn UI [16. May 2024]
+- [ ] User analytics (retention, DAU/MAU, user segements, etc.)
+- [ ] Feature-rich email/notification system
+- [ ] Vue.js, Htmx, and Svelte support
+- [ ] Python, golang, and Java backend library
+- [ ] SSO/SAML integration
 
-## Installation
+## 📦 Installation & Setup
 
 To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
 
 ```bash
-npm install @stackframe/stack
+npx @stackframe/init-stack@latest
 ```
 
-For setup, refer to [our documentation](https://docs.stack-auth.com).
+You will then be guided through the installation process.
 
-## Development
+For further configuration and usage, refer to [our documentation](https://docs.stack-auth.com).
+
+## 🏗️ Development & Contribution
 
 This is for you if you want to contribute to the Stack project.
 
