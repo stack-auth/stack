@@ -10,7 +10,7 @@ export function Navbar({ ...props }) {
   const { theme, setTheme } = useTheme();
   return (
     <header
-      className={`sticky top-0 z-30 flex items-center justify-between border-b bg-white dark:bg-black px-4 ${props.className || ""}`}
+      className={`sticky top-0 z-30 flex items-center justify-between border-b bg-white dark:bg-black px-4 shrink-0 ${props.className || ""}`}
       style={{ height: `50px` }}
     >
       <div className="flex items-center justify-center">

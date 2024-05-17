@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useId } from "react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogBody } from '@/components/ui/dialog';
 import { Button } from "@/components/ui/button";
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
@@ -71,14 +71,16 @@ export function ActionDialog(props: ActionDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div>
-          {props.children}
-        </div>
+        <DialogBody>
+          <div>
+            {props.children}
+          </div>
         
-        {props.confirmText && <Alert className="flex gap-4 items-center">
-          <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
-          <Label htmlFor={confirmId}>{props.confirmText}</Label>
-        </Alert>}
+          {props.confirmText && <Alert className="flex gap-4 items-center">
+            <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
+            <Label htmlFor={confirmId}>{props.confirmText}</Label>
+          </Alert>}
+        </DialogBody>
 
 
         {anyButton && <DialogFooter className="gap-2">

@@ -84,9 +84,9 @@
 .loader {
   top: 0;
   left: 0;
-  width: 100vw;
+  right: 0;
   height: 3px;
-  position: absolute;
+  position: fixed;
   background: transparent;
   overflow: hidden;
   z-index: 9999;

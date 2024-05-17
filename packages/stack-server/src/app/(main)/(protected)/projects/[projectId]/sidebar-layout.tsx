@@ -151,10 +151,10 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
 export function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 border-b flex items-center px-2">
+      <div className="h-14 border-b flex items-center px-2 shrink-0">
         <ProjectSwitcher currentProjectId={projectId} />
       </div>
-      <div className="flex flex-col gap-1 pt-2">
+      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
         {navigationItems.map((item, index) => {
           if (item.type === 'label') {
             return <Typography key={index} className="pl-2 mt-3" type="label" variant="secondary">
@@ -166,22 +166,22 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
             </div>;
           }
         })}
-      </div>
-      
-      <div className="flex-grow"/>
 
-      <div className="py-2 px-2 flex">
-        <NavItem
-          onClick={onNavigate}
-          item={{
-            name: "Documentation",
-            type: "item",
-            href: "",
-            icon: Book,
-            regex: /^$/,
-          }}
-          href={"https://docs.stack-auth.com/"}
-        />
+        <div className="flex-grow"/>
+
+        <div className="py-2 px-2 flex">
+          <NavItem
+            onClick={onNavigate}
+            item={{
+              name: "Documentation",
+              type: "item",
+              href: "",
+              icon: Book,
+              regex: /^$/,
+            }}
+            href={"https://docs.stack-auth.com/"}
+          />
+        </div>
       </div>
     </div>
   );
