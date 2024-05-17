@@ -5,7 +5,7 @@ import { PageLayout } from '../../page-layout';
 import { TeamMemberTable } from '@/components/data-table/team-member-table';
 
 
-export default function ClientPage(props: { teamId: string }) {
+export default function PageClient(props: { teamId: string }) {
   const stackAdminApp = useAdminApp();
   const team = stackAdminApp.useTeam(props.teamId);
   const users = team?.useMembers();

@@ -13,7 +13,7 @@ import { ActionDialog } from "@/components/action-dialog";
 import Typography from "@/components/ui/typography";
 
 
-export default function ApiKeysDashboardClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const apiKeySets = stackAdminApp.useApiKeySets();
 

@@ -1,11 +1,11 @@
-import ApiKeysDashboardClient from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "API Keys",
 };
 
-export default function ApiKeysDashboard() {
+export default function Page() {
   return (
-    <ApiKeysDashboardClient />
+    <PageClient />
   );
 }

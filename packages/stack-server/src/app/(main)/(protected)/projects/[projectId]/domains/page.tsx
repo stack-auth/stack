@@ -1,11 +1,11 @@
-import UrlsAndCallbacksClient from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Domains & Handlers",
 };
 
-export default function UrlsAndCallbacks() {
+export default function Page() {
   return (
-    <UrlsAndCallbacksClient />
+    <PageClient />
   );
 }

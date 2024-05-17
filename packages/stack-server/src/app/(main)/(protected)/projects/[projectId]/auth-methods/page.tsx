@@ -1,11 +1,11 @@
-import ProvidersClient from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Providers",
 };
 
-export default function Providers() {
+export default function Page() {
   return (
-    <ProvidersClient />
+    <PageClient />
   );
 }

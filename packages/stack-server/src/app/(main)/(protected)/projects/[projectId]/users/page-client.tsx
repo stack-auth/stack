@@ -7,7 +7,7 @@ import { Link } from "@/components/link";
 import { UserTable } from "@/components/data-table/user-table";
 
 
-export default function UsersDashboardClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const allUsers = stackAdminApp.useServerUsers();
 

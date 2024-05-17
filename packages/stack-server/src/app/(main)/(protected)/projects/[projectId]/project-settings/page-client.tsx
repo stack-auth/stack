@@ -5,7 +5,7 @@ import { SettingCard, SettingInput, SettingSwitch } from "@/components/settings"
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
 
-export default function TeamSettingsClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const productionModeErrors = project.getProductionModeErrors();

@@ -1,4 +1,4 @@
-import ClientPage from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Team Members",
@@ -6,6 +6,6 @@ export const metadata = {
 
 export default function Page({ params }: { params: { teamId: string } }) {
   return (
-    <ClientPage teamId={params.teamId} />
+    <PageClient teamId={params.teamId} />
   );
 }

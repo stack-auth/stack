@@ -1,11 +1,11 @@
-import UsersDashboardClient from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Users",
 };
 
-export default function UsersDashboard() {
+export default function Page() {
   return (
-    <UsersDashboardClient />
+    <PageClient />
   );
 }
