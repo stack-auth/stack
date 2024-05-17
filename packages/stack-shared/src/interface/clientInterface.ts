@@ -856,7 +856,7 @@ export class StackClientInterface {
 
 export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
   const errors: ProductionModeError[] = [];
-  const fixUrlRelative = `/projects/${project.id}/urls-and-callbacks`;
+  const fixUrlRelative = `/projects/${project.id}/domains`;
 
   if (project.evaluatedConfig.allowLocalhost) {
     errors.push({
