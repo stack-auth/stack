@@ -22,8 +22,8 @@ export default function TeamSettingsClient() {
           defaultValue={project.description}
         />
       </SettingCard>
-
-      <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
+      
+      {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
         <div>
           <ActionDialog
             danger
@@ -38,7 +38,7 @@ export default function TeamSettingsClient() {
             {`Are you sure that you want to delete the project "${project.displayName}" with the id of "${project.id}"?`}
           </ActionDialog>
         </div>
-      </SettingCard>
+      </SettingCard> */}
     </PageLayout>
   );
 }
