@@ -2,10 +2,10 @@
 import Link from "next/link";
 import {
   Book,
-  Globe,
   KeyRound,
   LockKeyhole,
   LucideIcon,
+  Mail,
   Menu,
   Settings,
   Settings2,
@@ -106,16 +106,9 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: "Domains & Handlers",
-    href: "/urls-and-callbacks",
-    regex: /^\/projects\/[^\/]+\/urls-and-callbacks$/,
+    href: "/domains",
+    regex: /^\/projects\/[^\/]+\/domains$/,
     icon: LinkIcon,
-    type: 'item'
-  },
-  {
-    name: "Environment",
-    href: "/environment",
-    regex: /^\/projects\/[^\/]+\/environment$/,
-    icon: Globe,
     type: 'item'
   },
   {
@@ -123,6 +116,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/api-keys",
     regex: /^\/projects\/[^\/]+\/api-keys$/,
     icon: KeyRound,
+    type: 'item'
+  },
+  {
+    name: "Emails",
+    href: "/emails",
+    regex: /^\/projects\/[^\/]+\/emails$/,
+    icon: Mail,
     type: 'item'
   },
   {
