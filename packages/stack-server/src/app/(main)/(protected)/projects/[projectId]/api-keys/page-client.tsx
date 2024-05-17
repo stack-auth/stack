@@ -100,6 +100,8 @@ function ShowKeyDialog(props: {
   apiKey?: ApiKeySetFirstView,
   onClose?: () => void,
 }) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
   if (!props.apiKey) return null;
 
   return <ActionDialog
@@ -114,7 +116,7 @@ function ShowKeyDialog(props: {
         Here are your API keys. Copy them to a safe place. You will not be able to view them again.
       </Typography>
       <EnvKeys
-        projectId="projectId"
+        projectId={project.id}
         publishableClientKey={props.apiKey.publishableClientKey}
         secretServerKey={props.apiKey.secretServerKey}
       />
