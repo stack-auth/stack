@@ -1,5 +1,11 @@
 # @stackframe/stack-server
 
+## 0.4.7
+
+### Patch Changes
+
+- UX updates
+
 ## 0.4.6
 
 ### Patch Changes
