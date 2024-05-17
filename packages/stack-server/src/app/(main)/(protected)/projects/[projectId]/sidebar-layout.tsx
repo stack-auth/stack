@@ -7,6 +7,7 @@ import {
   LockKeyhole,
   LucideIcon,
   Menu,
+  Settings,
   Settings2,
   ShieldEllipsis,
   User,
@@ -124,6 +125,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     icon: KeyRound,
     type: 'item'
   },
+  {
+    name: "Project Settings",
+    href: "/project-settings",
+    regex: /^\/projects\/[^\/]+\/project-settings$/,
+    icon: Settings,
+    type: 'item'
+  }
 ];
 
 export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
