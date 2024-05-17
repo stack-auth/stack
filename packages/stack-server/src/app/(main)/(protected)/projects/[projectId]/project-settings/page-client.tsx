@@ -1,9 +1,17 @@
 "use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
-import { SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
+import { FormSettingCard, SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
+import * as yup from "yup";
+import { InputField } from "@/components/form-fields";
+
+const projectInformationSchema = yup.object().shape({
+  displayName: yup.string().required(),
+  description: yup.string(),
+});
+
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -42,17 +50,20 @@ export default function PageClient() {
         )}
       </SettingCard>
 
-      <SettingCard title="Project Information">
-        <SettingInput 
-          label="Display Name" 
-          onChange={(v) => project.update({ displayName: v })}
-          defaultValue={project.displayName}/>
-        <SettingInput
-          label="Description"
-          onChange={(v) => project.update({ description: v })}
-          defaultValue={project.description}
-        />
-      </SettingCard>
+      <FormSettingCard 
+        title="Project Information"
+        defaultValues={project}
+        formSchema={projectInformationSchema}
+        onSubmit={async (values) => {
+          await project.update(values);
+        }}
+        render={(form) => (
+          <>
+            <InputField label="Display Name" control={form.control} name="displayName" required />
+            <InputField label="Description" control={form.control} name="description" />
+          </>
+        )}
+      />
       
       {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
         <div>

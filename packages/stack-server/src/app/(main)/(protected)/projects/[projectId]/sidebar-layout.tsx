@@ -112,6 +112,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
+    name: "Emails",
+    href: "/emails",
+    regex: /^\/projects\/[^\/]+\/emails$/,
+    icon: Mail,
+    type: 'item'
+  },
+  {
     name: "API Keys",
     href: "/api-keys",
     regex: /^\/projects\/[^\/]+\/api-keys$/,

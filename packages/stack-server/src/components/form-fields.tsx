@@ -33,7 +33,7 @@ export function InputField<F extends FieldValues>(props: {
           <label className="block">
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
-              <Input {...field} placeholder={props.placeholder} />
+              <Input {...field} placeholder={props.placeholder} className="max-w-md" />
             </FormControl>
             <FormMessage />
           </label>
