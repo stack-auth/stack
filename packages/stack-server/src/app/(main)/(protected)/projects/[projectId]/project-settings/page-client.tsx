@@ -25,11 +25,7 @@ export default function PageClient() {
           label="Enable production mode"
           checked={project.isProductionMode}
           disabled={!project.isProductionMode && productionModeErrors.length > 0}
-          onCheckedChange={async (checked) => {
-            await project.update({
-              isProductionMode: checked,
-            });
-          }}
+          onCheckedChange={async (checked) => { await project.update({ isProductionMode: checked }); }}
         />
 
         {productionModeErrors.length === 0 ? (
@@ -54,9 +50,7 @@ export default function PageClient() {
         title="Project Information"
         defaultValues={project}
         formSchema={projectInformationSchema}
-        onSubmit={async (values) => {
-          await project.update(values);
-        }}
+        onSubmit={async (values) => { await project.update(values); }}
         render={(form) => (
           <>
             <InputField label="Display Name" control={form.control} name="displayName" required />
@@ -64,23 +58,6 @@ export default function PageClient() {
           </>
         )}
       />
-      
-      {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
-        <div>
-          <ActionDialog
-            danger
-            title="Delete Project"
-            trigger={<Button variant="destructive">Delete Project</Button>}
-            okButton={{ label: "Delete Project", onClick: async () => {
-              // await project.delete();
-              // stackAdminApp.router.push("/projects");
-            }}}
-            confirmText="I understand that all the users, teams, and data associated with this project will be permanently deleted. This action cannot be undone."
-          >
-            {`Are you sure that you want to delete the project "${project.displayName}" with the id of "${project.id}"?`}
-          </ActionDialog>
-        </div>
-      </SettingCard> */}
     </PageLayout>
   );
 }
