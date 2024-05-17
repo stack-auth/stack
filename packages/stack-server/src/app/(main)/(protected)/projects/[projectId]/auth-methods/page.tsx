@@ -1,7 +1,7 @@
 import PageClient from "./page-client";
 
 export const metadata = {
-  title: "Providers",
+  title: "Auth Methods",
 };
 
 export default function Page() {

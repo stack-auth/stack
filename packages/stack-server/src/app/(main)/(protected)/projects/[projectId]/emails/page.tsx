@@ -1,7 +1,7 @@
 import PageClient from "./page-client";
 
 export const metadata = {
-  title: "Project Settings",
+  title: "Emails",
 };
 
 export default function Page() {
