@@ -10,7 +10,7 @@ import { InputField } from "@/components/form-fields";
 import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
 
 
-export default function ClientPage() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const permissions = stackAdminApp.usePermissionDefinitions();
   const [createPermissionModalOpen, setCreatePermissionModalOpen] = React.useState(false);

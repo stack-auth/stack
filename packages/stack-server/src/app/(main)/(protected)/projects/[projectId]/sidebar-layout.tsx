@@ -2,11 +2,12 @@
 import Link from "next/link";
 import {
   Book,
-  Globe,
   KeyRound,
   LockKeyhole,
   LucideIcon,
+  Mail,
   Menu,
+  Settings,
   Settings2,
   ShieldEllipsis,
   User,
@@ -105,16 +106,9 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: "Domains & Handlers",
-    href: "/urls-and-callbacks",
-    regex: /^\/projects\/[^\/]+\/urls-and-callbacks$/,
+    href: "/domains",
+    regex: /^\/projects\/[^\/]+\/domains$/,
     icon: LinkIcon,
-    type: 'item'
-  },
-  {
-    name: "Environment",
-    href: "/environment",
-    regex: /^\/projects\/[^\/]+\/environment$/,
-    icon: Globe,
     type: 'item'
   },
   {
@@ -124,6 +118,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     icon: KeyRound,
     type: 'item'
   },
+  {
+    name: "Project Settings",
+    href: "/project-settings",
+    regex: /^\/projects\/[^\/]+\/project-settings$/,
+    icon: Settings,
+    type: 'item'
+  }
 ];
 
 export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {

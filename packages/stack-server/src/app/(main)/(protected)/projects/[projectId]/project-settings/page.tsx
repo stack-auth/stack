@@ -1,7 +1,7 @@
 import PageClient from "./page-client";
 
 export const metadata = {
-  title: "Team Permissions",
+  title: "Project Settings",
 };
 
 export default function Page() {

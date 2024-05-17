@@ -15,7 +15,7 @@ import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
 import { CircleAlert } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { TextTooltip } from "../text-tooltip";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -155,17 +155,9 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "primaryEmail",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Primary Email" />,
-    cell: ({ row }) => <TextCell size={180} icon={row.original.emailVerified === "unverified" && 
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <CircleAlert className="text-zinc-500 h-4 w-4" />
-        </TooltipTrigger>
-        <TooltipContent>
-          Email not verified
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>}>
+    cell: ({ row }) => <TextCell 
+      size={180} 
+      icon={row.original.emailVerified === "unverified" && <TextTooltip text="Email not verified"><CircleAlert className="text-zinc-500 h-4 w-4" /></TextTooltip>}>
       {row.original.primaryEmail}
     </TextCell>,
   },

@@ -5,7 +5,7 @@ import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 
-export default function ProvidersClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const oauthProviders = project.evaluatedConfig.oauthProviders;

@@ -23,3 +23,29 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export { Input };
+
+
+export interface DelayedInputProps extends InputProps {
+  delay?: number,
+}
+
+export const DelayedInput = React.forwardRef<HTMLInputElement, DelayedInputProps>(
+  ({ delay = 500, defaultValue, ...props }, ref) => {
+    const [value, setValue] = React.useState(defaultValue ?? "");
+
+    const timeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(e.target.value);
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
+      timeout.current = setTimeout(() => {
+        props.onChange?.(e);
+      }, delay);
+    };
+
+    return <Input ref={ref} {...props} value={value} onChange={onChange} />;
+  }
+);
+DelayedInput.displayName = "DelayedInput";

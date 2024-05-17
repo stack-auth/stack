@@ -3,7 +3,7 @@ import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 
-export default function TeamSettingsClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
 

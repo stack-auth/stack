@@ -1,11 +1,11 @@
-import TeamSettingsClient from "./page-client";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Team Settings",
 };
 
-export default function TeamSettings() {
+export default function Page() {
   return (
-    <TeamSettingsClient />
+    <PageClient />
   );
 }

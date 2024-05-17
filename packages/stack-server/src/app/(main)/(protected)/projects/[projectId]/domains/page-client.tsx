@@ -145,7 +145,7 @@ function DeleteDialog(props: {
   );
 }
 
-export default function UrlsAndCallbacksClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const domains = project.evaluatedConfig.domains;

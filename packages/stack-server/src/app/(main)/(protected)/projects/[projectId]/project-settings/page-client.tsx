@@ -1,19 +1,17 @@
 "use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
-import { SettingCard, SettingSwitch } from "@/components/settings";
+import { SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
-import Typography from "@/components/ui/typography";
 import { Link } from "@/components/link";
 
-export default function EnvironmentClient() {
+export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-
   const productionModeErrors = project.getProductionModeErrors();
 
   return (
-    <PageLayout title="Environment" description="Development and production settings">
+    <PageLayout title="Project Settings" description="Manage your project">
       <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations it is strongly recommended to enable production mode on your production environments.">
         <SettingSwitch
           label="Enable production mode"
@@ -43,6 +41,35 @@ export default function EnvironmentClient() {
           </Alert>
         )}
       </SettingCard>
+
+      <SettingCard title="Project Information">
+        <SettingInput 
+          label="Display Name" 
+          onChange={(v) => project.update({ displayName: v })}
+          defaultValue={project.displayName}/>
+        <SettingInput
+          label="Description"
+          onChange={(v) => project.update({ description: v })}
+          defaultValue={project.description}
+        />
+      </SettingCard>
+      
+      {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
+        <div>
+          <ActionDialog
+            danger
+            title="Delete Project"
+            trigger={<Button variant="destructive">Delete Project</Button>}
+            okButton={{ label: "Delete Project", onClick: async () => {
+              // await project.delete();
+              // stackAdminApp.router.push("/projects");
+            }}}
+            confirmText="I understand that all the users, teams, and data associated with this project will be permanently deleted. This action cannot be undone."
+          >
+            {`Are you sure that you want to delete the project "${project.displayName}" with the id of "${project.id}"?`}
+          </ActionDialog>
+        </div>
+      </SettingCard> */}
     </PageLayout>
   );
 }
