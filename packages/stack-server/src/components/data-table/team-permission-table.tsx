@@ -122,7 +122,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   },
   {
     accessorKey: "containPermissionIds",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Contains Permissions" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Contained Permissions" />,
     cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
   },
   {

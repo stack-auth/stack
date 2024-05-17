@@ -57,7 +57,7 @@ const DialogBody = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("overflow-y-auto flex flex-col w-full gap-4", className)} {...props} />
+  <div className={cn("overflow-y-auto flex flex-col gap-4 w-[calc(100%+3rem)] -mx-6 px-6", className)} {...props} />
 );
 
 const DialogHeader = ({

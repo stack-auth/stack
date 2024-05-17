@@ -144,7 +144,7 @@ export function TurnOffProviderDialog(props: {
         },
       }}
       cancelButton
-      confirmText="I understand that this will disable sign-in and sign-up for new and existing users with this provider"
+      confirmText="I understand that this will disable sign-in and sign-up for new and existing users with this provider."
     >
       <Typography>
         Disabling this provider will prevent users from signing in with it, including existing users who have used it before. They might not be able to log in anymore. Are you sure you want to do this?
