@@ -76,9 +76,11 @@ export function ActionDialog(props: ActionDialogProps) {
             {props.children}
           </div>
         
-          {props.confirmText && <Alert className="flex gap-4 items-center">
-            <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
-            <Label htmlFor={confirmId}>{props.confirmText}</Label>
+          {props.confirmText && <Alert>
+            <Label className="flex gap-4 items-center">
+              <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
+              {props.confirmText}
+            </Label>
           </Alert>}
         </DialogBody>
 

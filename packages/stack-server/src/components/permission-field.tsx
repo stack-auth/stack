@@ -170,8 +170,8 @@ export function PermissionListField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Contained Permissions</FormLabel>
-          <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4 max-h-64 overflow-y-auto">
+          <FormLabel>Contained permissions</FormLabel>
+          <div className="flex-col rounded-lg border p-3 shadow-sm max-h-64 overflow-y-auto">
             {Object.values(graph.permissions).map(permission => {
               if (permission.id === PLACEHOLDER_ID) return null;
 
@@ -182,7 +182,7 @@ export function PermissionListField<F extends FieldValues>(props: {
               );
               const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
               return (
-                <div className="flex flex-row items-center justify-between" key={permission.id}>
+                <label className="flex flex-row items-center justify-between -my-3 py-3" key={permission.id}>
                   <FieldLabel>
                     {permission.id} 
                     {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
@@ -208,7 +208,7 @@ export function PermissionListField<F extends FieldValues>(props: {
                     />
                   </FormControl>
                   <FormMessage />
-                </div>
+                </label>
               );
             })}
           </div>

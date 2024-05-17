@@ -15,7 +15,7 @@ const Label = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
     VariantProps<typeof labelVariants>
 >(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
+  <span
     ref={ref}
     className={cn(labelVariants(), className)}
     {...props}

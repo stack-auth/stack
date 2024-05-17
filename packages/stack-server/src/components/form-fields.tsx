@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { Control, FieldValues, Path } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -30,11 +30,13 @@ export function InputField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel required={props.required}>{props.label}</FieldLabel>
-          <FormControl>
-            <Input {...field} placeholder={props.placeholder} />
-          </FormControl>
-          <FormMessage />
+          <label className="block">
+            <FieldLabel required={props.required}>{props.label}</FieldLabel>
+            <FormControl>
+              <Input {...field} placeholder={props.placeholder} />
+            </FormControl>
+            <FormMessage />
+          </label>
         </FormItem>
       )}
     />
@@ -54,7 +56,7 @@ export function SwitchField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <div className={cn(
+          <label className={cn(
             "flex flex-row items-center justify-between p-2 gap-2",
             props.noCard ? "" : "rounded-lg border p-3 shadow-sm"
           )}>
@@ -65,7 +67,7 @@ export function SwitchField<F extends FieldValues>(props: {
                 onCheckedChange={field.onChange}
               />
             </FormControl>
-          </div>
+          </label>
           <FormMessage />
         </FormItem>
       )}
@@ -85,13 +87,15 @@ export function SmallSwitchField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <FieldLabel required={props.required}>{props.label}</FieldLabel>
-          <FormControl>
-            <Switch
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
-          </FormControl>
+          <label className="block">
+            <FieldLabel required={props.required}>{props.label}</FieldLabel>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </label>
           <FormMessage />
         </FormItem>
       )}
@@ -116,9 +120,9 @@ export function SwitchListField<F extends FieldValues>(props: {
       render={({ field }) => (
         <FormItem>
           <FormLabel>{props.label}</FormLabel>
-          <div className="flex-col rounded-lg border p-3 shadow-sm space-y-4">
+          <div className="flex flex-col rounded-lg border p-3 shadow-sm space-y-4">
             {props.options.map(provider => (
-              <div className="flex flex-row items-center justify-between" key={provider.value}>
+              <label className="flex flex-row items-center justify-between" key={provider.value}>
                 <FieldLabel required={props.required}>{provider.label}</FieldLabel>
                 <FormControl>
                   <Trigger
@@ -133,7 +137,7 @@ export function SwitchListField<F extends FieldValues>(props: {
                   />
                 </FormControl>
                 <FormMessage />
-              </div>
+              </label>
             ))}
           </div>
         </FormItem>
