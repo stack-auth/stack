@@ -24,7 +24,7 @@ const ClickableCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow-sm cursor-pointer hover:border-[color:var(--primary)] transition-all ease-in-out",
+      "rounded-xl border bg-card text-card-foreground shadow-sm cursor-pointer hover:border-[color:var(--primary)] ease-in-out",
       className
     )}
     {...props}
