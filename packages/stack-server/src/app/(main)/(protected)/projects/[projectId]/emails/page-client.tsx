@@ -27,6 +27,9 @@ export default function PageClient() {
         <SettingText label="Email address">
           noreply@stack-auth.com
         </SettingText>
+        <SettingText label="Email sender name">
+          {project.displayName}
+        </SettingText>
       </SettingCard>
     </PageLayout>
   );
@@ -34,6 +37,7 @@ export default function PageClient() {
 
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).required(),
+  emailSenderName: yup.string().required("Email sender name is required"),
   emailConfig: yup.object({
     host: yup.string().required("Host is required"),
     port: yup.number().required("Port is required"),
@@ -69,13 +73,19 @@ function EditEmailServerDialog(props: {
             { label: "Custom SMTP server (your own email address)", value: 'standard' },
           ]}
         />
+        <InputField
+          label="Email sender name"
+          name="emailSenderName"
+          control={form.control}
+          required
+        />
         {form.watch('type') === 'standard' && <>
           {([
             { label: "Host", name: "emailConfig.host", type: 'text'},
             { label: "Port", name: "emailConfig.port", type: 'number'},
             { label: "Username", name: "emailConfig.username", type: 'text' },
             { label: "Password", name: "emailConfig.password", type: 'password' },
-            { label: "From Email", name: "emailConfig.senderEmail", type: 'email' },
+            { label: "Sender Email", name: "emailConfig.senderEmail", type: 'email' },
           ] as const).map((field) => (
             <InputField 
               key={field.name}

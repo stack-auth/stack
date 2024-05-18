@@ -17,9 +17,9 @@ export function FieldLabel(props: {
   required?: boolean, 
   className?: string,
 }) {
-  return <FormLabel className={cn("flex gap-2", props.className)}>
+  return <FormLabel className={cn("flex", props.className)}>
     {props.children} 
-    {props.required ? <span className="text-zinc-500">{' *'}</span> : null}
+    {props.required ? <span className="text-zinc-500">{'*'}</span> : null}
   </FormLabel>;
 }
 
