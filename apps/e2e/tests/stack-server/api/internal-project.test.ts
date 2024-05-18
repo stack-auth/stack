@@ -125,7 +125,6 @@ describe("Various internal project tests", () => {
       .send({
         primaryEmail: "thismailshouldntupdate@stack-test.example.com",
       });
-    console.log(response2.body);
     expect(response2.status).toBe(200);
     expect(response2.body.primaryEmail).toBe(email);
   });
