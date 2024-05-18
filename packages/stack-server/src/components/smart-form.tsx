@@ -13,6 +13,7 @@ import { DateField, InputField } from "./form-fields";
 declare module 'yup' {
   export interface CustomSchemaMetadata {
     stackFormFieldRender?: (props: { control: ReturnType<typeof useForm>['control'], name: string, label: string, disabled: boolean }) => React.ReactNode,
+    stackFormFieldPlaceholder?: string,
   }
 }
 
@@ -68,8 +69,12 @@ function SmartFormField(props: {
     name: props.id,
     label: ("label" in props.description ? props.description.label : null) ?? props.id,
     disabled: props.disabled,
-    required:  !("optional" in props.description && props.description.optional) && (!("default" in props.description) || props.description.default === undefined),
+    required: !("optional" in props.description && props.description.optional),
+    placeholder: "meta" in props.description && props.description.meta?.stackFormFieldPlaceholder !== undefined ? props.description.meta?.stackFormFieldPlaceholder :
+      "default" in props.description ? (typeof props.description.default === "string" ? `Eg.: ${props.description.default}` : undefined) : undefined,
+    defaultValue: "default" in props.description ? props.description.default : undefined,
   };
+  console.log(usualProps, props);
 
   if ("meta" in props.description) {
     const meta = props.description.meta;

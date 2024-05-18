@@ -9,16 +9,10 @@ import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";
 import { Alert } from "@/components/ui/alert";
-import { FormDialog } from "@/components/form-dialog";
-import { InputField } from "@/components/form-fields";
+import { SmartFormDialog } from "@/components/form-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import Typography from "@/components/ui/typography";
-
-export const domainFormSchema = yup.object({
-  domain: yup.string().matches(/^https?:\/\//, "Domain must start with http:// or https://").url("Domain must a valid URL").required(),
-  handlerPath: yup.string().matches(/^\//, "Handler path must start with /").required(),
-});
 
 function EditDialog(props: { 
   open?: boolean,
@@ -29,34 +23,37 @@ function EditDialog(props: {
   type: 'update' | 'create',
   editIndex?: number,
 }) {
-  const defaultValues = useMemo(() => {
-    if (props.editIndex !== undefined) {
-      const domain = props.domains[props.editIndex];
-      return domain;
-    } else {
-      return { domain: '', handlerPath: '/handler' };
-    }
-  }, [props.editIndex, props.domains]);
-
   const domainFormSchema = yup.object({
+    makeSureAlert: yup.mixed().meta({
+      stackFormFieldRender: () => (
+        <Alert>
+          Make sure this is a trusted domain or a URL that you control.
+        </Alert>
+      ),
+    }),
     domain: yup.string()
       .matches(/^https?:\/\//, "Domain must start with http:// or https://")
       .url("Domain must a valid URL")
       .notOneOf(props.domains
         .filter((_, i) => i !== props.editIndex)
         .map(({ domain }) => domain), "Domain already exists")
-      .required(),
+      .required()
+      .label("Domain with protocol")
+      .meta({
+        stackFormFieldPlaceholder: "https://example.com",
+      }),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
-      .required(),
+      .required()
+      .label("Handler path")
+      .default("/handler"),
   });
 
-  return <FormDialog
+  return <SmartFormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
     trigger={props.trigger}
     title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
-    defaultValues={defaultValues}
     formSchema={domainFormSchema}
     okButton={{ label: props.type === 'create' ? "Create" : "Save" }}
     onSubmit={async (values) => {
@@ -85,29 +82,6 @@ function EditDialog(props: {
         });
       }
     }}
-    render={(form) => (
-      <>
-        <Alert>
-          Make sure this is a trusted domain or a URL that you control.
-        </Alert>
-
-        <InputField
-          control={form.control}
-          name="domain"
-          label="Domain (http:// or https://)"
-          placeholder="https://example.com"
-          required
-        />
-          
-        <InputField
-          control={form.control}
-          name="handlerPath"
-          label="Handler path"
-          placeholder="/handler"
-          required
-        />
-      </>
-    )}
   />;
 }
 
