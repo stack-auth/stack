@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { ActionCell, BadgeCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { FormDialog } from "../form-dialog";
+import { FormDialog, SmartFormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
@@ -34,31 +34,29 @@ function EditDialog(props: {
   }
 
   const formSchema = yup.object({
-    id: yup.string().required().notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists"),
-    description: yup.string(),
-    containPermissionIds: yup.array().of(yup.string().required()).required(),
-  });
-
-  return <FormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Edit Permission"
-    formSchema={formSchema}
-    defaultValues={currentPermission}
-    okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <InputField control={form.control} label="ID" name="id" />
-        <InputField control={form.control} label="Description" name="description" />
+    id: yup.string()
+      .required()
+      .notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists")
+      .label("ID"),
+    description: yup.string().label("Description"),
+    containPermissionIds: yup.array().of(yup.string().required()).required().meta({
+      stackFormFieldRender: (innerProps) => (
         <PermissionListField
-          control={form.control} 
-          name="containPermissionIds" 
+          {...innerProps}
           permissions={permissions} 
           type="edit" 
           selectedPermissionId={props.selectedPermissionId} 
         />
-      </>
-    )}
+      ),
+    }),
+  }).default(currentPermission);
+
+  return <SmartFormDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
+    title="Edit Permission"
+    formSchema={formSchema}
+    okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       await stackAdminApp.updatePermissionDefinition(props.selectedPermissionId, values);
     }}

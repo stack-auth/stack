@@ -45,12 +45,13 @@ export function SmartForm<S extends yup.ObjectSchema<any, any, any, any>>(props:
   }, [props, form]);
 
   const details = props.formSchema.describe();
+  const defaults = props.formSchema.getDefault();
 
   return (
     <Form {...form}>
       <form onSubmit={(e) => runAsynchronously(handleSubmit(e))} id={props.formId} className="space-y-4">
         {Object.entries(details.fields).map(([fieldId, field]) => (
-          <SmartFormField key={fieldId} id={fieldId} description={field} form={form} disabled={isSubmitting} />
+          <SmartFormField key={fieldId} id={fieldId} description={field} form={form} disabled={isSubmitting} defaultValue={defaults[fieldId]} />
         ))}
       </form>
     </Form>
@@ -63,6 +64,7 @@ function SmartFormField(props: {
   description: yup.SchemaFieldDescription,
   form: ReturnType<typeof useForm>,
   disabled: boolean,
+  defaultValue: unknown,
 }) {
   const usualProps = {
     control: props.form.control,
@@ -71,10 +73,9 @@ function SmartFormField(props: {
     disabled: props.disabled,
     required: !("optional" in props.description && props.description.optional),
     placeholder: "meta" in props.description && props.description.meta?.stackFormFieldPlaceholder !== undefined ? props.description.meta?.stackFormFieldPlaceholder :
-      "default" in props.description ? (typeof props.description.default === "string" ? `Eg.: ${props.description.default}` : undefined) : undefined,
-    defaultValue: "default" in props.description ? props.description.default : undefined,
+      typeof props.defaultValue === "string" ? `Eg.: ${props.defaultValue}` : undefined,
+    defaultValue: props.defaultValue,
   };
-  console.log(usualProps, props);
 
   if ("meta" in props.description) {
     const meta = props.description.meta;

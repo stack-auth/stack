@@ -5,7 +5,7 @@ import { useAdminApp } from "../use-admin-app";
 import { Button } from "@/components/ui/button";
 import { PermissionListField } from "@/components/permission-field";
 import { PageLayout } from "../page-layout";
-import { FormDialog } from "@/components/form-dialog";
+import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
 import { InputField } from "@/components/form-fields";
 import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
 
@@ -43,28 +43,21 @@ function CreateDialog(props: {
   const permissions = stackAdminApp.usePermissionDefinitions();
 
   const formSchema = yup.object({
-    id: yup.string().required().notOneOf(permissions.map((p) => p.id), "ID already exists"),
-    description: yup.string(),
-    containPermissionIds: yup.array().of(yup.string().required()).required(),
+    id: yup.string().required().notOneOf(permissions.map((p) => p.id), "ID already exists").label("ID"),
+    description: yup.string().label("Description"),
+    containPermissionIds: yup.array().of(yup.string().required()).required().default([]).meta({
+      stackFormFieldRender: (props) => (
+        <PermissionListField {...props} permissions={permissions} type="new" />
+      ),
+    }),
   });
-  const defaultValues = {
-    containPermissionIds: [],
-  };
 
-  return <FormDialog
+  return <SmartFormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
     title="Create Permission"
     formSchema={formSchema}
-    defaultValues={defaultValues}
     okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <InputField control={form.control} label="ID" name="id" />
-        <InputField control={form.control} label="Description" name="description" />
-        <PermissionListField control={form.control} name="containPermissionIds" permissions={permissions} type="new" />
-      </>
-    )}
     onSubmit={async (values) => {
       await stackAdminApp.createPermissionDefinition({
         id: values.id,
