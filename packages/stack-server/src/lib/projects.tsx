@@ -228,7 +228,7 @@ export async function getProject(projectId: string): Promise<ProjectJson | null>
   return await updateProject(projectId, {});
 }
 
-async function _createOauthUpdateTransactions(
+async function _createOAuthConfigUpdateTransactions(
   projectId: string,
   options: ProjectUpdateOptions
 ) {
@@ -241,7 +241,7 @@ async function _createOauthUpdateTransactions(
     throw new Error(`Project with id '${projectId}' not found`);
   }
 
-  const transaction = [];
+  const transactions = [];
   const oauthProvidersUpdate = options.config?.oauthProviders;
   if (!oauthProvidersUpdate) {
     return [];
@@ -264,13 +264,13 @@ async function _createOauthUpdateTransactions(
   for (const [id, { providerUpdate, oldProvider }] of providerMap) {
     // remove existing provider configs
     if (oldProvider.proxiedOAuthConfig) {
-      transaction.push(prismaClient.proxiedOAuthProviderConfig.delete({
+      transactions.push(prismaClient.proxiedOAuthProviderConfig.delete({
         where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
       }));
     }
 
     if (oldProvider.standardOAuthConfig) {
-      transaction.push(prismaClient.standardOAuthProviderConfig.delete({
+      transactions.push(prismaClient.standardOAuthProviderConfig.delete({
         where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
       }));
     }
@@ -303,7 +303,7 @@ async function _createOauthUpdateTransactions(
       throw new StackAssertionError(`Invalid provider type '${providerUpdate.type}'`, { providerUpdate });
     }
 
-    transaction.push(prismaClient.oAuthProviderConfig.update({
+    transactions.push(prismaClient.oAuthProviderConfig.update({
       where: { projectConfigId_id: { projectConfigId: project.config.id, id } },
       data: {
         enabled: providerUpdate.enabled,
@@ -340,7 +340,7 @@ async function _createOauthUpdateTransactions(
       throw new StackAssertionError(`Invalid provider type '${provider.update.type}'`, { provider });
     }
 
-    transaction.push(prismaClient.oAuthProviderConfig.create({
+    transactions.push(prismaClient.oAuthProviderConfig.create({
       data: {
         id: provider.id,
         projectConfigId: project.config.id,
@@ -349,7 +349,79 @@ async function _createOauthUpdateTransactions(
       },
     }));
   }
-  return transaction;
+  return transactions;
+}
+
+async function _createEmailConfigUpdateTransactions(
+  projectId: string,
+  options: ProjectUpdateOptions
+) {
+  const project = await prismaClient.project.findUnique({
+    where: { id: projectId },
+    include: fullProjectInclude,
+  });
+
+  if (!project) {
+    throw new Error(`Project with id '${projectId}' not found`);
+  }
+
+  const transactions = [];
+  const emailConfig = options.config?.emailConfig;
+  if (!emailConfig) {
+    return [];
+  }
+
+  let emailServiceConfig = project.config.emailServiceConfig;
+  if (!emailServiceConfig) {
+    emailServiceConfig = await prismaClient.emailServiceConfig.create({
+      data: {
+        projectConfigId: project.config.id,
+        senderName: project.displayName,
+      },
+      include: {
+        proxiedEmailServiceConfig: true,
+        standardEmailServiceConfig: true,
+      },
+    });
+  }
+
+  if (emailServiceConfig.proxiedEmailServiceConfig) {
+    transactions.push(prismaClient.proxiedEmailServiceConfig.delete({
+      where: { projectConfigId: project.config.id },
+    }));
+  }
+
+  if (emailServiceConfig.standardEmailServiceConfig) {
+    transactions.push(prismaClient.standardEmailServiceConfig.delete({
+      where: { projectConfigId: project.config.id },
+    }));
+  }
+
+  switch (emailConfig.type) {
+    case "shared": {
+      transactions.push(prismaClient.proxiedEmailServiceConfig.create({
+        data: {
+          projectConfigId: project.config.id,
+        },
+      }));
+      break;
+    }
+    case "standard": {
+      transactions.push(prismaClient.standardEmailServiceConfig.create({
+        data: {
+          projectConfigId: project.config.id,
+          host: emailConfig.host,
+          port: emailConfig.port,
+          username: emailConfig.username,
+          password: emailConfig.password,
+          senderEmail: emailConfig.senderEmail,
+        },
+      }));
+      break;
+    }
+  }
+
+  return transactions;
 }
 
 export async function updateProject(
@@ -388,7 +460,8 @@ export async function updateProject(
     });
   }
 
-  transaction.push(...(await _createOauthUpdateTransactions(projectId, options)));
+  transaction.push(...(await _createOAuthConfigUpdateTransactions(projectId, options)));
+  transaction.push(...(await _createEmailConfigUpdateTransactions(projectId, options)));
 
   transaction.push(prismaClient.projectConfig.update({
     where: { id: project.config.id },

@@ -7,10 +7,12 @@ import { InputField, SelectField } from "@/components/form-fields";
 import { TextTooltip } from "@/components/text-tooltip";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
+  const emailConfig = project.evaluatedConfig?.emailConfig;
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -21,46 +23,76 @@ export default function PageClient() {
       >
         <SettingText label="Server">
           <div className="flex items-center gap-2">
-            Shared <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" />
+            { emailConfig?.type === 'standard' ? 
+              'Custom SMTP server' : 
+              <>Shared <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" /></> 
+            }
           </div>
         </SettingText>
         <SettingText label="Address">
-          noreply@stack-auth.com
+          {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stack-auth.com'}
         </SettingText>
         <SettingText label="Sender name">
-          {project.displayName}
+          {emailConfig?.senderName || project.displayName }
         </SettingText>
       </SettingCard>
     </PageLayout>
   );
 }
 
+function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
+  return schema.when('shared', {
+    is: 'false',
+    then: (schema: S) => schema.required(message),
+    otherwise: (schema: S) => schema.optional()
+  });
+}
+
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).required(),
-  emailSenderName: yup.string().required("Email sender name is required"),
-  emailConfig: yup.object({
-    host: yup.string().required("Host is required"),
-    port: yup.number().required("Port is required"),
-    username: yup.string().required("Username is required"),
-    password: yup.string().required("Password is required"),
-    senderEmail: yup.string().email("Sender email must be a valid email").required("Sender email is required"),
-  }).when('shared', {
-    is: 'false',
-    then: (schema) => schema.required(),
-    otherwise: (schema) => schema.optional()
-  }),
+  senderName: yup.string().required("Email sender name is required"),
+  host: requiredWhenShared(yup.string(), "Host is required"),
+  port: requiredWhenShared(yup.number(), "Port is required"),
+  username: requiredWhenShared(yup.string(), "Username is required"),
+  password: requiredWhenShared(yup.string(), "Password is required"),
+  senderEmail: requiredWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
 });
-
 function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
 }) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProjectAdmin();
+
   return <FormDialog
     trigger={props.trigger}
     title="Edit Email Server"
     formSchema={emailServerSchema}
-    defaultValues={{ type: 'shared' }}
+    defaultValues={{ type: project.evaluatedConfig?.emailConfig?.type || 'shared' }}
     okButton={{ label: "Save" }}
-    onSubmit={async (values) => { console.log(values); }}
+    onSubmit={async (values) => {
+      console.log(values);
+      if (values.type === 'shared') {
+        await project.update({ 
+          config: {
+            emailConfig: { type: 'shared', senderName: values.senderName } 
+          } 
+        });
+      } else {
+        await project.update({ 
+          config: { 
+            emailConfig: { 
+              type: 'standard', 
+              senderName: values.senderName, 
+              host: values.host || throwErr("This should never happen"),
+              port: values.port || throwErr("This should never happen"),
+              username: values.username || throwErr("This should never happen"),
+              password: values.password || throwErr("This should never happen"),
+              senderEmail: values.senderEmail || throwErr("This should never happen"),
+            } 
+          } 
+        });
+      }
+    }}
     cancelButton
     render={(form) => (
       <>
@@ -75,17 +107,17 @@ function EditEmailServerDialog(props: {
         />
         <InputField
           label="Email sender name"
-          name="emailSenderName"
+          name="senderName"
           control={form.control}
           required
         />
         {form.watch('type') === 'standard' && <>
           {([
-            { label: "Host", name: "emailConfig.host", type: 'text'},
-            { label: "Port", name: "emailConfig.port", type: 'number'},
-            { label: "Username", name: "emailConfig.username", type: 'text' },
-            { label: "Password", name: "emailConfig.password", type: 'password' },
-            { label: "Sender Email", name: "emailConfig.senderEmail", type: 'email' },
+            { label: "Host", name: "host", type: 'text'},
+            { label: "Port", name: "port", type: 'number'},
+            { label: "Username", name: "username", type: 'text' },
+            { label: "Password", name: "password", type: 'password' },
+            { label: "Sender Email", name: "senderEmail", type: 'email' },
           ] as const).map((field) => (
             <InputField 
               key={field.name}

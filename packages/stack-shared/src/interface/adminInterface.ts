@@ -1,5 +1,5 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { ProjectJson, ReadonlyTokenStore, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
+import { EmailConfigJson, ProjectJson, ReadonlyTokenStore, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -42,6 +42,7 @@ export type ProjectUpdateOptions = {
     magicLinkEnabled?: boolean,
     allowLocalhost?: boolean,
     createTeamOnSignUp?: boolean,
+    emailConfig?: EmailConfigJson,
   },
 };
 
