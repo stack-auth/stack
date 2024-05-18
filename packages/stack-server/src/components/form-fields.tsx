@@ -12,14 +12,21 @@ import { Checkbox } from "./ui/checkbox";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 
-export function FieldLabel({ required, children }: { children?: React.ReactNode, required?: boolean }) {
-  return <FormLabel>{children} {required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}</FormLabel>;
+export function FieldLabel(props: {
+  children?: React.ReactNode, 
+  required?: boolean, 
+  className?: string,
+}) {
+  return <FormLabel className={cn("flex gap-2", props.className)}>
+    {props.children} 
+    {props.required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}
+  </FormLabel>;
 }
 
 export function InputField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>,
-  label: string, 
+  label: React.ReactNode,
   placeholder?: string,
   required?: boolean,
 }) {
@@ -45,9 +52,9 @@ export function InputField<F extends FieldValues>(props: {
 export function SwitchField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>, 
-  label: string,
+  label: React.ReactNode,
   required?: boolean,
-  noCard?: boolean,
+  border?: boolean,
 }) {
   return (
     <FormField
@@ -56,44 +63,18 @@ export function SwitchField<F extends FieldValues>(props: {
       render={({ field }) => (
         <FormItem>
           <label className={cn(
-            "flex flex-row items-center justify-between p-2 gap-2",
-            props.noCard ? "" : "rounded-lg border p-3 shadow-sm"
+            "flex flex-row items-center gap-2",
+            props.border ? "rounded-lg border p-3 shadow-sm" : null
           )}>
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
               />
             </FormControl>
-          </label>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
-export function SmallSwitchField<F extends FieldValues>(props: { 
-  control: Control<F>, 
-  name: Path<F>, 
-  label: string,
-  required?: boolean,
-}) {
-  return (
-    <FormField
-      control={props.control}
-      name={props.name}
-      render={({ field }) => (
-        <FormItem>
-          <label className="block">
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
+            <FieldLabel required={props.required}>
+              {props.label}
+            </FieldLabel>
           </label>
           <FormMessage />
         </FormItem>
@@ -106,7 +87,7 @@ export function SwitchListField<F extends FieldValues>(props: {
   variant?: "switch" | "checkbox",
   control: Control<F>, 
   name: Path<F>, 
-  label: string, 
+  label: React.ReactNode,
   options: { value: string, label: string }[], 
   required?: boolean,
 }) {
@@ -148,7 +129,7 @@ export function SwitchListField<F extends FieldValues>(props: {
 export function DateField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
-  label: string,
+  label: React.ReactNode,
   required?: boolean,
 }) {
   return (
@@ -192,7 +173,7 @@ export function DateField<F extends FieldValues>(props: {
 export function SelectField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
-  label: string,
+  label: React.ReactNode,
   options: { value: string, label: string }[],
   placeholder?: string,
   required?: boolean,
@@ -206,7 +187,7 @@ export function SelectField<F extends FieldValues>(props: {
           <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger>
+              <SelectTrigger className="max-w-md">
                 <SelectValue placeholder={props.placeholder}/>
               </SelectTrigger>
               <SelectContent>
