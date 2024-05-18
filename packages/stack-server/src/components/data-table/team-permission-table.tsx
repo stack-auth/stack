@@ -123,7 +123,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
     accessorKey: "containPermissionIds",
     header: ({ column }) => <DataTableColumnHeader
       column={column}
-      columnTitle={<div>
+      columnTitle={<div className="flex items-center gap-1">
         Contained Permissions
         <SimpleTooltip tooltip="Only showing permissions that are contained directly." type='info' />
       </div>}

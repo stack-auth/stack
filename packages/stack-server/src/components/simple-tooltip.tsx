@@ -6,7 +6,11 @@ export function SimpleTooltip(props: {
   children?: React.ReactNode,
   type?: 'info' | 'warning',
 }) {
-  const icon = props.type === 'warning' ? <CircleAlert className="w-4 h-4 text-zinc-500" /> : <Info className="w-4 h-4 text-zinc-500" />;
+  const icon = props.type === 'warning' ? 
+    <CircleAlert className="w-4 h-4 text-zinc-500" /> : 
+    props.type === 'info' ? 
+      <Info className="w-4 h-4 text-zinc-500" /> : 
+      null;
 
   return (
     <TooltipProvider>
