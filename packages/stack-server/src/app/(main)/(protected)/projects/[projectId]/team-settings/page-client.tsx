@@ -1,8 +1,9 @@
-"use client";;
+"use client";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import Typography from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();

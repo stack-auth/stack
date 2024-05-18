@@ -5,6 +5,8 @@ import * as SwitchPrimitives from "@radix-ui/react-switch";
 
 import { cn } from "@/lib/utils";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
+import { Spinner } from "./spinner";
 
 interface OriginalSwitchProps extends React.ComponentProps<typeof SwitchPrimitives.Root> {}
 
@@ -37,40 +39,34 @@ interface AsyncSwitchProps extends OriginalSwitchProps {
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   AsyncSwitchProps
->(({ loading: loadingProp, onClick, ...props }, ref) => {
-  const [isLoading, setLoading] = React.useState(false);
-  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (onClick) {
-      setLoading(true);
-      try {
-        await onClick(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+>(({ loading: loadingProp, onClick, onCheckedChange, ...props }, ref) => {
+  const [handleClick, isLoadingClick] = useAsyncCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    await onClick?.(e);
+  }, [onClick]);
 
-  const handleCheckedChange = async (checked: boolean) => {
-    if (props.onCheckedChange) {
-      setLoading(true);
-      try {
-        await props.onCheckedChange(checked);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  const [handleCheckedChange, isLoadingCheckedChange] = useAsyncCallback(async (checked: boolean) => {
+    await onCheckedChange?.(checked);
+  }, [onCheckedChange]);
 
-  const loading = loadingProp ?? isLoading;
+  const loading = loadingProp || isLoadingClick || isLoadingCheckedChange;
 
   return (
-    <OriginalSwitch
-      onClick={(e) => runAsynchronously(handleClick(e))}
-      onCheckedChange={(checked) => runAsynchronously(handleCheckedChange(checked))}
-      disabled={loading}
-      ref={ref}
-      {...props}
-    />
+    <span className="relative leading-[0]">
+      <OriginalSwitch
+        {...props}
+        ref={ref}
+        onClick={(e) => runAsynchronously(handleClick(e))}
+        onCheckedChange={(checked) => runAsynchronously(handleCheckedChange(checked))}
+        disabled={props.disabled || loading}
+        style={{
+          visibility: loading ? "hidden" : "visible",
+          ...props.style,
+        }}
+      />
+      <span className={cn("absolute inset-0 flex items-center justify-center", !loading && "hidden")}>
+        <Spinner />
+      </span>
+    </span>
   );
 });
 Switch.displayName = "Switch";

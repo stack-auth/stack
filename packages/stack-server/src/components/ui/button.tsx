@@ -1,10 +1,11 @@
 import * as React from "react";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Spinner } from "./spinner";
+import { useAsyncCallback, useAsyncCallbackWithLoggedError } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
@@ -63,28 +64,20 @@ interface ButtonProps extends OriginalButtonProps {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ onClick, loading: loadingProp, children, ...props }, ref) => {
-    const [isLoading, setLoading] = React.useState(false);
-    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (onClick) {
-        setLoading(true);
-        try {
-          await onClick(e);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
+    const [handleClick, isLoading] = useAsyncCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+      await onClick?.(e);
+    }, [onClick]);
 
-    const loading = loadingProp ?? isLoading;
+    const loading = loadingProp || isLoading;
 
     return (
       <OriginalButton
-        ref={ref}
-        onClick={(e) => runAsynchronously(handleClick(e))}
-        disabled={loading}
         {...props}
+        ref={ref}
+        disabled={props.disabled || loading}
+        onClick={(e) => runAsynchronously(handleClick(e))}
       >
-        {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+        {loading && <Spinner className="mr-2" />}
         {children}
       </OriginalButton>
     );
