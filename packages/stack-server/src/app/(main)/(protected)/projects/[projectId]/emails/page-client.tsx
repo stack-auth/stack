@@ -7,7 +7,8 @@ import { InputField, SelectField } from "@/components/form-fields";
 import { TextTooltip } from "@/components/text-tooltip";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { Project } from "@stackframe/stack";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -48,6 +49,24 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string)
   });
 }
 
+const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Project) => {
+  if (!emailConfig) {
+    return { type: 'shared', senderName: project.displayName } as const;
+  } else if (emailConfig.type === 'shared') {
+    return { type: 'shared', senderName: emailConfig.senderName } as const;
+  } else {
+    return { 
+      type: 'standard', 
+      senderName: emailConfig.senderName, 
+      host: emailConfig.host,
+      port: emailConfig.port,
+      username: emailConfig.username,
+      password: emailConfig.password,
+      senderEmail: emailConfig.senderEmail,
+    } as const;
+  }
+};
+
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).required(),
   senderName: yup.string().required("Email sender name is required"),
@@ -67,10 +86,9 @@ function EditEmailServerDialog(props: {
     trigger={props.trigger}
     title="Edit Email Server"
     formSchema={emailServerSchema}
-    defaultValues={{ type: project.evaluatedConfig?.emailConfig?.type || 'shared' }}
+    defaultValues={getDefaultValues(project.evaluatedConfig.emailConfig, project)}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
-      console.log(values);
       if (values.type === 'shared') {
         await project.update({ 
           config: {
@@ -83,11 +101,11 @@ function EditEmailServerDialog(props: {
             emailConfig: { 
               type: 'standard', 
               senderName: values.senderName, 
-              host: values.host || throwErr("This should never happen"),
-              port: values.port || throwErr("This should never happen"),
-              username: values.username || throwErr("This should never happen"),
-              password: values.password || throwErr("This should never happen"),
-              senderEmail: values.senderEmail || throwErr("This should never happen"),
+              host: values.host!,
+              port: values.port!,
+              username: values.username!,
+              password: values.password!,
+              senderEmail: values.senderEmail!,
             } 
           } 
         });

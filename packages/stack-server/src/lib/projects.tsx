@@ -6,9 +6,8 @@ import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StackAssertionError, StatusError, captureError, throwStackErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr, throwStackErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -376,7 +375,7 @@ async function _createEmailConfigUpdateTransactions(
     emailServiceConfig = await prismaClient.emailServiceConfig.create({
       data: {
         projectConfigId: project.config.id,
-        senderName: project.displayName,
+        senderName: emailConfig.senderName,
       },
       include: {
         proxiedEmailServiceConfig: true,
@@ -396,6 +395,13 @@ async function _createEmailConfigUpdateTransactions(
       where: { projectConfigId: project.config.id },
     }));
   }
+
+  transactions.push(prismaClient.emailServiceConfig.update({
+    where: { projectConfigId: project.config.id },
+    data: {
+      senderName: emailConfig.senderName,
+    },
+  }));
 
   switch (emailConfig.type) {
     case "shared": {
@@ -566,6 +572,14 @@ function isStringArray(value: any): value is string[] {
   return Array.isArray(value) && value.every((id) => typeof id === "string");
 }
 
+function requiredWhenShared<S extends yup.AnyObject>(schema: S): S {
+  return schema.when('shared', {
+    is: 'false',
+    then: (schema: S) => schema.required(),
+    otherwise: (schema: S) => schema.optional()
+  });
+}
+
 const nonRequiredSchemas = {
   description: yup.string().default(undefined),
   isProductionMode: yup.boolean().default(undefined),
@@ -588,6 +602,15 @@ const nonRequiredSchemas = {
     magicLinkEnabled: yup.boolean().default(undefined),
     allowLocalhost: yup.boolean().default(undefined),
     createTeamOnSignUp: yup.boolean().default(undefined),
+    emailConfig: yup.object({
+      type: yup.string().oneOf(["shared", "standard"]).required(),
+      senderName: yup.string().required(),
+      host: requiredWhenShared(yup.string()),
+      port: requiredWhenShared(yup.number()),
+      username: requiredWhenShared(yup.string()),
+      password: requiredWhenShared(yup.string()),
+      senderEmail: requiredWhenShared(yup.string().email()),
+    }).default(undefined),
   }).default(undefined),
 };
 
@@ -641,6 +664,20 @@ export const projectSchemaToUpdateOptions = (
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
         }
       }),
+      emailConfig: update.config.emailConfig && (
+        update.config.emailConfig.type === "shared" ? {
+          type: update.config.emailConfig.type,
+          senderName: update.config.emailConfig.senderName,
+        } : {
+          type: update.config.emailConfig.type,
+          senderName: update.config.emailConfig.senderName,
+          host: update.config.emailConfig.host!,
+          port: update.config.emailConfig.port!,
+          username: update.config.emailConfig.username!,
+          password: update.config.emailConfig.password!,
+          senderEmail: update.config.emailConfig.senderEmail!,
+        }
+      ),
     },
   };
 };
