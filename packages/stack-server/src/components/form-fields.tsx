@@ -19,7 +19,7 @@ export function FieldLabel(props: {
 }) {
   return <FormLabel className={cn("flex gap-2", props.className)}>
     {props.children} 
-    {props.required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}
+    {props.required ? <span className="text-zinc-500">{' *'}</span> : null}
   </FormLabel>;
 }
 
@@ -29,6 +29,7 @@ export function InputField<F extends FieldValues>(props: {
   label: React.ReactNode,
   placeholder?: string,
   required?: boolean,
+  type?: string,
 }) {
   return (
     <FormField
@@ -36,10 +37,10 @@ export function InputField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <label className="block">
+          <label className="flex flex-col gap-2">
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
-              <Input {...field} placeholder={props.placeholder} className="max-w-md" />
+              <Input {...field} placeholder={props.placeholder} className="max-w-lg" type={props.type} />
             </FormControl>
             <FormMessage />
           </label>
@@ -187,7 +188,7 @@ export function SelectField<F extends FieldValues>(props: {
           <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger className="max-w-md">
+              <SelectTrigger className="max-w-lg">
                 <SelectValue placeholder={props.placeholder}/>
               </SelectTrigger>
               <SelectContent>

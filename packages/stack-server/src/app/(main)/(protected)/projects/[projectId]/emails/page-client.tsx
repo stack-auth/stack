@@ -1,11 +1,36 @@
 "use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
-import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
+import { SettingCard, SettingText } from "@/components/settings";
 import * as yup from "yup";
-import { InputField, SelectField, SwitchField } from "@/components/form-fields";
+import { InputField, SelectField } from "@/components/form-fields";
 import { TextTooltip } from "@/components/text-tooltip";
-import { Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/form-dialog";
+
+export default function PageClient() {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProjectAdmin();
+
+  return (
+    <PageLayout title="Emails" description="Configure email settings for your project">
+      <SettingCard
+        title="Email Server"
+        description="The server and address all the emails will be sent from"
+        actions={<EditEmailServerDialog trigger={<Button variant='secondary'>Configure</Button>} />}
+      >
+        <SettingText label="Email server">
+          <div className="flex items-center gap-2">
+            Shared <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" />
+          </div>
+        </SettingText>
+        <SettingText label="Email address">
+          noreply@stack-auth.com
+        </SettingText>
+      </SettingCard>
+    </PageLayout>
+  );
+}
 
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).required(),
@@ -22,72 +47,47 @@ const emailServerSchema = yup.object({
   }),
 });
 
-export default function PageClient() {
-  const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-
-  return (
-    <PageLayout title="Emails" description="Configure email settings for your project">
-      <FormSettingCard
-        title="Email Server"
-        description="The server and address all the emails will be sent from"
-        formSchema={emailServerSchema}
-        defaultValues={{
-          type: 'shared',
-        }}
-        onSubmit={async (values) => {
-          // await project.update({
-          //   emailConfig: values.shared ? null : values.emailConfig,
-          // });
-          console.log(values);
-        }}
-        render={(form) => <>
-          <SelectField 
-            label={<>
-              Email server
-              <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" />
-            </>}
-            name="type"
-            control={form.control}
-            options={[
-              { label: "Shared (noreply@stack-auth.com)", value: 'shared' },
-              { label: "Custom SMTP server (your own email address)", value: 'standard' },
-            ]}
-          />
-          {form.watch('type') === 'standard' && <>
+function EditEmailServerDialog(props: {
+  trigger: React.ReactNode,
+}) {
+  return <FormDialog
+    trigger={props.trigger}
+    title="Edit Email Server"
+    formSchema={emailServerSchema}
+    defaultValues={{ type: 'shared' }}
+    okButton={{ label: "Save" }}
+    onSubmit={async (values) => { console.log(values); }}
+    cancelButton
+    render={(form) => (
+      <>
+        <SelectField 
+          label="Email server"
+          name="type"
+          control={form.control}
+          options={[
+            { label: "Shared (noreply@stack-auth.com)", value: 'shared' },
+            { label: "Custom SMTP server (your own email address)", value: 'standard' },
+          ]}
+        />
+        {form.watch('type') === 'standard' && <>
+          {([
+            { label: "Host", name: "emailConfig.host", type: 'text'},
+            { label: "Port", name: "emailConfig.port", type: 'number'},
+            { label: "Username", name: "emailConfig.username", type: 'text' },
+            { label: "Password", name: "emailConfig.password", type: 'password' },
+            { label: "From Email", name: "emailConfig.senderEmail", type: 'email' },
+          ] as const).map((field) => (
             <InputField 
-              label="Host"
-              name="emailConfig.host"
+              key={field.name}
+              label={field.label}
+              name={field.name}
               control={form.control}
+              type={field.type}
               required
             />
-            <InputField 
-              label="Port"
-              name="emailConfig.port"
-              control={form.control}
-              required
-            />
-            <InputField 
-              label="Username"
-              name="emailConfig.username"
-              control={form.control}
-              required
-            />
-            <InputField 
-              label="Password"
-              name="emailConfig.password"
-              control={form.control}
-              required
-            />
-            <InputField 
-              label="From Email"
-              name="emailConfig.senderEmail"
-              control={form.control}
-              required
-            />
-          </>}
+          ))}
         </>}
-      />
-    </PageLayout>
-  );
+      </>
+    )}
+  />;
 }

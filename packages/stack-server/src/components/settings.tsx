@@ -105,18 +105,32 @@ SettingIconButton.displayName = "SettingIconButton";
 export function SettingInput(props: {
   label: string,
   defaultValue?: string,
-  onChange: (value: string) => void | Promise<void>,
+  onChange?: (value: string) => void | Promise<void>,
   actions?: React.ReactNode,
 }) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-2">
       <Label>{props.label}</Label>
       <DelayedInput
-        className="max-w-md"
+        className="max-w-lg"
         defaultValue={props.defaultValue}
-        onChange={(e) => runAsynchronously(props.onChange(e.target.value))}
+        onChange={(e) => runAsynchronously(props.onChange?.(e.target.value))}
       />
       {props.actions}
+    </div>
+  );
+}
+
+export function SettingText(props: {
+  label: string,
+  children: React.ReactNode,
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{props.label}</Label>
+      <div>
+        {props.children}
+      </div>
     </div>
   );
 }

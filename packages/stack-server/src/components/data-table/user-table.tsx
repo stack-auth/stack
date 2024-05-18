@@ -81,7 +81,9 @@ function EditUserDialog(props: {
           <div className="flex-1">
             <InputField control={form.control} label="Primary Email" name="primaryEmail" />
           </div>
-          <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" noCard />
+          <div className="mb-2">
+            <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
+          </div>
         </div>
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />

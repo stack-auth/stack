@@ -71,7 +71,7 @@ export function ActionDialog(props: ActionDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <DialogBody>
+        <DialogBody className="pb-2">
           <div>
             {props.children}
           </div>
