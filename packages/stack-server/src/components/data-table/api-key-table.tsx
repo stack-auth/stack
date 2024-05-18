@@ -67,30 +67,30 @@ function Actions({ row }: { row: Row<ExtendedApiKeySet> }) {
 const columns: ColumnDef<ExtendedApiKeySet>[] =  [
   {
     accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Description" />,
     cell: ({ row }) => <TextCell size={300}>{row.original.description}</TextCell>,
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Status" />,
     cell: ({ row }) => <BadgeCell badges={[row.original.status]} />,
     filterFn: standardFilterFn,
   },
   {
     accessorKey: "clientKey",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Client Key" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Client Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.publishableClientKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
     accessorKey: "serverKey",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Server Key" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Server Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.secretServerKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
     accessorKey: "expiresAt",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Expires At" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Expires At" />,
     cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={100} />
   },
   {

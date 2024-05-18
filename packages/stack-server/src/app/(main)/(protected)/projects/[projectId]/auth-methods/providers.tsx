@@ -16,7 +16,7 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import Typography from "@/components/ui/typography";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { FormDialog } from "@/components/form-dialog";
-import { TextTooltip } from "@/components/text-tooltip";
+import { SimpleTooltip } from "@/components/simple-tooltip";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -174,9 +174,9 @@ export function ProviderSettingSwitch(props: Props) {
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
             {isShared && enabled && 
-              <TextTooltip text="Shared keys are created by the Stack team for easy development experience">
+              <SimpleTooltip tooltip="Shared keys are created by the Stack team for easy development experience">
                 <Badge variant="secondary">Shared keys</Badge>
-              </TextTooltip>
+              </SimpleTooltip>
             }
           </div>
         }

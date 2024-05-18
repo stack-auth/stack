@@ -9,7 +9,7 @@ export default function PageClient() {
   const teams = stackAdminApp.useTeams();
 
   return (
-    <PageLayout title="Teams" description="Manage your project's teams">
+    <PageLayout title="Teams">
       <TeamTable teams={teams} />
     </PageLayout>
   );

@@ -104,17 +104,17 @@ function Actions({ row }: { row: Row<ServerTeam> }) {
 const columns: ColumnDef<ServerTeam>[] =  [
   {
     accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
   },
   {
     accessorKey: "displayName",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
     cell: ({ row }) => <TextCell size={200}>{row.getValue("displayName")}</TextCell>,
   },
   {
     accessorKey: "createdAt",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Created At" />,
     cell: ({ row }) => <DateCell date={row.getValue("createdAt")}></DateCell>,
   },
   {

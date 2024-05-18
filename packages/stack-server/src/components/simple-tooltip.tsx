@@ -1,7 +1,8 @@
+import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
-export function TextTooltip(props: {
-  text: string,
+export function SimpleTooltip(props: {
+  tooltip: React.ReactNode,
   children: React.ReactNode,
 }) {
   return (
@@ -11,7 +12,7 @@ export function TextTooltip(props: {
           {props.children}
         </TooltipTrigger>
         <TooltipContent>
-          {props.text}
+          {props.tooltip}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

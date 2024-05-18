@@ -18,7 +18,6 @@ export default function PageClient() {
   return (
     <PageLayout 
       title="Team Permissions" 
-      description="Manage team permissions" 
       actions={
         <Button onClick={() => setCreatePermissionModalOpen(true)}>
           Create Permission

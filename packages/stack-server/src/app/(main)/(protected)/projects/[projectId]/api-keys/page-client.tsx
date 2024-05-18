@@ -23,7 +23,6 @@ export default function PageClient() {
   return (
     <PageLayout 
       title="API Keys"
-      description="Manage your project's API keys" 
       actions={
         <Button onClick={() => setIsNewApiKeyDialogOpen(true)}>
           Create API Key

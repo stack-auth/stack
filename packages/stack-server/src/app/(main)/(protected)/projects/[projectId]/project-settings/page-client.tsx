@@ -4,6 +4,7 @@ import { PageLayout } from "../page-layout";
 import { SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
+import Typography from "@/components/ui/typography";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -12,7 +13,24 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Project Settings" description="Manage your project">
-      <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations it is strongly recommended to enable production mode on your production environments.">
+      <SettingCard title="Public Project Information">
+        <SettingInput 
+          label="Display name" 
+          onChange={(v) => project.update({ displayName: v })}
+          defaultValue={project.displayName}/>
+
+        <SettingInput
+          label="Description"
+          onChange={(v) => project.update({ description: v })}
+          defaultValue={project.description}
+        />
+
+        <Typography variant="secondary" type="footnote">
+          The display name and description may be publicly visible to users of your app.
+        </Typography>
+      </SettingCard>
+
+      <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations, it is strongly recommended to enable production mode on your production environments.">
         <SettingSwitch
           label="Enable production mode"
           checked={project.isProductionMode}
@@ -40,18 +58,6 @@ export default function PageClient() {
             </ul>
           </Alert>
         )}
-      </SettingCard>
-
-      <SettingCard title="Project Information">
-        <SettingInput 
-          label="Display Name" 
-          onChange={(v) => project.update({ displayName: v })}
-          defaultValue={project.displayName}/>
-        <SettingInput
-          label="Description"
-          onChange={(v) => project.update({ description: v })}
-          defaultValue={project.description}
-        />
       </SettingCard>
       
       {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">

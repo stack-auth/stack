@@ -127,10 +127,10 @@ export default function PageClient() {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   return (
-    <PageLayout title="Domains and Handler" description="Callback URLs that are allowed to send requests to your project">
+    <PageLayout title="Domains and Handler">
       <SettingCard 
-        title="Domains and Handlers"
-        description="Trusted domains of your app and their handler paths"
+        title="Trusted domains"
+        description="Features that will redirect to your app, such as SSO and e-mail verification, will refuse to redirect to domains other than the ones listed here. Please make sure that you trust all domains listed here, as they can be used to access user data."
         actions={
           <EditDialog
             trigger={<Button>Add new domain</Button>}
@@ -187,7 +187,7 @@ export default function PageClient() {
         )}
       </SettingCard>
 
-      <SettingCard title="Development settings" description="Help you to have a better development experience">
+      <SettingCard title="Development settings">
         <SettingSwitch
           checked={project.evaluatedConfig.allowLocalhost}
           onCheckedChange={async (checked) => {
@@ -197,6 +197,11 @@ export default function PageClient() {
           }}
           label="Allow all localhost callbacks for development"
         />
+
+        
+        <Typography variant="secondary" type="footnote">
+          When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
+        </Typography>
       </SettingCard>
     </PageLayout>
   );

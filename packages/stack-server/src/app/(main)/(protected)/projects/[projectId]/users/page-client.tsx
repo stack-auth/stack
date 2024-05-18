@@ -12,7 +12,7 @@ export default function PageClient() {
   const allUsers = stackAdminApp.useServerUsers();
 
   return (
-    <PageLayout title="Users" description="Manage your project's users">
+    <PageLayout title="Users">
       {allUsers.length > 0 ? null : (
         <Alert variant='success'>
           Congratulations on starting your project! Check the <Link href="https://docs.stack-auth.com">documentation</Link> to add your first users.

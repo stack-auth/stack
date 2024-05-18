@@ -14,8 +14,7 @@ import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
-import { CircleAlert } from "lucide-react";
-import { TextTooltip } from "../text-tooltip";
+import { AlertBadge } from "../alert-badge";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -138,32 +137,32 @@ function capitalizeFirstLetter(s: string) {
 export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
   {
     accessorKey: "profileImageUrl",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Avatar" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Avatar" />,
     cell: ({ row }) => <AvatarCell src={row.original.profileImageUrl || undefined} />,
     enableSorting: false,
   },
   {
     accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
   },
   {
     accessorKey: "displayName",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Display Name" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
     cell: ({ row }) => <TextCell size={120}>{row.original.displayName}</TextCell>,
   },
   {
     accessorKey: "primaryEmail",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Primary Email" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Primary Email" />,
     cell: ({ row }) => <TextCell 
       size={180} 
-      icon={row.original.emailVerified === "unverified" && <TextTooltip text="Email not verified"><CircleAlert className="text-zinc-500 h-4 w-4" /></TextTooltip>}>
+      icon={row.original.emailVerified === "unverified" && <AlertBadge>Email not verified</AlertBadge>}>
       {row.original.primaryEmail}
     </TextCell>,
   },
   {
     accessorKey: "emailVerified",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Email Verified" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
     filterFn: standardFilterFn
   },
@@ -173,13 +172,13 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   ...commonUserColumns,
   {
     accessorKey: "authType",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Auth Method" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={[capitalizeFirstLetter(row.original.authType)]} />,
     filterFn: standardFilterFn,
   },
   {
     accessorKey: "signedUpAt",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Signed Up At" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Signed Up At" />,
     cell: ({ row }) => <DateCell date={row.original.signedUpAt} />,
   },
   {

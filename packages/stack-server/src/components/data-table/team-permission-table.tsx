@@ -12,6 +12,7 @@ import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PermissionListField } from "../permission-field";
+import { AlertBadge } from "../alert-badge";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -110,17 +111,27 @@ function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
 const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   {
     accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={160}>{row.getValue("id")}</TextCell>,
   },
   {
     accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Description" />,
     cell: ({ row }) => <TextCell size={200}>{row.getValue("description")}</TextCell>,
   },
   {
     accessorKey: "containPermissionIds",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Contained Permissions" />,
+    header: ({ column }) => <DataTableColumnHeader
+      column={column}
+      columnTitle={<>
+        Contained Permissions
+        <span className="ml-2">
+          <AlertBadge>
+            Only contains permissions that are contained directly.
+          </AlertBadge>
+        </span>
+      </>}
+    />,
     cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
   },
   {
