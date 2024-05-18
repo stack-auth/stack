@@ -19,15 +19,15 @@ export default function PageClient() {
         description="The server and address all the emails will be sent from"
         actions={<EditEmailServerDialog trigger={<Button variant='secondary'>Configure</Button>} />}
       >
-        <SettingText label="Email server">
+        <SettingText label="Server">
           <div className="flex items-center gap-2">
             Shared <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" />
           </div>
         </SettingText>
-        <SettingText label="Email address">
+        <SettingText label="Address">
           noreply@stack-auth.com
         </SettingText>
-        <SettingText label="Email sender name">
+        <SettingText label="Sender name">
           {project.displayName}
         </SettingText>
       </SettingCard>
