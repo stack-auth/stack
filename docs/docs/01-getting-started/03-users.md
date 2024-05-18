@@ -128,13 +128,11 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       const app = useStackApp();
       return (
         <div>
-          <h1>Home</h1>
           {user ? (
             <div>
               <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
-              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
               <button onClick={() => user.signOut()}>Sign Out</button>
             </div>
           ) : (
@@ -159,13 +157,11 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       const user = await stackApp.getUser();
       return (
         <div>
-          <h1>Home</h1>
           {user ? (
             <div>
               <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
-              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
               <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
             </div>
           ) : (
@@ -187,3 +183,5 @@ Note the `UserButton` is a component that you normally put in the top right corn
 ![UserButton](../imgs/user-button.png)
 
 You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).
+
+To see more examples of how to use the `User` object, check out the [User API documentation](/docs/api-documentation/user).
