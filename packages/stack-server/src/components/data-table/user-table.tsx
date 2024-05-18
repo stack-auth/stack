@@ -136,7 +136,7 @@ function capitalizeFirstLetter(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
+export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Avatar" />,
@@ -168,10 +168,10 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
     filterFn: standardFilterFn
   },
-];
+] satisfies ColumnDef<T>[];
 
 const columns: ColumnDef<ExtendedServerUser>[] =  [
-  ...commonUserColumns,
+  ...getCommonUserColumns<ExtendedServerUser>(),
   {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
