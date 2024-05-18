@@ -1,18 +1,18 @@
-html[data-stack-theme='dark'] {
+html[data-theme='dark'] {
   --ifm-background-color: #030712;
   --ifm-background-surface-color: #030712;
 }
 
 .navbar {
-  border-bottom: 1px solid #151515;
+  border-bottom: 1px solid rgb(26, 26, 26);
 }
 
 .menu {
-  border-right: 1px solid #151515;
+  border-right: 1px solid rgb(26, 26, 26);
 }
 
 .table-of-contents {
-  border-left: 1px solid #151515;
+  border-left: 1px solid rgb(26, 26, 26);
 }
 
 .navbar__logo img {
