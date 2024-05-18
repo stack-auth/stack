@@ -4,7 +4,7 @@ import { PageLayout } from "../page-layout";
 import { SettingCard, SettingText } from "@/components/settings";
 import * as yup from "yup";
 import { InputField, SelectField } from "@/components/form-fields";
-import { TextTooltip } from "@/components/text-tooltip";
+import { SimpleTooltip } from "@/components/simple-tooltip";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -26,7 +26,7 @@ export default function PageClient() {
           <div className="flex items-center gap-2">
             { emailConfig?.type === 'standard' ? 
               'Custom SMTP server' : 
-              <>Shared <TextTooltip text="When you use the shared email server, all the emails are sent from Stack's email address" /></> 
+              <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" /></> 
             }
           </div>
         </SettingText>
