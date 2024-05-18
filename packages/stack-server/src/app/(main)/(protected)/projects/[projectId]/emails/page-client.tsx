@@ -26,7 +26,7 @@ export default function PageClient() {
           <div className="flex items-center gap-2">
             { emailConfig?.type === 'standard' ? 
               'Custom SMTP server' : 
-              <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" /></> 
+              <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" type='info' /></>
             }
           </div>
         </SettingText>

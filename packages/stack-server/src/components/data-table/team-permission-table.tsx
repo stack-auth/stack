@@ -12,7 +12,7 @@ import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PermissionListField } from "../permission-field";
-import { AlertBadge } from "../alert-badge";
+import { SimpleTooltip } from "../simple-tooltip";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -123,14 +123,10 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
     accessorKey: "containPermissionIds",
     header: ({ column }) => <DataTableColumnHeader
       column={column}
-      columnTitle={<>
+      columnTitle={<div>
         Contained Permissions
-        <span className="ml-2">
-          <AlertBadge>
-            Only contains permissions that are contained directly.
-          </AlertBadge>
-        </span>
-      </>}
+        <SimpleTooltip tooltip="Only showing permissions that are contained directly." type='info' />
+      </div>}
     />,
     cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
   },

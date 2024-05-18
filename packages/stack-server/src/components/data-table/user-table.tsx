@@ -14,7 +14,7 @@ import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
-import { AlertBadge } from "../alert-badge";
+import { SimpleTooltip } from "../simple-tooltip";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -158,7 +158,7 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Primary Email" />,
     cell: ({ row }) => <TextCell 
       size={180} 
-      icon={row.original.emailVerified === "unverified" && <AlertBadge>Email not verified</AlertBadge>}>
+      icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
   },
