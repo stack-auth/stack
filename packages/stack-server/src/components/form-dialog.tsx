@@ -90,7 +90,7 @@ export function FormDialog<F extends FieldValues>(
       {...props}
       open={props.open ?? openState}
       onOpenChange={(open) => { if(open) setOpenState(true); props.onOpenChange?.(open); }}
-      onClose={async () => { form.reset(); setOpenState(false); await props.onClose?.(); }}
+      onClose={() => { form.reset(); setOpenState(false); runAsynchronously(props.onClose?.()); }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
