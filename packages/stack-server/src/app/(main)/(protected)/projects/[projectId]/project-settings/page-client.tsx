@@ -21,23 +21,6 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Project Settings" description="Manage your project">
-      <SettingCard title="Public Project Information">
-        <SettingInput 
-          label="Display name" 
-          onChange={(v) => project.update({ displayName: v })}
-          defaultValue={project.displayName}/>
-
-        <SettingInput
-          label="Description"
-          onChange={(v) => project.update({ description: v })}
-          defaultValue={project.description}
-        />
-
-        <Typography variant="secondary" type="footnote">
-          The display name and description may be publicly visible to users of your app.
-        </Typography>
-      </SettingCard>
-
       <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations, it is strongly recommended to enable production mode on your production environments.">
         <SettingSwitch
           label="Enable production mode"
@@ -73,6 +56,10 @@ export default function PageClient() {
           <>
             <InputField label="Display Name" control={form.control} name="displayName" required />
             <InputField label="Description" control={form.control} name="description" />
+
+            <Typography variant="secondary" type="footnote">
+              The display name and description may be publicly visible to the users of your app.
+            </Typography>
           </>
         )}
       />
