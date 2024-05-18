@@ -23,7 +23,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
     if (res !== 'prevent-close') {
       setOpenState(false);
       props.onOpenChange?.(false);
-      props.onClose?.();
+      await props.onClose?.();
     }
   };
 
@@ -73,7 +73,7 @@ export function FormDialog<F extends FieldValues>(
       form.reset();
       if (result !== 'prevent-close') {
         setOpenState(false);
-        props.onClose?.();
+        await props.onClose?.();
         props.onOpenChange?.(false);
       }
     } finally {
@@ -90,7 +90,7 @@ export function FormDialog<F extends FieldValues>(
       {...props}
       open={props.open ?? openState}
       onOpenChange={(open) => { if(open) setOpenState(true); props.onOpenChange?.(open); }}
-      onClose={() => { form.reset(); setOpenState(false); props.onClose?.(); }}
+      onClose={async () => { form.reset(); setOpenState(false); await props.onClose?.(); }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
