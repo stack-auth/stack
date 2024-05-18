@@ -170,7 +170,6 @@ export async function createProject(
             createTeamOnSignUp: !!projectOptions.config?.createTeamOnSignUp,
             emailServiceConfig: {
               create: {
-                senderName: projectOptions.displayName,
                 proxiedEmailServiceConfig: {
                   create: {}
                 }
@@ -375,7 +374,6 @@ async function _createEmailConfigUpdateTransactions(
     emailServiceConfig = await prismaClient.emailServiceConfig.create({
       data: {
         projectConfigId: project.config.id,
-        senderName: emailConfig.senderName,
       },
       include: {
         proxiedEmailServiceConfig: true,
@@ -396,13 +394,6 @@ async function _createEmailConfigUpdateTransactions(
     }));
   }
 
-  transactions.push(prismaClient.emailServiceConfig.update({
-    where: { projectConfigId: project.config.id },
-    data: {
-      senderName: emailConfig.senderName,
-    },
-  }));
-
   switch (emailConfig.type) {
     case "shared": {
       transactions.push(prismaClient.proxiedEmailServiceConfig.create({
@@ -421,6 +412,7 @@ async function _createEmailConfigUpdateTransactions(
           username: emailConfig.username,
           password: emailConfig.password,
           senderEmail: emailConfig.senderEmail,
+          senderName: emailConfig.senderName,
         },
       }));
       break;
@@ -509,7 +501,6 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
     if (emailServiceConfig.proxiedEmailServiceConfig) {
       emailConfig = {
         type: "shared",
-        senderName: emailServiceConfig.senderName,
       };
     }
     if (emailServiceConfig.standardEmailServiceConfig) {
@@ -521,7 +512,7 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         username: standardEmailConfig.username,
         password: standardEmailConfig.password,
         senderEmail: standardEmailConfig.senderEmail,
-        senderName: emailServiceConfig.senderName,
+        senderName: standardEmailConfig.senderName,
       };
     }
   }
@@ -604,7 +595,7 @@ const nonRequiredSchemas = {
     createTeamOnSignUp: yup.boolean().default(undefined),
     emailConfig: yup.object({
       type: yup.string().oneOf(["shared", "standard"]).required(),
-      senderName: yup.string().required(),
+      senderName: requiredWhenShared(yup.string()),
       host: requiredWhenShared(yup.string()),
       port: requiredWhenShared(yup.number()),
       username: requiredWhenShared(yup.string()),
@@ -667,10 +658,9 @@ export const projectSchemaToUpdateOptions = (
       emailConfig: update.config.emailConfig && (
         update.config.emailConfig.type === "shared" ? {
           type: update.config.emailConfig.type,
-          senderName: update.config.emailConfig.senderName,
         } : {
           type: update.config.emailConfig.type,
-          senderName: update.config.emailConfig.senderName,
+          senderName: update.config.emailConfig.senderName!,
           host: update.config.emailConfig.host!,
           port: update.config.emailConfig.port!,
           username: update.config.emailConfig.username!,

@@ -51,7 +51,6 @@ async function seed() {
           },
           emailServiceConfig: {
             create: {
-              senderName: 'Internal Project',
               proxiedEmailServiceConfig: {
                 create: {}
               }

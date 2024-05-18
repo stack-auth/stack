@@ -10,6 +10,13 @@ import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
 import MagicLinkEmail from './templates/magic-link';
 
+
+function getPortConfig(port: number | string) {
+  let parsedPort = parseInt(port.toString());
+  const secure = parsedPort === 465;
+  return { secure };
+}
+
 export type EmailConfig = {
   host: string,
   port: number,
@@ -70,7 +77,6 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   }
 
   let emailConfig: EmailConfig;
-  const secure = process.env.EMAIL_SECURE === undefined ? true : process.env.EMAIL_SECURE === 'true';
   if (projectEmailConfig.type === 'shared') {
     emailConfig = {
       host: getEnvVariable('EMAIL_HOST'),
@@ -78,8 +84,8 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
       username: getEnvVariable('EMAIL_USERNAME'),
       password: getEnvVariable('EMAIL_PASSWORD'),
       senderEmail: getEnvVariable('EMAIL_SENDER'),
-      senderName: projectEmailConfig.senderName,
-      secure: secure,
+      senderName: project.displayName,
+      secure: getPortConfig(getEnvVariable('EMAIL_PORT')).secure,
       type: 'shared',
     };
   } else {
@@ -90,7 +96,7 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
       password: projectEmailConfig.password,
       senderEmail: projectEmailConfig.senderEmail,
       senderName: projectEmailConfig.senderName,
-      secure: secure, // TODO: add secure to projectEmailConfig
+      secure: getPortConfig(projectEmailConfig.port).secure,
       type: 'standard',
     };
   }

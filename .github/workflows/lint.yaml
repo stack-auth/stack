@@ -18,7 +18,6 @@ jobs:
 
       EMAIL_HOST: 0.0.0.0
       EMAIL_PORT: 2500
-      EMAIL_SECURE: false
       EMAIL_USERNAME: test
       EMAIL_PASSWORD: none
       EMAIL_SENDER: noreply@test.com

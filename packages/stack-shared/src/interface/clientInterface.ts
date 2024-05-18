@@ -136,7 +136,6 @@ export type EmailConfigJson = (
   }
   | {
     type: "shared",
-    senderName: string,
   }
 );
 

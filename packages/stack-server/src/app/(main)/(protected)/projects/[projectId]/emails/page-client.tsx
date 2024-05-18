@@ -30,11 +30,8 @@ export default function PageClient() {
             }
           </div>
         </SettingText>
-        <SettingText label="Address">
+        <SettingText label="Sender Email">
           {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stack-auth.com'}
-        </SettingText>
-        <SettingText label="Sender name">
-          {emailConfig?.senderName || project.displayName }
         </SettingText>
       </SettingCard>
     </PageLayout>
@@ -53,7 +50,7 @@ const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Pro
   if (!emailConfig) {
     return { type: 'shared', senderName: project.displayName } as const;
   } else if (emailConfig.type === 'shared') {
-    return { type: 'shared', senderName: emailConfig.senderName } as const;
+    return { type: 'shared' } as const;
   } else {
     return { 
       type: 'standard', 
@@ -69,12 +66,12 @@ const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Pro
 
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).required(),
-  senderName: yup.string().required("Email sender name is required"),
   host: requiredWhenShared(yup.string(), "Host is required"),
   port: requiredWhenShared(yup.number(), "Port is required"),
   username: requiredWhenShared(yup.string(), "Username is required"),
   password: requiredWhenShared(yup.string(), "Password is required"),
   senderEmail: requiredWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
+  senderName: requiredWhenShared(yup.string(), "Email sender name is required"),
 });
 function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
@@ -92,7 +89,7 @@ function EditEmailServerDialog(props: {
       if (values.type === 'shared') {
         await project.update({ 
           config: {
-            emailConfig: { type: 'shared', senderName: values.senderName } 
+            emailConfig: { type: 'shared' } 
           } 
         });
       } else {
@@ -100,7 +97,7 @@ function EditEmailServerDialog(props: {
           config: { 
             emailConfig: { 
               type: 'standard', 
-              senderName: values.senderName, 
+              senderName: values.senderName!, 
               host: values.host!,
               port: values.port!,
               username: values.username!,
@@ -123,12 +120,6 @@ function EditEmailServerDialog(props: {
             { label: "Custom SMTP server (your own email address)", value: 'standard' },
           ]}
         />
-        <InputField
-          label="Email sender name"
-          name="senderName"
-          control={form.control}
-          required
-        />
         {form.watch('type') === 'standard' && <>
           {([
             { label: "Host", name: "host", type: 'text'},
@@ -136,6 +127,7 @@ function EditEmailServerDialog(props: {
             { label: "Username", name: "username", type: 'text' },
             { label: "Password", name: "password", type: 'password' },
             { label: "Sender Email", name: "senderEmail", type: 'email' },
+            { label: "Sender Name", name: "senderName", type: 'text' },
           ] as const).map((field) => (
             <InputField 
               key={field.name}
