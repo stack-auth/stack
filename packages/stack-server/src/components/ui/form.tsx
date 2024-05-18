@@ -11,7 +11,7 @@ import {
 } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
+import { Label, SpanLabel } from "@/components/ui/label";
 
 const Form = FormProvider;
 
@@ -91,7 +91,7 @@ const FormLabel = React.forwardRef<
   const { error } = useFormField();
 
   return (
-    <Label
+    <SpanLabel
       ref={ref}
       className={cn(error && "text-destructive", className)}
       {...props}

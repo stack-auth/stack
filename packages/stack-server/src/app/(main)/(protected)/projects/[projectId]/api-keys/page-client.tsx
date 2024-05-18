@@ -6,7 +6,7 @@ import EnvKeys from "@/components/env-keys";
 import { ApiKeySetFirstView } from "@stackframe/stack";
 import { PageLayout } from "../page-layout";
 import { ApiKeyTable } from "@/components/data-table/api-key-table";
-import { FormDialog } from "@/components/form-dialog";
+import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import * as yup from "yup";
 import { ActionDialog } from "@/components/action-dialog";
@@ -57,8 +57,12 @@ const expiresInOptions = {
 } as const;
 
 const formSchema = yup.object({
-  description: yup.string().required(),
-  expiresIn: yup.string().required(),
+  description: yup.string().required().label("Description"),
+  expiresIn: yup.string().default(neverInMs.toString()).label("Expires in").meta({
+    stackFormFieldRender: (props) => (
+      <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
+    )
+  }),
 });
 
 function CreateDialog(props: {
@@ -68,19 +72,12 @@ function CreateDialog(props: {
 }) {
   const stackAdminApp = useAdminApp();
 
-  return <FormDialog
+  return <SmartFormDialog
     open={props.open}
     onOpenChange={props.onOpenChange}
     title="Create API Key"
     formSchema={formSchema}
-    defaultValues={{ expiresIn: neverInMs.toString() }}
     okButton={{ label: "Create" }}
-    render={(form) => (
-      <>
-        <InputField control={form.control} label="Description" name="description" />
-        <SelectField control={form.control} label="Expires in" name="expiresIn" options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
-      </>
-    )}
     onSubmit={async (values) => {
       const expiresIn = parseInt(values.expiresIn);
       const newKey = await stackAdminApp.createApiKeySet({
