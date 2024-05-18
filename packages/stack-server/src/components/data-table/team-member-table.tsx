@@ -1,12 +1,18 @@
 'use client';;
 import { useEffect, useMemo, useState } from "react";
+import * as yup from "yup";
 import { ServerTeam, ServerTeamMember, ServerUser } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { DataTable } from "./elements/data-table";
-import { ActionCell } from "./elements/cells";
+import { ActionCell, BadgeCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { ExtendedServerUser, commonUserColumns, extendUsers } from "./user-table";
+import { ExtendedServerUser, getCommonUserColumns, extendUsers } from "./user-table";
 import { ActionDialog } from "../action-dialog";
+import { DataTableColumnHeader } from "./elements/column-header";
+import { SimpleTooltip } from "../simple-tooltip";
+import { PermissionListField } from "../permission-field";
+import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
+import { SmartFormDialog } from "../form-dialog";
 
 
 type ExtendedServerUserForTeam = ExtendedServerUser & {
@@ -43,12 +49,79 @@ function RemoveUserDialog(props: {
   </ActionDialog>;
 }
 
-function TeamMemberActions({ row, team }: { row: Row<ExtendedServerUser>, team: ServerTeam }) {
+function EditPermissionDialog(props: {
+  user: ExtendedServerUserForTeam,
+  team: ServerTeam,
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+  onSubmit: () => void,
+}) {
+  const stackAdminApp = useAdminApp();
+  const permissions = stackAdminApp.usePermissionDefinitions();
+
+  const formSchema = yup.object({
+    permissions: yup.array().of(yup.string().required()).required().meta({
+      stackFormFieldRender: (innerProps) => (
+        <PermissionListField
+          {...innerProps}
+          permissions={permissions} 
+          type="edit-user"
+          team={props.team}
+          user={props.user}
+        />
+      ),
+    }),
+  }).default({ permissions: props.user.permissions });
+
+  return <SmartFormDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
+    title="Edit Permission"
+    formSchema={formSchema}
+    okButton={{ label: "Save" }}
+    onSubmit={async (values) => {
+      const promises = permissions.map(p => {
+        if (values.permissions.includes(p.id)) {
+          return props.user.grantPermission(props.team, p.id);
+        } else {
+          return props.user.revokePermission(props.team, p.id);
+        }
+      });
+      await Promise.all(promises);
+      props.onSubmit();
+    }}
+    cancelButton
+  />;
+}
+
+
+function Actions(
+  { row, team, setUpdateCounter }: 
+  { row: Row<ExtendedServerUserForTeam>, team: ServerTeam, setUpdateCounter: (c: (v: number) => number) => void }
+) {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   return (
     <>
-      <RemoveUserDialog user={row.original} open={isRemoveModalOpen} onOpenChange={setIsRemoveModalOpen} team={team} />
+      <RemoveUserDialog 
+        user={row.original} 
+        team={team} 
+        open={isRemoveModalOpen} 
+        onOpenChange={setIsRemoveModalOpen} 
+      />
+      <EditPermissionDialog 
+        user={row.original} 
+        team={team} 
+        open={isEditModalOpen} 
+        onOpenChange={(v) => setIsEditModalOpen(v)}
+        onSubmit={() => setUpdateCounter(c => c + 1)} 
+      />
       <ActionCell
+        items={[{
+          item: "Edit permissions",
+          onClick: () => setIsEditModalOpen(true),
+        }]}
         dangerItems={[{
           item: "Remove from team",
           onClick: () => setIsRemoveModalOpen(true),
@@ -59,17 +132,29 @@ function TeamMemberActions({ row, team }: { row: Row<ExtendedServerUser>, team: 
 }
 
 export function TeamMemberTable(props: { members: ServerTeamMember[], team: ServerTeam }) {
-  const teamMemberColumns: ColumnDef<ExtendedServerUser>[] = [
-    ...commonUserColumns,
+  const teamMemberColumns: ColumnDef<ExtendedServerUserForTeam>[] = [
+    ...getCommonUserColumns<ExtendedServerUserForTeam>(),
+    {
+      accessorKey: "permissions",
+      header: ({ column }) => <DataTableColumnHeader
+        column={column}
+        columnTitle={<div className="flex items-center gap-1">
+          Permissions
+          <SimpleTooltip tooltip="Only showing direct permissions" type='info' />
+        </div>}
+      />,
+      cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("permissions")} />,
+    },
     {
       id: "actions",
-      cell: ({ row }) => <TeamMemberActions row={row} team={props.team} />,
+      cell: ({ row }) => <Actions row={row} team={props.team} setUpdateCounter={setUpdateCounter} />,
     },
   ];
 
   // TODO: Optimize this
   const [users, setUsers] = useState<ServerUser[]>([]);
   const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});
+  const [updateCounter, setUpdateCounter] = useState(0);
 
   const extendedUsers: ExtendedServerUserForTeam[] = useMemo(() => {
     return extendUsers(users).map((user) => ({
@@ -97,7 +182,8 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
       ));
       setUsers(data.map(d => d.user));
     }).catch(console.error);
-  }, [props.members, props.team]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.members, props.team, updateCounter]);
 
   return <DataTable 
     data={extendedUsers}

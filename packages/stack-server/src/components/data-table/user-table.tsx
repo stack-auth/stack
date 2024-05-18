@@ -14,7 +14,7 @@ import { DateField, InputField, SwitchField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
-import { AlertBadge } from "../alert-badge";
+import { SimpleTooltip } from "../simple-tooltip";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -80,7 +80,9 @@ function EditUserDialog(props: {
           <div className="flex-1">
             <InputField control={form.control} label="Primary Email" name="primaryEmail" />
           </div>
-          <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" noCard />
+          <div className="mb-2">
+            <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
+          </div>
         </div>
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
@@ -134,7 +136,7 @@ function capitalizeFirstLetter(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
+export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Avatar" />,
@@ -156,7 +158,7 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Primary Email" />,
     cell: ({ row }) => <TextCell 
       size={180} 
-      icon={row.original.emailVerified === "unverified" && <AlertBadge>Email not verified</AlertBadge>}>
+      icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
   },
@@ -166,10 +168,10 @@ export const commonUserColumns: ColumnDef<ExtendedServerUser>[] = [
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
     filterFn: standardFilterFn
   },
-];
+] satisfies ColumnDef<T>[];
 
 const columns: ColumnDef<ExtendedServerUser>[] =  [
-  ...commonUserColumns,
+  ...getCommonUserColumns<ExtendedServerUser>(),
   {
     accessorKey: "authType",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,

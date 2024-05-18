@@ -15,6 +15,11 @@ import { DelayedInput, Input } from "./ui/input";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Accordion } from "@radix-ui/react-accordion";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
+import { FieldValues, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Form } from "./ui/form";
+import * as yup from "yup";
+import { useToast } from "./ui/use-toast";
 
 
 export function SettingCard(props: {
@@ -45,7 +50,7 @@ export function SettingCard(props: {
 
       </CardContent>
       {props.actions && <CardFooter>
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-end gap-2">
           {props.actions}
         </div>
       </CardFooter>}
@@ -100,18 +105,82 @@ SettingIconButton.displayName = "SettingIconButton";
 export function SettingInput(props: {
   label: string,
   defaultValue?: string,
-  onChange: (value: string) => void | Promise<void>,
+  onChange?: (value: string) => void | Promise<void>,
   actions?: React.ReactNode,
 }) {
   return (
     <div className="flex flex-col gap-2">
       <Label>{props.label}</Label>
       <DelayedInput
-        className="max-w-[400px]"
+        className="max-w-lg"
         defaultValue={props.defaultValue}
-        onChange={(e) => runAsynchronously(props.onChange(e.target.value))}
+        onChange={(e) => runAsynchronously(props.onChange?.(e.target.value))}
       />
       {props.actions}
     </div>
+  );
+}
+
+export function SettingText(props: {
+  label: string,
+  children: React.ReactNode,
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{props.label}</Label>
+      <div>
+        {props.children}
+      </div>
+    </div>
+  );
+}
+
+export function FormSettingCard<F extends FieldValues>(
+  props: Omit<React.ComponentProps<typeof SettingCard>, 'children' | 'actions'> & {
+    defaultValues?: Partial<F>,
+    onSubmit: (values: F) => Promise<void> | void,
+    render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
+    formSchema: yup.ObjectSchema<F>,
+  }
+) {
+  const formId = useId();
+  const form = useForm({
+    resolver: yupResolver(props.formSchema),
+    defaultValues: props.defaultValues as any,
+    mode: "onChange",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const buttonsDisabled = submitting || !form.formState.isDirty;
+  const { toast } = useToast();
+
+  const onSubmit = async (values: F, e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
+    setSubmitting(true);
+    try {
+      await props.onSubmit(values);
+      form.reset();
+      toast({ title: "Your changes have been saved" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    form.reset(props.defaultValues);
+  }, [props.defaultValues, form]);
+
+  return (
+    <SettingCard {...props} actions={
+      <>
+        <Button onClick={() => form.reset()} variant='secondary' disabled={buttonsDisabled}>Cancel</Button>
+        <Button form={formId} type="submit" loading={submitting} disabled={buttonsDisabled}>Save</Button>
+      </>
+    }>
+      <Form {...form}>
+        <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
+          {props.render(form)}
+        </form>
+      </Form>
+    </SettingCard>
   );
 }

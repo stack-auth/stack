@@ -12,17 +12,24 @@ import { Checkbox } from "./ui/checkbox";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 
-export function FieldLabel({ required, children }: { children?: React.ReactNode, required?: boolean }) {
-  return <FormLabel>{children} {required ? <span className="text-sm text-zinc-500">{' *'}</span> : null}</FormLabel>;
+export function FieldLabel(props: {
+  children?: React.ReactNode, 
+  required?: boolean, 
+  className?: string,
+}) {
+  return <FormLabel className={cn("flex", props.className)}>
+    {props.children} 
+    {props.required ? <span className="text-zinc-500">{'*'}</span> : null}
+  </FormLabel>;
 }
-
 
 export function InputField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>,
-  label: string, 
+  label: React.ReactNode,
   placeholder?: string,
   required?: boolean,
+  type?: string,
   disabled?: boolean,
 }) {
   return (
@@ -31,10 +38,16 @@ export function InputField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <label className="block">
+          <label className="flex flex-col gap-2">
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
-              <Input {...field} placeholder={props.placeholder} disabled={props.disabled} />
+              <Input
+                {...field} 
+                placeholder={props.placeholder} 
+                className="max-w-lg" 
+                disabled={props.disabled} 
+                type={props.type} 
+              />
             </FormControl>
             <FormMessage />
           </label>
@@ -47,9 +60,9 @@ export function InputField<F extends FieldValues>(props: {
 export function SwitchField<F extends FieldValues>(props: { 
   control: Control<F>, 
   name: Path<F>, 
-  label: string,
+  label: React.ReactNode,
   required?: boolean,
-  noCard?: boolean,
+  border?: boolean,
   disabled?: boolean,
 }) {
   return (
@@ -59,10 +72,9 @@ export function SwitchField<F extends FieldValues>(props: {
       render={({ field }) => (
         <FormItem>
           <label className={cn(
-            "flex flex-row items-center justify-between p-2 gap-2",
-            props.noCard ? "" : "rounded-lg border p-3 shadow-sm"
+            "flex flex-row items-center gap-2",
+            props.border ? "rounded-lg border p-3 shadow-sm" : null
           )}>
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
               <Switch
                 checked={field.value}
@@ -70,36 +82,9 @@ export function SwitchField<F extends FieldValues>(props: {
                 disabled={props.disabled}
               />
             </FormControl>
-          </label>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
-
-export function SmallSwitchField<F extends FieldValues>(props: { 
-  control: Control<F>, 
-  name: Path<F>, 
-  label: string,
-  required?: boolean,
-  disabled?: boolean,
-}) {
-  return (
-    <FormField
-      control={props.control}
-      name={props.name}
-      render={({ field }) => (
-        <FormItem>
-          <label className="block">
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                disabled={props.disabled}
-              />
-            </FormControl>
+            <FieldLabel required={props.required}>
+              {props.label}
+            </FieldLabel>
           </label>
           <FormMessage />
         </FormItem>
@@ -112,7 +97,7 @@ export function SwitchListField<F extends FieldValues>(props: {
   variant?: "switch" | "checkbox",
   control: Control<F>, 
   name: Path<F>, 
-  label: string, 
+  label: React.ReactNode,
   options: { value: string, label: string }[], 
   required?: boolean,
   disabled?: boolean,
@@ -156,7 +141,7 @@ export function SwitchListField<F extends FieldValues>(props: {
 export function DateField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
-  label: string,
+  label: React.ReactNode,
   required?: boolean,
   disabled?: boolean,
 }) {
@@ -203,7 +188,7 @@ export function DateField<F extends FieldValues>(props: {
 export function SelectField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
-  label: string,
+  label: React.ReactNode,
   options: { value: string, label: string }[],
   placeholder?: string,
   required?: boolean,
@@ -218,7 +203,7 @@ export function SelectField<F extends FieldValues>(props: {
           <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={props.disabled}>
-              <SelectTrigger>
+              <SelectTrigger className="max-w-lg">
                 <SelectValue placeholder={props.placeholder}/>
               </SelectTrigger>
               <SelectContent>

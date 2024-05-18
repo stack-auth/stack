@@ -1,10 +1,18 @@
 "use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
-import { SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
+import { FormSettingCard, SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
 import { Link } from "@/components/link";
+import * as yup from "yup";
+import { InputField } from "@/components/form-fields";
 import Typography from "@/components/ui/typography";
+
+const projectInformationSchema = yup.object().shape({
+  displayName: yup.string().required(),
+  description: yup.string(),
+});
+
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -13,33 +21,12 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Project Settings" description="Manage your project">
-      <SettingCard title="Public Project Information">
-        <SettingInput 
-          label="Display name" 
-          onChange={(v) => project.update({ displayName: v })}
-          defaultValue={project.displayName}/>
-
-        <SettingInput
-          label="Description"
-          onChange={(v) => project.update({ description: v })}
-          defaultValue={project.description}
-        />
-
-        <Typography variant="secondary" type="footnote">
-          The display name and description may be publicly visible to users of your app.
-        </Typography>
-      </SettingCard>
-
       <SettingCard title="Production mode" description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations, it is strongly recommended to enable production mode on your production environments.">
         <SettingSwitch
           label="Enable production mode"
           checked={project.isProductionMode}
           disabled={!project.isProductionMode && productionModeErrors.length > 0}
-          onCheckedChange={async (checked) => {
-            await project.update({
-              isProductionMode: checked,
-            });
-          }}
+          onCheckedChange={async (checked) => { await project.update({ isProductionMode: checked }); }}
         />
 
         {productionModeErrors.length === 0 ? (
@@ -59,23 +46,23 @@ export default function PageClient() {
           </Alert>
         )}
       </SettingCard>
-      
-      {/* <SettingCard title="Danger Zone" description="Be careful with these settings" accordion="Danger Settings">
-        <div>
-          <ActionDialog
-            danger
-            title="Delete Project"
-            trigger={<Button variant="destructive">Delete Project</Button>}
-            okButton={{ label: "Delete Project", onClick: async () => {
-              // await project.delete();
-              // stackAdminApp.router.push("/projects");
-            }}}
-            confirmText="I understand that all the users, teams, and data associated with this project will be permanently deleted. This action cannot be undone."
-          >
-            {`Are you sure that you want to delete the project "${project.displayName}" with the id of "${project.id}"?`}
-          </ActionDialog>
-        </div>
-      </SettingCard> */}
+
+      <FormSettingCard 
+        title="Project Information"
+        defaultValues={project}
+        formSchema={projectInformationSchema}
+        onSubmit={async (values) => { await project.update(values); }}
+        render={(form) => (
+          <>
+            <InputField label="Display Name" control={form.control} name="displayName" required />
+            <InputField label="Description" control={form.control} name="description" />
+
+            <Typography variant="secondary" type="footnote">
+              The display name and description may be publicly visible to the users of your app.
+            </Typography>
+          </>
+        )}
+      />
     </PageLayout>
   );
 }

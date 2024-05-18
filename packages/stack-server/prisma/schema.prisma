@@ -334,8 +334,6 @@ model EmailServiceConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  senderName String
-
   proxiedEmailServiceConfig  ProxiedEmailServiceConfig?
   standardEmailServiceConfig StandardEmailServiceConfig?
 }
@@ -353,6 +351,7 @@ model StandardEmailServiceConfig {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
+  senderName  String
   senderEmail String
   host        String
   port        Int
