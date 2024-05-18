@@ -6,12 +6,13 @@ import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { ActionCell, BadgeCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { FormDialog } from "../form-dialog";
+import { FormDialog, SmartFormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { PermissionListField } from "../permission-field";
+import { AlertBadge } from "../alert-badge";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -34,31 +35,29 @@ function EditDialog(props: {
   }
 
   const formSchema = yup.object({
-    id: yup.string().required().notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists"),
-    description: yup.string(),
-    containPermissionIds: yup.array().of(yup.string().required()).required(),
-  });
-
-  return <FormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Edit Permission"
-    formSchema={formSchema}
-    defaultValues={currentPermission}
-    okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <InputField control={form.control} label="ID" name="id" />
-        <InputField control={form.control} label="Description" name="description" />
+    id: yup.string()
+      .required()
+      .notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists")
+      .label("ID"),
+    description: yup.string().label("Description"),
+    containPermissionIds: yup.array().of(yup.string().required()).required().meta({
+      stackFormFieldRender: (innerProps) => (
         <PermissionListField
-          control={form.control} 
-          name="containPermissionIds" 
+          {...innerProps}
           permissions={permissions} 
           type="edit" 
           selectedPermissionId={props.selectedPermissionId} 
         />
-      </>
-    )}
+      ),
+    }),
+  }).default(currentPermission);
+
+  return <SmartFormDialog
+    open={props.open}
+    onOpenChange={props.onOpenChange}
+    title="Edit Permission"
+    formSchema={formSchema}
+    okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       await stackAdminApp.updatePermissionDefinition(props.selectedPermissionId, values);
     }}
@@ -112,17 +111,27 @@ function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
 const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   {
     accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={160}>{row.getValue("id")}</TextCell>,
   },
   {
     accessorKey: "description",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Description" />,
     cell: ({ row }) => <TextCell size={200}>{row.getValue("description")}</TextCell>,
   },
   {
     accessorKey: "containPermissionIds",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Contained Permissions" />,
+    header: ({ column }) => <DataTableColumnHeader
+      column={column}
+      columnTitle={<>
+        Contained Permissions
+        <span className="ml-2">
+          <AlertBadge>
+            Only contains permissions that are contained directly.
+          </AlertBadge>
+        </span>
+      </>}
+    />,
     cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
   },
   {

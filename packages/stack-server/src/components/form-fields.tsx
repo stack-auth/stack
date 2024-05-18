@@ -30,6 +30,7 @@ export function InputField<F extends FieldValues>(props: {
   placeholder?: string,
   required?: boolean,
   type?: string,
+  disabled?: boolean,
 }) {
   return (
     <FormField
@@ -40,7 +41,13 @@ export function InputField<F extends FieldValues>(props: {
           <label className="flex flex-col gap-2">
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
-              <Input {...field} placeholder={props.placeholder} className="max-w-lg" type={props.type} />
+              <Input
+                {...field} 
+                placeholder={props.placeholder} 
+                className="max-w-lg" 
+                disabled={props.disabled} 
+                type={props.type} 
+              />
             </FormControl>
             <FormMessage />
           </label>
@@ -56,6 +63,7 @@ export function SwitchField<F extends FieldValues>(props: {
   label: React.ReactNode,
   required?: boolean,
   border?: boolean,
+  disabled?: boolean,
 }) {
   return (
     <FormField
@@ -71,6 +79,7 @@ export function SwitchField<F extends FieldValues>(props: {
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                disabled={props.disabled}
               />
             </FormControl>
             <FieldLabel required={props.required}>
@@ -91,6 +100,7 @@ export function SwitchListField<F extends FieldValues>(props: {
   label: React.ReactNode,
   options: { value: string, label: string }[], 
   required?: boolean,
+  disabled?: boolean,
 }) {
   const Trigger = props.variant === "checkbox" ? Checkbox : Switch;
 
@@ -115,6 +125,7 @@ export function SwitchListField<F extends FieldValues>(props: {
                         field.onChange(field.value.filter((v: any) => v !== provider.value));
                       }
                     }}
+                    disabled={props.disabled}
                   />
                 </FormControl>
                 <FormMessage />
@@ -132,6 +143,7 @@ export function DateField<F extends FieldValues>(props: {
   name: Path<F>,
   label: React.ReactNode,
   required?: boolean,
+  disabled?: boolean,
 }) {
   return (
     <FormField
@@ -149,6 +161,7 @@ export function DateField<F extends FieldValues>(props: {
                     "w-[240px] pl-3 text-left font-normal",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={props.disabled}
                 >
                   {field.value ? field.value.toLocaleDateString() : <span>Pick a date</span>}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -161,6 +174,7 @@ export function DateField<F extends FieldValues>(props: {
                 selected={field.value}
                 onSelect={field.onChange}
                 initialFocus
+                disabled={props.disabled}
               />
             </PopoverContent>
           </Popover>
@@ -178,6 +192,7 @@ export function SelectField<F extends FieldValues>(props: {
   options: { value: string, label: string }[],
   placeholder?: string,
   required?: boolean,
+  disabled?: boolean,
 }) {
   return (
     <FormField
@@ -187,7 +202,7 @@ export function SelectField<F extends FieldValues>(props: {
         <FormItem>
           <FieldLabel required={props.required}>{props.label}</FieldLabel>
           <FormControl>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={props.disabled}>
               <SelectTrigger className="max-w-lg">
                 <SelectValue placeholder={props.placeholder}/>
               </SelectTrigger>

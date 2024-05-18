@@ -182,11 +182,7 @@ export function PermissionListField<F extends FieldValues>(props: {
               );
               const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
               return (
-                <label className="flex flex-row items-center justify-between -my-3 py-3" key={permission.id}>
-                  <FieldLabel>
-                    {permission.id} 
-                    {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
-                  </FieldLabel>
+                <label className="flex flex-row justify-start gap-2 -my-3 py-3" key={permission.id}>
                   <FormControl>
                     <Checkbox
                       checked={selected}
@@ -207,6 +203,10 @@ export function PermissionListField<F extends FieldValues>(props: {
                       }}
                     />
                   </FormControl>
+                  <FieldLabel>
+                    {permission.id} 
+                    {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
+                  </FieldLabel>
                   <FormMessage />
                 </label>
               );

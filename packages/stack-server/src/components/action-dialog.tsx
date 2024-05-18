@@ -12,7 +12,7 @@ import { Label } from "./ui/label";
 export type ActionDialogProps = {
   trigger?: React.ReactNode,
   open?: boolean,
-  onClose?: () => void | Promise<void>,
+  onClose?: () => void,
   onOpenChange?: (open: boolean) => void,
   titleIcon?: LucideIcon,
   title: boolean | React.ReactNode,
@@ -42,20 +42,21 @@ export function ActionDialog(props: ActionDialogProps) {
   const open = props.open ?? openState;
   const [confirmed, setConfirmed] = React.useState(false);
   const confirmId = useId();
+  const [invalidationCount, setInvalidationCount] = React.useState(0);
   
   const onOpenChange = (open: boolean) => {
-    if (!open && props.onClose) {
-      runAsynchronously(props.onClose());
-    }
     if (!open) {
+      props.onClose?.();
       setConfirmed(false);
+    } else {
+      setInvalidationCount(invalidationCount + 1);
     }
     setOpenState(open);
     props.onOpenChange?.(open);
   };
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} key={invalidationCount}>
       {props.trigger && <DialogTrigger asChild>
         {props.trigger}
       </DialogTrigger>}

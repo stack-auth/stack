@@ -15,7 +15,7 @@ const Label = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
     VariantProps<typeof labelVariants>
 >(({ className, ...props }, ref) => (
-  <span
+  <label
     ref={ref}
     className={cn(labelVariants(), className)}
     {...props}
@@ -23,4 +23,17 @@ const Label = React.forwardRef<
 ));
 Label.displayName = LabelPrimitive.Root.displayName;
 
-export { Label };
+const SpanLabel = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <span
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+));
+SpanLabel.displayName = LabelPrimitive.Root.displayName;
+
+export { Label, SpanLabel };

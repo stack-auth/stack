@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 
 export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2" style={{ width: props.size }}>
-      <div className="text-ellipsis text-nowrap overflow-x-hidden">
-        {props.children}
+    <div className="relative" style={{ minWidth: props.size }}>
+      <div className="flex items-center gap-2 absolute inset-0">
+        <div className="text-ellipsis text-nowrap overflow-x-hidden">
+          {props.children}
+        </div>
+        {props.icon && <div>{props.icon}</div>}
       </div>
-      {props.icon && <div>{props.icon}</div>}
     </div>
   );
 }
