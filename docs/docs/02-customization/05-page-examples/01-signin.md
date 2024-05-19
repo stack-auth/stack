@@ -8,11 +8,9 @@ sidebar_position: 1
 
 ```tsx
 'use client';
-import { useStackApp, SignIn } from "@stackframe/stack";
+import { SignIn } from "@stackframe/stack";
 
 export default function DefaultSignIn() {
-  const app = useStackApp();
-
   return <SignIn fullPage />;
 }
 ```
