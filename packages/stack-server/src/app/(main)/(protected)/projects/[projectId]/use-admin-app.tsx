@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useUser } from "@stackframe/stack";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, StackAdminApp } from "@stackframe/stack";
 
@@ -39,7 +39,7 @@ export function AdminAppProvider(props: { projectId: string, children: React.Rea
 export function useAdminApp() {
   const stackAdminApp = React.useContext(StackAdminAppContext);
   if (!stackAdminApp) {
-    throw new Error("useAdminApp must be used within a AdminInterfaceProvider");
+    throw new StackAssertionError("useAdminApp must be used within an AdminInterfaceProvider");
   }
 
   return stackAdminApp;

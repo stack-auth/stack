@@ -11,7 +11,7 @@ import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/utils/url";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { createTeamOnSignUp } from "@/lib/users";
 
@@ -51,7 +51,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new Error("Project not found"); // This should never happen, make typescript happy
+    throw new StackAssertionError("Project not found. This should never happen"); // This should never happen, make typescript happy
   }
 
   if (!project.evaluatedConfig.credentialEnabled) {

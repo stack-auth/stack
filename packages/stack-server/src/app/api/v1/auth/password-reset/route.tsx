@@ -5,6 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const postSchema = yup.object({
   body: yup.object({
@@ -40,7 +41,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   if (!password) {
-    throw new Error("Password is required when onlyVerify is false");
+    throw new StatusError(StatusError.BadRequest, "Password is required when onlyVerify is false");
   }
   
   await prismaClient.projectUser.update({

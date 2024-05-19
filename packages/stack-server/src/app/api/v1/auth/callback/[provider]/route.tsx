@@ -45,7 +45,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const cookie = cookies().get("stack-oauth");
   if (!cookie) {
-    throw new Error("stack-oauth cookie not found");
+    throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
   }
 
   let decoded: Awaited<ReturnType<typeof jwtSchema.validate>>;

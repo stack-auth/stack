@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
@@ -50,7 +50,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
 
     const project = await getProject(projectId);
     if (!project) {
-      throw new Error("Project not found but the API key was valid? Something weird happened");
+      throw new StackAssertionError("Project not found but the API key was valid? Something weird happened");
     }
     const clientProject: ClientProjectJson = {
       id: project.id,
