@@ -13,7 +13,7 @@ import { useStackApp, SignUp } from "@stackframe/stack";
 export default function DefaultSignUp() {
   const app = useStackApp();
 
-  return <SignIn fullPage />;
+  return <SignUp fullPage />;
 }
 ```
 
@@ -42,6 +42,7 @@ export default function CustomOAuthSignUp() {
     <h1>My Custom Sign Up page</h1>
     <button onClick={async () => {
       // this will redirect to the OAuth provider's login page
+      // Sign in and sign up are the same process with OAuth
       await app.signInWithOAuth('google');
     }}>
       Sign Up with Google
