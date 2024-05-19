@@ -5,11 +5,11 @@
 
 You might wonder: "With so many authentication libraries available, why create Stack?"
 
-The answer is straightforward: **They all suck**.
+The answer is straightforward: **They all suck at developer experience**.
 
 As developers, we don't want to be bothered by decisions about using JWT or session tokens, handling token refreshes, or managing user data synchronization with frontend states. **Auth should be a 5 minutes job**, not 5 days. Our focus should be on building the core product.
 
-Stack abstract all these complexities away by deeply integrate into the frontend framework. It offers a simple and intuitive interface, while remains highly flexible, customizable, and powerful.
+Stack abstract all these complexities away by deeply integrate into the frontend and backend framework. It offers a simple and intuitive interface, while remains highly flexible, customizable, and powerful.
 
 Here is an example. To use the current user, simply call:
   
@@ -54,6 +54,6 @@ To manage everything efficiently, there is a powerful admin dashboard:
 
 Best of all, Stack is **100% open-source**.
 
-This is just a glimpse of what Stack can do. Stack also handles many other tasks like emails, teams, permissions, and more, which you will learn later in the documentation.
+This is just a glimpse of what Stack can do. Stack also handles many other tasks like backend integration, data storage, emails, teams, permissions, and more, which you will learn later in the documentation.
 
 If this sounds interesting, let's get started with setting up Stack in your project!
