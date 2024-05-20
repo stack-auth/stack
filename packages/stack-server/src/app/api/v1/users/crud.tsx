@@ -52,6 +52,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       hasPassword: !!prisma.passwordHash,
       authWithEmail: prisma.authWithEmail,
       oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
+      selectedTeamId: prisma.selectedTeamId,
     };
   },
 });
