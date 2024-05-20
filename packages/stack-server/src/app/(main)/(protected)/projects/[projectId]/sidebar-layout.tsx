@@ -266,7 +266,7 @@ export function HeaderBreadcrumb({
 
 export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <div className="w-full flex">
@@ -298,7 +298,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
               Feedback
             </Button>
-            <UserButton colorModeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
+            <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
         <div className="py-4 px-4 md:px-6">

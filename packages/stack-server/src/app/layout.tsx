@@ -16,10 +16,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Stack',
-    template: '%s | Stack',
+    default: 'Stack Auth Dashboard',
+    template: '%s | Stack Auth',
   },
-  description: 'Some frontend with auth built by N2D4',
+  description: 'Stack Auth is the fastest way to add authentication to your web app.',
 };
 
 const fontSans = FontSans({
@@ -31,25 +31,6 @@ type TagConfigJson = {
   tagName: string,
   attributes: { [key: string]: string },
   innerHTML: string,
-};
-
-const script = () => {
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'data-joy-color-scheme') {
-        const colorTheme = document.documentElement.getAttribute('data-joy-color-scheme');
-        if (!colorTheme) {
-          return;
-        }
-        document.documentElement.setAttribute('class', colorTheme);
-      }
-    });
-  });
-
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-joy-color-scheme'],
-  });
 };
 
 const theme = {
@@ -99,7 +80,6 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
         <Analytics />
         <ThemeProvider>
           <StackProvider app={stackServerApp}>

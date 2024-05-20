@@ -7,7 +7,7 @@ import Typography from "./ui/typography";
 import { useTheme } from "next-themes";
 
 export function Navbar({ ...props }) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   return (
     <header
       className={`sticky top-0 z-30 flex items-center justify-between border-b bg-white dark:bg-black px-4 shrink-0 ${props.className || ""}`}
