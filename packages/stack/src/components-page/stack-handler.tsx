@@ -5,7 +5,7 @@ import EmailVerification from "./email-verification";
 import { PasswordReset, StackServerApp } from "..";
 import MessageCard from "../components/message-card";
 import { HandlerUrls } from "../lib/stack-app";
-import Signout from "./sign-out";
+import SignOut from "./sign-out";
 import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
 import AccountSettings from "./account-settings";
@@ -40,14 +40,23 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     redirect(url, RedirectType.replace);
   }
 
+  async function redirectIfHasUser() {
+    const user = await app.getServerUser();
+    if (user) {
+      redirect(app.urls.afterSignIn);
+    }
+  }
+
   const path = stack.join('/');
   switch (path) {
     case 'signin': {
       redirectIfNotHandler('signIn');
+      await redirectIfHasUser();
       return <SignIn fullPage/>;
     }
     case 'signup': {
       redirectIfNotHandler('signUp');
+      await redirectIfHasUser();
       return <SignUp fullPage/>;
     }
     case 'email-verification': {
@@ -64,7 +73,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
     case 'signout': {
       redirectIfNotHandler('signOut');
-      return <Signout/>;
+      return <SignOut/>;
     }
     case 'oauth-callback': {
       redirectIfNotHandler('oauthCallback');
