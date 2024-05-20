@@ -8,11 +8,12 @@ sidebar_position: 1
 
 ```tsx
 'use client';
-import { useStackApp, SignIn } from "@stackframe/stack";
+import { SignIn } from "@stackframe/stack";
 
 export default function DefaultSignIn() {
-  const app = useStackApp();
-
+  // optionally redirect to some other page if the user is already signed in
+  // const user = useUser();
+  // if (user) { redirect to some other page }
   return <SignIn fullPage />;
 }
 ```
@@ -23,8 +24,6 @@ You can also use `useUser` at the beginning of the sign in page to check if weth
 ## Other useful components
 
 `CredentialSignIn`: A component that contains a form for signing in with email and password.
-
-`PasswordField`: password input field with show/hide password button.
 
 `OAuthGroup`: A list of available OAuth provider signin buttons components. The available provider list is fetched from the server.
 
@@ -70,21 +69,60 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
-    // this will rediret to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
     const errorCode = await app.signInWithCredential({ email, password });
     // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
     if (errorCode) {
-      setError(errorCode);
+      setError(errorCode.message);
     }
   };
   
   return (
-    <div>
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
       {error}
       <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
       <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={onSubmit}>Sign In</button>
-    </div>
+      <button type='submit'>Sign In</button>
+    </form>
+  );
+}
+```
+
+## Custom Magic Link Sign In
+
+```tsx
+'use client';
+
+import { useStackApp } from "@stackframe/stack";
+import { useState } from "react";
+
+export default function CustomCredentialSignIn() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const app = useStackApp();
+
+  const onSubmit = async () => {
+    // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    const errorCode = await app.sendMagicLinkEmail(email);
+    // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
+    if (errorCode) {
+      setError(errorCode.message);
+    } else {
+      setMessage('Magic link sent! Please check your email.');
+    }
+  };
+  
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
+      {error}
+      {message ? 
+        <div>{message}</div> :
+        <>
+          <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <button type='submit'>Send Magic Link</button>
+        </>}
+    </form>
   );
 }
 ```

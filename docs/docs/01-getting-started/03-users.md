@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Users & Protected Pages
 
-In [the last guide](/docs/getting-started/setup), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
+In [the last guide](./02-setup.md), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
 ## Client Components
 
@@ -19,7 +19,7 @@ import { useStackApp } from "@stackframe/stack";
 
 export function MyComponent() {
   const app = useStackApp();
-  const user = app.useUser();
+  const user = app.useUser(); // or just import useUser and use it directly
 
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
@@ -128,13 +128,11 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       const app = useStackApp();
       return (
         <div>
-          <h1>Home</h1>
           {user ? (
             <div>
               <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
-              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
               <button onClick={() => user.signOut()}>Sign Out</button>
             </div>
           ) : (
@@ -159,13 +157,11 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       const user = await stackApp.getUser();
       return (
         <div>
-          <h1>Home</h1>
           {user ? (
             <div>
               <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
-              <p>Your e-mail verification status: {user.primaryEmailVerified.toString()}</p>
               <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
             </div>
           ) : (
@@ -187,3 +183,61 @@ Note the `UserButton` is a component that you normally put in the top right corn
 ![UserButton](../imgs/user-button.png)
 
 You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).
+
+To see more examples of how to use the `User` object, check out the [User API documentation](../03-api-documentation/01-user.md).
+
+## Custom User Information
+
+You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook is automatically will also be updated automatically. Here is an example:
+
+```tsx
+'user client';
+import { useUser } from "@stackframe/stack";
+
+export default function UpdateUser() {
+  const user = useUser();
+  return <button onClick={async () => await user.update({ displayName: "New Name" })}>
+    Change Name
+  </button>;
+}
+```
+
+You can store custom data in the `clientMetadata` field. Note that this data is visible on the client side and should not contain any sensitive information.
+
+```tsx
+await user.update({
+  clientMetadata: {
+    mailingAddress: "123 Main St",
+  },
+});
+```
+
+You can then get the `clientMetadata` field from the `User` object:
+
+```tsx
+const user = useUser();
+console.log(user.clientMetadata);
+```
+
+If you want to store sensitive information that is only visible on the server side, you can use the `serverMetadata` field. This data will not be sent accessible on the client side. So you also have to use the `getUser()` on the `StackServerApp` to access this data.
+
+```tsx
+// server side only
+import { stackApp } from "@/lib/stack";
+const user = await stackApp.getUser();
+await user.update({
+  serverMetadata: {
+    secretInfo: "This is a secret",
+  },
+});
+```
+
+You can also access them from the `User` object:
+
+```tsx
+// server side only
+import { stackApp } from "@/lib/stack";
+const user = await stackApp.getUser();
+console.log(user.serverMetadata);
+```
+

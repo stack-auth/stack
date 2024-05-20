@@ -7,7 +7,7 @@ sidebar_position: 1
 
 `useUser` is a hook that returns the user object if the user is authenticated; otherwise, it returns `null` by default. However, if you pass in `{ or: "redirect" }` or `{ or: "throw" }` as an option, it will redirect to the login page or throw an error respectively when the user is not authenticated.
 
-If you want to learn more about the `User` object, check out the [User](./02-user.md) documentation.
+If you want to learn more about the `User` object, check out the [User](./01-user.md) documentation.
 
 ## Default Usage
 
@@ -35,7 +35,7 @@ function MyComponent() {
 }
 ```
 
-The same hook can also be used to protect a page. (You might also want to check out the server-side version [here](/docs/getting-started/users))
+The same hook can also be used to protect a page. (You might also want to check out the server-side version [here](../01-getting-started/03-users.md))
 ```jsx
 import { useUser } from "@stackframe/stack";
 

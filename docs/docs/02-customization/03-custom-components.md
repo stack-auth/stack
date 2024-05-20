@@ -12,7 +12,7 @@ We currently already implemented support for MUI Joy, so you can use it directly
 
 ## Customizing Components
 
-Here is an example of how you can customize the button component. For demonstration purposes, we will keep the styling minimal. We will create a new button component. You can use the `useDesign` hook to get the color scheme (see more in [Custom Colors](/docs/customization/custom-colors)). You can also ignore the color scheme if you have a different way to handle colors.
+Here is an example of how you can customize the button component. For demonstration purposes, we will keep the styling minimal. We will create a new button component. You can use the `useDesign` hook to get the color scheme (see more in [Custom Colors](./02-custom-colors.md)). You can also ignore the color scheme if you have a different way to handle colors.
 
 ```jsx
 'use client';

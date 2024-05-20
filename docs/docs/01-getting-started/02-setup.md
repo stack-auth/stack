@@ -1,9 +1,12 @@
 ---
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Installation & Setup
 
-## Setup wizard (recommended)
+## Setup
 
 To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
   
@@ -12,7 +15,13 @@ npx create-next-app@latest --app stack-example
 cd stack-example
 ```
 
-To add Stack to a newly created or an existing project, you can run Stack's installation wizard with the following command:
+You can choose between two ways to install Stack: the setup wizard or manual installation. We recommend using the setup wizard first as it is very easy. However, if you have a non-standard project structure or the setup wizard doesn't work for you, you can follow the manual installation guide.
+
+<Tabs>
+  <TabItem value="wizard" label="Setup wizard (Recommended)" default>
+
+
+To setup stack, you can run Stack's installation wizard with the following command:
 
 ```sh
 npx @stackframe/init-stack@latest
@@ -26,11 +35,9 @@ NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
 STACK_SECRET_SERVER_KEY=<your-secret-server-key>
 ```
 
-After that, you'll be able to see the Stack sign-up page at [https://your-website.example.com/handler/signup](http://localhost:3000/handler/signup).
+  </TabItem>
 
-## Manual installation
-
-If the setup wizard doesn't work due to an unsupported project structure, you can also install Stack manually.
+  <TabItem value="manual" label="Manual installation">
 
 First, install Stack with npm, yarn, or pnpm:
 
@@ -59,7 +66,7 @@ npm install @stackframe/stack
   
     This will read the environment variables automatically and create a server app that you can later use to access Stack from your Next.js server.
     
-    Check out the [`StackServerApp` documentation](/docs/api-documentation/app) to learn more about its other options.
+    Check out the [`StackServerApp` documentation](../03-api-documentation/03-app.md) to learn more about its other options.
 
 3. Create a new file in `app/handler/[...stack]/page.tsx` and paste the following code: 
 
@@ -107,8 +114,10 @@ npm install @stackframe/stack
       </>;
     }
     ```
+  </TabItem>
+</Tabs>
 
-6. That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
+That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
 
     ![Stack sign up page](../imgs/signup-page.png)
 
@@ -117,6 +126,7 @@ npm install @stackframe/stack
     ![Stack account settings page](../imgs/account-settings-page.png)
 
 
+
 ## Next steps
 
-Next, we will show you how to get user information, protect a page, and modify the user profile.
+Next, we will show you how to get user information, protect a page, and store/retrieve user information in code.
