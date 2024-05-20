@@ -39,9 +39,10 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost     Boolean
-  credentialEnabled  Boolean
-  magicLinkEnabled   Boolean
+  allowLocalhost    Boolean
+  credentialEnabled Boolean
+  magicLinkEnabled  Boolean
+
   createTeamOnSignUp Boolean
 
   projects             Project[]
@@ -49,6 +50,9 @@ model ProjectConfig {
   emailServiceConfig   EmailServiceConfig?
   domains              ProjectDomain[]
   permissions          Permission[]
+
+  teamCreatorDefaultPermissions Permission[] @relation("TeamCreatorDefaultPermissions")
+  teamJoinerDefaultPermissions  Permission[] @relation("TeamJoinerDefaultPermissions")
 }
 
 model ProjectDomain {
@@ -151,6 +155,9 @@ model Permission {
   parentEdges                PermissionEdge[]             @relation("ChildPermission")
   childEdges                 PermissionEdge[]             @relation("ParentPermission")
   teamMemberDirectPermission TeamMemberDirectPermission[]
+
+  teamCreatorDefaultProjectConfig ProjectConfig? @relation("TeamCreatorDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_creator_permissions")
+  teamJoinerProjectConfig         ProjectConfig? @relation("TeamJoinerDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_joiner_permissions")
 
   @@unique([projectConfigId, queryableId])
   @@unique([projectId, teamId, queryableId])
