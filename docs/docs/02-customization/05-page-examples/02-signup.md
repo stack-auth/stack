@@ -27,25 +27,7 @@ You can also use `useUser` at the beginning of the sign in page to check if weth
 
 ## Custom OAuth Sign Up
 
-```tsx
-'use client';
-import { useStackApp } from "@stackframe/stack";
-
-export default function CustomOAuthSignUp() {
-  const app = useStackApp();
-
-  return <div>
-    <h1>My Custom Sign Up page</h1>
-    <button onClick={async () => {
-      // this will redirect to the OAuth provider's login page
-      // Sign in and sign up are the same process with OAuth
-      await app.signInWithOAuth('google');
-    }}>
-      Sign Up with Google
-    </button>
-  </div>;
-}
-```
+OAuth sign-in and sign-up shares the same function. Check out the [Sign In example](/docs/customization/page-examples/signin#custom-oauth-sign-in) for more information.
 
 ## Custom Credential Sign Up
 
@@ -84,3 +66,7 @@ export default function CustomCredentialSignUp() {
   );
 }
 ```
+
+## Custom Magic Link Sign Up
+
+Magic link sign-in and sign-up shares the same function. Check out the [Sign In example](/docs/customization/page-examples/signin#custom-magic-link-sign-in) for more information.

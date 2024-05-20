@@ -1,7 +1,8 @@
 module.exports = {
-  extends: ["../../eslint-configs/next.js"],
+  extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
   ignorePatterns: ["/*", "!/src"],
   rules: {
+    "@typescript-eslint/no-misused-promises": ["ignore"],
     "import/order": [
       1,
       {

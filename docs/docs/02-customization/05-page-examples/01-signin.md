@@ -84,3 +84,42 @@ export default function CustomCredentialSignIn() {
   );
 }
 ```
+
+## Custom Magic Link Sign In
+
+```tsx
+'use client';
+
+import { useStackApp } from "@stackframe/stack";
+import { useState } from "react";
+
+export default function CustomCredentialSignIn() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const app = useStackApp();
+
+  const onSubmit = async () => {
+    // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    const errorCode = await app.sendMagicLinkEmail(email);
+    // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
+    if (errorCode) {
+      setError(errorCode.message);
+    } else {
+      setMessage('Magic link sent! Please check your email.');
+    }
+  };
+  
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
+      {error}
+      {message ? 
+        <div>{message}</div> :
+        <>
+          <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <button type='submit'>Send Magic Link</button>
+        </>}
+    </form>
+  );
+}
+```

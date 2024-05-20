@@ -10,25 +10,6 @@
 // --------------------------------------------
 
 
-// import { useStackApp } from "@stackframe/stack";
-
-// export default function CustomOAuthSignUp() {
-//   const app = useStackApp();
-
-//   return <div>
-//     <h1>My Custom Sign Up page</h1>
-//     <button onClick={async () => {
-//       // this will redirect to the OAuth provider's login page
-//       // the sign-in and sign-up for OAuth are the same
-//       await app.signInWithOAuth('google');
-//     }}>
-//       Sign In with Google
-//     </button>
-//   </div>;
-// }
-
-// --------------------------------------------
-
 import { useStackApp } from "@stackframe/stack";
 import { useState } from "react";
 
