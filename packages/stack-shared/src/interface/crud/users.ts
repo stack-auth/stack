@@ -7,6 +7,7 @@ export const usersCrudServerUpdateSchema = yup.object({
   serverMetadata: yup.object().optional(),
   primaryEmail: yup.string().optional(),
   primaryEmailVerified: yup.boolean().optional(),
+  selectedTeamId: yup.string().nullable().optional(),
 }).required();
 
 export const usersCrudServerReadSchema = yup.object({
@@ -16,6 +17,7 @@ export const usersCrudServerReadSchema = yup.object({
   primaryEmailVerified: yup.boolean().required(),
   displayName: yup.string().nullable().defined(),
   clientMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
+  selectedTeamId: yup.string().nullable().defined(),
   profileImageUrl: yup.string().nullable().defined(),
   signedUpAtMillis: yup.number().required(),
   /**

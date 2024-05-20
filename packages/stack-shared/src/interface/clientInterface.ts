@@ -13,6 +13,7 @@ import { generateSecureRandomString } from '../utils/crypto';
 type UserCustomizableJson = {
   displayName: string | null,
   clientMetadata: ReadonlyJson,
+  selectedTeamId: string | null,
 };
 
 export type UserJson = UserCustomizableJson & {
@@ -31,6 +32,7 @@ export type UserJson = UserCustomizableJson & {
   hasPassword: boolean,
   authWithEmail: boolean,
   oauthProviders: string[],
+  selectedTeamId: string | null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
