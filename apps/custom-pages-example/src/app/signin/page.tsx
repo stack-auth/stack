@@ -1,8 +1,61 @@
 'use client';
 
 
-import { useStackApp, SignIn } from "@stackframe/stack";
+// import { SignIn } from "@stackframe/stack";
 
-export default function DefaultSignIn() {
-  return <SignIn fullPage />;
+// export default function DefaultSignIn() {
+//   return <SignIn fullPage />;
+// }
+
+// --------------------------------------------
+
+
+// import { useStackApp } from "@stackframe/stack";
+
+// export default function CustomOAuthSignIn() {
+//   const app = useStackApp();
+
+//   return <div>
+//     <h1>My Custom Sign In page</h1>
+//     <button onClick={async () => {
+//       // this will redirect to the OAuth provider's login page
+//       await app.signInWithOAuth('google');
+//     }}>
+//       Sign In with Google
+//     </button>
+//   </div>;
+// }
+
+// --------------------------------------------
+
+import { useStackApp } from "@stackframe/stack";
+import { useState } from "react";
+
+export default function CustomCredentialSignIn() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const app = useStackApp();
+
+  const onSubmit = async () => {
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+    // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    const errorCode = await app.signInWithCredential({ email, password });
+    // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
+    if (errorCode) {
+      setError(errorCode.message);
+    }
+  };
+  
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
+      {error}
+      <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type='submit'>Sign In</button>
+    </form>
+  );
 }

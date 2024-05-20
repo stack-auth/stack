@@ -598,7 +598,7 @@ export class StackClientInterface {
     password: string,
     emailVerificationRedirectUrl: string,
     tokenStore: TokenStore,
-  ): Promise<KnownErrors["UserEmailAlreadyExists"] | undefined> {
+  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",
       {
@@ -613,7 +613,7 @@ export class StackClientInterface {
         }),
       },
       tokenStore,
-      [KnownErrors.UserEmailAlreadyExists]
+      [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
     );
 
     if (res.status === "error") {

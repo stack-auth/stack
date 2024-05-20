@@ -22,8 +22,6 @@ You can also use `useUser` at the beginning of the sign in page to check if weth
 
 `CredentialSignIn`: A component that contains a form for signing in with email and password.
 
-`PasswordField`: password input field with show/hide password button.
-
 `OAuthGroup`: A list of available OAuth provider signin buttons components. The available provider list is fetched from the server.
 
 `OAuthButton`: A single OAuth sign in button.
@@ -68,21 +66,21 @@ export default function CustomCredentialSignIn() {
       setError('Please enter your password');
       return;
     }
-    // this will rediret to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
+    // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
     const errorCode = await app.signInWithCredential({ email, password });
     // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
     if (errorCode) {
-      setError(errorCode);
+      setError(errorCode.message);
     }
   };
   
   return (
-    <div>
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
       {error}
       <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
       <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={onSubmit}>Sign In</button>
-    </div>
+      <button type='submit'>Sign In</button>
+    </form>
   );
 }
 ```
