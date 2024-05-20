@@ -2,7 +2,8 @@ module.exports = {
   extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
   ignorePatterns: ["/*", "!/src"],
   rules: {
-    "@typescript-eslint/no-misused-promises": ["ignore"],
+    "@typescript-eslint/no-misused-promises": [0],
+    "@typescript-eslint/no-floating-promises": [0],
     "import/order": [
       1,
       {
