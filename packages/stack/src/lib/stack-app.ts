@@ -388,10 +388,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
       async getSelectedTeam() {
-        return json.selectedTeamId ? await this.getTeam(json.selectedTeamId) : null;
+        return await this.getTeam(json.selectedTeamId || "");
       },
       useSelectedTeam() {
-        return json.selectedTeamId ? this.useTeam(json.selectedTeamId) : null;
+        return this.useTeam(json.selectedTeamId || "");
       },
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
