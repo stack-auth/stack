@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Custom Pages
 
-By default, `StackHandler` creates all pages you need. You can customize the [colors](/docs/customization/custom-colors) and [components](/docs/customization/custom-components) here. However, if you'd like full control of the layout and logic flow, you can always use our built-in components to build your own pages or use even star from strach using low-level functions. 
+By default, `StackHandler` creates all pages you need. You can customize the [colors](./02-custom-colors.md) and [components](./03-custom-components.md) here. However, if you'd like full control of the layout and logic flow, you can always use our built-in components to build your own pages or use even star from strach using low-level functions. 
 
 ## Simple Example
 
@@ -78,4 +78,4 @@ As above, visit the `/signin` page to see your newly created custom OAuth page.
 
 ## Next steps
 
-Take a look at the [customization examples](/docs/category/page-examples) to see how to build custom pages for sign in, sign up, reset password, and more.
+Take a look at the [customization examples](./05-page-examples/_category_.json) to see how to build custom pages for sign in, sign up, reset password, and more.

@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Users & Protected Pages
 
-In [the last guide](/docs/getting-started/setup), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
+In [the last guide](./02-setup.md), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
 ## Client Components
 
@@ -184,7 +184,7 @@ Note the `UserButton` is a component that you normally put in the top right corn
 
 You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).
 
-To see more examples of how to use the `User` object, check out the [User API documentation](/docs/api-documentation/user).
+To see more examples of how to use the `User` object, check out the [User API documentation](../03-api-documentation/01-user.md).
 
 ## Custom User Information
 

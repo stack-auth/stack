@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # useStackApp
 
-The `useStackApp` hook returns the `StackClientApp` object that you can use to interact with the Stack API. If you want to learn more about the `StackClientApp` object, check out the [App](./01-app.md) documentation.
+The `useStackApp` hook returns the `StackClientApp` object that you can use to interact with the Stack API. If you want to learn more about the `StackClientApp` object, check out the [App](./03-app.md) documentation.
 
 Example:
 
