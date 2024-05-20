@@ -174,7 +174,7 @@ export function ProviderSettingSwitch(props: Props) {
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
             {isShared && enabled && 
-              <SimpleTooltip tooltip="Shared keys are created by the Stack team for easy development experience">
+              <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
             }

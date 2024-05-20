@@ -553,11 +553,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return getUrls(this._urlOptions);
   }
 
-  protected async _redirectTo(handlerName: keyof HandlerUrls) {
-    if (!this.urls[handlerName]) {
+  protected async _redirectTo(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
+    const url = this.urls[handlerName];
+    if (!url) {
       throw new Error(`No URL for handler name ${handlerName}`);
     }
-    window.location.href = this.urls[handlerName];
+
+    if (options?.replace) {
+      window.location.replace(url);
+    } else {
+      window.location.assign(url);
+    }
     return await wait(2000);
   }
 
@@ -685,7 +691,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const tokenStore = getTokenStore(this._tokenStoreOptions);
     const errorCode = await this._interface.signInWithCredential(options.email, options.password, tokenStore);
     if (!errorCode) {
-      window.location.assign(this.urls.afterSignIn);
+      await this.redirectToAfterSignIn({ replace: true });
     }
     return errorCode;
   }
@@ -704,7 +710,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       tokenStore
     );
     if (!errorCode) {
-      window.location.assign(this.urls.afterSignUp);
+      await this.redirectToAfterSignUp({ replace: true });
     }
     return errorCode;
   }
@@ -717,11 +723,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return result;
     }
     if (result.newUser) {
-      window.location.replace(this.urls.afterSignUp);
+      await this.redirectToAfterSignUp({ replace: true });
     } else {
-      window.location.replace(this.urls.afterSignIn);
+      await this.redirectToAfterSignIn({ replace: true });
     }
-    await neverResolve();
   }
 
   async callOAuthCallback() {
@@ -730,17 +735,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
     if (result) {
       if (result.newUser) {
-        window.location.replace(this.urls.afterSignUp);
+        await this.redirectToAfterSignUp({ replace: true });
       } else {
-        window.location.replace(this.urls.afterSignIn);
+        await this.redirectToAfterSignIn({ replace: true });
       }
     }
-    await neverResolve();
   }
 
   protected async _signOut(tokenStore: TokenStore): Promise<void> {
     await this._interface.signOut(tokenStore);
-    window.location.assign(this.urls.afterSignOut);
+    await this.redirectToAfterSignOut();
   }
 
   protected async _sendVerificationEmail(tokenStore: TokenStore): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
@@ -1411,6 +1415,10 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 }
 
+type RedirectToOptions = {
+  replace?: boolean,
+};
+
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
   update(this: T, user: C): Promise<void>,
@@ -1647,7 +1655,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     },
   }
   & AsyncStoreProperty<"project", [], ClientProjectJson, false>
-  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: () => Promise<void> }
+  & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: (options?: RedirectToOptions) => Promise<void> }
   & (HasTokenStore extends false
     ? {}
     : {
