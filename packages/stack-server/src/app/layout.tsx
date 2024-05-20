@@ -13,6 +13,7 @@ import { StackProvider, StackTheme } from '@stackframe/stack';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { DevErrorNotifier } from '@/components/dev-error-notifier';
 
 export const metadata: Metadata = {
   title: {
@@ -88,6 +89,7 @@ export default function RootLayout({
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
+        <DevErrorNotifier />
         <Toaster />
       </body>
     </html>
