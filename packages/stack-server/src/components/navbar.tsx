@@ -25,7 +25,7 @@ export function Navbar({ ...props }) {
             <Typography type='label'>Docs</Typography>
           </Link>
         </div>
-        <UserButton colorModeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}/>
+        <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>
       </div>
     </header>
   );
