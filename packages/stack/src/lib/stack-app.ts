@@ -19,6 +19,7 @@ import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiK
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
+import { isReactServer } from "@stackframe/stack-sc";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundler try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -572,12 +573,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
 
-    if (options?.replace) {
-      window.location.replace(url);
+    if (isReactServer) {
+      NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
     } else {
-      window.location.assign(url);
+      if (options?.replace) {
+        window.location.replace(url);
+      } else {
+        window.location.assign(url);
+      }
+      await wait(2000);
     }
-    return await wait(2000);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
@@ -630,8 +635,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
-          NextNavigation.redirect(this.urls.signIn, NextNavigation.RedirectType.replace);
-          throw new Error("redirect should never return!");
+          await this.redirectToSignIn();
+          break;
         }
         case 'throw': {
           throw new Error("User is not signed in but getUser was called with { or: 'throw' }");

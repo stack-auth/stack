@@ -1,6 +1,6 @@
 import { generateRandomCodeVerifier, generateRandomState, calculatePKCECodeChallenge } from "oauth4webapi";
 import Cookies from "js-cookie";
-import { cookies as rscCookies } from '@stackframe/stack-sc/force-server';
+import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
 
 type SetCookieOptions = { maxAge?: number };
 
