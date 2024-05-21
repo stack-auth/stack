@@ -96,7 +96,7 @@ async function main() {
   console.log("Writing files...");
   await writeFileIfNotExists(envLocalPath, "NEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n");
   await writeFileIfNotExists(loadingPath, `export default function Loading() {\n${ind}// Stack uses React Suspense, which will render this page while user data is being fetched.\n${ind}// See: https://nextjs.org/docs/app/api-reference/file-conventions/loading\n${ind}return <></>;\n}\n`);
-  await writeFileIfNotExists(handlerPath, `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\nexport default function Handler(props${handlerFileExtension.includes("ts") ? ": any" : ""}) {\n${ind}return <StackHandler app={stackServerApp} {...props} />;\n}\n`);
+  await writeFileIfNotExists(handlerPath, `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${handlerFileExtension.includes("ts") ? ": any" : ""}) {\n${ind}return <StackHandler app={stackServerApp} {...props} />;\n}\n`);
   await writeFileIfNotExists(stackAppPath, `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`);
   await writeFile(layoutPath, updatedLayoutContent);
   console.log("Files written successfully!");
