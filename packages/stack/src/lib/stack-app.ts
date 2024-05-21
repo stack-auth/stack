@@ -387,6 +387,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      async getSelectedTeam() {
+        return await this.getTeam(json.selectedTeamId || "");
+      },
+      useSelectedTeam() {
+        return this.useTeam(json.selectedTeamId || "");
+      },
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
@@ -461,6 +467,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const currentUser: CurrentUser = {
       ...this._userFromJson(json),
       tokenStore,
+      async updateSelectedTeam(team: Team | null) {
+        await app._updateUser({ selectedTeamId: team?.id ?? null }, tokenStore);
+      },
       update(update) {
         return app._updateUser(update, tokenStore);
       },
@@ -1049,6 +1058,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(tokenStore);
         return res;
       },
+      async updateSelectedTeam(team: Team | null) {
+        await this.update({ selectedTeamId: team?.id ?? null });
+      },
       async update(update: ServerUserUpdateJson) {
         const res = await nonCurrentServerUser.update(update);
         await app._refreshUser(tokenStore);
@@ -1421,6 +1433,7 @@ type RedirectToOptions = {
 
 type Auth<T, C> = {
   readonly tokenStore: ReadonlyTokenStore,
+  updateSelectedTeam(this: T, team: Team | null): Promise<void>,
   update(this: T, user: C): Promise<void>,
   signOut(this: T): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | undefined>,
@@ -1461,6 +1474,8 @@ export type User = (
     readonly oauthProviders: readonly string[],
 
     hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
+    getSelectedTeam(this: CurrentUser): Promise<Team | null>,
+    useSelectedTeam(this: CurrentUser): Team | null,
 
     toJson(this: CurrentUser): UserJson,
   }

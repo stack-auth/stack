@@ -5,6 +5,7 @@ import { usersCrudServerReadSchema, usersCrudServerUpdateSchema } from "./users"
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "displayName",
   "clientMetadata",
+  "selectedTeamId",
 ]).required();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
@@ -22,6 +23,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "hasPassword",
   "authWithEmail",
   "oauthProviders",
+  "selectedTeamId",
 ]).nullable().defined();
 
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();
