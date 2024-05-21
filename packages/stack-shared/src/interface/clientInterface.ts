@@ -1,5 +1,5 @@
 import * as oauth from 'oauth4webapi';
-import crypto from "crypto";
+import crypto from "crypto-browserify";
 
 import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';

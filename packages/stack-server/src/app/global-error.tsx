@@ -19,7 +19,7 @@ export default function GlobalError({ error }: any) {
       if (isProdLike) {
         router.push("/");
       }
-    }, 3000);
+    }, 500);
   }, [router, isProdLike]);
 
   return (

@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import * as crypto from "crypto-browserify";
 import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
 import { ReactPromise, pending, rejected, resolved } from "./promises";

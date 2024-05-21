@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "crypto-browserify";
 import { encodeBase32 } from "./bytes";
 
 /**
