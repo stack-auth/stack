@@ -3,11 +3,9 @@
 import { Spinner } from "@/components/ui/spinner";
 import * as Sentry from "@sentry/nextjs";
 import Error from "next/error";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function GlobalError({ error }: any) {
-  const router = useRouter();
   const isProdLike = process.env.NODE_ENV.includes("production");
   
   useEffect(() => {
@@ -15,12 +13,16 @@ export default function GlobalError({ error }: any) {
   }, [error]);
 
   useEffect(() => {
+    let cancelled = false;
     setTimeout(() => {
-      if (isProdLike) {
-        router.push("/");
+      if (isProdLike && !cancelled) {
+        window.location.assign("/");
       }
     }, 500);
-  }, [router, isProdLike]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isProdLike]);
 
   return (
     <html>
