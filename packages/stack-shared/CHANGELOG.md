@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.5
+
+### Patch Changes
+
+- Team selection
+
 ## 2.4.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # stack-docs
 
+## 0.1.5
+
+### Patch Changes
+
+- Team selection
+
 ## 0.1.4
 
 ### Patch Changes

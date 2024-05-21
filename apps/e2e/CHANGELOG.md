@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 0.1.3
+
+### Patch Changes
+
+- Team selection
+
 ## 0.1.2
 
 ### Patch Changes

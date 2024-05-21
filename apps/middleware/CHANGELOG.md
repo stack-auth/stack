@@ -1,5 +1,12 @@
 # middleware-demo
 
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.7
+
 ## 0.2.6
 
 ### Patch Changes

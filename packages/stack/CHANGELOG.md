@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.4.7
+
+### Patch Changes
+
+- Team selection
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.5
+
 ## 2.4.6
 
 ### Patch Changes
