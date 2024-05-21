@@ -1,4 +1,3 @@
-import crypto from "crypto-browserify";
 import { encodeBase32 } from "./bytes";
 
 /**
@@ -8,7 +7,7 @@ import { encodeBase32 } from "./bytes";
 export function generateSecureRandomString(minBitsOfEntropy: number = 224) {
   const base32CharactersCount = Math.ceil(minBitsOfEntropy / 5);
   const bytesCount = Math.ceil(base32CharactersCount * 5 / 8);
-  const randomBytes = crypto.randomBytes(bytesCount);
+  const randomBytes = globalThis.crypto.getRandomValues(new Uint8Array(bytesCount));
   const str = encodeBase32(randomBytes);
   return str.slice(str.length - base32CharactersCount).toLowerCase();
 }

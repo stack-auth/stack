@@ -1,11 +1,10 @@
 import * as oauth from 'oauth4webapi';
-import crypto from "crypto-browserify";
 
 import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError, throwErr } from '../utils/errors';
+import { StackAssertionError } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
@@ -79,11 +78,6 @@ export function toStandardProvider(provider: SharedProvider | StandardProvider):
 
 export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
   return "shared-" + provider as SharedProvider;
-}
-
-
-function getSessionCookieName(projectId: string) {
-  return "__stack-token-" + crypto.createHash("sha256").update(projectId).digest("hex");
 }
 
 export type ReadonlyTokenStore = ReadonlyAsyncStore<TokenObject>;
@@ -186,10 +180,6 @@ export class StackClientInterface {
 
   get projectId() {
     return this.options.projectId;
-  }
-
-  getSessionCookieName() {
-    return getSessionCookieName(this.projectId);
   }
 
   getApiUrl() {
