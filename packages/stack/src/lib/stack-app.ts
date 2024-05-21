@@ -745,10 +745,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (result) {
       if (result.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
+        return true;
       } else {
         await this.redirectToAfterSignIn({ replace: true });
+        return true;
       }
     }
+    return false;
   }
 
   protected async _signOut(tokenStore: TokenStore): Promise<void> {
@@ -1656,7 +1659,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined>,
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
-    callOAuthCallback(): Promise<void>,
+    callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | undefined>,
