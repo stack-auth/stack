@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.4.8
+
+### Patch Changes
+
+- Remove crypto-browserify dependency
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.6
+
 ## 2.4.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 1.0.4
+
+### Patch Changes
+
+- Remove crypto-browserify dependency
+
 ## 1.0.3
 
 ### Patch Changes
