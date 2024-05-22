@@ -10,7 +10,6 @@ import {
   useSelectedScreenSize,
 } from '../documents/editor/EditorContext';
 import ToggleInspectorPanelButton from '../InspectorDrawer/ToggleInspectorPanelButton';
-import ToggleSamplesPanelButton from '../SamplesDrawer/ToggleSamplesPanelButton';
 
 import DownloadJson from './DownloadJson';
 import ImportJson from './ImportJson';
@@ -83,8 +82,7 @@ export default function TemplatePanel() {
         justifyContent="space-between"
         alignItems="center"
       >
-        <ToggleSamplesPanelButton />
-        <Stack px={2} direction="row" gap={2} width="100%" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" gap={2} width="100%" justifyContent="space-between" alignItems="center">
           <Stack direction="row" spacing={2}>
             <MainTabsGroup />
           </Stack>

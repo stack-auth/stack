@@ -1,8 +1,6 @@
 import { create } from 'zustand';
-
-import getConfiguration from '../../getConfiguration';
-
 import { TEditorConfiguration } from './core';
+import EMPTY_EMAIL_MESSAGE from '../../getConfiguration/sample/empty-email-message';
 
 type TValue = {
   document: TEditorConfiguration,
@@ -17,7 +15,7 @@ type TValue = {
 };
 
 const editorStateStore = create<TValue>(() => ({
-  document: getConfiguration(window.location.hash),
+  document: EMPTY_EMAIL_MESSAGE,
   selectedBlockId: null,
   selectedSidebarTab: 'styles',
   selectedMainTab: 'editor',
