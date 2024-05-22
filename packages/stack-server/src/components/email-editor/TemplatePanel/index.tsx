@@ -77,7 +77,6 @@ export default function TemplatePanel() {
           backgroundColor: 'white',
           position: 'sticky',
           top: 0,
-          zIndex: 'appBar',
           px: 1,
         }}
         direction="row"
