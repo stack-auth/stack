@@ -7,7 +7,7 @@ const EditorBlockContext = createContext<string | null>(null);
 export const useCurrentBlockId = () => useContext(EditorBlockContext)!;
 
 type EditorBlockProps = {
-  id: string;
+  id: string,
 };
 
 /**

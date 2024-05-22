@@ -1,7 +1,7 @@
+import { useMemo } from 'react';
 import { MonitorOutlined, PhoneIphoneOutlined } from '@mui/icons-material';
 import { Box, Stack, SxProps, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { Reader } from '@usewaypoint/email-builder';
-
 import EditorBlock from '../documents/editor/EditorBlock';
 import {
   setSelectedScreenSize,
@@ -10,13 +10,26 @@ import {
   useSelectedScreenSize,
 } from '../documents/editor/EditorContext';
 import ToggleInspectorPanelButton from '../InspectorDrawer/ToggleInspectorPanelButton';
-
 import DownloadJson from './DownloadJson';
 import ImportJson from './ImportJson';
 import MainTabsGroup from './MainTabsGroup';
+import { objectStringMap } from '../utils';
+
+const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
+
+function MergedReader() {
+  const document = useDocument();
+
+  const mergedDocument = useMemo(() => {
+    return objectStringMap(document, (str) => {
+      return str.replace(/{{(.+?)}}/g, (_, g1: string) => VARS[g1] || g1);
+    });
+  }, [document]);
+
+  return <Reader document={mergedDocument} rootBlockId="root" />;
+}
 
 export default function TemplatePanel() {
-  const document = useDocument();
   const selectedMainTab = useSelectedMainTab();
   const selectedScreenSize = useSelectedScreenSize();
 
@@ -59,7 +72,7 @@ export default function TemplatePanel() {
       case 'preview': {
         return (
           <Box sx={mainBoxSx}>
-            <Reader document={document} rootBlockId="root" />
+            <MergedReader />
           </Box>
         );
       }
