@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Stack, useTheme } from '@mui/material';
+import { Box, Stack, useTheme } from '@mui/material';
 
 import { useInspectorDrawerOpen, useSamplesDrawerOpen } from './documents/editor/EditorContext';
 
-import InspectorDrawer, { INSPECTOR_DRAWER_WIDTH } from './InspectorDrawer';
-import SamplesDrawer, { SAMPLES_DRAWER_WIDTH } from './SamplesDrawer';
+import InspectorDrawer from './InspectorDrawer';
+import SamplesDrawer from './SamplesDrawer';
 import TemplatePanel from './TemplatePanel';
 
 function useDrawerTransition(cssProperty: 'margin-left' | 'margin-right', open: boolean) {
@@ -25,17 +25,13 @@ export default function EmailEditor() {
 
   return (
     <>
-      <InspectorDrawer />
       <SamplesDrawer />
 
-      <Stack
-        sx={{
-          marginRight: inspectorDrawerOpen ? `${INSPECTOR_DRAWER_WIDTH}px` : 0,
-          marginLeft: samplesDrawerOpen ? `${SAMPLES_DRAWER_WIDTH}px` : 0,
-          transition: [marginLeftTransition, marginRightTransition].join(', '),
-        }}
-      >
-        <TemplatePanel />
+      <Stack direction="row">
+        <Box>
+          <TemplatePanel />
+        </Box>
+        <InspectorDrawer />
       </Stack>
     </>
   );
