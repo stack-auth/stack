@@ -17,18 +17,12 @@ function useDrawerTransition(cssProperty: 'margin-left' | 'margin-right', open: 
 }
 
 export default function EmailEditor() {
-  const inspectorDrawerOpen = useInspectorDrawerOpen();
-  const samplesDrawerOpen = useSamplesDrawerOpen();
-
-  const marginLeftTransition = useDrawerTransition('margin-left', samplesDrawerOpen);
-  const marginRightTransition = useDrawerTransition('margin-right', inspectorDrawerOpen);
-
   return (
     <>
       <SamplesDrawer />
 
-      <div className='flex flex-row'>
-        <div className='flex-grow'>
+      <div className='flex flex-row h-full'>
+        <div className='flex grow'>
           <TemplatePanel />
         </div>
         <InspectorDrawer />

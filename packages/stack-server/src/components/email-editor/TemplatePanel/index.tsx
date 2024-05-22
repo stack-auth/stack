@@ -68,7 +68,7 @@ export default function TemplatePanel() {
   };
 
   return (
-    <>
+    <div className='flex flex-col w-full h-full'>
       <Stack
         sx={{
           height: 49,
@@ -107,7 +107,9 @@ export default function TemplatePanel() {
         </Stack>
         <ToggleInspectorPanelButton />
       </Stack>
-      <Box sx={{ height: 'calc(100vh - 49px)', overflow: 'auto', minWidth: 370 }}>{renderMainPanel()}</Box>
-    </>
+      <div className='flex-grow overflow-auto'>
+        {renderMainPanel()}
+      </div>
+    </div>
   );
 }
