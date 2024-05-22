@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useTheme } from '@mui/material';
-import { setDocument } from './documents/editor/EditorContext';
-import InspectorDrawer from './InspectorDrawer';
-import TemplatePanel from './TemplatePanel';
+import { setDocument } from './documents/editor/editor-context';
+import InspectorDrawer from './inspector-drawer';
+import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
 
 export default function EmailEditor(props: { document: TEditorConfiguration }) {

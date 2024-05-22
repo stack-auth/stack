@@ -15,13 +15,13 @@ import {
   buildBlockConfigurationSchema,
 } from '@usewaypoint/document-core';
 
-import ColumnsContainerEditor from '../blocks/ColumnsContainer/ColumnsContainerEditor';
-import ColumnsContainerPropsSchema from '../blocks/ColumnsContainer/ColumnsContainerPropsSchema';
-import ContainerEditor from '../blocks/Container/ContainerEditor';
-import ContainerPropsSchema from '../blocks/Container/ContainerPropsSchema';
-import EmailLayoutEditor from '../blocks/EmailLayout/EmailLayoutEditor';
-import EmailLayoutPropsSchema from '../blocks/EmailLayout/EmailLayoutPropsSchema';
-import EditorBlockWrapper from '../blocks/helpers/block-wrappers/EditorBlockWrapper';
+import ColumnsContainerEditor from '../blocks/columns-container/columns-container-editor';
+import ColumnsContainerPropsSchema from '../blocks/columns-container/columns-container-props-schema';
+import ContainerEditor from '../blocks/container/container-editor';
+import ContainerPropsSchema from '../blocks/container/container-props-schema';
+import EmailLayoutEditor from '../blocks/email-layout/email-layout-editor';
+import EmailLayoutPropsSchema from '../blocks/email-layout/email-layout-props-schema';
+import EditorBlockWrapper from '../blocks/helpers/block-wrappers/editor-block-wrapper';
 
 const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
   Avatar: {

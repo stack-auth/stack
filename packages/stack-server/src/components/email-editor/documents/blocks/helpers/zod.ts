@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { FONT_FAMILY_NAMES } from './fontFamily';
+import { FONT_FAMILY_NAMES } from './font-family';
 
 export function zColor() {
   return z.string().regex(/^#[0-9a-fA-F]{6}$/);
