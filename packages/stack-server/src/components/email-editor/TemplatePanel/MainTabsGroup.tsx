@@ -9,10 +9,8 @@ export default function MainTabsGroup() {
   const selectedMainTab = useSelectedMainTab();
   const handleChange = (_: unknown, v: unknown) => {
     switch (v) {
-      case 'json':
       case 'preview':
-      case 'editor':
-      case 'html': {
+      case 'editor': {
         setSelectedMainTab(v);
         return;
       }
@@ -37,22 +35,6 @@ export default function MainTabsGroup() {
         label={
           <Tooltip title="Preview">
             <PreviewOutlined fontSize="small" />
-          </Tooltip>
-        }
-      />
-      <Tab
-        value="html"
-        label={
-          <Tooltip title="HTML output">
-            <CodeOutlined fontSize="small" />
-          </Tooltip>
-        }
-      />
-      <Tab
-        value="json"
-        label={
-          <Tooltip title="JSON output">
-            <DataObjectOutlined fontSize="small" />
           </Tooltip>
         }
       />

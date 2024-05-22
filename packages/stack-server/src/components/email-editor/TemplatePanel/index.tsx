@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { MonitorOutlined, PhoneIphoneOutlined } from '@mui/icons-material';
 import { Box, Stack, SxProps, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
 import { Reader } from '@usewaypoint/email-builder';
@@ -15,11 +13,8 @@ import ToggleInspectorPanelButton from '../InspectorDrawer/ToggleInspectorPanelB
 import ToggleSamplesPanelButton from '../SamplesDrawer/ToggleSamplesPanelButton';
 
 import DownloadJson from './DownloadJson';
-import HtmlPanel from './HtmlPanel';
 import ImportJson from './ImportJson';
-import JsonPanel from './JsonPanel';
 import MainTabsGroup from './MainTabsGroup';
-import ShareButton from './ShareButton';
 
 export default function TemplatePanel() {
   const document = useDocument();
@@ -69,12 +64,6 @@ export default function TemplatePanel() {
           </Box>
         );
       }
-      case 'html': {
-        return <HtmlPanel />;
-      }
-      case 'json': {
-        return <JsonPanel />;
-      }
     }
   };
 
@@ -115,7 +104,6 @@ export default function TemplatePanel() {
                 </Tooltip>
               </ToggleButton>
             </ToggleButtonGroup>
-            <ShareButton />
           </Stack>
         </Stack>
         <ToggleInspectorPanelButton />

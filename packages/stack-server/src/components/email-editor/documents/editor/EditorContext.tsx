@@ -5,15 +5,15 @@ import getConfiguration from '../../getConfiguration';
 import { TEditorConfiguration } from './core';
 
 type TValue = {
-  document: TEditorConfiguration;
+  document: TEditorConfiguration,
 
-  selectedBlockId: string | null;
-  selectedSidebarTab: 'block-configuration' | 'styles';
-  selectedMainTab: 'editor' | 'preview' | 'json' | 'html';
-  selectedScreenSize: 'desktop' | 'mobile';
+  selectedBlockId: string | null,
+  selectedSidebarTab: 'block-configuration' | 'styles',
+  selectedMainTab: 'editor' | 'preview',
+  selectedScreenSize: 'desktop' | 'mobile',
 
-  inspectorDrawerOpen: boolean;
-  samplesDrawerOpen: boolean;
+  inspectorDrawerOpen: boolean,
+  samplesDrawerOpen: boolean,
 };
 
 const editorStateStore = create<TValue>(() => ({
