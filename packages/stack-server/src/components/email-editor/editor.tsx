@@ -27,12 +27,12 @@ export default function EmailEditor() {
     <>
       <SamplesDrawer />
 
-      <Stack direction="row">
-        <Box>
+      <div className='flex flex-row'>
+        <div className='flex-grow'>
           <TemplatePanel />
-        </Box>
+        </div>
         <InspectorDrawer />
-      </Stack>
+      </div>
     </>
   );
 }

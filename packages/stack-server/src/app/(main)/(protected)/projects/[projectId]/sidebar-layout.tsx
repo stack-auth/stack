@@ -146,7 +146,7 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
       className={cn(
         buttonVariants({ variant: 'ghost', size: "sm" }),
         selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+        "flex-grow justify-start text-sm text-zinc-800 dark:text-zinc-300 px-2",
       )}
       onClick={onClick}
     >
@@ -301,7 +301,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
-        <div className="py-4 px-4 md:px-6">
+        <div>
           {props.children}
         </div>
       </div>
