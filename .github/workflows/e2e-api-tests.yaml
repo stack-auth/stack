@@ -22,7 +22,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-            version: 8
+            version: 9.1.2
             
       - name: Create .env.local file for stack-server
         run: |
