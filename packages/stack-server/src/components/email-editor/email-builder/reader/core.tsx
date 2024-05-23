@@ -58,10 +58,10 @@ const READER_DICTIONARY = buildBlockConfigurationDictionary({
     schema: HeadingPropsSchema,
     Component: Heading,
   },
-  Html: {
-    schema: HtmlPropsSchema,
-    Component: Html,
-  },
+  // Html: {
+  //   schema: HtmlPropsSchema,
+  //   Component: Html,
+  // },
   Image: {
     schema: ImagePropsSchema,
     Component: Image,

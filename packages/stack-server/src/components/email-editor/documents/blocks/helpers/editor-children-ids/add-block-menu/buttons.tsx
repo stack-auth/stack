@@ -114,21 +114,21 @@ export const BUTTONS: TButtonProps[] = [
       data: {},
     }),
   },
-  {
-    label: 'Html',
-    icon: <HtmlOutlined />,
-    block: () => ({
-      type: 'Html',
-      data: {
-        props: { contents: '<strong>Hello world</strong>' },
-        style: {
-          fontSize: 16,
-          textAlign: null,
-          padding: { top: 16, bottom: 16, left: 24, right: 24 },
-        },
-      },
-    }),
-  },
+  // {
+  //   label: 'Html',
+  //   icon: <HtmlOutlined />,
+  //   block: () => ({
+  //     type: 'Html',
+  //     data: {
+  //       props: { contents: '<strong>Hello world</strong>' },
+  //       style: {
+  //         fontSize: 16,
+  //         textAlign: null,
+  //         padding: { top: 16, bottom: 16, left: 24, right: 24 },
+  //       },
+  //     },
+  //   }),
+  // },
   {
     label: 'Columns',
     icon: <ViewColumnOutlined />,

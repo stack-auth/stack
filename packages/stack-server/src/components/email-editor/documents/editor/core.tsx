@@ -64,14 +64,14 @@ const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
       </EditorBlockWrapper>
     ),
   },
-  Html: {
-    schema: HtmlPropsSchema,
-    Component: (props) => (
-      <EditorBlockWrapper>
-        <Html {...props} />
-      </EditorBlockWrapper>
-    ),
-  },
+  // Html: {
+  //   schema: HtmlPropsSchema,
+  //   Component: (props) => (
+  //     <EditorBlockWrapper>
+  //       <Html {...props} />
+  //     </EditorBlockWrapper>
+  //   ),
+  // },
   Image: {
     schema: ImagePropsSchema,
     Component: (data) => {
