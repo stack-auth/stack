@@ -14,6 +14,7 @@ import DownloadJson from './download-json';
 import ImportJson from './import-json';
 import MainTabsGroup from './main-tabs-group';
 import { objectStringMap } from '../utils';
+import { Button } from '@/components/ui/button';
 
 const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
 
@@ -81,25 +82,12 @@ export default function TemplatePanel() {
 
   return (
     <div className='flex flex-col w-full h-full'>
-      <Stack
-        sx={{
-          height: 49,
-          borderBottom: 1,
-          borderColor: 'divider',
-          backgroundColor: 'white',
-          position: 'sticky',
-          top: 0,
-          px: 1,
-        }}
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <Stack direction="row" gap={2} width="100%" justifyContent="space-between" alignItems="center">
-          <Stack direction="row" spacing={2}>
+      <div className="flex flex-row justify-between items-center h-[49px] border-b border-divider bg-white sticky top-0 px-1">
+        <div className="flex flex-row gap-2 w-full justify-between items-center">
+          <div className="flex flex-row space-x-2 items-center">
             <MainTabsGroup />
-          </Stack>
-          <Stack direction="row" spacing={2}>
+          </div>
+          <div className="flex flex-row space-x-2">
             <DownloadJson />
             <ImportJson />
             <ToggleButtonGroup value={selectedScreenSize} exclusive size="small" onChange={handleScreenSizeChange}>
@@ -114,13 +102,14 @@ export default function TemplatePanel() {
                 </Tooltip>
               </ToggleButton>
             </ToggleButtonGroup>
-          </Stack>
-        </Stack>
+          </div>
+        </div>
         <ToggleInspectorPanelButton />
-      </Stack>
+      </div>
       <div className='flex-grow overflow-auto'>
         {renderMainPanel()}
       </div>
     </div>
+
   );
 }

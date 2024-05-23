@@ -26,16 +26,16 @@ export default function InspectorDrawer() {
   };
 
   return (
-    <div className={cn('w-[260px] flex flex-col', inspectorDrawerOpen ? '' : 'hidden')}>
-      <Box sx={{ height: 49, borderBottom: 1, borderColor: 'divider' }}>
-        <Box px={2}>
+    <div className={cn('w-[260px] flex flex-col border-l', inspectorDrawerOpen ? '' : 'hidden')}>
+      <div className="h-[49px] border-b border-divider">
+        <div className="px-2">
           <Tabs value={selectedSidebarTab} onChange={(_, v) => setSidebarTab(v)}>
             <Tab value="variables" label="Variables" />
             <Tab value="block-configuration" label="Inspect" />
             <Tab value="global-styles" label="Global" />
           </Tabs>
-        </Box>
-      </Box>
+        </div>
+      </div>
       <div className="flex-grow overflow-auto">
         {renderCurrentSidebarPanel()}
       </div>
