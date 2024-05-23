@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { TEditorConfiguration } from './core';
-import EMPTY_EMAIL_MESSAGE from '../../getConfiguration/sample/empty-email-message';
+import EMPTY_EMAIL_MESSAGE from '../../get-configuration/sample/empty-email-message';
 
 type TValue = {
   document: TEditorConfiguration,
