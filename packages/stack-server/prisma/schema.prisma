@@ -340,6 +340,29 @@ model EmailServiceConfig {
 
   proxiedEmailServiceConfig  ProxiedEmailServiceConfig?
   standardEmailServiceConfig StandardEmailServiceConfig?
+
+  emailTemplates EmailTemplate[]
+}
+
+enum EmailTemplateType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  MAGIC_LINK
+}
+
+model EmailTemplate {
+  id String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content Json
+  type    EmailTemplateType
+
+  emailServiceConfig EmailServiceConfig? @relation(fields: [projectConfigId], references: [projectConfigId])
+  projectConfigId    String?             @db.Uuid
+
+  @@unique([projectConfigId, type])
 }
 
 model ProxiedEmailServiceConfig {
