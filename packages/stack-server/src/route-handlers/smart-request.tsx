@@ -38,7 +38,7 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : T
   );
 
-async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -48,7 +48,7 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>): Promise<T> {
     if (error instanceof yup.ValidationError) {
       throw new KnownErrors.SchemaError(
         deindent`
-          Request validation failed:
+          Request validation failed on ${req.nextUrl.pathname}:
             ${(error.inner.length ? error.inner : [error]).map(e => deindent`
               - ${e.message}
             `).join("\n")}
@@ -226,7 +226,7 @@ export async function createLazyRequestParser<T extends DeepPartial<SmartRequest
     auth: await parseAuth(req),
   };
 
-  return async () => [await validate(toValidate, schema), toValidate];
+  return async () => [await validate(toValidate, schema, req), toValidate];
 }
 
 export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartRequest, "headers" | "auth"> & { headers: Record<string, string> }>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
@@ -241,5 +241,5 @@ export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartReq
     auth: null,
   };
 
-  return await validate(toValidate, schema);
+  return await validate(toValidate, schema, req);
 }
