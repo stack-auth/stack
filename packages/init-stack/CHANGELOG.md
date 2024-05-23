@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 1.0.5
+
+### Patch Changes
+
+- Bugfixes
+
 ## 1.0.4
 
 ### Patch Changes
