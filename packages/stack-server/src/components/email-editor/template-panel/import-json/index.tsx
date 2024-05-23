@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
 import { FileUploadOutlined } from '@mui/icons-material';
-import { IconButton, Tooltip } from '@mui/material';
 
-import ImportJsonDialog from './ImportJsonDialog';
+import ImportJsonDialog from './import-json-dialog';
+import { Button } from '@/components/ui/button';
 
 export default function ImportJson() {
   const [open, setOpen] = useState(false);
@@ -15,11 +15,10 @@ export default function ImportJson() {
 
   return (
     <>
-      <Tooltip title="Import JSON">
-        <IconButton onClick={() => setOpen(true)}>
-          <FileUploadOutlined fontSize="small" />
-        </IconButton>
-      </Tooltip>
+      <Button onClick={() => setOpen(true)} variant='secondary' className='gap-2'>
+        <FileUploadOutlined fontSize="small" />
+        Import JSON
+      </Button>
       {dialog}
     </>
   );

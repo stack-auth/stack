@@ -87,8 +87,6 @@ export default function TemplatePanel() {
             <MainTabsGroup />
           </div>
           <div className="flex flex-row space-x-2">
-            <DownloadJson />
-            <ImportJson />
             <ToggleButtonGroup value={selectedScreenSize} exclusive size="small" onChange={handleScreenSizeChange}>
               <ToggleButton value="desktop">
                 <Tooltip title="Desktop view">

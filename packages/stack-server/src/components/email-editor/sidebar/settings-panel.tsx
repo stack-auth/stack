@@ -6,6 +6,9 @@ import EmailLayoutPropsSchema from '../documents/blocks/email-layout/email-layou
 import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
 import ColorInput from './configuration-panel/input-panels/helpers/inputs/color-input';
 import { NullableFontFamily } from './configuration-panel/input-panels/helpers/inputs/font-family';
+import DownloadJson from '../template-panel/download-json';
+import ImportJson from '../template-panel/import-json';
+import { InputLabel } from '@mui/material';
 
 export default function SettingsPanel() {
   const block = useDocument().root;
@@ -53,31 +56,12 @@ export default function SettingsPanel() {
         defaultValue={data.textColor ?? '#262626'}
         onChange={(textColor) => updateData({ ...data, textColor })}
       />
+
+      <InputLabel sx={{ mb: 0.5 }}>Import & export</InputLabel>
+      <div className="flex flex-col gap-2">
+        <DownloadJson />
+        <ImportJson />
+      </div>
     </BaseSidebarPanel>
   );
 }
-
-
-{/* <Stack alignItems="flex-start">
-<InputLabel sx={{ mb: 0.5 }}>{label}</InputLabel>
-<Stack direction="row" spacing={1}>
-  {renderOpenButton()}
-  {renderResetButton()}
-</Stack>
-<Menu
-  anchorEl={anchorEl}
-  open={Boolean(anchorEl)}
-  onClose={() => setAnchorEl(null)}
-  MenuListProps={{
-    sx: { height: 'auto', padding: 0 },
-  }}
->
-  <ColorPicker
-    value={value || ''}
-    onChange={(v) => {
-      setValue(v);
-      onChange(v);
-    }}
-  />
-</Menu>
-</Stack> */}
