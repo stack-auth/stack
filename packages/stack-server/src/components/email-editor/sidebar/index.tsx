@@ -38,8 +38,9 @@ export default function InspectorDrawer() {
       <div className="flex-grow overflow-auto">
         {renderCurrentSidebarPanel()}
       </div>
-      <div className='flex flex-col items-stretch justify-center p-4 border-t'>
-        <Button>Save</Button>
+      <div className='flex gap-2 p-2 border-t'>
+        <Button variant='secondary' className='flex-1'>Cancel</Button>
+        <Button className='flex-1'>Save</Button>
       </div>
     </div>
   );
