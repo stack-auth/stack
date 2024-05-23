@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { setDocument } from './documents/editor/editor-context';
-import InspectorDrawer from './inspector-drawer';
+import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
 

@@ -1,4 +1,4 @@
-import { EditOutlined, PreviewOutlined } from '@mui/icons-material';
+import { EditOutlined, PreviewOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { Tab, Tabs, Tooltip } from '@mui/material';
 
 import { setSelectedMainTab, useSelectedMainTab } from '../documents/editor/editor-context';
@@ -32,7 +32,7 @@ export default function MainTabsGroup() {
         value="preview"
         label={
           <Tooltip title="Preview">
-            <PreviewOutlined fontSize="small" />
+            <VisibilityOutlined fontSize="small" />
           </Tooltip>
         }
       />

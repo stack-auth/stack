@@ -9,7 +9,7 @@ import {
   useSelectedMainTab,
   useSelectedScreenSize,
 } from '../documents/editor/editor-context';
-import ToggleInspectorPanelButton from '../inspector-drawer/toggle-inspector-panel-button';
+import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button';
 import DownloadJson from './download-json';
 import ImportJson from './import-json';
 import MainTabsGroup from './main-tabs-group';

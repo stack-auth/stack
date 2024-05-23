@@ -6,6 +6,9 @@ import ConfigurationPanel from './configuration-panel';
 import StylesPanel from './global-styles-panel';
 import { cn } from '@/lib/utils';
 import VariablesPanel from './variables-panel';
+import { Button } from '@/components/ui/button';
+import DownloadJson from '../template-panel/download-json';
+import ImportJson from '../template-panel/import-json';
 
 export default function InspectorDrawer() {
   const inspectorDrawerOpen = useInspectorDrawerOpen();
@@ -27,7 +30,7 @@ export default function InspectorDrawer() {
 
   return (
     <div className={cn('w-[260px] flex flex-col border-l', inspectorDrawerOpen ? '' : 'hidden')}>
-      <div className="h-[49px] border-b border-divider">
+      <div className="h-[49px] border-b">
         <div className="px-2">
           <Tabs value={selectedSidebarTab} onChange={(_, v) => setSidebarTab(v)}>
             <Tab value="variables" label="Variables" />
@@ -38,6 +41,9 @@ export default function InspectorDrawer() {
       </div>
       <div className="flex-grow overflow-auto">
         {renderCurrentSidebarPanel()}
+      </div>
+      <div className='flex flex-col items-stretch justify-center p-4 border-t'>
+        <Button>Save</Button>
       </div>
     </div>
   );
