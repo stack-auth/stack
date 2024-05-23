@@ -45,6 +45,7 @@
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "color": "^4.2.3",
+    "cookie": "^0.6.0",
     "js-cookie": "^3.0.5",
     "oauth4webapi": "^2.10.3",
     "react-icons": "^5.0.1",
@@ -64,6 +65,7 @@
   },
   "devDependencies": {
     "@types/color": "^3.0.6",
+    "@types/cookie": "^0.6.0",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.66",
     "esbuild": "^0.20.2",

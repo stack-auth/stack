@@ -20,16 +20,22 @@ import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
+import * as cookie from "cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundler try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
 
-export type TokenStoreOptions<HasTokenStore extends boolean = boolean> =
-  HasTokenStore extends true ? "cookie" | "nextjs-cookie" | "memory" :
-  HasTokenStore extends false ? null :
-  TokenStoreOptions<true> | TokenStoreOptions<false>;
+export type TokenStoreInit<HasTokenStore extends boolean = boolean> =
+  HasTokenStore extends true ? (
+    | "cookie"
+    | "nextjs-cookie"
+    | "memory"
+    | Request
+  )
+  : HasTokenStore extends false ? null
+  : TokenStoreInit<true> | TokenStoreInit<false>;
 
 export type HandlerUrls = {
   handler: string,
@@ -102,8 +108,8 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
 
-  // we intersect with TokenStoreOptions in the beginning to make TypeScript error messages easier to read
-  tokenStore: TokenStoreOptions<HasTokenStore>,
+  // we intersect with TokenStoreInit in the beginning to make TypeScript error messages easier to read
+  tokenStore: TokenStoreInit<HasTokenStore>,
 };
 
 export type StackServerAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
@@ -133,15 +139,12 @@ export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends 
 const defaultBaseUrl = "https://app.stack-auth.com";
 
 function createEmptyTokenStore() {
-  const store = new AsyncStore<TokenObject>();
-  store.set({
+  return new AsyncStore<TokenObject>({
     refreshToken: null,
     accessToken: null,
   });
-  return store;
 }
 
-const memoryTokenStore = createEmptyTokenStore();
 let cookieTokenStore: TokenStore | null = null;
 const cookieTokenStoreInitializer = (): TokenStore => {
   if (!isClient()) {
@@ -180,35 +183,6 @@ const cookieTokenStoreInitializer = (): TokenStore => {
 
   return cookieTokenStore;
 };
-
-const tokenStoreInitializers = new Map<TokenStoreOptions, () => TokenStore>([
-  ["cookie", cookieTokenStoreInitializer],
-  ["nextjs-cookie", () => {
-    if (isClient()) {
-      return cookieTokenStoreInitializer();
-    } else {
-      const store = new AsyncStore<TokenObject>();
-      store.set({
-        refreshToken: getCookie('stack-refresh'),
-        accessToken: getCookie('stack-access'),
-      });
-      store.onChange((value) => {
-        try {
-          setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-          setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
-        } catch (e) {
-          // ignore
-        }
-      });
-      return store;
-    }
-  }],
-  ["memory", () => memoryTokenStore],
-  [null, () => createEmptyTokenStore()],
-]);
-function getTokenStore(tokenStoreOptions: TokenStoreOptions) {
-  return (tokenStoreInitializers.get(tokenStoreOptions) ?? throwErr(`Invalid token store ${tokenStoreOptions}`))();
-}
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
 function useCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
@@ -268,7 +242,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
   protected readonly _uniqueIdentifier: string;
   protected _interface: StackClientInterface;
-  protected readonly _tokenStoreOptions: TokenStoreOptions<HasTokenStore>;
+  protected readonly _tokenStoreInit: TokenStoreInit<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
 
   private readonly __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
@@ -319,7 +293,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     }
 
-    this._tokenStoreOptions = options.tokenStore;
+    this._tokenStoreInit = options.tokenStore;
     this._urlOptions = options.urls ?? {};
 
     this._uniqueIdentifier = options.uniqueIdentifier ?? generateUuid();
@@ -329,22 +303,75 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
   }
 
-  protected hasPersistentTokenStore(): this is StackClientApp<true, ProjectId> {
-    return this._tokenStoreOptions !== null;
-  }
+  private _memoryTokenStore = createEmptyTokenStore();
+  private _requestTokenStores = new Map<Request, TokenStore>();
+  protected _getTokenStore(overrideTokenStoreInit?: TokenStoreInit): TokenStore {
+    const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
-  protected _ensurePersistentTokenStore(): asserts this is StackClientApp<true, ProjectId>  {
-    if (!this.hasPersistentTokenStore()) {
-      throw new Error("Cannot call this function on a Stack app without a persistent token store. Make sure the tokenStore option is set to a non-null value when initializing Stack.");
+    switch (tokenStoreInit) {
+      case "cookie": {
+        return cookieTokenStoreInitializer();
+      }
+      case "nextjs-cookie": {
+        if (isClient()) {
+          return cookieTokenStoreInitializer();
+        } else {
+          const store = new AsyncStore<TokenObject>();
+          store.set({
+            refreshToken: getCookie('stack-refresh'),
+            accessToken: getCookie('stack-access'),
+          });
+          store.onChange((value) => {
+            try {
+              setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+              setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
+            } catch (e) {
+              // ignore
+            }
+          });
+          return store;
+        }
+      }
+      case "memory": {
+        return this._memoryTokenStore;
+      }
+      case null: {
+        return createEmptyTokenStore();
+      }
+      default: {
+        if (tokenStoreInit && typeof tokenStoreInit === "object" && "headers" in tokenStoreInit) {
+          if (this._requestTokenStores.has(tokenStoreInit)) return this._requestTokenStores.get(tokenStoreInit)!;
+          const cookieHeader = tokenStoreInit.headers.get("cookie");
+          const parsed = cookie.parse(cookieHeader || "");
+          const res = new AsyncStore<TokenObject>({
+            refreshToken: parsed['stack-refresh'] || null,
+            accessToken: parsed['stack-access'] || null,
+          });
+          this._requestTokenStores.set(tokenStoreInit, res);
+          return res;
+        }
+    
+        throw new Error(`Invalid token store ${tokenStoreInit}`);
+      }
     }
   }
 
-  protected isInternalProject(): this is { projectId: "internal" } {
+  protected _hasPersistentTokenStore(overrideTokenStoreInit?: TokenStoreInit): this is StackClientApp<true, ProjectId> {
+    return (overrideTokenStoreInit !== undefined ? overrideTokenStoreInit : this._tokenStoreInit) !== null;
+  }
+
+  protected _ensurePersistentTokenStore(overrideTokenStoreInit?: TokenStoreInit): asserts this is StackClientApp<true, ProjectId>  {
+    if (!this._hasPersistentTokenStore(overrideTokenStoreInit)) {
+      throw new Error("Cannot call this function on a Stack app without a persistent token store. Make sure the tokenStore option on the constructor is set to a non-null value when initializing Stack.\n\nStack uses token stores to access access tokens of the current user. For example, on web frontends it is commonly the string value 'cookies' for cookie storage.");
+    }
+  }
+
+  protected _isInternalProject(): this is { projectId: "internal" } {
     return this.projectId === "internal";
   }
 
   protected _ensureInternalProject(): asserts this is { projectId: "internal" } {
-    if (!this.isInternalProject()) {
+    if (!this._isInternalProject()) {
       throw new Error("Cannot call this function on a Stack app with a project ID other than 'internal'.");
     }
   }
@@ -416,24 +443,24 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
       },
       async listTeams() {
-        const teams = await app._currentUserTeamsCache.getOrWait([getTokenStore(app._tokenStoreOptions)], "write-only");
+        const teams = await app._currentUserTeamsCache.getOrWait([app._getTokenStore()], "write-only");
         return teams.map((json) => app._teamFromJson(json));
       },
       useTeams() {
-        const teams = useCache(app._currentUserTeamsCache, [getTokenStore(app._tokenStoreOptions)], "user.useTeams()");
+        const teams = useCache(app._currentUserTeamsCache, [app._getTokenStore()], "user.useTeams()");
         return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
       },
       onTeamsChange(callback: (value: Team[], oldValue: Team[] | undefined) => void) {
-        return app._currentUserTeamsCache.onChange([getTokenStore(app._tokenStoreOptions)], (value, oldValue) => {
+        return app._currentUserTeamsCache.onChange([app._getTokenStore()], (value, oldValue) => {
           callback(value.map((json) => app._teamFromJson(json)), oldValue?.map((json) => app._teamFromJson(json)));
         });
       },
       async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
-        const permissions = await app._currentUserPermissionsCache.getOrWait([getTokenStore(app._tokenStoreOptions), scope.id, 'team', !!options?.direct], "write-only");
+        const permissions = await app._currentUserPermissionsCache.getOrWait([app._getTokenStore(), scope.id, 'team', !!options?.direct], "write-only");
         return permissions.map((json) => app._permissionFromJson(json));
       },
       usePermissions(scope: Team, options?: { direct?: boolean }): Permission[] {
-        const permissions = useCache(app._currentUserPermissionsCache, [getTokenStore(app._tokenStoreOptions), scope.id, 'team', !!options?.direct], "user.usePermissions()");
+        const permissions = useCache(app._currentUserPermissionsCache, [app._getTokenStore(), scope.id, 'team', !!options?.direct], "user.usePermissions()");
         return useMemo(() => permissions.map((json) => app._permissionFromJson(json)), [permissions]);
       },
       usePermission(scope: Team, permissionId: string): Permission | null {
@@ -488,7 +515,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._updatePassword(options, tokenStore);
       },
     };
-    if (this.isInternalProject()) {
+    if (this._isInternalProject()) {
       const internalUser: CurrentInternalUser = {
         ...currentUser,
         createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
@@ -628,8 +655,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>;
   async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>;
   async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null> {
-    this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    this._ensurePersistentTokenStore(options?.tokenStore);
+    const tokenStore = this._getTokenStore(options?.tokenStore);
     const userJson = await this._currentUserCache.getOrWait([tokenStore], "write-only");
 
     if (userJson === null) {
@@ -654,10 +681,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>;
   useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null;
   useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null {
-    this._ensurePersistentTokenStore();
+    this._ensurePersistentTokenStore(options?.tokenStore);
 
     const router = NextNavigation.useRouter();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore(options?.tokenStore);
     const userJson = useCache(this._currentUserCache, [tokenStore], "useUser()");
 
     if (userJson === null) {
@@ -684,7 +711,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   onUserChange(callback: (user: CurrentUser | null) => void) {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     return this._currentUserCache.onChange([tokenStore], (userJson) => {
       callback(this._currentUserFromJson(userJson, tokenStore));
     });
@@ -706,7 +733,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     password: string,
   }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined> {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const errorCode = await this._interface.signInWithCredential(options.email, options.password, tokenStore);
     if (!errorCode) {
       await this.redirectToAfterSignIn({ replace: true });
@@ -719,7 +746,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     password: string,
   }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | undefined> {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
     const errorCode = await this._interface.signUpWithCredential(
       options.email, 
@@ -735,7 +762,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | undefined> {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const result = await this._interface.signInWithMagicLink(code, tokenStore);
     if (result instanceof KnownError) {
       return result;
@@ -749,7 +776,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const result = await callOAuthCallback(this._interface, tokenStore, this.urls.oauthCallback);
     if (result) {
       if (result.newUser) {
@@ -801,7 +828,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _listOwnedProjects(): Promise<Project[]> {
     this._ensureInternalProject();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const json = await this._ownedProjectsCache.getOrWait([tokenStore], "write-only");
     return json.map((j) => this._projectAdminFromJson(
       j,
@@ -812,7 +839,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _useOwnedProjects(): Project[] {
     this._ensureInternalProject();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const json = useCache(this._ownedProjectsCache, [tokenStore], "useOwnedProjects()");
     return useMemo(() => json.map((j) => this._projectAdminFromJson(
       j,
@@ -823,7 +850,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _onOwnedProjectsChange(callback: (projects: Project[]) => void) {
     this._ensureInternalProject();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     return this._ownedProjectsCache.onChange([tokenStore], (projects) => {
       callback(projects.map((j) => this._projectAdminFromJson(
         j,
@@ -835,7 +862,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _createProject(newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
     this._ensureInternalProject();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const json = await this._interface.createProject(newProject, tokenStore);
     const res = this._projectAdminFromJson(
       json,
@@ -897,13 +924,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           baseUrl: this._interface.options.baseUrl,
           projectId: this.projectId,
           publishableClientKey: this._interface.options.publishableClientKey,
-          tokenStore: this._tokenStoreOptions,
+          tokenStore: this._tokenStoreInit,
           urls: this._urlOptions,
           uniqueIdentifier: this._uniqueIdentifier,
         };
       },
       setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
-        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([getTokenStore(this._tokenStoreOptions)], userJsonPromise));
+        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([this._getTokenStore()], userJsonPromise));
       },
     };
   };
@@ -946,7 +973,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
     | {
       interface: StackServerInterface,
-      tokenStore: TokenStoreOptions<HasTokenStore>,
+      tokenStore: TokenStoreInit<HasTokenStore>,
       urls: Partial<HandlerUrls> | undefined,
     }
   ) {
@@ -1018,15 +1045,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
       },
       async listTeams() {
-        const teams = await app._serverTeamsCache.getOrWait([getTokenStore(app._tokenStoreOptions)], "write-only");
+        const teams = await app._serverTeamsCache.getOrWait([app._getTokenStore()], "write-only");
         return teams.map((json) => app._serverTeamFromJson(json));
       },
       useTeams() {
-        const teams = useCache(app._serverTeamsCache, [getTokenStore(app._tokenStoreOptions)], "user.useTeams()");
+        const teams = useCache(app._serverTeamsCache, [app._getTokenStore()], "user.useTeams()");
         return useMemo(() => teams.map((json) => app._serverTeamFromJson(json)), [teams]);
       },
       onTeamsChange(callback: (value: ServerTeam[], oldValue: ServerTeam[] | undefined) => void) {
-        return app._serverTeamsCache.onChange([getTokenStore(app._tokenStoreOptions)], (value, oldValue) => {
+        return app._serverTeamsCache.onChange([app._getTokenStore()], (value, oldValue) => {
           callback(value.map((json) => app._serverTeamFromJson(json)), oldValue?.map((json) => app._serverTeamFromJson(json)));
         });
       },
@@ -1092,7 +1119,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
     };
 
-    if (this.isInternalProject()) {
+    if (this._isInternalProject()) {
       const internalUser: CurrentInternalServerUser = {
         ...currentUser,
         createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
@@ -1174,7 +1201,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async getServerUser(): Promise<ProjectCurrentSeverUser<ProjectId> | null> {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const userJson = await this._currentServerUserCache.getOrWait([tokenStore], "write-only");
     return this._currentServerUserFromJson(userJson, tokenStore);
   }
@@ -1187,7 +1214,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useServerUser(options?: { required: boolean }): ProjectCurrentSeverUser<ProjectId> | null {
     this._ensurePersistentTokenStore();
 
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     const userJson = useCache(this._currentServerUserCache, [tokenStore], "useServerUser()");
 
     return useMemo(() => {
@@ -1201,7 +1228,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   onServerUserChange(callback: (user: CurrentServerUser | null) => void) {
     this._ensurePersistentTokenStore();
-    const tokenStore = getTokenStore(this._tokenStoreOptions);
+    const tokenStore = this._getTokenStore();
     return this._currentServerUserCache.onChange([tokenStore], (userJson) => {
       callback(this._currentServerUserFromJson(userJson, tokenStore));
     });
@@ -1647,6 +1674,7 @@ export type OAuthProviderConfig = OAuthProviderConfigJson;
 
 export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
+  tokenStore?: TokenStoreInit,
 };
 
 type SplitArgs<T extends any[], U extends number> = [
