@@ -10,7 +10,7 @@ type SidebarPanelProps = {
 };
 export default function BaseSidebarPanel({ title, children, tooltip }: SidebarPanelProps) {
   return (
-    <div className='p-2'>
+    <div className='py-2 px-4'>
       <div className='flex items-center mb-2 gap-2'>
         <Typography variant="overline" color="text.secondary">
           {title}

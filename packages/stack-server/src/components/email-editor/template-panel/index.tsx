@@ -10,10 +10,9 @@ import {
   useSelectedScreenSize,
 } from '../documents/editor/editor-context';
 import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button';
-import DownloadJson from './download-json';
-import ImportJson from './import-json';
 import MainTabsGroup from './main-tabs-group';
 import { objectStringMap } from '../utils';
+import Mustache from 'mustache';
 
 const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
 
@@ -22,7 +21,7 @@ function MergedReader() {
 
   const mergedDocument = useMemo(() => {
     return objectStringMap(document, (str) => {
-      return str.replace(/{{(.+?)}}/g, (_, g1: string) => VARS[g1] || g1);
+      return Mustache.render(str, VARS);
     });
   }, [document]);
 

@@ -596,15 +596,9 @@ importers:
       '@usewaypoint/block-spacer':
         specifier: ^0.0.3
         version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-text':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
       '@usewaypoint/document-core':
         specifier: ^0.0.6
         version: 0.0.6(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/email-builder':
-        specifier: ^0.0.5
-        version: 0.0.5(react-dom@18.2.0)(react@18.2.0)(zod@3.23.8)
       '@vercel/analytics':
         specifier: ^1.2.2
         version: 1.2.2(next@14.1.0)(react@18.2.0)
@@ -647,6 +641,9 @@ importers:
       lucide-react:
         specifier: ^0.378.0
         version: 0.378.0(react@18.2.0)
+      mustache:
+        specifier: ^4.2.0
+        version: 4.2.0
       next:
         specifier: ^14.1
         version: 14.1.0(@babel/core@7.24.0)(react-dom@18.2.0)(react@18.2.0)
@@ -729,6 +726,9 @@ importers:
       '@types/canvas-confetti':
         specifier: ^1.6.4
         version: 1.6.4
+      '@types/mustache':
+        specifier: ^4.2.5
+        version: 4.2.5
       '@types/node':
         specifier: ^20.8.10
         version: 20.11.18
@@ -3403,7 +3403,7 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@babel/runtime': 7.24.5
+      '@babel/runtime': 7.24.0
       '@emotion/babel-plugin': 11.11.0
       '@emotion/cache': 11.11.0
       '@emotion/serialize': 1.1.3
@@ -9001,6 +9001,10 @@ packages:
   /@types/ms@0.7.34:
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
 
+  /@types/mustache@4.2.5:
+    resolution: {integrity: sha512-PLwiVvTBg59tGFL/8VpcGvqOu3L4OuveNvPi0EYbWchRdEVP++yRUXJPFl+CApKEq13017/4Nf7aQ5lTtHUNsA==}
+    dev: true
+
   /@types/node-forge@1.3.11:
     resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
     dependencies:
@@ -9428,16 +9432,6 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /@usewaypoint/block-text@0.0.3(react@18.2.0)(zod@3.23.8):
-    resolution: {integrity: sha512-EcZ1q1rwCZgKlYBqXX8Clq7tNTQLGQ8lePvaI4+X8+t6tYXR/gDgH4glUVDDUraG7QQyZ1QRdSKMIi1DPfqc3w==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-    dev: false
-
   /@usewaypoint/document-core@0.0.6(react@18.2.0)(zod@3.23.8):
     resolution: {integrity: sha512-Hg10gszVCZRJhA4nIWwAi2rTXuoxPL+ATMe0hU243PFBIUZOwDIQus4XZSeoHsenMCq1uBFCRiFW4hl2+tVwgA==}
     peerDependencies:
@@ -9445,29 +9439,6 @@ packages:
       zod: ^1 || ^2 || ^3
     dependencies:
       react: 18.2.0
-      zod: 3.23.8
-    dev: false
-
-  /@usewaypoint/email-builder@0.0.5(react-dom@18.2.0)(react@18.2.0)(zod@3.23.8):
-    resolution: {integrity: sha512-D6Df5NXhsDlHi2WUx7sIgMOYXFmrtHmsd+IBwwuwmGY+1v+1UgnmdLql6GRQRnNPKFw8t6Vv5i5z+DhB4FfZYg==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      react-dom: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-    dependencies:
-      '@usewaypoint/block-avatar': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-button': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-columns-container': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-container': 0.0.2(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-divider': 0.0.4(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-heading': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-html': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-image': 0.0.5(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-spacer': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-text': 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/document-core': 0.0.6(react@18.2.0)(zod@3.23.8)
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
       zod: 3.23.8
     dev: false
 
@@ -15742,6 +15713,11 @@ packages:
     dependencies:
       dns-packet: 5.6.1
       thunky: 1.1.0
+    dev: false
+
+  /mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
+    hasBin: true
     dev: false
 
   /mute-stream@1.0.0:
