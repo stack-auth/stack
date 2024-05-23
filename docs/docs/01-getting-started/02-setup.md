@@ -27,7 +27,7 @@ To setup stack, you can run Stack's installation wizard with the following comma
 npx @stackframe/init-stack@latest
 ```
 
-You will be guided through the installation process. To complete it, you must create an account on [our dashboard](https://app.stack-auth/projects), create a new project with an API key, and copy the project ID, publishable client key, and secret server key into the `.env.local` file in the root of your Next.js project:
+You will be guided through the installation process. To complete it, you must create an account on [our dashboard](https://app.stack-auth.com/projects), create a new project with an API key, and copy the project ID, publishable client key, and secret server key into the `.env.local` file in the root of your Next.js project:
 
 ```sh
 NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
