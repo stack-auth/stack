@@ -240,7 +240,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
 
 
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
-  protected readonly _uniqueIdentifier: string;
+  protected _uniqueIdentifier: string | undefined = undefined;
   protected _interface: StackClientInterface;
   protected readonly _tokenStoreInit: TokenStoreInit<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
@@ -270,7 +270,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listClientUserTeams(tokenStore);
   });
 
-  constructor(options:
+  constructor(protected readonly _options:
     & {
       uniqueIdentifier?: string,
       checkString?: string,
@@ -282,25 +282,34 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     )
   ) {
-    if ("interface" in options) {
-      this._interface = options.interface;
+    if ("interface" in _options) {
+      this._interface = _options.interface;
     } else {
       this._interface = new StackClientInterface({
-        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
-        projectId: options.projectId ?? getDefaultProjectId(),
+        baseUrl: _options.baseUrl ?? getDefaultBaseUrl(),
+        projectId: _options.projectId ?? getDefaultProjectId(),
         clientVersion,
-        publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
+        publishableClientKey: _options.publishableClientKey ?? getDefaultPublishableClientKey(),
       });
     }
 
-    this._tokenStoreInit = options.tokenStore;
-    this._urlOptions = options.urls ?? {};
+    this._tokenStoreInit = _options.tokenStore;
+    this._urlOptions = _options.urls ?? {};
+  }
 
-    this._uniqueIdentifier = options.uniqueIdentifier ?? generateUuid();
-    if (allClientApps.has(this._uniqueIdentifier)) {
-      throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
+  /**
+   * Cloudflare workers does not allow use of randomness on the global scope (on which the Stack app is probably
+   * initialized). For that reason, we generate the unique identifier lazily when it is first needed.
+   */
+  protected _getUniqueIdentifier() {
+    if (!this._uniqueIdentifier) {
+      this._uniqueIdentifier = this._options.uniqueIdentifier || generateUuid();
+      if (allClientApps.has(this._uniqueIdentifier)) {
+        throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
+      }
+      allClientApps.set(this._uniqueIdentifier, [this._options.checkString ?? "default check string", this]);
     }
-    allClientApps.set(this._uniqueIdentifier, [options.checkString ?? "default check string", this]);
+    return this._uniqueIdentifier!;
   }
 
   private _memoryTokenStore = createEmptyTokenStore();
@@ -926,7 +935,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreInit,
           urls: this._urlOptions,
-          uniqueIdentifier: this._uniqueIdentifier,
+          uniqueIdentifier: this._getUniqueIdentifier(),
         };
       },
       setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
