@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useTheme } from '@mui/material';
 import { setDocument } from './documents/editor/editor-context';
 import InspectorDrawer from './inspector-drawer';
 import TemplatePanel from './template-panel';
@@ -11,13 +10,11 @@ export default function EmailEditor(props: { document: TEditorConfiguration }) {
   }, [props.document]);
 
   return (
-    <>
-      <div className='flex flex-row h-full'>
-        <div className='flex grow'>
-          <TemplatePanel />
-        </div>
-        <InspectorDrawer />
+    <div className='flex flex-row h-full'>
+      <div className='flex grow'>
+        <TemplatePanel />
       </div>
-    </>
+      <InspectorDrawer />
+    </div>
   );
 }

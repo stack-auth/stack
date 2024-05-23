@@ -6,23 +6,23 @@ type TValue = {
   document: TEditorConfiguration,
 
   selectedBlockId: string | null,
-  selectedSidebarTab: 'block-configuration' | 'styles',
+  selectedSidebarTab: 'block-configuration' | 'global-styles' | 'variables',
   selectedMainTab: 'editor' | 'preview',
   selectedScreenSize: 'desktop' | 'mobile',
 
   inspectorDrawerOpen: boolean,
-  samplesDrawerOpen: boolean,
+  variablesDrawerOpen: boolean,
 };
 
 const editorStateStore = create<TValue>(() => ({
   document: EMPTY_EMAIL_MESSAGE,
   selectedBlockId: null,
-  selectedSidebarTab: 'styles',
+  selectedSidebarTab: 'variables',
   selectedMainTab: 'editor',
   selectedScreenSize: 'desktop',
 
   inspectorDrawerOpen: true,
-  samplesDrawerOpen: true,
+  variablesDrawerOpen: true,
 }));
 
 export function useDocument() {
@@ -53,12 +53,12 @@ export function useInspectorDrawerOpen() {
   return editorStateStore((s) => s.inspectorDrawerOpen);
 }
 
-export function useSamplesDrawerOpen() {
-  return editorStateStore((s) => s.samplesDrawerOpen);
+export function useVariablesDrawerOpen() {
+  return editorStateStore((s) => s.variablesDrawerOpen);
 }
 
 export function setSelectedBlockId(selectedBlockId: TValue['selectedBlockId']) {
-  const selectedSidebarTab = selectedBlockId === null ? 'styles' : 'block-configuration';
+  const selectedSidebarTab = selectedBlockId === null ? 'variables' : 'block-configuration';
   const options: Partial<TValue> = {};
   if (selectedBlockId !== null) {
     options.inspectorDrawerOpen = true;
@@ -77,7 +77,7 @@ export function setSidebarTab(selectedSidebarTab: TValue['selectedSidebarTab']) 
 export function resetDocument(document: TValue['document']) {
   return editorStateStore.setState({
     document,
-    selectedSidebarTab: 'styles',
+    selectedSidebarTab: 'variables',
     selectedBlockId: null,
   });
 }
@@ -97,9 +97,9 @@ export function toggleInspectorDrawerOpen() {
   return editorStateStore.setState({ inspectorDrawerOpen });
 }
 
-export function toggleSamplesDrawerOpen() {
-  const samplesDrawerOpen = !editorStateStore.getState().samplesDrawerOpen;
-  return editorStateStore.setState({ samplesDrawerOpen });
+export function toggleVariablesDrawerOpen() {
+  const variablesDrawerOpen = !editorStateStore.getState().variablesDrawerOpen;
+  return editorStateStore.setState({ variablesDrawerOpen });
 }
 
 export function setSelectedScreenSize(selectedScreenSize: TValue['selectedScreenSize']) {
