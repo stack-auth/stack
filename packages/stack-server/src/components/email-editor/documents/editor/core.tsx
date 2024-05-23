@@ -8,7 +8,7 @@ import { Heading, HeadingPropsSchema } from '@usewaypoint/block-heading';
 import { Html, HtmlPropsSchema } from '@usewaypoint/block-html';
 import { Image, ImagePropsSchema } from '@usewaypoint/block-image';
 import { Spacer, SpacerPropsSchema } from '@usewaypoint/block-spacer';
-import { Text, TextPropsSchema } from '@usewaypoint/block-text';
+import { Text, TextPropsSchema } from '../../block-text';
 import {
   buildBlockComponent,
   buildBlockConfigurationDictionary,

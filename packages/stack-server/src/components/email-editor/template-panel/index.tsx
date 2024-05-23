@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { MonitorOutlined, PhoneIphoneOutlined } from '@mui/icons-material';
-import { Box, Stack, SxProps, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
-import { Reader } from '@usewaypoint/email-builder';
+import { Box, SxProps, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { Reader } from '../email-builder';
 import EditorBlock from '../documents/editor/editor-block';
 import {
   setSelectedScreenSize,
@@ -14,7 +14,6 @@ import DownloadJson from './download-json';
 import ImportJson from './import-json';
 import MainTabsGroup from './main-tabs-group';
 import { objectStringMap } from '../utils';
-import { Button } from '@/components/ui/button';
 
 const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
 

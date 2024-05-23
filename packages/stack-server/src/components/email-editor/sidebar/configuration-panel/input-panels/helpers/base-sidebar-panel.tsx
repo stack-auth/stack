@@ -1,20 +1,25 @@
 import React from 'react';
 
-import { Box, Stack, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
+import { SimpleTooltip } from '@/components/simple-tooltip';
 
 type SidebarPanelProps = {
   title: string,
   children: React.ReactNode,
+  tooltip?: string,
 };
-export default function BaseSidebarPanel({ title, children }: SidebarPanelProps) {
+export default function BaseSidebarPanel({ title, children, tooltip }: SidebarPanelProps) {
   return (
-    <Box p={2}>
-      <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-        {title}
-      </Typography>
-      <Stack spacing={5} mb={3}>
+    <div className='p-2'>
+      <div className='flex items-center mb-2 gap-2'>
+        <Typography variant="overline" color="text.secondary">
+          {title}
+        </Typography>
+        {tooltip && <SimpleTooltip tooltip={tooltip} type='info'/>}
+      </div>
+      <div className='flex flex-col space-y-5 mb-3'>
         {children}
-      </Stack>
-    </Box>
+      </div>
+    </div>
   );
 }

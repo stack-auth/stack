@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { TextProps, TextPropsSchema } from '@usewaypoint/block-text';
+import { TextProps, TextPropsSchema } from '../../../block-text';
 
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextInput from './helpers/inputs/text-input';
@@ -24,7 +24,7 @@ export default function TextSidebarPanel({ data, setData }: TextSidebarPanelProp
   };
 
   return (
-    <BaseSidebarPanel title="Text block">
+    <BaseSidebarPanel title="Text block" tooltip="You can use the markdown link syntax [text](url) to create a hyperlink.">
       <TextInput
         label="Content"
         rows={5}
