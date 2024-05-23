@@ -346,6 +346,14 @@ export class StackClientInterface {
         ...'projectOwnerTokens' in this.options ? {
           "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
         } : {},
+        /**
+         * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
+         * 
+         * This header is used to change the cache key and hence always disable it, because we do our own caching.
+         * 
+         * When we drop support for Next.js <15, we may be able to remove this header, but please make sure that this is
+         * the case (I haven't actually tested.)
+         */
         "X-Stack-Random-Nonce": generateSecureRandomString(),
         ...options.headers,
       },
