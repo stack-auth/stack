@@ -70,7 +70,7 @@ export const BUTTONS: TButtonProps[] = [
       type: 'Image',
       data: {
         props: {
-          url: 'https://assets.usewaypoint.com/sample-image.jpg',
+          url: '',
           alt: 'Sample product',
           contentAlignment: 'middle',
           linkHref: null,
@@ -79,20 +79,20 @@ export const BUTTONS: TButtonProps[] = [
       },
     }),
   },
-  {
-    label: 'Avatar',
-    icon: <AccountCircleOutlined />,
-    block: () => ({
-      type: 'Avatar',
-      data: {
-        props: {
-          imageUrl: 'https://ui-avatars.com/api/?size=128',
-          shape: 'circle',
-        },
-        style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
-      },
-    }),
-  },
+  // {
+  //   label: 'Avatar',
+  //   icon: <AccountCircleOutlined />,
+  //   block: () => ({
+  //     type: 'Avatar',
+  //     data: {
+  //       props: {
+  //         imageUrl: '',
+  //         shape: 'circle',
+  //       },
+  //       style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
+  //     },
+  //   }),
+  // },
   {
     label: 'Divider',
     icon: <HorizontalRuleOutlined />,

@@ -6,7 +6,7 @@ type TValue = {
   document: TEditorConfiguration,
 
   selectedBlockId: string | null,
-  selectedSidebarTab: 'block-configuration' | 'global-styles' | 'variables',
+  selectedSidebarTab: 'configuration' | 'settings' | 'variables',
   selectedMainTab: 'editor' | 'preview',
   selectedScreenSize: 'desktop' | 'mobile',
 
@@ -58,14 +58,16 @@ export function useVariablesDrawerOpen() {
 }
 
 export function setSelectedBlockId(selectedBlockId: TValue['selectedBlockId']) {
-  const selectedSidebarTab = selectedBlockId === null ? 'variables' : 'block-configuration';
   const options: Partial<TValue> = {};
   if (selectedBlockId !== null) {
     options.inspectorDrawerOpen = true;
   }
+  if (selectedBlockId !== null) {
+    options.selectedSidebarTab = 'configuration';
+  }
+
   return editorStateStore.setState({
     selectedBlockId,
-    selectedSidebarTab,
     ...options,
   });
 }

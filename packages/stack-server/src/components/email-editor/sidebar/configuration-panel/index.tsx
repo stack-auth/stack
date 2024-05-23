@@ -10,7 +10,6 @@ import ButtonSidebarPanel from './input-panels/button-sidebar-panel';
 import ColumnsContainerSidebarPanel from './input-panels/columns-container-sidebar-panel';
 import ContainerSidebarPanel from './input-panels/container-sidebar-panel';
 import DividerSidebarPanel from './input-panels/divider-sidebar-panel';
-import EmailLayoutSidebarPanel from './input-panels/email-layout-sidebar-panel';
 import HeadingSidebarPanel from './input-panels/heading-sidebar-panel';
 import HtmlSidebarPanel from './input-panels/html-sidebar-panel';
 import ImageSidebarPanel from './input-panels/image-sidebar-panel';
@@ -65,9 +64,6 @@ export default function ConfigurationPanel() {
     }
     case 'Image': {
       return <ImageSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;
-    }
-    case 'EmailLayout': {
-      return <EmailLayoutSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;
     }
     case 'Spacer': {
       return <SpacerSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;

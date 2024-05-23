@@ -1,14 +1,10 @@
-import { Box, Tab, Tabs } from '@mui/material';
-
+import { Tab, Tabs } from '@mui/material';
 import { setSidebarTab, useInspectorDrawerOpen, useSelectedSidebarTab } from '../documents/editor/editor-context';
-
 import ConfigurationPanel from './configuration-panel';
-import StylesPanel from './global-styles-panel';
+import SettingsPanel from './settings-panel';
 import { cn } from '@/lib/utils';
 import VariablesPanel from './variables-panel';
 import { Button } from '@/components/ui/button';
-import DownloadJson from '../template-panel/download-json';
-import ImportJson from '../template-panel/import-json';
 
 export default function InspectorDrawer() {
   const inspectorDrawerOpen = useInspectorDrawerOpen();
@@ -16,11 +12,11 @@ export default function InspectorDrawer() {
 
   const renderCurrentSidebarPanel = () => {
     switch (selectedSidebarTab) {
-      case 'block-configuration': {
+      case 'configuration': {
         return <ConfigurationPanel />;
       }
-      case 'global-styles': {
-        return <StylesPanel />;
+      case 'settings': {
+        return <SettingsPanel />;
       }
       case 'variables': {
         return <VariablesPanel />;
@@ -34,8 +30,8 @@ export default function InspectorDrawer() {
         <div className="px-2">
           <Tabs value={selectedSidebarTab} onChange={(_, v) => setSidebarTab(v)}>
             <Tab value="variables" label="Variables" />
-            <Tab value="block-configuration" label="Inspect" />
-            <Tab value="global-styles" label="Global" />
+            <Tab value="configuration" label="Inspect" />
+            <Tab value="settings" label="Settings" />
           </Tabs>
         </div>
       </div>
