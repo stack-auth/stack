@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.8
+
+### Patch Changes
+
+- Improved UUID generation
+
 ## 2.4.7
 
 ### Patch Changes
