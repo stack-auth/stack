@@ -8,7 +8,7 @@ export const emailTemplateServerReadSchema = yup.object({
 }).required();
 
 export const emailTemplateCrudServerUpdateSchema = yup.object({
-  content: yup.object().optional()
+  content: yup.object().required()
 }).required();
 
 const serverDeleteSchema = yup.mixed();
@@ -32,10 +32,3 @@ export const listEmailTemplatesCrud = createCrud({
 });
 
 export type ListEmailTemplatesCrud = CrudTypeOf<typeof listEmailTemplatesCrud>;
-
-export const createEmailTemplateCrud = createCrud({
-  serverReadSchema: emailTemplateServerReadSchema,
-  serverCreateSchema: emailTemplateCrudServerCreateSchema,
-});
-
-export type CreateEmailTemplateCrud = CrudTypeOf<typeof createEmailTemplateCrud>;
