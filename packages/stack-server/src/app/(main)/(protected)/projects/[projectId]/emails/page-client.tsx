@@ -11,7 +11,7 @@ import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientI
 import { Project } from "@stackframe/stack";
 import { Reader } from "@/components/email-editor/email-builder";
 import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
-import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 
 export default function PageClient() {
@@ -51,7 +51,7 @@ export default function PageClient() {
                 <Button variant='secondary'>Edit Template</Button>
               </div>
             </div>
-            <div className="max-h-[150px] min-h-[150px] max-w-[200px] min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
+            <div className="max-h-[150px] min-h-[150px] max-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
               <div className="absolute inset-0 bg-transparent z-10"></div>
               <div className="scale-50 w-[400px] origin-top-left">
                 {Reader({ document: RESET_PASSWORD, rootBlockId: 'root' })}
