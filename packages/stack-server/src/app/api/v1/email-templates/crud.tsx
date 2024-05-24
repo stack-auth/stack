@@ -1,7 +1,7 @@
-import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, listEmailTemplates, updateEmailTemplate } from "@/lib/email-templates";
+import { createEmailTemplate, getEmailTemplate, listEmailTemplates } from "@/lib/email-templates";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { createEmailTemplateCrud, listEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 export const listEmailTemplatesCrudHandlers = createCrudHandlers(listEmailTemplatesCrud, {
@@ -15,9 +15,13 @@ export const createEmailTemplateCrudHandlers = createCrudHandlers(createEmailTem
   paramNames: [],
   async onRead() {
     // This should never be used
-    throw new StatusError(StatusError.NotFound);
+    throw new Error("Not implemented");
   },
   async onCreate({ auth, data }) {
+    const oldTemplate = await getEmailTemplate(auth.project.id, data.type);
+    if (oldTemplate) {
+      throw new KnownErrors.EmailTemplateAlreadyExists();
+    }
     return await createEmailTemplate(auth.project.id, data);
   },
 });

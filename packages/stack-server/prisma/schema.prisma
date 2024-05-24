@@ -351,8 +351,6 @@ enum EmailTemplateType {
 }
 
 model EmailTemplate {
-  id String @id @default(uuid()) @db.Uuid
-
   projectConfigId    String             @db.Uuid
   emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
 
@@ -362,7 +360,7 @@ model EmailTemplate {
   content Json
   type    EmailTemplateType
 
-  @@unique([projectConfigId, type])
+  @@id([projectConfigId, type])
 }
 
 model ProxiedEmailServiceConfig {

@@ -799,6 +799,16 @@ const TeamNotFound = createKnownErrorConstructor(
   (json: any) => [json.details.teamId] as const,
 );
 
+const EmailTemplateAlreadyExists = createKnownErrorConstructor(
+  KnownError,
+  "EMAIL_TEMPLATE_ALREADY_EXISTS",
+  () => [
+    400,
+    "Email template already exists.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -869,6 +879,7 @@ export const KnownErrors = {
   PermissionNotFound,
   PermissionScopeMismatch,
   TeamNotFound,
+  EmailTemplateAlreadyExists,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

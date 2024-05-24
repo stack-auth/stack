@@ -12,6 +12,7 @@ import {
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
+import { CreateEmailTemplateCrud, EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
 
 export type ServerUserJson = UserJson & {
   serverMetadata: ReadonlyJson,
@@ -329,6 +330,48 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify({}),
       },
+      null,
+    );
+  }
+
+  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(`/email-templates?server=true`, {}, null);
+    return await response.json();
+  }
+
+  async createEmailTemplate(data: CreateEmailTemplateCrud['Server']['Create']): Promise<CreateEmailTemplateCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/email-templates?server=true`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null
+    );
+    return await response.json();
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+    await this.sendServerRequest(
+      `/email-templates/${type}?server=true`,
+      {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+  }
+
+  async deleteEmailTemplate(type: EmailTemplateType): Promise<void> {
+    await this.sendServerRequest(
+      `/email-templates/${type}?server=true`,
+      { method: "DELETE" },
       null,
     );
   }

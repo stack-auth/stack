@@ -3,13 +3,11 @@ import * as yup from "yup";
 import { emailTemplateTypes } from "../serverInterface";
 
 export const emailTemplateServerReadSchema = yup.object({
-  id: yup.string().required(),
   type: yup.string().oneOf(emailTemplateTypes).required(),
   content: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
 }).required();
 
 export const emailTemplateCrudServerUpdateSchema = yup.object({
-  id: yup.string().required(),
   content: yup.object().optional()
 }).required();
 

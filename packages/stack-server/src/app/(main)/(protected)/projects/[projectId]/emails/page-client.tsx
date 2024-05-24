@@ -45,7 +45,7 @@ export default function PageClient() {
                 {Reader({ document: RESET_PASSWORD, rootBlockId: 'root' })}
               </div>
             </div>
-            <Button variant='secondary'>Edit</Button>
+            <Button variant='secondary' onClick={() => stackAdminApp.createEmailTemplate({ type: 'EMAIL_VERIFICATION', content: { 'test': 'hi' } })}>Edit</Button>
           </SettingText>
         ))}
       </SettingCard>

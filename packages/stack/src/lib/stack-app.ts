@@ -17,7 +17,7 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
 
@@ -1292,6 +1292,23 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._serverUsersCache.refresh([]),
     ]);
   }
+
+  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]> {
+    return this._interface.listEmailTemplates();
+  }
+
+  async createEmailTemplate(data: { type: EmailTemplateType, content: ReadonlyJson }) {
+    await this._interface.createEmailTemplate(data);
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }) {
+    await this._interface.updateEmailTemplate(type, data as any);
+  }
+
+  async deleteEmailTemplate(type: EmailTemplateType) {
+    await this._interface.deleteEmailTemplate(type);
+  }
+
 }
 
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
@@ -1712,6 +1729,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deletePermissionDefinition(permissionId: string): Promise<void>,
     listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
     usePermissionDefinitions(): ServerPermissionDefinitionJson[],
+    createEmailTemplate(data: { type: EmailTemplateType, content: ReadonlyJson }): Promise<void>,
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>
