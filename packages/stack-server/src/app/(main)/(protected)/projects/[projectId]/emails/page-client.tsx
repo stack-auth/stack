@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { Project } from "@stackframe/stack";
+import { Reader, renderToStaticMarkup } from "@/components/email-editor/email-builder";
+import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -33,6 +35,19 @@ export default function PageClient() {
         <SettingText label="Sender Email">
           {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stack-auth.com'}
         </SettingText>
+      </SettingCard>
+
+      <SettingCard title="Email Templates" description="Customize the emails sent">
+        {['Email verification', 'Password reset', 'Magic link'].map((template) => (
+          <SettingText key={template} label={template}>
+            <div className="max-h-[200px] max-w-[200px] overflow-hidden rounded-sm border">
+              <div className="scale-50 w-[400px] origin-top-left">
+                {Reader({ document: RESET_PASSWORD, rootBlockId: 'root' })}
+              </div>
+            </div>
+            <Button variant='secondary'>Edit</Button>
+          </SettingText>
+        ))}
       </SettingCard>
     </PageLayout>
   );

@@ -55,6 +55,8 @@ export type ServerAuthApplicationOptions = (
   )
 );
 
+export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
+export type EmailTemplateType = typeof emailTemplateTypes[number];
 
 export class StackServerInterface extends StackClientInterface {
   constructor(public override options: ServerAuthApplicationOptions) {
