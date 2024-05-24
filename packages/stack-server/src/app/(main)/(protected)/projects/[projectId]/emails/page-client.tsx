@@ -13,6 +13,7 @@ import { Reader } from "@/components/email-editor/email-builder";
 import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
+import { ActionCell } from "@/components/data-table/elements/cells";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -47,8 +48,11 @@ export default function PageClient() {
                 <Typography>{template}</Typography>
                 <Typography type='label' variant='secondary'>This email will be sent to the user when they sign-up with email/password</Typography>
               </div>
-              <div className="flex-grow flex flex-col justify-end items-start">
+              <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary'>Edit Template</Button>
+                <ActionCell 
+                  dangerItems={[{ item: 'Reset to Default', onClick: () => {} }]} 
+                />
               </div>
             </div>
             <div className="max-h-[150px] min-h-[150px] max-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
