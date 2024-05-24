@@ -1,4 +1,5 @@
-"use client";;
+"use client";
+
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingText } from "@/components/settings";
@@ -19,6 +20,9 @@ export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const emailConfig = project.evaluatedConfig?.emailConfig;
+  const emailTemplates = stackAdminApp.useEmailTemplates();
+
+  console.log('content', JSON.stringify(emailTemplates));
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -41,11 +45,11 @@ export default function PageClient() {
       </SettingCard>
 
       <SettingCard title="Email Templates" description="Customize the emails sent">
-        {['Email verification', 'Password reset', 'Magic link'].map((template) => (
-          <Card key={template} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
+        {emailTemplates.map((template) => (
+          <Card key={template.type} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
             <div className="flex flex-col gap-2">
               <div>
-                <Typography>{template}</Typography>
+                <Typography>{template.type}</Typography>
                 <Typography type='label' variant='secondary'>This email will be sent to the user when they sign-up with email/password</Typography>
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
@@ -58,7 +62,7 @@ export default function PageClient() {
             <div className="max-h-[150px] min-h-[150px] max-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
               <div className="absolute inset-0 bg-transparent z-10"></div>
               <div className="scale-50 w-[400px] origin-top-left">
-                {Reader({ document: RESET_PASSWORD, rootBlockId: 'root' })}
+                {Reader({ document: template.content as any, rootBlockId: 'root' })}
               </div>
             </div>
           </Card>

@@ -931,6 +931,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, type, direct]) => {
     return await this._interface.listTeamMemberPermissions({ teamId, userId, type, direct });
   });
+  private readonly _serverEmailTemplatesCache = createCache(async () => {
+    return await this._interface.listEmailTemplates();
+  });
 
 
   constructor(options: 
@@ -1293,22 +1296,23 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ]);
   }
 
-  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]> {
-    return this._interface.listEmailTemplates();
+  useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson }[] {
+    return useCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
   }
 
-  async createEmailTemplate(data: { type: EmailTemplateType, content: ReadonlyJson }) {
-    await this._interface.createEmailTemplate(data);
+  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]> {
+    return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
   }
 
   async updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }) {
     await this._interface.updateEmailTemplate(type, data as any);
+    await this._serverEmailTemplatesCache.refresh([]);
   }
 
   async deleteEmailTemplate(type: EmailTemplateType) {
     await this._interface.deleteEmailTemplate(type);
+    await this._serverEmailTemplatesCache.refresh([]);
   }
-
 }
 
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
@@ -1729,7 +1733,10 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deletePermissionDefinition(permissionId: string): Promise<void>,
     listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
     usePermissionDefinitions(): ServerPermissionDefinitionJson[],
-    createEmailTemplate(data: { type: EmailTemplateType, content: ReadonlyJson }): Promise<void>,
+    useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson }[],
+    listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]>,
+    updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }): Promise<void>,
+    deleteEmailTemplate(type: EmailTemplateType): Promise<void>,
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>

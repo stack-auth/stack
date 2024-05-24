@@ -1,4 +1,4 @@
-import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate } from "@/lib/email-templates";
+import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate, validateEmailTemplateContent } from "@/lib/email-templates";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { emailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -14,6 +14,7 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
     throw Error('Not implemented');
   },
   async onUpdate({ auth, data, params }) {
+    await validateEmailTemplateContent(data.content);
     const type = await typeSchema.validate(params.type);
     const oldEmailTemplate = await getEmailTemplate(auth.project.id, type);
     if (oldEmailTemplate) {

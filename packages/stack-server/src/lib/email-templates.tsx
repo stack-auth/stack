@@ -3,10 +3,16 @@ import { EmailTemplateType } from "@prisma/client";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { getProject } from "./projects";
+import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
+import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 
-export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
-  return await updateEmailTemplate(projectId, type, {});
-}
+const defaultEmailTemplates: Record<EmailTemplateType, TEditorConfiguration> = {
+  'EMAIL_VERIFICATION': RESET_PASSWORD,
+  'PASSWORD_RESET': RESET_PASSWORD,
+  'MAGIC_LINK': WELCOME,
+};
 
 export async function listEmailTemplates(projectId: string) {
   const project = await getProject(projectId);
@@ -14,11 +20,38 @@ export async function listEmailTemplates(projectId: string) {
     throw new Error("Project not found");
   }
 
-  return await prismaClient.emailTemplate.findMany({
+  const templates = await prismaClient.emailTemplate.findMany({
     where: {
       projectConfigId: project.evaluatedConfig.id,
     },
   });
+  const templateMap = new Map<EmailTemplateType, ReadonlyJson>();
+  for (const template of templates) {
+    templateMap.set(template.type, template.content as any);
+  }
+
+  const results: { type: EmailTemplateType, content: ReadonlyJson }[] = [];
+  for (const type of Object.values(EmailTemplateType)) {
+    const content = templateMap.get(type) ?? defaultEmailTemplates[type];
+    results.push({ type, content: content as any });
+  }
+
+  return results;
+}
+
+export async function validateEmailTemplateContent(content: any) {
+  try {
+    for (const key of Object.keys(content)) {
+      const block = content[key];
+      EditorBlockSchema.parse(block);
+    }
+  } catch (e) {
+    throw new StatusError(StatusError.BadRequest, "Invalid email template content format");
+  }
+}
+
+export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+  return await updateEmailTemplate(projectId, type, {});
 }
 
 export async function updateEmailTemplate(projectId: string, type: EmailTemplateType, update: { content?: ReadonlyJson }) {
