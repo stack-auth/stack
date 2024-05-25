@@ -32,7 +32,9 @@
   },
   "files": [
     "README.md",
-    "dist"
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "dependencies": {
     "@radix-ui/react-separator": "^1.0.3",

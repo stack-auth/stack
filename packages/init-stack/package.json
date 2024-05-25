@@ -8,7 +8,10 @@
     "init-stack": "node index.mjs"
   },
   "files": [
-    "index.mjs"
+    "README.md",
+    "index.mjs",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "homepage": "https://stack-auth.com",
   "keywords": [],

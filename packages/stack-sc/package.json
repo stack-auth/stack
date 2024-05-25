@@ -25,7 +25,9 @@
   },
   "files": [
     "README.md",
-    "dist"
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "peerDependencies": {
     "next": "^14.1",
