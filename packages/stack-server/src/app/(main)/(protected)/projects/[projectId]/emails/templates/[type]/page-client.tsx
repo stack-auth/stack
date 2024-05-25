@@ -6,6 +6,7 @@ import { useAdminApp } from "../../../use-admin-app";
 import { useRouter } from "next/navigation";
 import { validateEmailTemplateContent } from "@/lib/utils";
 import ErrorPage from "@/components/ui/error-page";
+import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 
 export default function PageClient(props: { templateType: EmailTemplateType }) {
   const app = useAdminApp();
@@ -28,9 +29,21 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
     />;
   }
 
+  const onSave = async (document: TEditorConfiguration) => {
+    await app.updateEmailTemplate(props.templateType, { content: document });
+  };
+
+  const onCancel = () => {
+    router.push(`/projects/${app.projectId}/emails`);
+  };
+
   return (
     <EmailEditorProvider>
-      <EmailEditor document={template.content} />
+      <EmailEditor 
+        document={template.content} 
+        onSave={onSave} 
+        onCancel={onCancel} 
+      />
     </EmailEditorProvider>
   );
 }

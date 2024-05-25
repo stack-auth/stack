@@ -1,14 +1,20 @@
 import { Tab, Tabs } from '@mui/material';
-import { setSidebarTab, useInspectorDrawerOpen, useSelectedSidebarTab } from '../documents/editor/editor-context';
+import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab } from '../documents/editor/editor-context';
 import ConfigurationPanel from './configuration-panel';
 import SettingsPanel from './settings-panel';
 import { cn } from '@/lib/utils';
 import VariablesPanel from './variables-panel';
 import { Button } from '@/components/ui/button';
+import { TEditorConfiguration } from '../documents/editor/core';
 
-export default function InspectorDrawer() {
+export default function InspectorDrawer(props: {
+  edited: boolean,
+  onSave?: (document: TEditorConfiguration) => void | Promise<void>, 
+  onCancel?: () => void | Promise<void>, 
+}){
   const inspectorDrawerOpen = useInspectorDrawerOpen();
   const selectedSidebarTab = useSelectedSidebarTab();
+  const document = useDocument();
 
   const renderCurrentSidebarPanel = () => {
     switch (selectedSidebarTab) {
@@ -21,6 +27,12 @@ export default function InspectorDrawer() {
       case 'variables': {
         return <VariablesPanel />;
       }
+    }
+  };
+
+  const onSave = async () => {
+    if (props.onSave) {
+      await props.onSave(document);
     }
   };
 
@@ -39,8 +51,8 @@ export default function InspectorDrawer() {
         {renderCurrentSidebarPanel()}
       </div>
       <div className='flex gap-2 p-2 border-t'>
-        <Button variant='secondary' className='flex-1'>Cancel</Button>
-        <Button className='flex-1'>Save</Button>
+        <Button variant='secondary' className='flex-1' onClick={props.onCancel}>Cancel</Button>
+        <Button className='flex-1' onClick={onSave} disabled={!props.edited}>Save</Button>
       </div>
     </div>
   );

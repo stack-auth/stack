@@ -16,6 +16,7 @@ type TValue = {
 
 const editorStateStore = create<TValue>(() => ({
   document: EMPTY_EMAIL_MESSAGE,
+
   selectedBlockId: null,
   selectedSidebarTab: 'variables',
   selectedMainTab: 'editor',
