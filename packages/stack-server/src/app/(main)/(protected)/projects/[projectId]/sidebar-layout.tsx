@@ -34,6 +34,8 @@ import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
 
+type BreadcrumbItem = { item: React.ReactNode, href: string }
+
 type Label = {
   name: React.ReactNode,
   type: 'label',
@@ -48,7 +50,7 @@ type Item = {
 };
 
 type Hidden = {
-  name: React.ReactNode | React.ReactNode[] | ((pathname: string) => React.ReactNode[]),
+  name: BreadcrumbItem[] | ((pathname: string) => BreadcrumbItem[]),
   regex: RegExp,
   type: 'hidden',
 };
@@ -86,11 +88,20 @@ const navigationItems: (Label | Item | Hidden)[] = [
   {
     name: (pathname: string) => {
       const match = pathname.match(/^\/projects\/[^\/]+\/teams\/([^\/]+)$/);
+      let item;
+      let href;
       if (match) {
-        return ["Teams", <TeamMemberBreadcrumbItem key='team-display-name' teamId={match[1]} />];
+        item = <TeamMemberBreadcrumbItem key='team-display-name' teamId={match[1]} />;
+        href = `/teams/${match[1]}`;
       } else {
-        return ["Teams", "Members"];
+        item = "Members";
+        href = "";
       }
+
+      return [
+        { item: "Teams", href: "/teams" },
+        { item, href },
+      ];
     },
     regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
@@ -130,11 +141,19 @@ const navigationItems: (Label | Item | Hidden)[] = [
   {
     name: (pathname: string) => {
       const match = pathname.match(/^\/projects\/[^\/]+\/emails\/templates\/([^\/]+)$/);
+      let item;
+      let href;
       if (match && match[1] in EMAIL_TEMPLATES_INFO) {
-        return ["Emails", EMAIL_TEMPLATES_INFO[match[1] as keyof typeof EMAIL_TEMPLATES_INFO].label];
+        item = EMAIL_TEMPLATES_INFO[match[1] as keyof typeof EMAIL_TEMPLATES_INFO].label;
+        href = `/emails/templates/${match[1]}`;
       } else {
-        return ["Emails", "Templates"];
+        item = "Templates";
+        href = "";
       }
+      return [
+        { item: "Emails", href: "/emails" },
+        { item, href },
+      ];
     },
     regex: /^\/projects\/[^\/]+\/emails\/templates\/[^\/]+$/,
     type: 'hidden',
@@ -238,25 +257,34 @@ function HeaderBreadcrumb({
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
 
-  const selectedItemNames: React.ReactNode[] = useMemo(() => {
-    const name = navigationItems.find((item) => {
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const item = navigationItems.find((item) => {
       if (item.type === 'label') {
         return false;
       } else {
         return item.regex.test(pathname);
       }
-    })?.name;
+    });
+    const name = item?.name;
 
+    let results: BreadcrumbItem[];
     if (!name) {
-      return [];
+      results = [];
     } else if (name instanceof Array) {
-      return name;
+      results = name;
     } else if (typeof name === 'function') {
-      return name(pathname);
+      results = name(pathname);
     } else {
-      return [name];
+      results = [{
+        item: name,
+        href: (item as any)?.href,
+      }];
     }
-  }, [pathname]);
+    return results.map((item) => ({
+      item: item.item,
+      href: `/projects/${projectId}${item.href}`,
+    }));
+  }, [pathname, projectId]);
 
   const selectedProject: Project | undefined = useMemo(() => {
     return projects.find((project) => project.id === projectId);
@@ -284,13 +312,21 @@ function HeaderBreadcrumb({
             <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          {selectedItemNames.map((name, index) => (
-            index < selectedItemNames.length - 1 ?
+          {breadcrumbItems.map((name, index) => (
+            index < breadcrumbItems.length - 1 ?
               <Fragment key={index}>
-                <BreadcrumbItem>{name}</BreadcrumbItem>
+                <BreadcrumbItem>
+                  <Link href={name.href}>
+                    {name.item}
+                  </Link>
+                </BreadcrumbItem>
                 <BreadcrumbSeparator/>
               </Fragment> :
-              <BreadcrumbPage key={index}>{name}</BreadcrumbPage>
+              <BreadcrumbPage key={index}>
+                <Link href={name.href}>
+                  {name.item}
+                </Link>
+              </BreadcrumbPage>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
