@@ -1,5 +1,5 @@
 'use client';;
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
@@ -11,6 +11,20 @@ export default function MagicLinkSignIn() {
   const [error, setError] = useState('');
   const app = useStackApp();
   
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    }
+  }, [])
+
+  const onKeyDown = (e:KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSubmit();
+    }
+  }
+
   const onSubmit = async () => {
     if (!email) {
       setError('Please enter your email');

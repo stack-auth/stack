@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
@@ -12,6 +12,20 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
   const [emailError, setEmailError] = useState('');
   const stackApp = useStackApp();
   
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    }
+  }, [])
+
+  const onKeyDown = (e:KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSubmit();
+    }
+  }
+
   const onSubmit = async () => {
     if (!email) {
       setEmailError('Please enter your email');

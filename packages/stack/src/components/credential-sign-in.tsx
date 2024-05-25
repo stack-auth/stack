@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormWarningText from "./form-warning";
 import PasswordField from "./password-field";
 import { validateEmail } from "../utils/email";
@@ -14,7 +14,22 @@ export default function CredentialSignIn() {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const app = useStackApp();
+
   
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    }
+  }, [])
+
+  const onKeyDown = (e:KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSubmit();
+    }
+  }
+
   const onSubmit = async () => {
     if (!email) {
       setEmailError('Please enter your email');
