@@ -33,10 +33,10 @@ On Server Components, you don't need `useStackApp()`. Instead, you can just impo
 
 ```tsx
 import "server-only";
-import { stackApp } from "@/lib/stack";
+import { stackServerApp } from "@/stack";
 
 export default async function MyComponent() {
-  const user = await stackApp.getUser();
+  const user = await stackServerApp.getUser();
 
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
@@ -68,10 +68,10 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function Protected() {
-      await stackApp.getUser({ or: 'redirect' });
+      await stackServerApp.getUser({ or: 'redirect' });
       return <h1>You can only see this if you are logged in</h1>
     }
     ```
@@ -101,10 +101,10 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
   <TabItem value="server" label="Redirect">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function SignOutLink() {
-      return <a href={stackApp.urls.signOut}>
+      return <a href={stackServerApp.urls.signOut}>
         Sign Out
       </a>;
     }
@@ -150,11 +150,11 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
     import { UserButton } from "@stackframe/stack";
 
     export default async function Page() {
-      const user = await stackApp.getUser();
+      const user = await stackServerApp.getUser();
       return (
         <div>
           {user ? (
@@ -162,13 +162,13 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
               <UserButton />
               <p>Welcome, {user.displayName}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
-              <p><a href={stackApp.urls.signOut}>Sign Out</a></p>
+              <p><a href={stackServerApp.urls.signOut}>Sign Out</a></p>
             </div>
           ) : (
             <div>
               <p>You are not logged in</p>
-              <p><a href={stackApp.urls.signIn}>Sign in</a></p>
-              <p><a href={stackApp.urls.signUp}>Sign up</a></p>
+              <p><a href={stackServerApp.urls.signIn}>Sign in</a></p>
+              <p><a href={stackServerApp.urls.signUp}>Sign up</a></p>
             </div>
           )}
         </div>
@@ -223,8 +223,8 @@ If you want to store sensitive information that is only visible on the server si
 
 ```tsx
 // server side only
-import { stackApp } from "@/lib/stack";
-const user = await stackApp.getUser();
+import { stackServerApp } from "@/stack";
+const user = await stackServerApp.getUser();
 await user.update({
   serverMetadata: {
     secretInfo: "This is a secret",
@@ -236,8 +236,8 @@ You can also access them from the `User` object:
 
 ```tsx
 // server side only
-import { stackApp } from "@/lib/stack";
-const user = await stackApp.getUser();
+import { stackServerApp } from "@/stack";
+const user = await stackServerApp.getUser();
 console.log(user.serverMetadata);
 ```
 

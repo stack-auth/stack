@@ -10,7 +10,7 @@ sidebar_position: 1
 
 ## `CurrentUser` Object
 
-You can call `useUser()` or `stackApp.getUser()` to get the `CurrentUser` object.
+You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` object.
 
 ### Attributes
 
@@ -82,7 +82,7 @@ if (error) {
 
 ## `CurrentServerUser` Object
 
-You can call `stackApp.getServerUser()` to get the `CurrentServerUser` object. `CurrentServerUser` has all the attributes and methods of `CurrentUser` and some additional ones shown below. 
+You can call `stackServerApp.getServerUser()` to get the `CurrentServerUser` object. `CurrentServerUser` has all the attributes and methods of `CurrentUser` and some additional ones shown below. 
 
 Note the `CurrentServerUser` should only be used on the server side because it contains server only metadata.
 
