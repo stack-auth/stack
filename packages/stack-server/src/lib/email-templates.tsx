@@ -39,10 +39,15 @@ export async function listEmailTemplates(projectId: string) {
 }
 
 export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
   return await prismaClient.emailTemplate.findUnique({
     where: {
       projectConfigId_type: {
-        projectConfigId: projectId,
+        projectConfigId: project.evaluatedConfig.id,
         type,
       },
     },
@@ -63,7 +68,7 @@ export async function updateEmailTemplate(
     where: {
       projectConfigId_type: {
         projectConfigId: project.evaluatedConfig.id,
-        type: type,
+        type,
       },
     },
     data: filterUndefined({

@@ -1,14 +1,15 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
 import { emailTemplateTypes } from "../serverInterface";
+import { yupJson } from "../../utils/yup";
 
 export const emailTemplateServerReadSchema = yup.object({
   type: yup.string().oneOf(emailTemplateTypes).required(),
-  content: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
+  content: yupJson.required(),
 }).required();
 
 export const emailTemplateCrudServerUpdateSchema = yup.object({
-  content: yup.object().required()
+  content: yupJson.required(),
 }).required();
 
 const serverDeleteSchema = yup.mixed();
@@ -28,7 +29,7 @@ export const listEmailTemplatesReadSchema = yup.array().of(
 
 export const emailTemplateCrudServerCreateSchema = yup.object({
   type: yup.string().oneOf(emailTemplateTypes).required(),
-  content: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
+  content: yupJson.required(),
 }).required();
 
 export const listEmailTemplatesCrud = createCrud({
