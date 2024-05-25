@@ -32,7 +32,6 @@ async function validate<T>(req: NextRequest, obj: unknown, schema: yup.Schema<T>
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
-      strict: true,
     });
   } catch (error) {
     throw new StackAssertionError(`Error occured during ${req.url} response validation: ${error}`, { obj, schema, error }, { cause: error });

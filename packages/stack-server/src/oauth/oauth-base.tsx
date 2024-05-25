@@ -1,5 +1,6 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
 import { OAuthUserInfo } from "./utils";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -86,10 +87,10 @@ export abstract class OAuthBaseProvider {
         tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
       }
     } catch (error) {
-      throw new Error("OAuth callback failed", { cause: error });
+      throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
     }
     if (!tokenSet.access_token) {
-      throw new Error("No access token received");
+      throw new StackAssertionError("No access token received", { tokenSet });
     }
     
     return await this.postProcessUserInfo(tokenSet);

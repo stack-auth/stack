@@ -1,5 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
+import { yupJson } from "../../utils/yup";
 
 export const usersCrudServerUpdateSchema = yup.object({
   displayName: yup.string().optional(),
@@ -8,7 +9,7 @@ export const usersCrudServerUpdateSchema = yup.object({
   primaryEmail: yup.string().optional(),
   primaryEmailVerified: yup.boolean().optional(),
   selectedTeamId: yup.string().nullable().optional(),
-}).required();
+}).required().noUnknown();
 
 export const usersCrudServerReadSchema = yup.object({
   projectId: yup.string().required(),
@@ -16,7 +17,7 @@ export const usersCrudServerReadSchema = yup.object({
   primaryEmail: yup.string().nullable().defined(),
   primaryEmailVerified: yup.boolean().required(),
   displayName: yup.string().nullable().defined(),
-  clientMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
+  clientMetadata: yupJson,
   selectedTeamId: yup.string().nullable().defined(),
   profileImageUrl: yup.string().nullable().defined(),
   signedUpAtMillis: yup.number().required(),
@@ -27,8 +28,8 @@ export const usersCrudServerReadSchema = yup.object({
   hasPassword: yup.boolean().required(),
   authWithEmail: yup.boolean().required(),
   oauthProviders: yup.array(yup.string().required()).required(),
-  serverMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
-}).required();
+  serverMetadata: yupJson,
+}).required().noUnknown();
 
 const serverDeleteSchema = yup.mixed();
 
