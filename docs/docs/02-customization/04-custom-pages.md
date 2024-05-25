@@ -61,7 +61,7 @@ export default function CustomOAuthSignIn() {
 }
 ```
 
-Again, edit the Stack app in `lib/stack.ts` to use your custom sign in page:
+Again, edit the Stack app in `stack.ts` to use your custom sign in page:
 
 ```tsx
 export const stackServerApp = new StackServerApp({
