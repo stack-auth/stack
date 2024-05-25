@@ -79,7 +79,7 @@ export function ActionCell(props: {
         {props.items && props.dangerItems && <DropdownMenuSeparator />}
         <div className="text-destructive">
           {props.dangerItems?.map((item, index) => (
-            <DropdownMenuItem key={index}  onClick={item.onClick}>
+            <DropdownMenuItem key={index} onClick={item.onClick}>
               {item.item}
             </DropdownMenuItem>
           ))}

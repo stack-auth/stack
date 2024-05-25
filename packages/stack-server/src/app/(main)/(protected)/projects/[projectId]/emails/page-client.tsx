@@ -15,29 +15,10 @@ import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { validateEmailTemplateContent } from "@/lib/utils";
-
-function EmailPreview(props: { content: any }) {
-  const valid = useMemo(() => validateEmailTemplateContent(props.content), [props.content]);
-  
-  let reader;
-
-  if (valid) {
-    reader = (
-      <div className="scale-50 w-[400px] origin-top-left">
-        <Reader document={props.content} rootBlockId='root' />
-      </div>
-    );
-  } else {
-    reader = <div className="flex items-center justify-center h-full text-red-500">Invalid template</div>;
-  }
-
-  return <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
-    <div className="absolute inset-0 bg-transparent z-10"/>
-    {reader}
-  </div>;
-}
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ActionDialog } from "@/components/action-dialog";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -45,6 +26,7 @@ export default function PageClient() {
   const emailConfig = project.evaluatedConfig?.emailConfig;
   const emailTemplates = stackAdminApp.useEmailTemplates();
   const router = useRouter();
+  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType | null>();
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -76,15 +58,42 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => {} }]} />}
+                {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => { setResetTemplateType(template.type); } }]} />}
               </div>
             </div>
             <EmailPreview content={template.content} />
           </Card>
         ))}
       </SettingCard>
+
+      {resetTemplateType && <ResetEmailTemplateDialog 
+        templateType={resetTemplateType} 
+        open={resetTemplateType !== null} 
+        onClose={() => setResetTemplateType(null)}
+      />}
     </PageLayout>
   );
+}
+
+function EmailPreview(props: { content: any }) {
+  const valid = useMemo(() => validateEmailTemplateContent(props.content), [props.content]);
+  
+  let reader;
+
+  if (valid) {
+    reader = (
+      <div className="scale-50 w-[400px] origin-top-left">
+        <Reader document={props.content} rootBlockId='root' />
+      </div>
+    );
+  } else {
+    reader = <div className="flex items-center justify-center h-full text-red-500">Invalid template</div>;
+  }
+
+  return <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
+    <div className="absolute inset-0 bg-transparent z-10"/>
+    {reader}
+  </div>;
 }
 
 function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
@@ -122,6 +131,7 @@ const emailServerSchema = yup.object({
   senderEmail: requiredWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
   senderName: requiredWhenShared(yup.string(), "Email sender name is required"),
 });
+
 function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
 }) {
@@ -191,4 +201,25 @@ function EditEmailServerDialog(props: {
       </>
     )}
   />;
+}
+
+function ResetEmailTemplateDialog(props: {
+  open?: boolean,
+  onClose?: () => void,
+  templateType: EmailTemplateType,
+}) {
+  const stackAdminApp = useAdminApp();
+  return <ActionDialog
+    danger
+    open={props.open}
+    onClose={props.onClose}
+    title="Reset Email Template"
+    okButton={{ 
+      label: "Reset", 
+      onClick: async () => { await stackAdminApp.deleteEmailTemplate(props.templateType); }
+    }}
+    confirmText="I understand this cannot be undone"
+  >
+    Are you sure you want to reset the email template to the default? You will lose all the changes you have made.
+  </ActionDialog>;
 }
