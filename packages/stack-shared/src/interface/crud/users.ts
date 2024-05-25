@@ -9,7 +9,7 @@ export const usersCrudServerUpdateSchema = yup.object({
   primaryEmail: yup.string().optional(),
   primaryEmailVerified: yup.boolean().optional(),
   selectedTeamId: yup.string().nullable().optional(),
-}).required().noUnknown();
+}).required();
 
 export const usersCrudServerReadSchema = yup.object({
   projectId: yup.string().required(),
@@ -29,7 +29,7 @@ export const usersCrudServerReadSchema = yup.object({
   authWithEmail: yup.boolean().required(),
   oauthProviders: yup.array(yup.string().required()).required(),
   serverMetadata: yupJson,
-}).required().noUnknown();
+}).required();
 
 const serverDeleteSchema = yup.mixed();
 

@@ -125,7 +125,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
               }),
               handler: async (req, fullReq) => {
                 const data = req.body;
-                const adminData = await validate(data, adminSchemas.input, true, "Input validation");
+                const adminData = await validate(data, adminSchemas.input, "Input validation");
 
                 const result = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: req.params,
@@ -133,8 +133,8 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                   auth: fullReq.auth ?? throwErr("Auth not found in CRUD handler; this should never happen! (all clients are at least client to access CRUD handler)"),
                 });
 
-                const resultAdminValidated = await validate(result, adminSchemas.output, false, "Result admin validation");
-                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, false, `Result ${accessType} validation`);
+                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
+                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
 
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
@@ -154,12 +154,11 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
   ) as any;
 }
 
-async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, name: string): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.ISchema<T>, name: string): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
-      strict: !cast,
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
@@ -170,7 +169,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, 
           Errors:
             ${error.errors.join("\n")}
         `,
-        { obj: JSON.stringify(obj), schema, cast },
+        { obj: JSON.stringify(obj), schema },
         { cause: error }
       );
     }
