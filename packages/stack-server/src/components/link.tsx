@@ -18,6 +18,7 @@ export function Link(props: {
   return <NextLink
     href={props.href}
     target={props.target}
+    className={props.className}
     onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
       if (needConfirm) {
         e.preventDefault();
