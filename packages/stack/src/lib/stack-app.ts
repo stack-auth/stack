@@ -239,6 +239,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
   );
 };
 
+let numberOfAppsCreated = 0;
 
 class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends string = string> {
   protected _uniqueIdentifier: string | undefined = undefined;
@@ -296,6 +297,26 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     this._tokenStoreInit = _options.tokenStore;
     this._urlOptions = _options.urls ?? {};
+
+    if (_options.uniqueIdentifier) {
+      this._uniqueIdentifier = _options.uniqueIdentifier;
+      this._initUniqueIdentifier();
+    }
+
+    numberOfAppsCreated++;
+    if (numberOfAppsCreated > 10) {
+      console.warn(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak. Make sure to minimize the number of Stack apps per page (usually, one per project).`);
+    }
+  }
+
+  protected _initUniqueIdentifier() {
+    if (!this._uniqueIdentifier) {
+      throw new StackAssertionError("Unique identifier not initialized");
+    }
+    if (allClientApps.has(this._uniqueIdentifier)) {
+      throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
+    }
+    allClientApps.set(this._uniqueIdentifier, [this._options.checkString ?? "default check string", this]);
   }
 
   /**
@@ -304,11 +325,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
    */
   protected _getUniqueIdentifier() {
     if (!this._uniqueIdentifier) {
-      this._uniqueIdentifier = this._options.uniqueIdentifier || generateUuid();
-      if (allClientApps.has(this._uniqueIdentifier)) {
-        throw new StackAssertionError("A Stack client app with the same unique identifier already exists");
-      }
-      allClientApps.set(this._uniqueIdentifier, [this._options.checkString ?? "default check string", this]);
+      this._uniqueIdentifier = generateUuid();
+      this._initUniqueIdentifier();
     }
     return this._uniqueIdentifier!;
   }
