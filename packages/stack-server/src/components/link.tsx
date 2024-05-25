@@ -1,37 +1,41 @@
 'use client';
 
-import { useRouter } from "./router";
+// eslint-disable-next-line
+import NextLink from 'next/link';
+import { confirmAlertMessage, useRouter, useRouterConfirm } from "./router";
 import { cn } from "@/lib/utils";
 
 export function Link(props: {
   href: string,
   children: React.ReactNode,
   className?: string,
-  target?: '_blank' | '_self',
+  target?: string,
   onClick?: () => void,
 }) {
   const router = useRouter();
+  const { needConfirm } = useRouterConfirm();
 
-  return (
-    <span 
-      className={cn("cursor-pointer", props.className)}
-      onClick={() => {
-        if (props.target === "_blank") {
-          window.open(props.href, "_blank");
-        } else {
-          router.push(props.href);
-        }
-      }}>
-      {props.children}
-    </span>
-  );
+  return <NextLink
+    href={props.href}
+    target={props.target}
+    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (needConfirm) {
+        e.preventDefault();
+        window.confirm(confirmAlertMessage) && props.onClick?.() && router.push(props.href);
+      }
+      props.onClick?.();
+    }}
+  >
+    {props.children}
+  </NextLink>;
+    
 }
 
 export function StyledLink(props: {
   href: string,
   children: React.ReactNode,
   className?: string,
-  target?: '_blank' | '_self',
+  target?: string,
   onClick?: () => void,
 }) {
   return (
