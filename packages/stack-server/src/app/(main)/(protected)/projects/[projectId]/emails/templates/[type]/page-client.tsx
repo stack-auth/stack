@@ -3,7 +3,7 @@ import EmailEditor from "@/components/email-editor/editor";
 import { EmailEditorProvider } from "@/components/email-editor/editor-provider";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { validateEmailTemplateContent } from "@/lib/utils";
 import ErrorPage from "@/components/ui/error-page";
 import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";

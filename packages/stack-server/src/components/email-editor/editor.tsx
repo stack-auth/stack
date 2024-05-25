@@ -4,6 +4,7 @@ import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
 import _ from 'lodash';
+import { confirmAlertMessage, useDisableRouter } from '@/components/router';
 
 export default function EmailEditor(props: { 
   document: TEditorConfiguration, 
@@ -11,6 +12,8 @@ export default function EmailEditor(props: {
   onCancel?: () => void | Promise<void>,
 }) {
   const document = useDocument();
+  const { setDisabled } = useDisableRouter();
+
   useEffect(() => {
     setDocument(props.document);
   }, [props.document]);
@@ -18,6 +21,23 @@ export default function EmailEditor(props: {
   const edited = useMemo(() => {
     return !_.isEqual(props.document, document);
   }, [props.document, document]);
+
+  useEffect(() => {
+    setDisabled(edited);
+    return () => setDisabled(false);
+  }, [edited, setDisabled]);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (edited) {
+        e.returnValue = confirmAlertMessage;
+        return confirmAlertMessage;
+      }
+    };
+
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [edited]);
 
   return (
     <div className='flex flex-row h-full'>

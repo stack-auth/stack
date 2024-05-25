@@ -5,7 +5,7 @@ import { useStackApp, useUser } from "@stackframe/stack";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, StackAdminApp } from "@stackframe/stack";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 
 const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
 

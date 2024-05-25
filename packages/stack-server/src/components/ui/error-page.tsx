@@ -3,7 +3,7 @@
 import { Logo } from "@/components/logo";
 import Typography from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 export default function ErrorPage(props: {

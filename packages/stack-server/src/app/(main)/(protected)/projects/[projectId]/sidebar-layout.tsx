@@ -1,5 +1,5 @@
-'use client';;
-import Link from "next/link";
+'use client';
+
 import {
   Book,
   KeyRound,
@@ -18,7 +18,7 @@ import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import {
   Breadcrumb,
@@ -33,6 +33,7 @@ import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
+import { Link } from "@/components/link";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }
 

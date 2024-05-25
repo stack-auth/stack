@@ -2,9 +2,9 @@
 
 import { UserButton } from "@stackframe/stack";
 import { Logo } from "./logo";
-import Link from "next/link";
 import Typography from "./ui/typography";
 import { useTheme } from "next-themes";
+import { Link } from "./link";
 
 export function Navbar({ ...props }) {
   const { resolvedTheme, setTheme } = useTheme();

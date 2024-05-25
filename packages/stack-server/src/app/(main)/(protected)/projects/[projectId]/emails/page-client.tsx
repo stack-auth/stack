@@ -13,7 +13,7 @@ import { Reader } from "@/components/email-editor/email-builder";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
 
 

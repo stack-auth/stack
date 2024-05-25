@@ -7,7 +7,7 @@ import { InlineCode } from "@/components/ui/inline-code";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ApiKeySetFirstView } from "@stackframe/stack";
 import Typography from "@/components/ui/typography";
-import { Link } from "@/components/link";
+import { StyledLink } from "@/components/link";
 
 export function OnboardingDialog() {
   const stackAdminApp = useAdminApp();
@@ -45,7 +45,7 @@ export function OnboardingDialog() {
     >
       <div className="flex flex-col gap-2">
         <Typography className="mb-4">
-          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <Link target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>getting started guide</Link>.
+          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <StyledLink target="_blank" href={process.env.NEXT_PUBLIC_DOC_URL || ""}>getting started guide</StyledLink>.
         </Typography>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey?.publishableClientKey} secretServerKey={apiKey?.secretServerKey} />
         <Typography type="label">

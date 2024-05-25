@@ -8,7 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, SwitchListField } from "@/components/form-fields";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";

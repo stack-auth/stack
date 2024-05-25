@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { useMemo, useState } from "react";
 
 
