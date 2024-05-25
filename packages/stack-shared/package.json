@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -12,7 +12,9 @@
   },
   "files": [
     "README.md",
-    "dist"
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "peerDependencies": {
     "react": "^18.2",

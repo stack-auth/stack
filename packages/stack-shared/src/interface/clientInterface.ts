@@ -374,7 +374,12 @@ export class StackClientInterface {
         "X-Stack-Random-Nonce": generateSecureRandomString(),
         ...options.headers,
       },
-      cache: "no-store",
+      /**
+       * Cloudflare Workers does not support cache, so don't pass it there
+       */
+      ..."WebSocketPair" in globalThis ? {} : {
+        cache: "no-store",
+      },
     };
 
     const rawRes = await fetch(url, params);
