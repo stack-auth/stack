@@ -57,7 +57,7 @@ export default function PageClient() {
                 {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => {} }]} />}
               </div>
             </div>
-            <div className="max-h-[150px] min-h-[150px] max-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
+            <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
               <div className="absolute inset-0 bg-transparent z-10"></div>
               <div className="scale-50 w-[400px] origin-top-left">
                 <Reader document={template.content as any} rootBlockId='root' />
