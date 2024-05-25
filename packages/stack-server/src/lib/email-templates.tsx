@@ -30,10 +30,10 @@ export async function listEmailTemplates(projectId: string) {
     templateMap.set(template.type, template.content as any);
   }
 
-  const results: { type: EmailTemplateType, content: ReadonlyJson }[] = [];
+  const results: { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[] = [];
   for (const type of Object.values(EmailTemplateType)) {
     const content = templateMap.get(type) ?? defaultEmailTemplates[type];
-    results.push({ type, content: content as any });
+    results.push({ type, content: content as any, default: !templateMap.has(type) });
   }
 
   return results;

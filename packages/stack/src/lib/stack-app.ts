@@ -1296,11 +1296,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ]);
   }
 
-  useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson }[] {
+  useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[] {
     return useCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
   }
 
-  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]> {
+  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson, default: boolean }[]> {
     return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
   }
 
@@ -1733,8 +1733,8 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deletePermissionDefinition(permissionId: string): Promise<void>,
     listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
     usePermissionDefinitions(): ServerPermissionDefinitionJson[],
-    useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson }[],
-    listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson }[]>,
+    useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[],
+    listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson, default: boolean }[]>,
     updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }): Promise<void>,
     deleteEmailTemplate(type: EmailTemplateType): Promise<void>,
   }

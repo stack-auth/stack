@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingText } from "@/components/settings";
@@ -11,7 +10,6 @@ import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { Project } from "@stackframe/stack";
 import { Reader } from "@/components/email-editor/email-builder";
-import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
@@ -21,8 +19,6 @@ export default function PageClient() {
   const project = stackAdminApp.useProjectAdmin();
   const emailConfig = project.evaluatedConfig?.emailConfig;
   const emailTemplates = stackAdminApp.useEmailTemplates();
-
-  console.log('content', JSON.stringify(emailTemplates));
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -54,9 +50,10 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary'>Edit Template</Button>
+                {!template.default &&
                 <ActionCell 
                   dangerItems={[{ item: 'Reset to Default', onClick: () => {} }]} 
-                />
+                />}
               </div>
             </div>
             <div className="max-h-[150px] min-h-[150px] max-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
