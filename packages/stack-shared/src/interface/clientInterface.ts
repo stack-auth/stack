@@ -337,8 +337,13 @@ export class StackClientInterface {
        * 
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
        * implement reliance on cookies anywhere.
+       * 
+       * However, Cloudflare Workers don't actually support `credentials`, so we only set it
+       * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
-      credentials: "omit",
+      ..."WebSocketPair" in globalThis ? {} : {
+        credentials: "omit",
+      },
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
