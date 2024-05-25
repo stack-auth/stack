@@ -4,7 +4,7 @@ import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
 import _ from 'lodash';
-import { confirmAlertMessage, useDisableRouter } from '@/components/router';
+import { confirmAlertMessage, useRouterConfirm } from '@/components/router';
 
 export default function EmailEditor(props: { 
   document: TEditorConfiguration, 
@@ -12,7 +12,7 @@ export default function EmailEditor(props: {
   onCancel?: () => void | Promise<void>,
 }) {
   const document = useDocument();
-  const { setDisabled } = useDisableRouter();
+  const { setNeedConfirm } = useRouterConfirm();
 
   useEffect(() => {
     setDocument(props.document);
@@ -23,9 +23,9 @@ export default function EmailEditor(props: {
   }, [props.document, document]);
 
   useEffect(() => {
-    setDisabled(edited);
-    return () => setDisabled(false);
-  }, [edited, setDisabled]);
+    setNeedConfirm(edited);
+    return () => setNeedConfirm(false);
+  }, [edited, setNeedConfirm]);
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
