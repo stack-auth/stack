@@ -1,5 +1,29 @@
 # @stackframe/stack-server
 
+## 0.4.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.11
+
+## 0.4.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.8
+  - @stackframe/stack@2.4.10
+
+## 0.4.10
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.7
+  - @stackframe/stack@2.4.9
+
 ## 0.4.9
 
 ### Patch Changes

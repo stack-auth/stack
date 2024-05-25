@@ -11,7 +11,7 @@ export default function OAuthButton({
   type,
 }: {
   provider: string,
-  type: 'signin' | 'signup',
+  type: 'sign-in' | 'sign-up',
 }) {
   const stackApp = useStackApp();
 
@@ -113,10 +113,9 @@ export default function OAuthButton({
       style={{ border: style.border }}
       onClick={() => stackApp.signInWithOAuth(provider)}
     >
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
         {style.icon}
-        <span style={{ flexGrow: 1 }}>{type === 'signup' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
-        {<div style={{ visibility: 'hidden' }}>{style.icon}</div>}
+        <span style={{ flexGrow: 1 }}>{type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
       </div>
     </Button>
   );

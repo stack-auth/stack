@@ -1,5 +1,5 @@
-import { PermissionDefinitionJson, PermissionDefinitionScopeJson } from "./interface/clientInterface";
-import { StatusError, throwErr, throwStackErr } from "./utils/errors";
+import { PermissionDefinitionScopeJson } from "./interface/clientInterface";
+import { StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
 import { deindent } from "./utils/strings";
@@ -52,7 +52,7 @@ export abstract class KnownError extends StatusError {
   }
 
   get errorCode(): string {
-    return (this.constructor as any).errorCode ?? throwStackErr(`Can't find error code for this KnownError. Is its constructor a KnownErrorConstructor? ${this}`);
+    return (this.constructor as any).errorCode ?? throwErr(`Can't find error code for this KnownError. Is its constructor a KnownErrorConstructor? ${this}`);
   }
 
   public static constructorArgsFromJson(json: KnownErrorJson): ConstructorParameters<typeof KnownError> {

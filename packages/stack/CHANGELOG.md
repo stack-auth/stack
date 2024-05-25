@@ -1,5 +1,27 @@
 # @stackframe/stack
 
+## 2.4.11
+
+### Patch Changes
+
+- Cloudflare Workers support
+
+## 2.4.10
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.8
+
+## 2.4.9
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.7
+  - @stackframe/stack-sc@1.5.3
+
 ## 2.4.8
 
 ### Patch Changes

@@ -25,7 +25,7 @@ That's it! You don't need to worry about fetching the user, storing the user dat
 You can also add a button to change the user's name:
 
 ```tsx
-<button onClick={asycn () => await app.update({ displayName: "New Name" })}>
+<button onClick={async () => await app.update({ displayName: "New Name" })}>
   Change Name
 </button>
 ```

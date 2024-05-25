@@ -1,4 +1,5 @@
-import * as server from "./index.server";
-import * as client from "./index.client";
+import * as reactServer from "./index.react-server";
+import * as def from "./index.default";
 
-export declare const cookies: typeof server.cookies | typeof client.cookies;
+export declare const cookies: typeof reactServer.cookies | typeof def.cookies;
+export declare const isReactServer: boolean;

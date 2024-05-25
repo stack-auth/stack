@@ -1,12 +1,12 @@
 import { Json } from "./json";
 
 
-export function throwErr(errorMessage: string): never;
+export function throwErr(errorMessage: string, extraData?: any): never;
 export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
 export function throwErr(...args: any[]): never {
   if (typeof args[0] === "string") {
-    throw new StackAssertionError(args[0]);
+    throw new StackAssertionError(args[0], args[1]);
   } else if (args[0] instanceof Error) {
     throw args[0];
   } else {
@@ -23,10 +23,6 @@ export class StackAssertionError extends Error {
   }
 }
 StackAssertionError.prototype.name = "StackAssertionError";
-
-export function throwStackErr(message: string, extraData?: any): never {
-  throw new StackAssertionError(message, extraData);
-}
 
 
 const errorSinks = new Set<(location: string, error: unknown) => void>();
