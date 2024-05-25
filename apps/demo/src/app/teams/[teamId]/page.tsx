@@ -1,12 +1,12 @@
 import { Text } from "@stackframe/stack";
+import { notFound } from "next/navigation";
 import { stackServerApp } from "src/stack";
-import NotFound from "src/app/not-found";
 import TeamActions from "./team-actions";
 
 export default async function Page({ params }: { params: { teamId: string } }) {
   const team = await stackServerApp.getTeam(params.teamId);
   if (!team) {
-    return NotFound();
+    return notFound();
   }
   const user = await stackServerApp.getUser({ or: 'redirect' });
   const userTeams = await user.listTeams();

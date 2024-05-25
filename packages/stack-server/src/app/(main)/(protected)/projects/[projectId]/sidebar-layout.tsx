@@ -31,14 +31,16 @@ import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
+import { useAdminApp } from "./use-admin-app";
+import { EMAIL_TEMPLATES_INFO } from "@/utils/constants";
 
 type Label = {
-  name: string,
+  name: React.ReactNode,
   type: 'label',
 };
 
 type Item = {
-  name: string,
+  name: React.ReactNode,
   href: string,
   icon: LucideIcon,
   regex: RegExp,
@@ -46,7 +48,7 @@ type Item = {
 };
 
 type Hidden = {
-  name: string | string[],
+  name: React.ReactNode | React.ReactNode[] | ((pathname: string) => React.ReactNode[]),
   regex: RegExp,
   type: 'hidden',
 };
@@ -82,7 +84,14 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: ["Teams", "Members"],
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/teams\/([^\/]+)$/);
+      if (match) {
+        return ["Teams", <TeamMemberBreadcrumbItem key='team-display-name' teamId={match[1]} />];
+      } else {
+        return ["Teams", "Members"];
+      }
+    },
     regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
   },
@@ -119,6 +128,18 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/emails\/templates\/([^\/]+)$/);
+      if (match && match[1] in EMAIL_TEMPLATES_INFO) {
+        return ["Emails", EMAIL_TEMPLATES_INFO[match[1] as keyof typeof EMAIL_TEMPLATES_INFO].label];
+      } else {
+        return ["Emails", "Templates"];
+      }
+    },
+    regex: /^\/projects\/[^\/]+\/emails\/templates\/[^\/]+$/,
+    type: 'hidden',
+  },
+  {
     name: "API Keys",
     href: "/api-keys",
     regex: /^\/projects\/[^\/]+\/api-keys$/,
@@ -134,7 +155,18 @@ const navigationItems: (Label | Item | Hidden)[] = [
   }
 ];
 
-export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
+function TeamMemberBreadcrumbItem(props: { teamId: string }) {
+  const stackAdminApp = useAdminApp();
+  const team = stackAdminApp.useTeam(props.teamId);
+
+  if (!team) {
+    return null;
+  } else {
+    return team.displayName;
+  }
+}
+
+function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -156,7 +188,7 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
   );
 }
 
-export function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
+function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full items-stretch">
       <div className="h-14 border-b flex items-center px-2 shrink-0">
@@ -195,7 +227,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
   );
 }
 
-export function HeaderBreadcrumb({ 
+function HeaderBreadcrumb({ 
   mobile,
   projectId 
 }: { 
@@ -206,7 +238,7 @@ export function HeaderBreadcrumb({
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
 
-  const selectedItemNames: string[] = useMemo(() => {
+  const selectedItemNames: React.ReactNode[] = useMemo(() => {
     const name = navigationItems.find((item) => {
       if (item.type === 'label') {
         return false;
@@ -219,6 +251,8 @@ export function HeaderBreadcrumb({
       return [];
     } else if (name instanceof Array) {
       return name;
+    } else if (typeof name === 'function') {
+      return name(pathname);
     } else {
       return [name];
     }
