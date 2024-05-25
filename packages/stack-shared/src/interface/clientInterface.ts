@@ -325,7 +325,6 @@ export class StackClientInterface {
         adminTokenObj = await adminTokenStore.getOrWait();
       }
     }
-    console.log({ tokenObj, adminTokenObj });
 
     // all requests should be dynamic to prevent Next.js caching
     cookies?.();
