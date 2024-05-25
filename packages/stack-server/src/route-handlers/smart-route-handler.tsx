@@ -73,7 +73,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       }
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
-      console.log(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+      console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
 
       const res = await createResponse(req, requestId, {
         statusCode: statusError.statusCode,

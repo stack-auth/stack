@@ -4,7 +4,7 @@ import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
 import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError } from '../utils/errors';
+import { StackAssertionError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
@@ -53,7 +53,8 @@ export type ClientInterfaceOptions = {
 } & ({
   publishableClientKey: string,
 } | {
-  projectOwnerTokens: ReadonlyTokenStore,
+  projectOwnerTokens: TokenStore,
+  refreshProjectOwnerTokens: () => Promise<void>,
 });
 
 export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft";
@@ -186,7 +187,7 @@ export class StackClientInterface {
     return this.options.baseUrl + "/api/v1";
   }
 
-  protected async refreshAccessToken(tokenStore: TokenStore) {
+  public async refreshAccessToken(tokenStore: TokenStore) {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for fetching new access token");
@@ -314,6 +315,18 @@ export class StackClientInterface {
       tokenObj = await tokenStore.getOrWait();
     }
 
+    let adminTokenStore: TokenStore | null = null;
+    let adminTokenObj: TokenObject | null = null;
+    if ("projectOwnerTokens" in this.options) {
+      adminTokenStore = this.options.projectOwnerTokens;
+      adminTokenObj = await adminTokenStore.getOrWait();
+      if (!adminTokenObj.accessToken) {
+        await this.options.refreshProjectOwnerTokens();
+        adminTokenObj = await adminTokenStore.getOrWait();
+      }
+    }
+    console.log({ tokenObj, adminTokenObj });
+
     // all requests should be dynamic to prevent Next.js caching
     cookies?.();
 
@@ -343,8 +356,8 @@ export class StackClientInterface {
         ...'publishableClientKey' in this.options ? {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
         } : {},
-        ...'projectOwnerTokens' in this.options ? {
-          "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
+        ...adminTokenObj ? {
+          "X-Stack-Admin-Access-Token": adminTokenObj.accessToken ?? "",
         } : {},
         /**
          * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
@@ -370,6 +383,16 @@ export class StackClientInterface {
           refreshToken: tokenObj.refreshToken,
         });
         return Result.error(new Error("Access token expired"));
+      }
+
+      // Same for the admin access token
+      // TODO HACK: Some of the backend hasn't been ported to use the new error codes, so if we have project owner tokens we need to check for ApiKeyNotFound too. Once the migration to smartRouteHandlers is complete, we can check for AdminAccessTokenExpired only.
+      if (adminTokenStore && (processedRes.error instanceof KnownErrors.AdminAccessTokenExpired || processedRes.error instanceof KnownErrors.ApiKeyNotFound)) {
+        adminTokenStore.set({
+          accessToken: null,
+          refreshToken: adminTokenObj!.refreshToken,
+        });
+        return Result.error(new Error("Admin access token expired"));
       }
 
       // Known errors are client side errors, and should hence not be retried (except for access token expired above).

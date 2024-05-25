@@ -18,7 +18,7 @@ import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import {
   Breadcrumb,
@@ -139,7 +139,7 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
   const selected = useMemo(() => {
     return item.regex.test(pathname);
   }, [item.regex, pathname]);
-  
+
   return (
     <Link
       href={href}
@@ -149,6 +149,7 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
       )}
       onClick={onClick}
+      prefetch={true}
     >
       <item.icon className="mr-2 h-4 w-4" />
       {item.name}

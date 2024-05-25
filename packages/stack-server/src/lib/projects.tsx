@@ -7,7 +7,7 @@ import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StackAssertionError, StatusError, captureError, throwErr, throwStackErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -248,7 +248,7 @@ async function _createOAuthConfigUpdateTransactions(
   const providerMap = new Map(oldProviders.map((provider) => [
     provider.id, 
     {
-      providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwStackErr(`Missing provider update for provider '${provider.id}'`),
+      providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwErr(`Missing provider update for provider '${provider.id}'`),
       oldProvider: provider,
     }
   ]));

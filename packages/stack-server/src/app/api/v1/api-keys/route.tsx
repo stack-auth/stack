@@ -5,6 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, createApiKeySet, listApiKeySets, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
   headers: yup.object({
@@ -24,7 +25,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   } = await deprecatedParseRequest(req, getSchema);
 
   if (!await checkApiKeySet(projectId, { superSecretAdminKey }) && !await isProjectAdmin(projectId, adminAccessToken)) {
-    throw new StatusError(StatusError.Forbidden, "Invalid API key or insufficient permissions");
+    throw new KnownErrors.ApiKeyNotFound();
   }
 
   const apiKeys = await listApiKeySets(

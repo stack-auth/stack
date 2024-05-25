@@ -126,7 +126,8 @@ export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, Proje
   | (
     & Omit<StackServerAppConstructorOptions<HasTokenStore, ProjectId>, "publishableClientKey" | "secretServerKey">
     & {
-      projectOwnerTokens: ReadonlyTokenStore,
+      projectOwnerTokens: TokenStore,
+      refreshProjectOwnerTokens: () => Promise<void>,
     }
   )
 );
@@ -229,7 +230,7 @@ const createCacheByTokenStore = <D extends any[], T>(fetcher: (tokenStore: Token
       onSubscribe: ([tokenStore], refresh) => {
         // TODO find a *clean* way to not refresh when the token change was made inside the fetcher (for example due to expired access token)
         const handlerObj = tokenStore.onChange((newValue, oldValue) => {
-          if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
+          if (newValue.refreshToken === oldValue?.refreshToken) return;
           refresh();
         });
         return () => handlerObj.unsubscribe();
@@ -508,6 +509,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const currentUser: CurrentUser = {
       ...this._userFromJson(json),
       tokenStore,
+      async refreshAccessToken() {
+        await app._interface.refreshAccessToken(tokenStore);
+      },
       async updateSelectedTeam(team: Team | null) {
         await app._updateUser({ selectedTeamId: team?.id ?? null }, tokenStore);
       },
@@ -592,6 +596,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       projectId: forProjectId,
       clientVersion,
       projectOwnerTokens: tokenStore,
+      refreshProjectOwnerTokens: async () => await this._interface.refreshAccessToken(tokenStore),
     });
   }
 
@@ -699,7 +704,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
-          router.replace(this.urls.signIn);
+          // Updating the router is not allowed during the component render function, so we do it in a different async tick
+          // The error would be: "Cannot update a component (`Router`) while rendering a different component."
+          runAsynchronously(async () => {
+            await wait(0);
+            router.replace(this.urls.signIn);
+          });
           suspend();
           throw new StackAssertionError("suspend should never return");
         }
@@ -1101,6 +1111,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const currentUser: CurrentServerUser = {
       ...nonCurrentServerUser,
       tokenStore,
+      async refreshAccessToken() {
+        await app._interface.refreshAccessToken(tokenStore);
+      },
       async delete() {
         const res = await nonCurrentServerUser.delete();
         await app._refreshUser(tokenStore);
@@ -1358,6 +1371,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         clientVersion,
         ..."projectOwnerTokens" in options ? {
           projectOwnerTokens: options.projectOwnerTokens,
+          refreshProjectOwnerTokens: options.refreshProjectOwnerTokens,
         } : {
           publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
           secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
@@ -1480,7 +1494,8 @@ type RedirectToOptions = {
 };
 
 type Auth<T, C> = {
-  readonly tokenStore: ReadonlyTokenStore,
+  readonly tokenStore: TokenStore,
+  refreshAccessToken(this: T): Promise<void>,
   updateSelectedTeam(this: T, team: Team | null): Promise<void>,
   update(this: T, user: C): Promise<void>,
   signOut(this: T): Promise<void>,
