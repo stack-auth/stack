@@ -1,4 +1,5 @@
-import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate, validateEmailTemplateContent } from "@/lib/email-templates";
+import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate } from "@/lib/email-templates";
+import { validateEmailTemplateContent } from "@/lib/utils";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { emailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -14,13 +15,15 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
     throw Error('Not implemented');
   },
   async onUpdate({ auth, data, params }) {
-    await validateEmailTemplateContent(data.content);
+    if (!validateEmailTemplateContent(data.content)) {
+      throw new StatusError(StatusError.BadRequest, 'Invalid email template content');
+    }
     const type = await typeSchema.validate(params.type);
     const oldEmailTemplate = await getEmailTemplate(auth.project.id, type);
     if (oldEmailTemplate) {
       return await updateEmailTemplate(auth.project.id, type, data);
     } else {
-      return await createEmailTemplate(auth.project.id, { type, content: data.content });
+      return await createEmailTemplate(auth.project.id, type, data);
     }
   },
   async onDelete({ auth, params }) {

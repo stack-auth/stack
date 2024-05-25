@@ -3,7 +3,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken, encodeAccessToken } from "@/lib/tokens";
-import { validateUrl } from "@/utils/url";
+import { validateUrl } from "@/lib/utils";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";

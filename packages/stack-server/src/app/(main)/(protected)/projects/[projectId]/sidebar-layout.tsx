@@ -32,7 +32,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
-import { EMAIL_TEMPLATES_INFO } from "@/utils/constants";
+import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
 
 type Label = {
   name: React.ReactNode,

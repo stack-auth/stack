@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "next/navigation";
-import { EMAIL_TEMPLATES_INFO } from "@/utils/constants";
+import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
 
 
 export default function PageClient() {

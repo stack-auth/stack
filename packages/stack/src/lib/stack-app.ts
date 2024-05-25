@@ -18,6 +18,7 @@ import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
 import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
 
@@ -1296,16 +1297,16 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ]);
   }
 
-  useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[] {
+  useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'] {
     return useCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
   }
 
-  async listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson, default: boolean }[]> {
+  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
     return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
   }
 
-  async updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }) {
-    await this._interface.updateEmailTemplate(type, data as any);
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+    await this._interface.updateEmailTemplate(type, data);
     await this._serverEmailTemplatesCache.refresh([]);
   }
 
@@ -1733,9 +1734,9 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deletePermissionDefinition(permissionId: string): Promise<void>,
     listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
     usePermissionDefinitions(): ServerPermissionDefinitionJson[],
-    useEmailTemplates(): { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[],
-    listEmailTemplates(): Promise<{ type: EmailTemplateType, content: ReadonlyJson, default: boolean }[]>,
-    updateEmailTemplate(type: EmailTemplateType, data: { content: ReadonlyJson }): Promise<void>,
+    useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'],
+    listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']>,
+    updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void>,
     deleteEmailTemplate(type: EmailTemplateType): Promise<void>,
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>

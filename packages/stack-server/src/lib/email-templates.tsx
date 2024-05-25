@@ -1,12 +1,11 @@
 import { prismaClient } from "@/prisma-client";
 import { EmailTemplateType } from "@prisma/client";
-import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { getProject } from "./projects";
-import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
+import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 
 const defaultEmailTemplates: Record<EmailTemplateType, TEditorConfiguration> = {
   'EMAIL_VERIFICATION': RESET_PASSWORD,
@@ -25,36 +24,29 @@ export async function listEmailTemplates(projectId: string) {
       projectConfigId: project.evaluatedConfig.id,
     },
   });
-  const templateMap = new Map<EmailTemplateType, ReadonlyJson>();
+  const templateMap = new Map<EmailTemplateType, {} | null>();
   for (const template of templates) {
-    templateMap.set(template.type, template.content as any);
+    templateMap.set(template.type, template.content);
   }
 
-  const results: { type: EmailTemplateType, content: ReadonlyJson, default: boolean }[] = [];
+  const results: ListEmailTemplatesCrud['Server']['Read'] = [];
   for (const type of Object.values(EmailTemplateType)) {
     const content = templateMap.get(type) ?? defaultEmailTemplates[type];
-    results.push({ type, content: content as any, default: !templateMap.has(type) });
+    results.push({ type, content: content, default: !templateMap.has(type) });
   }
 
   return results;
-}
-
-export async function validateEmailTemplateContent(content: any) {
-  try {
-    for (const key of Object.keys(content)) {
-      const block = content[key];
-      EditorBlockSchema.parse(block);
-    }
-  } catch (e) {
-    throw new StatusError(StatusError.BadRequest, "Invalid email template content format");
-  }
 }
 
 export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
   return await updateEmailTemplate(projectId, type, {});
 }
 
-export async function updateEmailTemplate(projectId: string, type: EmailTemplateType, update: { content?: ReadonlyJson }) {
+export async function updateEmailTemplate(
+  projectId: string, 
+  type: EmailTemplateType, 
+  update: Partial<EmailTemplateCrud['Server']['Update']>
+) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
@@ -68,7 +60,7 @@ export async function updateEmailTemplate(projectId: string, type: EmailTemplate
       },
     },
     data: filterUndefined({
-      content: update.content as any,
+      content: update.content,
     }),
   });
 }
@@ -89,7 +81,11 @@ export async function deleteEmailTemplate(projectId: string, type: EmailTemplate
   });
 }
 
-export async function createEmailTemplate(projectId: string, data: { content: ReadonlyJson, type: EmailTemplateType }) {
+export async function createEmailTemplate(
+  projectId: string, 
+  type: EmailTemplateType, 
+  data: EmailTemplateCrud['Server']['Update']
+) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
@@ -98,8 +94,8 @@ export async function createEmailTemplate(projectId: string, data: { content: Re
   return await prismaClient.emailTemplate.create({
     data: {
       projectConfigId: project.evaluatedConfig.id,
-      type: data.type,
-      content: data.content as any,
+      type,
+      content: data.content,
     },
   });
 }
