@@ -382,7 +382,18 @@ export class StackClientInterface {
       },
     };
 
-    const rawRes = await fetch(url, params);
+    let rawRes;
+    try {
+      rawRes = await fetch(url, params);
+    } catch (e) {
+      if (e instanceof TypeError) {
+        // Network error, retry
+        console.log("Stack detected a network error, retrying.", e);
+        return Result.error(e);
+      }
+      throw e;
+    }
+
     const processedRes = await this._processResponse(rawRes);
     if (processedRes.status === "error") {
       // If the access token is expired, reset it and retry
