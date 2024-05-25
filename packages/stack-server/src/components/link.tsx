@@ -22,7 +22,8 @@ export function Link(props: {
     onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
       if (needConfirm) {
         e.preventDefault();
-        window.confirm(confirmAlertMessage) && props.onClick?.() && router.push(props.href);
+        props.onClick?.();
+        router.push(props.href);
       }
       props.onClick?.();
     }}
