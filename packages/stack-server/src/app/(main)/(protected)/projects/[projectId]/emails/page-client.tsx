@@ -15,7 +15,29 @@ import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
+import { useMemo } from "react";
+import { validateEmailTemplateContent } from "@/lib/utils";
 
+function EmailPreview(props: { content: any }) {
+  const valid = useMemo(() => validateEmailTemplateContent(props.content), [props.content]);
+  
+  let reader;
+
+  if (valid) {
+    reader = (
+      <div className="scale-50 w-[400px] origin-top-left">
+        <Reader document={props.content} rootBlockId='root' />
+      </div>
+    );
+  } else {
+    reader = <div className="flex items-center justify-center h-full text-red-500">Invalid template</div>;
+  }
+
+  return <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
+    <div className="absolute inset-0 bg-transparent z-10"/>
+    {reader}
+  </div>;
+}
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -57,12 +79,7 @@ export default function PageClient() {
                 {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => {} }]} />}
               </div>
             </div>
-            <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" {...{ inert: '' }}>
-              <div className="absolute inset-0 bg-transparent z-10"></div>
-              <div className="scale-50 w-[400px] origin-top-left">
-                <Reader document={template.content as any} rootBlockId='root' />
-              </div>
-            </div>
+            <EmailPreview content={template.content} />
           </Card>
         ))}
       </SettingCard>

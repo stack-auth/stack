@@ -1,4 +1,5 @@
-'use client';;
+'use client';
+
 import EmailEditor from "@/components/email-editor/editor";
 import { EmailEditorProvider } from "@/components/email-editor/editor-provider";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -31,6 +32,7 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
 
   const onSave = async (document: TEditorConfiguration) => {
     await app.updateEmailTemplate(props.templateType, { content: document });
+    router.push(`/projects/${app.projectId}/emails`);
   };
 
   const onCancel = () => {
