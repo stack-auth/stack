@@ -11,7 +11,7 @@ export default function BaseSidebarPanel({ title, children, tooltip }: SidebarPa
   return (
     <div className='py-2 px-4'>
       <div className='flex items-center mb-6 gap-2'>
-        <Typography variant='secondary' className='uppercase'>
+        <Typography variant='secondary' className='font-medium'>
           {title}
         </Typography>
         {tooltip && <SimpleTooltip tooltip={tooltip} type='info'/>}
