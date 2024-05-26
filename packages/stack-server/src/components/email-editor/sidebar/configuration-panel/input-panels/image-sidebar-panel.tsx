@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import {
   VerticalAlignBottomOutlined,
   VerticalAlignCenterOutlined,
   VerticalAlignTopOutlined,
 } from '@mui/icons-material';
-import { Stack, ToggleButton } from '@mui/material';
+import { Stack } from '@mui/material';
 import { ImageProps, ImagePropsSchema } from '@usewaypoint/block-image';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import RadioGroupInput from './helpers/inputs/radio-group-input';
 import TextDimensionInput from './helpers/inputs/text-dimension-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type ImageSidebarPanelProps = {
   data: ImageProps,
@@ -67,22 +66,19 @@ export default function ImageSidebarPanel({ data, setData }: ImageSidebarPanelPr
           onChange={(height) => updateData({ ...data, props: { ...data.props, height } })}
         />
       </Stack>
-
-      <RadioGroupInput
+      
+      <SingleToggleGroup
         label="Alignment"
-        defaultValue={data.props?.contentAlignment ?? 'middle'}
-        onChange={(contentAlignment) => updateData({ ...data, props: { ...data.props, contentAlignment } })}
-      >
-        <ToggleButton value="top">
-          <VerticalAlignTopOutlined fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="middle">
-          <VerticalAlignCenterOutlined fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="bottom">
-          <VerticalAlignBottomOutlined fontSize="small" />
-        </ToggleButton>
-      </RadioGroupInput>
+        value={data.props?.contentAlignment ?? 'middle'}
+        onValueChange={(contentAlignment) => {
+          updateData({ ...data, props: { ...data.props, contentAlignment } });
+        }}
+        items={[
+          { value: 'top', label: <VerticalAlignTopOutlined fontSize="small" /> },
+          { value: 'middle', label: <VerticalAlignCenterOutlined fontSize="small" /> },
+          { value: 'bottom', label: <VerticalAlignBottomOutlined fontSize="small" /> },
+        ]}
+      />
 
       <MultiStylePropertyPanel
         names={['backgroundColor', 'textAlign', 'padding']}

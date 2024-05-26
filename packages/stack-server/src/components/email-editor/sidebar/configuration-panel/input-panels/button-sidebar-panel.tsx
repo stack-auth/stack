@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
-
-import { ToggleButton } from '@mui/material';
+import { useState } from 'react';
 import { ButtonProps, ButtonPropsDefaults, ButtonPropsSchema } from '@usewaypoint/block-button';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColorInput from './helpers/inputs/color-input';
-import RadioGroupInput from './helpers/inputs/radio-group-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type ButtonSidebarPanelProps = {
   data: ButtonProps,
@@ -46,33 +43,36 @@ export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanel
         defaultValue={url}
         onChange={(url) => updateData({ ...data, props: { ...data.props, url } })}
       />
-      <RadioGroupInput
+      <SingleToggleGroup
         label="Width"
-        defaultValue={fullWidth ? 'FULL_WIDTH' : 'AUTO'}
-        onChange={(v) => updateData({ ...data, props: { ...data.props, fullWidth: v === 'FULL_WIDTH' } })}
-      >
-        <ToggleButton value="FULL_WIDTH">Full</ToggleButton>
-        <ToggleButton value="AUTO">Auto</ToggleButton>
-      </RadioGroupInput>
-      <RadioGroupInput
+        value={fullWidth ? 'FULL_WIDTH' : 'AUTO'}
+        onValueChange={(v) => updateData({ ...data, props: { ...data.props, fullWidth: v === 'FULL_WIDTH' } })}
+        items={[
+          { value: 'FULL_WIDTH', label: 'Full' },
+          { value: 'AUTO', label: 'Auto' },
+        ]}
+      />
+      <SingleToggleGroup
         label="Size"
-        defaultValue={size}
-        onChange={(size) => updateData({ ...data, props: { ...data.props, size } })}
-      >
-        <ToggleButton value="x-small">Xs</ToggleButton>
-        <ToggleButton value="small">Sm</ToggleButton>
-        <ToggleButton value="medium">Md</ToggleButton>
-        <ToggleButton value="large">Lg</ToggleButton>
-      </RadioGroupInput>
-      <RadioGroupInput
+        value={size}
+        onValueChange={(size) => updateData({ ...data, props: { ...data.props, size } })}
+        items={[
+          { value: 'x-small', label: 'Xs' },
+          { value: 'small', label: 'Sm' },
+          { value: 'medium', label: 'Md' },
+          { value: 'large', label: 'Lg' },
+        ]}
+      />
+      <SingleToggleGroup
         label="Style"
-        defaultValue={buttonStyle}
-        onChange={(buttonStyle) => updateData({ ...data, props: { ...data.props, buttonStyle } })}
-      >
-        <ToggleButton value="rectangle">Rectangle</ToggleButton>
-        <ToggleButton value="rounded">Rounded</ToggleButton>
-        <ToggleButton value="pill">Pill</ToggleButton>
-      </RadioGroupInput>
+        value={buttonStyle}
+        onValueChange={(buttonStyle) => updateData({ ...data, props: { ...data.props, buttonStyle } })}
+        items={[
+          { value: 'rectangle', label: 'Rectangle' },
+          { value: 'rounded', label: 'Rounded' },
+          { value: 'pill', label: 'Pill' },
+        ]}
+      />
       <ColorInput
         label="Text color"
         defaultValue={buttonTextColor}

@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
 import { AspectRatioOutlined } from '@mui/icons-material';
-import { ToggleButton } from '@mui/material';
 import { AvatarProps, AvatarPropsDefaults, AvatarPropsSchema } from '@usewaypoint/block-avatar';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import RadioGroupInput from './helpers/inputs/radio-group-input';
 import SliderInput from './helpers/inputs/slider-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type AvatarSidebarPanelProps = {
   data: AvatarProps,
@@ -45,17 +42,16 @@ export default function AvatarSidebarPanel({ data, setData }: AvatarSidebarPanel
           updateData({ ...data, props: { ...data.props, size } });
         }}
       />
-      <RadioGroupInput
+      <SingleToggleGroup
         label="Shape"
-        defaultValue={shape}
-        onChange={(shape) => {
-          updateData({ ...data, props: { ...data.props, shape } });
-        }}
-      >
-        <ToggleButton value="circle">Circle</ToggleButton>
-        <ToggleButton value="square">Square</ToggleButton>
-        <ToggleButton value="rounded">Rounded</ToggleButton>
-      </RadioGroupInput>
+        value={shape}
+        onValueChange={(shape) => updateData({ ...data, props: { ...data.props, shape } })}
+        items={[
+          { value: 'circle', label: 'Circle' },
+          { value: 'square', label: 'Square' },
+          { value: 'rounded', label: 'Rounded' },
+        ]}
+      />
       <TextInput
         label="Image URL"
         defaultValue={imageUrl}

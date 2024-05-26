@@ -1,22 +1,16 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
 import {
   SpaceBarOutlined,
   VerticalAlignBottomOutlined,
   VerticalAlignCenterOutlined,
   VerticalAlignTopOutlined,
 } from '@mui/icons-material';
-import { ToggleButton } from '@mui/material';
-
-import ColumnsContainerPropsSchema, {
-  ColumnsContainerProps,
-} from '../../../documents/blocks/columns-container/columns-container-props-schema';
-
+import ColumnsContainerPropsSchema, { ColumnsContainerProps } from '../../../documents/blocks/columns-container/columns-container-props-schema';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColumnWidthsInput from './helpers/inputs/column-widths-input';
-import RadioGroupInput from './helpers/inputs/radio-group-input';
 import SliderInput from './helpers/inputs/slider-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type ColumnsContainerPanelProps = {
   data: ColumnsContainerProps,
@@ -36,16 +30,17 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
 
   return (
     <BaseSidebarPanel title="Columns block">
-      <RadioGroupInput
+      <SingleToggleGroup
         label="Number of columns"
-        defaultValue={data.props?.columnsCount === 2 ? '2' : '3'}
-        onChange={(v) => {
+        value={data.props?.columnsCount === 2 ? '2' : '3'}
+        onValueChange={(v) => {
           updateData({ ...data, props: { ...data.props, columnsCount: v === '2' ? 2 : 3 } });
         }}
-      >
-        <ToggleButton value="2">2</ToggleButton>
-        <ToggleButton value="3">3</ToggleButton>
-      </RadioGroupInput>
+        items={[
+          { value: '2', label: '2' },
+          { value: '3', label: '3' },
+        ]}
+      />
       <ColumnWidthsInput
         defaultValue={data.props?.fixedWidths}
         onChange={(fixedWidths) => {
@@ -62,23 +57,18 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
         defaultValue={data.props?.columnsGap ?? 0}
         onChange={(columnsGap) => updateData({ ...data, props: { ...data.props, columnsGap } })}
       />
-      <RadioGroupInput
+      <SingleToggleGroup
         label="Alignment"
-        defaultValue={data.props?.contentAlignment ?? 'middle'}
-        onChange={(contentAlignment) => {
+        value={data.props?.contentAlignment ?? 'middle'}
+        onValueChange={(contentAlignment) => {
           updateData({ ...data, props: { ...data.props, contentAlignment } });
         }}
-      >
-        <ToggleButton value="top">
-          <VerticalAlignTopOutlined fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="middle">
-          <VerticalAlignCenterOutlined fontSize="small" />
-        </ToggleButton>
-        <ToggleButton value="bottom">
-          <VerticalAlignBottomOutlined fontSize="small" />
-        </ToggleButton>
-      </RadioGroupInput>
+        items={[
+          { value: 'top', label: <VerticalAlignTopOutlined fontSize="small" /> },
+          { value: 'middle', label: <VerticalAlignCenterOutlined fontSize="small" /> },
+          { value: 'bottom', label: <VerticalAlignBottomOutlined fontSize="small" /> },
+        ]}
+      />
 
       <MultiStylePropertyPanel
         names={['backgroundColor', 'padding']}

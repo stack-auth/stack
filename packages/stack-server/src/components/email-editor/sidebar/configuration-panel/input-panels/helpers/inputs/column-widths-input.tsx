@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-
-import { Stack } from '@mui/material';
-
 import TextDimensionInput from './text-dimension-input';
 
 export const DEFAULT_2_COLUMNS = [6] as [number];
@@ -47,7 +44,7 @@ export default function ColumnWidthsInput({ defaultValue, onChange }: ColumnsLay
     );
   }
   return (
-    <Stack direction="row" spacing={1}>
+    <div className='flex gap-1'>
       <TextDimensionInput
         label="Column 1"
         defaultValue={currentValue?.[0]}
@@ -63,6 +60,6 @@ export default function ColumnWidthsInput({ defaultValue, onChange }: ColumnsLay
         }}
       />
       {column3}
-    </Stack>
+    </div>
   );
 }

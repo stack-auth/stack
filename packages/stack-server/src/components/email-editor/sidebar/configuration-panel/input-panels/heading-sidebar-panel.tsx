@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
-
-import { ToggleButton } from '@mui/material';
+import { useState } from 'react';
 import { HeadingProps, HeadingPropsDefaults, HeadingPropsSchema } from '@usewaypoint/block-heading';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import RadioGroupInput from './helpers/inputs/radio-group-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type HeadingSidebarPanelProps = {
   data: HeadingProps,
@@ -35,17 +32,18 @@ export default function HeadingSidebarPanel({ data, setData }: HeadingSidebarPan
           updateData({ ...data, props: { ...data.props, text } });
         }}
       />
-      <RadioGroupInput
+      <SingleToggleGroup
         label="Level"
-        defaultValue={data.props?.level ?? HeadingPropsDefaults.level}
-        onChange={(level) => {
+        value={data.props?.level ?? HeadingPropsDefaults.level}
+        onValueChange={(level) => {
           updateData({ ...data, props: { ...data.props, level } });
         }}
-      >
-        <ToggleButton value="h1">H1</ToggleButton>
-        <ToggleButton value="h2">H2</ToggleButton>
-        <ToggleButton value="h3">H3</ToggleButton>
-      </RadioGroupInput>
+        items={[
+          { value: 'h1', label: 'H1' },
+          { value: 'h2', label: 'H2' },
+          { value: 'h3', label: 'H3' },
+        ]}
+      />
       <MultiStylePropertyPanel
         names={['color', 'backgroundColor', 'fontFamily', 'fontWeight', 'textAlign', 'padding']}
         value={data.style}
