@@ -5,7 +5,7 @@ import { EmailEditorProvider } from "@/components/email-editor/editor-provider";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
 import { useRouter } from "@/components/router";
-import { validateEmailTemplateContent } from "@/lib/utils";
+import { validateEmailTemplateContent } from "@/email/utils";
 import ErrorPage from "@/components/ui/error-page";
 import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import { useToast } from "@/components/ui/use-toast";

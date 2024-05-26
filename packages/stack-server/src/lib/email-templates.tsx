@@ -64,7 +64,7 @@ export async function updateEmailTemplate(
     throw new Error("Project not found");
   }
   
-  return await prismaClient.emailTemplate.update({
+  const result = await prismaClient.emailTemplate.update({
     where: {
       projectConfigId_type: {
         projectConfigId: project.evaluatedConfig.id,
@@ -75,6 +75,11 @@ export async function updateEmailTemplate(
       content: update.content,
     }),
   });
+
+  return {
+    ...result,
+    content: result.content as any,
+  };
 }
 
 export async function deleteEmailTemplate(projectId: string, type: EmailTemplateType) {
@@ -103,11 +108,16 @@ export async function createEmailTemplate(
     throw new Error("Project not found");
   }
 
-  return await prismaClient.emailTemplate.create({
+  const result = await prismaClient.emailTemplate.create({
     data: {
       projectConfigId: project.evaluatedConfig.id,
       type,
       content: data.content,
     },
   });
+
+  return {
+    ...result,
+    content: result.content as any,
+  };
 }

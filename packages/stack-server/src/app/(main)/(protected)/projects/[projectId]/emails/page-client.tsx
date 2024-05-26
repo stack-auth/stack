@@ -16,7 +16,7 @@ import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
 import { useMemo, useState } from "react";
-import { validateEmailTemplateContent } from "@/lib/utils";
+import { validateEmailTemplateContent } from "@/email/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { ActionDialog } from "@/components/action-dialog";
 
