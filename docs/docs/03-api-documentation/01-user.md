@@ -55,7 +55,7 @@ This will send an email verification link to the user's primary email. It will r
 
 Example:
 ```typescript
-const error = await user.sendEmailVerification();
+const error = await user.sendVerificationEmail();
 if (error) {
   console.error("Error sending email verification", error);
 } else {
