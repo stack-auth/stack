@@ -72,7 +72,10 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
         <HexColorInput
           prefixed
           color={value || ''}
-          onChange={onChange}
+          onChange={(v) => {
+            setValue(v);
+            onChange(v);
+          }}
           className="p-1 border rounded w-full text-sm"
         />
         {renderResetButton()}

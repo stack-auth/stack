@@ -1,17 +1,10 @@
 import { useState } from 'react';
 
-import {
-  VerticalAlignBottomOutlined,
-  VerticalAlignCenterOutlined,
-  VerticalAlignTopOutlined,
-} from '@mui/icons-material';
-import { Stack } from '@mui/material';
 import { ImageProps, ImagePropsSchema } from '@usewaypoint/block-image';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextDimensionInput from './helpers/inputs/text-dimension-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
-import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
 
 type ImageSidebarPanelProps = {
   data: ImageProps,
@@ -54,7 +47,7 @@ export default function ImageSidebarPanel({ data, setData }: ImageSidebarPanelPr
           updateData({ ...data, props: { ...data.props, linkHref } });
         }}
       />
-      <Stack direction="row" spacing={2}>
+      <div className='flex gap-2'>
         <TextDimensionInput
           label="Width"
           defaultValue={data.props?.width}
@@ -65,21 +58,8 @@ export default function ImageSidebarPanel({ data, setData }: ImageSidebarPanelPr
           defaultValue={data.props?.height}
           onChange={(height) => updateData({ ...data, props: { ...data.props, height } })}
         />
-      </Stack>
+      </div>
       
-      <SingleToggleGroup
-        label="Alignment"
-        value={data.props?.contentAlignment ?? 'middle'}
-        onValueChange={(contentAlignment) => {
-          updateData({ ...data, props: { ...data.props, contentAlignment } });
-        }}
-        items={[
-          { value: 'top', label: <VerticalAlignTopOutlined fontSize="small" /> },
-          { value: 'middle', label: <VerticalAlignCenterOutlined fontSize="small" /> },
-          { value: 'bottom', label: <VerticalAlignBottomOutlined fontSize="small" /> },
-        ]}
-      />
-
       <MultiStylePropertyPanel
         names={['backgroundColor', 'textAlign', 'padding']}
         value={data.style}

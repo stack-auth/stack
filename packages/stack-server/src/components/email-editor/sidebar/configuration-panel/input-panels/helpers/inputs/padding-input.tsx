@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
 import { Label } from '@/components/ui/label';
-import { AlignEndHorizontal, AlignEndVertical, AlignStartHorizontal, AlignStartVertical } from 'lucide-react';
+import { AlignEndHorizontal, AlignEndVertical, AlignStartHorizontal, AlignStartVertical, ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine, ArrowUpFromLine } from 'lucide-react';
 
 type TPaddingValue = {
   top: number,
@@ -41,7 +41,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       <Label>{label}</Label>
 
       <RawSliderInput
-        iconLabel={<AlignStartHorizontal className='w-4 h-4' />}
+        iconLabel={<ArrowUpFromLine className='w-4 h-4' />}
         value={value.top}
         setValue={(num) => handleChange('top', num)}
         units="px"
@@ -51,7 +51,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignEndHorizontal className='w-4 h-4' />}
+        iconLabel={<ArrowDownFromLine className='w-4 h-4' />}
         value={value.bottom}
         setValue={(num) => handleChange('bottom', num)}
         units="px"
@@ -61,7 +61,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignStartVertical className='w-4 h-4' />}
+        iconLabel={<ArrowLeftFromLine className='w-4 h-4' />}
         value={value.left}
         setValue={(num) => handleChange('left', num)}
         units="px"
@@ -71,7 +71,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignEndVertical className='w-4 h-4' />}
+        iconLabel={<ArrowRightFromLine className='w-4 h-4' />}
         value={value.right}
         setValue={(num) => handleChange('right', num)}
         units="px"
