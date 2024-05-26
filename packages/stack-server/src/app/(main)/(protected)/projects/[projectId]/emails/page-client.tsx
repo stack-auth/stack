@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_INFO } from "@/lib/constants";
+import { EMAIL_TEMPLATES_INFO } from "@/email/utils";
 import { useMemo, useState } from "react";
 import { validateEmailTemplateContent } from "@/email/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";

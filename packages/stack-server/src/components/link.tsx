@@ -5,13 +5,16 @@ import NextLink from 'next/link';
 import { confirmAlertMessage, useRouter, useRouterConfirm } from "./router";
 import { cn } from "@/lib/utils";
 
-export function Link(props: {
+type LinkProps = {
   href: string,
   children: React.ReactNode,
   className?: string,
   target?: string,
   onClick?: () => void,
-}) {
+  prefetch?: boolean,
+};
+
+export function Link(props: LinkProps) {
   const router = useRouter();
   const { needConfirm } = useRouterConfirm();
 
@@ -19,6 +22,7 @@ export function Link(props: {
     href={props.href}
     target={props.target}
     className={props.className}
+    prefetch={props.prefetch}
     onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
       if (needConfirm) {
         e.preventDefault();
@@ -33,15 +37,9 @@ export function Link(props: {
     
 }
 
-export function StyledLink(props: {
-  href: string,
-  children: React.ReactNode,
-  className?: string,
-  target?: string,
-  onClick?: () => void,
-}) {
+export function StyledLink(props: LinkProps) {
   return (
-    <Link href={props.href} className={cn("text-blue-500 underline", props.className)} target={props.target} onClick={props.onClick}>
+    <Link {...props} className={cn("text-blue-500 underline", props.className)}>
       {props.children}
     </Link>
   );
