@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
-
-import {
-  AlignHorizontalLeftOutlined,
-  AlignHorizontalRightOutlined,
-  AlignVerticalBottomOutlined,
-  AlignVerticalTopOutlined,
-} from '@mui/icons-material';
-import { InputLabel, Stack } from '@mui/material';
-
+import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
+import { Label } from '@/components/ui/label';
+import { AlignEndHorizontal, AlignEndVertical, AlignStartHorizontal, AlignStartVertical } from 'lucide-react';
 
 type TPaddingValue = {
   top: number,
@@ -44,11 +37,11 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
   }
 
   return (
-    <Stack spacing={2} alignItems="flex-start" pb={1}>
-      <InputLabel shrink>{label}</InputLabel>
+    <div className='flex flex-col gap-2'>
+      <Label>{label}</Label>
 
       <RawSliderInput
-        iconLabel={<AlignVerticalTopOutlined sx={{ fontSize: 16 }} />}
+        iconLabel={<AlignStartHorizontal className='w-4 h-4' />}
         value={value.top}
         setValue={(num) => handleChange('top', num)}
         units="px"
@@ -58,7 +51,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignVerticalBottomOutlined sx={{ fontSize: 16 }} />}
+        iconLabel={<AlignEndHorizontal className='w-4 h-4' />}
         value={value.bottom}
         setValue={(num) => handleChange('bottom', num)}
         units="px"
@@ -68,7 +61,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignHorizontalLeftOutlined sx={{ fontSize: 16 }} />}
+        iconLabel={<AlignStartVertical className='w-4 h-4' />}
         value={value.left}
         setValue={(num) => handleChange('left', num)}
         units="px"
@@ -78,7 +71,7 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<AlignHorizontalRightOutlined sx={{ fontSize: 16 }} />}
+        iconLabel={<AlignEndVertical className='w-4 h-4' />}
         value={value.right}
         setValue={(num) => handleChange('right', num)}
         units="px"
@@ -86,6 +79,6 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
         min={0}
         max={80}
       />
-    </Stack>
+    </div>
   );
 }

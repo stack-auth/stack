@@ -17,7 +17,7 @@ export default function TextInput({ helperText, label, placeholder, rows, defaul
   const isMultiline = typeof rows === 'number' && rows > 1;
 
   return (
-    <div className="w-full">
+    <div className='flex flex-col gap-2'>
       <Label>{label}</Label>
       {isMultiline ? (
         <Textarea

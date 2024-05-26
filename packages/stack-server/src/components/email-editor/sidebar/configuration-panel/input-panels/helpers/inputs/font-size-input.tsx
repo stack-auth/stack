@@ -15,7 +15,7 @@ export default function FontSizeInput({ label, defaultValue, onChange }: Props) 
     onChange(value);
   };
   return (
-    <div className='flex flex-col items-start gap-2'>
+    <div className='flex flex-col gap-2'>
       <Label>{label}</Label>
       <RawSliderInput
         iconLabel={<Text className='h-4 w-4' />}
