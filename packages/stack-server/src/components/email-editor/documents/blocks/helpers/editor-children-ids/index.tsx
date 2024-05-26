@@ -4,6 +4,7 @@ import { TEditorBlock } from '../../../editor/core';
 import EditorBlock from '../../../editor/editor-block';
 
 import AddBlockButton from './add-block-menu';
+import { useSelectedBlockId } from '../../../editor/editor-context';
 
 export type EditorChildrenChange = {
   blockId: string,
@@ -20,6 +21,8 @@ export type EditorChildrenIdsProps = {
   onChange: (val: EditorChildrenChange) => void,
 };
 export default function EditorChildrenIds({ childrenIds, onChange }: EditorChildrenIdsProps) {
+  const selectedBlockId = useSelectedBlockId();
+
   const appendBlock = (block: TEditorBlock) => {
     const blockId = generateId();
     return onChange({
@@ -48,11 +51,11 @@ export default function EditorChildrenIds({ childrenIds, onChange }: EditorChild
     <>
       {childrenIds.map((childId, i) => (
         <Fragment key={childId}>
-          <AddBlockButton onSelect={(block) => insertBlock(block, i)} />
+          {childId === selectedBlockId && <AddBlockButton onSelect={(block) => insertBlock(block, i)} />}
           <EditorBlock id={childId} />
+          {childId === selectedBlockId && <AddBlockButton onSelect={(block) => insertBlock(block, i + 1)} />}
         </Fragment>
       ))}
-      <AddBlockButton onSelect={appendBlock} />
     </>
   );
 }

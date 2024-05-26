@@ -22,7 +22,7 @@ export default function AddBlockButton({ onSelect, placeholder }: Props) {
     if (placeholder) {
       return <PlaceholderButton onClick={handleButtonClick} />;
     } else {
-      return <DividerButton buttonElement={buttonElement} onClick={handleButtonClick} />;
+      return <DividerButton onClick={handleButtonClick} />;
     }
   };
 
