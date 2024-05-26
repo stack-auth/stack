@@ -98,7 +98,7 @@ export const TextPropsDefaults = {
 };
 
 const parseText = (text: string) => {
-  const regex = /(\*\*(.*?)\*\*)|\[(.*?)\]\((.*?)\)/g;
+  const regex = /\[(.*?)\]\((.*?)\)/g;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -109,20 +109,17 @@ const parseText = (text: string) => {
       parts.push(text.substring(lastIndex, match.index));
     }
 
-    if (match[1]) {
-      // Bold text
-      parts.push(<strong key={match.index}>{match[2]}</strong>);
-    } else if (match[3] && match[4]) {
+    if (match[1] && match[2]) {
       // Hyperlink
       parts.push(
         <a 
           key={match.index}
-          href={match[4]} 
+          href={match[2]} 
           target="_blank" 
           rel="noopener noreferrer" 
           style={{ color: 'blue', textDecoration: 'underline' }}
         >
-          {match[3]}
+          {match[1]}
         </a>
       );
     }

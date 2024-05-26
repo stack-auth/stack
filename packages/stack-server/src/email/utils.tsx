@@ -3,14 +3,15 @@ import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/r
 import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import Mustache from 'mustache';
+import { emailVerificationTemplate } from "./new-templates/email-verification";
 
 const userVars = [
-  { name: 'user.displayName', label: 'User Display Name', defined: false, example: 'John Doe', editableExample: true },
-  { name: 'user.primaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com', editableExample: true },
+  { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
+  { name: 'userPrimaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com' },
 ] as const;
 
 const projectVars = [
-  { name: 'project.displayName', label: 'Project Name', defined: true, example: '{{ project.displayName }}', editableExample: false },
+  { name: 'projectDisplayName', label: 'Project Name', defined: true, example: '{{ projectDisplayName }}' },
 ];
 
 export type EmailTemplateVariable = {
@@ -18,7 +19,6 @@ export type EmailTemplateVariable = {
   label: string,
   defined: boolean,
   example: string,
-  editableExample: boolean,
 };
 
 export type EmailTemplateMetadata = {
@@ -32,11 +32,11 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'EMAIL_VERIFICATION': {
     label: "Email Verification",
     description: "Will be sent to the user when they sign-up with email/password",
-    default: RESET_PASSWORD,
+    default: emailVerificationTemplate,
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: 'link', editableExample: false },
+      { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: 'link' },
     ],
   },
   'PASSWORD_RESET': {
@@ -46,7 +46,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'resetPasswordLink', label: 'Reset Password Link', defined: true, example: 'link', editableExample: false },
+      { name: 'resetPasswordLink', label: 'Reset Password Link', defined: true, example: 'link' },
     ],
   },
   'MAGIC_LINK': {
@@ -56,7 +56,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'magicLink', label: 'Magic Link', defined: true, example: 'link', editableExample: false },
+      { name: 'magicLink', label: 'Magic Link', defined: true, example: 'link' },
     ],
   },
 } as const;
@@ -106,7 +106,7 @@ export function convertEmailTemplateMetadataExampleValues(
   const variables = metadata.variables.map((variable) => {
     return {
       ...variable,
-      example: Mustache.render(variable.example, { project }),
+      example: Mustache.render(variable.example, { projectDisplayName: project.displayName }),
     };
   });
   return {
@@ -119,6 +119,7 @@ export function convertEmailTemplateVariables(
   content: TEditorConfiguration,
   variables: EmailTemplateVariable[],
 ): TEditorConfiguration {
+  console.log(variables);
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return objectStringMap(content, (str) => {
     return Mustache.render(str, vars);

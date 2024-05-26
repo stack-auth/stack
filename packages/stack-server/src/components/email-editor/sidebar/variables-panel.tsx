@@ -15,11 +15,7 @@ export default function VariablesPanel() {
             <div className="mb-2 font-medium">{`{{ ${variable.name} }}`}</div>
             <CopyButton content={`{{ ${variable.name} }}`} />
           </div>
-          <Label className="mt-2 text-gray-500 text-sm">Example Value:</Label>
-          <Input
-            placeholder={variable.example}
-            className="mt-2"
-          />
+          <div>{variable.example}</div>
         </div>
       ))}
     </BaseSidebarPanel>

@@ -21,7 +21,7 @@ export default function EmailEditor(props: {
   useEffect(() => {
     setDocument(props.document);
     setMetadata(convertEmailTemplateMetadataExampleValues(props.metadata, project));
-  }, [props.document, props.metadata]);
+  }, [props.document, props.metadata, project]);
 
   const edited = useMemo(() => {
     return !_.isEqual(props.document, document);
