@@ -8,12 +8,14 @@ import { useRouter } from "@/components/router";
 import { validateEmailTemplateContent } from "@/lib/utils";
 import ErrorPage from "@/components/ui/error-page";
 import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function PageClient(props: { templateType: EmailTemplateType }) {
   const app = useAdminApp();
   const emailTemplates = app.useEmailTemplates();
   const template = emailTemplates.find((template) => template.type === props.templateType);
   const router = useRouter();
+  const { toast } = useToast();
 
   if (!template) {
     // this should not happen, the outer server component should handle this
@@ -32,7 +34,7 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
 
   const onSave = async (document: TEditorConfiguration) => {
     await app.updateEmailTemplate(props.templateType, { content: document });
-    router.push(`/projects/${app.projectId}/emails`);
+    toast({ title: "Email template saved" });
   };
 
   const onCancel = () => {
