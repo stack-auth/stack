@@ -1,9 +1,9 @@
 import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
-import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
-import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import Mustache from 'mustache';
 import { emailVerificationTemplate } from "./new-templates/email-verification";
+import { passwordResetTemplate } from "./new-templates/password-reset";
+import { magicLinkTemplate } from "./new-templates/magic-link";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -42,7 +42,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'PASSWORD_RESET': {
     label: "Password Reset",
     description: "Will be sent to the user when they request to reset their password (forgot password)",
-    default: RESET_PASSWORD,
+    default: passwordResetTemplate,
     variables: [
       ...userVars,
       ...projectVars,
@@ -52,7 +52,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'MAGIC_LINK': {
     label: "Magic Link",
     description: "Will be sent to the user when they try to sign-up with magic link",
-    default: WELCOME,
+    default: magicLinkTemplate,
     variables: [
       ...userVars,
       ...projectVars,
