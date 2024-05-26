@@ -346,7 +346,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
         <SidebarContent projectId={props.projectId} />
       </div>
       <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-1 px-4 md:px-6">
+        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
           <div className="hidden md:flex">
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>

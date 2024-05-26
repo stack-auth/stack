@@ -1,4 +1,3 @@
-import { Tab, Tabs } from '@mui/material';
 import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab } from '../documents/editor/editor-context';
 import ConfigurationPanel from './configuration-panel';
 import SettingsPanel from './settings-panel';
@@ -6,6 +5,7 @@ import { cn } from '@/lib/utils';
 import VariablesPanel from './variables-panel';
 import { Button } from '@/components/ui/button';
 import { TEditorConfiguration } from '../documents/editor/core';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function InspectorDrawer(props: {
   edited: boolean,
@@ -38,14 +38,14 @@ export default function InspectorDrawer(props: {
 
   return (
     <div className={cn('w-[260px] flex flex-col border-l', inspectorDrawerOpen ? '' : 'hidden')}>
-      <div className="h-[49px] border-b">
-        <div className="px-2">
-          <Tabs value={selectedSidebarTab} onChange={(_, v) => setSidebarTab(v)}>
-            <Tab value="variables" label="Variables" />
-            <Tab value="configuration" label="Inspect" />
-            <Tab value="settings" label="Settings" />
-          </Tabs>
-        </div>
+      <div className="h-[49px] border-b flex justify-center items-center">
+        <Tabs value={selectedSidebarTab}>
+          <TabsList>
+            <TabsTrigger onClick={() => setSidebarTab('variables')} value='variables'>Variables</TabsTrigger>
+            <TabsTrigger onClick={() => setSidebarTab('configuration')} value='configuration'>Inspect</TabsTrigger>
+            <TabsTrigger onClick={() => setSidebarTab('settings')} value='settings'>Settings</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
       <div className="flex-grow overflow-auto">
         {renderCurrentSidebarPanel()}

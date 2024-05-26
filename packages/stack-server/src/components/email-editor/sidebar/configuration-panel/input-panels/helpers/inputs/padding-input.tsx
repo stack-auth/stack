@@ -55,7 +55,6 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
         step={4}
         min={0}
         max={80}
-        marks
       />
 
       <RawSliderInput
@@ -66,7 +65,6 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
         step={4}
         min={0}
         max={80}
-        marks
       />
 
       <RawSliderInput
@@ -77,7 +75,6 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
         step={4}
         min={0}
         max={80}
-        marks
       />
 
       <RawSliderInput
@@ -88,7 +85,6 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
         step={4}
         min={0}
         max={80}
-        marks
       />
     </Stack>
   );

@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
-
 import { InputLabel, Stack } from '@mui/material';
-
 import RawSliderInput from './raw/raw-slider-input';
 
 type SliderInputProps = {
   label: string,
   iconLabel: JSX.Element,
-
   step?: number,
-  marks?: boolean,
   units: string,
   min?: number,
   max?: number,

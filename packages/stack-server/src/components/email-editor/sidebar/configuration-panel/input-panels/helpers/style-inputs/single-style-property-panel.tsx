@@ -36,7 +36,6 @@ export default function SingleStylePropertyPanel({ name, value, onChange }: Styl
           iconLabel={<RoundedCornerOutlined />}
           units="px"
           step={4}
-          marks
           min={0}
           max={48}
           label="Border radius"

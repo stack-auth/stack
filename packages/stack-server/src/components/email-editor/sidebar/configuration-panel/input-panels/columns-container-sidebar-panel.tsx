@@ -57,7 +57,6 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
         iconLabel={<SpaceBarOutlined sx={{ color: 'text.secondary' }} />}
         units="px"
         step={4}
-        marks
         min={0}
         max={80}
         defaultValue={data.props?.columnsGap ?? 0}

@@ -119,7 +119,6 @@ export function convertEmailTemplateVariables(
   content: TEditorConfiguration,
   variables: EmailTemplateVariable[],
 ): TEditorConfiguration {
-  console.log(variables);
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return objectStringMap(content, (str) => {
     return Mustache.render(str, vars);
