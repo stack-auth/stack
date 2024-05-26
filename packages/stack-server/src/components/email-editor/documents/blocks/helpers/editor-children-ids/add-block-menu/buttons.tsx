@@ -1,19 +1,5 @@
-import React from 'react';
-
-import {
-  AccountCircleOutlined,
-  Crop32Outlined,
-  HMobiledataOutlined,
-  HorizontalRuleOutlined,
-  HtmlOutlined,
-  ImageOutlined,
-  LibraryAddOutlined,
-  NotesOutlined,
-  SmartButtonOutlined,
-  ViewColumnOutlined,
-} from '@mui/icons-material';
-
 import { TEditorBlock } from '../../../../editor/core';
+import { BetweenHorizontalEnd, BoxSelect, Columns2, Heading, ImageIcon, Minus, RectangleHorizontal, Text } from 'lucide-react';
 
 type TButtonProps = {
   label: string,
@@ -23,7 +9,7 @@ type TButtonProps = {
 export const BUTTONS: TButtonProps[] = [
   {
     label: 'Heading',
-    icon: <HMobiledataOutlined />,
+    icon: <Heading className='w-5 h-5' />,
     block: () => ({
       type: 'Heading',
       data: {
@@ -36,7 +22,7 @@ export const BUTTONS: TButtonProps[] = [
   },
   {
     label: 'Text',
-    icon: <NotesOutlined />,
+    icon: <Text className='w-5 h-5' />,
     block: () => ({
       type: 'Text',
       data: {
@@ -51,7 +37,7 @@ export const BUTTONS: TButtonProps[] = [
 
   {
     label: 'Button',
-    icon: <SmartButtonOutlined />,
+    icon: <RectangleHorizontal className='w-5 h-5' />,
     block: () => ({
       type: 'Button',
       data: {
@@ -65,7 +51,7 @@ export const BUTTONS: TButtonProps[] = [
   },
   {
     label: 'Image',
-    icon: <ImageOutlined />,
+    icon: <ImageIcon className='w-5 h-5' />,
     block: () => ({
       type: 'Image',
       data: {
@@ -75,6 +61,52 @@ export const BUTTONS: TButtonProps[] = [
           contentAlignment: 'middle',
           linkHref: null,
         },
+        style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
+      },
+    }),
+  },
+  {
+    label: 'Divider',
+    icon: <Minus className='w-5 h-5' />,
+    block: () => ({
+      type: 'Divider',
+      data: {
+        style: { padding: { top: 16, right: 0, bottom: 16, left: 0 } },
+        props: {
+          lineColor: '#CCCCCC',
+        },
+      },
+    }),
+  },
+  {
+    label: 'Spacer',
+    icon: <BetweenHorizontalEnd className='w-5 h-5' />,
+    block: () => ({
+      type: 'Spacer',
+      data: {},
+    }),
+  },
+  {
+    label: 'Columns',
+    icon: <Columns2 className='w-5 h-5' />,
+    block: () => ({
+      type: 'ColumnsContainer',
+      data: {
+        props: {
+          columnsGap: 16,
+          columnsCount: 3,
+          columns: [{ childrenIds: [] }, { childrenIds: [] }, { childrenIds: [] }],
+        },
+        style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
+      },
+    }),
+  },
+  {
+    label: 'Container',
+    icon: <BoxSelect className='w-5 h-5' />,
+    block: () => ({
+      type: 'Container',
+      data: {
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
       },
     }),
@@ -93,27 +125,6 @@ export const BUTTONS: TButtonProps[] = [
   //     },
   //   }),
   // },
-  {
-    label: 'Divider',
-    icon: <HorizontalRuleOutlined />,
-    block: () => ({
-      type: 'Divider',
-      data: {
-        style: { padding: { top: 16, right: 0, bottom: 16, left: 0 } },
-        props: {
-          lineColor: '#CCCCCC',
-        },
-      },
-    }),
-  },
-  {
-    label: 'Spacer',
-    icon: <Crop32Outlined />,
-    block: () => ({
-      type: 'Spacer',
-      data: {},
-    }),
-  },
   // {
   //   label: 'Html',
   //   icon: <HtmlOutlined />,
@@ -129,32 +140,4 @@ export const BUTTONS: TButtonProps[] = [
   //     },
   //   }),
   // },
-  {
-    label: 'Columns',
-    icon: <ViewColumnOutlined />,
-    block: () => ({
-      type: 'ColumnsContainer',
-      data: {
-        props: {
-          columnsGap: 16,
-          columnsCount: 3,
-          columns: [{ childrenIds: [] }, { childrenIds: [] }, { childrenIds: [] }],
-        },
-        style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
-      },
-    }),
-  },
-  {
-    label: 'Container',
-    icon: <LibraryAddOutlined />,
-    block: () => ({
-      type: 'Container',
-      data: {
-        style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
-      },
-    }),
-  },
-
-  // { label: 'ProgressBar', icon: <ProgressBarOutlined />, block: () => ({}) },
-  // { label: 'LoopContainer', icon: <ViewListOutlined />, block: () => ({}) },
 ];
