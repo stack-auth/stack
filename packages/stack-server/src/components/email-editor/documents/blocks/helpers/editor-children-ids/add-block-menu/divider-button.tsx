@@ -1,5 +1,4 @@
 import { CirclePlus } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 
 type Props = {
   onClick: () => void,

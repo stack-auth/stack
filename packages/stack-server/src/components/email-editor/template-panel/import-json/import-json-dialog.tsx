@@ -1,20 +1,10 @@
 import React, { useState } from 'react';
-
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Link,
-  TextField,
-  Typography,
-} from '@mui/material';
-
 import { resetDocument } from '../../documents/editor/editor-context';
-
 import validateJsonStringValue from './validateJsonStringValue';
+import { ActionDialog } from '@/components/action-dialog';
+import Typography from '@/components/ui/typography';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 
 type ImportJsonDialogProps = {
   onClose: () => void,
@@ -22,6 +12,7 @@ type ImportJsonDialogProps = {
 export default function ImportJsonDialog({ onClose }: ImportJsonDialogProps) {
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement> = (ev) => {
     const v = ev.currentTarget.value;
@@ -30,17 +21,14 @@ export default function ImportJsonDialog({ onClose }: ImportJsonDialogProps) {
     setError(error ?? null);
   };
 
-  let errorAlert = null;
-  if (error) {
-    errorAlert = <Alert color="error">{error}</Alert>;
-  }
-
   return (
-    <Dialog open onClose={onClose}>
-      <DialogTitle>Import JSON</DialogTitle>
-      <form
-        onSubmit={(ev) => {
-          ev.preventDefault();
+    <ActionDialog
+      title="Import JSON"
+      open={true}
+      onClose={onClose}
+      okButton={{
+        label: 'Import',
+        onClick: async () => {
           const { error, data } = validateJsonStringValue(value);
           setError(error ?? null);
           if (!data) {
@@ -48,42 +36,27 @@ export default function ImportJsonDialog({ onClose }: ImportJsonDialogProps) {
           }
           resetDocument(data);
           onClose();
-        }}
-      >
-        <DialogContent>
-          <Typography color="text.secondary" paragraph>
-            Copy and paste an EmailBuilder.js JSON (
-            <Link
-              href="https://gist.githubusercontent.com/jordanisip/efb61f56ba71bd36d3a9440122cb7f50/raw/30ea74a6ac7e52ebdc309bce07b71a9286ce2526/emailBuilderTemplate.json"
-              target="_blank"
-              underline="none"
-            >
-              example
-            </Link>
-            ).
-          </Typography>
-          {errorAlert}
-          <TextField
-            error={error !== null}
-            value={value}
-            onChange={handleChange}
-            type="text"
-            helperText="This will override your current template."
-            variant="outlined"
-            fullWidth
-            rows={10}
-            multiline
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button type="button" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="contained" type="submit" disabled={error !== null}>
-            Import
-          </Button>
-        </DialogActions>
+          toast({ title: 'Imported JSON' });
+        },
+        props: {
+          disabled: error !== null,
+        }
+      }}
+      cancelButton
+    >
+      <form className='flex flex-col w-full gap-4'>
+        <Typography>
+        Copy and paste an email JSON
+        </Typography>
+        <Textarea
+          value={value}
+          onChange={handleChange}
+          rows={10}
+        />
+        {error && <Typography variant='destructive' type='label'>
+          {error}
+        </Typography>}
       </form>
-    </Dialog>
+    </ActionDialog>
   );
 }
