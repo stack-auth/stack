@@ -27,13 +27,9 @@
     "seed": "npm run with-env -- tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
     "@hookform/resolvers": "^3.3.4",
     "@mdx-js/loader": "^3",
     "@mdx-js/react": "^3.0.0",
-    "@mui/icons-material": "^5.15.18",
-    "@mui/material": "^5.15.18",
     "@next/bundle-analyzer": "^14.0.3",
     "@next/mdx": "^14",
     "@node-oauth/oauth2-server": "^5.1.0",
@@ -80,7 +76,6 @@
     "@usewaypoint/block-container": "^0.0.2",
     "@usewaypoint/block-divider": "^0.0.4",
     "@usewaypoint/block-heading": "^0.0.3",
-    "@usewaypoint/block-html": "^0.0.3",
     "@usewaypoint/block-image": "^0.0.5",
     "@usewaypoint/block-spacer": "^0.0.3",
     "@usewaypoint/document-core": "^0.0.6",
