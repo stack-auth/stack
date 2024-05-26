@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-
-import { FileUploadOutlined } from '@mui/icons-material';
-
 import ImportJsonDialog from './import-json-dialog';
 import { Button } from '@/components/ui/button';
+import { Upload } from 'lucide-react';
 
 export default function ImportJson() {
   const [open, setOpen] = useState(false);
@@ -16,7 +14,7 @@ export default function ImportJson() {
   return (
     <>
       <Button onClick={() => setOpen(true)} variant='secondary' className='gap-2'>
-        <FileUploadOutlined fontSize="small" />
+        <Upload className='w-4 h-4' />
         Import JSON
       </Button>
       {dialog}

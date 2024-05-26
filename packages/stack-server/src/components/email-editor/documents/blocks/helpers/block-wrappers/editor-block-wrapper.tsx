@@ -1,7 +1,6 @@
 'use client';
 
 import React, { CSSProperties, useState } from 'react';
-import { Box } from '@mui/material';
 import { useCurrentBlockId } from '../../../editor/editor-block';
 import { setSelectedBlockId, useSelectedBlockId } from '../../../editor/editor-context';
 
@@ -31,10 +30,9 @@ export default function EditorBlockWrapper({ children }: TEditorBlockWrapperProp
   };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        maxWidth: '100%',
+    <div
+      className="relative max-w-full"
+      style={{
         outlineOffset: '-1px',
         outline,
       }}
@@ -53,6 +51,6 @@ export default function EditorBlockWrapper({ children }: TEditorBlockWrapperProp
     >
       {renderMenu()}
       {children}
-    </Box>
+    </div>
   );
 }

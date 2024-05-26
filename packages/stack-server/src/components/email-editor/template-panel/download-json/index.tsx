@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useDocument } from '../../documents/editor/editor-context';
 import { Button } from '@/components/ui/button';
-import { FileDownloadOutlined } from '@mui/icons-material';
+import { Download } from 'lucide-react';
 
 export default function DownloadJson() {
   const doc = useDocument();
@@ -22,7 +22,7 @@ export default function DownloadJson() {
       variant='secondary' 
       className='gap-2'
     >
-      <FileDownloadOutlined fontSize="small" />
+      <Download className='w-4 h-4' />
       Download JSON
     </Button>
   );
