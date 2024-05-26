@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { TEditorConfiguration } from './core';
 import EMPTY_EMAIL_MESSAGE from '../../get-configuration/sample/empty-email-message';
+import { EmailTemplateMetadata } from '@/email/utils';
 
 type TValue = {
   document: TEditorConfiguration,
+  metadata: EmailTemplateMetadata,
 
   selectedBlockId: string | null,
   selectedSidebarTab: 'configuration' | 'settings' | 'variables',
@@ -16,6 +18,12 @@ type TValue = {
 
 const editorStateStore = create<TValue>(() => ({
   document: EMPTY_EMAIL_MESSAGE,
+  metadata: {
+    label: '',
+    description: '',
+    default: EMPTY_EMAIL_MESSAGE,
+    variables: [],
+  },
 
   selectedBlockId: null,
   selectedSidebarTab: 'variables',
@@ -28,6 +36,10 @@ const editorStateStore = create<TValue>(() => ({
 
 export function useDocument() {
   return editorStateStore((s) => s.document);
+}
+
+export function useMetadata() {
+  return editorStateStore((s) => s.metadata);
 }
 
 export function useSelectedBlockId() {
@@ -93,6 +105,10 @@ export function setDocument(document: TValue['document']) {
       ...document,
     },
   });
+}
+
+export function setMetadata(metadata: TValue['metadata']) {
+  return editorStateStore.setState({ metadata });
 }
 
 export function toggleInspectorDrawerOpen() {

@@ -10,7 +10,7 @@ import { TEditorConfiguration } from '../documents/editor/core';
 export default function InspectorDrawer(props: {
   edited: boolean,
   onSave?: (document: TEditorConfiguration) => void | Promise<void>, 
-  onCancel?: () => void | Promise<void>, 
+  onCancel?: () => void | Promise<void>,
 }){
   const inspectorDrawerOpen = useInspectorDrawerOpen();
   const selectedSidebarTab = useSelectedSidebarTab();

@@ -6,6 +6,7 @@ import EditorBlock from '../documents/editor/editor-block';
 import {
   setSelectedScreenSize,
   useDocument,
+  useMetadata,
   useSelectedMainTab,
   useSelectedScreenSize,
 } from '../documents/editor/editor-context';
@@ -13,11 +14,14 @@ import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button
 import MainTabsGroup from './main-tabs-group';
 import { convertEmailTemplateVariables } from '@/email/utils';
 
-const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
-
 function MergedReader() {
   const document = useDocument();
-  const mergedDocument = useMemo(() => convertEmailTemplateVariables(document, VARS), [document]);
+  const metadata = useMetadata();
+
+  const mergedDocument = useMemo(() => {
+    return convertEmailTemplateVariables(document, metadata.variables);
+  }, [document, metadata]);
+  
   return <Reader document={mergedDocument} rootBlockId="root" />;
 }
 

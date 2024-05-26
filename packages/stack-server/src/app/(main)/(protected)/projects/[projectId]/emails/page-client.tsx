@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_INFO } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
 import { useMemo, useState } from "react";
 import { validateEmailTemplateContent } from "@/email/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -53,8 +53,8 @@ export default function PageClient() {
           <Card key={template.type} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
             <div className="flex flex-col gap-2">
               <div>
-                <Typography className="font-medium">{EMAIL_TEMPLATES_INFO[template.type].label}</Typography>
-                <Typography type='label' variant='secondary'>{EMAIL_TEMPLATES_INFO[template.type].description}</Typography>
+                <Typography className="font-medium">{EMAIL_TEMPLATES_METADATA[template.type].label}</Typography>
+                <Typography type='label' variant='secondary'>{EMAIL_TEMPLATES_METADATA[template.type].description}</Typography>
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>

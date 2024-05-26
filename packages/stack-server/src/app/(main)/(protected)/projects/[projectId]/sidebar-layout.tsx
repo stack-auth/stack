@@ -32,7 +32,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
-import { EMAIL_TEMPLATES_INFO } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
 import { Link } from "@/components/link";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }
@@ -144,8 +144,8 @@ const navigationItems: (Label | Item | Hidden)[] = [
       const match = pathname.match(/^\/projects\/[^\/]+\/emails\/templates\/([^\/]+)$/);
       let item;
       let href;
-      if (match && match[1] in EMAIL_TEMPLATES_INFO) {
-        item = EMAIL_TEMPLATES_INFO[match[1] as keyof typeof EMAIL_TEMPLATES_INFO].label;
+      if (match && match[1] in EMAIL_TEMPLATES_METADATA) {
+        item = EMAIL_TEMPLATES_METADATA[match[1] as keyof typeof EMAIL_TEMPLATES_METADATA].label;
         href = `/emails/templates/${match[1]}`;
       } else {
         item = "Templates";

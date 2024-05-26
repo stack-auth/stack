@@ -6,7 +6,7 @@ import { TEditorConfiguration } from "@/components/email-editor/documents/editor
 import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { EMAIL_TEMPLATES_INFO } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
 
 export async function listEmailTemplates(projectId: string) {
   const project = await getProject(projectId);
@@ -26,7 +26,7 @@ export async function listEmailTemplates(projectId: string) {
 
   const results: ListEmailTemplatesCrud['Server']['Read'] = [];
   for (const type of Object.values(EmailTemplateType)) {
-    const content = templateMap.get(type) ?? EMAIL_TEMPLATES_INFO[type].default;
+    const content = templateMap.get(type) ?? EMAIL_TEMPLATES_METADATA[type].default;
     results.push({ type, content: content, default: !templateMap.has(type) });
   }
 
