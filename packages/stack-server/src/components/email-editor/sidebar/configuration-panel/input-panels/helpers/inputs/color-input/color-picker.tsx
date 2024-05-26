@@ -1,8 +1,6 @@
 import React from 'react';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
 
-import { Box, Stack, SxProps } from '@mui/material';
-
 import ColorSwatch from './color-swatch';
 
 const DEFAULT_PRESET_COLORS = [
@@ -38,33 +36,31 @@ const DEFAULT_PRESET_COLORS = [
   '#000000',
 ];
 
-const SX: SxProps = {
-  p: 1,
-  '.react-colorful__pointer ': {
-    width: 16,
-    height: 16,
+const SX = {
+  '.react-colorful__pointer': {
+    width: '4rem',
+    height: '4rem',
   },
   '.react-colorful__saturation': {
-    mb: 1,
-    borderRadius: '4px',
+    marginBottom: '0.25rem',
+    borderRadius: '0.25rem',
   },
   '.react-colorful__last-control': {
-    borderRadius: '4px',
+    borderRadius: '0.25rem',
   },
   '.react-colorful__hue-pointer': {
-    width: '4px',
-    borderRadius: '4px',
-    height: 24,
+    width: '0.25rem',
+    borderRadius: '0.25rem',
+    height: '1.5rem',
     cursor: 'col-resize',
   },
   '.react-colorful__saturation-pointer': {
     cursor: 'all-scroll',
   },
   input: {
-    padding: 1,
-    border: '1px solid',
-    borderColor: 'grey.300',
-    borderRadius: '4px',
+    padding: '0.25rem',
+    border: '1px solid #D1D5DB',
+    borderRadius: '0.25rem',
     width: '100%',
   },
 };
@@ -75,12 +71,10 @@ type Props = {
 };
 export default function Picker({ value, onChange }: Props) {
   return (
-    <Stack spacing={1} sx={SX}>
+    <div className="space-y-4 p-2 border rounded-lg">
       <HexColorPicker color={value} onChange={onChange} />
       <ColorSwatch paletteColors={DEFAULT_PRESET_COLORS} value={value} onChange={onChange} />
-      <Box pt={1}>
-        <HexColorInput prefixed color={value} onChange={onChange} />
-      </Box>
-    </Stack>
+      <HexColorInput prefixed color={value} onChange={onChange} className="p-1 border border-gray-300 rounded w-full" />
+    </div>
   );
 }
