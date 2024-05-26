@@ -1,5 +1,5 @@
+import { CircleSlash, Plus } from 'lucide-react';
 import React, { useState } from 'react';
-import { AddOutlined, CloseOutlined } from '@mui/icons-material';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
 
 type Props =
@@ -38,7 +38,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
         }}
         className="flex items-center justify-center p-1"
       >
-        <CloseOutlined fontSize="small" className="text-gray-600" />
+        <CircleSlash className='h-4 w-4' />
       </button>
     );
   };
@@ -58,7 +58,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
         onClick={handleClickOpen}
         className="border border-cadet-400 w-8 min-w-8 h-8rounded bg-white flex items-center justify-center"
       >
-        <AddOutlined fontSize="small" />
+        <Plus className='h-4 w-4' />
       </button>
     );
   };
@@ -68,13 +68,13 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
       <label className="mb-2">{label}</label>
       <div className="flex space-x-2">
         {renderOpenButton()}
-        {renderResetButton()}
         <HexColorInput
           prefixed
           color={value || ''}
           onChange={onChange}
           className="p-1 border border-gray-300 rounded w-full"
         />
+        {renderResetButton()}
       </div>
       {anchorEl && (
         <div

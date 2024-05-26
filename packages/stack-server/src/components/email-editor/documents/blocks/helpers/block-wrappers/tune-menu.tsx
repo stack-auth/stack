@@ -1,22 +1,14 @@
-import React, { CSSProperties } from 'react';
-
-import { DeleteOutlined } from '@mui/icons-material';
-import { IconButton, Paper, Stack, Tooltip } from '@mui/material';
-
 import { TEditorBlock } from '../../../editor/core';
 import { resetDocument, useDocument } from '../../../editor/editor-context';
 import { ColumnsContainerProps } from '../../columns-container/columns-container-props-schema';
+import { Trash2 } from 'lucide-react';
 
-const STYLE: CSSProperties = {
-  position: 'absolute',
-  top: 0,
-  left: -52,
-  borderRadius: 64,
-};
+const STYLE = "";
 
 type Props = {
   blockId: string,
 };
+
 export default function TuneMenu({ blockId }: Props) {
   const document = useDocument();
 
@@ -82,14 +74,11 @@ export default function TuneMenu({ blockId }: Props) {
   };
 
   return (
-    <Paper style={STYLE} onClick={(ev) => ev.stopPropagation()}>
-      <Stack>
-        <Tooltip title="Delete" placement="left-start">
-          <IconButton onClick={handleDeleteClick} sx={{ color: 'text.primary' }}>
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Stack>
-    </Paper>
+    <button
+      className="bg-white shadow-md absolute top-0 left-[-52px] rounded-full min-h-10 min-w-10 flex items-center justify-center"
+      onClick={handleDeleteClick}
+    >
+      <Trash2 className='w-5 h-5' />
+    </button>
   );
 }
