@@ -1,3 +1,4 @@
+import { Label } from '@/components/ui/label';
 import { CircleSlash, Plus } from 'lucide-react';
 import React, { useState } from 'react';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
@@ -65,14 +66,14 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
 
   return (
     <div className="flex flex-col items-start">
-      <label className="mb-2">{label}</label>
+      <Label className="mb-2">{label}</Label>
       <div className="flex space-x-2">
         {renderOpenButton()}
         <HexColorInput
           prefixed
           color={value || ''}
           onChange={onChange}
-          className="p-1 border border-gray-300 rounded w-full"
+          className="p-1 border rounded w-full text-sm"
         />
         {renderResetButton()}
       </div>

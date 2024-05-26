@@ -1,7 +1,5 @@
 'use client';
-
 import EmailEditor from "@/components/email-editor/editor";
-import { EmailEditorProvider } from "@/components/email-editor/editor-provider";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
 import { useRouter } from "@/components/router";
@@ -42,13 +40,11 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   };
 
   return (
-    <EmailEditorProvider>
-      <EmailEditor 
-        document={template.content} 
-        metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
-        onSave={onSave} 
-        onCancel={onCancel} 
-      />
-    </EmailEditorProvider>
+    <EmailEditor 
+      document={template.content} 
+      metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
+      onSave={onSave} 
+      onCancel={onCancel} 
+    />
   );
 }
