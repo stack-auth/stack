@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { TEditorConfiguration } from './core';
-import EMPTY_EMAIL_MESSAGE from '../../get-configuration/sample/empty-email-message';
 import { EmailTemplateMetadata } from '@/email/utils';
+import { emptyEmailTemplate } from '@/email/new-templates/empty';
 
 type TValue = {
   document: TEditorConfiguration,
@@ -16,11 +16,11 @@ type TValue = {
 };
 
 const editorStateStore = create<TValue>(() => ({
-  document: EMPTY_EMAIL_MESSAGE,
+  document: emptyEmailTemplate,
   metadata: {
     label: '',
     description: '',
-    default: EMPTY_EMAIL_MESSAGE,
+    default: emptyEmailTemplate,
     variables: [],
   },
 
