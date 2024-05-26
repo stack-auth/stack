@@ -1,5 +1,11 @@
 # stack-docs
 
+## 0.1.7
+
+### Patch Changes
+
+- Bug fixes
+
 ## 0.1.6
 
 ### Patch Changes

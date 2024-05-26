@@ -20,7 +20,7 @@ export function validateEmailTemplateContent(content: any): content is TEditorCo
 }
 
 export function validateUrl(url: string, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
-  if (allowLocalhost && (new URL(url).hostname === "localhost" || new URL(url).hostname === "127.0.0.1")) {
+  if (allowLocalhost && (new URL(url).hostname === "localhost" || new URL(url).hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
     return true;
   }
   return domains.some((domain) => {

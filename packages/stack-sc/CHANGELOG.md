@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.5.5
+
+### Patch Changes
+
+- Bug fixes
+
 ## 1.5.4
 
 ### Patch Changes

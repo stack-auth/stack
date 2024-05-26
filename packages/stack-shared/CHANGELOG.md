@@ -1,5 +1,13 @@
 # @stackframe/stack-shared
 
+## 2.4.10
+
+### Patch Changes
+
+- Bug fixes
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.5
+
 ## 2.4.9
 
 ### Patch Changes
