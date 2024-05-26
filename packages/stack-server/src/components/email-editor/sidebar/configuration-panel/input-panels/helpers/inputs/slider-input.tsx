@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { InputLabel, Stack } from '@mui/material';
 import RawSliderInput from './raw/raw-slider-input';
+import { Label } from '@mui/icons-material';
 
 type SliderInputProps = {
   label: string,
@@ -17,8 +17,8 @@ type SliderInputProps = {
 export default function SliderInput({ label, defaultValue, onChange, ...props }: SliderInputProps) {
   const [value, setValue] = useState(defaultValue);
   return (
-    <Stack spacing={1} alignItems="flex-start">
-      <InputLabel shrink>{label}</InputLabel>
+    <div className='flex flex-col items-start gap-1'>
+      <Label>{label}</Label>
       <RawSliderInput
         value={value}
         setValue={(value: number) => {
@@ -27,6 +27,6 @@ export default function SliderInput({ label, defaultValue, onChange, ...props }:
         }}
         {...props}
       />
-    </Stack>
+    </div>
   );
 }

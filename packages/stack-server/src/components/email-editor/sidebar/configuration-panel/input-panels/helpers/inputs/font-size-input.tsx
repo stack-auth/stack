@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-
-import { TextFieldsOutlined } from '@mui/icons-material';
-import { InputLabel, Stack } from '@mui/material';
-
+import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
+import { Label } from '@/components/ui/label';
+import { Text } from 'lucide-react';
 
 type Props = {
   label: string,
@@ -17,10 +15,10 @@ export default function FontSizeInput({ label, defaultValue, onChange }: Props) 
     onChange(value);
   };
   return (
-    <Stack spacing={1} alignItems="flex-start">
-      <InputLabel shrink>{label}</InputLabel>
+    <div className='flex flex-col items-start gap-2'>
+      <Label>{label}</Label>
       <RawSliderInput
-        iconLabel={<TextFieldsOutlined sx={{ fontSize: 16 }} />}
+        iconLabel={<Text className='h-4 w-4' />}
         value={value}
         setValue={handleChange}
         units="px"
@@ -28,6 +26,6 @@ export default function FontSizeInput({ label, defaultValue, onChange }: Props) 
         min={10}
         max={48}
       />
-    </Stack>
+    </div>
   );
 }

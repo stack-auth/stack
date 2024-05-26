@@ -23,9 +23,8 @@ export default function RawSliderInput({ iconLabel, value, setValue, units, ...p
         className="flex-grow"
       />
       <div className="min-w-[32px] text-right shrink-0">
-        <Typography className="text-gray-500 leading-none">
-          {value}
-          {units}
+        <Typography variant='secondary' type='label'>
+          {value + ' ' + units}
         </Typography>
       </div>
     </div>

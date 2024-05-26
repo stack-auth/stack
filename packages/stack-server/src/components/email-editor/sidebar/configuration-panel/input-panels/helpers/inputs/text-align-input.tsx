@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined } from '@mui/icons-material';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Label } from '@/components/ui/label';
 import { AlignCenter, AlignLeft, AlignRight } from 'lucide-react';
