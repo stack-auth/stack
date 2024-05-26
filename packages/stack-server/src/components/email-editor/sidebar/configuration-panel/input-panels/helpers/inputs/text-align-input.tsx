@@ -1,36 +1,40 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
 import { FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined } from '@mui/icons-material';
-import { ToggleButton } from '@mui/material';
-
-import RadioGroupInput from './radio-group-input';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Label } from '@/components/ui/label';
+import { AlignCenter, AlignLeft, AlignRight } from 'lucide-react';
 
 type Props = {
   label: string,
   defaultValue: string | null,
   onChange: (value: string | null) => void,
 };
+
 export default function TextAlignInput({ label, defaultValue, onChange }: Props) {
   const [value, setValue] = useState(defaultValue ?? 'left');
 
   return (
-    <RadioGroupInput
-      label={label}
-      defaultValue={value}
-      onChange={(value) => {
-        setValue(value);
-        onChange(value);
-      }}
-    >
-      <ToggleButton value="left">
-        <FormatAlignLeftOutlined fontSize="small" />
-      </ToggleButton>
-      <ToggleButton value="center">
-        <FormatAlignCenterOutlined fontSize="small" />
-      </ToggleButton>
-      <ToggleButton value="right">
-        <FormatAlignRightOutlined fontSize="small" />
-      </ToggleButton>
-    </RadioGroupInput>
+    <div>
+      <Label>{label}</Label>
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(value) => {
+          setValue(value);
+          onChange(value);
+        }}
+        className="flex space-x-2 mt-2"
+      >
+        <ToggleGroupItem value="left" aria-label="Align left">
+          <AlignLeft className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="center" aria-label="Align center">
+          <AlignCenter className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="right" aria-label="Align right">
+          <AlignRight className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
   );
 }
