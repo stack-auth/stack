@@ -1,9 +1,6 @@
-import React from 'react';
-
-import { AppRegistrationOutlined, LastPageOutlined } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
-
 import { toggleInspectorDrawerOpen, useInspectorDrawerOpen } from '../documents/editor/editor-context';
+import { Button } from '@/components/ui/button';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 
 export default function ToggleInspectorPanelButton() {
   const inspectorDrawerOpen = useInspectorDrawerOpen();
@@ -13,14 +10,14 @@ export default function ToggleInspectorPanelButton() {
   };
   if (inspectorDrawerOpen) {
     return (
-      <IconButton onClick={handleClick}>
-        <LastPageOutlined fontSize="small" />
-      </IconButton>
+      <Button onClick={handleClick} size='icon' variant='ghost'>
+        <PanelRightClose className='h-5 w-5' />
+      </Button>
     );
   }
   return (
-    <IconButton onClick={handleClick}>
-      <AppRegistrationOutlined fontSize="small" />
-    </IconButton>
+    <Button onClick={handleClick} size='icon' variant='ghost'>
+      <PanelRightOpen className='h-5 w-5' />
+    </Button>
   );
 }

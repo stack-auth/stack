@@ -76,7 +76,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
             setValue(v);
             onChange(v);
           }}
-          className="p-1 border rounded w-full text-sm"
+          className="p-1 border rounded text-sm"
         />
         {renderResetButton()}
       </div>

@@ -8,7 +8,7 @@ import ColorInput from './configuration-panel/input-panels/helpers/inputs/color-
 import { NullableFontFamily } from './configuration-panel/input-panels/helpers/inputs/font-family';
 import DownloadJson from '../template-panel/download-json';
 import ImportJson from '../template-panel/import-json';
-import { InputLabel } from '@mui/material';
+import { Label } from '@/components/ui/label';
 
 export default function SettingsPanel() {
   const block = useDocument().root;
@@ -57,10 +57,12 @@ export default function SettingsPanel() {
         onChange={(textColor) => updateData({ ...data, textColor })}
       />
 
-      <InputLabel sx={{ mb: 0.5 }}>Import & export</InputLabel>
-      <div className="flex flex-col gap-2">
-        <DownloadJson />
-        <ImportJson />
+      <div className='flex flex-col gap-2'>
+        <Label>Import & export</Label>
+        <div className="flex flex-col gap-2">
+          <DownloadJson />
+          <ImportJson />
+        </div>
       </div>
     </BaseSidebarPanel>
   );

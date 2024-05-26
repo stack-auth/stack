@@ -14,8 +14,9 @@ type FixedWidths = [
 type ColumnsLayoutInputProps = {
   defaultValue: FixedWidths | null | undefined,
   onChange: (v: FixedWidths | null | undefined) => void,
+  columnsCount: 2 | 3,
 };
-export default function ColumnWidthsInput({ defaultValue, onChange }: ColumnsLayoutInputProps) {
+export default function ColumnWidthsInput({ defaultValue, onChange, columnsCount }: ColumnsLayoutInputProps) {
   const [currentValue, setCurrentValue] = useState<[TWidthValue, TWidthValue, TWidthValue]>(() => {
     if (defaultValue) {
       return defaultValue;
@@ -30,9 +31,8 @@ export default function ColumnWidthsInput({ defaultValue, onChange }: ColumnsLay
     onChange(nValue);
   };
 
-  const columnsCountValue = 3;
   let column3 = null;
-  if (columnsCountValue === 3) {
+  if (columnsCount === 3) {
     column3 = (
       <TextDimensionInput
         label="Column 3"

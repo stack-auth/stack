@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-
-import { HeightOutlined } from '@mui/icons-material';
 import { DividerProps, DividerPropsDefaults, DividerPropsSchema } from '@usewaypoint/block-divider';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColorInput from './helpers/inputs/color-input';
 import SliderInput from './helpers/inputs/slider-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { MoveVertical } from 'lucide-react';
 
 type DividerSidebarPanelProps = {
   data: DividerProps,
@@ -36,7 +34,7 @@ export default function DividerSidebarPanel({ data, setData }: DividerSidebarPan
       />
       <SliderInput
         label="Height"
-        iconLabel={<HeightOutlined sx={{ color: 'text.secondary' }} />}
+        iconLabel={<MoveVertical className='h-4 w-4' />}
         units="px"
         step={1}
         min={1}

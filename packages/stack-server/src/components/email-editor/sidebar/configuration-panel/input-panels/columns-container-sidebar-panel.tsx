@@ -1,16 +1,11 @@
 import { useState } from 'react';
-import {
-  SpaceBarOutlined,
-  VerticalAlignBottomOutlined,
-  VerticalAlignCenterOutlined,
-  VerticalAlignTopOutlined,
-} from '@mui/icons-material';
 import ColumnsContainerPropsSchema, { ColumnsContainerProps } from '../../../documents/blocks/columns-container/columns-container-props-schema';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColumnWidthsInput from './helpers/inputs/column-widths-input';
 import SliderInput from './helpers/inputs/slider-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
 import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
+import { AlignCenterHorizontal, AlignEndHorizontal, AlignStartHorizontal, Space } from 'lucide-react';
 
 type ColumnsContainerPanelProps = {
   data: ColumnsContainerProps,
@@ -42,6 +37,7 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
         ]}
       />
       <ColumnWidthsInput
+        columnsCount={data.props?.columnsCount ?? 2}
         defaultValue={data.props?.fixedWidths}
         onChange={(fixedWidths) => {
           updateData({ ...data, props: { ...data.props, fixedWidths } });
@@ -49,7 +45,7 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
       />
       <SliderInput
         label="Columns gap"
-        iconLabel={<SpaceBarOutlined sx={{ color: 'text.secondary' }} />}
+        iconLabel={<Space className='h-4 w-4' />}
         units="px"
         step={4}
         min={0}
@@ -64,9 +60,9 @@ export default function ColumnsContainerPanel({ data, setData }: ColumnsContaine
           updateData({ ...data, props: { ...data.props, contentAlignment } });
         }}
         items={[
-          { value: 'top', label: <VerticalAlignTopOutlined fontSize="small" /> },
-          { value: 'middle', label: <VerticalAlignCenterOutlined fontSize="small" /> },
-          { value: 'bottom', label: <VerticalAlignBottomOutlined fontSize="small" /> },
+          { value: 'top', label: <AlignStartHorizontal className='h-4 w-4' /> },
+          { value: 'middle', label: <AlignCenterHorizontal className='h-4 w-4' /> },
+          { value: 'bottom', label: <AlignEndHorizontal className='h-4 w-4' /> },
         ]}
       />
 

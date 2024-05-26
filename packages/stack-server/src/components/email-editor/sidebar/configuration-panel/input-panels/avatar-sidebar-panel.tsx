@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { AspectRatioOutlined } from '@mui/icons-material';
 import { AvatarProps, AvatarPropsDefaults, AvatarPropsSchema } from '@usewaypoint/block-avatar';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import SliderInput from './helpers/inputs/slider-input';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
 import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
+import { Scaling } from 'lucide-react';
 
 type AvatarSidebarPanelProps = {
   data: AvatarProps,
@@ -32,7 +32,7 @@ export default function AvatarSidebarPanel({ data, setData }: AvatarSidebarPanel
     <BaseSidebarPanel title="Avatar block">
       <SliderInput
         label="Size"
-        iconLabel={<AspectRatioOutlined sx={{ color: 'text.secondary' }} />}
+        iconLabel={<Scaling className='h-4 w-4' />}
         units="px"
         step={3}
         min={32}

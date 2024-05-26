@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-
 import { HtmlProps, HtmlPropsSchema } from '@usewaypoint/block-html';
-
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';

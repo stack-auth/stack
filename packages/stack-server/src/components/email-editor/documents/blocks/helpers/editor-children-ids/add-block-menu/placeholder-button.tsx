@@ -1,36 +1,21 @@
 import React from 'react';
-
-import { AddOutlined } from '@mui/icons-material';
-import { ButtonBase } from '@mui/material';
+import { CirclePlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   onClick: () => void,
 };
 export default function PlaceholderButton({ onClick }: Props) {
   return (
-    <ButtonBase
+    <Button
       onClick={(ev) => {
         ev.stopPropagation();
         onClick();
       }}
-      sx={{
-        display: 'flex',
-        alignContent: 'center',
-        justifyContent: 'center',
-        height: 48,
-        width: '100%',
-        bgcolor: 'rgba(0,0,0, 0.05)',
-      }}
+      className="flex items-center justify-center h-12 w-full"
+      variant='outline'
     >
-      <AddOutlined
-        sx={{
-          p: 0.12,
-          bgcolor: 'brand.blue',
-          borderRadius: 24,
-          color: 'primary.contrastText',
-        }}
-        fontSize="small"
-      />
-    </ButtonBase>
+      <CirclePlus className="h-5 w-5 text-black" />
+    </Button>
   );
 }
