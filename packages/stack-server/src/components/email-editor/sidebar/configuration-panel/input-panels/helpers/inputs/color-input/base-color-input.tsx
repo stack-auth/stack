@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
-
 import { AddOutlined, CloseOutlined } from '@mui/icons-material';
-import { ButtonBase, InputLabel, Menu, Stack } from '@mui/material';
-
-import ColorPicker from './color-picker';
-
-const BUTTON_SX = {
-  border: '1px solid',
-  borderColor: 'cadet.400',
-  width: 32,
-  height: 32,
-  borderRadius: '4px',
-  bgcolor: '#FFFFFF',
-};
+import { HexColorInput, HexColorPicker } from 'react-colorful';
 
 type Props =
   | {
@@ -27,6 +15,7 @@ type Props =
       onChange: (value: string) => void,
       defaultValue: string,
     };
+
 export default function ColorInput({ label, defaultValue, onChange, nullable }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [value, setValue] = useState(defaultValue);
@@ -42,51 +31,67 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
       return null;
     }
     return (
-      <ButtonBase
+      <button
         onClick={() => {
           setValue(null);
           onChange(null);
         }}
+        className="flex items-center justify-center p-1"
       >
-        <CloseOutlined fontSize="small" sx={{ color: 'grey.600' }} />
-      </ButtonBase>
+        <CloseOutlined fontSize="small" className="text-gray-600" />
+      </button>
     );
   };
 
   const renderOpenButton = () => {
     if (value) {
-      return <ButtonBase onClick={handleClickOpen} sx={{ ...BUTTON_SX, bgcolor: value }} />;
+      return (
+        <button
+          onClick={handleClickOpen}
+          className="border border-cadet-400 w-8 min-w-8 h-8 rounded bg-white"
+          style={{ backgroundColor: value }}
+        />
+      );
     }
     return (
-      <ButtonBase onClick={handleClickOpen} sx={{ ...BUTTON_SX }}>
+      <button
+        onClick={handleClickOpen}
+        className="border border-cadet-400 w-8 min-w-8 h-8rounded bg-white flex items-center justify-center"
+      >
         <AddOutlined fontSize="small" />
-      </ButtonBase>
+      </button>
     );
   };
 
   return (
-    <Stack alignItems="flex-start">
-      <InputLabel sx={{ mb: 0.5 }}>{label}</InputLabel>
-      <Stack direction="row" spacing={1}>
+    <div className="flex flex-col items-start">
+      <label className="mb-2">{label}</label>
+      <div className="flex space-x-2">
         {renderOpenButton()}
         {renderResetButton()}
-      </Stack>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        MenuListProps={{
-          sx: { height: 'auto', padding: 0 },
-        }}
-      >
-        <ColorPicker
-          value={value || ''}
-          onChange={(v) => {
-            setValue(v);
-            onChange(v);
-          }}
+        <HexColorInput
+          prefixed
+          color={value || ''}
+          onChange={onChange}
+          className="p-1 border border-gray-300 rounded w-full"
         />
-      </Menu>
-    </Stack>
+      </div>
+      {anchorEl && (
+        <div
+          className="absolute z-10 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg"
+          onMouseLeave={() => setAnchorEl(null)}
+        >
+          <div className="space-y-4 p-4">
+            <HexColorPicker
+              color={value || ''}
+              onChange={(v) => {
+                setValue(v);
+                onChange(v);
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
