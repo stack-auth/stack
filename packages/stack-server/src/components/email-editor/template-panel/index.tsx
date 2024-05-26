@@ -1,32 +1,10 @@
-import { useMemo } from 'react';
 import { MonitorOutlined, PhoneIphoneOutlined } from '@mui/icons-material';
 import { Box, SxProps, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
-import { Reader } from '../email-builder';
 import EditorBlock from '../documents/editor/editor-block';
-import {
-  setSelectedScreenSize,
-  useDocument,
-  useMetadata,
-  useSelectedMainTab,
-  useSelectedScreenSize,
-} from '../documents/editor/editor-context';
+import { setSelectedScreenSize, useSelectedScreenSize } from '../documents/editor/editor-context';
 import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button';
-import MainTabsGroup from './main-tabs-group';
-import { convertEmailTemplateVariables } from '@/email/utils';
-
-function MergedReader() {
-  const document = useDocument();
-  const metadata = useMetadata();
-
-  const mergedDocument = useMemo(() => {
-    return convertEmailTemplateVariables(document, metadata.variables);
-  }, [document, metadata]);
-  
-  return <Reader document={mergedDocument} rootBlockId="root" />;
-}
 
 export default function TemplatePanel() {
-  const selectedMainTab = useSelectedMainTab();
   const selectedScreenSize = useSelectedScreenSize();
 
   let mainBoxSx: SxProps = {
@@ -56,32 +34,10 @@ export default function TemplatePanel() {
     }
   };
 
-  const renderMainPanel = () => {
-    switch (selectedMainTab) {
-      case 'editor': {
-        return (
-          <Box sx={mainBoxSx}>
-            <EditorBlock id="root" />
-          </Box>
-        );
-      }
-      case 'preview': {
-        return (
-          <Box sx={mainBoxSx}>
-            <MergedReader />
-          </Box>
-        );
-      }
-    }
-  };
-
   return (
     <div className='flex flex-col w-full h-full'>
-      <div className="flex flex-row justify-between items-center h-[49px] border-b border-divider bg-white sticky top-0 px-1">
+      <div className="flex flex-row justify-between items-center h-[49px] border-b border-divider bg-white sticky top-0 px-2">
         <div className="flex flex-row gap-2 w-full justify-between items-center">
-          <div className="flex flex-row space-x-2 items-center">
-            <MainTabsGroup />
-          </div>
           <div className="flex flex-row space-x-2">
             <ToggleButtonGroup value={selectedScreenSize} exclusive size="small" onChange={handleScreenSizeChange}>
               <ToggleButton value="desktop">
@@ -100,7 +56,9 @@ export default function TemplatePanel() {
         <ToggleInspectorPanelButton />
       </div>
       <div className='flex-grow overflow-auto'>
-        {renderMainPanel()}
+        <Box sx={mainBoxSx}>
+          <EditorBlock id="root" />
+        </Box>
       </div>
     </div>
 

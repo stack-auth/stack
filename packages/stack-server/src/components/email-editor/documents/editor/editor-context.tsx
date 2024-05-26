@@ -9,7 +9,6 @@ type TValue = {
 
   selectedBlockId: string | null,
   selectedSidebarTab: 'configuration' | 'settings' | 'variables',
-  selectedMainTab: 'editor' | 'preview',
   selectedScreenSize: 'desktop' | 'mobile',
 
   inspectorDrawerOpen: boolean,
@@ -48,14 +47,6 @@ export function useSelectedBlockId() {
 
 export function useSelectedScreenSize() {
   return editorStateStore((s) => s.selectedScreenSize);
-}
-
-export function useSelectedMainTab() {
-  return editorStateStore((s) => s.selectedMainTab);
-}
-
-export function setSelectedMainTab(selectedMainTab: TValue['selectedMainTab']) {
-  return editorStateStore.setState({ selectedMainTab });
 }
 
 export function useSelectedSidebarTab() {

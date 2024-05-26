@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 
 import { EditorBlock as CoreEditorBlock } from './core';
-import { useDocument } from './editor-context';
+import { useDocument, useMetadata } from './editor-context';
+import { convertEmailTemplateVariables } from '@/email/utils';
 
 const EditorBlockContext = createContext<string | null>(null);
 export const useCurrentBlockId = () => useContext(EditorBlockContext)!;
@@ -19,7 +20,13 @@ type EditorBlockProps = {
  */
 export default function EditorBlock({ id }: EditorBlockProps) {
   const document = useDocument();
-  const block = document[id];
+  const metadata = useMetadata();
+  
+  const mergedDocument = useMemo(() => {
+    return convertEmailTemplateVariables(document, metadata.variables);
+  }, [document, metadata]);
+
+  const block = mergedDocument[id];
   if (!block) {
     throw new Error('Could not find block');
   }
