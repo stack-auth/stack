@@ -11,20 +11,13 @@ import {
 } from '../documents/editor/editor-context';
 import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button';
 import MainTabsGroup from './main-tabs-group';
-import { objectStringMap } from '../utils';
-import Mustache from 'mustache';
+import { convertEmailTemplateVariables } from '@/email/utils';
 
 const VARS = {'name': 'John Doe', 'email': 'random@email.com'} as Record<string, string>;
 
 function MergedReader() {
   const document = useDocument();
-
-  const mergedDocument = useMemo(() => {
-    return objectStringMap(document, (str) => {
-      return Mustache.render(str, VARS);
-    });
-  }, [document]);
-
+  const mergedDocument = useMemo(() => convertEmailTemplateVariables(document, VARS), [document]);
   return <Reader document={mergedDocument} rootBlockId="root" />;
 }
 

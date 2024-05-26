@@ -6,12 +6,7 @@ import { TEditorConfiguration } from "@/components/email-editor/documents/editor
 import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
 import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-
-const defaultEmailTemplates: Record<EmailTemplateType, TEditorConfiguration> = {
-  'EMAIL_VERIFICATION': RESET_PASSWORD,
-  'PASSWORD_RESET': RESET_PASSWORD,
-  'MAGIC_LINK': WELCOME,
-};
+import { EMAIL_TEMPLATES_INFO } from "@/email/utils";
 
 export async function listEmailTemplates(projectId: string) {
   const project = await getProject(projectId);
@@ -31,7 +26,7 @@ export async function listEmailTemplates(projectId: string) {
 
   const results: ListEmailTemplatesCrud['Server']['Read'] = [];
   for (const type of Object.values(EmailTemplateType)) {
-    const content = templateMap.get(type) ?? defaultEmailTemplates[type];
+    const content = templateMap.get(type) ?? EMAIL_TEMPLATES_INFO[type].default;
     results.push({ type, content: content, default: !templateMap.has(type) });
   }
 
