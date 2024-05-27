@@ -16,7 +16,6 @@
     "codegen": "npm run todo; npm run prisma -- generate",
     "psql": "npm run todo; npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run todo; npm run with-env -- prisma",
-    "email": "email dev --port 3001 --dir src/email/templates",
     "lint": "npm run todo; next lint",
     "todo": "( sh -c 'echo && echo Analyzing TODOs...' && npm run todo-sh >/dev/null; exit 0 ) || npm run todo-win",
     "todo-win": "echo \"Not running on Linux or macOS, performing simple TODO check.\" && git grep -n TODO\\ ASAP || echo \"No TODOs found, good job!\"",

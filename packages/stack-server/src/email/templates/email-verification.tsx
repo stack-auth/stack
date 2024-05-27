@@ -1,35 +1,131 @@
-import BaseEmail from "../components/base";
+import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 
-interface VerificationEmailProps {
-  username?: string,
-  projectName: string,
-  verificationUrl: string,
-  sharedEmail: boolean,
-  logoUrl?: string,
-}
-
-export default function VerificationEmail({
-  username,
-  projectName,
-  logoUrl,
-  verificationUrl,
-  sharedEmail,
-}: VerificationEmailProps) {
-  return <BaseEmail
-    projectName={projectName}
-    previewText={`Verify your email at ${projectName}`}
-    logoUrl={logoUrl}
-    heading={<>Verify your email at <span className='font-bold'>{projectName}</span></>}
-    textTop={`Hello${username ? " " + username : ""},\nWelcome to ${projectName}! Please click on the following button to verify your email. This link will expire in 3 hours`}
-    buttonText="Verify Email"
-    buttonLink={verificationUrl}
-    sharedEmail={sharedEmail}
-  />;
+export const emailVerificationTemplate: TEditorConfiguration = {
+  "root": {
+    "data": {
+      "textColor": "#242424",
+      "fontFamily": "MODERN_SANS",
+      "canvasColor": "#FFFFFF",
+      "childrenIds": [
+        "block_BjpQ7DGTtvaEuYRMd7VE7w",
+        "block_xyg4GWmgGbJJEDRQc76bC",
+        "block_76VptLCZ47t3EkAarUufEJ",
+        "block_Gtk3kDYwsJqEmQf2XGWPRc",
+        "block_LACDCzUS2bsvEbmnq1KHuW"
+      ],
+      "backdropColor": "#F2F5F7"
+    },
+    "type": "EmailLayout"
+  },
+  "block_xyg4GWmgGbJJEDRQc76bC": {
+    "type": "Text",
+    "data": {
+      "style": {
+        "color": "#474849",
+        "backgroundColor": null,
+        "fontSize": 14,
+        "fontFamily": null,
+        "fontWeight": "normal",
+        "textAlign": "left",
+        "padding": {
+          "top": 8,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to verify your email.\n"
+      }
+    }
+  },
+  "block_76VptLCZ47t3EkAarUufEJ": {
+    "data": {
+      "props": {
+        "url": "{{ emailVerificationLink }}",
+        "size": "medium",
+        "text": "Verify this email",
+        "fullWidth": false,
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#FFFFFF",
+        "buttonBackgroundColor": "#000000"
+      },
+      "style": {
+        "padding": {
+          "top": 12,
+          "left": 24,
+          "right": 24,
+          "bottom": 12
+        },
+        "fontSize": 14,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "backgroundColor": null
+      }
+    },
+    "type": "Button"
+  },
+  "block_BjpQ7DGTtvaEuYRMd7VE7w": {
+    "type": "Heading",
+    "data": {
+      "props": {
+        "text": "Verify your email at {{ projectDisplayName }}",
+        "level": "h3"
+      },
+      "style": {
+        "color": "#000000",
+        "backgroundColor": null,
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "textAlign": "left",
+        "padding": {
+          "top": 32,
+          "bottom": 0,
+          "right": 24,
+          "left": 24
+        }
+      }
+    }
+  },
+  "block_Gtk3kDYwsJqEmQf2XGWPRc": {
+    "data": {
+      "props": {
+        "lineColor": "#EEEEEE",
+        "lineHeight": 1
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "left": 24,
+          "right": 24,
+          "bottom": 16
+        },
+        "backgroundColor": null
+      }
+    },
+    "type": "Divider"
+  },
+  "block_LACDCzUS2bsvEbmnq1KHuW": {
+    "data": {
+      "props": {
+        "text": "If you were not expecting this email, you can safely ignore it."
+      },
+      "style": {
+        "color": "#474849",
+        "padding": {
+          "top": 4,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "fontSize": 12,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "normal",
+        "backgroundColor": null
+      }
+    },
+    "type": "Text"
+  }
 };
-
-VerificationEmail.PreviewProps = {
-  projectName: "MyMusic",
-  verificationUrl: "https://example.com",
-  username: "John Doe",
-  sharedEmail: true,
-} as VerificationEmailProps;

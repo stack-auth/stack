@@ -36,9 +36,6 @@
     "typecheck": {
       "cache": false
     },
-    "email": {
-      "cache": false
-    },
     "test": {
       "cache": false
     }

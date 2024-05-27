@@ -1,48 +1,131 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Img,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-import { Tailwind } from "@react-email/tailwind";
-import BaseEmail from "../components/base";
+import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 
-interface VerificationEmailProps {
-  username?: string,
-  projectName: string,
-  verificationUrl: string,
-  sharedEmail: boolean,
-}
-
-export default function MagicLinkEmail({
-  username,
-  projectName,
-  verificationUrl,
-  sharedEmail,
-}: VerificationEmailProps) {
-  const previewText = `Sign into ${projectName}`;
-
-  return <BaseEmail
-    projectName={projectName}
-    previewText={previewText}
-    heading={<>Sign into <span className='font-bold'>{projectName}</span></>}
-    textTop={`Hello${username ? " " + username : ""},\nWelcome to ${projectName}! Please click the following button to sign in. This link will expire in 30 minutes`}
-    buttonText="Sign In"
-    buttonLink={verificationUrl}
-    sharedEmail={sharedEmail}
-  />;
+export const magicLinkTemplate: TEditorConfiguration = {
+  "root": {
+    "data": {
+      "textColor": "#242424",
+      "fontFamily": "MODERN_SANS",
+      "canvasColor": "#FFFFFF",
+      "childrenIds": [
+        "block_BjpQ7DGTtvaEuYRMd7VE7w",
+        "block_xyg4GWmgGbJJEDRQc76bC",
+        "block_76VptLCZ47t3EkAarUufEJ",
+        "block_Gtk3kDYwsJqEmQf2XGWPRc",
+        "block_LACDCzUS2bsvEbmnq1KHuW"
+      ],
+      "backdropColor": "#F2F5F7"
+    },
+    "type": "EmailLayout"
+  },
+  "block_xyg4GWmgGbJJEDRQc76bC": {
+    "data": {
+      "props": {
+        "text": "Hi, {{ userDisplayName }}! Please click on the following button to sign in."
+      },
+      "style": {
+        "color": "#474849",
+        "padding": {
+          "top": 8,
+          "left": 24,
+          "right": 24,
+          "bottom": 16
+        },
+        "fontSize": 14,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "normal",
+        "backgroundColor": null
+      }
+    },
+    "type": "Text"
+  },
+  "block_76VptLCZ47t3EkAarUufEJ": {
+    "data": {
+      "props": {
+        "url": "{{ resetPasswordLink }}",
+        "size": "medium",
+        "text": "Sign In",
+        "fullWidth": false,
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#FFFFFF",
+        "buttonBackgroundColor": "#000000"
+      },
+      "style": {
+        "padding": {
+          "top": 12,
+          "left": 24,
+          "right": 24,
+          "bottom": 12
+        },
+        "fontSize": 14,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "backgroundColor": null
+      }
+    },
+    "type": "Button"
+  },
+  "block_BjpQ7DGTtvaEuYRMd7VE7w": {
+    "data": {
+      "props": {
+        "text": " Sign in to {{ projectDisplayName }}",
+        "level": "h3"
+      },
+      "style": {
+        "color": null,
+        "padding": {
+          "top": 32,
+          "left": 24,
+          "right": 24,
+          "bottom": 0
+        },
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "backgroundColor": null
+      }
+    },
+    "type": "Heading"
+  },
+  "block_Gtk3kDYwsJqEmQf2XGWPRc": {
+    "data": {
+      "props": {
+        "lineColor": "#EEEEEE",
+        "lineHeight": 1
+      },
+      "style": {
+        "padding": {
+          "top": 16,
+          "left": 24,
+          "right": 24,
+          "bottom": 16
+        },
+        "backgroundColor": null
+      }
+    },
+    "type": "Divider"
+  },
+  "block_LACDCzUS2bsvEbmnq1KHuW": {
+    "data": {
+      "props": {
+        "text": "If you were not expecting this email, you can safely ignore it."
+      },
+      "style": {
+        "color": "#474849",
+        "padding": {
+          "top": 4,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "fontSize": 12,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "normal",
+        "backgroundColor": null
+      }
+    },
+    "type": "Text"
+  }
 };
-
-MagicLinkEmail.PreviewProps = {
-  projectName: "MyMusic",
-  verificationUrl: "https://example.com",
-  username: "John Doe",
-  sharedEmail: true,
-} as VerificationEmailProps;

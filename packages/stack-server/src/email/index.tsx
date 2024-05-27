@@ -1,15 +1,12 @@
 import nodemailer from 'nodemailer';
-import VerificationEmail from './templates/email-verification';
 import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { render } from '@react-email/render';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
-import PasswordResetEmail from './templates/password-reset';
-import { magicLinkTemplate } from './new-templates/magic-link';
 import { renderEmailTemplate } from './utils';
+import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 
 
 function getPortConfig(port: number | string) {
@@ -143,19 +140,19 @@ export async function sendVerificationEmail(
   const verificationUrl = new URL(redirectUrl);
   verificationUrl.searchParams.append('code', verificationCode.code);
 
-  const htmlEmail = <VerificationEmail
-    verificationUrl={verificationUrl.toString()}
-    projectName={project.displayName}
-    username={projectUser.displayName || undefined}
-    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
-  />;
-  const html = render(htmlEmail);
-  const text = render(htmlEmail, { plainText: true });
+  const template = await getEmailTemplateWithDefault(projectId, 'EMAIL_VERIFICATION');
+  const variables: Record<string, string | null> = {
+    userDisplayName: projectUser.displayName,
+    userPrimaryEmail: projectUser.primaryEmail,
+    projectDisplayName: project.displayName,
+    emailVerificationLink: verificationUrl.toString(),
+  };
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
   
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
-    subject: "Verify your email at " + project.displayName,
+    subject,
     html,
     text,
   });
@@ -185,19 +182,19 @@ export async function sendPasswordResetEmail(
   const passwordResetUrl = new URL(redirectUrl);
   passwordResetUrl.searchParams.append('code', resetCode.code);
 
-  const htmlEmail = <PasswordResetEmail
-    passwordResetUrl={passwordResetUrl.toString()}
-    projectName={project.displayName}
-    username={projectUser.displayName || undefined}
-    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
-  />;
-  const html = render(htmlEmail);
-  const text = render(htmlEmail, { plainText: true });
+  const template = await getEmailTemplateWithDefault(projectId, 'PASSWORD_RESET');
+  const variables: Record<string, string | null> = {
+    userDisplayName: projectUser.displayName,
+    userPrimaryEmail: projectUser.primaryEmail,
+    projectDisplayName: project.displayName,
+    passwordResetLink: passwordResetUrl.toString(),
+  };
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
 
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
-    subject: "Reset your password at " + project.displayName,
+    subject,
     html,
     text,
   });
@@ -229,14 +226,14 @@ export async function sendMagicLink(
   const magicLink = new URL(redirectUrl);
   magicLink.searchParams.append('code', magicLinkCode.code);
 
+  const template = await getEmailTemplateWithDefault(projectId, 'MAGIC_LINK');
   const variables: Record<string, string | null> = {
     userDisplayName: projectUser.displayName,
     userPrimaryEmail: projectUser.primaryEmail,
     projectDisplayName: project.displayName,
     magicLink: magicLink.toString(),
   };
-  const subjectTemplate = "Sign into {{projectDisplayName}}";
-  const { subject, html, text } = renderEmailTemplate(subjectTemplate , magicLinkTemplate, variables);
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
   
   await sendEmail({
     emailConfig,

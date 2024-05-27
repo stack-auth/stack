@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { TEditorConfiguration } from './core';
 import { EmailTemplateMetadata } from '@/email/utils';
-import { emptyEmailTemplate } from '@/email/new-templates/empty';
+import { emptyEmailTemplate } from '@/email/templates/empty';
 
 type TValue = {
   document: TEditorConfiguration,

@@ -4,8 +4,9 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { getProject } from "./projects";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
+import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 
-export async function listEmailTemplates(projectId: string) {
+export async function listEmailTemplatesWithDefault(projectId: string) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
@@ -33,13 +34,26 @@ export async function listEmailTemplates(projectId: string) {
   return results;
 }
 
+export async function getEmailTemplateWithDefault(projectId: string, type: EmailTemplateType) {
+  const template = await getEmailTemplate(projectId, type);
+  if (template) {
+    return template;
+  }
+  return {
+    type,
+    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
+    subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
+    default: true,
+  };
+}
+
 export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
   }
 
-  return await prismaClient.emailTemplate.findUnique({
+  const template = await prismaClient.emailTemplate.findUnique({
     where: {
       projectConfigId_type: {
         projectConfigId: project.evaluatedConfig.id,
@@ -47,6 +61,11 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
       },
     },
   });
+
+  return template ? {
+    ...template,
+    content: template.content as TEditorConfiguration,
+  } : null;
 }
 
 export async function updateEmailTemplate(

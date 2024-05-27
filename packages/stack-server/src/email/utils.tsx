@@ -1,9 +1,9 @@
 import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import Mustache from 'mustache';
-import { emailVerificationTemplate } from "./new-templates/email-verification";
-import { passwordResetTemplate } from "./new-templates/password-reset";
-import { magicLinkTemplate } from "./new-templates/magic-link";
+import { emailVerificationTemplate } from "./templates/email-verification";
+import { passwordResetTemplate } from "./templates/password-reset";
+import { magicLinkTemplate } from "./templates/magic-link";
 import { render } from "@react-email/render";
 import { Reader } from "@/components/email-editor/email-builder";
 import { Body, Head, Html, Preview } from "@react-email/components";
