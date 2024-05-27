@@ -1,5 +1,3 @@
-export { default as renderToStaticMarkup } from './renderers/render-to-static-markup';
-
 export {
   ReaderBlockSchema,
   type TReaderBlock,

@@ -4,6 +4,8 @@ import Mustache from 'mustache';
 import { emailVerificationTemplate } from "./new-templates/email-verification";
 import { passwordResetTemplate } from "./new-templates/password-reset";
 import { magicLinkTemplate } from "./new-templates/magic-link";
+import { render } from "@react-email/render";
+import { Reader } from "@/components/email-editor/email-builder";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -136,6 +138,22 @@ export function convertEmailSubjectVariables(
 ): string {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return Mustache.render(subject, vars);
+}
+
+export function renderEmailTemplateToHtml(
+  content: TEditorConfiguration,
+  variables: Record<string, string | null>
+) {
+  const mergedTemplate = objectStringMap(content, (str) => {
+    return Mustache.render(str, variables);
+  });
+  return render(
+    <html>
+      <body>
+        <Reader document={mergedTemplate} rootBlockId='root' />
+      </body>
+    </html>
+  );
 }
 
 export function renderEmailSubjectToText(

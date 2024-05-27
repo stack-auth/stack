@@ -3,6 +3,7 @@ import React from 'react';
 import { ReaderBlock } from '../../reader/core';
 
 import { EmailLayoutProps } from './email-layout-props-schema';
+import { TEditorConfiguration } from '@/components/email-editor/documents/editor/core';
 
 function getFontFamily(fontFamily: EmailLayoutProps['fontFamily']) {
   const f = fontFamily ?? 'MODERN_SANS';
@@ -37,7 +38,7 @@ function getFontFamily(fontFamily: EmailLayoutProps['fontFamily']) {
   }
 }
 
-export default function EmailLayoutReader(props: EmailLayoutProps) {
+export default function EmailLayoutReader(props: EmailLayoutProps & { document?: TEditorConfiguration }) {
   const childrenIds = props.childrenIds ?? [];
   return (
     <div
@@ -72,7 +73,7 @@ export default function EmailLayoutReader(props: EmailLayoutProps) {
           <tr style={{ width: '100%' }}>
             <td>
               {childrenIds.map((childId) => (
-                <ReaderBlock key={childId} id={childId} />
+                <ReaderBlock key={childId} id={childId} document={props.document} />
               ))}
             </td>
           </tr>

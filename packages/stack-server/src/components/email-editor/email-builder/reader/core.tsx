@@ -1,4 +1,3 @@
-import React, { createContext, useContext } from 'react';
 import { z } from 'zod';
 import { Button, ButtonPropsSchema } from '../../block-button';
 import { Divider, DividerPropsSchema } from '../../block-divider';
@@ -17,12 +16,8 @@ import { ContainerPropsSchema } from '../blocks/container/container-props-schema
 import ContainerReader from '../blocks/container/container-reader';
 import { EmailLayoutPropsSchema } from '../blocks/email-layout/email-layout-props-schema';
 import EmailLayoutReader from '../blocks/email-layout/email-layout-reader';
-
-const ReaderContext = createContext<TReaderDocument>({});
-
-function useReaderDocument() {
-  return useContext(ReaderContext);
-}
+import { TEditorConfiguration } from '../../documents/editor/core';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 
 const READER_DICTIONARY = buildBlockConfigurationDictionary({
   ColumnsContainer: {
@@ -71,20 +66,18 @@ export type TReaderDocument = Record<string, TReaderBlock>;
 
 const BaseReaderBlock = buildBlockComponent(READER_DICTIONARY);
 
-export type TReaderBlockProps = { id: string };
-export function ReaderBlock({ id }: TReaderBlockProps) {
-  const document = useReaderDocument();
-  return <BaseReaderBlock {...document[id]} />;
+export type TReaderBlockProps = { id: string, document?: TEditorConfiguration };
+export function ReaderBlock({ id, document }: TReaderBlockProps) {
+  if (!document) throw new StackAssertionError('document is required for ReaderBlock');
+  return <BaseReaderBlock {...document[id]} document={document} />;
 }
 
 export type TReaderProps = {
-  document: Record<string, z.infer<typeof ReaderBlockSchema>>,
+  document: TEditorConfiguration,
   rootBlockId: string,
 };
 export default function Reader({ document, rootBlockId }: TReaderProps) {
   return (
-    <ReaderContext.Provider value={document}>
-      <ReaderBlock id={rootBlockId} />
-    </ReaderContext.Provider>
+    <ReaderBlock id={rootBlockId} document={document}/>
   );
 }

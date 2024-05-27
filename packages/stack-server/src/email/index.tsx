@@ -8,8 +8,8 @@ import { render } from '@react-email/render';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
-import { renderEmailTemplateToHtml } from './utils';
 import { magicLinkTemplate } from './new-templates/magic-link';
+import { renderEmailTemplateToHtml } from './utils';
 
 
 function getPortConfig(port: number | string) {

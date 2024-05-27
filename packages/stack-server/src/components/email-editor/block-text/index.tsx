@@ -1,4 +1,4 @@
-import React, { CSSProperties, useMemo } from 'react';
+import { CSSProperties } from 'react';
 import { z } from 'zod';
 
 const FONT_FAMILY_SCHEMA = z
@@ -147,7 +147,7 @@ export function Text({ style, props }: TextProps) {
   };
 
   const text = props?.text ?? TextPropsDefaults.text;
-  const parsedText = useMemo(() => parseText(text), [text]);
+  const parsedText = parseText(text);
 
   return <div style={wStyle}>{parsedText}</div>;
 }
