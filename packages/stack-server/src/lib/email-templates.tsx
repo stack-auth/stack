@@ -2,9 +2,6 @@ import { prismaClient } from "@/prisma-client";
 import { EmailTemplateType } from "@prisma/client";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { getProject } from "./projects";
-import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
-import RESET_PASSWORD from "@/components/email-editor/get-configuration/sample/reset-password";
-import WELCOME from "@/components/email-editor/get-configuration/sample/welcome";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
 
@@ -77,7 +74,7 @@ export async function updateEmailTemplate(
   };
 }
 
-export async function resetEmailTemplate(projectId: string, type: EmailTemplateType) {
+export async function deleteEmailTemplate(projectId: string, type: EmailTemplateType) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
