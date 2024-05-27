@@ -1,5 +1,6 @@
 import React, { CSSProperties } from 'react';
 import { z } from 'zod';
+import { Img } from "@react-email/components";
 
 const PADDING_SCHEMA = z
   .object({
@@ -54,7 +55,7 @@ export function Image({ style, props }: ImageProps) {
   const height = props?.height ?? undefined;
 
   const imageElement = (
-    <img
+    <Img
       alt={props?.alt ?? ''}
       src={props?.url ?? ''}
       width={width}

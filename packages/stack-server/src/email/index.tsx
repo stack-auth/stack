@@ -9,7 +9,7 @@ import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
 import { magicLinkTemplate } from './new-templates/magic-link';
-import { renderEmailTemplateToHtml } from './utils';
+import { renderEmailTemplate } from './utils';
 
 
 function getPortConfig(port: number | string) {
@@ -235,12 +235,14 @@ export async function sendMagicLink(
     projectDisplayName: project.displayName,
     magicLink: magicLink.toString(),
   };
-  const html = renderEmailTemplateToHtml(magicLinkTemplate, variables);
+  const subjectTemplate = "Sign into {{projectDisplayName}}";
+  const { subject, html, text } = renderEmailTemplate(subjectTemplate , magicLinkTemplate, variables);
   
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
-    subject: "Sign into " + project.displayName,
+    subject,
     html,
+    text,
   });
 }

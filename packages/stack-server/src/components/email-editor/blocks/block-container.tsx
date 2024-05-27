@@ -1,4 +1,5 @@
 import React, { CSSProperties } from 'react';
+import { Container as ReactEmailContainer } from '@react-email/components';
 import { z } from 'zod';
 
 const COLOR_SCHEMA = z
@@ -52,7 +53,7 @@ export function Container({ style, children }: ContainerProps) {
     padding: getPadding(style?.padding),
   };
   if (!children) {
-    return <div style={wStyle} />;
+    return <ReactEmailContainer style={wStyle} />;
   }
-  return <div style={wStyle}>{children}</div>;
+  return <ReactEmailContainer style={wStyle}>{children}</ReactEmailContainer>;
 }

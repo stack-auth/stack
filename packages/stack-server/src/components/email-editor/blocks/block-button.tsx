@@ -1,5 +1,6 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
 import { z } from 'zod';
+import { Button as ReactEmailButton } from '@react-email/components';
 
 const FONT_FAMILY_SCHEMA = z
   .enum([
@@ -152,13 +153,12 @@ export function Button({ style, props }: ButtonProps) {
   const buttonBackgroundColor = props?.buttonBackgroundColor ?? ButtonPropsDefaults.buttonBackgroundColor;
 
   const padding = getButtonSizePadding(props);
-  const textRaise = (padding[1] * 2 * 3) / 4;
-  const wrapperStyle: CSSProperties = {
+  const wrapperStyle: React.CSSProperties = {
     backgroundColor: style?.backgroundColor ?? undefined,
     textAlign: style?.textAlign ?? undefined,
     padding: getPadding(style?.padding),
   };
-  const linkStyle: CSSProperties = {
+  const buttonStyle: React.CSSProperties = {
     color: buttonTextColor,
     fontSize: style?.fontSize ?? 16,
     fontFamily: getFontFamily(style?.fontFamily),
@@ -172,19 +172,13 @@ export function Button({ style, props }: ButtonProps) {
 
   return (
     <div style={wrapperStyle}>
-      <a href={url} style={linkStyle} target="_blank">
-        <span
-          dangerouslySetInnerHTML={{
-            __html: `<!--[if mso]><i style="letter-spacing: ${padding[1]}px;mso-font-width:-100%;mso-text-raise:${textRaise}" hidden>&nbsp;</i><![endif]-->`,
-          }}
-        />
-        <span>{text}</span>
-        <span
-          dangerouslySetInnerHTML={{
-            __html: `<!--[if mso]><i style="letter-spacing: ${padding[1]}px;mso-font-width:-100%" hidden>&nbsp;</i><![endif]-->`,
-          }}
-        />
-      </a>
+      <ReactEmailButton
+        href={url}
+        style={buttonStyle}
+        target="_blank"
+      >
+        {text}
+      </ReactEmailButton>
     </div>
   );
 }

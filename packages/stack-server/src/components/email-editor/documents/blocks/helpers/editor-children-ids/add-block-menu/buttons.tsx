@@ -16,6 +16,7 @@ export const BUTTONS: TButtonProps[] = [
         props: { text: 'Hello friend' },
         style: {
           padding: { top: 16, bottom: 16, left: 24, right: 24 },
+          color: '#000000',
         },
       },
     }),
@@ -30,6 +31,7 @@ export const BUTTONS: TButtonProps[] = [
         style: {
           padding: { top: 16, bottom: 16, left: 24, right: 24 },
           fontWeight: 'normal',
+          color: '#000000',
         },
       },
     }),
@@ -44,6 +46,7 @@ export const BUTTONS: TButtonProps[] = [
         props: {
           text: 'Button',
           buttonBackgroundColor: '#000000',
+          buttonTextColor: '#FFFFFF',
         },
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
       },
@@ -56,7 +59,7 @@ export const BUTTONS: TButtonProps[] = [
       type: 'Image',
       data: {
         props: {
-          url: '',
+          url: 'https://picsum.photos/300/200',
           alt: 'Sample product',
           contentAlignment: 'middle',
           linkHref: null,
@@ -111,33 +114,4 @@ export const BUTTONS: TButtonProps[] = [
       },
     }),
   },
-  // {
-  //   label: 'Avatar',
-  //   icon: <AccountCircleOutlined />,
-  //   block: () => ({
-  //     type: 'Avatar',
-  //     data: {
-  //       props: {
-  //         imageUrl: '',
-  //         shape: 'circle',
-  //       },
-  //       style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
-  //     },
-  //   }),
-  // },
-  // {
-  //   label: 'Html',
-  //   icon: <HtmlOutlined />,
-  //   block: () => ({
-  //     type: 'Html',
-  //     data: {
-  //       props: { contents: '<strong>Hello world</strong>' },
-  //       style: {
-  //         fontSize: 16,
-  //         textAlign: null,
-  //         padding: { top: 16, bottom: 16, left: 24, right: 24 },
-  //       },
-  //     },
-  //   }),
-  // },
 ];

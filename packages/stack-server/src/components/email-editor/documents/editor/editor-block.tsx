@@ -32,7 +32,7 @@ export default function EditorBlock({ id }: EditorBlockProps) {
   }
   return (
     <EditorBlockContext.Provider value={id}>
-      <CoreEditorBlock {...block} />
+      <CoreEditorBlock {...block} document={document} />
     </EditorBlockContext.Provider>
   );
 }

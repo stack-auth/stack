@@ -149,5 +149,5 @@ export function Text({ style, props }: TextProps) {
   const text = props?.text ?? TextPropsDefaults.text;
   const parsedText = parseText(text);
 
-  return <div style={wStyle}>{parsedText}</div>;
+  return <p style={wStyle}>{parsedText}</p>;
 }

@@ -6,6 +6,7 @@ import { passwordResetTemplate } from "./new-templates/password-reset";
 import { magicLinkTemplate } from "./new-templates/magic-link";
 import { render } from "@react-email/render";
 import { Reader } from "@/components/email-editor/email-builder";
+import { Body, Head, Html, Preview } from "@react-email/components";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -140,25 +141,27 @@ export function convertEmailSubjectVariables(
   return Mustache.render(subject, vars);
 }
 
-export function renderEmailTemplateToHtml(
+export function renderEmailTemplate(
+  subject: string,
   content: TEditorConfiguration,
-  variables: Record<string, string | null>
+  variables: Record<string, string | null>,
 ) {
   const mergedTemplate = objectStringMap(content, (str) => {
     return Mustache.render(str, variables);
   });
-  return render(
-    <html>
-      <body>
-        <Reader document={mergedTemplate} rootBlockId='root' />
-      </body>
-    </html>
-  );
-}
+  const mergedSubject = Mustache.render(subject, variables);
 
-export function renderEmailSubjectToText(
-  subject: string,
-  variables: Record<string, string | null>
-) {
-  return Mustache.render(subject, variables);
+  const component = (    
+    <Html>
+      <Head />
+      <Preview>{subject}</Preview>
+      <Body>
+        <Reader document={mergedTemplate} rootBlockId='root' />
+      </Body>
+    </Html>
+  );
+  const html = render(component);
+  const text = render(component, { plainText: true });
+
+  return { html, text, subject: mergedSubject };
 }

@@ -18,26 +18,26 @@ export const emailVerificationTemplate: TEditorConfiguration = {
     "type": "EmailLayout"
   },
   "block_xyg4GWmgGbJJEDRQc76bC": {
+    "type": "Text",
     "data": {
-      "props": {
-        "text": "Hi, {{ userDisplayName }}! Please click on the following button to verify your email."
-      },
       "style": {
         "color": "#474849",
-        "padding": {
-          "top": 8,
-          "left": 24,
-          "right": 24,
-          "bottom": 16
-        },
+        "backgroundColor": null,
         "fontSize": 14,
-        "textAlign": "left",
         "fontFamily": null,
         "fontWeight": "normal",
-        "backgroundColor": null
+        "textAlign": "left",
+        "padding": {
+          "top": 8,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to verify your email.\n"
       }
-    },
-    "type": "Text"
+    }
   },
   "block_76VptLCZ47t3EkAarUufEJ": {
     "data": {
@@ -67,26 +67,26 @@ export const emailVerificationTemplate: TEditorConfiguration = {
     "type": "Button"
   },
   "block_BjpQ7DGTtvaEuYRMd7VE7w": {
+    "type": "Heading",
     "data": {
       "props": {
         "text": "Verify your email at {{ projectDisplayName }}",
         "level": "h3"
       },
       "style": {
-        "color": null,
-        "padding": {
-          "top": 32,
-          "left": 24,
-          "right": 24,
-          "bottom": 0
-        },
-        "textAlign": "left",
+        "color": "#000000",
+        "backgroundColor": null,
         "fontFamily": null,
         "fontWeight": "bold",
-        "backgroundColor": null
+        "textAlign": "left",
+        "padding": {
+          "top": 32,
+          "bottom": 0,
+          "right": 24,
+          "left": 24
+        }
       }
-    },
-    "type": "Heading"
+    }
   },
   "block_Gtk3kDYwsJqEmQf2XGWPRc": {
     "data": {
