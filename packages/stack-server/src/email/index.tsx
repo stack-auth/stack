@@ -8,7 +8,7 @@ import { render } from '@react-email/render';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
-import { renderTemplateToHtml } from './utils';
+import { renderEmailTemplateToHtml } from './utils';
 import { magicLinkTemplate } from './new-templates/magic-link';
 
 
@@ -235,7 +235,7 @@ export async function sendMagicLink(
     projectDisplayName: project.displayName,
     magicLink: magicLink.toString(),
   };
-  const html = renderTemplateToHtml(magicLinkTemplate, variables);
+  const html = renderEmailTemplateToHtml(magicLinkTemplate, variables);
   
   await sendEmail({
     emailConfig,

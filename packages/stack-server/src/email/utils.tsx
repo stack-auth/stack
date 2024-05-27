@@ -131,7 +131,15 @@ export function convertEmailTemplateVariables(
   });
 }
 
-export function renderTemplateToHtml(
+export function convertEmailSubjectVariables(
+  subject: string,
+  variables: EmailTemplateVariable[],
+): string {
+  const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
+  return Mustache.render(subject, vars);
+}
+
+export function renderEmailTemplateToHtml(
   content: TEditorConfiguration,
   variables: Record<string, string | null>
 ) {
@@ -139,4 +147,11 @@ export function renderTemplateToHtml(
     return Mustache.render(str, variables);
   });
   return renderToStaticMarkup(renderedTemplate, { rootBlockId: 'root' });
+}
+
+export function renderEmailSubjectToText(
+  subject: string,
+  variables: Record<string, string | null>
+) {
+  return Mustache.render(subject, variables);
 }
