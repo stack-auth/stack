@@ -1386,8 +1386,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await this._serverEmailTemplatesCache.refresh([]);
   }
 
-  async deleteEmailTemplate(type: EmailTemplateType) {
-    await this._interface.deleteEmailTemplate(type);
+  async resetEmailTemplate(type: EmailTemplateType) {
+    await this._interface.resetEmailTemplate(type);
     await this._serverEmailTemplatesCache.refresh([]);
   }
 }
@@ -1816,7 +1816,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'],
     listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']>,
     updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void>,
-    deleteEmailTemplate(type: EmailTemplateType): Promise<void>,
+    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>

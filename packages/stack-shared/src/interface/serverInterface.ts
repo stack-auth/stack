@@ -353,7 +353,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async deleteEmailTemplate(type: EmailTemplateType): Promise<void> {
+  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
     await this.sendServerRequest(
       `/email-templates/${type}?server=true`,
       { method: "DELETE" },

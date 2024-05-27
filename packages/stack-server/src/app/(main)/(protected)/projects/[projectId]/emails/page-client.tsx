@@ -223,7 +223,7 @@ function ResetEmailTemplateDialog(props: {
     title="Reset Email Template"
     okButton={{ 
       label: "Reset", 
-      onClick: async () => { await stackAdminApp.deleteEmailTemplate(props.templateType); }
+      onClick: async () => { await stackAdminApp.resetEmailTemplate(props.templateType); }
     }}
     confirmText="I understand this cannot be undone"
   >

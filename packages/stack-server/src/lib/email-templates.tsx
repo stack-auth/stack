@@ -77,7 +77,7 @@ export async function updateEmailTemplate(
   };
 }
 
-export async function deleteEmailTemplate(projectId: string, type: EmailTemplateType) {
+export async function resetEmailTemplate(projectId: string, type: EmailTemplateType) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");

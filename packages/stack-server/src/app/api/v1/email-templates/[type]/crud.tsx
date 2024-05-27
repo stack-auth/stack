@@ -1,4 +1,4 @@
-import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate } from "@/lib/email-templates";
+import { createEmailTemplate, resetEmailTemplate, getEmailTemplate, updateEmailTemplate } from "@/lib/email-templates";
 import { validateEmailTemplateContent } from "@/email/utils";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { emailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
@@ -32,6 +32,6 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
     if (!emailTemplate) {
       throw new StatusError(StatusError.NotFound, 'Email template not found');
     }
-    await deleteEmailTemplate(auth.project.id, type);
+    await resetEmailTemplate(auth.project.id, type);
   },
 });
