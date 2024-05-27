@@ -18,53 +18,53 @@ export const magicLinkTemplate: TEditorConfiguration = {
     "type": "EmailLayout"
   },
   "block_xyg4GWmgGbJJEDRQc76bC": {
-    "type": "Text",
     "data": {
-      "style": {
-        "color": "#474849",
-        "backgroundColor": null,
-        "fontSize": 14,
-        "fontFamily": null,
-        "fontWeight": "normal",
-        "textAlign": "left",
-        "padding": {
-          "top": 8,
-          "bottom": 16,
-          "right": 24,
-          "left": 24
-        }
-      },
       "props": {
         "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to sign in."
+      },
+      "style": {
+        "color": "#474849",
+        "padding": {
+          "top": 8,
+          "left": 24,
+          "right": 24,
+          "bottom": 16
+        },
+        "fontSize": 14,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "normal",
+        "backgroundColor": null
       }
-    }
+    },
+    "type": "Text"
   },
   "block_76VptLCZ47t3EkAarUufEJ": {
-    "type": "Button",
     "data": {
-      "style": {
-        "backgroundColor": null,
-        "fontSize": 14,
-        "fontFamily": null,
-        "fontWeight": "bold",
-        "textAlign": "left",
-        "padding": {
-          "top": 12,
-          "bottom": 12,
-          "right": 24,
-          "left": 24
-        }
-      },
       "props": {
-        "buttonBackgroundColor": "#000000",
-        "buttonStyle": "rounded",
-        "buttonTextColor": "#FFFFFF",
-        "fullWidth": false,
+        "url": "{{ magicLink }}",
         "size": "medium",
         "text": "Sign In",
-        "url": "{{ magicLink }}"
+        "fullWidth": false,
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#FFFFFF",
+        "buttonBackgroundColor": "#000000"
+      },
+      "style": {
+        "padding": {
+          "top": 12,
+          "left": 24,
+          "right": 24,
+          "bottom": 12
+        },
+        "fontSize": 14,
+        "textAlign": "left",
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "backgroundColor": null
       }
-    }
+    },
+    "type": "Button"
   },
   "block_BjpQ7DGTtvaEuYRMd7VE7w": {
     "type": "Heading",
@@ -74,7 +74,7 @@ export const magicLinkTemplate: TEditorConfiguration = {
         "level": "h3"
       },
       "style": {
-        "color": null,
+        "color": "#000000",
         "backgroundColor": null,
         "fontFamily": null,
         "fontWeight": "bold",
