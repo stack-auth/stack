@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@/email/utils";
 import { useMemo, useState } from "react";
 import { validateEmailTemplateContent } from "@/email/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
@@ -61,7 +61,7 @@ export default function PageClient() {
                 {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => { setResetTemplateType(template.type); } }]} />}
               </div>
             </div>
-            <EmailPreview content={template.content} />
+            <EmailPreview content={template.content} type={template.type} />
           </Card>
         ))}
       </SettingCard>
@@ -75,15 +75,22 @@ export default function PageClient() {
   );
 }
 
-function EmailPreview(props: { content: any }) {
-  const valid = useMemo(() => validateEmailTemplateContent(props.content), [props.content]);
-  
-  let reader;
+function EmailPreview(props: { content: any, type: EmailTemplateType }) {
+  const project = useAdminApp().useProjectAdmin();
+  const [valid, document] = useMemo(() => {
+    const valid = validateEmailTemplateContent(props.content);
+    if (!valid) return [false, null];
 
-  if (valid) {
+    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project);
+    const document = convertEmailTemplateVariables(props.content, metadata.variables);
+    return [true, document];
+  }, [props.content, props.type, project]);
+
+  let reader;
+  if (valid && document) {
     reader = (
       <div className="scale-50 w-[400px] origin-top-left">
-        <Reader document={props.content} rootBlockId='root' />
+        <Reader document={document} rootBlockId='root' />
       </div>
     );
   } else {
