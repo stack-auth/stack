@@ -14,13 +14,12 @@ export default function AddBlockButton({ onSelect, placeholder }: Props) {
   const renderButton = () => {
     if (placeholder) {
       return (
-        <Button
+        <button
           onClick={(ev) => { ev.stopPropagation(); }}
-          className="flex items-center justify-center h-12 w-full"
-          variant='outline'
+          className="flex items-center justify-center h-12 w-full bg-white hover:bg-gray-100 border border-gray-200 rounded"
         >
           <CirclePlus className="h-5 w-5 text-black" />
-        </Button>
+        </button>
       );
     } else {
       return (
