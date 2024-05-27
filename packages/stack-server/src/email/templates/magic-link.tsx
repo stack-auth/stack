@@ -18,75 +18,75 @@ export const magicLinkTemplate: TEditorConfiguration = {
     "type": "EmailLayout"
   },
   "block_xyg4GWmgGbJJEDRQc76bC": {
+    "type": "Text",
     "data": {
-      "props": {
-        "text": "Hi, {{ userDisplayName }}! Please click on the following button to sign in."
-      },
       "style": {
         "color": "#474849",
-        "padding": {
-          "top": 8,
-          "left": 24,
-          "right": 24,
-          "bottom": 16
-        },
+        "backgroundColor": null,
         "fontSize": 14,
-        "textAlign": "left",
         "fontFamily": null,
         "fontWeight": "normal",
-        "backgroundColor": null
+        "textAlign": "left",
+        "padding": {
+          "top": 8,
+          "bottom": 16,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to sign in."
       }
-    },
-    "type": "Text"
+    }
   },
   "block_76VptLCZ47t3EkAarUufEJ": {
+    "type": "Button",
     "data": {
-      "props": {
-        "url": "{{ resetPasswordLink }}",
-        "size": "medium",
-        "text": "Sign In",
-        "fullWidth": false,
-        "buttonStyle": "rounded",
-        "buttonTextColor": "#FFFFFF",
-        "buttonBackgroundColor": "#000000"
-      },
       "style": {
-        "padding": {
-          "top": 12,
-          "left": 24,
-          "right": 24,
-          "bottom": 12
-        },
+        "backgroundColor": null,
         "fontSize": 14,
-        "textAlign": "left",
         "fontFamily": null,
         "fontWeight": "bold",
-        "backgroundColor": null
+        "textAlign": "left",
+        "padding": {
+          "top": 12,
+          "bottom": 12,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "buttonBackgroundColor": "#000000",
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#FFFFFF",
+        "fullWidth": false,
+        "size": "medium",
+        "text": "Sign In",
+        "url": "{{ magicLink }}"
       }
-    },
-    "type": "Button"
+    }
   },
   "block_BjpQ7DGTtvaEuYRMd7VE7w": {
+    "type": "Heading",
     "data": {
       "props": {
-        "text": " Sign in to {{ projectDisplayName }}",
+        "text": "Sign in to {{ projectDisplayName }}",
         "level": "h3"
       },
       "style": {
         "color": null,
-        "padding": {
-          "top": 32,
-          "left": 24,
-          "right": 24,
-          "bottom": 0
-        },
-        "textAlign": "left",
+        "backgroundColor": null,
         "fontFamily": null,
         "fontWeight": "bold",
-        "backgroundColor": null
+        "textAlign": "left",
+        "padding": {
+          "top": 32,
+          "bottom": 0,
+          "right": 24,
+          "left": 24
+        }
       }
-    },
-    "type": "Heading"
+    }
   },
   "block_Gtk3kDYwsJqEmQf2XGWPRc": {
     "data": {
