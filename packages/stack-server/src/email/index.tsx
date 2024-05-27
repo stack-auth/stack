@@ -233,6 +233,7 @@ export async function sendMagicLink(
     projectDisplayName: project.displayName,
     magicLink: magicLink.toString(),
   };
+
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
   
   await sendEmail({

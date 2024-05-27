@@ -142,7 +142,7 @@ export const ButtonPropsDefaults = {
   size: 'medium',
   buttonStyle: 'rounded',
   buttonTextColor: '#FFFFFF',
-  buttonBackgroundColor: '#999999',
+  buttonBackgroundColor: '#000000',
 } as const;
 
 export function Button({ style, props }: ButtonProps) {
@@ -169,7 +169,7 @@ export function Button({ style, props }: ButtonProps) {
     padding: `${padding[0]}px ${padding[1]}px`,
     textDecoration: 'none',
   };
-  
+
   return (
     <div style={wrapperStyle}>
       <ReactEmailButton

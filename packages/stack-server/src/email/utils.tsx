@@ -1,12 +1,13 @@
 import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import Mustache from 'mustache';
+import Handlebars from "handlebars";
 import { emailVerificationTemplate } from "./templates/email-verification";
 import { passwordResetTemplate } from "./templates/password-reset";
 import { magicLinkTemplate } from "./templates/magic-link";
 import { render } from "@react-email/render";
 import { Reader } from "@/components/email-editor/email-builder";
 import { Body, Head, Html, Preview } from "@react-email/components";
+import _ from 'lodash';
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -114,7 +115,7 @@ export function convertEmailTemplateMetadataExampleValues(
   const variables = metadata.variables.map((variable) => {
     return {
       ...variable,
-      example: Mustache.render(variable.example, { projectDisplayName: project.displayName }),
+      example: Handlebars.compile(variable.example, {noEscape: true})({ projectDisplayName: project.displayName }),
     };
   });
   return {
@@ -129,7 +130,7 @@ export function convertEmailTemplateVariables(
 ): TEditorConfiguration {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return objectStringMap(content, (str) => {
-    return Mustache.render(str, vars);
+    return Handlebars.compile(str, {noEscape: true})(vars);
   });
 }
 
@@ -138,7 +139,7 @@ export function convertEmailSubjectVariables(
   variables: EmailTemplateVariable[],
 ): string {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
-  return Mustache.render(subject, vars);
+  return Handlebars.compile(subject, {noEscape: true})(vars);
 }
 
 export function renderEmailTemplate(
@@ -147,9 +148,9 @@ export function renderEmailTemplate(
   variables: Record<string, string | null>,
 ) {
   const mergedTemplate = objectStringMap(content, (str) => {
-    return Mustache.render(str, variables);
+    return Handlebars.compile(str, {noEscape: true})(variables);
   });
-  const mergedSubject = Mustache.render(subject, variables);
+  const mergedSubject = Handlebars.compile(subject, {noEscape: true})(variables);
 
   const component = (    
     <Html>
