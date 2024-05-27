@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ButtonProps, ButtonPropsDefaults, ButtonPropsSchema } from '@usewaypoint/block-button';
+import { ButtonProps, ButtonPropsDefaults, ButtonPropsSchema } from '../../../block-button';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColorInput from './helpers/inputs/color-input';
 import TextInput from './helpers/inputs/text-input';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SpacerProps, SpacerPropsDefaults, SpacerPropsSchema } from '@usewaypoint/block-spacer';
+import { SpacerProps, SpacerPropsDefaults, SpacerPropsSchema } from '../../../block-spacer';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import SliderInput from './helpers/inputs/slider-input';
 import { MoveVertical } from 'lucide-react';

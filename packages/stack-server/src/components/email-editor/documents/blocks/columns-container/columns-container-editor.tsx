@@ -1,11 +1,8 @@
 import React from 'react';
-
-import { ColumnsContainer as BaseColumnsContainer } from '@usewaypoint/block-columns-container';
-
+import { ColumnsContainer as BaseColumnsContainer } from '../../../block-columns-container';
 import { useCurrentBlockId } from '../../editor/editor-block';
 import { setDocument, setSelectedBlockId } from '../../editor/editor-context';
 import EditorChildrenIds, { EditorChildrenChange } from '../helpers/editor-children-ids';
-
 import ColumnsContainerPropsSchema, { ColumnsContainerProps } from './columns-container-props-schema';
 
 const EMPTY_COLUMNS = [{ childrenIds: [] }, { childrenIds: [] }, { childrenIds: [] }];

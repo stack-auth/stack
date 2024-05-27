@@ -566,30 +566,6 @@ importers:
       '@types/mdx':
         specifier: ^2
         version: 2.0.11
-      '@usewaypoint/block-avatar':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-button':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-columns-container':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-container':
-        specifier: ^0.0.2
-        version: 0.0.2(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-divider':
-        specifier: ^0.0.4
-        version: 0.0.4(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-heading':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-image':
-        specifier: ^0.0.5
-        version: 0.0.5(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/block-spacer':
-        specifier: ^0.0.3
-        version: 0.0.3(react@18.2.0)(zod@3.23.8)
       '@vercel/analytics':
         specifier: ^1.2.2
         version: 1.2.2(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
@@ -4330,54 +4306,6 @@ packages:
 
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
-
-  '@usewaypoint/block-avatar@0.0.3':
-    resolution: {integrity: sha512-3BM6P4ztMmqDbSijtVQqI1canRkcENOEHZ2X9BYNv8BZGJbmitTrzANvwmmYXfFEuWPCAyABvujdZds15Zg8Qg==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-button@0.0.3':
-    resolution: {integrity: sha512-LXSI3FmCTv13voYX4wdHY7iJdsfyRfpDJZCFKSun5EF1j9FXrqMDGScpk/yokopkQWvWkYXQNAne7W0yWhRQlg==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-columns-container@0.0.3':
-    resolution: {integrity: sha512-r5jaojU1Fr6Svtl0a9dDlBHgslJQ04M+XaXaEO+GZ12+35fdAirpLkrEhuyBIA1FFXzRTG740wkbkr++iv1kuA==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-container@0.0.2':
-    resolution: {integrity: sha512-li9GVdiahVpJ+MNRdkoCkP6/hBTdcpaLRGpaFBSQRkVt+cYAeB7qPNIo+242hUvVTm5Qky8ceGLDVblGYSZb7A==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-divider@0.0.4':
-    resolution: {integrity: sha512-q54ydWvKdg7Zwc4hzIwE6i/mC8dFYxfPRACEEEyu2dvSNa9cbKFIsPD9ipVSntK+Ib3Ml84uT4aHQmOlzP6hZA==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-heading@0.0.3':
-    resolution: {integrity: sha512-1dMrf1U34nq2FuwTUfsq+hBOdLQz1H+lVMEH9xvyCq5I7nSXCzpeo7QgumZ3zZEHtu3QgSEGafJaZyrj2paC0w==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-image@0.0.5':
-    resolution: {integrity: sha512-b66jAXF79idsrIRc2QoBlZctIXdqg/qOAL7/QvKvENZH2KmuXoZhEUx+Z7sACvEQD/VI0u7TK5msDsA5S0/oVQ==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/block-spacer@0.0.3':
-    resolution: {integrity: sha512-CCcMtwcpeC2rHvawQdh5f0Hez7o4xA/edWl/6I3RuA6Yb6STyyrGjmPFs2ZxHQsLOGUK+0OvBenuHlSTCZwuuA==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
 
   '@vercel/analytics@1.2.2':
     resolution: {integrity: sha512-X0rctVWkQV1e5Y300ehVNqpOfSOufo7ieA5PIdna8yX/U7Vjz0GFsGf4qvAhxV02uQ2CVt7GYcrFfddXXK2Y4A==}
@@ -15356,46 +15284,6 @@ snapshots:
       eslint-visitor-keys: 3.4.3
 
   '@ungap/structured-clone@1.2.0': {}
-
-  '@usewaypoint/block-avatar@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-button@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-columns-container@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-container@0.0.2(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-divider@0.0.4(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-heading@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-image@0.0.5(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/block-spacer@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
 
   '@vercel/analytics@1.2.2(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)':
     dependencies:

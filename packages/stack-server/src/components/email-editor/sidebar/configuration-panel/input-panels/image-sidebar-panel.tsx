@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ImageProps, ImagePropsSchema } from '@usewaypoint/block-image';
+import { ImageProps, ImagePropsSchema } from '../../../block-image';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextDimensionInput from './helpers/inputs/text-dimension-input';
 import TextInput from './helpers/inputs/text-input';

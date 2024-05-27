@@ -1,7 +1,6 @@
 import React from 'react';
 import { TEditorBlock } from '../../documents/editor/core';
 import { setDocument, useDocument, useSelectedBlockId } from '../../documents/editor/editor-context';
-import AvatarSidebarPanel from './input-panels/avatar-sidebar-panel';
 import ButtonSidebarPanel from './input-panels/button-sidebar-panel';
 import ColumnsContainerSidebarPanel from './input-panels/columns-container-sidebar-panel';
 import ContainerSidebarPanel from './input-panels/container-sidebar-panel';
@@ -37,9 +36,6 @@ export default function ConfigurationPanel() {
   const setBlock = (conf: TEditorBlock) => setDocument({ [selectedBlockId]: conf });
   const { data, type } = block;
   switch (type) {
-    case 'Avatar': {
-      return <AvatarSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;
-    }
     case 'Button': {
       return <ButtonSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;
     }
@@ -69,8 +65,5 @@ export default function ConfigurationPanel() {
     default: {
       return <pre>{JSON.stringify(block, null, '  ')}</pre>;
     }
-    // case 'Html': {
-    //   return <HtmlSidebarPanel key={selectedBlockId} data={data} setData={(data) => setBlock({ type, data })} />;
-    // }
   }
 }

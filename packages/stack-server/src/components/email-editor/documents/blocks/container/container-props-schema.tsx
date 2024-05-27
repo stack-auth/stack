@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ContainerPropsSchema as BaseContainerPropsSchema } from '@usewaypoint/block-container';
+import { ContainerPropsSchema as BaseContainerPropsSchema } from '../../../block-container';
 
 const ContainerPropsSchema = z.object({
   style: BaseContainerPropsSchema.shape.style,

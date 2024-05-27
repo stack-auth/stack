@@ -1,11 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import { z } from 'zod';
-import { Avatar, AvatarPropsSchema } from '@usewaypoint/block-avatar';
-import { Button, ButtonPropsSchema } from '@usewaypoint/block-button';
-import { Divider, DividerPropsSchema } from '@usewaypoint/block-divider';
-import { Heading, HeadingPropsSchema } from '@usewaypoint/block-heading';
-import { Image, ImagePropsSchema } from '@usewaypoint/block-image';
-import { Spacer, SpacerPropsSchema } from '@usewaypoint/block-spacer';
+import { Button, ButtonPropsSchema } from '../../block-button';
+import { Divider, DividerPropsSchema } from '../../block-divider';
+import { Heading, HeadingPropsSchema } from '../../block-heading';
+import { Image, ImagePropsSchema } from '../../block-image';
+import { Spacer, SpacerPropsSchema } from '../../block-spacer';
 import { Text, TextPropsSchema } from '../../block-text';
 import {
   buildBlockComponent,
@@ -38,11 +37,6 @@ const READER_DICTIONARY = buildBlockConfigurationDictionary({
     schema: EmailLayoutPropsSchema,
     Component: EmailLayoutReader,
   },
-  //
-  Avatar: {
-    schema: AvatarPropsSchema,
-    Component: Avatar,
-  },
   Button: {
     schema: ButtonPropsSchema,
     Component: Button,
@@ -55,10 +49,6 @@ const READER_DICTIONARY = buildBlockConfigurationDictionary({
     schema: HeadingPropsSchema,
     Component: Heading,
   },
-  // Html: {
-  //   schema: HtmlPropsSchema,
-  //   Component: Html,
-  // },
   Image: {
     schema: ImagePropsSchema,
     Component: Image,

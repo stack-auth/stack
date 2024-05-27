@@ -1,11 +1,10 @@
 import React from 'react';
 import { z } from 'zod';
-import { Avatar, AvatarPropsSchema } from '@usewaypoint/block-avatar';
-import { Button, ButtonPropsSchema } from '@usewaypoint/block-button';
-import { Divider, DividerPropsSchema } from '@usewaypoint/block-divider';
-import { Heading, HeadingPropsSchema } from '@usewaypoint/block-heading';
-import { Image, ImagePropsSchema } from '@usewaypoint/block-image';
-import { Spacer, SpacerPropsSchema } from '@usewaypoint/block-spacer';
+import { Button, ButtonPropsSchema } from '../../block-button';
+import { Divider, DividerPropsSchema } from '../../block-divider';
+import { Heading, HeadingPropsSchema } from '../../block-heading';
+import { Image, ImagePropsSchema } from '../../block-image';
+import { Spacer, SpacerPropsSchema } from '../../block-spacer';
 import { Text, TextPropsSchema } from '../../block-text';
 import {
   buildBlockComponent,
@@ -21,14 +20,6 @@ import EmailLayoutPropsSchema from '../blocks/email-layout/email-layout-props-sc
 import EditorBlockWrapper from '../blocks/helpers/block-wrappers/editor-block-wrapper';
 
 const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
-  Avatar: {
-    schema: AvatarPropsSchema,
-    Component: (props) => (
-      <EditorBlockWrapper>
-        <Avatar {...props} />
-      </EditorBlockWrapper>
-    ),
-  },
   Button: {
     schema: ButtonPropsSchema,
     Component: (props) => (
@@ -61,14 +52,6 @@ const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
       </EditorBlockWrapper>
     ),
   },
-  // Html: {
-  //   schema: HtmlPropsSchema,
-  //   Component: (props) => (
-  //     <EditorBlockWrapper>
-  //       <Html {...props} />
-  //     </EditorBlockWrapper>
-  //   ),
-  // },
   Image: {
     schema: ImagePropsSchema,
     Component: (data) => {

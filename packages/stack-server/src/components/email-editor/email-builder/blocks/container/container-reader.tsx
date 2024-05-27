@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container as BaseContainer } from '@usewaypoint/block-container';
+import { Container as BaseContainer } from '../../../block-container';
 import { ReaderBlock } from '../../reader/core';
 import { ContainerProps } from './container-props-schema';
 
