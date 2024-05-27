@@ -1,5 +1,5 @@
 import React from 'react';
-import { ColumnsContainer as BaseColumnsContainer } from '../../../block-columns-container';
+import { ColumnsContainer as BaseColumnsContainer } from '../../../blocks/block-columns-container';
 import { ReaderBlock } from '../../reader/core';
 import { ColumnsContainerProps } from './columns-container-props-schema';
 import { TEditorConfiguration } from '@/components/email-editor/documents/editor/core';

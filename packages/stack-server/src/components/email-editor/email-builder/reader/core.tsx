@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { Button, ButtonPropsSchema } from '../../block-button';
-import { Divider, DividerPropsSchema } from '../../block-divider';
-import { Heading, HeadingPropsSchema } from '../../block-heading';
-import { Image, ImagePropsSchema } from '../../block-image';
-import { Spacer, SpacerPropsSchema } from '../../block-spacer';
-import { Text, TextPropsSchema } from '../../block-text';
+import { Button, ButtonPropsSchema } from '../../blocks/block-button';
+import { Divider, DividerPropsSchema } from '../../blocks/block-divider';
+import { Heading, HeadingPropsSchema } from '../../blocks/block-heading';
+import { Image, ImagePropsSchema } from '../../blocks/block-image';
+import { Spacer, SpacerPropsSchema } from '../../blocks/block-spacer';
+import { Text, TextPropsSchema } from '../../blocks/block-text';
 import {
   buildBlockComponent,
   buildBlockConfigurationDictionary,

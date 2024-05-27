@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HeadingProps, HeadingPropsDefaults, HeadingPropsSchema } from '../../../block-heading';
+import { HeadingProps, HeadingPropsDefaults, HeadingPropsSchema } from '../../../blocks/block-heading';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextInput from './helpers/inputs/text-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';

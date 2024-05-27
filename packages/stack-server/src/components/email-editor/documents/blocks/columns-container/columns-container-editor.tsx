@@ -1,5 +1,5 @@
 import React from 'react';
-import { ColumnsContainer as BaseColumnsContainer } from '../../../block-columns-container';
+import { ColumnsContainer as BaseColumnsContainer } from '../../../blocks/block-columns-container';
 import { useCurrentBlockId } from '../../editor/editor-block';
 import { setDocument, setSelectedBlockId } from '../../editor/editor-context';
 import EditorChildrenIds, { EditorChildrenChange } from '../helpers/editor-children-ids';

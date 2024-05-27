@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Container as BaseContainer } from '../../../block-container';
+import { Container as BaseContainer } from '../../../blocks/block-container';
 
 import { useCurrentBlockId } from '../../editor/editor-block';
 import { setDocument, setSelectedBlockId, useDocument } from '../../editor/editor-context';
