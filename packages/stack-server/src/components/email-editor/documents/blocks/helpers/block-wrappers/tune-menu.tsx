@@ -75,7 +75,7 @@ export default function TuneMenu({ blockId }: Props) {
 
   return (
     <button
-      className="bg-white shadow-md absolute top-0 left-[-52px] rounded-full min-h-10 min-w-10 flex items-center justify-center"
+      className="bg-white shadow-md absolute top-0 right-0 rounded-full min-h-8 min-w-8 flex items-center justify-center"
       onClick={handleDeleteClick}
     >
       <Trash2 className='w-5 h-5' />
