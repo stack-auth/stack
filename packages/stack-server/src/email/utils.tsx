@@ -42,7 +42,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: 'link' },
+      { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: '<email verification link>' },
     ],
   },
   'PASSWORD_RESET': {
@@ -53,7 +53,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'resetPasswordLink', label: 'Reset Password Link', defined: true, example: 'link' },
+      { name: 'resetPasswordLink', label: 'Reset Password Link', defined: true, example: '<reset password link>' },
     ],
   },
   'MAGIC_LINK': {
@@ -64,7 +64,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'magicLink', label: 'Magic Link', defined: true, example: 'link' },
+      { name: 'magicLink', label: 'Magic Link', defined: true, example: '<magic link>' },
     ],
   },
 } as const;

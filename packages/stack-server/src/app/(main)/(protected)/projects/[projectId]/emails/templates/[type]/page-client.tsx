@@ -40,12 +40,14 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   };
 
   return (
-    <EmailEditor 
-      document={template.content} 
-      subject={template.subject}
-      metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
-      onSave={onSave} 
-      onCancel={onCancel} 
-    />
+    <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
+      <EmailEditor 
+        document={template.content} 
+        subject={template.subject}
+        metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
+        onSave={onSave} 
+        onCancel={onCancel} 
+      />
+    </div>
   );
 }

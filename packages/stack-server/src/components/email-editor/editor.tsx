@@ -48,7 +48,7 @@ export default function EmailEditor(props: {
   }, [edited]);
 
   return (
-    <div className='flex flex-row h-full'>
+    <div className='flex h-full'>
       <div className='flex grow'>
         <TemplatePanel />
       </div>

@@ -39,7 +39,7 @@ export default function InspectorDrawer(props: {
 
   return (
     <div className={cn('w-[260px] min-w-[260px] flex flex-col border-l', inspectorDrawerOpen ? '' : 'hidden')}>
-      <div className="h-[49px] border-b flex justify-center items-center">
+      <div className="h-12 min-h-12 border-b flex justify-center items-center">
         <Tabs value={selectedSidebarTab}>
           <TabsList>
             <TabsTrigger onClick={() => setSidebarTab('variables')} value='variables'>Variables</TabsTrigger>

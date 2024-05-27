@@ -35,7 +35,7 @@ export default function TemplatePanel() {
 
   return (
     <div className='flex flex-col w-full h-full'>
-      <div className="flex flex-row justify-between items-center h-[49px] border-b border-divider bg-white dark:bg-black sticky top-0 px-2">
+      <div className="flex flex-row justify-between items-center h-12 min-h-12 border-b border-divider bg-white dark:bg-black sticky top-0 px-2">
         <div className="flex flex-row gap-2 w-full justify-between items-center">
           <div className="flex flex-row space-x-2">
             <Tabs value={selectedScreenSize}>
