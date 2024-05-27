@@ -359,6 +359,7 @@ model EmailTemplate {
 
   content Json
   type    EmailTemplateType
+  subject String
 
   @@id([projectConfigId, type])
 }

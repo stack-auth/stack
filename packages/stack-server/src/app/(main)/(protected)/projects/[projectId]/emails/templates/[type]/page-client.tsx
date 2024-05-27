@@ -30,8 +30,8 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
     />;
   }
 
-  const onSave = async (document: TEditorConfiguration) => {
-    await app.updateEmailTemplate(props.templateType, { content: document });
+  const onSave = async (document: TEditorConfiguration, subject: string) => {
+    await app.updateEmailTemplate(props.templateType, { content: document, subject });
     toast({ title: "Email template saved" });
   };
 
@@ -42,6 +42,7 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   return (
     <EmailEditor 
       document={template.content} 
+      subject={template.subject}
       metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
       onSave={onSave} 
       onCancel={onCancel} 

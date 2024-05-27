@@ -5,11 +5,13 @@ import { yupJson } from "../../utils/yup";
 
 export const emailTemplateServerReadSchema = yup.object({
   type: yup.string().oneOf(emailTemplateTypes).required(),
+  subject: yup.string().required(),
   content: yupJson.required(),
 }).required();
 
 export const emailTemplateCrudServerUpdateSchema = yup.object({
   content: yupJson.required(),
+  subject: yup.string().required(),
 }).required();
 
 const serverDeleteSchema = yup.mixed();

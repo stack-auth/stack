@@ -54,7 +54,7 @@ export default function PageClient() {
             <div className="flex flex-col gap-2">
               <div>
                 <Typography className="font-medium">{EMAIL_TEMPLATES_METADATA[template.type].label}</Typography>
-                <Typography type='label' variant='secondary'>{EMAIL_TEMPLATES_METADATA[template.type].description}</Typography>
+                <Typography type='label' variant='secondary'>Subject: {template.subject}</Typography>
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>

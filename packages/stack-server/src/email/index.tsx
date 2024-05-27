@@ -8,7 +8,8 @@ import { render } from '@react-email/render';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import PasswordResetEmail from './templates/password-reset';
-import MagicLinkEmail from './templates/magic-link';
+import { renderTemplateToHtml } from './utils';
+import { magicLinkTemplate } from './new-templates/magic-link';
 
 
 function getPortConfig(port: number | string) {
@@ -38,8 +39,8 @@ export async function sendEmail({
   emailConfig: EmailConfig,
   to: string | string[],
   subject: string,
-  text: string,
   html: string,
+  text?: string,
 }) {
   const transporter = nodemailer.createTransport({
     host: emailConfig.host,
@@ -228,20 +229,18 @@ export async function sendMagicLink(
   const magicLink = new URL(redirectUrl);
   magicLink.searchParams.append('code', magicLinkCode.code);
 
-  const htmlEmail = <MagicLinkEmail
-    verificationUrl={magicLink.toString()}
-    projectName={project.displayName}
-    username={projectUser.displayName || undefined}
-    sharedEmail={emailConfig.type === 'shared' && projectId !== 'internal'}
-  />;
-  const html = render(htmlEmail);
-  const text = render(htmlEmail, { plainText: true });
+  const variables: Record<string, string | null> = {
+    userDisplayName: projectUser.displayName,
+    userPrimaryEmail: projectUser.primaryEmail,
+    projectDisplayName: project.displayName,
+    magicLink: magicLink.toString(),
+  };
+  const html = renderTemplateToHtml(magicLinkTemplate, variables);
   
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
     subject: "Sign into " + project.displayName,
     html,
-    text,
   });
 }

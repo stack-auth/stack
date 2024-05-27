@@ -16,15 +16,18 @@ export async function listEmailTemplates(projectId: string) {
       projectConfigId: project.evaluatedConfig.id,
     },
   });
-  const templateMap = new Map<EmailTemplateType, {} | null>();
+  const templateMap = new Map<EmailTemplateType, { content: {}, subject: string }>();
   for (const template of templates) {
-    templateMap.set(template.type, template.content);
+    templateMap.set(template.type, { content: template.content || {}, subject: template.subject });
   }
 
   const results: ListEmailTemplatesCrud['Server']['Read'] = [];
   for (const type of Object.values(EmailTemplateType)) {
-    const content = templateMap.get(type) ?? EMAIL_TEMPLATES_METADATA[type].default;
-    results.push({ type, content: content, default: !templateMap.has(type) });
+    const template = templateMap.get(type) ?? { 
+      content: EMAIL_TEMPLATES_METADATA[type].defaultContent, 
+      subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject 
+    };
+    results.push({ type, content: template.content, default: !templateMap.has(type), subject: template.subject });
   }
 
   return results;
@@ -105,6 +108,7 @@ export async function createEmailTemplate(
       projectConfigId: project.evaluatedConfig.id,
       type,
       content: data.content,
+      subject: data.subject,
     },
   });
 

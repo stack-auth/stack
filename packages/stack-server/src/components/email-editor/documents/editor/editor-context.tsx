@@ -5,6 +5,8 @@ import { emptyEmailTemplate } from '@/email/new-templates/empty';
 
 type TValue = {
   document: TEditorConfiguration,
+  subject: string,
+
   metadata: EmailTemplateMetadata,
 
   selectedBlockId: string | null,
@@ -17,10 +19,13 @@ type TValue = {
 
 const editorStateStore = create<TValue>(() => ({
   document: emptyEmailTemplate,
+  subject: '',
+
   metadata: {
     label: '',
     description: '',
-    default: emptyEmailTemplate,
+    defaultSubject: '',
+    defaultContent: emptyEmailTemplate,
     variables: [],
   },
 
@@ -35,6 +40,10 @@ const editorStateStore = create<TValue>(() => ({
 
 export function useDocument() {
   return editorStateStore((s) => s.document);
+}
+
+export function useSubject() {
+  return editorStateStore((s) => s.subject);
 }
 
 export function useMetadata() {
@@ -96,6 +105,10 @@ export function setDocument(document: TValue['document']) {
       ...document,
     },
   });
+}
+
+export function setSubject(subject: TValue['subject']) {
+  return editorStateStore.setState({ subject });
 }
 
 export function setMetadata(metadata: TValue['metadata']) {

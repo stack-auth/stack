@@ -4,6 +4,7 @@ import Mustache from 'mustache';
 import { emailVerificationTemplate } from "./new-templates/email-verification";
 import { passwordResetTemplate } from "./new-templates/password-reset";
 import { magicLinkTemplate } from "./new-templates/magic-link";
+import { renderToStaticMarkup } from "@/components/email-editor/email-builder";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -24,7 +25,8 @@ export type EmailTemplateVariable = {
 export type EmailTemplateMetadata = {
   label: string,
   description: string,
-  default: TEditorConfiguration,
+  defaultContent: TEditorConfiguration,
+  defaultSubject: string,
   variables: EmailTemplateVariable[],
 };
 
@@ -32,7 +34,8 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'EMAIL_VERIFICATION': {
     label: "Email Verification",
     description: "Will be sent to the user when they sign-up with email/password",
-    default: emailVerificationTemplate,
+    defaultContent: emailVerificationTemplate,
+    defaultSubject: "Verify your email at {{ projectDisplayName }}",
     variables: [
       ...userVars,
       ...projectVars,
@@ -42,7 +45,8 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'PASSWORD_RESET': {
     label: "Password Reset",
     description: "Will be sent to the user when they request to reset their password (forgot password)",
-    default: passwordResetTemplate,
+    defaultContent: passwordResetTemplate,
+    defaultSubject: "Reset your password at {{ projectDisplayName }}",
     variables: [
       ...userVars,
       ...projectVars,
@@ -52,7 +56,8 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
   'MAGIC_LINK': {
     label: "Magic Link",
     description: "Will be sent to the user when they try to sign-up with magic link",
-    default: magicLinkTemplate,
+    defaultContent: magicLinkTemplate,
+    defaultSubject: "Sign in to {{ projectDisplayName }}",
     variables: [
       ...userVars,
       ...projectVars,
@@ -69,6 +74,7 @@ export function validateEmailTemplateContent(content: any): content is TEditorCo
     }
     return true;
   } catch (e) {
+    console.error(e);
     return false;
   }
 }
@@ -123,4 +129,14 @@ export function convertEmailTemplateVariables(
   return objectStringMap(content, (str) => {
     return Mustache.render(str, vars);
   });
+}
+
+export function renderTemplateToHtml(
+  content: TEditorConfiguration,
+  variables: Record<string, string | null>
+) {
+  const renderedTemplate = objectStringMap(content, (str) => {
+    return Mustache.render(str, variables);
+  });
+  return renderToStaticMarkup(renderedTemplate, { rootBlockId: 'root' });
 }

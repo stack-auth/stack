@@ -1,4 +1,4 @@
-import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab } from '../documents/editor/editor-context';
+import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab, useSubject } from '../documents/editor/editor-context';
 import ConfigurationPanel from './configuration-panel';
 import SettingsPanel from './settings-panel';
 import { cn } from '@/lib/utils';
@@ -9,12 +9,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function InspectorDrawer(props: {
   edited: boolean,
-  onSave?: (document: TEditorConfiguration) => void | Promise<void>, 
+  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>, 
   onCancel?: () => void | Promise<void>,
 }){
   const inspectorDrawerOpen = useInspectorDrawerOpen();
   const selectedSidebarTab = useSelectedSidebarTab();
   const document = useDocument();
+  const subject = useSubject();
 
   const renderCurrentSidebarPanel = () => {
     switch (selectedSidebarTab) {
@@ -32,7 +33,7 @@ export default function InspectorDrawer(props: {
 
   const onSave = async () => {
     if (props.onSave) {
-      await props.onSave(document);
+      await props.onSave(document, subject);
     }
   };
 

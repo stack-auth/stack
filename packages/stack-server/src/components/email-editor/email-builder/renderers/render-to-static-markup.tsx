@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { renderToStaticMarkup as baseRenderToStaticMarkup } from 'react-dom/server';
 
