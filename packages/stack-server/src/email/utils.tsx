@@ -4,7 +4,6 @@ import Mustache from 'mustache';
 import { emailVerificationTemplate } from "./new-templates/email-verification";
 import { passwordResetTemplate } from "./new-templates/password-reset";
 import { magicLinkTemplate } from "./new-templates/magic-link";
-import { renderToStaticMarkup } from "@/components/email-editor/email-builder";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
@@ -137,16 +136,6 @@ export function convertEmailSubjectVariables(
 ): string {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return Mustache.render(subject, vars);
-}
-
-export function renderEmailTemplateToHtml(
-  content: TEditorConfiguration,
-  variables: Record<string, string | null>
-) {
-  const renderedTemplate = objectStringMap(content, (str) => {
-    return Mustache.render(str, variables);
-  });
-  return renderToStaticMarkup(renderedTemplate, { rootBlockId: 'root' });
 }
 
 export function renderEmailSubjectToText(

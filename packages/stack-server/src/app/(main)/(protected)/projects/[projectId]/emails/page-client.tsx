@@ -1,4 +1,5 @@
-"use client";;
+"use client";
+
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingText } from "@/components/settings";

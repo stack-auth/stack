@@ -11,7 +11,7 @@ import {
   buildBlockComponent,
   buildBlockConfigurationDictionary,
   buildBlockConfigurationSchema,
-} from '@usewaypoint/document-core';
+} from '../../document-core';
 import ColumnsContainerEditor from '../blocks/columns-container/columns-container-editor';
 import ColumnsContainerPropsSchema from '../blocks/columns-container/columns-container-props-schema';
 import ContainerEditor from '../blocks/container/container-editor';

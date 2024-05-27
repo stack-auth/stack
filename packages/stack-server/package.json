@@ -78,7 +78,6 @@
     "@usewaypoint/block-heading": "^0.0.3",
     "@usewaypoint/block-image": "^0.0.5",
     "@usewaypoint/block-spacer": "^0.0.3",
-    "@usewaypoint/document-core": "^0.0.6",
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
     "bright": "^0.8.4",

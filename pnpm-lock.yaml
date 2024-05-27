@@ -590,9 +590,6 @@ importers:
       '@usewaypoint/block-spacer':
         specifier: ^0.0.3
         version: 0.0.3(react@18.2.0)(zod@3.23.8)
-      '@usewaypoint/document-core':
-        specifier: ^0.0.6
-        version: 0.0.6(react@18.2.0)(zod@3.23.8)
       '@vercel/analytics':
         specifier: ^1.2.2
         version: 1.2.2(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
@@ -4378,12 +4375,6 @@ packages:
 
   '@usewaypoint/block-spacer@0.0.3':
     resolution: {integrity: sha512-CCcMtwcpeC2rHvawQdh5f0Hez7o4xA/edWl/6I3RuA6Yb6STyyrGjmPFs2ZxHQsLOGUK+0OvBenuHlSTCZwuuA==}
-    peerDependencies:
-      react: ^16 || ^17 || ^18
-      zod: ^1 || ^2 || ^3
-
-  '@usewaypoint/document-core@0.0.6':
-    resolution: {integrity: sha512-Hg10gszVCZRJhA4nIWwAi2rTXuoxPL+ATMe0hU243PFBIUZOwDIQus4XZSeoHsenMCq1uBFCRiFW4hl2+tVwgA==}
     peerDependencies:
       react: ^16 || ^17 || ^18
       zod: ^1 || ^2 || ^3
@@ -15402,11 +15393,6 @@ snapshots:
       zod: 3.23.8
 
   '@usewaypoint/block-spacer@0.0.3(react@18.2.0)(zod@3.23.8)':
-    dependencies:
-      react: 18.2.0
-      zod: 3.23.8
-
-  '@usewaypoint/document-core@0.0.6(react@18.2.0)(zod@3.23.8)':
     dependencies:
       react: 18.2.0
       zod: 3.23.8

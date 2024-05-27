@@ -1,8 +1,5 @@
-'use client';
-
 import React, { createContext, useContext } from 'react';
 import { z } from 'zod';
-
 import { Avatar, AvatarPropsSchema } from '@usewaypoint/block-avatar';
 import { Button, ButtonPropsSchema } from '@usewaypoint/block-button';
 import { Divider, DividerPropsSchema } from '@usewaypoint/block-divider';
@@ -14,8 +11,7 @@ import {
   buildBlockComponent,
   buildBlockConfigurationDictionary,
   buildBlockConfigurationSchema,
-} from '@usewaypoint/document-core';
-
+} from '../../document-core';
 import ColumnsContainerPropsSchema from '../blocks/columns-container/columns-container-props-schema';
 import ColumnsContainerReader from '../blocks/columns-container/columns-container-reader';
 import { ContainerPropsSchema } from '../blocks/container/container-props-schema';
