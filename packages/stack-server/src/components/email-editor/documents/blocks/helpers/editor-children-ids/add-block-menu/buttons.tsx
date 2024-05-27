@@ -43,7 +43,7 @@ export const BUTTONS: TButtonProps[] = [
       data: {
         props: {
           text: 'Button',
-          url: 'https://www.stack-auth.com',
+          buttonBackgroundColor: '#000000',
         },
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
       },

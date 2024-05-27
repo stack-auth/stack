@@ -1,9 +1,6 @@
-'use client';
-
-import { useState } from 'react';
+'use client';;
 import { TEditorBlock } from '../../../../editor/core';
 import BlocksPopover from './blocks-menu';
-import { Button } from '@/components/ui/button';
 import { CirclePlus } from 'lucide-react';
 
 type Props = {
