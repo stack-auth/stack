@@ -32,7 +32,9 @@ export default function AuthPage({
   return (
     <CardFrame fullPage={fullPage}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2'>{type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}</Text>
+        <Text size="xl" as='h2' style={{ fontWeight: 500 }}>
+          {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
+        </Text>
         {type === 'sign-in' ? (
           <Text>
             {"Don't have an account? "}

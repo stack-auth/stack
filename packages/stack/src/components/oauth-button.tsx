@@ -65,7 +65,7 @@ export default function OAuthButton({
       style = {
         backgroundColor: '#fff',
         name: 'Google',
-        border: '1px solid #ccc',
+        border: '1px solid #ddd',
         icon: <GoogleIcon iconSize={iconSize} />,
       };
       break;
@@ -73,7 +73,7 @@ export default function OAuthButton({
     case 'github': {
       style = {
         backgroundColor: '#111',
-        border: '1px solid #262626',
+        border: '1px solid #333',
         name: 'GitHub',
         icon: <GitHubIcon iconSize={iconSize} />,
       };
@@ -107,7 +107,7 @@ export default function OAuthButton({
   return (
     <Button
       color={style.backgroundColor}
-      style={{ border: style.border }}
+      style={{ border: style.border, height: '2.5rem' }}
       onClick={() => stackApp.signInWithOAuth(provider)}
     >
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem' }}>
