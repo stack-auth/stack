@@ -24,7 +24,6 @@ const StyledCard = styled.div<{
 const StyledCardHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
   margin-bottom: 1.5rem;
 `;
 

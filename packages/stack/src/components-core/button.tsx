@@ -119,7 +119,6 @@ const StyledButton = styled.button<{
   }};
   font-family: ${FONT_FAMILY};
   font-size: ${FONT_SIZES.md};
-  opacity: ${props => props.disabled ? 0.5 : 1};
   transition: background-color 0.05s;
   cursor: pointer;
   position: relative;
