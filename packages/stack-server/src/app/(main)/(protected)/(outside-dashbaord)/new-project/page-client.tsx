@@ -110,7 +110,7 @@ export default function PageClient () {
         {mockProject ? 
           (
             <div className="w-full">
-              <BrowserFrame url="your-website.com/handler/signin">
+              <BrowserFrame url="your-website.com/signin">
                 <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
                   {/* a transparent cover that prevents the card being clicked */}
                   <div className="absolute inset-0 bg-transparent z-10"></div>
