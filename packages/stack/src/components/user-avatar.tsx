@@ -1,14 +1,15 @@
-import { RxPerson } from "react-icons/rx";
+import { UserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage, Text } from "..";
 import { User } from "../lib/stack-app";
-import { SECONDARY_FONT_COLORS } from "../utils/constants";
 import styled from "styled-components";
 
+const StyledIcon = styled(UserRound)`
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #666666;
 
-const StyledIcon = styled(RxPerson)`
-  color: ${SECONDARY_FONT_COLORS.light};
   html[data-stack-theme='dark'] & {
-    color: ${SECONDARY_FONT_COLORS.dark};
+    color: #999999;
   }
 `;
 

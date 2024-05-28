@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS } from "../utils/constants";
 import { ReloadIcon } from "@radix-ui/react-icons";
 
@@ -108,6 +108,7 @@ const StyledButton = styled.button<{
   border-radius: 0.375rem;
   font-family: ${FONT_FAMILY};
   font-size: ${FONT_SIZES.sm};
+  font-weight: 500;
   line-height: ${LINE_HEIGHTS.sm};
   cursor: pointer;
   padding: ${props => {
@@ -154,6 +155,22 @@ const StyledButton = styled.button<{
   }
 `;
 
+const spin = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
+
+const StyledReloadIcon = styled(ReloadIcon)`
+  margin-right: 0.5rem; /* mr-2 */
+  height: 1rem; /* h-4 */
+  width: 1rem; /* w-4 */
+  animation: ${spin} 1s linear infinite; /* animate-spin */
+`;
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({
     variant='primary',
@@ -179,7 +196,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
         disabled={props.disabled || loading}
       >
-        {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+        {loading && <StyledReloadIcon />}
         {props.children}
       </StyledButton>
     );
