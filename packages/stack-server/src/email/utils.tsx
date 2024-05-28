@@ -1,12 +1,12 @@
 import { EditorBlockSchema, TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import Handlebars from "handlebars";
 import { emailVerificationTemplate } from "./templates/email-verification";
 import { passwordResetTemplate } from "./templates/password-reset";
 import { magicLinkTemplate } from "./templates/magic-link";
 import { render } from "@react-email/render";
 import { Reader } from "@/components/email-editor/email-builder";
 import { Body, Head, Html, Preview } from "@react-email/components";
+import * as Handlebars from 'handlebars';
 import _ from 'lodash';
 
 const userVars = [
@@ -53,7 +53,7 @@ export const EMAIL_TEMPLATES_METADATA: Record<string, EmailTemplateMetadata> = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'resetPasswordLink', label: 'Reset Password Link', defined: true, example: '<reset password link>' },
+      { name: 'passwordResetLink', label: 'Reset Password Link', defined: true, example: '<reset password link>' },
     ],
   },
   'MAGIC_LINK': {

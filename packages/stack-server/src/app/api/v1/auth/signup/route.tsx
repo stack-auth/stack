@@ -8,7 +8,7 @@ import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { createAuthTokens } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/email";
 import { getProject } from "@/lib/projects";
-import { validateUrl } from "@/utils/url";
+import { validateUrl } from "@/lib/utils";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";

@@ -38,7 +38,7 @@ export default function RedirectMessageCard({
     case 'emailSent': {
       title = "Email sent!";
       message = 'Please check your inbox. Make sure to check your spam folder.';
-      primaryAction = () => neverResolve();
+      primaryAction = () => stackApp.redirectToHome();
       primaryButton = "Go to Home";
       break;
     }

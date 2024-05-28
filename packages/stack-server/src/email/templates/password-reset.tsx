@@ -42,7 +42,7 @@ export const passwordResetTemplate: TEditorConfiguration = {
   "block_76VptLCZ47t3EkAarUufEJ": {
     "data": {
       "props": {
-        "url": "{{ resetPasswordLink }}",
+        "url": "{{ passwordResetLink }}",
         "size": "medium",
         "text": "Reset my password",
         "fullWidth": false,
