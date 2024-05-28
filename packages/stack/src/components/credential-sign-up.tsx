@@ -74,10 +74,7 @@ export default function CredentialSignUp() {
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
-      <Button
-        type="submit"
-        style={{ marginTop: '1.5rem' }}
-      >
+      <Button type="submit" style={{ marginTop: '1.5rem' }}>
         Sign Up
       </Button>
     </form>

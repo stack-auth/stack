@@ -52,10 +52,7 @@ export default function CredentialSignIn() {
         Forgot password?
       </Link>
 
-      <Button
-        type="submit"
-        style={{ marginTop: '1.5rem' }}
-      >
+      <Button type="submit" style={{ marginTop: '1.5rem' }}>
         Sign In
       </Button>
     </form>

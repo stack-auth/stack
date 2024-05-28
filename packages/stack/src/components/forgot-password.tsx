@@ -42,7 +42,6 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
       <Button
         type="submit"
         style={{ marginTop: '1.5rem' }}
-        onClick={handleSubmit(onSubmit)}
       >
         Send Email
       </Button>
