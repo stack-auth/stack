@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import PasswordField from "./password-field";
@@ -9,43 +12,37 @@ import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import CardFrame from "./card-frame";
 import { Button, Label, Text } from "../components-core";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
+const schema = yup.object().shape({
+  password: yup.string().required('Please enter your password').test({
+    name: 'is-valid-password',
+    test: (value, ctx) => {
+      const error = getPasswordError(value);
+      if (error) {
+        return ctx.createError({ message: error.message });
+      } else {
+        return true;
+      }
+    }
+  }),
+  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+});
 
 export default function PasswordResetInner(
   { code, fullPage = false }:
   { code: string, fullPage?: boolean }
 ) {
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordRepeat, setPasswordRepeat] = useState('');
-  const [passwordRepeatError, setPasswordRepeatError] = useState('');
+  const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
+    resolver: yupResolver(schema)
+  });
+  const stackApp = useStackApp();
   const [finished, setFinished] = useState(false);
   const [resetError, setResetError] = useState(false);
-  const stackApp = useStackApp();
 
-  const onSubmit = async () => {
-    if (!password) {
-      setPasswordError('Please enter your password');
-      return;
-    }
-    if (!passwordRepeat) {
-      setPasswordRepeatError('Please repeat your password');
-      return;
-    }
-    if (password !== passwordRepeat) {
-      setPasswordRepeatError('Passwords do not match');
-      return;
-    }
-
-    const passwordError = getPasswordError(password);
-    if (passwordError) {
-      setPasswordError(passwordError.message);
-      return;
-    }
-
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    const { password } = data;
     const errorCode = await stackApp.resetPassword({ password, code });
-    
-    // this should not happen, the outer component should verify the code before rendering this component
     if (errorCode) {
       setResetError(true);
       return;
@@ -72,37 +69,37 @@ export default function PasswordResetInner(
         <Text size="xl" as='h2'>Reset Your Password</Text>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+      <form 
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+        onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+        noValidate
+      >
         <Label htmlFor="password">New Password</Label>
         <PasswordField
           id="password"
-          name="password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setPasswordError('');
-            setPasswordRepeatError('');
+          {...register('password')}
+          onChange={() => {
+            clearErrors('password');
+            clearErrors('passwordRepeat');
           }}
         />
-        <FormWarningText text={passwordError} />
+        <FormWarningText text={errors.password?.message?.toString()} />
 
         <Label htmlFor="repeat-password" style={{ marginTop: "1rem" }}>Repeat New Password</Label>
         <PasswordField
           id="repeat-password"
-          name="repeat-password"
-          value={passwordRepeat}
-          onChange={(e) => {
-            setPasswordRepeat(e.target.value);
-            setPasswordError('');
-            setPasswordRepeatError('');
+          {...register('passwordRepeat')}
+          onChange={() => {
+            clearErrors('password');
+            clearErrors('passwordRepeat');
           }}
         />
-        <FormWarningText text={passwordRepeatError} />
+        <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
-        <Button style={{ marginTop: '1.5rem' }} onClick={() => onSubmit()}>
+        <Button style={{ marginTop: '1.5rem' }} type="submit">
           Reset Password
         </Button>
-      </div>
+      </form>
     </CardFrame>
   ); 
 }

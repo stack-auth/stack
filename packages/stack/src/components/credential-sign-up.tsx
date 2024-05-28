@@ -1,108 +1,82 @@
 'use client';
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import PasswordField from "./password-field";
 import FormWarningText from "./form-warning";
-import { validateEmail } from "../utils/email";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import { Label, Input, Button } from "../components-core";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+
+const schema = yup.object().shape({
+  email: yup.string().email('Please enter a valid email').required('Please enter your email'),
+  password: yup.string().required('Please enter your password').test({
+    name: 'is-valid-password',
+    test: (value, ctx) => {
+      const error = getPasswordError(value);
+      if (error) {
+        return ctx.createError({ message: error.message });
+      } else {
+        return true;
+      }
+    }
+  }),
+  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+});
 
 export default function CredentialSignUp() {
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordRepeat, setPasswordRepeat] = useState('');
-  const [passwordRepeatError, setPasswordRepeatError] = useState('');
+  const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
+    resolver: yupResolver(schema)
+  });
   const app = useStackApp();
 
-  const onSubmit = async () => {
-    if (!email) {
-      setEmailError('Please enter your email');
-      return;
-    }
-    if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email');
-      return;
-    }
-    if (!password) {
-      setPasswordError('Please enter your password');
-      return;
-    }
-    if (!passwordRepeat) {
-      setPasswordRepeatError('Please repeat your password');
-      return;
-    }
-    if (password !== passwordRepeat) {
-      setPasswordRepeatError('Passwords do not match');
-      return;
-    }
-
-    const passwordError = getPasswordError(password);
-    if (passwordError) {
-      setPasswordError(passwordError.message);
-      return;
-    }
-
-    let error;
-    error = await app.signUpWithCredential({ email, password });
-    
-    if (error instanceof KnownErrors.UserEmailAlreadyExists) {
-      setEmailError('User already exists');
-    } else if (error) {
-      setEmailError(`An error occurred. ${error.message}`);
-    }
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    const { email, password } = data;
+    const error = await app.signUpWithCredential({ email, password });
+    setError('email', { type: 'manual', message: error?.message });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+    <form 
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+      noValidate
+    >
       <Label htmlFor="email">Email</Label>
       <Input
         id="email"
         type="email"
-        name="email"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-          setEmailError('');
-        }}
+        {...register('email')}
       />
-      <FormWarningText text={emailError} />
+      <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
       <PasswordField
         id="password"
-        name="password"
-        value={password}
+        {...register('password')}
         onChange={(e) => {
-          setPassword(e.target.value);
-          setPasswordError('');
-          setPasswordRepeatError('');
+          clearErrors('password');
+          clearErrors('passwordRepeat');
         }}
       />
-      <FormWarningText text={passwordError} />
+      <FormWarningText text={errors.password?.message?.toString()} />
         
       <Label htmlFor="repeat-password" style={{ marginTop: '1rem' }}>Repeat Password</Label>
       <PasswordField
         id="repeat-password"
-        name="repeat-password"
-        value={passwordRepeat}
+        {...register('passwordRepeat')}
         onChange={(e) => {
-          setPasswordRepeat(e.target.value);
-          setPasswordError('');
-          setPasswordRepeatError('');
+          clearErrors('password');
+          clearErrors('passwordRepeat');
         }}
       />
-      <FormWarningText text={passwordRepeatError} />
+      <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
-      <Button 
-        style={{ marginTop: '1.5rem' }}
-        onClick={onSubmit}
-      >
-          Sign Up
+      <Button type="submit" style={{ marginTop: '1.5rem' }}>
+        Sign Up
       </Button>
-    </div>
+    </form>
   );
 }

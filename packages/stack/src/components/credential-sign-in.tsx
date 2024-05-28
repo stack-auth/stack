@@ -1,80 +1,60 @@
 'use client';
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import FormWarningText from "./form-warning";
 import PasswordField from "./password-field";
-import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { Button, Input, Label, Link } from "../components-core";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+
+const schema = yup.object().shape({
+  email: yup.string().email('Please enter a valid email').required('Please enter your email'),
+  password: yup.string().required('Please enter your password')
+});
 
 export default function CredentialSignIn() {
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
+    resolver: yupResolver(schema)
+  });
   const app = useStackApp();
-  
-  const onSubmit = async () => {
-    if (!email) {
-      setEmailError('Please enter your email');
-      return;
-    }
-    if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email');
-      return;
-    }
-    if (!password) {
-      setPasswordError('Please enter your password');
-      return;
-    }
-    
-    const error = await app.signInWithCredential({ email, password });
 
-    if (error instanceof KnownErrors.EmailPasswordMismatch) {
-      setPasswordError('Wrong email or password');
-    } else if (error) {
-      setEmailError(`An error occurred. ${error.message}`);
-    }
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    const { email, password } = data;
+
+    const error = await app.signInWithCredential({ email, password });
+    setError('email', { type: 'manual', message: error?.message });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+    <form 
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+      noValidate
+    >
       <Label htmlFor="email">Email</Label>
       <Input
         id="email"
         type="email"
-        name="email"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-          setEmailError('');
-        }}
+        {...register('email')}
       />
-      <FormWarningText text={emailError} />
+      <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
       <PasswordField
         id="password"
-        name="password"
-        value={password}
-        onChange={(e) => {
-          setPassword(e.target.value);
-          setPasswordError('');
-        }}
+        {...register('password')}
       />
-      <FormWarningText text={passwordError} />
+      <FormWarningText text={errors.password?.message?.toString()} />
 
       <Link href={app.urls.forgotPassword} size='sm' style={{ marginTop: '0.5rem' }}>
         Forgot password?
       </Link>
 
-      <Button
-        style={{ marginTop: '1.5rem' }}
-        onClick={onSubmit}
-      >
-          Sign In
+      <Button type="submit" style={{ marginTop: '1.5rem' }}>
+        Sign In
       </Button>
-    </div>
+    </form>
   );
 }
