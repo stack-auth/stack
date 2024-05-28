@@ -18,7 +18,7 @@ export function SingleToggleGroup(props: {
         className="flex"
       >
         {props.items.map(item => (
-          <ToggleGroupItem value={item.value} className='flex-1' key={item.value} variant='outline'>
+          <ToggleGroupItem value={item.value} className='flex-1' key={item.value} variant='outline' size='sm'>
             {item.label}
           </ToggleGroupItem>
         ))}

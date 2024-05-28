@@ -49,7 +49,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
       return (
         <button
           onClick={handleClickOpen}
-          className="border border-cadet-400 w-8 min-w-8 h-8 rounded bg-white"
+          className="border border-cadet-400 w-7 min-w-7 h-7 rounded bg-white"
           style={{ backgroundColor: value }}
         />
       );
@@ -57,7 +57,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
     return (
       <button
         onClick={handleClickOpen}
-        className="border border-cadet-400 w-8 min-w-8 h-8rounded bg-white flex items-center justify-center"
+        className="border border-cadet-400 w-7 min-w-7 h-7 rounded bg-white flex items-center justify-center"
       >
         <Plus className='h-4 w-4' />
       </button>
@@ -67,7 +67,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
   return (
     <div className="flex flex-col items-start">
       <Label className="mb-2">{label}</Label>
-      <div className="flex space-x-2">
+      <div className="flex gap-2 items-center">
         {renderOpenButton()}
         <HexColorInput
           prefixed
@@ -76,7 +76,7 @@ export default function ColorInput({ label, defaultValue, onChange, nullable }: 
             setValue(v);
             onChange(v);
           }}
-          className="p-1 border rounded text-sm"
+          className="flex w-24 h-7 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         {renderResetButton()}
       </div>
