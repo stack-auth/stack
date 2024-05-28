@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import {
   Select,
   SelectContent,
@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { useMemo } from "react";
 
 export function ProjectAvatar(props: { displayName: string }) {

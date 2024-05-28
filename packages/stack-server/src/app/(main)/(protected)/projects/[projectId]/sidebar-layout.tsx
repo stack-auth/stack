@@ -1,5 +1,5 @@
-'use client';;
-import Link from "next/link";
+'use client';
+
 import {
   Book,
   KeyRound,
@@ -18,7 +18,7 @@ import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Project, UserButton, useUser } from "@stackframe/stack";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import {
   Breadcrumb,
@@ -31,14 +31,19 @@ import { ProjectSwitcher } from "@/components/project-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
+import { useAdminApp } from "./use-admin-app";
+import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
+import { Link } from "@/components/link";
+
+type BreadcrumbItem = { item: React.ReactNode, href: string }
 
 type Label = {
-  name: string,
+  name: React.ReactNode,
   type: 'label',
 };
 
 type Item = {
-  name: string,
+  name: React.ReactNode,
   href: string,
   icon: LucideIcon,
   regex: RegExp,
@@ -46,7 +51,7 @@ type Item = {
 };
 
 type Hidden = {
-  name: string | string[],
+  name: BreadcrumbItem[] | ((pathname: string) => BreadcrumbItem[]),
   regex: RegExp,
   type: 'hidden',
 };
@@ -82,7 +87,23 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
-    name: ["Teams", "Members"],
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/teams\/([^\/]+)$/);
+      let item;
+      let href;
+      if (match) {
+        item = <TeamMemberBreadcrumbItem key='team-display-name' teamId={match[1]} />;
+        href = `/teams/${match[1]}`;
+      } else {
+        item = "Members";
+        href = "";
+      }
+
+      return [
+        { item: "Teams", href: "/teams" },
+        { item, href },
+      ];
+    },
     regex: /^\/projects\/[^\/]+\/teams\/[^\/]+$/,
     type: "hidden",
   },
@@ -119,6 +140,26 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/emails\/templates\/([^\/]+)$/);
+      let item;
+      let href;
+      if (match && match[1] in EMAIL_TEMPLATES_METADATA) {
+        item = EMAIL_TEMPLATES_METADATA[match[1] as keyof typeof EMAIL_TEMPLATES_METADATA].label;
+        href = `/emails/templates/${match[1]}`;
+      } else {
+        item = "Templates";
+        href = "";
+      }
+      return [
+        { item: "Emails", href: "/emails" },
+        { item, href },
+      ];
+    },
+    regex: /^\/projects\/[^\/]+\/emails\/templates\/[^\/]+$/,
+    type: 'hidden',
+  },
+  {
     name: "API Keys",
     href: "/api-keys",
     regex: /^\/projects\/[^\/]+\/api-keys$/,
@@ -134,7 +175,18 @@ const navigationItems: (Label | Item | Hidden)[] = [
   }
 ];
 
-export function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
+function TeamMemberBreadcrumbItem(props: { teamId: string }) {
+  const stackAdminApp = useAdminApp();
+  const team = stackAdminApp.useTeam(props.teamId);
+
+  if (!team) {
+    return null;
+  } else {
+    return team.displayName;
+  }
+}
+
+function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -157,7 +209,7 @@ export function NavItem({ item, href, onClick }: { item: Item, href: string, onC
   );
 }
 
-export function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
+function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full items-stretch">
       <div className="h-14 border-b flex items-center px-2 shrink-0">
@@ -196,7 +248,7 @@ export function SidebarContent({ projectId, onNavigate }: { projectId: string, o
   );
 }
 
-export function HeaderBreadcrumb({ 
+function HeaderBreadcrumb({ 
   mobile,
   projectId 
 }: { 
@@ -207,23 +259,34 @@ export function HeaderBreadcrumb({
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
 
-  const selectedItemNames: string[] = useMemo(() => {
-    const name = navigationItems.find((item) => {
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const item = navigationItems.find((item) => {
       if (item.type === 'label') {
         return false;
       } else {
         return item.regex.test(pathname);
       }
-    })?.name;
+    });
+    const name = item?.name;
 
+    let results: BreadcrumbItem[];
     if (!name) {
-      return [];
+      results = [];
     } else if (name instanceof Array) {
-      return name;
+      results = name;
+    } else if (typeof name === 'function') {
+      results = name(pathname);
     } else {
-      return [name];
+      results = [{
+        item: name,
+        href: (item as any)?.href,
+      }];
     }
-  }, [pathname]);
+    return results.map((item) => ({
+      item: item.item,
+      href: `/projects/${projectId}${item.href}`,
+    }));
+  }, [pathname, projectId]);
 
   const selectedProject: Project | undefined = useMemo(() => {
     return projects.find((project) => project.id === projectId);
@@ -251,13 +314,21 @@ export function HeaderBreadcrumb({
             <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          {selectedItemNames.map((name, index) => (
-            index < selectedItemNames.length - 1 ?
+          {breadcrumbItems.map((name, index) => (
+            index < breadcrumbItems.length - 1 ?
               <Fragment key={index}>
-                <BreadcrumbItem>{name}</BreadcrumbItem>
+                <BreadcrumbItem>
+                  <Link href={name.href}>
+                    {name.item}
+                  </Link>
+                </BreadcrumbItem>
                 <BreadcrumbSeparator/>
               </Fragment> :
-              <BreadcrumbPage key={index}>{name}</BreadcrumbPage>
+              <BreadcrumbPage key={index}>
+                <Link href={name.href}>
+                  {name.item}
+                </Link>
+              </BreadcrumbPage>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
@@ -274,8 +345,8 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
       <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
         <SidebarContent projectId={props.projectId} />
       </div>
-      <div className="flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
+      <div className="flex flex-col flex-grow w-0">
+        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
           <div className="hidden md:flex">
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
@@ -302,7 +373,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>
-        <div className="py-4 px-4 md:px-6">
+        <div className="flex-grow">
           {props.children}
         </div>
       </div>

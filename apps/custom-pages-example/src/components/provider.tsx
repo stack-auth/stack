@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { StackTheme } from "@stackframe/stack";
 
 export default function Provider({ children }) {

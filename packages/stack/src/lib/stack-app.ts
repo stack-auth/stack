@@ -17,7 +17,8 @@ import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/sta
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
@@ -1004,6 +1005,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, type, direct]) => {
     return await this._interface.listTeamMemberPermissions({ teamId, userId, type, direct });
   });
+  private readonly _serverEmailTemplatesCache = createCache(async () => {
+    return await this._interface.listEmailTemplates();
+  });
 
 
   constructor(options: 
@@ -1367,6 +1371,24 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       super._refreshUsers(),
       this._serverUsersCache.refresh([]),
     ]);
+  }
+
+  useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'] {
+    return useCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
+  }
+
+  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
+    return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+    await this._interface.updateEmailTemplate(type, data);
+    await this._serverEmailTemplatesCache.refresh([]);
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType) {
+    await this._interface.resetEmailTemplate(type);
+    await this._serverEmailTemplatesCache.refresh([]);
   }
 }
 
@@ -1791,6 +1813,10 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deletePermissionDefinition(permissionId: string): Promise<void>,
     listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
     usePermissionDefinitions(): ServerPermissionDefinitionJson[],
+    useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'],
+    listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']>,
+    updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void>,
+    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
   }
   & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
   & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>

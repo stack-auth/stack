@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useState } from "react";
 import FormWarningText from "./form-warning";
 import { validateEmail } from "../utils/email";

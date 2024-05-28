@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import * as yup from "yup";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { useState } from "react";

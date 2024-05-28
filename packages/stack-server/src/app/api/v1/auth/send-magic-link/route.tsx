@@ -6,7 +6,7 @@ import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { sendMagicLink } from "@/email";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { validateUrl } from "@/utils/url";
+import { validateUrl } from "@/lib/utils";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { createTeamOnSignUp } from "@/lib/users";

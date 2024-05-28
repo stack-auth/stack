@@ -7,7 +7,7 @@ export function PageLayout(props: {
   actions?: React.ReactNode,
 }) {
   return (
-    <>
+    <div className="py-4 px-4 md:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
         <div>
           <Typography type="h2">
@@ -24,6 +24,6 @@ export function PageLayout(props: {
       <div className="mt-4 flex flex-col gap-4">
         {props.children}
       </div>
-    </>
+    </div>
   );
 }

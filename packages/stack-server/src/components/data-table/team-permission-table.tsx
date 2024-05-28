@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useState } from "react";
 import * as yup from "yup";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";

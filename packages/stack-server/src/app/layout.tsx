@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
+import { RouterProvider } from '@/components/router';
 
 export const metadata: Metadata = {
   title: {
@@ -85,7 +86,9 @@ export default function RootLayout({
         <ThemeProvider>
           <StackProvider app={stackServerApp}>
             <StackTheme theme={theme}>
-              {children}
+              <RouterProvider>
+                {children}
+              </RouterProvider>
             </StackTheme>
           </StackProvider>
         </ThemeProvider>

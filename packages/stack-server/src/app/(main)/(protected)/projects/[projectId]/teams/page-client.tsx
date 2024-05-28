@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { TeamTable } from "@/components/data-table/team-table";

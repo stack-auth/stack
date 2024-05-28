@@ -1,7 +1,6 @@
-import { Logo } from "@/components/logo";
+import { Link } from "@/components/link";
 import { Separator } from "@/components/ui/separator";
 import { Text } from "@stackframe/stack";
-import Link from "next/link";
 import { FaDiscord, FaGithub, FaLinkedin } from "react-icons/fa";
 
 export default function Footer () {

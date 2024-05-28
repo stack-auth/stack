@@ -1,8 +1,8 @@
-'use client';;
+'use client';
 import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
 import { Project } from '@stackframe/stack';
 import { useFromNow } from '@/hooks/use-from-now';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/components/router";
 import Typography from './ui/typography';
 
 export function ProjectCard({ project }: { project: Project }) {

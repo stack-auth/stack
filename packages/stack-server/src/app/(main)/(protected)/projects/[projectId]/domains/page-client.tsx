@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import * as yup from "yup";
 import React, { useMemo } from "react";
 import { ActionDialog } from "@/components/action-dialog";

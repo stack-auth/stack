@@ -1,9 +1,9 @@
-"use client";;
+"use client";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { FormSettingCard, SettingCard, SettingInput, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
-import { Link } from "@/components/link";
+import { StyledLink } from "@/components/link";
 import * as yup from "yup";
 import { InputField } from "@/components/form-fields";
 import Typography from "@/components/ui/typography";
@@ -39,7 +39,7 @@ export default function PageClient() {
             <ul className="mt-2 list-disc pl-5">
               {productionModeErrors.map((error) => (
                 <li key={error.errorMessage}>
-                  {error.errorMessage} (<Link href={error.fixUrlRelative}>show configuration</Link>)
+                  {error.errorMessage} (<StyledLink href={error.fixUrlRelative}>show configuration</StyledLink>)
                 </li>
               ))}
             </ul>
