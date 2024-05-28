@@ -54,7 +54,7 @@ export default function OAuthButton({
     case 'github': {
       style = {
         backgroundColor: '#111',
-        border: '1px solid #444',
+        border: '1px solid #262626',
         name: 'GitHub',
         icon: (
           <FaGithub color="#fff" size={iconSize} />
@@ -113,7 +113,7 @@ export default function OAuthButton({
       style={{ border: style.border }}
       onClick={() => stackApp.signInWithOAuth(provider)}
     >
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem' }}>
         {style.icon}
         <span style={{ flexGrow: 1 }}>{type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
       </div>
