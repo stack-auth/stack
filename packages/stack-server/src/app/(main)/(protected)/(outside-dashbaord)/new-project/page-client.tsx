@@ -109,8 +109,7 @@ export default function PageClient () {
       <div className="w-1/2 self-stretch p-4 bg-zinc-300 dark:bg-zinc-800 hidden md:flex">
         {mockProject ? 
           (
-            // The inert attribute is not available in typescript, so this is a hack to make type works
-            <div className='w-full sm:max-w-sm m-auto scale-90' {...{ inert: '' }}>
+            <div className='w-full sm:max-w-sm m-auto scale-90' inert=''>
               {/* a transparent cover that prevents the card being clicked */}
               <div className="absolute inset-0 bg-transparent z-10"></div>
               <Card className="p-6">
