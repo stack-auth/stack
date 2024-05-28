@@ -1,56 +1,58 @@
 'use client';
+
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import FormWarningText from "./form-warning";
-import { validateEmail } from "../utils/email";
 import { useStackApp } from "..";
 import { Button, Input, Label } from "../components-core";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+
+const schema = yup.object().shape({
+  email: yup.string().email('Please enter a valid email').required('Please enter your email')
+});
 
 export default function MagicLinkSignIn() {
-  const [email, setEmail] = useState('');
+  const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
+    resolver: yupResolver(schema)
+  });
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
   const app = useStackApp();
-  
-  const onSubmit = async () => {
-    if (!email) {
-      setError('Please enter your email');
-      return;
-    }
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email');
-      return;
-    }
+
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    const { email } = data;
 
     const error = await app.sendMagicLinkEmail(email);
     if (error) {
-      setError(error.message);
+      setError('email', { type: 'manual', message: error.message });
       return;
     }
     setSent(true);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+    <form 
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+      noValidate
+    >
       <Label htmlFor="email">Email</Label>
       <Input
         id="email"
         type="email"
-        name="email"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value);
-          setError('');
-        }}
+        {...register('email')}
+        disabled={sent}
       />
-      <FormWarningText text={error} />
+      <FormWarningText text={errors.email?.message?.toString()} />
 
       <Button
         disabled={sent}
         style={{ marginTop: '1.5rem' }}
-        onClick={onSubmit}
+        type="submit"
       >
         {sent ? 'Email sent' : 'Send magic link'}
       </Button>
-    </div>
+    </form>
   );
 }

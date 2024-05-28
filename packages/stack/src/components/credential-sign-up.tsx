@@ -7,7 +7,6 @@ import PasswordField from "./password-field";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
 import { Label, Input, Button } from "../components-core";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
@@ -36,12 +35,7 @@ export default function CredentialSignUp() {
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
     const { email, password } = data;
     const error = await app.signUpWithCredential({ email, password });
-    
-    if (error instanceof KnownErrors.UserEmailAlreadyExists) {
-      setError('email', { type: 'manual', message: 'User already exists' });
-    } else if (error) {
-      setError('email', { type: 'manual', message: `An error occurred. ${error.message}` });
-    }
+    setError('email', { type: 'manual', message: error?.message });
   };
 
   return (
@@ -55,7 +49,6 @@ export default function CredentialSignUp() {
         id="email"
         type="email"
         {...register('email')}
-        onChange={(e) => clearErrors('email')}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 

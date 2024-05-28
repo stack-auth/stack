@@ -7,7 +7,6 @@ import FormWarningText from "./form-warning";
 import PasswordField from "./password-field";
 import { useStackApp } from "..";
 import { Button, Input, Label, Link } from "../components-core";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 const schema = yup.object().shape({
@@ -25,12 +24,7 @@ export default function CredentialSignIn() {
     const { email, password } = data;
 
     const error = await app.signInWithCredential({ email, password });
-
-    if (error instanceof KnownErrors.EmailPasswordMismatch) {
-      setError('password', { type: 'manual', message: 'Wrong email or password' });
-    } else if (error) {
-      setError('email', { type: 'manual', message: `An error occurred. ${error.message}` });
-    }
+    setError('email', { type: 'manual', message: error?.message });
   };
 
   return (
@@ -44,7 +38,6 @@ export default function CredentialSignIn() {
         id="email"
         type="email"
         {...register('email')}
-        onChange={(e) => clearErrors('email')}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
@@ -52,7 +45,6 @@ export default function CredentialSignIn() {
       <PasswordField
         id="password"
         {...register('password')}
-        onChange={(e) => clearErrors('password')}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
 
