@@ -56,10 +56,10 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserTeams() {
-      const user = await stackApp.getUser({ or: 'redirect' });
+      const user = await stackServerApp.getUser({ or: 'redirect' });
       const teams = await user.listTeams();
 
       return <div>
@@ -94,10 +94,10 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserTeam(props: { teamId: string }) {
-      const user = await stackApp.getUser({ or: 'redirect' });
+      const user = await stackServerApp.getUser({ or: 'redirect' });
       const team = await user.getTeam(props.teamId);
 
       return <div>
@@ -182,10 +182,10 @@ You can check if a user has a specific permission by using the `getPermission` m
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function CheckUserPermission() {
-      const user = await stackApp.getUser({ or: 'redirect' });
+      const user = await stackServerApp.getUser({ or: 'redirect' });
       const permission = await user.getPermission('read');
 
       // This is a server side check, so it's secure
@@ -221,10 +221,10 @@ To get all permissions a user has, use the `listPermissions` method or `usePermi
 
   <TabItem value="server" label="Server Component">
     ```tsx
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserPermissions() {
-      const user = await stackApp.getUser({ or: 'redirect' });
+      const user = await stackServerApp.getUser({ or: 'redirect' });
       const permissions = await user.listPermissions();
 
       return <div>
