@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { TEditorBlock } from '../../../../editor/core';
 import BlocksPopover from './blocks-menu';
 import { CirclePlus } from 'lucide-react';

@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { FormSettingCard, SettingCard, SettingInput, SettingSwitch } from "@/components/settings";

@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { ServerTeam, ServerTeamMember, ServerUser } from '@stackframe/stack';

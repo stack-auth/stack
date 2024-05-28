@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { ActionDialog } from "@/components/action-dialog";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";

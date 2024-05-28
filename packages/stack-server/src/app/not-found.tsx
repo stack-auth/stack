@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 
 import { useIsHydrated } from "@/hooks/use-is-hydrated";
 import ErrorPage from "@/components/ui/error-page";

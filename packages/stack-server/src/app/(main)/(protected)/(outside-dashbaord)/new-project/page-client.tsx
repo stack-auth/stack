@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { AuthPage, useUser } from "@stackframe/stack";
 import * as yup from "yup";
 import { Separator } from "@/components/ui/separator";

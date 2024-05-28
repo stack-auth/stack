@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import React from "react";
 import * as yup from "yup";
 import { useAdminApp } from "../use-admin-app";

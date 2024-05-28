@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import * as yup from "yup";
 import { useEffect, useId, useState } from "react";
 import { ActionDialog, ActionDialogProps } from "@/components/action-dialog";

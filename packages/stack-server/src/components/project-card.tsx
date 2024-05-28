@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
 import { Project } from '@stackframe/stack';
 import { useFromNow } from '@/hooks/use-from-now';
