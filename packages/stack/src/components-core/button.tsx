@@ -81,6 +81,7 @@ export type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'warning',
   color?: string,
   size?: 'sm' | 'md' | 'lg',
+  type?: 'button' | 'submit' | 'reset',
   loading?: boolean,
   onClick?: (() => void) | (() => Promise<void>),
 } & Omit<React.HTMLProps<HTMLButtonElement>, 'size' | 'type' | 'onClick'>
