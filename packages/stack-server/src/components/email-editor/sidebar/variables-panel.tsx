@@ -9,7 +9,7 @@ export default function VariablesPanel() {
   const metadata = useMetadata();
 
   return (
-    <BaseSidebarPanel title="Variables" tooltip='Variables can be used like {{ var }} in the strings. Mustache syntax is supported. Example values are shown in the preview.'>
+    <BaseSidebarPanel title="Variables" tooltip='Variables can be used like {{ var }} in the strings. Handlebars syntax is supported. Example values are shown in the preview.'>
       {metadata.variables.map((variable) => (
         <div key={variable.name} className="pb-2 border-b">
           <div className="flex items-center justify-between mt-1">

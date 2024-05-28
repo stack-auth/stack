@@ -20,7 +20,7 @@ export const magicLinkTemplate: TEditorConfiguration = {
   "block_xyg4GWmgGbJJEDRQc76bC": {
     "data": {
       "props": {
-        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to sign in."
+        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to sign in."
       },
       "style": {
         "color": "#474849",

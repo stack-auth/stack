@@ -20,7 +20,7 @@ export const passwordResetTemplate: TEditorConfiguration = {
   "block_xyg4GWmgGbJJEDRQc76bC": {
     "data": {
       "props": {
-        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to start the password reset process."
+        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to start the password reset process."
       },
       "style": {
         "color": "#474849",

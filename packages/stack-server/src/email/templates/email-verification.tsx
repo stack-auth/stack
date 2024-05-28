@@ -35,7 +35,7 @@ export const emailVerificationTemplate: TEditorConfiguration = {
         }
       },
       "props": {
-        "text": "Hi{{#userDisplayName}}, {{ userDisplayName }}{{/userDisplayName}}! Please click on the following button to verify your email.\n"
+        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to verify your email.\n"
       }
     }
   },

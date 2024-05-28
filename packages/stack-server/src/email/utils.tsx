@@ -108,6 +108,14 @@ export function objectStringMap<T extends NestedObject>(obj: T, func: (s: string
   return mapStrings(obj) as T;
 }
 
+function renderString(str: string, variables: Record<string, string | null>) {
+  try {
+    return Handlebars.compile(str, {noEscape: true})(variables);
+  } catch (e) {
+    return str;
+  }
+}
+
 export function convertEmailTemplateMetadataExampleValues(
   metadata: EmailTemplateMetadata,
   project: { displayName: string },
@@ -115,7 +123,7 @@ export function convertEmailTemplateMetadataExampleValues(
   const variables = metadata.variables.map((variable) => {
     return {
       ...variable,
-      example: Handlebars.compile(variable.example, {noEscape: true})({ projectDisplayName: project.displayName }),
+      example: renderString(variable.example, { projectDisplayName: project.displayName }),
     };
   });
   return {
@@ -130,7 +138,7 @@ export function convertEmailTemplateVariables(
 ): TEditorConfiguration {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return objectStringMap(content, (str) => {
-    return Handlebars.compile(str, {noEscape: true})(vars);
+    return renderString(str, vars);
   });
 }
 
@@ -139,7 +147,7 @@ export function convertEmailSubjectVariables(
   variables: EmailTemplateVariable[],
 ): string {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
-  return Handlebars.compile(subject, {noEscape: true})(vars);
+  return renderString(subject, vars);
 }
 
 export function renderEmailTemplate(
@@ -148,9 +156,9 @@ export function renderEmailTemplate(
   variables: Record<string, string | null>,
 ) {
   const mergedTemplate = objectStringMap(content, (str) => {
-    return Handlebars.compile(str, {noEscape: true})(variables);
+    return renderString(str, variables);
   });
-  const mergedSubject = Handlebars.compile(subject, {noEscape: true})(variables);
+  const mergedSubject = renderString(subject, variables);
 
   const component = (    
     <Html>
