@@ -4,12 +4,13 @@ import * as React from "react";
 import styled from "styled-components";
 import { useDesign } from "..";
 import { ColorPalette } from "../providers/design-provider";
+import { SHADOW } from "../utils/constants";
 
 const StyledCard = styled.div<{ 
   $colors: ColorPalette,
 }>`
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  border-radius: 0.75rem;
+  box-shadow: ${SHADOW};
   padding: 1.5rem;
 
   border: 1px solid ${props => props.$colors.light.neutralColor};
@@ -24,7 +25,6 @@ const StyledCard = styled.div<{
 const StyledCardHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
   margin-bottom: 1.5rem;
 `;
 

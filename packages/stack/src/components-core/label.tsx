@@ -4,15 +4,13 @@ import React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import styled from 'styled-components';
 import { FONT_FAMILY, FONT_SIZES, SECONDARY_FONT_COLORS } from "../utils/constants";
-import { useDesign } from "../providers/design-provider";
 
 const Primitive = styled(LabelPrimitive.Root)`
   font-size: ${FONT_SIZES.sm};
-  line-height: 1;
-  font-weight: 500;
+  line-height: 1.5rem;
+  font-weight: 400;
   font-family: ${FONT_FAMILY};
   display: block;
-  margin-bottom: 0.5rem;
 
   color: ${SECONDARY_FONT_COLORS.light};
 

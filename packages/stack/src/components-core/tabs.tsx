@@ -3,15 +3,16 @@ import * as TabsPrimitive from '@radix-ui/react-tabs';
 import styled from 'styled-components';
 import { Text, useDesign } from '..';
 import { ColorPalette } from '../providers/design-provider';
+import { FONT_SIZES, SHADOW } from '../utils/constants';
 
 const Tabs = TabsPrimitive.Root;
 
 const StyledTabsList = styled(TabsPrimitive.List)`
   display: flex;
-  height: 2.5rem
+  height: 2.25rem
   align-items: center;
   justify-content: center;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   padding: 0.25rem;
 
   background-color: rgb(244, 244, 245);
@@ -40,10 +41,13 @@ const StyledTabsTrigger = styled(TabsPrimitive.Trigger)<{
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
   transition: all;
   outline: none;
+  font-size: ${FONT_SIZES.sm};
+  font-weight: 500;
+  box-shadow: ${SHADOW};
 
   &:disabled {
     pointer-events: none;
@@ -71,7 +75,7 @@ const TabsTrigger = React.forwardRef<
     {...props} 
     ref={ref} 
   >
-    <Text>{children}</Text>
+    {children}
   </StyledTabsTrigger>;
 });
 

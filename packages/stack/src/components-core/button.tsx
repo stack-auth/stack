@@ -3,9 +3,9 @@
 import React, { useMemo } from "react";
 import { useDesign } from "../providers/design-provider";
 import Color from 'color';
-import styled from 'styled-components';
-import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES } from "../utils/constants";
-import LoadingIndicator from "./loading-indicator";
+import styled, { keyframes } from 'styled-components';
+import { FONT_FAMILY, FONT_SIZES, LINE_HEIGHTS } from "../utils/constants";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 function getColors({
   propsColor, 
@@ -101,28 +101,30 @@ const StyledButton = styled.button<{
     light: ButtonColors,
   },
 }>`
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   border: 0;
-  border-radius: ${BORDER_RADIUS};
+  border-radius: 0.375rem;
+  font-family: ${FONT_FAMILY};
+  font-size: ${FONT_SIZES.sm};
+  font-weight: 500;
+  line-height: ${LINE_HEIGHTS.sm};
+  cursor: pointer;
   padding: ${props => {
     switch (props.$size) {
       case 'sm': { return '0rem 0.75rem'; }
-      case 'md': { return '0rem 1rem'; }
-      case 'lg': { return '0rem 2rem'; }
+      case 'md': { return '0.5rem 1rem'; }
+      case 'lg': { return '0.5rem 2rem'; }
     }
   }};
   height: ${props => {
     switch (props.$size) {
       case 'sm': { return '2rem'; }
-      case 'md': { return '2.5rem'; }
-      case 'lg': { return '3rem'; }
+      case 'md': { return '2.25rem;'; }
+      case 'lg': { return '2.5rem;'; }
     }
   }};
-  font-family: ${FONT_FAMILY};
-  font-size: ${FONT_SIZES.md};
-  opacity: ${props => props.disabled ? 0.5 : 1};
-  transition: background-color 0.05s;
-  cursor: pointer;
-  position: relative;
   &:disabled {
     cursor: auto;
     opacity: 0.5;
@@ -153,6 +155,22 @@ const StyledButton = styled.button<{
   }
 `;
 
+const spin = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
+
+const StyledReloadIcon = styled(ReloadIcon)`
+  margin-right: 0.5rem; /* mr-2 */
+  height: 1rem; /* h-4 */
+  width: 1rem; /* w-4 */
+  animation: ${spin} 1s linear infinite; /* animate-spin */
+`;
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({
     variant='primary',
@@ -176,13 +194,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         $loading={loading}
         $colors={{ dark, light }}
         {...props}
+        disabled={props.disabled || loading}
       >
-        <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', visibility: loading ? 'visible' : 'hidden' }}>
-          <LoadingIndicator color={{ light: light.textColor, dark: dark.textColor }}/>
-        </span>
-        <span style={{ visibility: loading ? 'hidden' : 'visible', whiteSpace: 'nowrap' }}>
-          {props.children}
-        </span>
+        {loading && <StyledReloadIcon />}
+        {props.children}
       </StyledButton>
     );
   }

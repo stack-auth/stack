@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Spinner } from "./spinner";
-import { useAsyncCallback, useAsyncCallbackWithLoggedError } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
+import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",

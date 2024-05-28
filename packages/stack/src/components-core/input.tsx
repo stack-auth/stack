@@ -3,7 +3,7 @@
 import React from "react";
 import { ColorPalette, useDesign } from "../providers/design-provider";
 import styled from 'styled-components';
-import { BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS } from "../utils/constants";
+import { FONT_FAMILY, FONT_SIZES, PRIMARY_FONT_COLORS, SECONDARY_FONT_COLORS, SHADOW } from "../utils/constants";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<React.HTMLProps<HTMLInputElement>, 'ref'>
 
@@ -11,13 +11,17 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & Pick<React.HTMLP
 const StyledInput = styled.input<{
   $colors: ColorPalette,
 }>`
+  display: flex;
   font-family: ${FONT_FAMILY};
-  font-size: ${FONT_SIZES.md};
-  height: 2.5rem;
-  border-radius: ${BORDER_RADIUS};
+  font-size: ${FONT_SIZES.sm};
+  border-radius: 0.375rem;
+  box-shadow: ${SHADOW};
+  width: 100%;
+  line-height: 1.25rem;
+  height: 2.25rem;
   background-color: transparent;
   border: 1px solid;
-  padding: 0rem 1rem;
+  padding: 0.25rem 0.75rem;
   &:disabled {
     cursor: auto;
     opacity: 0.5;
@@ -37,7 +41,7 @@ const StyledInput = styled.input<{
   }
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px ${props => props.$colors.light.primaryColor};
+    box-shadow: 0 0 0 1px ${props => props.$colors.light.primaryColor};
   }
   &[type=file] {
     color: ${SECONDARY_FONT_COLORS.light};
@@ -54,7 +58,7 @@ const StyledInput = styled.input<{
     }
     &:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px ${props => props.$colors.dark.primaryColor};
+      box-shadow: 0 0 0 1px ${props => props.$colors.dark.primaryColor};
     }
     &[type=file] {
       color: ${SECONDARY_FONT_COLORS.dark};

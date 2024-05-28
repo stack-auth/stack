@@ -21,11 +21,11 @@ function SettingSection(props: {
   return (
     <Card>
       <CardHeader>
-        <Text size='xl' as='h2'>{props.title}</Text>
-        <Text variant='secondary'>{props.desc}</Text>
+        <Text as='h3' style={{ fontWeight: 500 }}>{props.title}</Text>
+        <Text variant='secondary' size='sm'>{props.desc}</Text>
       </CardHeader>
       {props.children && <CardContent>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {props.children}
         </div>
       </CardContent>}
@@ -61,9 +61,9 @@ function ProfileSection() {
       }}
     >
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <UserAvatar user={user} size={60}/>
+        <UserAvatar user={user} size={50}/>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Text size='lg'>{user?.displayName}</Text>
+          <Text>{user?.displayName}</Text>
           <Text variant='secondary' size='sm'>{user?.primaryEmail}</Text>
         </div>
       </div>
@@ -198,10 +198,10 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
   }
 
   const inner = (
-    <div style={{ padding: fullPage ? '1rem' : 0, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ padding: fullPage ? '1rem' : 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
-        <Text size="xl" as='h2' style={{ marginBottom: '0.5rem', fontWeight: '700' }}>Account Settings</Text>
-        <Text variant='secondary'>Manage your account</Text>
+        <Text size="xl" as='h1' style={{ fontWeight: '600' }}>Account Settings</Text>
+        <Text variant='secondary' size='sm'>Manage your account</Text>
       </div>
       
       <ProfileSection />

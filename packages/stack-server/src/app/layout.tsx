@@ -35,23 +35,6 @@ type TagConfigJson = {
   innerHTML: string,
 };
 
-const theme = {
-  colors: {
-    dark: {
-      primaryColor: '#fff',
-      secondaryColor: '#444',
-      backgroundColor: 'black',
-      neutralColor: '#27272a',
-    },
-    light: {
-      primaryColor: '#000',
-      secondaryColor: '#ccc',
-      backgroundColor: 'white',
-      neutralColor: '#e4e4e7',
-    },
-  },
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -85,7 +68,7 @@ export default function RootLayout({
         <Analytics />
         <ThemeProvider>
           <StackProvider app={stackServerApp}>
-            <StackTheme theme={theme}>
+            <StackTheme>
               <RouterProvider>
                 {children}
               </RouterProvider>
