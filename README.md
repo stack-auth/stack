@@ -44,6 +44,7 @@ We all know how much overhead there is when starting a new project. Developers n
 - [x] Teams [8. May 2024]
 - [x] Permissions [10. May 2024]
 - [x] New dashboard with Shadcn UI [16. May 2024]
+- [x] Email template editor [28. May 2024] 
 - [ ] User analytics (retention, DAU/MAU, user segements, etc.)
 - [ ] Feature-rich email/notification system
 - [ ] Vue.js, Htmx, and Svelte support
