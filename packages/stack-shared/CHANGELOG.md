@@ -1,5 +1,11 @@
 # @stackframe/stack-shared
 
+## 2.4.11
+
+### Patch Changes
+
+- Added email editor
+
 ## 2.4.10
 
 ### Patch Changes

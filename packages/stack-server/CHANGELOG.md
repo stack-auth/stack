@@ -1,5 +1,14 @@
 # @stackframe/stack-server
 
+## 0.4.15
+
+### Patch Changes
+
+- Added email editor
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.11
+  - @stackframe/stack@2.4.14
+
 ## 0.4.14
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # demo-app
 
+## 1.1.14
+
+### Patch Changes
+
+- Added email editor
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.11
+  - @stackframe/stack@2.4.14
+
 ## 1.1.13
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # cjs-test
 
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.14
+
 ## 0.2.13
 
 ### Patch Changes
