@@ -21,7 +21,7 @@ function SettingSection(props: {
   return (
     <Card>
       <CardHeader>
-        <Text as='h3'>{props.title}</Text>
+        <Text as='h3' style={{ fontWeight: 500 }}>{props.title}</Text>
         <Text variant='secondary' size='sm'>{props.desc}</Text>
       </CardHeader>
       {props.children && <CardContent>
