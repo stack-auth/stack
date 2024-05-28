@@ -44,7 +44,7 @@ export const emailVerificationTemplate: TEditorConfiguration = {
       "props": {
         "url": "{{ emailVerificationLink }}",
         "size": "medium",
-        "text": "Verify this email",
+        "text": "Verify my email",
         "fullWidth": false,
         "buttonStyle": "rounded",
         "buttonTextColor": "#FFFFFF",

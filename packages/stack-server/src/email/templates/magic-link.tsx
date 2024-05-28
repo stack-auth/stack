@@ -44,7 +44,7 @@ export const magicLinkTemplate: TEditorConfiguration = {
       "props": {
         "url": "{{ magicLink }}",
         "size": "medium",
-        "text": "Sign In",
+        "text": "Sign in",
         "fullWidth": false,
         "buttonStyle": "rounded",
         "buttonTextColor": "#FFFFFF",
