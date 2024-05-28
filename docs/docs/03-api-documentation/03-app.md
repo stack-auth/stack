@@ -12,13 +12,13 @@ sidebar_position: 1
 
 ## Initialization
 
-We showed in the [setup guide](../01-getting-started/02-setup.md) that you can create a `StackServerApp` in a file like `lib/stack.ts` like this:
+We showed in the [setup guide](../01-getting-started/02-setup.md) that you can create a `StackServerApp` in a file like `stack.ts` like this:
 
 ```tsx
 import "server-only";
 import { StackServerApp } from "@stackframe/stack";
 
-export const stackApp = new StackServerApp({
+export const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie", // storing auth tokens in cookies
 });
 ```
@@ -32,7 +32,7 @@ An object that contains some pre-defined URLs that Stack uses to route and redir
 Example:
 
 ```tsx
-export const stackApp = new StackServerApp({
+export const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
   urls: {
     signIn: "/custom-sign-in",

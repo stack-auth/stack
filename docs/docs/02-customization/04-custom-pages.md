@@ -21,10 +21,10 @@ export default function CustomSignInPage() {
 }
 ```
 
-Then you can instruct the Stack app in `lib/stack.ts` to use your custom sign in page:
+Then you can instruct the Stack app in `stack.ts` to use your custom sign in page:
 
 ```tsx
-export const stackApp = new StackServerApp({
+export const stackServerApp = new StackServerApp({
   // ...
   // add these three lines
   urls: {
@@ -61,10 +61,10 @@ export default function CustomOAuthSignIn() {
 }
 ```
 
-Again, edit the Stack app in `lib/stack.ts` to use your custom sign in page:
+Again, edit the Stack app in `stack.ts` to use your custom sign in page:
 
 ```tsx
-export const stackApp = new StackServerApp({
+export const stackServerApp = new StackServerApp({
   // ...
   // add these three lines
   urls: {

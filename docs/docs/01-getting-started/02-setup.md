@@ -53,14 +53,15 @@ npm install @stackframe/stack
     STACK_SECRET_SERVER_KEY=<your-secret-server-key>
     ```
 
-2. Create a new file in `lib/stack.ts` and fill it with the following:
+2. Create a new file `stack.ts` in your root directory and fill it with the following:
   
     ```tsx
     import "server-only";
     import { StackServerApp } from "@stackframe/stack";
 
-    export const stackApp = new StackServerApp({
+    export const stackServerApp = new StackServerApp({
       tokenStore: "nextjs-cookie", // storing auth tokens in cookies
+      //there is other parameter named "urls" which is covered later in the docs
     });
     ```
   
@@ -72,10 +73,10 @@ npm install @stackframe/stack
 
     ```tsx
     import { StackHandler } from "@stackframe/stack";
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default function Handler(props: any) {
-      return <StackHandler app={stackApp} {...props} />;
+      return <StackHandler app={stackServerApp} {...props} />;
     }
     ```
 
@@ -87,13 +88,13 @@ npm install @stackframe/stack
     ```tsx
     import React from "react";
     import { StackProvider, StackTheme } from "@stackframe/stack";
-    import { stackApp } from "@/lib/stack";
+    import { stackServerApp } from "@/stack";
 
     export default function RootLayout({ children }: { children: React.ReactNode }) {
       return (
         <html lang="en">
           <body>
-            <StackProvider app={stackApp}>
+            <StackProvider app={stackServerApp}>
               <StackTheme>
                 {children}
               </StackTheme>
