@@ -2,8 +2,6 @@
 import { AuthPage, useUser } from "@stackframe/stack";
 import * as yup from "yup";
 import { Separator } from "@/components/ui/separator";
-import { Card } from "@/components/ui/card";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, SwitchListField } from "@/components/form-fields";
@@ -13,6 +11,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import { toSharedProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { BrowserFrame } from "@/components/browser-frame";
+import { useForm } from "react-hook-form";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Project name is required").required(),
@@ -106,18 +106,20 @@ export default function PageClient () {
       </div>
       <Separator orientation="vertical" />
 
-      <div className="w-1/2 self-stretch p-4 bg-zinc-300 dark:bg-zinc-800 hidden md:flex">
+      <div className="w-1/2 self-stretch py-4 px-4 lg:px-20 bg-zinc-300 dark:bg-zinc-800 hidden md:flex items-center">
         {mockProject ? 
           (
-            <div className='w-full sm:max-w-sm m-auto scale-90' inert=''>
-              {/* a transparent cover that prevents the card being clicked */}
-              <div className="absolute inset-0 bg-transparent z-10"></div>
-              <Card className="p-6">
-                <AuthPage 
-                  type="sign-in" 
-                  mockProject={mockProject} 
-                />
-              </Card>
+            <div className="w-full">
+              <BrowserFrame url="your-website.com/handler/signin">
+                <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
+                  {/* a transparent cover that prevents the card being clicked */}
+                  <div className="absolute inset-0 bg-transparent z-10"></div>
+                  <AuthPage 
+                    type="sign-in" 
+                    mockProject={mockProject} 
+                  />
+                </div>
+              </BrowserFrame>
             </div>
           ): null}
       </div> 

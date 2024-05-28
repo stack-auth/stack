@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import { StackProvider } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
