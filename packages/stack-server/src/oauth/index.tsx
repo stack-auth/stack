@@ -8,6 +8,7 @@ import { OAuthBaseProvider } from "./oauth-base";
 import { GoogleProvider } from "./google";
 import { FacebookProvider } from "./facebook";
 import { MicrosoftProvider } from "./microsoft";
+import { SpotifyProvider } from "./spotify";
 
 
 function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
@@ -65,6 +66,18 @@ function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
         clientId: getEnvVariable("MICROSOFT_CLIENT_ID"),
         clientSecret: getEnvVariable("MICROSOFT_CLIENT_SECRET"),
         tenantId: getEnvVariable("MICROSOFT_TENANT_ID"),
+      });
+    }
+    case "spotify": {
+      return new SpotifyProvider({
+        clientId: provider.clientId,
+        clientSecret: provider.clientSecret,
+      });
+    }
+    case "shared-spotify": {
+      return new SpotifyProvider({
+        clientId: getEnvVariable("SPOTIFY_CLIENT_ID"),
+        clientSecret: getEnvVariable("SPOTIFY_CLIENT_SECRET"),
       });
     }
     default: {
