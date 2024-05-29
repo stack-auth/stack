@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.4.15
+
+### Patch Changes
+
+- Improved client styling, added login form, added spotify oauth
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.12
+
 ## 2.4.14
 
 ### Patch Changes

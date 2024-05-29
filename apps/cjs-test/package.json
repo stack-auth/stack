@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-cjs-test",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8106",

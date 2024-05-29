@@ -1,5 +1,14 @@
 # demo-app
 
+## 1.1.15
+
+### Patch Changes
+
+- Improved client styling, added login form, added spotify oauth
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.12
+  - @stackframe/stack@2.4.15
+
 ## 1.1.14
 
 ### Patch Changes
