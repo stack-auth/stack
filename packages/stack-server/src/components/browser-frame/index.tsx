@@ -26,7 +26,7 @@ export const BrowserFrame = ({ url, padding, children }: Props) => (
         <span className="h-0.5 bg-gray-400 dark:bg-gray-500" />
       </div>
     </div>
-    <div className={`p-4 bg-white dark:bg-black rounded-b-md ${padding ? padding : ""}`}>
+    <div className={`flex flex-col p-4 bg-white dark:bg-black rounded-b-md ${padding ? padding : ""}`}>
       {children}
     </div>
   </div>

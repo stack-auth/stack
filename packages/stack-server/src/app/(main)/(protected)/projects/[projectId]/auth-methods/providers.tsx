@@ -36,6 +36,7 @@ function toTitle(id: ProviderType) {
     google: "Google",
     facebook: "Facebook",
     microsoft: "Microsoft",
+    spotify: "Spotify",
   }[id] ?? `Custom OAuth provider: ${id}`;
 }
 
