@@ -111,13 +111,15 @@ export default function PageClient () {
           (
             <div className="w-full">
               <BrowserFrame url="your-website.com/signin">
-                <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
-                  {/* a transparent cover that prevents the card being clicked */}
-                  <div className="absolute inset-0 bg-transparent z-10"></div>
-                  <AuthPage 
-                    type="sign-in" 
-                    mockProject={mockProject} 
-                  />
+                <div className="flex flex-col items-center justify-center min-h-[400px]">
+                  <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
+                    {/* a transparent cover that prevents the card being clicked */}
+                    <div className="absolute inset-0 bg-transparent z-10"></div>
+                    <AuthPage 
+                      type="sign-in" 
+                      mockProject={mockProject} 
+                    />
+                  </div>
                 </div>
               </BrowserFrame>
             </div>
