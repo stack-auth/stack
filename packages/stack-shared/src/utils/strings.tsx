@@ -105,3 +105,9 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
 
   return templateIdentity(deindentedStrings, ...indentedValues);
 }
+
+export function extractScopes(scope: string): string[] {
+  const trimmedString = scope.trim();
+  const scopesArray = trimmedString.split(/\s+/);
+  return scopesArray.filter(scope => scope.length > 0);
+}

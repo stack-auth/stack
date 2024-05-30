@@ -809,12 +809,32 @@ const EmailTemplateAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthAccountNotConnectedToUser = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_ACCOUNT_NOT_CONNECTED_TO_USER",
+  () => [
+    400,
+    "The OAuth account is not connected to the user.",
+  ] as const,
+  () => [] as const,
+);
+
 const OAuthAccountAlreadyConnectedToAnotherUser = createKnownErrorConstructor(
   KnownError,
   "OAUTH_ACCOUNT_ALREADY_CONNECTED_TO_ANOTHER_USER",
   () => [
     400,
     "The OAuth account is already connected to another user.",
+  ] as const,
+  () => [] as const,
+);
+
+const OAuthAccountDoesNotHaveRequiredScope = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_ACCOUNT_DOES_NOT_HAVE_REQUIRED_SCOPE",
+  () => [
+    400,
+    "The OAuth account does not have the required scope.",
   ] as const,
   () => [] as const,
 );
@@ -891,7 +911,9 @@ export const KnownErrors = {
   UserNotInTeam,
   TeamNotFound,
   EmailTemplateAlreadyExists,
+  OAuthAccountNotConnectedToUser,
   OAuthAccountAlreadyConnectedToAnotherUser,
+  OAuthAccountDoesNotHaveRequiredScope,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
