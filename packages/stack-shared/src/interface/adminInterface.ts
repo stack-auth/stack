@@ -24,7 +24,6 @@ export type OAuthProviderUpdateOptions = {
     type: StandardProvider,
     clientId: string,
     clientSecret: string,
-    tenantId?: string,
   }
 )
 

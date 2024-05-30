@@ -297,7 +297,6 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(providerUpdate.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            tenantId: typedProviderConfig.tenantId,
           },
         },
       };
@@ -334,7 +333,6 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(provider.update.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            tenantId: typedProviderConfig.tenantId,
           },
         },
       };
@@ -552,7 +550,6 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
             type: fromDBStandardProvider(provider.standardOAuthConfig.type),
             clientId: provider.standardOAuthConfig.clientId,
             clientSecret: provider.standardOAuthConfig.clientSecret,
-            tenantId: provider.standardOAuthConfig.tenantId || undefined,
           }];
         }
         captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));
@@ -590,7 +587,6 @@ const nonRequiredSchemas = {
         type: yup.string().required(),
         clientId: yup.string().default(undefined),
         clientSecret: yup.string().default(undefined),
-        tenantId: yup.string().default(undefined),
       })
     ).default(undefined),
     credentialEnabled: yup.boolean().default(undefined),
@@ -653,7 +649,6 @@ export const projectSchemaToUpdateOptions = (
             type: provider.type as StandardProvider,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
-            tenantId: provider.tenantId,
           };
         } else {
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");

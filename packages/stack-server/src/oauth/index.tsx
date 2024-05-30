@@ -49,22 +49,15 @@ export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvide
       });
     }
     case "microsoft": {
-      if (!provider.tenantId) {
-        // this should be prevented by the dashboard and never happen
-        throw new Error("Microsoft provider requires tenantId");
-      }
-
       return new MicrosoftProvider({
         clientId: provider.clientId,
         clientSecret: provider.clientSecret,
-        tenantId: provider.tenantId,
       });
     }
     case "shared-microsoft": {
       return new MicrosoftProvider({
         clientId: getEnvVariable("MICROSOFT_CLIENT_ID"),
         clientSecret: getEnvVariable("MICROSOFT_CLIENT_SECRET"),
-        tenantId: getEnvVariable("MICROSOFT_TENANT_ID"),
       });
     }
     case "spotify": {

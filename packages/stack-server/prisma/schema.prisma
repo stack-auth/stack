@@ -189,6 +189,7 @@ model ProjectUser {
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
   teamMembers                      TeamMember[]
+  oAuthRefreshToken                OAuthToken[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
@@ -211,6 +212,7 @@ model ProjectUserOAuthAccount {
   projectUserId         String @db.Uuid
   projectConfigId       String @db.Uuid
   oauthProviderConfigId String
+  providerAccountId     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -219,10 +221,41 @@ model ProjectUserOAuthAccount {
   projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   email                String?
-  providerAccountId    String
   providerRefreshToken String?
 
   @@id([projectId, oauthProviderConfigId, providerAccountId])
+}
+
+model OAuthToken {
+  id                    String @id @default(uuid()) @db.Uuid
+  projectId             String
+  projectUserId         String @db.Uuid
+  oauthProviderConfigId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectUser         ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  oauthProviderConfig OAuthProviderConfig @relation(fields: [projectId, oauthProviderConfigId], references: [projectConfigId, id])
+
+  refreshToken String
+  scopes       String[]
+  expiresAt    DateTime
+
+  oAuthAccessToken OAuthAccessToken[]
+}
+
+model OAuthAccessToken {
+  id           String @id @default(uuid()) @db.Uuid
+  oAuthTokenId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  oAuthToken OAuthToken @relation(fields: [oAuthTokenId], references: [id], onDelete: Cascade)
+
+  accessToken String
+  expiresAt   DateTime
 }
 
 model ProjectUserRefreshToken {
@@ -403,6 +436,7 @@ model OAuthProviderConfig {
   proxiedOAuthConfig       ProxiedOAuthProviderConfig?
   standardOAuthConfig      StandardOAuthProviderConfig?
   projectUserOAuthAccounts ProjectUserOAuthAccount[]
+  oAuthRefreshToken        OAuthToken[]
 
   @@id([projectConfigId, id])
 }
@@ -436,7 +470,6 @@ model StandardOAuthProviderConfig {
   updatedAt       DateTime            @updatedAt
 
   type         StandardOAuthProviderType
-  tenantId     String? // Currently only used for Microsoft
   clientId     String
   clientSecret String
 

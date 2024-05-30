@@ -6,14 +6,12 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   constructor({
     clientId,
     clientSecret,
-    tenantId,
   }: {
     clientId: string,
     clientSecret: string,
-    tenantId: string,
   }) {
     super({
-      issuer: "https://login.microsoftonline.com/" + tenantId + "/v2.0",
+      issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
       clientId,
