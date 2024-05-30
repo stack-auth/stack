@@ -28,11 +28,10 @@ export const crudHandlers = createCrudHandlers(accessTokenCrud, {
     const tokens = await prismaClient.oAuthToken.findMany({
       where: {
         projectId: auth.project.id,
-        projectUserId: auth.user.id,
-        oAuthProviderConfig: {
-          id: params.provider,
-          projectConfigId: auth.project.evaluatedConfig.id,
-        },
+        oAuthProviderConfigId: params.provider,
+        projectUserOAuthAccount: {
+          projectUserId: auth.user.id,
+        }
       },
     });
 

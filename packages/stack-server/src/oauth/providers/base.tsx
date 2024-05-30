@@ -65,6 +65,7 @@ export abstract class OAuthBaseProvider {
       code_challenge_method: "S256",
       state: state,
       response_type: "code",
+      access_type: "offline",
     });
   }
 
@@ -90,7 +91,6 @@ export abstract class OAuthBaseProvider {
     if (!tokenSet.access_token) {
       throw new StackAssertionError("No access token received", { tokenSet });
     }
-    
     return await this.postProcessUserInfo(tokenSet);
   }
 

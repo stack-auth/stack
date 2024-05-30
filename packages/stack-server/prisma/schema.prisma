@@ -189,7 +189,6 @@ model ProjectUser {
   projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
   projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
   teamMembers                      TeamMember[]
-  oAuthRefreshToken                OAuthToken[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
@@ -229,18 +228,14 @@ model ProjectUserOAuthAccount {
 model OAuthToken {
   id String @id @default(uuid()) @db.Uuid
 
-  projectId                     String
-  projectUserId                 String @db.Uuid
-  projectConfigId               String @db.Uuid
-  oAuthProviderConfigId         String
-  oAuthAccountProviderAccountId String
+  projectId             String
+  oAuthProviderConfigId String
+  providerAccountId     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUser             ProjectUser              @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  oAuthProviderConfig     OAuthProviderConfig      @relation(fields: [projectConfigId, oAuthProviderConfigId], references: [projectConfigId, id])
-  projectUserOAuthAccount ProjectUserOAuthAccount? @relation(fields: [projectId, oAuthProviderConfigId, oAuthAccountProviderAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oAuthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
 
   refreshToken String
   scopes       String[]
@@ -424,7 +419,6 @@ model OAuthProviderConfig {
   proxiedOAuthConfig       ProxiedOAuthProviderConfig?
   standardOAuthConfig      StandardOAuthProviderConfig?
   projectUserOAuthAccounts ProjectUserOAuthAccount[]
-  oAuthRefreshToken        OAuthToken[]
 
   @@id([projectConfigId, id])
 }
