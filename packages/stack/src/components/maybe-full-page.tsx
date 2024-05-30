@@ -20,7 +20,7 @@ export default function MaybeFullPage({
   })(${JSON.stringify([id])})`;
 
   useEffect(() => {
-    // React has a bug where it doesn't run the script on the first CSR render if SSR has been skipped due to suspense
+    // TODO fix workaround: React has a bug where it doesn't run the script on the first CSR render if SSR has been skipped due to suspense
     // As a workaround, we run the script in the <script> tag again after the first render
     eval(scriptString);
   }, []);
