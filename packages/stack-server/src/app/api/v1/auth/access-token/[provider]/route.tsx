@@ -33,9 +33,6 @@ export const crudHandlers = createCrudHandlers(accessTokenCrud, {
           id: params.provider,
           projectConfigId: auth.project.evaluatedConfig.id,
         },
-        expiresAt: {
-          gt: new Date(),
-        },
       },
     });
 

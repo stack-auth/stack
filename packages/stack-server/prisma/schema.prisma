@@ -232,19 +232,18 @@ model OAuthToken {
   projectId                     String
   projectUserId                 String @db.Uuid
   projectConfigId               String @db.Uuid
-  oAuthProjectConfigId          String
+  oAuthProviderConfigId         String
   oAuthAccountProviderAccountId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   projectUser             ProjectUser              @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  oAuthProviderConfig     OAuthProviderConfig      @relation(fields: [projectConfigId, oAuthProjectConfigId], references: [projectConfigId, id])
-  projectUserOAuthAccount ProjectUserOAuthAccount? @relation(fields: [projectId, oAuthProjectConfigId, oAuthAccountProviderAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+  oAuthProviderConfig     OAuthProviderConfig      @relation(fields: [projectConfigId, oAuthProviderConfigId], references: [projectConfigId, id])
+  projectUserOAuthAccount ProjectUserOAuthAccount? @relation(fields: [projectId, oAuthProviderConfigId, oAuthAccountProviderAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
 
   refreshToken String
   scopes       String[]
-  expiresAt    DateTime
 }
 
 model ProjectUserRefreshToken {

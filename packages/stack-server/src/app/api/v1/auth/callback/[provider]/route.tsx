@@ -13,6 +13,7 @@ import { getProject } from "@/lib/projects";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { createTeamOnSignUp } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -93,6 +94,22 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     }
   });
 
+  const storeRefreshToken = async (projectUserId: string) => {
+    if (userInfo.refreshToken) {
+      await prismaClient.oAuthToken.create({
+        data: {
+          projectId: decodedCookie.projectId,
+          projectUserId,
+          projectConfigId: project.evaluatedConfig.id,
+          oAuthProjectConfigId: provider.id,
+          refreshToken: userInfo.refreshToken,
+          oAuthAccountProviderAccountId: userInfo.accountId,
+          scopes: extractScopes(getProvider(provider).scope), // TODO: get scopes from the DB
+        }
+      });
+    }
+  };
+
   const oauthResponse = new OAuthResponse();
   try {
     await oauthServer.authorize(
@@ -122,6 +139,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                 if (oldAccount.projectUserId !== projectUserId) {
                   throw new KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser();
                 }
+                await storeRefreshToken(projectUserId);
               } else {
                 // ========================== connect account with user ==========================
                 await prismaClient.projectUserOAuthAccount.create({
@@ -147,7 +165,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                   },
                 });
               }
-
+              
+              await storeRefreshToken(projectUserId);
               return {
                 id: projectUserId,
                 newUser: false
@@ -157,6 +176,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             // ========================== sign in user ==========================
 
             if (oldAccount) {
+              await storeRefreshToken(oldAccount.projectUserId);
+
               return {
                 id: oldAccount.projectUserId,
                 newUser: false
@@ -191,7 +212,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             });
 
             await createTeamOnSignUp(projectId, newAccount.projectUserId);
-
+            await storeRefreshToken(newAccount.projectUserId);
             return {
               id: newAccount.projectUserId,
               newUser: true
