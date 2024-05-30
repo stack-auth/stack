@@ -1,4 +1,4 @@
-import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, OAuth2Server, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
+import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";

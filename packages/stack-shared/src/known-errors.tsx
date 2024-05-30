@@ -809,6 +809,16 @@ const EmailTemplateAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthAccountAlreadyConnectedToAnotherUser = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_ACCOUNT_ALREADY_CONNECTED_TO_ANOTHER_USER",
+  () => [
+    400,
+    "The OAuth account is already connected to another user.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -878,8 +888,10 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   PermissionNotFound,
   PermissionScopeMismatch,
+  UserNotInTeam,
   TeamNotFound,
   EmailTemplateAlreadyExists,
+  OAuthAccountAlreadyConnectedToAnotherUser,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

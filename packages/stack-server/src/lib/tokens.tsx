@@ -13,6 +13,23 @@ const accessTokenSchema = yup.object({
   exp: yup.number().required(),
 });
 
+export const oauthCookieSchema = yup.object({
+  projectId: yup.string().required(),
+  publishableClientKey: yup.string().required(),
+  innerCodeVerifier: yup.string().required(),
+  innerState: yup.string().required(),
+  redirectUri: yup.string().required(),
+  scope: yup.string().required(),
+  state: yup.string().required(),
+  grantType: yup.string().required(),
+  codeChallenge: yup.string().required(),
+  codeChallengeMethod: yup.string().required(),
+  responseType: yup.string().required(),
+  authorizeSignedInUser: yup.boolean().required(),
+  projectUserId: yup.string().optional(),
+});
+
+
 export async function decodeAccessToken(accessToken: string) {
   let decoded;
   try {

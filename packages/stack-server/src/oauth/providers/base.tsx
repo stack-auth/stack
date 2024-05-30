@@ -72,7 +72,7 @@ export abstract class OAuthBaseProvider {
     callbackParams,
     codeVerifier,
     state
-  }:{
+  }: {
     callbackParams: CallbackParamsType, 
     codeVerifier: string, 
     state: string,
@@ -92,6 +92,16 @@ export abstract class OAuthBaseProvider {
     }
     
     return await this.postProcessUserInfo(tokenSet);
+  }
+
+  async getAccessToken({
+    refreshToken,
+    scope,
+  }: {
+    refreshToken: string,
+    scope?: string,
+  }): Promise<TokenSet> {
+    return await this.oauthClient.refresh(refreshToken, { exchangeBody: { scope } });
   }
 
   abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;

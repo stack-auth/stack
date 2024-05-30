@@ -8,10 +8,16 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getProvider } from "@/oauth";
 import { getProject } from "@/lib/projects";
-import { checkApiKeySet } from "@/lib/api-keys";
+import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { authorizationHeaderSchema, decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 
 const getSchema = yup.object({
+  header: yup.object({
+    authorization: authorizationHeaderSchema.default(undefined),
+    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(undefined),
+    "x-stack-project-id": yup.string().default(undefined),
+  }),
   query: yup.object({
     client_id: yup.string().required(),
     client_secret: yup.string().required(),
@@ -27,7 +33,12 @@ const getSchema = yup.object({
 
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
   const {
-    query: { 
+    header: {
+      authorization,
+      "x-stack-project-id": headerProjectId,
+      "x-stack-publishable-client-key": headerPublishableClientKey,
+    },
+    query: {
       client_id: projectId,
       client_secret: publishableClientKey,
       redirect_uri: redirectUri,
@@ -61,6 +72,24 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     throw new StatusError(StatusError.NotFound, "Provider not enabled");
   }
 
+  // If the authorization header is present, we are adding new scopes to the user instead of sign-in/sign-up
+  let authorizeSignedInUser = false;
+  let projectUserId: string | undefined;
+  if (authorization && headerProjectId && headerPublishableClientKey) {
+    if (headerProjectId !== projectId || headerPublishableClientKey !== publishableClientKey) {
+      throw new StatusError(StatusError.BadRequest, "project ID or publishable client key mismatch");
+    }
+
+    const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
+    const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+
+    if (accessTokenProjectId !== projectId) {
+      throw new StatusError(StatusError.Forbidden);
+    }
+    authorizeSignedInUser = true;
+    projectUserId = userId;
+  }
+
   const innerCodeVerifier = generators.codeVerifier();
   const innerState = generators.state();
   const oauthUrl = await getProvider(provider).getAuthorizationUrl({
@@ -80,7 +109,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     responseType,
     innerCodeVerifier,
     innerState,
-  });
+    authorizeSignedInUser,
+    projectUserId,
+  } satisfies yup.InferType<typeof oauthCookieSchema>);
 
   cookies().set("stack-oauth", cookie, {
     httpOnly: true,
