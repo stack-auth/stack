@@ -15,14 +15,22 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   app,
   params: { stack } = {},
   searchParams = {},
+  // TODO set default to false like on the other components (may break old code)
+  fullPage = "deprecated-unset",
 }: { 
   app: StackServerApp<HasTokenStore>,
   params?: { stack?: string[] }, 
   searchParams?: Record<string, string>,
+  fullPage?: boolean | "deprecated-unset",
 }) {
+  if (fullPage === "deprecated-unset") {
+    console.warn("You are not passing `fullPage` to Stack's Handler. The default behaviour will soon change from `true` to `false`. Please update your Handler component in handler/[...stack]/page.tsx by adding the `fullPage` prop.");
+    fullPage = true;
+  }
+
   if (!stack) {
     return (
-      <MessageCard title="Invalid Stack Handler Setup" fullPage>
+      <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>
         <p>Can't use Stack handler at this location. Make sure that the file is in a folder called [...stack].</p>
       </MessageCard>
     );
@@ -52,40 +60,40 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case 'signin': {
       redirectIfNotHandler('signIn');
       await redirectIfHasUser();
-      return <SignIn fullPage/>;
+      return <SignIn fullPage={fullPage} />;
     }
     case 'signup': {
       redirectIfNotHandler('signUp');
       await redirectIfHasUser();
-      return <SignUp fullPage/>;
+      return <SignUp fullPage={fullPage} />;
     }
     case 'email-verification': {
       redirectIfNotHandler('emailVerification');
-      return <EmailVerification searchParams={searchParams} fullPage/>;
+      return <EmailVerification searchParams={searchParams} fullPage={fullPage} />;
     }
     case 'password-reset': {
       redirectIfNotHandler('passwordReset');
-      return <PasswordReset searchParams={searchParams} fullPage />;
+      return <PasswordReset searchParams={searchParams} fullPage={fullPage} />;
     }
     case 'forgot-password': {
       redirectIfNotHandler('forgotPassword');
-      return <ForgotPassword fullPage />;
+      return <ForgotPassword fullPage={fullPage} />;
     }
     case 'signout': {
       redirectIfNotHandler('signOut');
-      return <SignOut/>;
+      return <SignOut fullPage={fullPage} />;
     }
     case 'oauth-callback': {
       redirectIfNotHandler('oauthCallback');
-      return <OAuthCallback />;
+      return <OAuthCallback fullPage={fullPage} />;
     }
     case 'account-settings': {
       redirectIfNotHandler('accountSettings');
-      return <AccountSettings fullPage />;
+      return <AccountSettings fullPage={fullPage} />;
     }
     case 'magic-link-callback': {
       redirectIfNotHandler('magicLinkCallback');
-      return <MagicLinkCallback searchParams={searchParams} fullPage />;
+      return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
       return notFound();

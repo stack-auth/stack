@@ -3,7 +3,7 @@
 import CredentialSignIn from '../components/credential-sign-in';
 import SeparatorWithText from '../components/separator-with-text';
 import OAuthGroup from '../components/oauth-group';
-import CardFrame from '../components/card-frame';
+import MaybeFullPage from '../components/maybe-full-page';
 import { useUser, useStackApp, CredentialSignUp } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
@@ -21,7 +21,8 @@ export default function AuthPage({
 }) {
   const stackApp = useStackApp();
   const user = useUser();
-  const project = mockProject || stackApp.useProject();
+  const projectFromHook = stackApp.useProject();
+  const project = mockProject || projectFromHook;
 
   if (user && !mockProject) {
     return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
@@ -30,7 +31,7 @@ export default function AuthPage({
   const enableSeparator = (project.credentialEnabled || project.magicLinkEnabled) && project.oauthProviders.filter(p => p.enabled).length > 0;
 
   return (
-    <CardFrame fullPage={fullPage}>
+    <MaybeFullPage fullPage={fullPage}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <Text size="xl" as='h2' style={{ fontWeight: 500 }}>
           {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
@@ -71,6 +72,6 @@ export default function AuthPage({
       ) : project.magicLinkEnabled ? (
         <MagicLinkSignIn/>
       ) : null}
-    </CardFrame>
+    </MaybeFullPage>
   );
 }
