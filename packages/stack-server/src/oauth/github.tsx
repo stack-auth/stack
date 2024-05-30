@@ -18,7 +18,7 @@ export class GithubProvider extends OAuthBaseProvider {
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/github",
-      scope: "openid user:email",
+      scope: "user:email",
     });
   }
 

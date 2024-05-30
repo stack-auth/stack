@@ -18,9 +18,7 @@ export class GoogleProvider extends OAuthBaseProvider {
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/google",
-      jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
-      scope: "openid email profile",
-      openid: true,
+      scope: "email profile",
     });
   }
 

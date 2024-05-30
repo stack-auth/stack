@@ -14,12 +14,10 @@ export class SpotifyProvider extends OAuthBaseProvider {
       issuer: "https://accounts.spotify.com",
       authorizationEndpoint: "https://accounts.spotify.com/authorize",
       tokenEndpoint: "https://accounts.spotify.com/api/token",
-      userinfoEndpoint: "https://accounts.spotify.com/oidc/userinfo/v1",
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/spotify",
       scope: "user-read-email user-read-private",
-      openid: false,
     });
   }
 

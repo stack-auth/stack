@@ -7,7 +7,6 @@ export abstract class OAuthBaseProvider {
   scope: string;
   oauthClient: Client;
   redirectUri: string;
-  openid: boolean;
 
   constructor({
     issuer,
@@ -17,8 +16,6 @@ export abstract class OAuthBaseProvider {
     clientId,
     clientSecret,
     redirectUri,
-    jwksUri,
-    openid,
     scope,
   }: {
     issuer: string,
@@ -28,8 +25,6 @@ export abstract class OAuthBaseProvider {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    jwksUri?: string,
-    openid?: boolean,
     scope: string,
   }) {
     this.issuer = new Issuer({
@@ -37,7 +32,6 @@ export abstract class OAuthBaseProvider {
       authorization_endpoint: authorizationEndpoint,
       token_endpoint: tokenEndpoint,
       userinfo_endpoint: userinfoEndpoint,
-      jwks_uri: jwksUri,
     });
     this.oauthClient = new this.issuer.Client({
       client_id: clientId,
@@ -46,7 +40,14 @@ export abstract class OAuthBaseProvider {
       response_types: ["code"],
     });
 
-    this.openid = openid || false;
+    // facebook always return an id_token even in the OAuth2 flow, which is not supported by openid-client
+    const oldGrant = this.oauthClient.grant;
+    this.oauthClient.grant = async function (params) {
+      const grant = await oldGrant.call(this, params);
+      delete grant.id_token;
+      return grant;
+    };
+
     this.redirectUri = redirectUri;
     this.scope = scope;
   }
@@ -63,6 +64,7 @@ export abstract class OAuthBaseProvider {
       code_challenge: generators.codeChallenge(codeVerifier),
       code_challenge_method: "S256",
       state: state,
+      response_type: "code",
     });
   }
 
@@ -81,11 +83,7 @@ export abstract class OAuthBaseProvider {
         code_verifier: codeVerifier,
         state: state,
       };
-      if (this.openid) {
-        tokenSet = await this.oauthClient.callback(this.redirectUri, callbackParams, params);
-      } else {
-        tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
-      }
+      tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
     } catch (error) {
       throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
     }

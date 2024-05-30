@@ -12,14 +12,12 @@ export class FacebookProvider extends OAuthBaseProvider {
   }) {
     super({
       issuer: "https://www.facebook.com",
-      authorizationEndpoint: "https://facebook.com/dialog/oauth/",
-      tokenEndpoint: "https://graph.facebook.com/oauth/access_token",
+      authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
+      tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/facebook",
-      jwksUri: "https://www.facebook.com/.well-known/oauth/openid/jwks/",
-      scope: "openid public_profile email",
-      openid: true,
+      scope: "public_profile email",
     });
   }
 

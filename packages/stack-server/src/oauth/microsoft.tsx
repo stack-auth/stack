@@ -19,9 +19,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       clientId,
       clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
-      scope: "openid User.Read",
-      jwksUri: "https://login.microsoftonline.com/" + tenantId + "/discovery/v2.0/keys",
-      openid: true,
+      scope: "User.Read",
     });
   }
 
