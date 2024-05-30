@@ -21,7 +21,7 @@ export function SimpleTooltip(props: {
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <div className="max-w-60 text-center">
+          <div className="max-w-60 text-center text-wrap">
             {props.tooltip}
           </div>
         </TooltipContent>
