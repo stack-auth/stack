@@ -3,7 +3,6 @@ import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { GithubProvider } from "./providers/github";
 import { OAuthModel } from "./model";
-import { OAuthUserInfo } from "./utils";
 import { OAuthBaseProvider } from "./providers/base";
 import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
@@ -11,7 +10,7 @@ import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
 
 
-function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
+export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
   switch (provider.type) {
     case "github": {
       return new GithubProvider({
@@ -84,31 +83,6 @@ function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
       throw new Error("Not implemented yet for provider: " + provider);
     }
   }
-}
-
-
-export async function getAuthorizationUrl(
-  provider: OAuthProviderConfigJson,
-  codeVerifier: string,
-  state: string,
-): Promise<string> {
-  return getProvider(provider).getAuthorizationUrl({
-    codeVerifier,
-    state,
-  });
-}
-
-export async function getAuthorizationCallback(
-  provider: OAuthProviderConfigJson,
-  codeVerifier: string,
-  state: string,
-  callbackParams: any,
-): Promise<OAuthUserInfo> {
-  return await getProvider(provider).getCallback({
-    callbackParams,
-    codeVerifier,
-    state,
-  });
 }
 
 export const oauthServer = new OAuth2Server({

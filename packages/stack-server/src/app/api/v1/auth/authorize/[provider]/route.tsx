@@ -6,7 +6,7 @@ import { encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { getAuthorizationUrl } from "@/oauth";
+import { getProvider } from "@/oauth";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -63,11 +63,10 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const innerCodeVerifier = generators.codeVerifier();
   const innerState = generators.state();
-  const oauthUrl = await getAuthorizationUrl(
-    provider,
-    innerCodeVerifier,
-    innerState,
-  );
+  const oauthUrl = await getProvider(provider).getAuthorizationUrl({
+    codeVerifier: innerCodeVerifier,
+    state: innerState,
+  });
 
   const cookie = await encryptJWT({
     projectId,

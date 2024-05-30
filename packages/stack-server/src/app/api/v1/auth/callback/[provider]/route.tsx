@@ -6,7 +6,7 @@ import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { getAuthorizationCallback, oauthServer } from "@/oauth";
+import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
@@ -78,15 +78,14 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     throw new StatusError(StatusError.NotFound, "Provider not found or not enabled");
   }
 
-  const userInfo = await getAuthorizationCallback(
-    provider,
-    innerCodeVerifier,
-    innerState,
-    {
+  const userInfo = await getProvider(provider).getCallback({
+    codeVerifier: innerCodeVerifier,
+    state: innerState,
+    callbackParams: {
       code,
       state,
     }
-  );
+  });
   
   const oauthRequest = new OAuthRequest({
     headers: {},
