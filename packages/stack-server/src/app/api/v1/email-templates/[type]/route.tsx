@@ -10,8 +10,7 @@ const typeSchema = yup.string().oneOf(emailTemplateTypes).required();
 
 const crudHandlers = createCrudHandlers(emailTemplateCrud, {
   paramNames: ['type'],
-  async onRead({ auth, params }) {
-    // this should never be called
+  async onRead() {
     throw Error('Not implemented');
   },
   async onUpdate({ auth, data, params }) {

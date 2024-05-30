@@ -8,8 +8,7 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const crudHandlers = createCrudHandlers(accessTokenCrud, {
   paramNames: ['provider'],
-  async onRead({ auth, params }) {
-    // this should never be called
+  async onRead() {
     throw Error('Not implemented');
   },
   async onCreate({ auth, data, params }) {
