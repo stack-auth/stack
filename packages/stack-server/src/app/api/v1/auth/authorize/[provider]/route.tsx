@@ -26,7 +26,6 @@ const getSchema = yup.object({
 });
 
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
-  // TODO: better error handling
   const {
     query: { 
       client_id: projectId,

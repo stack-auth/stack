@@ -92,8 +92,6 @@ export async function getAuthorizationUrl(
   codeVerifier: string,
   state: string,
 ): Promise<string> {
-  // TODO: better error handling
-  // TODO: check callback url
   return getProvider(provider).getAuthorizationUrl({
     codeVerifier,
     state,
@@ -106,8 +104,6 @@ export async function getAuthorizationCallback(
   state: string,
   callbackParams: any,
 ): Promise<OAuthUserInfo> {
-  // TODO: better error handling
-  // TODO: check callback url
   return await getProvider(provider).getCallback({
     callbackParams,
     codeVerifier,
