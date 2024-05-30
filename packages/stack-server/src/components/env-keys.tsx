@@ -1,5 +1,4 @@
 import { CopyButton } from "./copy-button";
-import { InlineCode } from "./ui/inline-code";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from "./ui/textarea";
