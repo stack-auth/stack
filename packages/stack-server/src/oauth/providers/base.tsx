@@ -1,5 +1,5 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
-import { OAuthUserInfo } from "./utils";
+import { OAuthUserInfo } from "../utils";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export abstract class OAuthBaseProvider {

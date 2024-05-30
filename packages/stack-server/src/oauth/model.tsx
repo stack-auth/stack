@@ -6,7 +6,7 @@ import { decodeAccessToken, encodeAccessToken } from "@/lib/tokens";
 import { validateUrl } from "@/lib/utils";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const enabledScopes = ["openid"];
 
@@ -235,7 +235,7 @@ export class OAuthModel implements AuthorizationCodeModel {
 
     if (!project) {
       // This should in theory never happen, make typescript happy
-      return false;
+      throw new StackAssertionError("Project not found");
     }
 
     return validateUrl(

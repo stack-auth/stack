@@ -1,14 +1,14 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { GithubProvider } from "./github";
+import { GithubProvider } from "./providers/github";
 import { OAuthModel } from "./model";
 import { OAuthUserInfo } from "./utils";
-import { OAuthBaseProvider } from "./oauth-base";
-import { GoogleProvider } from "./google";
-import { FacebookProvider } from "./facebook";
-import { MicrosoftProvider } from "./microsoft";
-import { SpotifyProvider } from "./spotify";
+import { OAuthBaseProvider } from "./providers/base";
+import { GoogleProvider } from "./providers/google";
+import { FacebookProvider } from "./providers/facebook";
+import { MicrosoftProvider } from "./providers/microsoft";
+import { SpotifyProvider } from "./providers/spotify";
 
 
 function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {

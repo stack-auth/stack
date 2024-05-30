@@ -1,6 +1,6 @@
 import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./oauth-base";
-import { OAuthUserInfo, validateUserInfo } from "./utils";
+import { OAuthBaseProvider } from "./base";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   constructor({
