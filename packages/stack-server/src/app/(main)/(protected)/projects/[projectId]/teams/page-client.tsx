@@ -8,8 +8,8 @@ import { SmartFormDialog } from "@/components/form-dialog";
 import * as yup from "yup";
 
 type CreateDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
 };
 
 export default function PageClient() {
@@ -41,7 +41,6 @@ function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
 
   const formSchema = yup.object({
     displayName: yup.string().required().label("Display Name"),
-    
   });
 
   return (
