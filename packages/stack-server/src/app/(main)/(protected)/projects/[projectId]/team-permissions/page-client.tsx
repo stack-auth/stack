@@ -56,7 +56,7 @@ function CreateDialog(props: {
     onOpenChange={props.onOpenChange}
     title="Create Permission"
     formSchema={formSchema}
-    okButton={{ label: "Save" }}
+    okButton={{ label: "Create" }}
     onSubmit={async (values) => {
       await stackAdminApp.createPermissionDefinition({
         id: values.id,

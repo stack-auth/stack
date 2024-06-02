@@ -1,5 +1,13 @@
 # middleware-demo
 
+## 0.2.16
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack@2.4.16
+
 ## 0.2.15
 
 ### Patch Changes

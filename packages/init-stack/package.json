@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/init-stack",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "The setup wizard for Stack. https://stack-auth.com",
   "main": "index.mjs",
   "bin": "./index.mjs",

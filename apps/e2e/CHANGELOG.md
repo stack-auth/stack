@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 0.1.5
+
+### Patch Changes
+
+- Improve setup flow
+
 ## 0.1.4
 
 ### Patch Changes
