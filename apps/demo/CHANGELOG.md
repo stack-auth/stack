@@ -1,5 +1,14 @@
 # demo-app
 
+## 1.1.16
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.13
+  - @stackframe/stack@2.4.16
+
 ## 1.1.15
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @stackframe/stack
 
+## 2.4.16
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.13
+  - @stackframe/stack-sc@1.5.6
+
 ## 2.4.15
 
 ### Patch Changes

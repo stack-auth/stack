@@ -1,5 +1,14 @@
 # @stackframe/stack-server
 
+## 0.4.17
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.13
+  - @stackframe/stack@2.4.16
+
 ## 0.4.16
 
 ### Patch Changes
