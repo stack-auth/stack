@@ -36,6 +36,7 @@
     "@stackframe/stack-sc": "workspace:*"
   },
   "devDependencies": {
+    "rimraf": "^5.0.5",
     "@types/bcrypt": "^5.0.2",
     "@types/react": "^18.2.66",
     "@types/uuid": "^9.0.8"

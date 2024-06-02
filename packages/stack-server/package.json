@@ -112,6 +112,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "rimraf": "^5.0.5",
     "@types/bcrypt": "^5.0.2",
     "@types/canvas-confetti": "^1.6.4",
     "@types/lodash": "^4.17.4",
