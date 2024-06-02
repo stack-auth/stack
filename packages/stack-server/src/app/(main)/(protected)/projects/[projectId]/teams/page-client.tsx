@@ -49,7 +49,7 @@ function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
       onOpenChange={onOpenChange}
       title="Create a Team"
       formSchema={formSchema}
-      okButton={{ label: "Save" }}
+      okButton={{ label: "Create" }}
       onSubmit={async (values) => {
         await stackAdminApp.createTeam({
           displayName: values.displayName,
