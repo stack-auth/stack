@@ -15,6 +15,11 @@ export default function MaybeFullPage({
 
   const scriptString = `(([id]) => {
     const el = document.getElementById(id);
+    if (!el) {
+      // this may happen occasionally when the element is removed by React or another library
+      // just ignore it
+      return;
+    }
     const offset = el.getBoundingClientRect().top + document.documentElement.scrollTop;
     el.style.minHeight = \`calc(100vh - \${offset}px)\`;
   })(${JSON.stringify([id])})`;
