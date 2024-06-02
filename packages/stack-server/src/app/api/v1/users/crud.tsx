@@ -34,6 +34,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       projectId,
       primaryEmail: crud.primaryEmail,
       primaryEmailVerified: crud.primaryEmailVerified,
+      uploadedProfileImage:crud.uploadedProfileImage,
     };
   },
   prismaToCrud: async (prisma, { auth }) => {    
@@ -52,6 +53,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       authWithEmail: prisma.authWithEmail,
       oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
       selectedTeamId: prisma.selectedTeamId,
+      uploadedProfileImage:prisma.uploadedProfileImage
     };
   },
 });

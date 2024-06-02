@@ -6,6 +6,7 @@ const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "displayName",
   "clientMetadata",
   "selectedTeamId",
+  "uploadedProfileImage"
 ]).required();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
@@ -24,6 +25,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "authWithEmail",
   "oauthProviders",
   "selectedTeamId",
+  "uploadedProfileImage"
 ]).nullable().defined();
 
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();

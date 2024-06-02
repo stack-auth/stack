@@ -44,6 +44,7 @@ export async function updateClientUser(
       displayName: update.displayName,
       clientMetadata: update.clientMetadata,
       selectedTeamId: update.selectedTeamId,
+      uploadedProfileImage:update.uploadedProfileImage
     },
   );
   if (!user) {
@@ -78,6 +79,7 @@ export async function updateServerUser(
         clientMetadata: update.clientMetadata as any,
         serverMetadata: update.serverMetadata as any,
         selectedTeamId: update.selectedTeamId,
+        uploadedProfileImage:update.uploadedProfileImage,
       }),
     });
   } catch (e) {
@@ -125,6 +127,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
     selectedTeamId: serverUser.selectedTeamId,
+    uploadedProfileImage:serverUser.uploadedProfileImage
   };
 }
 
@@ -146,6 +149,7 @@ export function getServerUserFromDbType(
     authWithEmail: user.authWithEmail,
     oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
     selectedTeamId: user.selectedTeamId,
+    uploadedProfileImage:user.uploadedProfileImage,
   };
 }
 

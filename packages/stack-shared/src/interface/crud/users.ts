@@ -9,6 +9,7 @@ export const usersCrudServerUpdateSchema = yup.object({
   primaryEmail: yup.string().optional(),
   primaryEmailVerified: yup.boolean().optional(),
   selectedTeamId: yup.string().nullable().optional(),
+  uploadedProfileImage:yup.string().nullable().optional(),
 }).required();
 
 export const usersCrudServerReadSchema = yup.object({
@@ -21,6 +22,7 @@ export const usersCrudServerReadSchema = yup.object({
   selectedTeamId: yup.string().nullable().defined(),
   profileImageUrl: yup.string().nullable().defined(),
   signedUpAtMillis: yup.number().required(),
+  uploadedProfileImage:yup.string().nullable().optional(),
   /**
    * not used anymore, for backwards compatibility
    */

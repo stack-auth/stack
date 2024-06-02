@@ -448,6 +448,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      uploadedProfileImage:json.uploadedProfileImage,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -1575,7 +1576,7 @@ export type User = (
     readonly hasPassword: boolean,
     readonly authWithEmail: boolean,
     readonly oauthProviders: readonly string[],
-
+    readonly uploadedProfileImage: string | null,
     hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
     getSelectedTeam(this: CurrentUser): Promise<Team | null>,
     useSelectedTeam(this: CurrentUser): Team | null,

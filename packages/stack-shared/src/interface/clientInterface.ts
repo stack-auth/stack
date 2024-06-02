@@ -13,6 +13,7 @@ type UserCustomizableJson = {
   displayName: string | null,
   clientMetadata: ReadonlyJson,
   selectedTeamId: string | null,
+  uploadedProfileImage:string|null,
 };
 
 export type UserJson = UserCustomizableJson & {
@@ -32,6 +33,7 @@ export type UserJson = UserCustomizableJson & {
   authWithEmail: boolean,
   oauthProviders: string[],
   selectedTeamId: string | null,
+  uploadedProfileImage:string|null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;

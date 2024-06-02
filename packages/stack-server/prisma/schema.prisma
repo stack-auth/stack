@@ -196,7 +196,7 @@ model ProjectUser {
   displayName          String?
   passwordHash         String?
   authWithEmail        Boolean
-
+  uploadedProfileImage        String?
   serverMetadata Json?
   clientMetadata Json?
 

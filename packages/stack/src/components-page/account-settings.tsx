@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, {useRef } from 'react';
 import { PasswordField, useUser } from '..';
 import RedirectMessageCard from '../components/redirect-message-card';
 import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
@@ -8,7 +8,8 @@ import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
 import FormWarningText from '../components/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
-
+import {Pencil2Icon} from "@radix-ui/react-icons"
+import {throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 function SettingSection(props: {
   title: string, 
   desc: string, 
@@ -46,9 +47,42 @@ function SettingSection(props: {
 
 function ProfileSection() {
   const user = useUser();
-  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
+  const [userInfo, setUserInfo] = useState<{ displayName: string, uploadedProfileImage: string }>({ displayName: user?.displayName || '' , uploadedProfileImage:user?.uploadedProfileImage ||""});
   const [changed, setChanged] = useState(false);
+  const [uploadAvatar,setUploadAvatar]=useState(user?.uploadedProfileImage||null);
+  const fileUploadRef = useRef<HTMLInputElement>(null);
+  const handleImageUpload = () => {
+    if (fileUploadRef.current) {
+    fileUploadRef.current.click();
+    }
+  }
+  const uploadImageDisplay = async () => {
+    if (fileUploadRef.current?.files) {
+    const uploadedFile = fileUploadRef.current.files[0];
+    const maxSizeInBytes = 1 * 1024 * 1024; // 1 MB
+    console.log("63",uploadedFile.size)
+    if (uploadedFile) {
+      if(uploadedFile?.size < maxSizeInBytes){
+      const fileData = await readFileAsDataURL(uploadedFile);
+      setUserInfo((i) => ({...i, uploadedProfileImage: fileData}));
+      setUploadAvatar(fileData);
+      setChanged(true);
+      }
+    else{
+      throwErr("File size should be less than 1 MB.");
+    }
+    };
+    }
+}
 
+const readFileAsDataURL = (file: File): Promise<string>=> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
   return (
     <SettingSection
       title='Profile'
@@ -61,7 +95,21 @@ function ProfileSection() {
       }}
     >
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <UserAvatar user={user} size={50}/>
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <UserAvatar user={user} size={50} uploadAvatar={uploadAvatar}/>
+        <input type="file" id="file" ref={fileUploadRef} accept="image/*" onChange={uploadImageDisplay} hidden/>
+        <div 
+          onClick={handleImageUpload} 
+          style={{ 
+            position: 'absolute', 
+            bottom: 0, 
+            right: 0, 
+            cursor: 'pointer',
+          }}
+        >
+          <Pencil2Icon className="h-4 w-4"/>
+        </div>
+      </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <Text>{user?.displayName}</Text>
           <Text variant='secondary' size='sm'>{user?.primaryEmail}</Text>

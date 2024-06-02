@@ -95,7 +95,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
     <DropdownMenu>
       <DropdownMenuTrigger>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <UserAvatar user={user} />
+          <UserAvatar user={user} uploadAvatar={user?.uploadedProfileImage||null}/>
           {user && props.showUserInfo && <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Text style={textStyles}>{user.displayName}</Text>
             <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
@@ -105,7 +105,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
       <DropdownMenuContent style={{ zIndex: 1500 }}>
         <DropdownMenuLabel>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <UserAvatar user={user} />
+            <UserAvatar user={user} uploadAvatar={user?.uploadedProfileImage||null}/>
             <div>
               {user && <Text>{user.displayName}</Text>}
               {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}

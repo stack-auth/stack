@@ -13,11 +13,12 @@ const StyledIcon = styled(UserRound)`
   }
 `;
 
-export default function UserAvatar(props: { size?: number, user: User | null }) {
+export default function UserAvatar(props: { size?: number, user: User | null, uploadAvatar?:string|null }) {
   const user = props.user;
+  const uploadAvatar=props.uploadAvatar
   return (
     <Avatar style={{ height: props.size, width: props.size }}>
-      <AvatarImage src={user?.profileImageUrl || ''} />
+      <AvatarImage src={uploadAvatar? uploadAvatar : user?.profileImageUrl || ''} />
       <AvatarFallback>
         {user ? 
           <Text style={{ fontWeight: 500 }}>
