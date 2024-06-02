@@ -8,19 +8,14 @@
     "with-env": "dotenv -c development --",
     "with-env:prod": "dotenv -c --",
     "keygen": "node scripts/generateKey.js",
-    "postinstall": "npm run todo",
-    "dev": "npm run todo; next dev --port 8101",
-    "build": "npm run todo; npm run codegen && next build",
-    "analyze-bundle": "npm run todo; ANALYZE_BUNDLE=1 npm run build",
-    "start": "npm run todo; next start --port 8101",
-    "codegen": "npm run todo; npm run prisma -- generate",
-    "psql": "npm run todo; npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
-    "prisma": "npm run todo; npm run with-env -- prisma",
-    "lint": "npm run todo; next lint",
-    "todo": "( sh -c 'echo && echo Analyzing TODOs...' && npm run todo-sh >/dev/null; exit 0 ) || npm run todo-win",
-    "todo-win": "echo \"Not running on Linux or macOS, performing simple TODO check.\" && git grep -n TODO\\ ASAP || echo \"No TODOs found, good job!\"",
-    "todo-sh": "( ( ! git grep -n TODO\\ ASAP 1>&2 || npm run todo-sh-error-blocker ) && echo No imminent TODOs found, good job! 1>&2 )",
-    "todo-sh-error-blocker": "( echo && echo ========================================= && echo There are TODO\\ ASAPs in your code, please && echo review them with '`npm run todo`'. && echo && echo Press ENTER or wait 10s to continue. && echo ========================================= && echo && bash -c 'read -t 10'; exit 1 ) 1>&2"
+    "dev": "next dev --port 8101",
+    "build": "npm run codegen && next build",
+    "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
+    "start": "next start --port 8101",
+    "codegen": "npm run prisma -- generate",
+    "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
+    "prisma": "npm run with-env -- prisma",
+    "lint": "next lint"
   },
   "prisma": {
     "seed": "npm run with-env -- tsx prisma/seed.ts"
