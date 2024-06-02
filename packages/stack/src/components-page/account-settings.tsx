@@ -60,7 +60,6 @@ function ProfileSection() {
     if (fileUploadRef.current?.files) {
     const uploadedFile = fileUploadRef.current.files[0];
     const maxSizeInBytes = 1 * 1024 * 1024; // 1 MB
-    console.log("63",uploadedFile.size)
     if (uploadedFile) {
       if(uploadedFile?.size < maxSizeInBytes){
       const fileData = await readFileAsDataURL(uploadedFile);
