@@ -1,5 +1,11 @@
 # stack-docs
 
+## 0.1.9
+
+### Patch Changes
+
+- Improve setup flow
+
 ## 0.1.8
 
 ### Patch Changes

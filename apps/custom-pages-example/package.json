@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/custom-pages-example",
-  "version": "1.1.15",
+  "version": "1.1.16",
   "description": "",
   "private": true,
   "scripts": {
@@ -25,6 +25,7 @@
     "styled-components": "^6.1.8"
   },
   "devDependencies": {
+    "rimraf": "^5.0.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.17",

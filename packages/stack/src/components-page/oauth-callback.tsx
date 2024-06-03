@@ -5,7 +5,7 @@ import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import MessageCard from "../components/message-card";
 
-export default function OAuthCallback () {
+export default function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();
   const called = useRef(false);
   const [error, setError] = useState<unknown>(null);
@@ -29,7 +29,7 @@ export default function OAuthCallback () {
     setTimeout(() => setShowRedirectLink(true), 3000);
   }, []);
 
-  return <MessageCard title='Redirecting...' fullPage>
+  return <MessageCard title='Redirecting...' fullPage={props.fullPage}>
     {showRedirectLink ? <p>If you are not redirected automatically, <a href={app.urls.home}>click here</a>.</p> : null}
     {error ? <div>
       <p>Something went wrong while processing the OAuth callback:</p>

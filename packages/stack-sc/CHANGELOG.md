@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 1.5.6
+
+### Patch Changes
+
+- Improve setup flow
+
 ## 1.5.5
 
 ### Patch Changes

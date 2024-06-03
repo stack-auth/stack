@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 1.0.8
+
+### Patch Changes
+
+- Improve setup flow
+
 ## 1.0.7
 
 ### Patch Changes
