@@ -1,5 +1,11 @@
 # @stackframe/stack
 
+## 2.4.17
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.4.16
 
 ### Patch Changes
