@@ -638,6 +638,33 @@ export class StackClientInterface {
     });
   }
 
+  async createUser(
+    email: string,
+    emailVerificationRedirectUrl:string
+  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    const password = generateSecureRandomString();
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/signup",
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password,
+          emailVerificationRedirectUrl
+        }),
+       
+      },
+      null,
+      [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
+    );
+    if (res.status === "error") {
+      return res.error;
+    }    
+  }
+
   async signUpWithCredential(
     email: string,
     password: string,

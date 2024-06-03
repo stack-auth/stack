@@ -778,6 +778,20 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     return errorCode;
   }
+ 
+  async createUser(options: {
+    email: string,
+  }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | undefined> {
+    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
+    const errorCode = await this._interface.createUser(
+      options.email,
+      emailVerificationRedirectUrl,
+    );
+    if (!errorCode) {
+      console.log("done")
+    }
+    return errorCode;
+  }
 
   async signUpWithCredential(options: {
     email: string,
@@ -1759,6 +1773,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined>,
+    createUser(options: { email: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
