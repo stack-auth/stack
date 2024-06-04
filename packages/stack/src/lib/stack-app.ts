@@ -28,12 +28,19 @@ const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
 
+type RequestLike = {
+  headers: {
+    get: (name: string) => string | null,
+  },
+};
+
 export type TokenStoreInit<HasTokenStore extends boolean = boolean> =
   HasTokenStore extends true ? (
     | "cookie"
     | "nextjs-cookie"
     | "memory"
-    | Request
+    | RequestLike
+
   )
   : HasTokenStore extends false ? null
   : TokenStoreInit<true> | TokenStoreInit<false>;
@@ -333,7 +340,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   private _memoryTokenStore = createEmptyTokenStore();
-  private _requestTokenStores = new Map<Request, TokenStore>();
+  private _requestTokenStores = new Map<RequestLike, TokenStore>();
   protected _getTokenStore(overrideTokenStoreInit?: TokenStoreInit): TokenStore {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
