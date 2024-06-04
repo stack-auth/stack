@@ -15,19 +15,23 @@ import Typography from "@/components/ui/typography";
 type CreateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  opennotification: Function
+  setShowNotifyPasswordDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setcurrentUserPassword: React.Dispatch<React.SetStateAction<string>>;
+
 };
 
 export default function PageClient() {
-
   const stackAdminApp = useAdminApp();
   const allUsers = stackAdminApp.useServerUsers();
   const [addUserOpen, setAddUserOpen] = React.useState(false);
-  const [notifyPassword, setNotifyPassword] = React.useState(false);
- console.log(notifyPassword)
+  const [showNotifyPasswordDialog, setShowNotifyPasswordDialog] = React.useState(false);
+  const [currentUserPassword, setcurrentUserPassword] = React.useState("");
+
+
   const handlePasswordNotificationClose = async () => {
-    setNotifyPassword(false);
+    setShowNotifyPasswordDialog(false);
   };
+
   return (
     <PageLayout
       title="Users"
@@ -45,7 +49,8 @@ export default function PageClient() {
       <CreateDialog
         open={addUserOpen}
         onOpenChange={setAddUserOpen}
-        opennotification={setNotifyPassword}
+        setShowNotifyPasswordDialog={setShowNotifyPasswordDialog}
+        setcurrentUserPassword={setcurrentUserPassword}
       />
       <ActionDialog
         title="Password Change Required"
@@ -53,46 +58,51 @@ export default function PageClient() {
           label: "Change Password Soon",
           onClick: handlePasswordNotificationClose,
         }}
-        open={notifyPassword}
-        onClose={() => setNotifyPassword(false)}
+        open={showNotifyPasswordDialog}
+        onClose={handlePasswordNotificationClose}
       >
         <div className="flex flex-col gap-2">
           <Typography className="mb-4">
             Please change your password soon to ensure account security.
+          </Typography>
+          <Typography className="mb-4">
+           Your Current Password:  {currentUserPassword}
           </Typography>
         </div>
       </ActionDialog>
     </PageLayout>
   );
 }
-function CreateDialog({ open, onOpenChange, opennotification }: CreateDialogProps) {
+
+function CreateDialog({ open, onOpenChange, setShowNotifyPasswordDialog,setcurrentUserPassword }: CreateDialogProps) {
   const stackAdminApp = useAdminApp();
 
   const formSchema = yup.object({
     email: yup.string().required().label("Email"),
   });
 
-  const handleCreateUser = async (values: { email: any }) => {
-    await stackAdminApp.createUser({
+  const handleCreateUser = async (values: { email: string }) => {
+   const res=  await stackAdminApp.createUserWithCredential({
       email: values.email,
     });
-    opennotification(true);
-    
+    console.log(res)
+    if(res){
+      
+      setcurrentUserPassword(res)
+      setShowNotifyPasswordDialog(true);
+    }
+
   };
 
   return (
-    <>
-      <SmartFormDialog
-        open={open}
-        onOpenChange={onOpenChange}
-        title="Create a User"
-        formSchema={formSchema}
-        okButton={{ label: "Create User" }}
-        onSubmit={handleCreateUser}
-        cancelButton
-      />
-    </>
+    <SmartFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Create a User"
+      formSchema={formSchema}
+      okButton={{ label: "Create User" }}
+      onSubmit={handleCreateUser}
+      cancelButton
+    />
   );
 }
-
-

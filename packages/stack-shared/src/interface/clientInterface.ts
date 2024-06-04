@@ -638,65 +638,46 @@ export class StackClientInterface {
     });
   }
 
-  async createUser(
-    email: string,
-    emailVerificationRedirectUrl:string
-  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
-    const password = generateSecureRandomString();
-    const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/signup",
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({
-          email,
-          password,
-          emailVerificationRedirectUrl
-        }),
-       
-      },
-      null,
-      [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
-    );
-    if (res.status === "error") {
-      return res.error;
-    }    
-  }
-
   async signUpWithCredential(
     email: string,
-    password: string,
+    password: string | null,
     emailVerificationRedirectUrl: string,
-    tokenStore: TokenStore,
+    tokenStore: TokenStore | null,
   ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    const requestBody = {
+      email,
+      password,
+      emailVerificationRedirectUrl,
+    };
+  
+    const headers = {
+      "Content-Type": "application/json",
+    };
+  
+    const requestOptions = {
+      headers,
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    };
+  
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",
-      {
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "POST",
-        body: JSON.stringify({
-          email,
-          password,
-          emailVerificationRedirectUrl,
-        }),
-      },
+      requestOptions,
       tokenStore,
       [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
     );
-
+  
     if (res.status === "error") {
       return res.error;
     }
-
-    const result = await res.data.json();
-    tokenStore.set({
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
+  
+    if (tokenStore) {
+      const result = await res.data.json();
+      tokenStore.set({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
+    }
   }
 
   async signInWithMagicLink(code: string, tokenStore: TokenStore): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean }> {

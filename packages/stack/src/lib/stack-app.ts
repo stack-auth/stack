@@ -21,6 +21,7 @@ import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPe
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import * as cookie from "cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundler try to be helpful and throw a warning. Ignore the warning.
@@ -779,16 +780,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return errorCode;
   }
  
-  async createUser(options: {
+  async createUserWithCredential(options: {
     email: string,
-  }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | undefined> {
+  }): Promise<string | KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | undefined> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    const errorCode = await this._interface.createUser(
+    const password =generateSecureRandomString()
+    const errorCode = await this._interface.signUpWithCredential(
       options.email,
+      password,
       emailVerificationRedirectUrl,
+      null,
     );
     if (!errorCode) {
-      console.log("done")
+      return password
     }
     return errorCode;
   }
@@ -1773,7 +1777,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | undefined>,
-    createUser(options: { email: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
+    createUserWithCredential(options: { email: string }): Promise<string | KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | undefined>,
