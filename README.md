@@ -67,12 +67,20 @@ For further configuration and usage, refer to [our documentation](https://docs.s
 
 This is for you if you want to contribute to the Stack project.
 
+### Requirements
+
+- Node v20
+- pnpm v9
+- Docker
+
 ### Setup
 
-Make sure you have `pnpm` installed alongside Node v20. Next, ensure you created `.env.local` files by copying `.env` in each sub-package in the `packages` folder and filling out the variables. You will need to start a Postgres database; you can do this with the following command:
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages, but you can choose to create your own `.env.local` files instead.
+
+In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
 
 ```sh
-docker run -it --rm -e POSTGRES_PASSWORD=password -p "5432:5432" postgres
+docker compose -f dependencies.compose.yaml up
 ```
 
 Then:
@@ -83,14 +91,14 @@ pnpm install
 # Run code generation (repeat this after eg. changing the Prisma schema)
 pnpm run codegen
 
-# After starting a Postgres database and filling the corresponding variables in .env.local, push the schema to the database:
-# for production databases, use `deploy` instead. See: https://www.prisma.io/docs/orm/prisma-migrate/understanding-prisma-migrate/mental-model#prisma-migrate-in-a-staging-and-production-environment
+# Push the most recent Prisma schema to the database
 pnpm run prisma:server migrate reset
-
 
 # Start the dev server
 pnpm run dev
 ```
+
+Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
 You can also open Prisma Studio to see the database interface and edit data directly:
 
