@@ -96,10 +96,25 @@ class ErrorDuringRunAsynchronously extends Error {
   }
 }
 
+export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchronously>) {
+  return runAsynchronously(
+    args[0],
+    {
+      ...args[1],
+      onError: error => {
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}`);
+        args[1]?.onError?.(error);
+      },
+    },
+    ...args.slice(2) as [],
+  );
+}
+
 export function runAsynchronously(
   promiseOrFunc: void | Promise<unknown> | (() => void | Promise<unknown>) | undefined,
   options: {
-    ignoreErrors?: boolean,
+    noErrorLogging?: boolean,
+    onError?: (error: Error) => void,
   } = {},
 ): void {
   if (typeof promiseOrFunc === "function") {
@@ -116,7 +131,8 @@ export function runAsynchronously(
         cause: error,
       }
     );
-    if (!options.ignoreErrors) {
+    options.onError?.(newError);
+    if (!options.noErrorLogging) {
       captureError("runAsynchronously", newError);
     }
   });

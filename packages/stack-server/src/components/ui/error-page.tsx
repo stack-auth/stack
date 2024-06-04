@@ -28,7 +28,7 @@ export default function ErrorPage(props: {
           {props.description}
         </Typography>
 
-        <Button onClick={() => runAsynchronously(router.push(props.redirectUrl))}>
+        <Button onClick={() => router.push(props.redirectUrl)}>
           {props.redirectText}
         </Button>
 

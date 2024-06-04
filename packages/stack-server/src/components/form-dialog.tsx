@@ -2,7 +2,7 @@
 import * as yup from "yup";
 import { useEffect, useId, useState } from "react";
 import { ActionDialog, ActionDialogProps } from "@/components/action-dialog";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FieldValues, useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
@@ -90,7 +90,7 @@ export function FormDialog<F extends FieldValues>(
       {...props}
       open={props.open ?? openState}
       onOpenChange={(open) => { if(open) setOpenState(true); props.onOpenChange?.(open); }}
-      onClose={() => { form.reset(); setOpenState(false); runAsynchronously(props.onClose?.()); }}
+      onClose={() => { form.reset(); setOpenState(false); runAsynchronouslyWithAlert(props.onClose?.()); }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
@@ -103,7 +103,7 @@ export function FormDialog<F extends FieldValues>(
       }}
     >
       <Form {...form}>
-        <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
+        <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
           {props.render(form)}
         </form>
       </Form>

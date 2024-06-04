@@ -12,7 +12,7 @@ import RedirectMessageCard from "./redirect-message-card";
 import MessageCard from "./message-card";
 import MaybeFullPage from "./maybe-full-page";
 import { Button, Label, Text } from "../components-core";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 
 const schema = yup.object().shape({
   password: yup.string().required('Please enter your password').test({
@@ -71,7 +71,7 @@ export default function PasswordResetInner(
 
       <form 
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
-        onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+        onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
         <Label htmlFor="password">New Password</Label>
