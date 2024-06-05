@@ -64,7 +64,7 @@ export abstract class OAuthBaseProvider {
       code_challenge_method: "S256",
       state: options.state,
       response_type: "code",
-      access_type: "offline", // TODO: only do "offline" if refresh token is not already in the DB
+      access_type: "offline",
     });
   }
 

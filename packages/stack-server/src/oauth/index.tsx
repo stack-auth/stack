@@ -8,73 +8,39 @@ import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
+import { SharedProvider, standardProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
+const _providers = {
+  github: GithubProvider,
+  google: GoogleProvider,
+  facebook: FacebookProvider,
+  microsoft: MicrosoftProvider,
+  spotify: SpotifyProvider,
+} as const;
+
+const _getEnvForProvider = (provider: keyof typeof _providers) => {
+  return {
+    clientId: getEnvVariable(`${provider.toUpperCase()}_CLIENT_ID`),
+    clientSecret: getEnvVariable(`${provider.toUpperCase()}_CLIENT_SECRET`),
+  };
+};
+
+const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
+  return standardProviders.includes(provider.type as any);
+};
 
 export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
-  switch (provider.type) {
-    case "github": {
-      return new GithubProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-github": {
-      return new GithubProvider({
-        clientId: getEnvVariable("GITHUB_CLIENT_ID"),
-        clientSecret: getEnvVariable("GITHUB_CLIENT_SECRET"),
-      });
-    }
-    case "google": {
-      return new GoogleProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-google": {
-      return new GoogleProvider({
-        clientId: getEnvVariable("GOOGLE_CLIENT_ID"),
-        clientSecret: getEnvVariable("GOOGLE_CLIENT_SECRET"),
-      });
-    }
-    case "facebook": {
-      return new FacebookProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-facebook": {
-      return new FacebookProvider({
-        clientId: getEnvVariable("FACEBOOK_CLIENT_ID"),
-        clientSecret: getEnvVariable("FACEBOOK_CLIENT_SECRET"),
-      });
-    }
-    case "microsoft": {
-      return new MicrosoftProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-microsoft": {
-      return new MicrosoftProvider({
-        clientId: getEnvVariable("MICROSOFT_CLIENT_ID"),
-        clientSecret: getEnvVariable("MICROSOFT_CLIENT_SECRET"),
-      });
-    }
-    case "spotify": {
-      return new SpotifyProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-spotify": {
-      return new SpotifyProvider({
-        clientId: getEnvVariable("SPOTIFY_CLIENT_ID"),
-        clientSecret: getEnvVariable("SPOTIFY_CLIENT_SECRET"),
-      });
-    }
-    default: {
-      throw new Error("Not implemented yet for provider: " + provider);
-    }
+  if (_isSharedProvider(provider)) {
+    const providerName = toStandardProvider(provider.type);
+    return new _providers[providerName]({
+      clientId: _getEnvForProvider(providerName).clientId,
+      clientSecret: _getEnvForProvider(providerName).clientSecret,
+    });
+  } else {
+    return new _providers[provider.type]({
+      clientId: provider.clientId,
+      clientSecret: provider.clientSecret,
+    });
   }
 }
 
