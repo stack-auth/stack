@@ -8,23 +8,24 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getProvider } from "@/oauth";
 import { getProject } from "@/lib/projects";
-import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
+import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { authorizationHeaderSchema, decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 
 const getSchema = yup.object({
-  header: yup.object({
-    authorization: authorizationHeaderSchema.default(undefined),
-    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(undefined),
-    "x-stack-project-id": yup.string().default(undefined),
-  }),
   query: yup.object({
+    // custom parameters
+    type: yup.string().oneOf(["authenticate", "link"]).default("authenticate"),
+    token: yup.string().default(""),
+    providerScope: yup.string().default(""),
+
+    // oauth parameters
     client_id: yup.string().required(),
     client_secret: yup.string().required(),
     redirect_uri: yup.string().required(),
     scope: yup.string().required(),
     state: yup.string().required(),
-    grant_type: yup.string().required(),
+    grant_type: yup.string().oneOf(["authorization_code"]).required(),
     code_challenge: yup.string().required(),
     code_challenge_method: yup.string().required(),
     response_type: yup.string().required(),
@@ -33,12 +34,10 @@ const getSchema = yup.object({
 
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
   const {
-    header: {
-      authorization,
-      "x-stack-project-id": headerProjectId,
-      "x-stack-publishable-client-key": headerPublishableClientKey,
-    },
     query: {
+      type,
+      token,
+      providerScope,
       client_id: projectId,
       client_secret: publishableClientKey,
       redirect_uri: redirectUri,
@@ -75,12 +74,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   // If the authorization header is present, we are adding new scopes to the user instead of sign-in/sign-up
   let authorizeSignedInUser = false;
   let projectUserId: string | undefined;
-  if (authorization && headerProjectId && headerPublishableClientKey) {
-    if (headerProjectId !== projectId || headerPublishableClientKey !== publishableClientKey) {
-      throw new StatusError(StatusError.BadRequest, "project ID or publishable client key mismatch");
-    }
-
-    const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
+  if (type === "link") {
+    const decodedAccessToken = await decodeAccessToken(token);
     const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
     if (accessTokenProjectId !== projectId) {
@@ -109,7 +104,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     responseType,
     innerCodeVerifier,
     innerState,
-    authorizeSignedInUser,
+    type,
     projectUserId,
   } satisfies yup.InferType<typeof oauthCookieSchema>);
 

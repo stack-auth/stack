@@ -237,12 +237,6 @@ export class StackClientInterface {
       throw new Error(`Failed to send refresh token request: ${response.status} ${body}`);
     }
 
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response.data))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
-
     const result = await oauth.processRefreshTokenResponse(as, client, response.data);
     if (oauth.isOAuth2Error(result)) {
       // TODO Handle OAuth 2.0 response body error
@@ -700,12 +694,15 @@ export class StackClientInterface {
   }
 
   async getOAuthUrl(
-    provider: string, 
-    redirectUrl: string, 
-    codeChallenge: string, 
-    state: string
+    options: {
+      provider: string, 
+      redirectUrl: string, 
+      codeChallenge: string, 
+      state: string,
+      type: "authenticate" | "link",
+    } & ({ type: "authenticate" } | { type: "link", tokenStore: TokenStore })
   ): Promise<string> {
-    const updatedRedirectUrl = new URL(redirectUrl);
+    const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
       if (updatedRedirectUrl.searchParams.has(key)) {
         console.warn("Redirect URL already contains " + key + " parameter, removing it as it will be overwritten by the OAuth callback");
@@ -717,16 +714,23 @@ export class StackClientInterface {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
-    const url = new URL(this.getApiUrl() + "/auth/authorize/" + provider.toLowerCase());
+    const url = new URL(this.getApiUrl() + "/auth/authorize/" + options.provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
     url.searchParams.set("scope", "openid");
-    url.searchParams.set("state", state);
+    url.searchParams.set("state", options.state);
     url.searchParams.set("grant_type", "authorization_code");
-    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("code_challenge", options.codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
+    url.searchParams.set("type", options.type);
+    
+    if (options.type === "link") {
+      const tokenObj = await options.tokenStore.getOrWait();
+      url.searchParams.set("token", tokenObj.accessToken || "");
+    }
+
     return url.toString();
   }
 
@@ -753,7 +757,7 @@ export class StackClientInterface {
     };
     const params = oauth.validateAuthResponse(as, client, oauthParams, state);
     if (oauth.isOAuth2Error(params)) {
-      throw new StackAssertionError("Error validating OAuth response", { params }); // Handle OAuth 2.0 redirect error
+      throw new StackAssertionError("Error validating OAuth response", { params });
     }
     const response = await oauth.authorizationCodeGrantRequest(
       as,
@@ -762,12 +766,6 @@ export class StackClientInterface {
       redirectUri,
       codeVerifier,
     );
-
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
@@ -894,6 +892,28 @@ export class StackClientInterface {
 
     const json = await fetchResponse.json();
     return json;
+  }
+
+  async getAccessToken(
+    provider: string,
+    scope: string,
+    tokenStore: TokenStore,
+  ): Promise<{ accessToken: string }> {
+    const response = await this.sendClientRequest(
+      `/auth/access-token/${provider}`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ scope }),
+      },
+      tokenStore,
+    );
+    const json = await response.json();
+    return {
+      accessToken: json.accessToken,
+    };
   }
 }
 

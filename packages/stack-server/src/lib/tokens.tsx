@@ -25,7 +25,7 @@ export const oauthCookieSchema = yup.object({
   codeChallenge: yup.string().required(),
   codeChallengeMethod: yup.string().required(),
   responseType: yup.string().required(),
-  authorizeSignedInUser: yup.boolean().required(),
+  type: yup.string().oneOf(['authenticate', 'link']).required(),
   projectUserId: yup.string().optional(),
 });
 

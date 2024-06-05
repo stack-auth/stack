@@ -48,7 +48,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     publishableClientKey,
     innerCodeVerifier,
     innerState,
-    authorizeSignedInUser,
+    type,
     projectUserId,
   } = decodedCookie;
 
@@ -99,11 +99,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       await prismaClient.oAuthToken.create({
         data: {
           projectId: decodedCookie.projectId,
-          projectUserId,
-          projectConfigId: project.evaluatedConfig.id,
-          oAuthProjectConfigId: provider.id,
+          oAuthProviderConfigId: provider.id,
           refreshToken: userInfo.refreshToken,
-          oAuthAccountProviderAccountId: userInfo.accountId,
+          providerAccountId: userInfo.accountId,
           scopes: extractScopes(getProvider(provider).scope), // TODO: get scopes from the DB
         }
       });
@@ -128,8 +126,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
               },
             });
 
-            // ========================== authorize signed in user ==========================
-            if (authorizeSignedInUser) {
+            // ========================== link account with user ==========================
+            if (type === "link") {
               if (!projectUserId) {
                 throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
               }
