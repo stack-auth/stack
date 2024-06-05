@@ -106,8 +106,9 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
   return templateIdentity(deindentedStrings, ...indentedValues);
 }
 
-export function extractScopes(scope: string): string[] {
+export function extractScopes(scope: string, removeDuplicates=true): string[] {
   const trimmedString = scope.trim();
   const scopesArray = trimmedString.split(/\s+/);
-  return scopesArray.filter(scope => scope.length > 0);
+  const filtered = scopesArray.filter(scope => scope.length > 0);
+  return removeDuplicates ? [...new Set(filtered)] : filtered;
 }

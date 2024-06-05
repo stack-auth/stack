@@ -700,7 +700,7 @@ export class StackClientInterface {
       codeChallenge: string, 
       state: string,
       type: "authenticate" | "link",
-    } & ({ type: "authenticate" } | { type: "link", tokenStore: TokenStore })
+    } & ({ type: "authenticate" } | { type: "link", tokenStore: TokenStore, providerScope?: string})
   ): Promise<string> {
     const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
@@ -729,6 +729,10 @@ export class StackClientInterface {
     if (options.type === "link") {
       const tokenObj = await options.tokenStore.getOrWait();
       url.searchParams.set("token", tokenObj.accessToken || "");
+
+      if (options.providerScope) {
+        url.searchParams.set("providerScope", options.providerScope);
+      }
     }
 
     return url.toString();

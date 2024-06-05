@@ -2,7 +2,7 @@ import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { neverResolve, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export async function signInWithOAuth(
@@ -17,12 +17,41 @@ export async function signInWithOAuth(
 ) {
   redirectUrl = constructRedirectUrl(redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
-  const location = await iface.getOAuthUrl(
+  const location = await iface.getOAuthUrl({
     provider,
     redirectUrl,
     codeChallenge,
     state,
-  );
+    type: "authenticate"
+  });
+  window.location.assign(location);
+  await neverResolve();
+}
+
+export async function addNewOAuthProviderOrScope(
+  iface: StackClientInterface,
+  {
+    provider,
+    redirectUrl,
+    scope,
+  } : { 
+    provider: string,
+    redirectUrl?: string,
+    scope?: string,
+  },
+  tokenStore: TokenStore,
+) {
+  redirectUrl = constructRedirectUrl(redirectUrl);
+  const { codeChallenge, state } = await saveVerifierAndState();
+  const location = await iface.getOAuthUrl({
+    provider,
+    redirectUrl,
+    codeChallenge,
+    state,
+    type: "link",
+    tokenStore,
+    providerScope: scope,
+  });
   window.location.assign(location);
   await neverResolve();
 }

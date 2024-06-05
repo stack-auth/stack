@@ -10,7 +10,7 @@ import { getProvider } from "@/oauth";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { authorizationHeaderSchema, decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
+import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -90,6 +90,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   const oauthUrl = await getProvider(provider).getAuthorizationUrl({
     codeVerifier: innerCodeVerifier,
     state: innerState,
+    extraScope: providerScope,
   });
 
   const cookie = await encryptJWT({
@@ -106,6 +107,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     innerState,
     type,
     projectUserId,
+    providerScope,
   } satisfies yup.InferType<typeof oauthCookieSchema>);
 
   cookies().set("stack-oauth", cookie, {

@@ -1,6 +1,7 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
 import { OAuthUserInfo } from "../utils";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -52,28 +53,22 @@ export abstract class OAuthBaseProvider {
     this.scope = scope;
   }
 
-  getAuthorizationUrl({
-    codeVerifier,
-    state
-  }: {
+  getAuthorizationUrl(options: {
     codeVerifier: string,
     state: string,
+    extraScope?: string,
   }) {
     return this.oauthClient.authorizationUrl({
-      scope: this.scope,
-      code_challenge: generators.codeChallenge(codeVerifier),
+      scope: extractScopes(this.scope + " " + options.extraScope).join(" "),
+      code_challenge: generators.codeChallenge(options.codeVerifier),
       code_challenge_method: "S256",
-      state: state,
+      state: options.state,
       response_type: "code",
-      access_type: "offline",
+      access_type: "offline", // TODO: only do "offline" if refresh token is not already in the DB
     });
   }
 
-  async getCallback({
-    callbackParams,
-    codeVerifier,
-    state
-  }: {
+  async getCallback(options: {
     callbackParams: CallbackParamsType, 
     codeVerifier: string, 
     state: string,
@@ -81,10 +76,10 @@ export abstract class OAuthBaseProvider {
     let tokenSet;
     try {
       const params = {
-        code_verifier: codeVerifier,
-        state: state,
+        code_verifier: options.codeVerifier,
+        state: options.state,
       };
-      tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
+      tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
     } catch (error) {
       throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
     }
@@ -94,14 +89,11 @@ export abstract class OAuthBaseProvider {
     return await this.postProcessUserInfo(tokenSet);
   }
 
-  async getAccessToken({
-    refreshToken,
-    scope,
-  }: {
+  async getAccessToken(options: {
     refreshToken: string,
     scope?: string,
   }): Promise<TokenSet> {
-    return await this.oauthClient.refresh(refreshToken, { exchangeBody: { scope } });
+    return await this.oauthClient.refresh(options.refreshToken, { exchangeBody: { scope: options.scope } });
   }
 
   abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;
