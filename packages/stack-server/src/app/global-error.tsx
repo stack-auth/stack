@@ -18,7 +18,7 @@ export default function GlobalError({ error }: any) {
       if (isProdLike && !cancelled) {
         window.location.assign("/");
       }
-    }, 500);
+    }, 20);
     return () => {
       cancelled = true;
     };

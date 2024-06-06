@@ -325,7 +325,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     numberOfAppsCreated++;
     if (numberOfAppsCreated > 10) {
-      console.warn(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak. Make sure to minimize the number of Stack apps per page (usually, one per project).`);
+      (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. In production, make sure to minimize the number of Stack apps per page (usually, one per project).`);
     }
   }
 

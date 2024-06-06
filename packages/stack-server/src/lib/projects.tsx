@@ -582,7 +582,7 @@ const nonRequiredSchemas = {
     domains: yup.array(yup.object({
       domain: yup.string().required(),
       handlerPath: yup.string().required(),
-    })).optional(),
+    })).optional().default(undefined),
     oauthProviders: yup.array(
       yup.object({
         id: yup.string().required(),
@@ -592,7 +592,7 @@ const nonRequiredSchemas = {
         clientSecret: yup.string().optional(),
         tenantId: yup.string().optional(),
       })
-    ).optional(),
+    ).optional().default(undefined),
     credentialEnabled: yup.boolean().optional(),
     magicLinkEnabled: yup.boolean().optional(),
     allowLocalhost: yup.boolean().optional(),
@@ -605,8 +605,8 @@ const nonRequiredSchemas = {
       username: requiredWhenShared(yup.string()),
       password: requiredWhenShared(yup.string()),
       senderEmail: requiredWhenShared(yup.string().email()),
-    }).optional(),
-  }).optional(),
+    }).optional().default(undefined),
+  }).optional().default(undefined),
 };
 
 export const getProjectUpdateSchema = () => yup.object({

@@ -9,22 +9,22 @@ import { useEffect, useState } from "react";
 import { Control, FieldValues, Path } from "react-hook-form";
 
 // used to represent the permission being edited, so we don't need to update the id all the time
-const CURRENTLY_EDITED_PERMISSION_SENTINEL = `currently-edited-permission-sentinel-${generateSecureRandomString()}`;
+const CURRENTLY_EDITED_PERMISSION_SENTINEL = `--stack-internal-currently-edited-permission-sentinel-${generateSecureRandomString()}`;
 
 export class PermissionGraph {
   public readonly permissions: Map<string, ServerPermissionDefinitionJson>;
 
-  constructor(permissions: ServerPermissionDefinitionJson[]) {
+  constructor(permissions: Iterable<ServerPermissionDefinitionJson>) {
     this.permissions = this._copyPermissions(permissions);
   }
 
   copy(): PermissionGraph {
-    return new PermissionGraph(Object.values(this.permissions));
+    return new PermissionGraph(this.permissions.values());
   }
 
-  _copyPermissions(permissions: ServerPermissionDefinitionJson[]): Map<string, ServerPermissionDefinitionJson> {
+  _copyPermissions(permissions: Iterable<ServerPermissionDefinitionJson>): Map<string, ServerPermissionDefinitionJson> {
     const result: Map<string, ServerPermissionDefinitionJson> = new Map();
-    permissions.forEach(permission => {
+    [...permissions].forEach(permission => {
       result.set(permission.id, {
         ...permission, 
         containPermissionIds: [...permission.containPermissionIds]
@@ -37,7 +37,7 @@ export class PermissionGraph {
     permissionId: string,
     permission: ServerPermissionDefinitionJson
   ) {
-    const permissions = this._copyPermissions(Object.values(this.permissions));
+    const permissions = this._copyPermissions(this.permissions.values());
     permissions.set(permissionId, permission);
 
     for (const [key, value] of permissions.entries()) {
@@ -47,11 +47,11 @@ export class PermissionGraph {
       });
     }
 
-    return new PermissionGraph(Object.values(permissions));
+    return new PermissionGraph(permissions.values());
   }
 
   addPermission(containPermissionIds?: string[]) {
-    const permissions = this._copyPermissions(Object.values(this.permissions));
+    const permissions = this._copyPermissions(this.permissions.values());
     permissions.set(CURRENTLY_EDITED_PERMISSION_SENTINEL, {
       id: CURRENTLY_EDITED_PERMISSION_SENTINEL,
       description: 'none',
@@ -59,11 +59,11 @@ export class PermissionGraph {
       __databaseUniqueId: 'none',
       containPermissionIds: containPermissionIds || [],
     });
-    return new PermissionGraph(Object.values(permissions));
+    return new PermissionGraph(permissions.values());
   }
 
   replacePermission(permissionId: string) {
-    const permissions = this._copyPermissions(Object.values(this.permissions));
+    const permissions = this._copyPermissions(this.permissions.values());
     const oldPermission = permissions.get(permissionId) ?? throwErr(`Permission ${permissionId} not found in replacePermission`);
     permissions.delete(permissionId);
     permissions.set(CURRENTLY_EDITED_PERMISSION_SENTINEL, {
@@ -77,7 +77,7 @@ export class PermissionGraph {
       });
     }
 
-    return new PermissionGraph(Object.values(permissions));
+    return new PermissionGraph([...permissions.values()]);
   }
 
   recursiveContains(permissionId: string): ServerPermissionDefinitionJson[] {
@@ -160,7 +160,7 @@ export function PermissionListField<F extends FieldValues>(props: {
   // @ts-ignore
   }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team]);
 
-  if (!graph || Object.values(graph.permissions).length <= 1) {
+  if (!graph || graph.permissions.size <= 1) {
     return null;
   }
 
@@ -175,7 +175,7 @@ export function PermissionListField<F extends FieldValues>(props: {
         <FormItem>
           <FormLabel>Contained permissions</FormLabel>
           <div className="flex-col rounded-lg border p-3 shadow-sm max-h-64 overflow-y-auto">
-            {Object.values(graph.permissions).map(permission => {
+            {[...graph.permissions.values()].map(permission => {
               if (permission.id === CURRENTLY_EDITED_PERMISSION_SENTINEL) return null;
 
               const selected = currentPermission.containPermissionIds.includes(permission.id);

@@ -435,7 +435,7 @@ export class StackClientInterface {
     if (res.headers.has("x-stack-known-error")) {
       const errorJson = await res.json();
       if (res.headers.get("x-stack-known-error") !== errorJson.code) {
-        throw new Error("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
+        throw new StackAssertionError("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
       }
       const error = KnownError.fromJson(errorJson);
       return Result.error(error);

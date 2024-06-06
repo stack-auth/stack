@@ -53,7 +53,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
   const headers = new Map<string, string[]>;
 
   let arrayBufferBody;
-  if (!req.body) {
+  if (obj.body === undefined) {
     arrayBufferBody = new ArrayBuffer(0);
   } else {
     const bodyType = validated.bodyType ?? (isBinaryBody(validated.body) ? "binary" : "json");
