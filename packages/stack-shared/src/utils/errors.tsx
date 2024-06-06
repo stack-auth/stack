@@ -1,3 +1,4 @@
+import { globalVar } from "./globals";
 import { Json } from "./json";
 
 
@@ -34,6 +35,10 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
 }
 registerErrorSink((location, ...args) => {
   console.error(`Error in ${location}:`, ...args);
+});
+registerErrorSink((location, error, ...args) => {
+  globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];
+  globalVar.stackCapturedErrors.push({ location, error: args, extraArgs: args });
 });
 
 export function captureError(location: string, error: unknown): void {

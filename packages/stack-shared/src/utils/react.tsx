@@ -1,6 +1,7 @@
 import { use } from "react";
 import { neverResolve } from "./promises";
 import { deindent } from "./strings";
+import { isBrowserLike } from "./env";
 
 export function getNodeText(node: React.ReactNode): string {
   if (["number", "string"].includes(typeof node)) {
@@ -33,7 +34,7 @@ export function suspend(): never {
  * Use this in a component or a hook to disable SSR. Should be wrapped in a Suspense boundary, or it will throw an error.
  */
 export function suspendIfSsr(caller?: string) {
-  if (typeof window === "undefined") {
+  if (!isBrowserLike()) {
     const error = Object.assign(
       new Error(deindent`
         ${caller ?? "This code path"} attempted to display a loading indicator during SSR by falling back to the nearest Suspense boundary. If you see this error, it means no Suspense boundary was found, and no loading indicator could be displayed. Make sure you are not catching this error with try-catch, and that the component is rendered inside a Suspense boundary, for example by adding a \`loading.tsx\` file in your app directory.

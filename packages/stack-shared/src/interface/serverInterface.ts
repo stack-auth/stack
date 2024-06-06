@@ -1,9 +1,7 @@
 import { 
   ClientInterfaceOptions, 
   UserJson, 
-  TokenStore, 
   StackClientInterface,
-  ReadonlyTokenStore,
   OrglikeJson,
   UserUpdateJson,
   PermissionDefinitionJson,
@@ -13,6 +11,7 @@ import {
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
+import { Session } from "../sessions";
 
 export type ServerUserJson = UserJson & {
   serverMetadata: ReadonlyJson,
@@ -51,7 +50,7 @@ export type ServerAuthApplicationOptions = (
       readonly secretServerKey: string,
     }
     | {
-      readonly projectOwnerTokens: ReadonlyTokenStore,
+      readonly projectOwnerSession: Session,
     }
   )
 );
@@ -64,7 +63,7 @@ export class StackServerInterface extends StackClientInterface {
     super(options);
   }
 
-  protected async sendServerRequest(path: string, options: RequestInit, tokenStore: TokenStore | null, requestType: "server" | "admin" = "server") {
+  protected async sendServerRequest(path: string, options: RequestInit, session: Session | null, requestType: "server" | "admin" = "server") {
     return await this.sendClientRequest(
       path,
       {
@@ -74,16 +73,16 @@ export class StackServerInterface extends StackClientInterface {
           ...options.headers,
         },
       },
-      tokenStore,
+      session,
       requestType,
     );
   }
 
-  async getServerUserByToken(tokenStore: TokenStore): Promise<Result<ServerUserJson>> {
+  async getServerUserByToken(session: Session): Promise<Result<ServerUserJson>> {
     const response = await this.sendServerRequest(
       "/current-user?server=true",
       {},
-      tokenStore,
+      session,
     );
     const user: ServerUserJson | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
@@ -107,22 +106,22 @@ export class StackServerInterface extends StackClientInterface {
       type: 'global' | 'team', 
       direct: boolean, 
     },
-    tokenStore: TokenStore
+    session: Session
   ): Promise<ServerPermissionDefinitionJson[]> {
     const response = await this.sendServerRequest(
       `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}&server=true`,
       {},
-      tokenStore,
+      session,
     );
     const permissions: ServerPermissionDefinitionJson[] = await response.json();
     return permissions;
   }
 
-  async listServerUserTeams(tokenStore: TokenStore): Promise<ServerTeamJson[]> {
+  async listServerUserTeams(session: Session): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest(
       "/current-user/teams?server=true",
       {},
-      tokenStore,
+      session,
     );
     const teams: ServerTeamJson[] = await response.json();
     return teams;

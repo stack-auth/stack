@@ -1,7 +1,6 @@
 import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
-import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { neverResolve, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
@@ -66,7 +65,6 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
 
 export async function callOAuthCallback(
   iface: StackClientInterface,
-  tokenStore: TokenStore,
   redirectUrl: string,
 ) {
   // note: this part of the function (until the return) needs
@@ -87,7 +85,6 @@ export async function callOAuthCallback(
       constructRedirectUrl(redirectUrl),
       codeVerifier,
       state,
-      tokenStore,
     );
   } catch (e) {
     throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });

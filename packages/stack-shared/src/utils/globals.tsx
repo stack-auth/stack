@@ -1,7 +1,7 @@
 const globalVar: any =
   typeof globalThis !== 'undefined' ? globalThis :
-    typeof window !== 'undefined' ? window :
-      typeof global !== 'undefined' ? global :
+    typeof global !== 'undefined' ? global :
+      typeof window !== 'undefined' ? window :
         typeof self !== 'undefined' ? self :
           {};
 export {
