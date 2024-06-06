@@ -8,7 +8,7 @@ import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
-import { SharedProvider, standardProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { SharedProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 const _providers = {
   github: GithubProvider,
@@ -26,7 +26,7 @@ const _getEnvForProvider = (provider: keyof typeof _providers) => {
 };
 
 const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
-  return standardProviders.includes(provider.type as any);
+  return sharedProviders.includes(provider.type as any);
 };
 
 export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
