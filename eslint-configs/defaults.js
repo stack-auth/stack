@@ -8,8 +8,20 @@ module.exports = {
     tsconfigRootDir: process.cwd(),
   },
   rules: {
-    "indent": "off",
-    "@typescript-eslint/indent": ["warn", 2, { SwitchCase: 1 }],
+    "indent": ["warn", 2, {
+      SwitchCase: 1,
+      ignoredNodes: [
+        "TSIntersectionType",
+        "TSTypeParameter",
+        "TSTypeParameterDeclaration",
+        "TSTypeParameterInstantiation",
+        "TSUnionType",
+        "ConditionalType",
+        "TSConditionalType",
+        "FunctionDeclaration",
+        "CallExpression",
+      ],
+    }],
     semi: ["error", "always"],
     "no-fallthrough": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
