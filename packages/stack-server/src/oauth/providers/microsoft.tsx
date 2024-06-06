@@ -3,21 +3,18 @@ import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
-  constructor({
-    clientId,
-    clientSecret,
-  }: {
+  constructor(options: {
     clientId: string,
     clientSecret: string,
+    additionalScope: string,
   }) {
     super({
       issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-      clientId,
-      clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
-      scope: "User.Read",
+      baseScope: "User.Read",
+      ...options,
     });
   }
 

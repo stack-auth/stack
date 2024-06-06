@@ -550,6 +550,7 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
             type: fromDBStandardProvider(provider.standardOAuthConfig.type),
             clientId: provider.standardOAuthConfig.clientId,
             clientSecret: provider.standardOAuthConfig.clientSecret,
+            additionalScope: provider.standardOAuthConfig.additionalScopes.join(" "),
           }];
         }
         captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));

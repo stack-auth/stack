@@ -3,22 +3,19 @@ import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class GithubProvider extends OAuthBaseProvider {
-  constructor({
-    clientId,
-    clientSecret,
-  }: {
+  constructor(options: {
     clientId: string,
     clientSecret: string,
+    additionalScope: string,
   }) {
     super({
       issuer: "https://github.com",
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
       userinfoEndpoint: "https://api.github.com/user",
-      clientId,
-      clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/github",
-      scope: "user:email",
+      baseScope: "user:email",
+      ...options,
     });
   }
 

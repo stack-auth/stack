@@ -72,7 +72,6 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   }
 
   // If the authorization header is present, we are adding new scopes to the user instead of sign-in/sign-up
-  let authorizeSignedInUser = false;
   let projectUserId: string | undefined;
   if (type === "link") {
     const decodedAccessToken = await decodeAccessToken(token);
@@ -81,7 +80,6 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     if (accessTokenProjectId !== projectId) {
       throw new StatusError(StatusError.Forbidden);
     }
-    authorizeSignedInUser = true;
     projectUserId = userId;
   }
 

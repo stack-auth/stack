@@ -54,6 +54,12 @@ export const providerFormSchema = yup.object({
       then: (schema) => schema.required(),
       otherwise: (schema) => schema.optional()
     }),
+  additionalScope: yup.string()
+    .when('shared', {
+      is: false,
+      then: (schema) => schema.optional(),
+      otherwise: (schema) => schema.optional()
+    }),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -76,6 +82,7 @@ export function ProviderSettingDialog(props: Props) {
         enabled: true,
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
+        additionalScope: values.additionalScope || "",
       });
     }
   };

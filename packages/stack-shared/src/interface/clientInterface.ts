@@ -119,6 +119,7 @@ export type OAuthProviderConfigJson = {
     type: StandardProvider,
     clientId: string,
     clientSecret: string,
+    additionalScope: string,
   }
 );
 

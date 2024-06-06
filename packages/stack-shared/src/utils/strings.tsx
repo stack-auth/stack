@@ -112,3 +112,8 @@ export function extractScopes(scope: string, removeDuplicates=true): string[] {
   const filtered = scopesArray.filter(scope => scope.length > 0);
   return removeDuplicates ? [...new Set(filtered)] : filtered;
 }
+
+export function mergeScopeStrings(...scopes: string[]): string {
+  const allScope = scopes.map((s) => extractScopes(s)).flat().join(" ");
+  return extractScopes(allScope).join(" ");
+}

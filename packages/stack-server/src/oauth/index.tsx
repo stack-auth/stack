@@ -35,11 +35,13 @@ export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvide
     return new _providers[providerName]({
       clientId: _getEnvForProvider(providerName).clientId,
       clientSecret: _getEnvForProvider(providerName).clientSecret,
+      additionalScope: '',
     });
   } else {
     return new _providers[provider.type]({
       clientId: provider.clientId,
       clientSecret: provider.clientSecret,
+      additionalScope: provider.additionalScope,
     });
   }
 }

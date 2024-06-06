@@ -3,21 +3,18 @@ import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class FacebookProvider extends OAuthBaseProvider {
-  constructor({
-    clientId,
-    clientSecret,
-  }: {
+  constructor(options: {
     clientId: string,
     clientSecret: string,
+    additionalScope: string,
   }) {
     super({
       issuer: "https://www.facebook.com",
       authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
-      clientId,
-      clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/facebook",
-      scope: "public_profile email",
+      baseScope: "public_profile email",
+      ...options
     });
   }
 

@@ -1,7 +1,7 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
 import { OAuthUserInfo } from "../utils";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
+import { extractScopes, mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -9,16 +9,7 @@ export abstract class OAuthBaseProvider {
   oauthClient: Client;
   redirectUri: string;
 
-  constructor({
-    issuer,
-    authorizationEndpoint,
-    tokenEndpoint,
-    userinfoEndpoint,
-    clientId,
-    clientSecret,
-    redirectUri,
-    scope,
-  }: {
+  constructor(options: {
     issuer: string,
     authorizationEndpoint: string,
     tokenEndpoint: string,
@@ -26,18 +17,19 @@ export abstract class OAuthBaseProvider {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    scope: string,
+    baseScope: string,
+    additionalScope: string,
   }) {
     this.issuer = new Issuer({
-      issuer,
-      authorization_endpoint: authorizationEndpoint,
-      token_endpoint: tokenEndpoint,
-      userinfo_endpoint: userinfoEndpoint,
+      issuer: options.issuer,
+      authorization_endpoint: options.authorizationEndpoint,
+      token_endpoint: options.tokenEndpoint,
+      userinfo_endpoint: options.userinfoEndpoint,
     });
     this.oauthClient = new this.issuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
+      client_id: options.clientId,
+      client_secret: options.clientSecret,
+      redirect_uri: options.redirectUri,
       response_types: ["code"],
     });
 
@@ -49,8 +41,8 @@ export abstract class OAuthBaseProvider {
       return grant;
     };
 
-    this.redirectUri = redirectUri;
-    this.scope = scope;
+    this.redirectUri = options.redirectUri;
+    this.scope = mergeScopeStrings(options.baseScope, options.additionalScope);
   }
 
   getAuthorizationUrl(options: {
@@ -59,7 +51,7 @@ export abstract class OAuthBaseProvider {
     extraScope?: string,
   }) {
     return this.oauthClient.authorizationUrl({
-      scope: extractScopes(this.scope + " " + options.extraScope).join(" "),
+      scope: mergeScopeStrings(this.scope, options.extraScope || ""),
       code_challenge: generators.codeChallenge(options.codeVerifier),
       code_challenge_method: "S256",
       state: options.state,
@@ -70,7 +62,7 @@ export abstract class OAuthBaseProvider {
 
   async getCallback(options: {
     callbackParams: CallbackParamsType, 
-    codeVerifier: string, 
+    codeVerifier: string,
     state: string,
   }): Promise<OAuthUserInfo> {
     let tokenSet;
