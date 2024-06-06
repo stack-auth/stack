@@ -19,10 +19,10 @@ const CurrentUIContext = React.createContext<{
 const ThemeContext = React.createContext<{
   theme: 'dark' | 'light',
   setTheme: (theme: 'dark' | 'light') => void,
-    }>({
-      theme: 'light',
-      setTheme: () => {},
-    });
+}>({
+  theme: 'light',
+  setTheme: () => {},
+});
 
 export function useCurrentUI() {
   return React.useContext(CurrentUIContext);

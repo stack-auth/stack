@@ -10,7 +10,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 const postSchema = yup.object({
   body: yup.object({
     code: yup.string().required(),
-    password: yup.string().default(undefined),
+    password: yup.string().optional(),
     onlyVerifyCode: yup.boolean().default(false),
   }),
 });

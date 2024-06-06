@@ -103,8 +103,10 @@ type Props = {
   columns?: TColumn[],
 };
 function TableCell({ index, props, columns }: Props) {
-  const contentAlignment = props?.contentAlignment ?? ColumnsContainerPropsDefaults.contentAlignment;
-  const columnsCount = props?.columnsCount ?? ColumnsContainerPropsDefaults.columnsCount;
+  // eslint-disable-next-line
+  const contentAlignment = props.contentAlignment ?? ColumnsContainerPropsDefaults.contentAlignment;
+  // eslint-disable-next-line
+  const columnsCount = props.columnsCount ?? ColumnsContainerPropsDefaults.columnsCount;
 
   if (columnsCount === 2 && index === 2) {
     return null;

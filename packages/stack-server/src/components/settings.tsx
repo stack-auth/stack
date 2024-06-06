@@ -60,7 +60,7 @@ export function SettingCard(props: {
 
 export function SettingSwitch(props: {
   label: string | React.ReactNode,
-  checked: boolean,
+  checked?: boolean,
   disabled?: boolean,
   onCheckedChange: (checked: boolean) => void | Promise<void>,
   actions?: React.ReactNode,

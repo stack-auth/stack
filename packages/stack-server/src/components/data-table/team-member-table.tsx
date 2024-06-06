@@ -153,13 +153,13 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
 
   // TODO: Optimize this
   const [users, setUsers] = useState<ServerUser[]>([]);
-  const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});
+  const [userPermissions, setUserPermissions] = useState<Map<string, string[]>>(new Map());
   const [updateCounter, setUpdateCounter] = useState(0);
 
   const extendedUsers: ExtendedServerUserForTeam[] = useMemo(() => {
     return extendUsers(users).map((user) => ({
       ...user,
-      permissions: userPermissions[user.id] || [],
+      permissions: userPermissions.get(user.id) ?? [],
     }));
   }, [users, userPermissions]);
   
@@ -177,7 +177,7 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
     }
     
     load().then((data) => {
-      setUserPermissions(Object.fromEntries(
+      setUserPermissions(new Map(
         props.members.map((member, index) => [member.userId, data[index].permissions.map(p => p.id)])
       ));
       setUsers(data.map(d => d.user));

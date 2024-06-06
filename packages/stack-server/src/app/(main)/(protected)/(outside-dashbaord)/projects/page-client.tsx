@@ -57,7 +57,7 @@ export default function PageClient() {
           
           <Button
             onClick={async () => {
-              await router.push('/new-project');
+              router.push('/new-project');
               return await wait(2000);
             }}
           >Create Project

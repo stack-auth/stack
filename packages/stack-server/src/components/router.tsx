@@ -1,32 +1,39 @@
 'use client';
 
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 // eslint-disable-next-line
 import { useRouter as useNextRouter } from 'next/navigation';
 import React from 'react';
 
-const routerContext = React.createContext<{ setNeedConfirm: (needConfirm: boolean) => void, needConfirm: boolean }>(
-  { setNeedConfirm: () => {}, needConfirm: false }
-);
+const routerContext = React.createContext<null | {
+  setNeedConfirm: (needConfirm: boolean) => void,
+  readonly needConfirm: boolean,
+}>(null);
 
 export const confirmAlertMessage = "Are you sure you want to leave this page? Changes you made may not be saved.";
 
 export function useRouter() {
   const router = useNextRouter();
-  const context = React.useContext(routerContext);
+  const context = useRouterConfirm();
 
-  if (context.needConfirm) {
-    return {
-      push: (url: string) => { window.confirm(confirmAlertMessage) && router.push(url); },
-      replace: (url: string) => { window.confirm(confirmAlertMessage) && router.replace(url); },
-      back: () => { window.confirm(confirmAlertMessage) && router.back(); },
-    };
-  }
-
-  return router;
+  return {
+    push: (url: string) => {
+      if (context.needConfirm && !window.confirm(confirmAlertMessage)) return;
+      router.push(url);
+    },
+    replace: (url: string) => {
+      if (context.needConfirm && !window.confirm(confirmAlertMessage)) return;
+      router.replace(url);
+    },
+    back: () => {
+      if (context.needConfirm && !window.confirm(confirmAlertMessage)) return;
+      router.back();
+    },  
+  };
 }
 
 export function useRouterConfirm() {
-  return React.useContext(routerContext);
+  return React.useContext(routerContext) ?? throwErr("RouterProvider not found, please wrap your app in it.");
 }
 
 export function RouterProvider(props: {  children: React.ReactNode }) {

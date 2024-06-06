@@ -5,7 +5,7 @@ export function SearchToolbarItem<TData>(props: { table: Table<TData>, keyName: 
   return (
     <Input
       placeholder={props.placeholder}
-      value={(props.table.getColumn(props.keyName)?.getFilterValue() as string) ?? ""}
+      value={`${props.table.getColumn(props.keyName)?.getFilterValue() ?? ""}`}
       onChange={(event) => props.table.getColumn(props.keyName)?.setFilterValue(event.target.value)}
       className="h-8 w-[150px] lg:w-[250px]"
     />

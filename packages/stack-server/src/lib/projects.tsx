@@ -194,7 +194,7 @@ export async function createProject(
       },
     });
 
-    const serverMetadataTx: any = projectUserTx?.serverMetadata ?? {};
+    const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
 
     await tx.projectUser.update({
       where: {
@@ -574,26 +574,26 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S): S {
 }
 
 const nonRequiredSchemas = {
-  description: yup.string().default(undefined),
-  isProductionMode: yup.boolean().default(undefined),
+  description: yup.string().optional(),
+  isProductionMode: yup.boolean().optional(),
   config: yup.object({
     domains: yup.array(yup.object({
       domain: yup.string().required(),
       handlerPath: yup.string().required(),
-    })).default(undefined),
+    })).optional().default(undefined),
     oauthProviders: yup.array(
       yup.object({
         id: yup.string().required(),
         enabled: yup.boolean().required(),
         type: yup.string().required(),
-        clientId: yup.string().default(undefined),
-        clientSecret: yup.string().default(undefined),
+        clientId: yup.string().optional(),
+        clientSecret: yup.string().optional(),
       })
-    ).default(undefined),
-    credentialEnabled: yup.boolean().default(undefined),
-    magicLinkEnabled: yup.boolean().default(undefined),
-    allowLocalhost: yup.boolean().default(undefined),
-    createTeamOnSignUp: yup.boolean().default(undefined),
+    ).optional().default(undefined),
+    credentialEnabled: yup.boolean().optional(),
+    magicLinkEnabled: yup.boolean().optional(),
+    allowLocalhost: yup.boolean().optional(),
+    createTeamOnSignUp: yup.boolean().optional(),
     emailConfig: yup.object({
       type: yup.string().oneOf(["shared", "standard"]).required(),
       senderName: requiredWhenShared(yup.string()),
@@ -602,12 +602,12 @@ const nonRequiredSchemas = {
       username: requiredWhenShared(yup.string()),
       password: requiredWhenShared(yup.string()),
       senderEmail: requiredWhenShared(yup.string().email()),
-    }).default(undefined),
-  }).default(undefined),
+    }).optional().default(undefined),
+  }).optional().default(undefined),
 };
 
 export const getProjectUpdateSchema = () => yup.object({
-  displayName: yup.string().default(undefined),
+  displayName: yup.string().optional(),
   ...nonRequiredSchemas,
 });
 

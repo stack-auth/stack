@@ -64,7 +64,7 @@ export async function createAuthTokens({
   projectId: string,
   projectUserId: string,
 }) {
-  const refreshToken =  await generateSecureRandomString();
+  const refreshToken = generateSecureRandomString();
   const accessToken = await encodeAccessToken({
     projectId,
     userId: projectUserId,

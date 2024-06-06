@@ -21,7 +21,7 @@ export default async function Page() {
         <div key={team.id} className="flex gap-4 items-center">
           <Text>{team.displayName}</Text>
           <Link href={`/teams/${team.id}`}>Open</Link>
-          <Text variant="secondary">{userTeams?.some(t => t.id === team.id) ? '(You are a member)' : ''}</Text>
+          <Text variant="secondary">{userTeams.some(t => t.id === team.id) ? '(You are a member)' : ''}</Text>
         </div>
       ))}
     </div>

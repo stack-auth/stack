@@ -134,7 +134,7 @@ function PasswordSection() {
           if (errorMessage) {
             setNewPasswordError(errorMessage.message);
           } else {
-            const errorCode = await user?.updatePassword({ oldPassword, newPassword });
+            const errorCode = await user.updatePassword({ oldPassword, newPassword });
             if (errorCode) {
               setOldPasswordError('Incorrect password');
             } else {

@@ -3,22 +3,24 @@ import { deindent } from "./strings";
 
 export type Result<T, E = unknown> =
   | {
-      status: "ok",
-      data: T,
-    }
+    status: "ok",
+    data: T,
+  }
   | {
-      status: "error",
-      error: E,
-    };
+    status: "error",
+    error: E,
+  };
 
 export type AsyncResult<T, E = unknown, P = void> =
   | Result<T, E>
-  | & {
-        status: "pending",
-      }
+  | (
     & {
-        progress: P,
-      };
+      status: "pending",
+    }
+    & {
+      progress: P,
+    }
+  );
 
 
 export const Result = {

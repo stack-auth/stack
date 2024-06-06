@@ -12,7 +12,7 @@ export function useMutationObserver(
   callbackRef.current = callback;
 
   useEffect(() => {
-    if (targetRef?.current !== null) {
+    if (targetRef.current !== null) {
       const observer = new MutationObserver(callbackRef.current);
       const observerOptionsParsed = JSON.parse(observerOptionsStringified);
       observer.observe(targetRef.current, observerOptionsParsed);

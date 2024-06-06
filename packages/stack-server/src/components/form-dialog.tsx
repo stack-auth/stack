@@ -23,7 +23,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
     if (res !== 'prevent-close') {
       setOpenState(false);
       props.onOpenChange?.(false);
-      await props.onClose?.();
+      props.onClose?.();
     }
   };
 
@@ -73,7 +73,7 @@ export function FormDialog<F extends FieldValues>(
       form.reset();
       if (result !== 'prevent-close') {
         setOpenState(false);
-        await props.onClose?.();
+        props.onClose?.();
         props.onOpenChange?.(false);
       }
     } finally {

@@ -497,15 +497,13 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
         },
       });
       if (!project) throw new KnownErrors.ProjectNotFound();
-      const deleted = await prismaClient.permission.delete({
+      const deleted = await prismaClient.permission.deleteMany({
         where: {
-          projectConfigId_queryableId: {
-            projectConfigId: project.configId,
-            queryableId: permissionId,
-          },
+          projectConfigId: project.configId,
+          queryableId: permissionId,
         },
       });
-      if (!deleted) throw new KnownErrors.PermissionNotFound(permissionId);
+      if (deleted.count < 1) throw new KnownErrors.PermissionNotFound(permissionId);
       break;
     }
     case "specific-team": {
@@ -518,16 +516,14 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
         },
       });
       if (!team) throw new KnownErrors.TeamNotFound(scope.teamId);
-      const deleted = await prismaClient.permission.delete({
+      const deleted = await prismaClient.permission.deleteMany({
         where: {
-          projectId_teamId_queryableId: {
-            projectId,
-            queryableId: permissionId,
-            teamId: scope.teamId,
-          },
+          projectId,
+          queryableId: permissionId,
+          teamId: scope.teamId,
         },
       });
-      if (!deleted) throw new KnownErrors.PermissionNotFound(permissionId);
+      if (deleted.count < 1) throw new KnownErrors.PermissionNotFound(permissionId);
       break;
     }
   }

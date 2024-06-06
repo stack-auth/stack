@@ -10,12 +10,12 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 function getColors({
   propsColor, 
   colors, 
-  variant, 
+  variant,
 }: {
   propsColor?: string, 
   colors: { primaryColor: string, secondaryColor: string, backgroundColor: string },
   variant: 'primary' | 'secondary' | 'warning',
-}): { 
+}): {
   bgColor: string, 
   hoverBgColor: string,
   activeBgColor: string,

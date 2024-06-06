@@ -36,6 +36,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
   let teams: ServerTeamJson[] = [];
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new KnownErrors.ApiKeyNotFound();
@@ -76,6 +77,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);

@@ -27,6 +27,7 @@ export default function EditorBlock({ id }: EditorBlockProps) {
   }, [document, metadata]);
 
   const block = mergedDocument[id];
+  // eslint-disable-next-line
   if (!block) {
     throw new Error('Could not find block');
   }

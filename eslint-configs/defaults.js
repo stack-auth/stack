@@ -8,7 +8,20 @@ module.exports = {
     tsconfigRootDir: process.cwd(),
   },
   rules: {
-    indent: ["warn", 2, { SwitchCase: 1 }],
+    "indent": ["warn", 2, {
+      SwitchCase: 1,
+      ignoredNodes: [
+        "TSIntersectionType",
+        "TSTypeParameter",
+        "TSTypeParameterDeclaration",
+        "TSTypeParameterInstantiation",
+        "TSUnionType",
+        "ConditionalType",
+        "TSConditionalType",
+        "FunctionDeclaration",
+        "CallExpression",
+      ],
+    }],
     semi: ["error", "always"],
     "no-fallthrough": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
@@ -18,6 +31,7 @@ module.exports = {
     "no-return-await": "off",
     "@typescript-eslint/return-await": ["error", "always"],
     "no-multiple-empty-lines": "warn",
+    "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/member-delimiter-style": [
       "error",
       {

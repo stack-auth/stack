@@ -22,9 +22,11 @@ import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-sha
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
-import { AccessToken, Session } from "@stackframe/stack-shared/dist/sessions";
+import { Session } from "@stackframe/stack-shared/dist/sessions";
+import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
 
-// NextNavigation.useRouter does not exist in react-server environments and some bundler try to be helpful and throw a warning. Ignore the warning.
+
+// NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
@@ -373,7 +375,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     numberOfAppsCreated++;
     if (numberOfAppsCreated > 10) {
-      console.warn(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak. Make sure to minimize the number of Stack apps per page (usually, one per project).`);
+      (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. In production, make sure to minimize the number of Stack apps per page (usually, one per project).`);
     }
   }
 
@@ -870,16 +872,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const router = NextNavigation.useRouter();
     const session = this._getSession(options?.tokenStore);
     const userJson = useAsyncCache(this._currentUserCache, [session], "useUser()");
+    const triggerRedirectToSignIn = useTrigger(() => router.replace(this.urls.signIn));
 
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
           // Updating the router is not allowed during the component render function, so we do it in a different async tick
           // The error would be: "Cannot update a component (`Router`) while rendering a different component."
-          runAsynchronously(async () => {
-            await wait(0);
-            router.replace(this.urls.signIn);
-          });
+          triggerRedirectToSignIn();
           suspend();
           throw new StackAssertionError("suspend should never return");
         }
@@ -1407,6 +1407,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   useServerUser(options?: { required: boolean }): ProjectCurrentSeverUser<ProjectId> | null {
+    // TODO deprecate in favor of making useUser return server users automatically
     this._ensurePersistentTokenStore();
 
     const session = this._getSession();
@@ -1465,7 +1466,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>{
-    const permission = await this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
+    const permission = this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
     await this._serverTeamPermissionDefinitionsCache.refresh([]);
     return permission;
   }
