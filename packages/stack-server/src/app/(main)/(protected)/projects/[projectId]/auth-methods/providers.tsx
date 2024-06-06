@@ -37,7 +37,7 @@ function toTitle(id: ProviderType) {
     facebook: "Facebook",
     microsoft: "Microsoft",
     spotify: "Spotify",
-  }[id] ?? `Custom OAuth provider: ${id}`;
+  }[id];
 }
 
 export const providerFormSchema = yup.object({
@@ -124,6 +124,18 @@ export function ProviderSettingDialog(props: Props) {
                 label="Client Secret"
                 placeholder="Client Secret"
                 required
+              />
+
+              <InputField
+                control={form.control}
+                name="additionalScope"
+                label={
+                  <div className="flex items-center gap-2">
+                    Scopes to request on sign-in 
+                    <SimpleTooltip tooltip='The OAuth scopes entered here will be prompted to the user when they they approve to sign-in with the provider. Leave blank to use the default scopes.' type='info'/>
+                  </div>
+                }
+                placeholder="scope1 scope2 ..."
               />
             </>
           )}
