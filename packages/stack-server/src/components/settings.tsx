@@ -12,7 +12,7 @@ import { Button } from "./ui/button";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Label } from "./ui/label";
 import { DelayedInput, Input } from "./ui/input";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Accordion } from "@radix-ui/react-accordion";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { FieldValues, useForm } from "react-hook-form";
@@ -114,7 +114,7 @@ export function SettingInput(props: {
       <DelayedInput
         className="max-w-lg"
         defaultValue={props.defaultValue}
-        onChange={(e) => runAsynchronously(props.onChange?.(e.target.value))}
+        onChange={(e) => runAsynchronouslyWithAlert(props.onChange?.(e.target.value))}
       />
       {props.actions}
     </div>
@@ -177,7 +177,7 @@ export function FormSettingCard<F extends FieldValues>(
       </>
     }>
       <Form {...form}>
-        <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
+        <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
           {props.render(form)}
         </form>
       </Form>

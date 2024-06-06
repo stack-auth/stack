@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, SwitchListField } from "@/components/form-fields";
-import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "@/components/router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export default function PageClient () {
           </div>
             
           <Form {...form}>
-            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4">
+            <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 

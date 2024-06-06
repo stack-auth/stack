@@ -31,6 +31,7 @@ module.exports = {
         multilineDetection: "brackets",
       },
     ],
+    "@typescript-eslint/no-unnecessary-condition": ["error", { allowConstantLoopConditions: true }],
     "no-restricted-syntax": [
       "error",
       {

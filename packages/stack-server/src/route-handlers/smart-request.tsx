@@ -48,7 +48,7 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest
     if (error instanceof yup.ValidationError) {
       throw new KnownErrors.SchemaError(
         deindent`
-          Request validation failed on ${req.nextUrl.pathname}:
+          Request validation failed on ${req.method} ${req.nextUrl.pathname}:
             ${(error.inner.length ? error.inner : [error]).map(e => deindent`
               - ${e.message}
             `).join("\n")}

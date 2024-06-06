@@ -1,4 +1,5 @@
 import { wait } from "./promises";
+import { deindent } from "./strings";
 
 export type Result<T, E = unknown> =
   | {
@@ -109,9 +110,20 @@ function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>,
 }
 
 
-class RetryError extends Error {
+class RetryError extends AggregateError {
   constructor(public readonly errors: unknown[]) {
-    super(`Error after retrying ${errors.length} times.`, { cause: errors[errors.length - 1] });
+    super(
+      errors,
+      deindent`
+      Error after retrying ${errors.length} times.
+      
+      ${errors.map((e, i) => deindent`
+        Attempt ${i + 1}:
+          ${e}
+      `).join("\n\n")}
+      `,
+      { cause: errors[errors.length - 1] }
+    );
     this.name = "RetryError";
   }
 

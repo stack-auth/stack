@@ -1,5 +1,6 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { EmailConfigJson, ProjectJson, ReadonlyTokenStore, SharedProvider, StandardProvider, TokenStore } from "./clientInterface";
+import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
+import { Session } from "../sessions";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -8,7 +9,7 @@ export type AdminAuthApplicationOptions = Readonly<
       superSecretAdminKey: string,
     }
     | {
-      projectOwnerTokens: ReadonlyTokenStore,
+      projectOwnerSession: Session,
     }
   )
 >
@@ -84,7 +85,7 @@ export class StackAdminInterface extends StackServerInterface {
     super(options);
   }
 
-  protected async sendAdminRequest(path: string, options: RequestInit, tokenStore: TokenStore | null, requestType: "admin" = "admin") {
+  protected async sendAdminRequest(path: string, options: RequestInit, session: Session | null, requestType: "admin" = "admin") {
     return await this.sendServerRequest(
       path,
       {
@@ -94,7 +95,7 @@ export class StackAdminInterface extends StackServerInterface {
           ...options.headers,
         },
       },
-      tokenStore,
+      session,
       requestType,
     );
   }
@@ -167,8 +168,8 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getApiKeySet(id: string, tokenStore: TokenStore): Promise<ApiKeySetJson> {
-    const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, tokenStore);
+  async getApiKeySet(id: string, session: Session): Promise<ApiKeySetJson> {
+    const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
     return await response.json();
   }
 }

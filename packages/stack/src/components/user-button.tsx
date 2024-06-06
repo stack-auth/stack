@@ -13,7 +13,7 @@ import {
   Skeleton,
   CurrentUser,
 } from "..";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
 import { typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
@@ -40,7 +40,7 @@ const icons = typedFromEntries(typedEntries({
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
     <DropdownMenuItem 
-      onClick={() => runAsynchronously(props.onClick)}
+      onClick={() => runAsynchronouslyWithAlert(props.onClick)}
       style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
     >
       {props.icon}
@@ -116,17 +116,17 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         <DropdownMenuSeparator />
         {user && <Item 
           text="Account settings" 
-          onClick={() => runAsynchronously(router.push(app.urls.accountSettings))}
+          onClick={() => router.push(app.urls.accountSettings)}
           icon={icons.CircleUser}
         />}
         {!user && <Item
           text="Sign in"
-          onClick={() => runAsynchronously(router.push(app.urls.signIn))}
+          onClick={() => router.push(app.urls.signIn)}
           icon={icons.LogIn}
         />}
         {!user && <Item
           text="Sign up"
-          onClick={() => runAsynchronously(router.push(app.urls.signUp))}
+          onClick={() => router.push(app.urls.signUp)}
           icon={icons.UserPlus}
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (

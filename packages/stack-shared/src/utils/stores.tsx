@@ -2,6 +2,54 @@ import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
 import { ReactPromise, pending, rejected, resolved } from "./promises";
 
+export type ReadonlyStore<T> = {
+  get(): T,
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+};
+
+export class Store<T> implements ReadonlyStore<T> {
+  private readonly _callbacks: Map<string, ((value: T, oldValue: T | undefined) => void)> = new Map();
+
+  constructor(
+    private _value: T
+  ) {}
+
+  get(): T {
+    return this._value;
+  }
+
+  set(value: T): void {
+    const oldValue = this._value;
+    this._value = value;
+    this._callbacks.forEach((callback) => callback(value, oldValue));
+  }
+
+  update(updater: (value: T) => T): T {
+    const value = updater(this._value);
+    this.set(value);
+    return value;
+  }
+
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+    const uuid = generateUuid();
+    this._callbacks.set(uuid, callback);
+    return {
+      unsubscribe: () => {
+        this._callbacks.delete(uuid);
+      },
+    };
+  }
+
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+    const { unsubscribe } = this.onChange((...args) => {
+      unsubscribe();
+      callback(...args);
+    });
+    return { unsubscribe };
+  }
+}
+
 export type ReadonlyAsyncStore<T> = {
   isAvailable(): boolean,
   get(): AsyncResult<T, unknown, void>,

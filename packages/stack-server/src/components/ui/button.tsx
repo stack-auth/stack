@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Spinner } from "./spinner";
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 
@@ -75,7 +75,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
         ref={ref}
         disabled={props.disabled || loading}
-        onClick={(e) => runAsynchronously(handleClick(e))}
+        onClick={(e) => runAsynchronouslyWithAlert(handleClick(e))}
       >
         {loading && <Spinner className="mr-2" />}
         {children}
