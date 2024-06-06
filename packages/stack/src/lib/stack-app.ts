@@ -6,14 +6,14 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isBrowserLike } from "@stackframe/stack-shared/src/utils/env";
-import { callOAuthCallback, signInWithOAuth } from "./auth";
+import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
-import { resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
@@ -511,6 +511,42 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _userFromJson(json: UserJson): User {
     const app = this;
+
+    async function getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>;
+    async function getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>;
+    async function getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null> {
+      let hasScope = false;
+
+      if (json.oauthProviders.find((p) => p === id)) {
+        try {
+          await app._interface.getAccessToken(id, options?.scope || "", app._getSession());
+          hasScope = true;
+        } catch (err) {
+          if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
+            throw err;
+          }
+        }
+      }
+
+      if (hasScope) {
+        return {
+          id,
+          async getAccessToken() {
+            return await app._interface.getAccessToken(id, options?.scope || "", app._getSession());
+          },
+        };
+      } else if (options?.or === 'redirect') {
+        await addNewOAuthProviderOrScope(
+          app._interface, 
+          { provider: id, redirectUrl: app.urls.oauthCallback, scope: options.scope },
+          app._getSession()
+        );
+        return await neverResolve();
+      } else {
+        return null;
+      }
+    };
+
     return {
       projectId: json.projectId,
       id: json.id,
@@ -524,6 +560,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      getAccount,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -1650,6 +1687,10 @@ export type User = (
     hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
     getSelectedTeam(this: CurrentUser): Promise<Team | null>,
     useSelectedTeam(this: CurrentUser): Team | null,
+    
+    getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>,
+    getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>,
+    getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null>,
 
     toJson(this: CurrentUser): UserJson,
   }
@@ -1771,6 +1812,16 @@ export type ServerPermission = Permission & {
 };
 
 
+export type Account = {
+  id: string,
+}
+
+export type OAuthAccount = Account & {
+  getAccessToken(): Promise<{ accessToken: string }>,
+  // useAccessToken(): { accessToken: string },
+}
+
+
 export type ApiKeySetBase = {
   id: string,
   description: string,
@@ -1811,11 +1862,6 @@ export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
   tokenStore?: TokenStoreInit,
 };
-
-type SplitArgs<T extends any[], U extends number> = [
-  ...Parameters<Extract<T[U], (...args: any) => any>>,
-  Omit<T, U>
-];
 
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
