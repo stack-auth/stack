@@ -18,6 +18,7 @@ module.exports = {
     "no-return-await": "off",
     "@typescript-eslint/return-await": ["error", "always"],
     "no-multiple-empty-lines": "warn",
+    "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/member-delimiter-style": [
       "error",
       {

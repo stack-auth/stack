@@ -1387,7 +1387,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>{
-    const permission = await this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
+    const permission = this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
     await this._serverTeamPermissionDefinitionsCache.refresh([]);
     return permission;
   }
