@@ -291,28 +291,53 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
     return await this._interface.listClientUserTeams(session);
   });
-  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthAccount | null>(async (session, [accountId, scope]) => {
-    const user = await this._currentUserCache.getOrWait([session], "write-only");
-    if (!user) return null;
-    if (user.oauthProviders.find((p) => p === accountId)) {
+  private readonly _currentUserOAuthAccountAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
+    async (session, [accountId, scope]) => {
       try {
-        await this._interface.getAccessToken(accountId, scope || "", session);
+        return await this._interface.getAccessToken(accountId, scope || "", session);
       } catch (err) {
         if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
           throw err;
         }
-        return null;
       }
+      return null;
     }
+  );
+  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthAccount | null>(
+    async (session, [accountId, scope]) => {
+      const user = await this._currentUserCache.getOrWait([session], "write-only");
+      if (!user) return null;
+      if (user.oauthProviders.find((p) => p === accountId)) {
+        try {
+          await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+        } catch (err) {
+          if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
+            throw err;
+          }
+          return null;
+        }
+      }
 
-    const app = this;
-    return {
-      id: accountId,
-      async getAccessToken() {
-        return await app._interface.getAccessToken(accountId, scope || "", session);
-      },
-    };
-  });
+      const app = this;
+      return {
+        id: accountId,
+        async getAccessToken() {
+          const result = await app._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+          if (!result) {
+            throw new StackAssertionError("No access token available");
+          }
+          return result;
+        },
+        useAccessToken() {
+          const result = useAsyncCache(app._currentUserOAuthAccountAccessTokensCache, [session, accountId, scope || ""], "oauthAccount.useAccessToken()");
+          if (!result) {
+            throw new StackAssertionError("No access token available");
+          }
+          return result;
+        }
+      };
+    }
+  );
 
 
   constructor(protected readonly _options:
@@ -1837,7 +1862,7 @@ export type Account = {
 
 export type OAuthAccount = Account & {
   getAccessToken(): Promise<{ accessToken: string }>,
-  // useAccessToken(): { accessToken: string },
+  useAccessToken(): { accessToken: string },
 }
 
 
