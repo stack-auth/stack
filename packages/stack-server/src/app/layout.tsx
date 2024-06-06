@@ -32,7 +32,7 @@ const fontSans = FontSans({
 type TagConfigJson = {
   tagName: string,
   attributes: { [key: string]: string },
-  innerHTML: string,
+  innerHTML?: string,
 };
 
 export default function RootLayout({

@@ -63,7 +63,7 @@ export default function PageClient () {
           })).filter(({ enabled }) => enabled),
         }
       });
-      await router.push('/projects/' + newProject.id);
+      router.push('/projects/' + newProject.id);
       await wait(2000);
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export default function PageClient () {
       <Separator orientation="vertical" />
 
       <div className="w-1/2 self-stretch py-4 px-4 lg:px-20 bg-zinc-300 dark:bg-zinc-800 hidden md:flex items-center">
-        {mockProject ? 
+        {
           (
             <div className="w-full">
               <BrowserFrame url="your-website.com/signin">
@@ -123,7 +123,7 @@ export default function PageClient () {
                 </div>
               </BrowserFrame>
             </div>
-          ): null}
+          )}
       </div> 
     </div>
   );

@@ -9,5 +9,5 @@ export const createTeam = async (data) => {
   }
   const team = await stackServerApp.createTeam(data);
   await team.addUser(user.id);
-  await user?.grantPermission(team, 'admin');
+  await user.grantPermission(team, 'admin');
 };

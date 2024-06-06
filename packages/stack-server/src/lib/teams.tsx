@@ -111,9 +111,6 @@ export async function deleteServerTeam(projectId: string, teamId: string): Promi
       },
     },
   });
-  if (!deleted) {
-    throw new Error("Team not found");
-  }
 }
 
 export async function addUserToTeam(projectId: string, teamId: string, userId: string): Promise<void> {

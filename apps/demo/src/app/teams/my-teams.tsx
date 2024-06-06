@@ -12,7 +12,7 @@ export default async function MyTeams() {
     <div className='flex-col'>
       <CreateTeam />
 
-      {teams && teams.length > 0 && teams.map((team) => (
+      {teams.length > 0 && teams.map((team) => (
         <div key={team.id}>
           <Text size='md'>{team.displayName}, <Link href={`/teams/${team.id}`}>Open</Link></Text>
         </div>

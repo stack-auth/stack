@@ -35,6 +35,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
   let members: ServerTeamMemberJson[] = [];
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);

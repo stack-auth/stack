@@ -21,7 +21,7 @@ export default function UserAvatar(props: { size?: number, user: User | null }) 
       <AvatarFallback>
         {user ? 
           <Text style={{ fontWeight: 500 }}>
-            {(user?.displayName || user?.primaryEmail)?.slice(0, 2).toUpperCase()}
+            {(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}
           </Text> :
           <StyledIcon size={props.size} />}
       </AvatarFallback>

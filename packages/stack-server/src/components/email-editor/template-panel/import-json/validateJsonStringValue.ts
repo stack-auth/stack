@@ -15,6 +15,7 @@ export default function validateTextAreaValue(value: string): TResult {
     return { error: 'Invalid JSON schema' };
   }
 
+  // eslint-disable-next-line
   if (!parseResult.data.root) {
     return { error: 'Missing "root" node' };
   }

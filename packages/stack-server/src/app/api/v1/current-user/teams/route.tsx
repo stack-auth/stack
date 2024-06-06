@@ -15,7 +15,7 @@ const getSchema = yup.object({
     server: yup.string().oneOf(["true", "false"]).default("false"),
   }).required(),
   headers: yup.object({
-    authorization: authorizationHeaderSchema.default(undefined),
+    authorization: authorizationHeaderSchema.optional(),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-project-id": yup.string().required(),

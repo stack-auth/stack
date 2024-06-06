@@ -37,7 +37,7 @@ function toTitle(id: ProviderType) {
     facebook: "Facebook",
     microsoft: "Microsoft",
     spotify: "Spotify",
-  }[id] ?? `Custom OAuth provider: ${id}`;
+  }[id];
 }
 
 export const providerFormSchema = yup.object({

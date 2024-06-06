@@ -12,7 +12,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 
 const postSchema = yup.object({
   headers: yup.object({
-    authorization: authorizationHeaderSchema.default(undefined),
+    authorization: authorizationHeaderSchema.optional(),
     "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
     "x-stack-project-id": yup.string().required(),
   }).required(),

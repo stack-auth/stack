@@ -14,6 +14,7 @@ export default function SettingsPanel() {
   const [, setErrors] = useState<Zod.ZodError | null>(null);
   const subject = useSubject();
 
+  // eslint-disable-next-line
   if (!block) {
     return <p>Block not found</p>;
   }

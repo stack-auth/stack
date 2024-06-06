@@ -49,7 +49,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     };
   }
 
-  async validateScope(user: User, client: Client, scope?: string[]): Promise<string[] | Falsey> {
+  async validateScope(user: User | null, client: Client | null, scope?: string[]): Promise<string[] | Falsey> {
     if (!user) {
       return false;
     }

@@ -29,6 +29,7 @@ export default function ConfigurationPanel() {
     return renderMessage('Click on a block to inspect');
   }
   const block = document[selectedBlockId];
+  // eslint-disable-next-line
   if (!block) {
     return renderMessage(`Block with id ${selectedBlockId} was not found. Click on a block to reset`);
   }

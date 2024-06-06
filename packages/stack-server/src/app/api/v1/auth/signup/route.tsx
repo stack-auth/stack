@@ -62,7 +62,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     !validateUrl(
       emailVerificationRedirectUrl,
       project.evaluatedConfig.domains,
-      project?.evaluatedConfig.allowLocalhost 
+      project.evaluatedConfig.allowLocalhost 
     )
   ) {
     throw new KnownErrors.RedirectUrlNotWhitelisted();
