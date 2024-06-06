@@ -3,6 +3,7 @@ import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { Session } from "@stackframe/stack-shared/dist/sessions";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -29,27 +30,23 @@ export async function signInWithOAuth(
 
 export async function addNewOAuthProviderOrScope(
   iface: StackClientInterface,
-  {
-    provider,
-    redirectUrl,
-    scope,
-  } : { 
+  options: { 
     provider: string,
     redirectUrl?: string,
     scope?: string,
   },
-  tokenStore: TokenStore,
+  session: Session,
 ) {
-  redirectUrl = constructRedirectUrl(redirectUrl);
+  const redirectUrl = constructRedirectUrl(options.redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
   const location = await iface.getOAuthUrl({
-    provider,
+    provider: options.provider,
     redirectUrl,
     codeChallenge,
     state,
     type: "link",
-    tokenStore,
-    providerScope: scope,
+    session,
+    providerScope: options.scope,
   });
   window.location.assign(location);
   await neverResolve();

@@ -685,7 +685,7 @@ export class StackClientInterface {
       codeChallenge: string, 
       state: string,
       type: "authenticate" | "link",
-    } & ({ type: "authenticate" } | { type: "link", tokenStore: TokenStore, providerScope?: string})
+    } & ({ type: "authenticate" } | { type: "link", session: Session, providerScope?: string})
   ): Promise<string> {
     const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
@@ -712,8 +712,8 @@ export class StackClientInterface {
     url.searchParams.set("type", options.type);
     
     if (options.type === "link") {
-      const tokenObj = await options.tokenStore.getOrWait();
-      url.searchParams.set("token", tokenObj.accessToken || "");
+      const tokens = await options.session.getPotentiallyExpiredTokens();
+      url.searchParams.set("token", tokens?.accessToken.token || "");
 
       if (options.providerScope) {
         url.searchParams.set("providerScope", options.providerScope);
@@ -889,7 +889,7 @@ export class StackClientInterface {
   async getAccessToken(
     provider: string,
     scope: string,
-    tokenStore: TokenStore,
+    session: Session,
   ): Promise<{ accessToken: string }> {
     const response = await this.sendClientRequest(
       `/auth/access-token/${provider}`,
@@ -900,7 +900,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify({ scope }),
       },
-      tokenStore,
+      session,
     );
     const json = await response.json();
     return {
