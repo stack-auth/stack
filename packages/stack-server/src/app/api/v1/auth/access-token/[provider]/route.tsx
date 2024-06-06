@@ -6,7 +6,7 @@ import { accessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud/oa
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
-export const crudHandlers = createCrudHandlers(accessTokenCrud, {
+const crudHandlers = createCrudHandlers(accessTokenCrud, {
   paramNames: ['provider'],
   async onRead() {
     throw Error('Not implemented');

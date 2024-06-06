@@ -85,7 +85,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const innerCodeVerifier = generators.codeVerifier();
   const innerState = generators.state();
-  const oauthUrl = await getProvider(provider).getAuthorizationUrl({
+  const oauthUrl = getProvider(provider).getAuthorizationUrl({
     codeVerifier: innerCodeVerifier,
     state: innerState,
     extraScope: providerScope,
