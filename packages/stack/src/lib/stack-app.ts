@@ -291,6 +291,29 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
     return await this._interface.listClientUserTeams(session);
   });
+  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthAccount | null>(async (session, [accountId, scope]) => {
+    const user = await this._currentUserCache.getOrWait([session], "write-only");
+    if (!user) return null;
+    if (user.oauthProviders.find((p) => p === accountId)) {
+      try {
+        await this._interface.getAccessToken(accountId, scope || "", session);
+      } catch (err) {
+        if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
+          throw err;
+        }
+        return null;
+      }
+    }
+
+    const app = this;
+    return {
+      id: accountId,
+      async getAccessToken() {
+        return await app._interface.getAccessToken(accountId, scope || "", session);
+      },
+    };
+  });
+
 
   constructor(protected readonly _options:
     & {
@@ -515,37 +538,29 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async function getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>;
     async function getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>;
     async function getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null> {
-      let hasScope = false;
+      const account = await app._currentUserOAuthAccountCache.getOrWait([app._getSession(), id, options?.scope || ""], "write-only");
 
-      if (json.oauthProviders.find((p) => p === id)) {
-        try {
-          await app._interface.getAccessToken(id, options?.scope || "", app._getSession());
-          hasScope = true;
-        } catch (err) {
-          if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
-            throw err;
-          }
-        }
-      }
-
-      if (hasScope) {
-        return {
-          id,
-          async getAccessToken() {
-            return await app._interface.getAccessToken(id, options?.scope || "", app._getSession());
-          },
-        };
-      } else if (options?.or === 'redirect') {
+      if (!account && options?.or === 'redirect') {
         await addNewOAuthProviderOrScope(
           app._interface, 
           { provider: id, redirectUrl: app.urls.oauthCallback, scope: options.scope },
           app._getSession()
         );
         return await neverResolve();
-      } else {
-        return null;
       }
+
+      return account;
     };
+
+    function useAccount(id: StandardProvider, options?: { scope?: string }): OAuthAccount | null;
+    function useAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): OAuthAccount;
+    function useAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): OAuthAccount | null {
+      const account = useAsyncCache(app._currentUserOAuthAccountCache, [app._useSession(), id, options?.scope || ""], "user.useAccount()");
+      if (!account && options?.or === 'redirect') {
+        throw new Error("Cannot useAccount with or: 'redirect' in a synchronous context");
+      }
+      return account;
+    }
 
     return {
       projectId: json.projectId,
@@ -561,6 +576,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
       getAccount,
+      useAccount,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -1691,6 +1707,9 @@ export type User = (
     getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>,
     getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>,
     getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null>,
+    useAccount(id: StandardProvider, options?: { scope?: string }): OAuthAccount | null,
+    useAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): OAuthAccount,
+    useAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): OAuthAccount | null,
 
     toJson(this: CurrentUser): UserJson,
   }
