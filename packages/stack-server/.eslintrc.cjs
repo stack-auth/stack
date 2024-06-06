@@ -10,7 +10,7 @@ module.exports = {
             group: ["next/navigation", "next/router"],
             importNames: ["useRouter"],
             message:
-              "Importing useRouter from next/navigation or next/router is not allowed. use our custom useRouter instead.",
+              "Importing useRouter from next/navigation or next/router is not allowed. Use our custom useRouter instead.",
           },
         ],
         patterns: [

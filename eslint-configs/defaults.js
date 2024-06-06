@@ -8,7 +8,8 @@ module.exports = {
     tsconfigRootDir: process.cwd(),
   },
   rules: {
-    indent: ["warn", 2, { SwitchCase: 1 }],
+    "indent": "off",
+    "@typescript-eslint/indent": ["warn", 2, { SwitchCase: 1 }],
     semi: ["error", "always"],
     "no-fallthrough": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",

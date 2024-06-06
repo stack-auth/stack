@@ -9,7 +9,7 @@ const neverNotify = [
   "[Fast Refresh] performing full",
 ];
 
-const callbacks: ((prop: string, args: any[]) => void)[] = [];
+let callbacks: ((prop: string, args: any[]) => void)[] = [];
 
 if (process.env.NODE_ENV === 'development' && isBrowserLike()) {
   for (const prop of ["warn", "error"] as const) {
@@ -27,14 +27,16 @@ export function DevErrorNotifier() {
   const toast = useToast();
 
   useEffect(() => {
-    callbacks.push((prop, args) => {
+    const cb = (prop: string, args: any[]) => {
       toast.toast({
         title: `[DEV] console.${prop} called!`,
         description: `Please check the browser console. ${args.join(" ")}`,
       });
-    });
+    };
+    callbacks.push(cb);
+
     return () => {
-      callbacks.pop();
+      callbacks = callbacks.filter((c) => c !== cb);
     };
   }, [toast]);
 
