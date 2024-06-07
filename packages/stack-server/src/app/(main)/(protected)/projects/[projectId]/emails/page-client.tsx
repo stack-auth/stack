@@ -64,7 +64,15 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => { setResetTemplateType(template.type); setResetTemplateDialogOpen(true); } }]} />}
+                {!template.default && <ActionCell
+                  dangerItems={[{
+                    item: 'Reset to Default',
+                    onClick: () => {
+                      setResetTemplateType(template.type);
+                      setResetTemplateDialogOpen(true);
+                    }
+                  }]}
+                />}
               </div>
             </div>
             <EmailPreview content={template.content} type={template.type} />
