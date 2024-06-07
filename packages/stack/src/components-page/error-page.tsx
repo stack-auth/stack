@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCard } from "..";
+import { MessageCard, useStackApp, useUser } from "..";
 import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { Text } from "../components-core";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
@@ -8,6 +8,7 @@ import KnownErrorMessageCard from "../components/message-cards/known-error-messa
 
 
 export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+  const stackApp = useStackApp();
   const errorCode = searchParams.errorCode;
   const message = searchParams.message;
   const details = searchParams.details;
@@ -26,14 +27,13 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
   }
 
   if (error instanceof KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser) {
+    // TODO: add "Connect a different account" button
     return (
       <MessageCard 
         title="Failed to connect account" 
         fullPage={fullPage}
-        primaryButtonText="Connect another account"
-        primaryAction={() => {}}
-        secondaryButtonText="Cancel"
-        secondaryAction={() => {}}
+        primaryButtonText="Go to Home"
+        primaryAction={() => stackApp.redirectToHome()}
       >
         <Text>
           This account is already connected to another user. Please connect a different account.
