@@ -2,7 +2,6 @@ import * as oauth from 'oauth4webapi';
 
 import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
-import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError, captureError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
@@ -10,7 +9,6 @@ import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
 import { AccessToken, RefreshToken, Session } from '../sessions';
 import { globalVar } from '../utils/globals';
-import { logged } from '../utils/proxies';
 
 type UserCustomizableJson = {
   displayName: string | null,
@@ -113,7 +111,6 @@ export type OAuthProviderConfigJson = {
     type: StandardProvider,
     clientId: string,
     clientSecret: string,
-    additionalScope: string,
   }
 );
 
@@ -321,28 +318,28 @@ export class StackClientInterface {
        * However, Cloudflare Workers don't actually support `credentials`, so we only set it
        * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
-      ..."WebSocketPair" in globalVar ? {} : {
+      ...("WebSocketPair" in globalVar ? {} : {
         credentials: "omit",
-      },
+      }),
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
         "X-Stack-Request-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
-        ...tokenObj ? {
+        ...(tokenObj ? {
           "Authorization": "StackSession " + tokenObj.accessToken.token,
           "X-Stack-Access-Token": tokenObj.accessToken.token,
-        } : {},
-        ...tokenObj?.refreshToken ? {
+        } : {}),
+        ...(tokenObj?.refreshToken ? {
           "X-Stack-Refresh-Token": tokenObj.refreshToken.token,
-        } : {},
-        ...'publishableClientKey' in this.options ? {
+        } : {}),
+        ...('publishableClientKey' in this.options ? {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
-        } : {},
-        ...adminTokenObj ? {
+        } : {}),
+        ...(adminTokenObj ? {
           "X-Stack-Admin-Access-Token": adminTokenObj.accessToken.token,
-        } : {},
+        } : {}),
         /**
          * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
          * 
@@ -357,9 +354,9 @@ export class StackClientInterface {
       /**
        * Cloudflare Workers does not support cache, so don't pass it there
        */
-      ..."WebSocketPair" in globalVar ? {} : {
+      ...("WebSocketPair" in globalVar ? {} : {
         cache: "no-store",
-      },
+      }),
     };
 
     let rawRes;

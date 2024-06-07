@@ -54,7 +54,6 @@ export const providerFormSchema = yup.object({
       then: (schema) => schema.required(),
       otherwise: (schema) => schema.optional()
     }),
-  additionalScope: yup.string().default(""),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -65,7 +64,6 @@ export function ProviderSettingDialog(props: Props) {
     shared: isShared, 
     clientId: (props.provider as any)?.clientId ?? "", 
     clientSecret: (props.provider as any)?.clientSecret ?? "",
-    additionalScope: (props.provider as any)?.additionalScope ?? ""
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
@@ -78,7 +76,6 @@ export function ProviderSettingDialog(props: Props) {
         enabled: true,
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
-        additionalScope: values.additionalScope,
       });
     }
   };
@@ -120,18 +117,6 @@ export function ProviderSettingDialog(props: Props) {
                 label="Client Secret"
                 placeholder="Client Secret"
                 required
-              />
-
-              <InputField
-                control={form.control}
-                name="additionalScope"
-                label={
-                  <div className="flex items-center gap-2">
-                    Scopes to request on sign-in 
-                    <SimpleTooltip tooltip='The OAuth scopes entered here will be prompted to the user when they they approve to sign-in with the provider. Leave blank to use the default scopes.' type='info'/>
-                  </div>
-                }
-                placeholder="scope1 scope2 ..."
               />
             </>
           )}

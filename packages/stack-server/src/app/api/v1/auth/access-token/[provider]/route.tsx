@@ -56,6 +56,24 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
       throw new StackAssertionError("No access token returned");
     }
 
+    if (tokenSet.refresh_token) {
+      // remove the old token, add the new token to the DB
+      await prismaClient.oAuthToken.deleteMany({
+        where: {
+          refreshToken: filteredTokens[0].refreshToken,
+        },
+      });
+      await prismaClient.oAuthToken.create({
+        data: {
+          projectId: auth.project.id,
+          oAuthProviderConfigId: provider.id,
+          refreshToken: tokenSet.refresh_token,
+          providerAccountId: filteredTokens[0].providerAccountId,
+          scopes: filteredTokens[0].scopes,
+        }
+      });
+    }
+
     return {
       accessToken: tokenSet.access_token,
     };

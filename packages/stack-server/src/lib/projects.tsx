@@ -297,7 +297,6 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(providerUpdate.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            additionalScopes: extractScopes(typedProviderConfig.additionalScope),
           },
         },
       };
@@ -334,7 +333,6 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(provider.update.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            additionalScopes: extractScopes(typedProviderConfig.additionalScope),
           },
         },
       };
@@ -552,7 +550,6 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
             type: fromDBStandardProvider(provider.standardOAuthConfig.type),
             clientId: provider.standardOAuthConfig.clientId,
             clientSecret: provider.standardOAuthConfig.clientSecret,
-            additionalScope: provider.standardOAuthConfig.additionalScopes.join(" "),
           }];
         }
         captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));
@@ -590,7 +587,6 @@ const nonRequiredSchemas = {
         type: yup.string().required(),
         clientId: yup.string().optional(),
         clientSecret: yup.string().optional(),
-        additionalScope: yup.string().default(""),
       })
     ).optional().default(undefined),
     credentialEnabled: yup.boolean().optional(),
@@ -653,7 +649,6 @@ export const projectSchemaToUpdateOptions = (
             type: provider.type as StandardProvider,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
-            additionalScope: provider.additionalScope,
           };
         } else {
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");

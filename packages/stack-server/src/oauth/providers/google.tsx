@@ -6,7 +6,6 @@ export class GoogleProvider extends OAuthBaseProvider {
   constructor(options: {
     clientId: string,
     clientSecret: string,
-    additionalScope: string,
   }) {
     super({
       issuer: "https://accounts.google.com",

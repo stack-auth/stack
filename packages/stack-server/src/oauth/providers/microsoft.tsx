@@ -6,7 +6,6 @@ export class MicrosoftProvider extends OAuthBaseProvider {
   constructor(options: {
     clientId: string,
     clientSecret: string,
-    additionalScope: string,
   }) {
     super({
       issuer: "https://login.microsoftonline.com",

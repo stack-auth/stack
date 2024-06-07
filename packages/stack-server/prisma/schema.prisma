@@ -451,10 +451,9 @@ model StandardOAuthProviderConfig {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
-  type             StandardOAuthProviderType
-  clientId         String
-  clientSecret     String
-  additionalScopes String[]
+  type         StandardOAuthProviderType
+  clientId     String
+  clientSecret String
 
   @@id([projectConfigId, id])
 }

@@ -1,7 +1,7 @@
 import { Issuer, generators, CallbackParamsType, Client, TokenSet } from "openid-client";
 import { OAuthUserInfo } from "../utils";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { extractScopes, mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 export abstract class OAuthBaseProvider {
   issuer: Issuer;
@@ -18,7 +18,6 @@ export abstract class OAuthBaseProvider {
     clientSecret: string,
     redirectUri: string,
     baseScope: string,
-    additionalScope: string,
   }) {
     this.issuer = new Issuer({
       issuer: options.issuer,
@@ -42,7 +41,7 @@ export abstract class OAuthBaseProvider {
     };
 
     this.redirectUri = options.redirectUri;
-    this.scope = mergeScopeStrings(options.baseScope, options.additionalScope);
+    this.scope = options.baseScope;
   }
 
   getAuthorizationUrl(options: {

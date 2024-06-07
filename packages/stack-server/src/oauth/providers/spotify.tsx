@@ -6,7 +6,6 @@ export class SpotifyProvider extends OAuthBaseProvider {
   constructor(options: {
     clientId: string,
     clientSecret: string,
-    additionalScope: string,
   }) {
     super({
       issuer: "https://accounts.spotify.com",
