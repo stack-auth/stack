@@ -8,6 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -290,13 +291,13 @@ async function _createOAuthConfigUpdateTransactions(
 
     } else if (standardProviders.includes(providerUpdate.type as StandardProvider)) {
       const typedProviderConfig = providerUpdate as OAuthProviderUpdateOptions & { type: StandardProvider };
-
       providerConfigUpdate = {
         standardOAuthConfig: {
           create: {
             type: toDBStandardProvider(providerUpdate.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
+            additionalScopes: extractScopes(typedProviderConfig.additionalScope),
           },
         },
       };
@@ -333,6 +334,7 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(provider.update.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
+            additionalScopes: extractScopes(typedProviderConfig.additionalScope),
           },
         },
       };
@@ -588,6 +590,7 @@ const nonRequiredSchemas = {
         type: yup.string().required(),
         clientId: yup.string().optional(),
         clientSecret: yup.string().optional(),
+        additionalScope: yup.string().default(""),
       })
     ).optional().default(undefined),
     credentialEnabled: yup.boolean().optional(),
@@ -650,6 +653,7 @@ export const projectSchemaToUpdateOptions = (
             type: provider.type as StandardProvider,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
+            additionalScope: provider.additionalScope,
           };
         } else {
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");

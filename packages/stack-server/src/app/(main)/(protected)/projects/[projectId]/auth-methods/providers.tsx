@@ -64,7 +64,8 @@ export function ProviderSettingDialog(props: Props) {
   const defaultValues = { 
     shared: isShared, 
     clientId: (props.provider as any)?.clientId ?? "", 
-    clientSecret: (props.provider as any)?.clientSecret ?? "" 
+    clientSecret: (props.provider as any)?.clientSecret ?? "",
+    additionalScope: (props.provider as any)?.additionalScope ?? ""
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
