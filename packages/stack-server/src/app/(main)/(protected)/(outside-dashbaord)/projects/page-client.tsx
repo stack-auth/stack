@@ -41,7 +41,6 @@ export default function PageClient() {
           value={search} 
           onChange={(e) => setSearch(e.target.value)} 
         />
-        <Button onClick={async () => console.log(await (await user.getAccount('google', { scope: 'https://www.googleapis.com/auth/calendar.events', or: 'redirect' }))?.getAccessToken())}>Get Access Token</Button>
         <div className="flex gap-4">
           <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
             <SelectTrigger>

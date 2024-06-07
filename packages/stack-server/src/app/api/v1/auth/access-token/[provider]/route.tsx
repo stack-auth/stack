@@ -21,7 +21,7 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
     if (!provider.enabled) {
       throw new StatusError(StatusError.NotFound, "Provider not enabled");
     }
-    if (sharedProviders.includes(provider.type as any)) {
+    if (sharedProviders.includes(provider.type as any) && data.scope) {
       throw new KnownErrors.OAuthExtraScopeNotAvailableWithSharedOAuthKeys();
     }
 
