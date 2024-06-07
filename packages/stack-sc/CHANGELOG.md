@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+
 ## 1.5.6
 
 ### Patch Changes

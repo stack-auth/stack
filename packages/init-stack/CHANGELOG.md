@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+
 ## 1.0.8
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @stackframe/stack-shared
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.19
+
 ## 2.4.14
 
 ### Patch Changes

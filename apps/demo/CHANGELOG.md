@@ -1,5 +1,14 @@
 # demo-app
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack@2.4.19
+  - @stackframe/stack-shared@2.4.19
+
 ## 1.1.18
 
 ### Patch Changes

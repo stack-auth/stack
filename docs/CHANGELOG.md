@@ -1,5 +1,11 @@
 # stack-docs
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+
 ## 0.1.9
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # middleware-demo
 
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack@2.4.19
+
 ## 0.2.18
 
 ### Patch Changes
