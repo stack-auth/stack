@@ -87,10 +87,10 @@ export abstract class OAuthBaseProvider {
         tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, callbackParams, params);
       }
     } catch (error) {
-      throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
+      throw new StackAssertionError("Inner OAuth callback failed", undefined, { cause: error });
     }
     if (!tokenSet.access_token) {
-      throw new StackAssertionError("No access token received", { tokenSet });
+      throw new StackAssertionError("No access token received from inner OAuth", { tokenSet });
     }
     
     return await this.postProcessUserInfo(tokenSet);
