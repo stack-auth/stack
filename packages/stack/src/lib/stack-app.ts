@@ -63,6 +63,7 @@ export type HandlerUrls = {
   oauthCallback: string,
   magicLinkCallback: string,
   accountSettings: string,
+  error: string,
 }
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
@@ -89,6 +90,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     magicLinkCallback: `${handler}/magic-link-callback`,
     home: "/",
     accountSettings: `${handler}/account-settings`,
+    error: `${handler}/error`,
     ...filterUndefined(partial),
   };
 }
@@ -309,7 +311,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async (session, [accountId, scope]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
       if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
-      
+
       const token = await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
       if (!token) {
         return null;
@@ -565,7 +567,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       if (!account && options?.or === 'redirect') {
         await addNewOAuthProviderOrScope(
           app._interface, 
-          { provider: id, redirectUrl: app.urls.oauthCallback, scope: options.scope },
+          { provider: id, redirectUrl: app.urls.oauthCallback, errorRedirectUrl: app.urls.error, scope: options.scope },
           app._getSession()
         );
         return await neverResolve();
@@ -806,6 +808,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
   async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
+  async redirectToError() { return await this._redirectTo("error"); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -909,7 +912,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithOAuth(provider: string) {
     this._ensurePersistentTokenStore();
-    await signInWithOAuth(this._interface, { provider, redirectUrl: this.urls.oauthCallback });
+    await signInWithOAuth(this._interface, { provider, redirectUrl: this.urls.oauthCallback, errorRedirectUrl: this.urls.error });
   }
 
   async signInWithCredential(options: {

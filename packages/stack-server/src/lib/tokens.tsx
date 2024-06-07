@@ -28,7 +28,7 @@ export const oauthCookieSchema = yup.object({
   type: yup.string().oneOf(['authenticate', 'link']).required(),
   projectUserId: yup.string().optional(),
   providerScope: yup.string().optional(),
-  linkFailedRedirectUri: yup.string().optional(),
+  errorRedirectUri: yup.string().optional(),
 });
 
 

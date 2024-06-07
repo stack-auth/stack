@@ -3,12 +3,11 @@
 import { MessageCard } from "..";
 import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { Text } from "../components-core";
-import { useSearchParams } from "next/navigation";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import KnownErrorMessageCard from "../components/message-cards/known-error-message-card";
 
 
-export default function OAuthLinkFailed({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
   const errorCode = searchParams.errorCode;
   const message = searchParams.message;
   const details = searchParams.details;

@@ -14,6 +14,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { createTeamOnSignUp } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
+import { validateUrl } from "@/lib/utils";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -51,6 +52,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     type,
     projectUserId,
     providerScope,
+    errorRedirectUri,
   } = decodedCookie;
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
@@ -136,7 +138,17 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
               if (oldAccount) {
                 // ========================== account already connected ==========================
                 if (oldAccount.projectUserId !== projectUserId) {
-                  throw new KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser();
+                  const error = new KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser();
+                  if (errorRedirectUri && validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+                    return new Response(null, {
+                      status: 302,
+                      headers: {
+                        Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
+                      },
+                    });
+                  } else {
+                    throw error;
+                  }
                 }
                 await storeRefreshToken();
               } else {

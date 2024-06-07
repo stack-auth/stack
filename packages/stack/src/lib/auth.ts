@@ -7,19 +7,17 @@ import { Session } from "@stackframe/stack-shared/dist/sessions";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
-  {
-    provider,
-    redirectUrl,
-  } : { 
+  options: { 
     provider: string,
-    redirectUrl?: string,
+    redirectUrl: string,
+    errorRedirectUrl: string,
   }
 ) {
-  redirectUrl = constructRedirectUrl(redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
   const location = await iface.getOAuthUrl({
-    provider,
-    redirectUrl,
+    provider: options.provider,
+    redirectUrl: constructRedirectUrl(options.redirectUrl),
+    errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
     codeChallenge,
     state,
     type: "authenticate"
@@ -32,16 +30,17 @@ export async function addNewOAuthProviderOrScope(
   iface: StackClientInterface,
   options: { 
     provider: string,
-    redirectUrl?: string,
+    redirectUrl: string,
+    errorRedirectUrl: string,
     scope?: string,
   },
   session: Session,
 ) {
-  const redirectUrl = constructRedirectUrl(options.redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
   const location = await iface.getOAuthUrl({
     provider: options.provider,
-    redirectUrl,
+    redirectUrl: constructRedirectUrl(options.redirectUrl),
+    errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
     codeChallenge,
     state,
     type: "link",
@@ -106,12 +105,12 @@ export async function callOAuthCallback(
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback)
   try {
-    return await iface.callOAuthCallback(
-      originalUrl.searchParams,
-      constructRedirectUrl(redirectUrl),
+    return await iface.callOAuthCallback({
+      oauthParams: originalUrl.searchParams,
+      redirectUri: constructRedirectUrl(redirectUrl),
       codeVerifier,
       state,
-    );
+    });
   } catch (e) {
     throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });
   }

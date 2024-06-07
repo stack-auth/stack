@@ -10,7 +10,7 @@ import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
 import AccountSettings from "./account-settings";
 import MagicLinkCallback from "./magic-link-callback";
-import OAuthLinkFailed from "./oauth-link-failed";
+import ErrorPage from "./error";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -96,8 +96,8 @@ export default async function StackHandler<HasTokenStore extends boolean>({
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'oauth-link-failed': {
-      return <OAuthLinkFailed searchParams={searchParams} fullPage={fullPage} />;
+    case 'error': {
+      return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
       return notFound();

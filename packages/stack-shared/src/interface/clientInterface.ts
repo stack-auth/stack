@@ -682,6 +682,7 @@ export class StackClientInterface {
     options: {
       provider: string, 
       redirectUrl: string, 
+      errorRedirectUrl: string,
       codeChallenge: string, 
       state: string,
       type: "authenticate" | "link",
@@ -710,6 +711,7 @@ export class StackClientInterface {
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("type", options.type);
+    url.searchParams.set("errorRedirectUri", options.errorRedirectUrl);
     
     if (options.type === "link") {
       const tokens = await options.session.getPotentiallyExpiredTokens();
@@ -723,12 +725,12 @@ export class StackClientInterface {
     return url.toString();
   }
 
-  async callOAuthCallback(
+  async callOAuthCallback(options: {
     oauthParams: URLSearchParams, 
     redirectUri: string,
     codeVerifier: string, 
     state: string,
-  ): Promise<{ newUser: boolean, accessToken: string, refreshToken: string }> {
+  }): Promise<{ newUser: boolean, accessToken: string, refreshToken: string }> {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
@@ -743,7 +745,7 @@ export class StackClientInterface {
       client_secret: this.options.publishableClientKey,
       token_endpoint_auth_method: 'client_secret_basic',
     };
-    const params = oauth.validateAuthResponse(as, client, oauthParams, state);
+    const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
     if (oauth.isOAuth2Error(params)) {
       throw new StackAssertionError("Error validating outer OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
@@ -751,8 +753,8 @@ export class StackClientInterface {
       as,
       client,
       params,
-      redirectUri,
-      codeVerifier,
+      options.redirectUri,
+      options.codeVerifier,
     );
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
