@@ -11,6 +11,7 @@ import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
+import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -81,6 +82,10 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
     if (accessTokenProjectId !== projectId) {
       throw new StatusError(StatusError.Forbidden);
+    }
+
+    if (providerScope && sharedProviders.includes(provider.type as any)) {
+      throw new KnownErrors.OAuthExtraScopeNotAvailableWithSharedOAuthKeys();
     }
     projectUserId = userId;
   }

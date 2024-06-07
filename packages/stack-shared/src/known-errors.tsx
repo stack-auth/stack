@@ -839,6 +839,16 @@ const OAuthAccountDoesNotHaveRequiredScope = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthExtraScopeNotAvailableWithSharedOAuthKeys = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_EXTRA_SCOPE_NOT_AVAILABLE_WITH_SHARED_OAUTH_KEYS",
+  () => [
+    400,
+    "Extra scopes are not available with shared OAuth keys. Please add your own OAuth keys on the Stack dashboard to use extra scopes.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -914,6 +924,7 @@ export const KnownErrors = {
   OAuthAccountNotConnectedToUser,
   OAuthAccountAlreadyConnectedToAnotherUser,
   OAuthAccountDoesNotHaveRequiredScope,
+  OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

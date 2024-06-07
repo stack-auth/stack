@@ -10,7 +10,7 @@ import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
 import AccountSettings from "./account-settings";
 import MagicLinkCallback from "./magic-link-callback";
-import ErrorPage from "./error";
+import ErrorPage from "./error-page";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,

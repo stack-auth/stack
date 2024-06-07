@@ -311,10 +311,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async (session, [accountId, scope]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
       if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
-
-      const token = await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
-      if (!token) {
-        return null;
+      if (scope !== "") {
+        const token = await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+        if (!token) {
+          return null;
+        }
       }
 
       const app = this;
