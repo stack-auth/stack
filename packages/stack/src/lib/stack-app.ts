@@ -298,7 +298,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       try {
         return await this._interface.getAccessToken(accountId, scope || "", session);
       } catch (err) {
-        if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
+        if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthAccountNotConnectedToUser)) {
           throw err;
         }
       }
@@ -308,16 +308,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthAccount | null>(
     async (session, [accountId, scope]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
-      if (!user) return null;
-      if (user.oauthProviders.find((p) => p === accountId)) {
-        try {
-          await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
-        } catch (err) {
-          if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope)) {
-            throw err;
-          }
-          return null;
-        }
+      if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
+      
+      const token = await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+      if (!token) {
+        return null;
       }
 
       const app = this;
