@@ -30,7 +30,7 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
       <MessageCard 
         title="Failed to connect account" 
         fullPage={fullPage}
-        primaryButtonText="Connect"
+        primaryButtonText="Connect another account"
         primaryAction={() => {}}
         secondaryButtonText="Cancel"
         secondaryAction={() => {}}

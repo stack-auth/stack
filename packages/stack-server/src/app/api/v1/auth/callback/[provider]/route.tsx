@@ -138,17 +138,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
               if (oldAccount) {
                 // ========================== account already connected ==========================
                 if (oldAccount.projectUserId !== projectUserId) {
-                  const error = new KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser();
-                  if (errorRedirectUri && validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
-                    return new Response(null, {
-                      status: 302,
-                      headers: {
-                        Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
-                      },
-                    });
-                  } else {
-                    throw error;
-                  }
+                  throw new KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser();
                 }
                 await storeRefreshToken();
               } else {
@@ -241,6 +231,13 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
         );
       }
       throw new StatusError(StatusError.BadRequest, error.message);
+    } else if (error instanceof KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser && errorRedirectUri && validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
+        },
+      });
     }
     throw error;
   }
