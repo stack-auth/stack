@@ -71,7 +71,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
-      let statusError;
+      let statusError: StatusError;
       try {
         statusError = catchError(e);
       } catch (e) {
