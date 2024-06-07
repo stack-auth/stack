@@ -3,13 +3,14 @@ import SignIn from "./sign-in";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import EmailVerification from "./email-verification";
 import { PasswordReset, StackServerApp } from "..";
-import MessageCard from "../components/message-card";
+import MessageCard from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
 import SignOut from "./sign-out";
 import ForgotPassword from "./forgot-password";
 import OAuthCallback from "./oauth-callback";
 import AccountSettings from "./account-settings";
 import MagicLinkCallback from "./magic-link-callback";
+import OAuthLinkFailed from "./oauth-link-failed";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -94,6 +95,9 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case 'magic-link-callback': {
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
+    }
+    case 'oauth-link-failed': {
+      return <OAuthLinkFailed searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
       return notFound();

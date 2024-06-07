@@ -5,7 +5,7 @@ import SeparatorWithText from '../components/separator-with-text';
 import OAuthGroup from '../components/oauth-group';
 import MaybeFullPage from '../components/maybe-full-page';
 import { useUser, useStackApp, CredentialSignUp } from '..';
-import RedirectMessageCard from '../components/redirect-message-card';
+import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
 import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
@@ -25,7 +25,7 @@ export default function AuthPage({
   const project = mockProject || projectFromHook;
 
   if (user && !mockProject) {
-    return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
   const enableSeparator = (project.credentialEnabled || project.magicLinkEnabled) && project.oauthProviders.filter(p => p.enabled).length > 0;

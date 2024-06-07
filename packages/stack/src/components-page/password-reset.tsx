@@ -1,6 +1,6 @@
 'use client';
 
-import MessageCard from "../components/message-card";
+import MessageCard from "../components/message-cards/message-card";
 import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
 import PasswordResetInner from "../components/password-reset-inner";

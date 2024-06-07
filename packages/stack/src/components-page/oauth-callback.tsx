@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import MessageCard from "../components/message-card";
+import MessageCard from "../components/message-cards/message-card";
 
 export default function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();
