@@ -1,5 +1,13 @@
 # partial-prerendering
 
+## 0.2.18
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.18
+
 ## 0.2.17
 
 ### Patch Changes
