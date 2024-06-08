@@ -303,41 +303,39 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
     return await this._interface.listClientUserTeams(session);
   });
-  private readonly _currentUserOAuthAccountAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
+  private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
     async (session, [accountId, scope]) => {
       try {
         return await this._interface.getAccessToken(accountId, scope || "", session);
       } catch (err) {
-        if (!(err instanceof KnownErrors.OAuthAccountDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthAccountNotConnectedToUser)) {
+        if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
           throw err;
         }
       }
       return null;
     }
   );
-  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthConnection | null>(
+  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[string, string], OAuthConnection | null>(
     async (session, [accountId, scope]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
       if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
-      if (scope !== "") {
-        const token = await this._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
-        if (!token) {
-          return null;
-        }
+      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+      if (!token) {
+        return null;
       }
 
       const app = this;
       return {
         id: accountId,
         async getAccessToken() {
-          const result = await app._currentUserOAuthAccountAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
           if (!result) {
             throw new StackAssertionError("No access token available");
           }
           return result;
         },
         useAccessToken() {
-          const result = useAsyncCache(app._currentUserOAuthAccountAccessTokensCache, [session, accountId, scope || ""], "oauthAccount.useAccessToken()");
+          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, accountId, scope || ""], "oauthAccount.useAccessToken()");
           if (!result) {
             throw new StackAssertionError("No access token available");
           }
@@ -573,7 +571,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async function getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
     async function getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
       const scopeString = options?.scopes?.join(" ");
-      const account = await app._currentUserOAuthAccountCache.getOrWait([app._getSession(), id, scopeString || ""], "write-only");
+      const account = await app._currentUserOAuthConnectionCache.getOrWait([app._getSession(), id, scopeString || ""], "write-only");
 
       if (!account && options?.or === 'redirect') {
         await addNewOAuthProviderOrScope(
@@ -596,7 +594,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     function useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
-      const account = useAsyncCache(app._currentUserOAuthAccountCache, [app._useSession(), id, scopeString || ""], "user.useConnection()");
+      const account = useAsyncCache(app._currentUserOAuthConnectionCache, [app._useSession(), id, scopeString || ""], "user.useConnection()");
       if (!account && options?.or === 'redirect') {
         throw new Error("Cannot useConnection with or: 'redirect' in a synchronous context");
       }

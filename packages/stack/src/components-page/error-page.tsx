@@ -26,7 +26,7 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
     return unknownErrorCard;
   }
 
-  if (error instanceof KnownErrors.OAuthAccountAlreadyConnectedToAnotherUser) {
+  if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser) {
     // TODO: add "Connect a different account" button
     return (
       <MessageCard 

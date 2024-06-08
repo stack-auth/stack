@@ -26,7 +26,7 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
     }
 
     if (!auth.user.oauthProviders.includes(params.provider)) {
-      throw new KnownErrors.OAuthAccountNotConnectedToUser();
+      throw new KnownErrors.OAuthConnectionNotConnectedToUser();
     }
 
     const tokens = await prismaClient.oAuthToken.findMany({
@@ -44,7 +44,7 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
     });
 
     if (filteredTokens.length === 0) {
-      throw new KnownErrors.OAuthAccountDoesNotHaveRequiredScope();
+      throw new KnownErrors.OAuthConnectionDoesNotHaveRequiredScope();
     }
 
     const tokenSet = await getProvider(provider).getAccessToken({
