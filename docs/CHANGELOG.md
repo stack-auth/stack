@@ -1,5 +1,11 @@
 # stack-docs
 
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+
 ## 2.4.19
 
 ### Patch Changes

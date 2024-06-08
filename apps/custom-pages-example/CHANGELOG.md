@@ -1,5 +1,14 @@
 # demo-app
 
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.20
+  - @stackframe/stack@2.4.20
+
 ## 2.4.19
 
 ### Patch Changes
