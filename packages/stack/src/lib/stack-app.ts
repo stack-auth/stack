@@ -315,27 +315,47 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return null;
     }
   );
-  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[string, string], OAuthConnection | null>(
-    async (session, [accountId, scope]) => {
+  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[StandardProvider, string, boolean], OAuthConnection | null>(
+    async (session, [connectionId, scope, redirect]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
-      if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
-      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+
+      let hasConnection = true;
+      if (!user || !user.oauthProviders.find((p) => p === connectionId)) {
+        hasConnection = false;
+      }
+      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
       if (!token) {
+        hasConnection = false;
+      }
+
+      if (!hasConnection && redirect) {
+        await addNewOAuthProviderOrScope(
+          this._interface, 
+          { 
+            provider: connectionId, 
+            redirectUrl: this.urls.oauthCallback, 
+            errorRedirectUrl: this.urls.error, 
+            providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
+          },
+          this._getSession()
+        );
+        return await neverResolve();
+      } else if (!hasConnection) {
         return null;
       }
 
       const app = this;
       return {
-        id: accountId,
+        id: connectionId,
         async getAccessToken() {
-          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, accountId, scope || ""], "write-only");
+          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
           if (!result) {
             throw new StackAssertionError("No access token available");
           }
           return result;
         },
         useAccessToken() {
-          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, accountId, scope || ""], "oauthAccount.useAccessToken()");
+          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, connectionId, scope || ""], "oauthAccount.useAccessToken()");
           if (!result) {
             throw new StackAssertionError("No access token available");
           }
@@ -571,34 +591,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async function getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
     async function getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
       const scopeString = options?.scopes?.join(" ");
-      const account = await app._currentUserOAuthConnectionCache.getOrWait([app._getSession(), id, scopeString || ""], "write-only");
-
-      if (!account && options?.or === 'redirect') {
-        await addNewOAuthProviderOrScope(
-          app._interface, 
-          { 
-            provider: id, 
-            redirectUrl: app.urls.oauthCallback, 
-            errorRedirectUrl: app.urls.error, 
-            providerScope: mergeScopeStrings(scopeString || "", (app._oauthScopesOnSignIn[id] ?? []).join(" ")),
-          },
-          app._getSession()
-        );
-        return await neverResolve();
-      }
-
-      return account;
-    };
+      return await app._currentUserOAuthConnectionCache.getOrWait([app._getSession(), id, scopeString || "", options?.or === 'redirect'], "write-only");
+    }
 
     function useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
     function useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
-      const account = useAsyncCache(app._currentUserOAuthConnectionCache, [app._useSession(), id, scopeString || ""], "user.useConnection()");
-      if (!account && options?.or === 'redirect') {
-        throw new Error("Cannot useConnection with or: 'redirect' in a synchronous context");
-      }
-      return account;
+      return useAsyncCache(app._currentUserOAuthConnectionCache, [app._useSession(), id, scopeString || "", options?.or === 'redirect'], "user.useConnection()");
     }
 
     return {
