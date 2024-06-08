@@ -16,7 +16,7 @@ const InlineCode = React.forwardRef<
   return <code 
     ref={ref} 
     {...props} 
-    className={cn("bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-sm px-1 cursor-pointer", props.className)}
+    className={cn("bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-sm px-1 cursor-pointer", props.className)}
     onClick={(e: React.MouseEvent<HTMLElement>) => {
       props.onClick?.(e);
       if (!hasClickableParent(e.currentTarget)) {
