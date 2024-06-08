@@ -101,6 +101,19 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   };
 }
 
+async function _redirectTo(url: string, options?: { replace?: boolean }) {
+  if (isReactServer) {
+    NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
+  } else {
+    if (options?.replace) {
+      window.location.replace(url);
+    } else {
+      window.location.assign(url);
+    }
+    await wait(2000);
+  }
+}
+
 function getDefaultProjectId() {
   return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
@@ -333,7 +346,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           this._interface, 
           { 
             provider: connectionId, 
-            redirectUrl: this.urls.oauthCallback, 
+            redirectUrl: this.urls.oauthCallback,
             errorRedirectUrl: this.urls.error, 
             providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
           },
@@ -798,16 +811,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
 
-    if (isReactServer) {
-      NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
-    } else {
-      if (options?.replace) {
-        window.location.replace(url);
-      } else {
-        window.location.assign(url);
-      }
-      await wait(2000);
-    }
+    await _redirectTo(url, options);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
@@ -991,7 +995,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const result = await callOAuthCallback(this._interface, this.urls.oauthCallback);
     if (result) {
       await this._signInToAccountWithTokens(result);
-      if (result.newUser) {
+      if (result.afterCallbackRedirectUrl) {
+        await _redirectTo(result.afterCallbackRedirectUrl, { replace: true });
+        return true;
+      } else if (result.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
         return true;
       } else {

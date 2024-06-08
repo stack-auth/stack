@@ -20,7 +20,7 @@ export default function OAuthCallback(props: { fullPage?: boolean }) {
     } catch (e: any) {
       setError(e);
     }
-    if (!hasRedirected) {
+    if (!hasRedirected && process.env.NODE_ENV === 'production') {
       await app.redirectToSignIn();
     }
   }), []);

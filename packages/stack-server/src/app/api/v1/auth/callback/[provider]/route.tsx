@@ -17,15 +17,15 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { validateUrl } from "@/lib/utils";
 import { Project } from "@stackframe/stack";
 
-const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUri?: string) => {
-  if (!errorRedirectUri || !validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUrl?: string) => {
+  if (!errorRedirectUrl || !validateUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
     throw error;
   }
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
+      Location: `${errorRedirectUrl}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
     },
   });
 };
@@ -66,7 +66,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     type,
     projectUserId,
     providerScope,
-    errorRedirectUri,
+    errorRedirectUrl,
+    afterCallbackRedirectUrl,
   } = decodedCookie;
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
@@ -95,7 +96,6 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   });
 
   if (type === "link") {
-    console.log('1 !!!!!!!!!!!!!');
     if (!projectUserId) {
       throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
     }
@@ -115,15 +115,13 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
         }
       }
     });
-    console.log('2 !!!!!!!!!!!!!');
     if (!user) {
       throw new StackAssertionError("User not found");
     }
 
     const account = user.projectUserOAuthAccounts.find((a) => a.providerConfig.id === provider.id);
-    console.log(account, userInfo, '3 !!!!!!!!!!!!!');
     if (account && account.providerAccountId !== userInfo.accountId) {
-      return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUri);
+      return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUrl);
     }
   }
   
@@ -217,7 +215,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
               await storeRefreshToken();
               return {
                 id: projectUserId,
-                newUser: false
+                newUser: false,
+                afterCallbackRedirectUrl,
               };
             }
             
@@ -228,7 +227,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
               return {
                 id: oldAccount.projectUserId,
-                newUser: false
+                newUser: false,
+                afterCallbackRedirectUrl,
               };
             }
 
@@ -263,7 +263,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             await storeRefreshToken();
             return {
               id: newAccount.projectUserId,
-              newUser: true
+              newUser: true,
+              afterCallbackRedirectUrl,
             };
           }
         }
@@ -279,7 +280,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       }
       throw new StatusError(StatusError.BadRequest, error.message);
     } else if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser) {
-      return redirectOrThrowError(error, project, errorRedirectUri);
+      return redirectOrThrowError(error, project, errorRedirectUrl);
     }
     throw error;
   }

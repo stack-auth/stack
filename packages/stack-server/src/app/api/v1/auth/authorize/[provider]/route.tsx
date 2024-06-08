@@ -19,7 +19,8 @@ const getSchema = yup.object({
     type: yup.string().oneOf(["authenticate", "link"]).default("authenticate"),
     token: yup.string().default(""),
     providerScope: yup.string().optional(),
-    errorRedirectUri: yup.string().optional(),
+    errorRedirectUrl: yup.string().optional(),
+    afterCallbackRedirectUrl: yup.string().optional(),
 
     // oauth parameters
     client_id: yup.string().required(),
@@ -49,7 +50,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       response_type: responseType,
-      errorRedirectUri
+      errorRedirectUrl,
+      afterCallbackRedirectUrl
     }
   } = await deprecatedParseRequest(req, getSchema);
 
@@ -113,7 +115,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     type,
     projectUserId,
     providerScope,
-    errorRedirectUri,
+    errorRedirectUrl,
+    afterCallbackRedirectUrl,
   } satisfies yup.InferType<typeof oauthCookieSchema>);
 
   cookies().set("stack-oauth", cookie, {

@@ -10,7 +10,7 @@ export default function Page() {
       {user.oauthProviders.map((provider) => (
         <div key={provider}>{provider}</div>
       ))}
-      <Button onClick={async () => console.log(await (await user.getConnection('google', { or: 'redirect', scopes: ['https://www.googleapis.com/auth/calendar'] })).getAccessToken())}>
+      <Button onClick={async () => console.log(await (await user.getConnection('google', { or: 'redirect', scopes: ['https://www.googleapis.com/auth/books'] })).getAccessToken())}>
       Get Access Token
       </Button>
     </>

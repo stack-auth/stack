@@ -269,7 +269,9 @@ model ProjectUserAuthorizationCode {
 
   codeChallenge       String
   codeChallengeMethod String
-  newUser             Boolean
+
+  newUser                  Boolean
+  afterCallbackRedirectUrl String?
 
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 

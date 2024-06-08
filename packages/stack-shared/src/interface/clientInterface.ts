@@ -680,6 +680,7 @@ export class StackClientInterface {
       provider: string, 
       redirectUrl: string, 
       errorRedirectUrl: string,
+      afterCallbackRedirectUrl?: string,
       codeChallenge: string, 
       state: string,
       type: "authenticate" | "link",
@@ -709,7 +710,11 @@ export class StackClientInterface {
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("type", options.type);
-    url.searchParams.set("errorRedirectUri", options.errorRedirectUrl);
+    url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
+    
+    if (options.afterCallbackRedirectUrl) {
+      url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
+    }
     
     if (options.type === "link") {
       const tokens = await options.session.getPotentiallyExpiredTokens();
@@ -728,7 +733,7 @@ export class StackClientInterface {
     redirectUri: string,
     codeVerifier: string, 
     state: string,
-  }): Promise<{ newUser: boolean, accessToken: string, refreshToken: string }> {
+  }): Promise<{ newUser: boolean, afterCallbackRedirectUrl?: string, accessToken: string, refreshToken: string }> {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
@@ -763,6 +768,7 @@ export class StackClientInterface {
 
     return {
       newUser: result.newUser as boolean,
+      afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
       accessToken: result.access_token,
       refreshToken: result.refresh_token ?? throwErr("Refresh token not found in outer OAuth response"),
     };

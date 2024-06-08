@@ -43,6 +43,7 @@ export async function addNewOAuthProviderOrScope(
     provider: options.provider,
     redirectUrl: constructRedirectUrl(options.redirectUrl),
     errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
+    afterCallbackRedirectUrl: constructRedirectUrl(window.location.href),
     codeChallenge,
     state,
     type: "link",

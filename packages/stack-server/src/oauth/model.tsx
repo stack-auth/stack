@@ -95,6 +95,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     return {
       ...token,
       newUser: user.newUser,
+      afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
     };
   }
 
@@ -169,6 +170,7 @@ export class OAuthModel implements AuthorizationCodeModel {
         expiresAt: code.expiresAt,
         projectUserId: user.id,
         newUser: user.newUser,
+        afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
         projectId: client.id,
       },
     });
@@ -209,6 +211,7 @@ export class OAuthModel implements AuthorizationCodeModel {
       user: {
         id: code.projectUserId,
         newUser: code.newUser,
+        afterCallbackRedirectUrl: code.afterCallbackRedirectUrl,
       },
     };
   }
