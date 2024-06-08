@@ -84,7 +84,10 @@ export default function CustomCredentialSignIn() {
   };
   
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      onSubmit();
+    }}>
       {error}
       {message ? 
         <div>{message}</div> :

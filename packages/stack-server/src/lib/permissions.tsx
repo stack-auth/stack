@@ -360,7 +360,7 @@ export async function listUserDirectPermissions({
     p => serverPermissionDefinitionJsonFromDbType(p.permission)
   ).filter(
     p => {
-      switch(p.scope.type) {
+      switch (p.scope.type) {
         case "global": {
           return type === "global";
         }

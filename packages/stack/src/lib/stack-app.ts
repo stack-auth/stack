@@ -5,14 +5,14 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { isBrowserLike } from "@stackframe/stack-shared/src/utils/env";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -22,7 +22,7 @@ import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-sha
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
-import { Session } from "@stackframe/stack-shared/dist/sessions";
+import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
 import { mergeScopeStrings } from "@stackframe/stack-shared/src/utils/strings";
 
@@ -159,7 +159,7 @@ export type StackAdminAppConstructorOptions<HasTokenStore extends boolean, Proje
   | (
     & Omit<StackServerAppConstructorOptions<HasTokenStore, ProjectId>, "publishableClientKey" | "secretServerKey">
     & {
-      projectOwnerSession: Session,
+      projectOwnerSession: InternalSession,
     }
   )
 );
@@ -182,48 +182,6 @@ function createEmptyTokenStore() {
     accessToken: null,
   });
 }
-
-let storedCookieTokenStore: Store<TokenObject> | null = null;
-const getCookieTokenStore = (): Store<TokenObject> => {
-  if (!isBrowserLike()) {
-    throw new Error("Cannot use cookie token store on the server!");
-  }
-
-  if (storedCookieTokenStore === null) {
-    const getCurrentValue = () => ({
-      refreshToken: getCookie('stack-refresh'),
-      accessToken: getCookie('stack-access'),
-    });
-    storedCookieTokenStore = new Store<TokenObject>(getCurrentValue());
-    let hasSucceededInWriting = true;
-
-    setInterval(() => {
-      if (hasSucceededInWriting) {
-        const currentValue = getCurrentValue();
-        const oldValue = storedCookieTokenStore!.get();
-        if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
-          storedCookieTokenStore!.set(currentValue);
-        }
-      }
-    }, 100);
-    storedCookieTokenStore.onChange((value) => {
-      try {
-        setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-        setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
-        hasSucceededInWriting = true;
-      } catch (e) {
-        if (!isBrowserLike()) {
-          // Setting cookies inside RSCs is not allowed, so we just ignore it
-          hasSucceededInWriting = false;
-        } else {
-          throw e;
-        }
-      }
-    });
-  }
-
-  return storedCookieTokenStore;
-};
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
 function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
@@ -271,8 +229,8 @@ const createCache = <D extends any[], T>(fetcher: (dependencies: D) => Promise<T
   );
 };
 
-const createCacheBySession = <D extends any[], T>(fetcher: (session: Session, extraDependencies: D) => Promise<T> ) => {
-  return new AsyncCache<[Session, ...D], T>(
+const createCacheBySession = <D extends any[], T>(fetcher: (session: InternalSession, extraDependencies: D) => Promise<T> ) => {
+  return new AsyncCache<[InternalSession, ...D], T>(
     async ([session, ...extraDependencies]) => await fetcher(session, extraDependencies),
     {
       onSubscribe: ([session], refresh) => {
@@ -439,27 +397,82 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._uniqueIdentifier!;
   }
 
-  private _memoryTokenStore = createEmptyTokenStore();
-  private _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
+  protected _memoryTokenStore = createEmptyTokenStore();
+  protected _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
+  protected _storedCookieTokenStore: Store<TokenObject> | null = null;
+  protected get _refreshTokenCookieName() {
+    return `stack-refresh-${this.projectId}`;
+  }
+  protected get _accessTokenCookieName() {
+    // The access token, unlike the refresh token, should not depend on the project ID. We never want to store the
+    // access token in cookies more than once because of how big it is (there's a limit of 4096 bytes for all cookies
+    // together). This means that, if you have multiple projects on the same domain, some of them will need to refetch
+    // the access token on page reload.
+    return `stack-access`;
+  }
+  protected _getCookieTokenStore(): Store<TokenObject> {
+    if (!isBrowserLike()) {
+      throw new Error("Cannot use cookie token store on the server!");
+    }
+
+    if (this._storedCookieTokenStore === null) {
+      const getCurrentValue = (old: TokenObject | null) => ({
+        refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+        
+        // if there is an access token in memory already, don't update the access token based on cookies (access token
+        // cookies may be set by another project on the same domain)
+        // see the comment in _accessTokenCookieName for more information
+        accessToken: old === null ? getCookie(this._accessTokenCookieName) : old.accessToken,
+      });
+      this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
+      let hasSucceededInWriting = true;
+
+      setInterval(() => {
+        if (hasSucceededInWriting) {
+          const oldValue = this._storedCookieTokenStore!.get();
+          const currentValue = getCurrentValue(oldValue);
+          if (!deepPlainEquals(currentValue, oldValue)) {
+            this._storedCookieTokenStore!.set(currentValue);
+          }
+        }
+      }, 100);
+      this._storedCookieTokenStore.onChange((value) => {
+        try {
+          setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
+          hasSucceededInWriting = true;
+        } catch (e) {
+          if (!isBrowserLike()) {
+            // Setting cookies inside RSCs is not allowed, so we just ignore it
+            hasSucceededInWriting = false;
+          } else {
+            throw e;
+          }
+        }
+      });
+    }
+
+    return this._storedCookieTokenStore;
+  };
   protected _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
     switch (tokenStoreInit) {
       case "cookie": {
-        return getCookieTokenStore();
+        return this._getCookieTokenStore();
       }
       case "nextjs-cookie": {
         if (isBrowserLike()) {
-          return getCookieTokenStore();
+          return this._getCookieTokenStore();
         } else {
           const store = new Store<TokenObject>({
-            refreshToken: getCookie('stack-refresh'),
-            accessToken: getCookie('stack-access'),
+            refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            accessToken: getCookie(this._accessTokenCookieName),
           });
           store.onChange((value) => {
             try {
-              setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-              setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
+              setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
             } catch (e) {
               // ignore
             }
@@ -470,20 +483,43 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       case "memory": {
         return this._memoryTokenStore;
       }
-      case null: {
-        return createEmptyTokenStore();
-      }
       default: {
-        if (tokenStoreInit !== null && typeof tokenStoreInit === "object" && "headers" in tokenStoreInit) {
+        if (tokenStoreInit === null) {
+          return createEmptyTokenStore();
+        } else if (typeof tokenStoreInit === "object" && "headers" in tokenStoreInit) {
           if (this._requestTokenStores.has(tokenStoreInit)) return this._requestTokenStores.get(tokenStoreInit)!;
+
+          // x-stack-auth header
+          const stackAuthHeader = tokenStoreInit.headers.get("x-stack-auth");
+          if (stackAuthHeader) {
+            let parsed;
+            try {
+              parsed = JSON.parse(stackAuthHeader);
+              if (typeof parsed !== "object") throw new Error("x-stack-auth header must be a JSON object");
+              if (parsed === null) throw new Error("x-stack-auth header must not be null");
+            } catch (e) {
+              throw new Error(`Invalid x-stack-auth header: ${stackAuthHeader}`, { cause: e });
+            }
+            return this._getOrCreateTokenStore({
+              accessToken: parsed.accessToken ?? null,
+              refreshToken: parsed.refreshToken ?? null,
+            });
+          }
+
+          // read from cookies
           const cookieHeader = tokenStoreInit.headers.get("cookie");
           const parsed = cookie.parse(cookieHeader || "");
           const res = new Store<TokenObject>({
-            refreshToken: parsed['stack-refresh'] || null,
-            accessToken: parsed['stack-access'] || null,
+            refreshToken: parsed[this._refreshTokenCookieName] || parsed['stack-refresh'] || null,  // keep old cookie name for backwards-compatibility
+            accessToken: parsed[this._accessTokenCookieName] || null,
           });
           this._requestTokenStores.set(tokenStoreInit, res);
           return res;
+        } else if ("accessToken" in tokenStoreInit || "refreshToken" in tokenStoreInit) {
+          return new Store<TokenObject>({
+            refreshToken: tokenStoreInit.refreshToken,
+            accessToken: tokenStoreInit.accessToken,
+          });
         }
     
         throw new Error(`Invalid token store ${tokenStoreInit}`);
@@ -499,10 +535,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
    * - So we can garbage-collect Session objects when the token store is garbage-collected
    * - So different token stores are separated and don't leak information between each other, eg. if the same user sends two requests to the same server they should get a different session object
    */
-  private _sessionsByTokenStoreAndSessionKey = new WeakMap<Store<TokenObject>, Map<string, Session>>();
-  protected _getSessionFromTokenStore(tokenStore: Store<TokenObject>): Session {
+  private _sessionsByTokenStoreAndSessionKey = new WeakMap<Store<TokenObject>, Map<string, InternalSession>>();
+  protected _getSessionFromTokenStore(tokenStore: Store<TokenObject>): InternalSession {
     const tokenObj = tokenStore.get();
-    const sessionKey = Session.calculateSessionKey(tokenObj);
+    const sessionKey = InternalSession.calculateSessionKey(tokenObj);
     const existing = sessionKey ? this._sessionsByTokenStoreAndSessionKey.get(tokenStore)?.get(sessionKey) : null;
     if (existing) return existing;
 
@@ -529,11 +565,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     sessionsBySessionKey.set(sessionKey, session);
     return session;
   }
-  protected _getSession(overrideTokenStoreInit?: TokenStoreInit): Session {
+  protected _getSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
     const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
     return this._getSessionFromTokenStore(tokenStore);
   }
-  protected _useSession(overrideTokenStoreInit?: TokenStoreInit): Session {
+  protected _useSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
     const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
     const subscribe = useCallback((cb: () => void) => {
       const { unsubscribe } = tokenStore.onChange(() => cb());
@@ -542,7 +578,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const getSnapshot = useCallback(() => this._getSessionFromTokenStore(tokenStore), [tokenStore]);
     return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   }
-      
 
   protected async _signInToAccountWithTokens(tokens: { accessToken: string | null, refreshToken: string }) {
     const tokenStore = this._getOrCreateTokenStore();
@@ -702,14 +737,23 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentUserFromJson(json: UserJson, session: Session): ProjectCurrentUser<ProjectId>;
-  protected _currentUserFromJson(json: UserJson | null, session: Session): ProjectCurrentUser<ProjectId> | null;
-  protected _currentUserFromJson(json: UserJson | null, session: Session): ProjectCurrentUser<ProjectId> | null {
+  protected _currentUserFromJson(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId>;
+  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null;
+  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null {
     if (json === null) return null;
     const app = this;
     const currentUser: CurrentUser = {
       ...this._userFromJson(json),
-      session,
+      _internalSession: session,
+      currentSession: {
+        async getTokens() {
+          const tokens = await session.getPotentiallyExpiredTokens();
+          return {
+            accessToken: tokens?.accessToken.token ?? null,
+            refreshToken: tokens?.refreshToken?.token ?? null,
+          };
+        },
+      },
       async updateSelectedTeam(team: Team | null) {
         await app._updateUser({ selectedTeamId: team?.id ?? null }, session);
       },
@@ -788,7 +832,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createAdminInterface(forProjectId: string, session: Session): StackAdminInterface {
+  protected _createAdminInterface(forProjectId: string, session: InternalSession): StackAdminInterface {
     return new StackAdminInterface({
       baseUrl: this._interface.options.baseUrl,
       projectId: forProjectId,
@@ -803,6 +847,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   get urls(): Readonly<HandlerUrls> {
     return getUrls(this._urlOptions);
+  }
+
+  async getCrossOriginHeaders(): Promise<{ "x-stack-auth": string }> {
+    return {
+      "x-stack-auth": JSON.stringify(await this.getCrossOriginTokenObject()),
+    };
+  }
+
+  async getCrossOriginTokenObject(): Promise<{ accessToken: string | null, refreshToken: string | null }> {
+    const user = await this.getUser();
+    if (!user) return { accessToken: null, refreshToken: null };
+    const tokens = await user.currentSession.getTokens();
+    return tokens;
   }
 
   protected async _redirectTo(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
@@ -923,7 +980,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected async _updateUser(update: UserUpdateJson, session: Session) {
+  protected async _updateUser(update: UserUpdateJson, session: InternalSession) {
     const res = await this._interface.setClientUserCustomizableData(update, session);
     await this._refreshUser(session);
     return res;
@@ -1009,19 +1066,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return false;
   }
 
-  protected async _signOut(session: Session): Promise<void> {
+  protected async _signOut(session: InternalSession): Promise<void> {
     await this._interface.signOut(session);
     await this.redirectToAfterSignOut();
   }
 
-  protected async _sendVerificationEmail(session: Session): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
+  protected async _sendVerificationEmail(session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
     return await this._interface.sendVerificationEmail(emailVerificationRedirectUrl, session);
   }
 
   protected async _updatePassword(
     options: { oldPassword: string, newPassword: string }, 
-    session: Session
+    session: InternalSession
   ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
     return await this._interface.updatePassword(options, session);
   }
@@ -1092,7 +1149,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return res;
   }
 
-  protected async _refreshUser(session: Session) {
+  protected async _refreshUser(session: InternalSession) {
     await this._currentUserCache.refresh([session]);
   }
 
@@ -1104,7 +1161,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await this._currentProjectCache.refresh([]);
   }
 
-  protected async _refreshOwnedProjects(session: Session) {
+  protected async _refreshOwnedProjects(session: InternalSession) {
     await this._ownedProjectsCache.refresh([session]);
   }
 
@@ -1309,15 +1366,24 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentServerUserFromJson(json: ServerUserJson, session: Session): ProjectCurrentSeverUser<ProjectId>;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, session: Session): ProjectCurrentSeverUser<ProjectId> | null;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, session: Session): ProjectCurrentSeverUser<ProjectId> | null {
+  protected _currentServerUserFromJson(json: ServerUserJson, session: InternalSession): ProjectCurrentSeverUser<ProjectId>;
+  protected _currentServerUserFromJson(json: ServerUserJson | null, session: InternalSession): ProjectCurrentSeverUser<ProjectId> | null;
+  protected _currentServerUserFromJson(json: ServerUserJson | null, session: InternalSession): ProjectCurrentSeverUser<ProjectId> | null {
     if (json === null) return null;
     const app = this;
     const nonCurrentServerUser = this._serverUserFromJson(json);
     const currentUser: CurrentServerUser = {
       ...nonCurrentServerUser,
-      session,
+      _internalSession: session,
+      currentSession: {
+        async getTokens() {
+          const tokens = await session.getPotentiallyExpiredTokens();
+          return {
+            accessToken: tokens?.accessToken.token ?? null,
+            refreshToken: tokens?.refreshToken?.token ?? null,
+          };
+        },
+      },
       async delete() {
         const res = await nonCurrentServerUser.delete();
         await app._refreshUser(session);
@@ -1542,7 +1608,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [teams, teamId]);
   }
 
-  protected override async _refreshUser(session: Session) {
+  protected override async _refreshUser(session: InternalSession) {
     await Promise.all([
       super._refreshUser(session),
       this._currentServerUserCache.refresh([session]),
@@ -1716,11 +1782,21 @@ type RedirectToOptions = {
   replace?: boolean,
 };
 
+type Session = {
+  getTokens(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
+};
+
+/**
+ * Contains everything related to the current user session.
+ */
 type Auth<T, C> = {
-  readonly session: Session,
-  updateSelectedTeam(this: T, team: Team | null): Promise<void>,
-  update(this: T, user: C): Promise<void>,
+  readonly _internalSession: InternalSession,
+  readonly currentSession: Session,
   signOut(this: T): Promise<void>,
+
+  // TODO these should not actually be here
+  update(this: T, user: C): Promise<void>,
+  updateSelectedTeam(this: T, team: Team | null): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 };
@@ -1961,6 +2037,66 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | void>,
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | void>,
+
+    /**
+     * With most browsers now disabling third-party cookies by default, the best way to send authenticated requests
+     * across different origins is to pass the tokens in a header.
+     * 
+     * This function returns a header object that can be used with `fetch` or other HTTP request libraries to send
+     * authenticated requests.
+     * 
+     * On the server, you can then pass in the `Request` object to the `tokenStore` option
+     * on your Stack app to fetch user details. Please note that CORS by default does not allow custom headers, so you
+     * must set the [`Access-Control-Allow-Headers` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers)
+     * to include `x-stack-auth` in the CORS preflight response.
+     * 
+     * Example:
+     * 
+     * ```ts
+     * // client
+     * const res = await fetch("https://api.example.com", {
+     *   headers: {
+     *     ...await stackApp.getCrossOriginHeaders()
+     *     // you can also add your own headers here
+     *   },
+     * });
+     * 
+     * // server
+     * function handleRequest(req: Request) {
+     *   const user = await stackServerApp.getUser({ tokenStore: req });
+     *   return new Response("Welcome, " + user.displayName);
+     * }
+     * ```
+     */
+    getCrossOriginHeaders(): Promise<{ "x-stack-auth": string }>,
+
+    /**
+     * With most browsers now disabling third-party cookies by default, there need to be new ways to send authenticated
+     * requests across different origins. While `getCrossOriginHeaders` is the recommended way to do this, there
+     * are some cases where you might want to send the tokens differently, for example when you are using WebSockets
+     * or non-HTTP protocols.
+     * 
+     * This function returns a token object that can be JSON-serialized and sent to the server in any way you like.
+     * There, you can use the `tokenStore` option on your Stack app to fetch user details.
+     * 
+     * Example:
+     * 
+     * ```ts
+     * // client
+     * const res = await rpcCall(rpcEndpoint, {
+     *   data: {
+     *     auth: await stackApp.getCrossOriginTokenObject(),
+     *   },
+     * });
+     * 
+     * // server
+     * function handleRequest(data) {
+     *   const user = await stackServerApp.getUser({ tokenStore: data.auth });
+     *   return new Response("Welcome, " + user.displayName);
+     * }
+     * ```
+     */
+    getCrossOriginTokenObject(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,

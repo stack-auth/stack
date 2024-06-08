@@ -7,7 +7,7 @@ import { StackAssertionError, captureError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
-import { AccessToken, RefreshToken, Session } from '../sessions';
+import { AccessToken, RefreshToken, InternalSession } from '../sessions';
 import { globalVar } from '../utils/globals';
 
 type UserCustomizableJson = {
@@ -54,7 +54,7 @@ export type ClientInterfaceOptions = {
 } & ({
   publishableClientKey: string,
 } | {
-  projectOwnerSession: Session,
+  projectOwnerSession: InternalSession,
 });
 
 export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify";
@@ -233,7 +233,7 @@ export class StackClientInterface {
   protected async sendClientRequest(
     path: string, 
     requestOptions: RequestInit, 
-    session: Session | null,
+    session: InternalSession | null,
     requestType: "client" | "server" | "admin" = "client",
   ) {
     session ??= this.createSession({
@@ -250,8 +250,8 @@ export class StackClientInterface {
     );
   }
 
-  public createSession(options: Omit<ConstructorParameters<typeof Session>[0], "refreshAccessTokenCallback">): Session {
-    const session = new Session({
+  public createSession(options: Omit<ConstructorParameters<typeof InternalSession>[0], "refreshAccessTokenCallback">): InternalSession {
+    const session = new InternalSession({
       refreshAccessTokenCallback: async (refreshToken) => await this.fetchNewAccessToken(refreshToken),
       ...options,
     });
@@ -261,7 +261,7 @@ export class StackClientInterface {
   protected async sendClientRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
     path: string, 
     requestOptions: RequestInit, 
-    tokenStoreOrNull: Session | null,
+    tokenStoreOrNull: InternalSession | null,
     errorsToCatch: readonly E[],
   ): Promise<Result<
     Response & {
@@ -287,7 +287,7 @@ export class StackClientInterface {
   private async sendClientRequestInner(
     path: string,
     options: RequestInit,
-    session: Session,
+    session: InternalSession,
     requestType: "client" | "server" | "admin",
   ): Promise<Result<Response & {
     usedTokens: {
@@ -462,7 +462,7 @@ export class StackClientInterface {
 
   async sendVerificationEmail(
     emailVerificationRedirectUrl: string, 
-    session: Session
+    session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/send-verification-email",
@@ -532,7 +532,7 @@ export class StackClientInterface {
 
   async updatePassword(
     options: { oldPassword: string, newPassword: string }, 
-    session: Session
+    session: InternalSession
   ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/update-password",
@@ -584,7 +584,7 @@ export class StackClientInterface {
   async signInWithCredential(
     email: string, 
     password: string, 
-    session: Session
+    session: InternalSession
   ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signin",
@@ -617,7 +617,7 @@ export class StackClientInterface {
     email: string,
     password: string,
     emailVerificationRedirectUrl: string,
-    session: Session,
+    session: InternalSession,
   ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",
@@ -647,7 +647,7 @@ export class StackClientInterface {
     };
   }
 
-  async signInWithMagicLink(code: string, session: Session): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/magic-link-verification",
       {
@@ -774,7 +774,7 @@ export class StackClientInterface {
     };
   }
 
-  async signOut(session: Session): Promise<void> {
+  async signOut(session: InternalSession): Promise<void> {
     const tokenObj = await session.getPotentiallyExpiredTokens();
     if (tokenObj) {
       if (!tokenObj.refreshToken) {
@@ -797,10 +797,10 @@ export class StackClientInterface {
         await res.json();
       }
     }
-    session.invalidate();
+    session.markInvalid();
   }
 
-  async getClientUserByToken(tokenStore: Session): Promise<Result<UserJson>> {
+  async getClientUserByToken(tokenStore: InternalSession): Promise<Result<UserJson>> {
     const response = await this.sendClientRequest(
       "/current-user",
       {},
@@ -817,7 +817,7 @@ export class StackClientInterface {
       type: 'global' | 'team', 
       direct: boolean, 
     },
-    session: Session
+    session: InternalSession
   ): Promise<PermissionDefinitionJson[]> {
     const response = await this.sendClientRequest(
       `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
@@ -828,7 +828,7 @@ export class StackClientInterface {
     return permissions;
   }
 
-  async listClientUserTeams(session: Session): Promise<TeamJson[]> {
+  async listClientUserTeams(session: InternalSession): Promise<TeamJson[]> {
     const response = await this.sendClientRequest(
       "/current-user/teams",
       {},
@@ -845,7 +845,7 @@ export class StackClientInterface {
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: UserUpdateJson, session: Session) {
+  async setClientUserCustomizableData(update: UserUpdateJson, session: InternalSession) {
     await this.sendClientRequest(
       "/current-user",
       {
@@ -859,7 +859,7 @@ export class StackClientInterface {
     );
   }
 
-  async listProjects(session: Session): Promise<ProjectJson[]> {
+  async listProjects(session: InternalSession): Promise<ProjectJson[]> {
     const response = await this.sendClientRequest("/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
@@ -871,7 +871,7 @@ export class StackClientInterface {
 
   async createProject(
     project: ProjectUpdateOptions & { displayName: string },
-    session: Session,
+    session: InternalSession,
   ): Promise<ProjectJson> {
     const fetchResponse = await this.sendClientRequest(
       "/projects",

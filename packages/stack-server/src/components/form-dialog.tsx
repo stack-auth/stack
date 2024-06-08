@@ -31,7 +31,10 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
     <ActionDialog
       {...props}
       open={props.open ?? openState}
-      onOpenChange={(open) => { setOpenState(open); props.onOpenChange?.(open); }}
+      onOpenChange={(open) => {
+        setOpenState(open);
+        props.onOpenChange?.(open);
+      }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton === "boolean" ? {} : props.okButton),
@@ -89,12 +92,19 @@ export function FormDialog<F extends FieldValues>(
     <ActionDialog
       {...props}
       open={props.open ?? openState}
-      onOpenChange={(open) => { if(open) setOpenState(true); props.onOpenChange?.(open); }}
-      onClose={() => { form.reset(); setOpenState(false); runAsynchronouslyWithAlert(props.onClose?.()); }}
+      onOpenChange={(open) => {
+        if (open) setOpenState(true);
+        props.onOpenChange?.(open);
+      }}
+      onClose={() => {
+        form.reset();
+        setOpenState(false);
+        runAsynchronouslyWithAlert(props.onClose?.());
+      }}
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
-        props: { 
+        props: {
           form: formId, 
           type: "submit", 
           loading: submitting, 

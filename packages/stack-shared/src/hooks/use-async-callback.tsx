@@ -13,7 +13,7 @@ export function useAsyncCallback<A extends any[], R>(
       setLoadingCount((c) => c + 1);
       try {
         return await callback(...args);
-      } catch(e) {
+      } catch (e) {
         setError(e);
         throw e;
       } finally {

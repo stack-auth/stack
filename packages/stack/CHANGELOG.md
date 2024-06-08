@@ -1,5 +1,40 @@
 # @stackframe/stack
 
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.21
+  - @stackframe/stack-shared@2.4.21
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.20
+  - @stackframe/stack-sc@2.4.20
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.19
+  - @stackframe/stack-shared@2.4.19
+
+## 2.4.18
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.14
+
 ## 2.4.17
 
 ### Patch Changes

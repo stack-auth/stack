@@ -16,17 +16,17 @@ export class RefreshToken {
 }
 
 /**
- * A session represents a user's session, which may or may not be valid. It may contain an access token, a refresh token, or both.
+ * An InternalSession represents a user's session, which may or may not be valid. It may contain an access token, a refresh token, or both.
  * 
- * A session never changes which user or session it belongs to, but the tokens may change over time.
+ * A session never changes which user or session it belongs to, but the tokens in it may change over time.
  */
-export class Session {
+export class InternalSession {
   /**
   * Each session has a session key that depends on the tokens inside. If the session has a refresh token, the session key depends only on the refresh token. If the session does not have a refresh token, the session key depends only on the access token.
   * 
   * Multiple Session objects may have the same session key, which implies that they represent the same session by the same user. Furthermore, a session's key never changes over the lifetime of a session object.
   * 
-  * This makes session keys useful for caching and indexing sessions.
+  * This is useful for caching and indexing sessions.
   */
   public readonly sessionKey: string;
 
@@ -52,7 +52,7 @@ export class Session {
   }) {
     this._accessToken = new Store(_options.accessToken ? new AccessToken(_options.accessToken) : null);
     this._refreshToken = _options.refreshToken ? new RefreshToken(_options.refreshToken) : null;
-    this.sessionKey = Session.calculateSessionKey({ accessToken: _options.accessToken ?? null, refreshToken: _options.refreshToken });
+    this.sessionKey = InternalSession.calculateSessionKey({ accessToken: _options.accessToken ?? null, refreshToken: _options.refreshToken });
   }
 
   static calculateSessionKey(ofTokens: { refreshToken: string | null, accessToken?: string | null }): string {
@@ -65,7 +65,10 @@ export class Session {
     }
   }
 
-  invalidate() {
+  /**
+   * Marks the session object as invalid, meaning that the refresh and access tokens can no longer be used.
+   */
+  markInvalid() {
     this._accessToken.set(null);
     this._knownToBeInvalid.set(true);
   }
@@ -74,12 +77,28 @@ export class Session {
     return this._knownToBeInvalid.onChange(() => callback());
   }
 
+  /**
+   * Returns the access token if it is found in the cache, fetching it otherwise.
+   * 
+   * This is usually the function you want to call to get an access token. When using the access token, you should catch errors that occur if it expires, and call `markAccessTokenExpired` to mark the token as expired if so (after which a call to this function will always refetch the token).
+   * 
+   * @returns null if the session is known to be invalid, cached tokens if they exist in the cache (which may or may not be valid still), or new tokens otherwise.
+   */
   async getPotentiallyExpiredTokens(): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken | null } | null> {
     const accessToken = await this._getPotentiallyExpiredAccessToken();
     return accessToken ? { accessToken, refreshToken: this._refreshToken } : null;
   }
 
-  async getNewlyFetchedTokens(): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken | null } | null> {
+  /**
+   * Fetches new tokens that are, at the time of fetching, guaranteed to be valid.
+   * 
+   * The newly generated tokens are shortlived, so it's good practice not to rely on their validity (if possible). However, this function is useful in some cases where you only want to pass access tokens to a service, and you want to make sure said access token has the longest possible lifetime.
+   * 
+   * In most cases, you should prefer `getPotentiallyExpiredTokens` with a fallback to `markAccessTokenExpired` and a retry mechanism if the endpoint rejects the token.
+   * 
+   * @returns null if the session is known to be invalid, or new tokens otherwise (which, at the time of fetching, are guaranteed to be valid).
+   */
+  async fetchNewTokens(): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken | null } | null> {
     const accessToken = await this._getNewlyFetchedAccessToken();
     return accessToken ? { accessToken, refreshToken: this._refreshToken } : null;
   }
@@ -132,7 +151,7 @@ export class Session {
         this._refreshPromise = null;
         this._accessToken.set(accessToken);
         if (!accessToken) {
-          this.invalidate();
+          this.markInvalid();
         }
       }
       return accessToken;

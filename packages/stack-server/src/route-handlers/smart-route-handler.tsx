@@ -11,6 +11,13 @@ import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smar
 import { SmartResponse, createResponse } from "./smart-response";
 
 /**
+ * Known errors that are common and should not be logged with their stacktrace.
+ */
+const commonErrors = [
+  KnownErrors.AccessTokenExpired,
+];
+
+/**
  * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
  * (such as Next.js redirects) will be rethrown.
  */
@@ -64,7 +71,7 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
-      let statusError;
+      let statusError: StatusError;
       try {
         statusError = catchError(e);
       } catch (e) {
@@ -73,7 +80,9 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
       }
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
-      console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+      if (!commonErrors.some(e => statusError instanceof e)) {
+        console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+      }
 
       const res = await createResponse(req, requestId, {
         statusCode: statusError.statusCode,

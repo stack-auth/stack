@@ -1,6 +1,6 @@
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
-import { Session } from "../sessions";
+import { InternalSession } from "../sessions";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -9,7 +9,7 @@ export type AdminAuthApplicationOptions = Readonly<
       superSecretAdminKey: string,
     }
     | {
-      projectOwnerSession: Session,
+      projectOwnerSession: InternalSession,
     }
   )
 >
@@ -85,7 +85,7 @@ export class StackAdminInterface extends StackServerInterface {
     super(options);
   }
 
-  protected async sendAdminRequest(path: string, options: RequestInit, session: Session | null, requestType: "admin" = "admin") {
+  protected async sendAdminRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "admin" = "admin") {
     return await this.sendServerRequest(
       path,
       {
@@ -168,7 +168,7 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getApiKeySet(id: string, session: Session): Promise<ApiKeySetJson> {
+  async getApiKeySet(id: string, session: InternalSession): Promise<ApiKeySetJson> {
     const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
     return await response.json();
   }

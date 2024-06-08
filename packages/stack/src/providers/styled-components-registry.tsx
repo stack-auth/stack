@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useServerInsertedHTML } from 'next/navigation';
 import { ServerStyleSheet, StyleSheetManager } from 'styled-components';
-import { isBrowserLike } from '@stackframe/stack-shared/src/utils/env';
+import { isBrowserLike } from '@stackframe/stack-shared/dist/utils/env';
  
 export default function StyledComponentsRegistry({
   children,
