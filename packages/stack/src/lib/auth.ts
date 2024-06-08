@@ -11,6 +11,7 @@ export async function signInWithOAuth(
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
+    providerScope?: string,
   }
 ) {
   const { codeChallenge, state } = await saveVerifierAndState();
@@ -20,7 +21,8 @@ export async function signInWithOAuth(
     errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
     codeChallenge,
     state,
-    type: "authenticate"
+    type: "authenticate",
+    providerScope: options.providerScope,
   });
   window.location.assign(location);
   await neverResolve();
@@ -32,7 +34,7 @@ export async function addNewOAuthProviderOrScope(
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
-    scope?: string,
+    providerScope?: string,
   },
   session: Session,
 ) {
@@ -45,7 +47,7 @@ export async function addNewOAuthProviderOrScope(
     state,
     type: "link",
     session,
-    providerScope: options.scope,
+    providerScope: options.providerScope,
   });
   window.location.assign(location);
   await neverResolve();

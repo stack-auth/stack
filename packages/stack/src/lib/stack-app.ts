@@ -1,11 +1,11 @@
 import React, { use, useCallback, useMemo } from "react";
 import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isBrowserLike } from "@stackframe/stack-shared/src/utils/env";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
@@ -24,6 +24,7 @@ import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { Session } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
+import { mergeScopeStrings } from "@stackframe/stack-shared/src/utils/strings";
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
@@ -65,6 +66,11 @@ export type HandlerUrls = {
   accountSettings: string,
   error: string,
 }
+
+export type OAuthScopesOnSignIn = {
+  [key in StandardProvider]: string[];
+};
+
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
 type ProjectCurrentSeverUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
@@ -120,6 +126,7 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   projectId?: ProjectId,
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
+  oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn>,
 
   // we intersect with TokenStoreInit in the beginning to make TypeScript error messages easier to read
   tokenStore: TokenStoreInit<HasTokenStore>,
@@ -270,6 +277,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _interface: StackClientInterface;
   protected readonly _tokenStoreInit: TokenStoreInit<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
+  protected readonly _oauthScopesOnSignIn: Partial<OAuthScopesOnSignIn>;
 
   private __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
 
@@ -307,7 +315,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return null;
     }
   );
-  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthAccount | null>(
+  private readonly _currentUserOAuthAccountCache = createCacheBySession<[string, string], OAuthConnection | null>(
     async (session, [accountId, scope]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
       if (!user || !user.oauthProviders.find((p) => p === accountId)) return null;
@@ -347,7 +355,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls"> & {
+      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn"> & {
         interface: StackClientInterface,
       }
     )
@@ -365,6 +373,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     this._tokenStoreInit = _options.tokenStore;
     this._urlOptions = _options.urls ?? {};
+    this._oauthScopesOnSignIn = _options.oauthScopesOnSignIn ?? {};
 
     if (_options.uniqueIdentifier) {
       this._uniqueIdentifier = _options.uniqueIdentifier;
@@ -560,15 +569,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _userFromJson(json: UserJson): User {
     const app = this;
 
-    async function getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>;
-    async function getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>;
-    async function getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null> {
-      const account = await app._currentUserOAuthAccountCache.getOrWait([app._getSession(), id, options?.scope || ""], "write-only");
+    async function getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
+    async function getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
+    async function getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
+      const scopeString = options?.scopes?.join(" ");
+      const account = await app._currentUserOAuthAccountCache.getOrWait([app._getSession(), id, scopeString || ""], "write-only");
 
       if (!account && options?.or === 'redirect') {
         await addNewOAuthProviderOrScope(
           app._interface, 
-          { provider: id, redirectUrl: app.urls.oauthCallback, errorRedirectUrl: app.urls.error, scope: options.scope },
+          { 
+            provider: id, 
+            redirectUrl: app.urls.oauthCallback, 
+            errorRedirectUrl: app.urls.error, 
+            providerScope: mergeScopeStrings(scopeString || "", (app._oauthScopesOnSignIn[id] ?? []).join(" ")),
+          },
           app._getSession()
         );
         return await neverResolve();
@@ -577,12 +592,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return account;
     };
 
-    function useAccount(id: StandardProvider, options?: { scope?: string }): OAuthAccount | null;
-    function useAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): OAuthAccount;
-    function useAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): OAuthAccount | null {
-      const account = useAsyncCache(app._currentUserOAuthAccountCache, [app._useSession(), id, options?.scope || ""], "user.useAccount()");
+    function useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
+    function useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
+    function useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
+      const scopeString = options?.scopes?.join(" ");
+      const account = useAsyncCache(app._currentUserOAuthAccountCache, [app._useSession(), id, scopeString || ""], "user.useConnection()");
       if (!account && options?.or === 'redirect') {
-        throw new Error("Cannot useAccount with or: 'redirect' in a synchronous context");
+        throw new Error("Cannot useConnection with or: 'redirect' in a synchronous context");
       }
       return account;
     }
@@ -600,8 +616,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
-      getAccount,
-      useAccount,
+      getConnection,
+      useConnection,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -911,9 +927,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return res;
   }
 
-  async signInWithOAuth(provider: string) {
+  async signInWithOAuth(provider: StandardProvider) {
     this._ensurePersistentTokenStore();
-    await signInWithOAuth(this._interface, { provider, redirectUrl: this.urls.oauthCallback, errorRedirectUrl: this.urls.error });
+    await signInWithOAuth(
+      this._interface, { 
+        provider, 
+        redirectUrl: this.urls.oauthCallback, 
+        errorRedirectUrl: this.urls.error,
+        providerScope: this._oauthScopesOnSignIn[provider]?.join(" "),
+      }
+    );
   }
 
   async signInWithCredential(options: {
@@ -1117,6 +1140,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreInit,
           urls: this._urlOptions,
+          oauthScopesOnSignIn: this._oauthScopesOnSignIn,
           uniqueIdentifier: this._getUniqueIdentifier(),
         };
       },
@@ -1169,12 +1193,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       interface: StackServerInterface,
       tokenStore: TokenStoreInit<HasTokenStore>,
       urls: Partial<HandlerUrls> | undefined,
+      oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn> | undefined,
     }
   ) {
     super("interface" in options ? {
       interface: options.interface,
       tokenStore: options.tokenStore,
       urls: options.urls,
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
@@ -1185,6 +1211,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }),
       tokenStore: options.tokenStore,
       urls: options.urls ?? {},
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn ?? {},
     });
   }
 
@@ -1570,6 +1597,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       }),
       tokenStore: options.tokenStore,
       urls: options.urls,
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     });
   }
 
@@ -1729,12 +1757,12 @@ export type User = (
     getSelectedTeam(this: CurrentUser): Promise<Team | null>,
     useSelectedTeam(this: CurrentUser): Team | null,
     
-    getAccount(id: StandardProvider, options?: { scope?: string }): Promise<OAuthAccount | null>,
-    getAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): Promise<OAuthAccount>,
-    getAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): Promise<OAuthAccount | null>,
-    useAccount(id: StandardProvider, options?: { scope?: string }): OAuthAccount | null,
-    useAccount(id: StandardProvider, options: { or: 'redirect', scope?: string }): OAuthAccount,
-    useAccount(id: StandardProvider, options?: { or?: 'redirect', scope?: string }): OAuthAccount | null,
+    getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>,
+    getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
+    getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null>,
+    useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null,
+    useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
+    useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null,
 
     toJson(this: CurrentUser): UserJson,
   }
@@ -1856,11 +1884,11 @@ export type ServerPermission = Permission & {
 };
 
 
-export type Account = {
+export type Connection = {
   id: string,
 }
 
-export type OAuthAccount = Account & {
+export type OAuthConnection = Connection & {
   getAccessToken(): Promise<{ accessToken: string }>,
   useAccessToken(): { accessToken: string },
 }

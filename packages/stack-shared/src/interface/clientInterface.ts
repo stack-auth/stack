@@ -683,7 +683,8 @@ export class StackClientInterface {
       codeChallenge: string, 
       state: string,
       type: "authenticate" | "link",
-    } & ({ type: "authenticate" } | { type: "link", session: Session, providerScope?: string})
+      providerScope?: string,
+    } & ({ type: "authenticate" } | { type: "link", session: Session})
   ): Promise<string> {
     const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
