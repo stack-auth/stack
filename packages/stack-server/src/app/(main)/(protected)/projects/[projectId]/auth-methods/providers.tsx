@@ -107,7 +107,7 @@ export function ProviderSettingDialog(props: Props) {
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`https://app.stack-auth.com/api/v1/auth/callback/${props.provider?.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/callback/${props.provider?.id}`}</InlineCode>
               </Typography>
             </div>}
 
