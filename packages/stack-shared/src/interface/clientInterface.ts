@@ -685,7 +685,7 @@ export class StackClientInterface {
       state: string,
       type: "authenticate" | "link",
       providerScope?: string,
-    } & ({ type: "authenticate" } | { type: "link", session: Session})
+    } & ({ type: "authenticate" } | { type: "link", session: InternalSession })
   ): Promise<string> {
     const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
@@ -895,7 +895,7 @@ export class StackClientInterface {
   async getAccessToken(
     provider: string,
     scope: string,
-    session: Session,
+    session: InternalSession,
   ): Promise<{ accessToken: string }> {
     const response = await this.sendClientRequest(
       `/auth/access-token/${provider}`,

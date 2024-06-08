@@ -5,7 +5,7 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
