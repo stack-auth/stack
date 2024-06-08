@@ -1,19 +1,19 @@
 import React, { use, useCallback, useMemo } from "react";
 import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { getCookie, setOrDeleteCookie } from "./cookie";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
-import { callOAuthCallback, signInWithOAuth } from "./auth";
+import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
-import { resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
@@ -24,6 +24,7 @@ import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
+import { mergeScopeStrings } from "@stackframe/stack-shared/src/utils/strings";
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
@@ -63,7 +64,13 @@ export type HandlerUrls = {
   oauthCallback: string,
   magicLinkCallback: string,
   accountSettings: string,
+  error: string,
 }
+
+export type OAuthScopesOnSignIn = {
+  [key in StandardProvider]: string[];
+};
+
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
 type ProjectCurrentSeverUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
@@ -89,8 +96,22 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     magicLinkCallback: `${handler}/magic-link-callback`,
     home: "/",
     accountSettings: `${handler}/account-settings`,
+    error: `${handler}/error`,
     ...filterUndefined(partial),
   };
+}
+
+async function _redirectTo(url: string, options?: { replace?: boolean }) {
+  if (isReactServer) {
+    NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
+  } else {
+    if (options?.replace) {
+      window.location.replace(url);
+    } else {
+      window.location.assign(url);
+    }
+    await wait(2000);
+  }
 }
 
 function getDefaultProjectId() {
@@ -118,6 +139,7 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   projectId?: ProjectId,
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
+  oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn>,
 
   // we intersect with TokenStoreInit in the beginning to make TypeScript error messages easier to read
   tokenStore: TokenStoreInit<HasTokenStore>,
@@ -226,6 +248,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _interface: StackClientInterface;
   protected readonly _tokenStoreInit: TokenStoreInit<HasTokenStore>;
   protected readonly _urlOptions: Partial<HandlerUrls>;
+  protected readonly _oauthScopesOnSignIn: Partial<OAuthScopesOnSignIn>;
 
   private __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
 
@@ -251,6 +274,68 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
     return await this._interface.listClientUserTeams(session);
   });
+  private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
+    async (session, [accountId, scope]) => {
+      try {
+        return await this._interface.getAccessToken(accountId, scope || "", session);
+      } catch (err) {
+        if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
+          throw err;
+        }
+      }
+      return null;
+    }
+  );
+  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[StandardProvider, string, boolean], OAuthConnection | null>(
+    async (session, [connectionId, scope, redirect]) => {
+      const user = await this._currentUserCache.getOrWait([session], "write-only");
+
+      let hasConnection = true;
+      if (!user || !user.oauthProviders.find((p) => p === connectionId)) {
+        hasConnection = false;
+      }
+      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
+      if (!token) {
+        hasConnection = false;
+      }
+
+      if (!hasConnection && redirect) {
+        await addNewOAuthProviderOrScope(
+          this._interface, 
+          { 
+            provider: connectionId, 
+            redirectUrl: this.urls.oauthCallback,
+            errorRedirectUrl: this.urls.error, 
+            providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
+          },
+          this._getSession()
+        );
+        return await neverResolve();
+      } else if (!hasConnection) {
+        return null;
+      }
+
+      const app = this;
+      return {
+        id: connectionId,
+        async getAccessToken() {
+          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
+          if (!result) {
+            throw new StackAssertionError("No access token available");
+          }
+          return result;
+        },
+        useAccessToken() {
+          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, connectionId, scope || ""], "oauthAccount.useAccessToken()");
+          if (!result) {
+            throw new StackAssertionError("No access token available");
+          }
+          return result;
+        }
+      };
+    }
+  );
+
 
   constructor(protected readonly _options:
     & {
@@ -259,7 +344,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls"> & {
+      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn"> & {
         interface: StackClientInterface,
       }
     )
@@ -277,6 +362,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     this._tokenStoreInit = _options.tokenStore;
     this._urlOptions = _options.urls ?? {};
+    this._oauthScopesOnSignIn = _options.oauthScopesOnSignIn ?? {};
 
     if (_options.uniqueIdentifier) {
       this._uniqueIdentifier = _options.uniqueIdentifier;
@@ -548,6 +634,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _userFromJson(json: UserJson): User {
     const app = this;
+
+    async function getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
+    async function getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
+    async function getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
+      const scopeString = options?.scopes?.join(" ");
+      return await app._currentUserOAuthConnectionCache.getOrWait([app._getSession(), id, scopeString || "", options?.or === 'redirect'], "write-only");
+    }
+
+    function useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
+    function useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
+    function useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
+      const scopeString = options?.scopes?.join(" ");
+      return useAsyncCache(app._currentUserOAuthConnectionCache, [app._useSession(), id, scopeString || "", options?.or === 'redirect'], "user.useConnection()");
+    }
+
     return {
       projectId: json.projectId,
       id: json.id,
@@ -561,6 +662,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
+      getConnection,
+      useConnection,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -765,16 +868,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new Error(`No URL for handler name ${handlerName}`);
     }
 
-    if (isReactServer) {
-      NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
-    } else {
-      if (options?.replace) {
-        window.location.replace(url);
-      } else {
-        window.location.assign(url);
-      }
-      await wait(2000);
-    }
+    await _redirectTo(url, options);
   }
 
   async redirectToSignIn() { return await this._redirectTo("signIn"); }
@@ -790,6 +884,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
   async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
   async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
+  async redirectToError() { return await this._redirectTo("error"); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -891,9 +986,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return res;
   }
 
-  async signInWithOAuth(provider: string) {
+  async signInWithOAuth(provider: StandardProvider) {
     this._ensurePersistentTokenStore();
-    await signInWithOAuth(this._interface, { provider, redirectUrl: this.urls.oauthCallback });
+    await signInWithOAuth(
+      this._interface, { 
+        provider, 
+        redirectUrl: this.urls.oauthCallback, 
+        errorRedirectUrl: this.urls.error,
+        providerScope: this._oauthScopesOnSignIn[provider]?.join(" "),
+      }
+    );
   }
 
   async signInWithCredential(options: {
@@ -950,7 +1052,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const result = await callOAuthCallback(this._interface, this.urls.oauthCallback);
     if (result) {
       await this._signInToAccountWithTokens(result);
-      if (result.newUser) {
+      if (result.afterCallbackRedirectUrl) {
+        await _redirectTo(result.afterCallbackRedirectUrl, { replace: true });
+        return true;
+      } else if (result.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
         return true;
       } else {
@@ -1097,6 +1202,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreInit,
           urls: this._urlOptions,
+          oauthScopesOnSignIn: this._oauthScopesOnSignIn,
           uniqueIdentifier: this._getUniqueIdentifier(),
         };
       },
@@ -1149,12 +1255,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       interface: StackServerInterface,
       tokenStore: TokenStoreInit<HasTokenStore>,
       urls: Partial<HandlerUrls> | undefined,
+      oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn> | undefined,
     }
   ) {
     super("interface" in options ? {
       interface: options.interface,
       tokenStore: options.tokenStore,
       urls: options.urls,
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
         baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
@@ -1165,6 +1273,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }),
       tokenStore: options.tokenStore,
       urls: options.urls ?? {},
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn ?? {},
     });
   }
 
@@ -1559,6 +1668,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       }),
       tokenStore: options.tokenStore,
       urls: options.urls,
+      oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     });
   }
 
@@ -1727,6 +1837,13 @@ export type User = (
     hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
     getSelectedTeam(this: CurrentUser): Promise<Team | null>,
     useSelectedTeam(this: CurrentUser): Team | null,
+    
+    getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>,
+    getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
+    getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null>,
+    useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null,
+    useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
+    useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null,
 
     toJson(this: CurrentUser): UserJson,
   }
@@ -1848,6 +1965,16 @@ export type ServerPermission = Permission & {
 };
 
 
+export type Connection = {
+  id: string,
+}
+
+export type OAuthConnection = Connection & {
+  getAccessToken(): Promise<{ accessToken: string }>,
+  useAccessToken(): { accessToken: string },
+}
+
+
 export type ApiKeySetBase = {
   id: string,
   description: string,
@@ -1888,11 +2015,6 @@ export type GetUserOptions = {
   or?: 'redirect' | 'throw' | 'return-null',
   tokenStore?: TokenStoreInit,
 };
-
-type SplitArgs<T extends any[], U extends number> = [
-  ...Parameters<Extract<T[U], (...args: any) => any>>,
-  Omit<T, U>
-];
 
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }

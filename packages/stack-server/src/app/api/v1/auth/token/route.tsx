@@ -1,6 +1,6 @@
 import * as yup from "yup";
 import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { oauthServer } from "@/oauth";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
@@ -9,7 +9,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 // make this specific to each grant type later
 const postSchema = yup.object({
   body: yup.object({
-    grant_type: yup.string().required(),
+    grant_type: yup.string().oneOf(["refresh_token", "authorization_code"]).required(),
     code: yup.string(),
     code_verifier: yup.string(),
     redirect_uri: yup.string(),

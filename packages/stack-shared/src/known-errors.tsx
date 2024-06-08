@@ -809,6 +809,66 @@ const EmailTemplateAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthConnectionNotConnectedToUser = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_CONNECTION_NOT_CONNECTED_TO_USER",
+  () => [
+    400,
+    "The OAuth connection is not connected to any user.",
+  ] as const,
+  () => [] as const,
+);
+
+const OAuthConnectionAlreadyConnectedToAnotherUser = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_CONNECTION_ALREADY_CONNECTED_TO_ANOTHER_USER",
+  () => [
+    400,
+    "The OAuth connection is already connected to another user.",
+  ] as const,
+  () => [] as const,
+);
+
+const OAuthConnectionDoesNotHaveRequiredScope = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_CONNECTION_DOES_NOT_HAVE_REQUIRED_SCOPE",
+  () => [
+    400,
+    "The OAuth connection does not have the required scope.",
+  ] as const,
+  () => [] as const,
+);
+
+const OAuthExtraScopeNotAvailableWithSharedOAuthKeys = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_EXTRA_SCOPE_NOT_AVAILABLE_WITH_SHARED_OAUTH_KEYS",
+  () => [
+    400,
+    "Extra scopes are not available with shared OAuth keys. Please add your own OAuth keys on the Stack dashboard to use extra scopes.",
+  ] as const,
+  () => [] as const,
+);
+
+const OAuthAccessTokenNotAvailableWithSharedOAuthKeys = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_ACCESS_TOKEN_NOT_AVAILABLE_WITH_SHARED_OAUTH_KEYS",
+  () => [
+    400,
+    "Access tokens are not available with shared OAuth keys. Please add your own OAuth keys on the Stack dashboard to use access tokens.",
+  ] as const,
+  () => [] as const,
+);
+
+const UserAlreadyConnectedToAnotherOAuthConnection = createKnownErrorConstructor(
+  KnownError,
+  "USER_ALREADY_CONNECTED_TO_ANOTHER_OAUTH_CONNECTION",
+  () => [
+    400,
+    "The user is already connected to another OAuth account. Did you maybe selected the wrong account?",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -878,8 +938,15 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   PermissionNotFound,
   PermissionScopeMismatch,
+  UserNotInTeam,
   TeamNotFound,
   EmailTemplateAlreadyExists,
+  OAuthConnectionNotConnectedToUser,
+  OAuthConnectionAlreadyConnectedToAnotherUser,
+  OAuthConnectionDoesNotHaveRequiredScope,
+  OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
+  OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
+  UserAlreadyConnectedToAnotherOAuthConnection,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

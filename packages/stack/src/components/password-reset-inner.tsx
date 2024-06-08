@@ -8,8 +8,8 @@ import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password
 import { useStackApp } from "..";
 import PasswordField from "./password-field";
 import FormWarningText from "./form-warning";
-import RedirectMessageCard from "./redirect-message-card";
-import MessageCard from "./message-card";
+import PredefinedMessageCard from "./message-cards/predefined-message-card";
+import MessageCard from "./message-cards/message-card";
 import MaybeFullPage from "./maybe-full-page";
 import { Button, Label, Text } from "../components-core";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
@@ -52,7 +52,7 @@ export default function PasswordResetInner(
   };
 
   if (finished) {
-    return <RedirectMessageCard type='passwordReset' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='passwordReset' fullPage={fullPage} />;
   }
 
   if (resetError) {

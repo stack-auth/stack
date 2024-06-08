@@ -6,12 +6,29 @@ import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/
 import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { getAuthorizationCallback, oauthServer } from "@/oauth";
+import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { createTeamOnSignUp } from "@/lib/users";
+import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { createTeamOnSignUp, getServerUser } from "@/lib/users";
+import { oauthCookieSchema } from "@/lib/tokens";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
+import { validateUrl } from "@/lib/utils";
+import { Project } from "@stackframe/stack";
+
+const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUrl?: string) => {
+  if (!errorRedirectUrl || !validateUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+    throw error;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `${errorRedirectUrl}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
+    },
+  });
+};
 
 const getSchema = yup.object({
   query: yup.object({
@@ -20,22 +37,7 @@ const getSchema = yup.object({
   })
 });
 
-const jwtSchema = yup.object({
-  projectId: yup.string().required(),
-  publishableClientKey: yup.string().required(),
-  innerCodeVerifier: yup.string().required(),
-  innerState: yup.string().required(),
-  redirectUri: yup.string().required(),
-  scope: yup.string().required(),
-  state: yup.string().required(),
-  grantType: yup.string().required(),
-  codeChallenge: yup.string().required(),
-  codeChallengeMethod: yup.string().required(),
-  responseType: yup.string().required(),
-});
-
 export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
-  // TODO: better error handling
   const { query: {
     code,
     state,
@@ -48,9 +50,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
   }
 
-  let decoded: Awaited<ReturnType<typeof jwtSchema.validate>>;
+  let decodedCookie: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
   try {
-    decoded = await jwtSchema.validate(await decryptJWT(cookie.value));
+    decodedCookie = await oauthCookieSchema.validate(await decryptJWT(cookie.value));
   } catch (error) {
     console.warn("Invalid stack-oauth cookie value", { cause: error });
     throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth cookie value. Please try signing in again."); 
@@ -61,7 +63,12 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     publishableClientKey,
     innerCodeVerifier,
     innerState,
-  } = decoded;
+    type,
+    projectUserId,
+    providerScope,
+    errorRedirectUrl,
+    afterCallbackRedirectUrl,
+  } = decodedCookie;
 
   if (!await checkApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownErrors.ApiKeyNotFound();
@@ -79,32 +86,75 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     throw new StatusError(StatusError.NotFound, "Provider not found or not enabled");
   }
 
-  const userInfo = await getAuthorizationCallback(
-    provider,
-    innerCodeVerifier,
-    innerState,
-    {
+  const userInfo = await getProvider(provider).getCallback({
+    codeVerifier: innerCodeVerifier,
+    state: innerState,
+    callbackParams: {
       code,
       state,
     }
-  );
+  });
+
+  if (type === "link") {
+    if (!projectUserId) {
+      throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
+    }
+
+    const user = await prismaClient.projectUser.findUnique({
+      where: {
+        projectId_projectUserId: {
+          projectId,
+          projectUserId,
+        },
+      },
+      include: {
+        projectUserOAuthAccounts: {
+          include: {
+            providerConfig: true,
+          }
+        }
+      }
+    });
+    if (!user) {
+      throw new StackAssertionError("User not found");
+    }
+
+    const account = user.projectUserOAuthAccounts.find((a) => a.providerConfig.id === provider.id);
+    if (account && account.providerAccountId !== userInfo.accountId) {
+      return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUrl);
+    }
+  }
   
   const oauthRequest = new OAuthRequest({
     headers: {},
     body: {},
     method: "GET",
     query: {
-      client_id: decoded.projectId,
-      client_secret: decoded.publishableClientKey,
-      redirect_uri: decoded.redirectUri,
-      state: decoded.state,
-      scope: decoded.scope,
-      grant_type: decoded.grantType,
-      code_challenge: decoded.codeChallenge,
-      code_challenge_method: decoded.codeChallengeMethod,
-      response_type: decoded.responseType,
+      client_id: decodedCookie.projectId,
+      client_secret: decodedCookie.publishableClientKey,
+      redirect_uri: decodedCookie.redirectUri,
+      state: decodedCookie.state,
+      scope: decodedCookie.scope,
+      grant_type: decodedCookie.grantType,
+      code_challenge: decodedCookie.codeChallenge,
+      code_challenge_method: decodedCookie.codeChallengeMethod,
+      response_type: decodedCookie.responseType,
     }
   });
+
+  const storeRefreshToken = async () => {
+    if (userInfo.refreshToken) {
+      await prismaClient.oAuthToken.create({
+        data: {
+          projectId: decodedCookie.projectId,
+          oAuthProviderConfigId: provider.id,
+          refreshToken: userInfo.refreshToken,
+          providerAccountId: userInfo.accountId,
+          scopes: extractScopes(getProvider(provider).scope + " " + providerScope),
+        }
+      });
+    }
+  };
 
   const oauthResponse = new OAuthResponse();
   try {
@@ -117,19 +167,72 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
               where: {
                 projectId_oauthProviderConfigId_providerAccountId: {
-                  projectId: decoded.projectId,
+                  projectId: decodedCookie.projectId,
                   oauthProviderConfigId: provider.id,
                   providerAccountId: userInfo.accountId,
                 },
               },
             });
 
-            if (oldAccount) {
+            // ========================== link account with user ==========================
+            if (type === "link") {
+              if (!projectUserId) {
+                throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
+              }
+
+              if (oldAccount) {
+                // ========================== account already connected ==========================
+                if (oldAccount.projectUserId !== projectUserId) {
+                  throw new KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser();
+                }
+                await storeRefreshToken();
+              } else {
+                // ========================== connect account with user ==========================
+                await prismaClient.projectUserOAuthAccount.create({
+                  data: {
+                    providerAccountId: userInfo.accountId,
+                    email: userInfo.email,
+                    providerConfig: {
+                      connect: {
+                        projectConfigId_id: {
+                          projectConfigId: project.evaluatedConfig.id,
+                          id: provider.id,
+                        },
+                      },
+                    },
+                    projectUser: {
+                      connect: {
+                        projectId_projectUserId: {
+                          projectId: decodedCookie.projectId,
+                          projectUserId: projectUserId,
+                        },
+                      },
+                    },
+                  },
+                });
+              }
+              
+              await storeRefreshToken();
               return {
-                id: oldAccount.projectUserId,
-                newUser: false
+                id: projectUserId,
+                newUser: false,
+                afterCallbackRedirectUrl,
               };
             }
+            
+            // ========================== sign in user ==========================
+
+            if (oldAccount) {
+              await storeRefreshToken();
+
+              return {
+                id: oldAccount.projectUserId,
+                newUser: false,
+                afterCallbackRedirectUrl,
+              };
+            }
+
+            // ========================== sign up user ==========================
 
             const newAccount = await prismaClient.projectUserOAuthAccount.create({
               data: {
@@ -157,10 +260,11 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             });
 
             await createTeamOnSignUp(projectId, newAccount.projectUserId);
-
+            await storeRefreshToken();
             return {
               id: newAccount.projectUserId,
-              newUser: true
+              newUser: true,
+              afterCallbackRedirectUrl,
             };
           }
         }
@@ -175,6 +279,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
         );
       }
       throw new StatusError(StatusError.BadRequest, error.message);
+    } else if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser) {
+      return redirectOrThrowError(error, project, errorRedirectUrl);
     }
     throw error;
   }

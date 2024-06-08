@@ -106,6 +106,18 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
   return templateIdentity(deindentedStrings, ...indentedValues);
 }
 
+export function extractScopes(scope: string, removeDuplicates=true): string[] {
+  const trimmedString = scope.trim();
+  const scopesArray = trimmedString.split(/\s+/);
+  const filtered = scopesArray.filter(scope => scope.length > 0);
+  return removeDuplicates ? [...new Set(filtered)] : filtered;
+}
+
+export function mergeScopeStrings(...scopes: string[]): string {
+  const allScope = scopes.map((s) => extractScopes(s)).flat().join(" ");
+  return extractScopes(allScope).join(" ");
+}
+
 export function nicify(value: unknown, { depth = 5 } = {}): string {
   switch (typeof value) {
     case "string": case "boolean": case "number": {

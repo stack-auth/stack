@@ -2,7 +2,6 @@ import * as oauth from 'oauth4webapi';
 
 import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
-import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
 import { StackAssertionError, captureError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
@@ -10,7 +9,6 @@ import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
 import { AccessToken, RefreshToken, InternalSession } from '../sessions';
 import { globalVar } from '../utils/globals';
-import { logged } from '../utils/proxies';
 
 type UserCustomizableJson = {
   displayName: string | null,
@@ -113,7 +111,6 @@ export type OAuthProviderConfigJson = {
     type: StandardProvider,
     clientId: string,
     clientSecret: string,
-    tenantId?: string,
   }
 );
 
@@ -220,12 +217,6 @@ export class StackClientInterface {
       throw new Error(`Failed to send refresh token request: ${response.status} ${body}`);
     }
 
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response.data))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
-
     const result = await oauth.processRefreshTokenResponse(as, client, response.data);
     if (oauth.isOAuth2Error(result)) {
       // TODO Handle OAuth 2.0 response body error
@@ -327,28 +318,28 @@ export class StackClientInterface {
        * However, Cloudflare Workers don't actually support `credentials`, so we only set it
        * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
-      ..."WebSocketPair" in globalVar ? {} : {
+      ...("WebSocketPair" in globalVar ? {} : {
         credentials: "omit",
-      },
+      }),
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
         "X-Stack-Request-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
-        ...tokenObj ? {
+        ...(tokenObj ? {
           "Authorization": "StackSession " + tokenObj.accessToken.token,
           "X-Stack-Access-Token": tokenObj.accessToken.token,
-        } : {},
-        ...tokenObj?.refreshToken ? {
+        } : {}),
+        ...(tokenObj?.refreshToken ? {
           "X-Stack-Refresh-Token": tokenObj.refreshToken.token,
-        } : {},
-        ...'publishableClientKey' in this.options ? {
+        } : {}),
+        ...('publishableClientKey' in this.options ? {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
-        } : {},
-        ...adminTokenObj ? {
+        } : {}),
+        ...(adminTokenObj ? {
           "X-Stack-Admin-Access-Token": adminTokenObj.accessToken.token,
-        } : {},
+        } : {}),
         /**
          * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
          * 
@@ -363,9 +354,9 @@ export class StackClientInterface {
       /**
        * Cloudflare Workers does not support cache, so don't pass it there
        */
-      ..."WebSocketPair" in globalVar ? {} : {
+      ...("WebSocketPair" in globalVar ? {} : {
         cache: "no-store",
-      },
+      }),
     };
 
     let rawRes;
@@ -685,12 +676,18 @@ export class StackClientInterface {
   }
 
   async getOAuthUrl(
-    provider: string, 
-    redirectUrl: string, 
-    codeChallenge: string, 
-    state: string
+    options: {
+      provider: string, 
+      redirectUrl: string, 
+      errorRedirectUrl: string,
+      afterCallbackRedirectUrl?: string,
+      codeChallenge: string, 
+      state: string,
+      type: "authenticate" | "link",
+      providerScope?: string,
+    } & ({ type: "authenticate" } | { type: "link", session: InternalSession })
   ): Promise<string> {
-    const updatedRedirectUrl = new URL(redirectUrl);
+    const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
       if (updatedRedirectUrl.searchParams.has(key)) {
         console.warn("Redirect URL already contains " + key + " parameter, removing it as it will be overwritten by the OAuth callback");
@@ -702,25 +699,41 @@ export class StackClientInterface {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
-    const url = new URL(this.getApiUrl() + "/auth/authorize/" + provider.toLowerCase());
+    const url = new URL(this.getApiUrl() + "/auth/authorize/" + options.provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
     url.searchParams.set("scope", "openid");
-    url.searchParams.set("state", state);
+    url.searchParams.set("state", options.state);
     url.searchParams.set("grant_type", "authorization_code");
-    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("code_challenge", options.codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
+    url.searchParams.set("type", options.type);
+    url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
+    
+    if (options.afterCallbackRedirectUrl) {
+      url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
+    }
+    
+    if (options.type === "link") {
+      const tokens = await options.session.getPotentiallyExpiredTokens();
+      url.searchParams.set("token", tokens?.accessToken.token || "");
+
+      if (options.providerScope) {
+        url.searchParams.set("providerScope", options.providerScope);
+      }
+    }
+
     return url.toString();
   }
 
-  async callOAuthCallback(
+  async callOAuthCallback(options: {
     oauthParams: URLSearchParams, 
     redirectUri: string,
     codeVerifier: string, 
     state: string,
-  ): Promise<{ newUser: boolean, accessToken: string, refreshToken: string }> {
+  }): Promise<{ newUser: boolean, afterCallbackRedirectUrl?: string, accessToken: string, refreshToken: string }> {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
@@ -735,7 +748,7 @@ export class StackClientInterface {
       client_secret: this.options.publishableClientKey,
       token_endpoint_auth_method: 'client_secret_basic',
     };
-    const params = oauth.validateAuthResponse(as, client, oauthParams, state);
+    const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
     if (oauth.isOAuth2Error(params)) {
       throw new StackAssertionError("Error validating outer OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
@@ -743,15 +756,9 @@ export class StackClientInterface {
       as,
       client,
       params,
-      redirectUri,
-      codeVerifier,
+      options.redirectUri,
+      options.codeVerifier,
     );
-
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("Outer OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
@@ -761,6 +768,7 @@ export class StackClientInterface {
 
     return {
       newUser: result.newUser as boolean,
+      afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
       accessToken: result.access_token,
       refreshToken: result.refresh_token ?? throwErr("Refresh token not found in outer OAuth response"),
     };
@@ -882,6 +890,28 @@ export class StackClientInterface {
 
     const json = await fetchResponse.json();
     return json;
+  }
+
+  async getAccessToken(
+    provider: string,
+    scope: string,
+    session: InternalSession,
+  ): Promise<{ accessToken: string }> {
+    const response = await this.sendClientRequest(
+      `/auth/access-token/${provider}`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ scope }),
+      },
+      session,
+    );
+    const json = await response.json();
+    return {
+      accessToken: json.accessToken,
+    };
   }
 }
 

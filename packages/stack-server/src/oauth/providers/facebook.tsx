@@ -1,25 +1,19 @@
 import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./oauth-base";
-import { OAuthUserInfo, validateUserInfo } from "./utils";
+import { OAuthBaseProvider } from "./base";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class FacebookProvider extends OAuthBaseProvider {
-  constructor({
-    clientId,
-    clientSecret,
-  }: {
+  constructor(options: {
     clientId: string,
     clientSecret: string,
   }) {
     super({
       issuer: "https://www.facebook.com",
-      authorizationEndpoint: "https://facebook.com/dialog/oauth/",
-      tokenEndpoint: "https://graph.facebook.com/oauth/access_token",
-      clientId,
-      clientSecret,
+      authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
+      tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/facebook",
-      jwksUri: "https://www.facebook.com/.well-known/oauth/openid/jwks/",
-      scope: "openid public_profile email",
-      openid: true,
+      baseScope: "public_profile email",
+      ...options
     });
   }
 

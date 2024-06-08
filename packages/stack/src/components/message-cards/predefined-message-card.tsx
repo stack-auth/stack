@@ -1,30 +1,30 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useStackApp } from "..";
+import { useStackApp } from "../..";
 import MessageCard from "./message-card";
-import { Text, Button } from "../components-core";
-import { neverResolve, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { Text } from "../../components-core";
 
-export default function RedirectMessageCard({ 
+export default function PredefinedMessageCard({ 
   type,
   fullPage=false,
 }: { 
-  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified',
+  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError',
   fullPage?: boolean, 
 }) {
   const stackApp = useStackApp();
-  const router = useRouter();
 
   let title: string;
-  let primaryAction: () => Promise<void>;
   let message: string | null = null;
-  let primaryButton: string;
+  let primaryButton: string | null = null;
   let secondaryButton: string | null = null;
+  let primaryAction: (() => Promise<void> | void) | null = null;
+  let secondaryAction: (() => Promise<void> | void) | null = null;
+
   switch (type) {
     case 'signedIn': {
       title = "You are already signed in";
       primaryAction = () => stackApp.redirectToAfterSignOut();
+      secondaryAction = () => stackApp.redirectToSignOut();
       primaryButton = "Go to Home";
       secondaryButton = "Sign Out";
       break;
@@ -56,28 +56,25 @@ export default function RedirectMessageCard({
       primaryButton = "Go to Home";
       break;
     }
+    case 'unknownError': {
+      title = "An unknown error occurred";
+      message = 'Please try again and if the problem persists, contact support.';
+      primaryAction = () => stackApp.redirectToHome();
+      primaryButton = "Go to Home";
+      break;
+    }
   }
 
   return (
-    <MessageCard title={title} fullPage={fullPage}>
+    <MessageCard 
+      title={title} 
+      fullPage={fullPage} 
+      primaryButtonText={primaryButton} 
+      primaryAction={primaryAction} 
+      secondaryButtonText={secondaryButton || undefined} 
+      secondaryAction={secondaryAction || undefined}
+    >
       {message && <Text>{message}</Text>}
-
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: 20 }}>
-        {secondaryButton && (
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              await stackApp.redirectToSignOut();
-            }}
-          >
-            {secondaryButton}
-          </Button>
-        )}
-        
-        <Button onClick={primaryAction}>
-          {primaryButton}
-        </Button>
-      </div>
     </MessageCard>
   );
 }

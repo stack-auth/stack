@@ -1,12 +1,9 @@
 import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./oauth-base";
-import { OAuthUserInfo, validateUserInfo } from "./utils";
+import { OAuthBaseProvider } from "./base";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
 
 export class GoogleProvider extends OAuthBaseProvider {
-  constructor({
-    clientId,
-    clientSecret,
-  }: {
+  constructor(options: {
     clientId: string,
     clientSecret: string,
   }) {
@@ -15,12 +12,9 @@ export class GoogleProvider extends OAuthBaseProvider {
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userinfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
-      clientId,
-      clientSecret,
       redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/google",
-      jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
-      scope: "openid email profile",
-      openid: true,
+      baseScope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+      ...options,
     });
   }
 
