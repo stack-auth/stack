@@ -12,7 +12,7 @@ import { callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -161,48 +161,6 @@ function createEmptyTokenStore() {
     accessToken: null,
   });
 }
-
-let storedCookieTokenStore: Store<TokenObject> | null = null;
-const getCookieTokenStore = (): Store<TokenObject> => {
-  if (!isBrowserLike()) {
-    throw new Error("Cannot use cookie token store on the server!");
-  }
-
-  if (storedCookieTokenStore === null) {
-    const getCurrentValue = () => ({
-      refreshToken: getCookie('stack-refresh'),
-      accessToken: getCookie('stack-access'),
-    });
-    storedCookieTokenStore = new Store<TokenObject>(getCurrentValue());
-    let hasSucceededInWriting = true;
-
-    setInterval(() => {
-      if (hasSucceededInWriting) {
-        const currentValue = getCurrentValue();
-        const oldValue = storedCookieTokenStore!.get();
-        if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
-          storedCookieTokenStore!.set(currentValue);
-        }
-      }
-    }, 100);
-    storedCookieTokenStore.onChange((value) => {
-      try {
-        setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-        setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
-        hasSucceededInWriting = true;
-      } catch (e) {
-        if (!isBrowserLike()) {
-          // Setting cookies inside RSCs is not allowed, so we just ignore it
-          hasSucceededInWriting = false;
-        } else {
-          throw e;
-        }
-      }
-    });
-  }
-
-  return storedCookieTokenStore;
-};
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
 function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
@@ -354,27 +312,82 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._uniqueIdentifier!;
   }
 
-  private _memoryTokenStore = createEmptyTokenStore();
-  private _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
+  protected _memoryTokenStore = createEmptyTokenStore();
+  protected _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
+  protected _storedCookieTokenStore: Store<TokenObject> | null = null;
+  protected get _refreshTokenCookieName() {
+    return `stack-refresh-${this.projectId}`;
+  }
+  protected get _accessTokenCookieName() {
+    // The access token, unlike the refresh token, should not depend on the project ID. We never want to store the
+    // access token in cookies more than once because of how big it is (there's a limit of 4096 bytes for all cookies
+    // together). This means that, if you have multiple projects on the same domain, some of them will need to refetch
+    // the access token on page reload.
+    return `stack-access`;
+  }
+  protected _getCookieTokenStore(): Store<TokenObject> {
+    if (!isBrowserLike()) {
+      throw new Error("Cannot use cookie token store on the server!");
+    }
+
+    if (this._storedCookieTokenStore === null) {
+      const getCurrentValue = (old: TokenObject | null) => ({
+        refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+        
+        // if there is an access token in memory already, don't update the access token based on cookies (access token
+        // cookies may be set by another project on the same domain)
+        // see the comment in _accessTokenCookieName for more information
+        accessToken: old === null ? getCookie(this._accessTokenCookieName) : old.accessToken,
+      });
+      this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
+      let hasSucceededInWriting = true;
+
+      setInterval(() => {
+        if (hasSucceededInWriting) {
+          const oldValue = this._storedCookieTokenStore!.get();
+          const currentValue = getCurrentValue(oldValue);
+          if (!deepPlainEquals(currentValue, oldValue)) {
+            this._storedCookieTokenStore!.set(currentValue);
+          }
+        }
+      }, 100);
+      this._storedCookieTokenStore.onChange((value) => {
+        try {
+          setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
+          hasSucceededInWriting = true;
+        } catch (e) {
+          if (!isBrowserLike()) {
+            // Setting cookies inside RSCs is not allowed, so we just ignore it
+            hasSucceededInWriting = false;
+          } else {
+            throw e;
+          }
+        }
+      });
+    }
+
+    return this._storedCookieTokenStore;
+  };
   protected _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
     switch (tokenStoreInit) {
       case "cookie": {
-        return getCookieTokenStore();
+        return this._getCookieTokenStore();
       }
       case "nextjs-cookie": {
         if (isBrowserLike()) {
-          return getCookieTokenStore();
+          return this._getCookieTokenStore();
         } else {
           const store = new Store<TokenObject>({
-            refreshToken: getCookie('stack-refresh'),
-            accessToken: getCookie('stack-access'),
+            refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            accessToken: getCookie(this._accessTokenCookieName),
           });
           store.onChange((value) => {
             try {
-              setOrDeleteCookie('stack-refresh', value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-              setOrDeleteCookie('stack-access', value.accessToken, { maxAge: 60 * 60 * 24 });
+              setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
             } catch (e) {
               // ignore
             }
@@ -412,8 +425,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           const cookieHeader = tokenStoreInit.headers.get("cookie");
           const parsed = cookie.parse(cookieHeader || "");
           const res = new Store<TokenObject>({
-            refreshToken: parsed['stack-refresh'] || null,
-            accessToken: parsed['stack-access'] || null,
+            refreshToken: parsed[this._refreshTokenCookieName] || parsed['stack-refresh'] || null,  // keep old cookie name for backwards-compatibility
+            accessToken: parsed[this._accessTokenCookieName] || null,
           });
           this._requestTokenStores.set(tokenStoreInit, res);
           return res;
