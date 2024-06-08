@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.4.20
 
 ### Patch Changes
