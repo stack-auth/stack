@@ -7,7 +7,7 @@ import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { AsyncStore, Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { isBrowserLike } from "@stackframe/stack-shared/src/utils/env";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
@@ -24,7 +24,6 @@ import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
-import { pick } from "@stackframe/stack-shared/src/utils/objects";
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.

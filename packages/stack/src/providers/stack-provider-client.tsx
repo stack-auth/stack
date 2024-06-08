@@ -5,7 +5,7 @@ import { StackClientApp, StackClientAppJson, stackAppInternalsSymbol } from "../
 import React from "react";
 import { UserJson } from "@stackframe/stack-shared";
 import { useStackApp } from "..";
-import { globalVar } from "@stackframe/stack-shared/src/utils/globals";
+import { globalVar } from "@stackframe/stack-shared/dist/utils/globals";
 
 export const StackContext = React.createContext<null | {
   app: StackClientApp<true>,
