@@ -6,6 +6,9 @@
 
 */
 -- AlterTable
+ALTER TABLE "ProjectUserAuthorizationCode" ADD COLUMN     "afterCallbackRedirectUrl" TEXT;
+
+-- AlterTable
 ALTER TABLE "ProjectUserOAuthAccount" DROP COLUMN "providerRefreshToken";
 
 -- AlterTable
