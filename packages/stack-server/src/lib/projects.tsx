@@ -100,6 +100,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     if (error instanceof KnownErrors.AccessTokenExpired) {
       return "access-token-expired";
     }
+    console.warn("Failed to decode a user-provided access token", error);
     return "unparsable-access-token";
   }
   const { userId, projectId: accessTokenProjectId } = decoded;

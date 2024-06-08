@@ -12,7 +12,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <ClickableCard className='flex flex-col' onClick={() => router.push(`/projects/${project.id}`)}>
       <CardHeader>
-        <CardTitle>{project.displayName}</CardTitle>
+        <CardTitle className="normal-case">{project.displayName}</CardTitle>
         <CardDescription>{project.description}</CardDescription>
       </CardHeader>
       <CardFooter className="flex justify-between">
