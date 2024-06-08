@@ -11,7 +11,7 @@ import {
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
-import { Session } from "../sessions";
+import { InternalSession } from "../sessions";
 
 export type ServerUserJson = UserJson & {
   serverMetadata: ReadonlyJson,
@@ -50,7 +50,7 @@ export type ServerAuthApplicationOptions = (
       readonly secretServerKey: string,
     }
     | {
-      readonly projectOwnerSession: Session,
+      readonly projectOwnerSession: InternalSession,
     }
   )
 );
@@ -63,7 +63,7 @@ export class StackServerInterface extends StackClientInterface {
     super(options);
   }
 
-  protected async sendServerRequest(path: string, options: RequestInit, session: Session | null, requestType: "server" | "admin" = "server") {
+  protected async sendServerRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "server" | "admin" = "server") {
     return await this.sendClientRequest(
       path,
       {
@@ -78,7 +78,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async getServerUserByToken(session: Session): Promise<Result<ServerUserJson>> {
+  async getServerUserByToken(session: InternalSession): Promise<Result<ServerUserJson>> {
     const response = await this.sendServerRequest(
       "/current-user?server=true",
       {},
@@ -106,7 +106,7 @@ export class StackServerInterface extends StackClientInterface {
       type: 'global' | 'team', 
       direct: boolean, 
     },
-    session: Session
+    session: InternalSession
   ): Promise<ServerPermissionDefinitionJson[]> {
     const response = await this.sendServerRequest(
       `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}&server=true`,
@@ -117,7 +117,7 @@ export class StackServerInterface extends StackClientInterface {
     return permissions;
   }
 
-  async listServerUserTeams(session: Session): Promise<ServerTeamJson[]> {
+  async listServerUserTeams(session: InternalSession): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest(
       "/current-user/teams?server=true",
       {},

@@ -16,7 +16,7 @@ const createAdminApp = cacheFunction((baseUrl: string, projectId: string, userId
     baseUrl,
     projectId,
     tokenStore: null,
-    projectOwnerSession: usersMap.get(userId)!.session,
+    projectOwnerSession: usersMap.get(userId)!._internalSession,
   });
 });
 
