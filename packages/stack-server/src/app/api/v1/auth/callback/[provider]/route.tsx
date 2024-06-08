@@ -10,11 +10,25 @@ import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { createTeamOnSignUp } from "@/lib/users";
+import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { createTeamOnSignUp, getServerUser } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { validateUrl } from "@/lib/utils";
+import { Project } from "@stackframe/stack";
+
+const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUri?: string) => {
+  if (!errorRedirectUri || !validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+    throw error;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
+    },
+  });
+};
 
 const getSchema = yup.object({
   query: yup.object({
@@ -79,6 +93,39 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       state,
     }
   });
+
+  if (type === "link") {
+    console.log('1 !!!!!!!!!!!!!');
+    if (!projectUserId) {
+      throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
+    }
+
+    const user = await prismaClient.projectUser.findUnique({
+      where: {
+        projectId_projectUserId: {
+          projectId,
+          projectUserId,
+        },
+      },
+      include: {
+        projectUserOAuthAccounts: {
+          include: {
+            providerConfig: true,
+          }
+        }
+      }
+    });
+    console.log('2 !!!!!!!!!!!!!');
+    if (!user) {
+      throw new StackAssertionError("User not found");
+    }
+
+    const account = user.projectUserOAuthAccounts.find((a) => a.providerConfig.id === provider.id);
+    console.log(account, userInfo, '3 !!!!!!!!!!!!!');
+    if (account && account.providerAccountId !== userInfo.accountId) {
+      return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUri);
+    }
+  }
   
   const oauthRequest = new OAuthRequest({
     headers: {},
@@ -231,13 +278,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
         );
       }
       throw new StatusError(StatusError.BadRequest, error.message);
-    } else if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser && errorRedirectUri && validateUrl(errorRedirectUri, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: `${errorRedirectUri}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`,
-        },
-      });
+    } else if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser) {
+      return redirectOrThrowError(error, project, errorRedirectUri);
     }
     throw error;
   }

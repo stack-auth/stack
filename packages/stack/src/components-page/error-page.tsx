@@ -42,5 +42,21 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
     );
   }
 
+  if (error instanceof KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection) {
+    // TODO: add "Connect again" button
+    return (
+      <MessageCard 
+        title="Failed to connect account" 
+        fullPage={fullPage}
+        primaryButtonText="Go to Home"
+        primaryAction={() => stackApp.redirectToHome()}
+      >
+        <Text>
+          The user is already connected to another OAuth account. Did you maybe selected the wrong account on the OAuth provider page?
+        </Text>
+      </MessageCard>
+    );
+  }
+
   return <KnownErrorMessageCard error={error} fullPage={fullPage} />;
 }

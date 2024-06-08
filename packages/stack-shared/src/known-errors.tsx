@@ -859,6 +859,16 @@ const OAuthAccessTokenNotAvailableWithSharedOAuthKeys = createKnownErrorConstruc
   () => [] as const,
 );
 
+const UserAlreadyConnectedToAnotherOAuthConnection = createKnownErrorConstructor(
+  KnownError,
+  "USER_ALREADY_CONNECTED_TO_ANOTHER_OAUTH_CONNECTION",
+  () => [
+    400,
+    "The user is already connected to another OAuth account. Did you maybe selected the wrong account?",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -936,6 +946,7 @@ export const KnownErrors = {
   OAuthConnectionDoesNotHaveRequiredScope,
   OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
+  UserAlreadyConnectedToAnotherOAuthConnection,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
