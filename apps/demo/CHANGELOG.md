@@ -1,5 +1,14 @@
 # demo-app
 
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.22
+  - @stackframe/stack@2.4.22
+
 ## 2.4.21
 
 ### Patch Changes

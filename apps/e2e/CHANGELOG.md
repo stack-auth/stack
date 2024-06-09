@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+
 ## 2.4.21
 
 ### Patch Changes
