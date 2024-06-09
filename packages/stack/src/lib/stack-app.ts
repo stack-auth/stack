@@ -737,13 +737,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentUserFromJson(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId>;
-  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null;
-  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null {
-    if (json === null) return null;
+  protected _authFromJson<T, C>(session: InternalSession): Auth<T, C> {
     const app = this;
-    const currentUser: CurrentUser = {
-      ...this._userFromJson(json),
+    return {
       _internalSession: session,
       currentSession: {
         async getTokens() {
@@ -754,14 +750,26 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           };
         },
       },
+      async getAuthHeaders(): Promise<{ "x-stack-auth": string }> {
+        return {
+          "x-stack-auth": JSON.stringify(await this.getAuthJson()),
+        };
+      },
+      async getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }> {
+        const tokens = await this.currentSession.getTokens();
+        return tokens;
+      },
+      signOut() {
+        return app._signOut(session);
+      },
+    
+      // TODO these should not actually be on Auth, instead on User
       async updateSelectedTeam(team: Team | null) {
         await app._updateUser({ selectedTeamId: team?.id ?? null }, session);
       },
       update(update) {
-        return app._updateUser(update, session);
-      },
-      signOut() {
-        return app._signOut(session);
+        // TODO make types work without `as any`
+        return app._updateUser(update as any, session);
       },
       sendVerificationEmail() {
         return app._sendVerificationEmail(session);
@@ -769,6 +777,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, session);
       },
+    };
+  }
+
+  protected _currentUserFromJson(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId>;
+  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null;
+  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null {
+    if (json === null) return null;
+    const app = this;
+    const currentUser: CurrentUser = {
+      ...this._userFromJson(json),
+      ...this._authFromJson(session),
     };
     if (this._isInternalProject()) {
       const internalUser: CurrentInternalUser = {
@@ -847,19 +866,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   get urls(): Readonly<HandlerUrls> {
     return getUrls(this._urlOptions);
-  }
-
-  async getCrossOriginHeaders(): Promise<{ "x-stack-auth": string }> {
-    return {
-      "x-stack-auth": JSON.stringify(await this.getCrossOriginTokenObject()),
-    };
-  }
-
-  async getCrossOriginTokenObject(): Promise<{ accessToken: string | null, refreshToken: string | null }> {
-    const user = await this.getUser();
-    if (!user) return { accessToken: null, refreshToken: null };
-    const tokens = await user.currentSession.getTokens();
-    return tokens;
   }
 
   protected async _redirectTo(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
@@ -1150,6 +1156,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _refreshUser(session: InternalSession) {
+    // TODO this should take a user ID instead of a session, and automatically refresh all sessions with that user ID
+    await this._refreshSession(session);
+  }
+
+  protected async _refreshSession(session: InternalSession) {
     await this._currentUserCache.refresh([session]);
   }
 
@@ -1374,40 +1385,16 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const nonCurrentServerUser = this._serverUserFromJson(json);
     const currentUser: CurrentServerUser = {
       ...nonCurrentServerUser,
-      _internalSession: session,
-      currentSession: {
-        async getTokens() {
-          const tokens = await session.getPotentiallyExpiredTokens();
-          return {
-            accessToken: tokens?.accessToken.token ?? null,
-            refreshToken: tokens?.refreshToken?.token ?? null,
-          };
-        },
-      },
+      ...this._authFromJson(session),
       async delete() {
         const res = await nonCurrentServerUser.delete();
+        // TODO instead of refreshing user session in this override, the normal ServerUser delete function should invalidate all sessions with that user ID
+        // same for everywhere else where user sessions are refreshed
         await app._refreshUser(session);
         return res;
-      },
-      async updateSelectedTeam(team: Team | null) {
-        await this.update({ selectedTeamId: team?.id ?? null });
-      },
-      async update(update: ServerUserUpdateJson) {
-        const res = await nonCurrentServerUser.update(update);
-        await app._refreshUser(session);
-        return res;
-      },  
-      signOut() {
-        return app._signOut(session);
       },
       getClientUser() {
         return app._currentUserFromJson(json, session);
-      },
-      sendVerificationEmail() {
-        return app._sendVerificationEmail(session);
-      },
-      updatePassword(options: { oldPassword: string, newPassword: string}) {
-        return app._updatePassword(options, session);
       },
     };
 
@@ -1608,7 +1595,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [teams, teamId]);
   }
 
-  protected override async _refreshUser(session: InternalSession) {
+  protected override async _refreshSession(session: InternalSession) {
     await Promise.all([
       super._refreshUser(session),
       this._currentServerUserCache.refresh([session]),
@@ -1793,6 +1780,75 @@ type Auth<T, C> = {
   readonly _internalSession: InternalSession,
   readonly currentSession: Session,
   signOut(this: T): Promise<void>,
+
+  /**
+   * Returns headers for sending authenticated HTTP requests to external servers. Most commonly used in cross-origin
+   * requests. Similar to `getAuthJson`, but specifically for HTTP requests.
+   * 
+   * If you are using `tokenStore: "cookie"`, you don't need this for same-origin requests. However, most
+   * browsers now disable third-party cookies by default, so we must pass authentication tokens by header instead
+   * if the client and server are on different hostnames.
+   *
+   * This function returns a header object that can be used with `fetch` or other HTTP request libraries to send
+   * authenticated requests.
+   * 
+   * On the server, you can then pass in the `Request` object to the `tokenStore` option
+   * of your Stack app. Please note that CORS does not allow most headers by default, so you
+   * must include `x-stack-auth` in the [`Access-Control-Allow-Headers` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers)
+   * of the CORS preflight response.
+   * 
+   * If you are not using HTTP (and hence cannot set headers), you will need to use the `getAuthJson()` function
+   * instead.
+   * 
+   * Example:
+   * 
+   * ```ts
+   * // client
+   * const res = await fetch("https://api.example.com", {
+   *   headers: {
+   *     ...await stackApp.getAuthHeaders()
+   *     // you can also add your own headers here
+   *   },
+   * });
+   * 
+   * // server
+   * function handleRequest(req: Request) {
+   *   const user = await stackServerApp.getUser({ tokenStore: req });
+   *   return new Response("Welcome, " + user.displayName);
+   * }
+   * ```
+   */
+  getAuthHeaders(): Promise<{ "x-stack-auth": string }>,
+
+  /**
+   * Creates a JSON-serializable object containing the information to authenticate a user on an external server.
+   * Similar to `getAuthHeaders`, but returns an object that can be sent over any protocol instead of just
+   * HTTP headers.
+   * 
+   * While `getAuthHeaders` is the recommended way to send authentication tokens over HTTP, your app may use
+   * a different protocol, for example WebSockets or gRPC. This function returns a token object that can be JSON-serialized and sent to the server in any way you like.
+   * 
+   * On the server, you can pass in this token object into the `tokenStore` option to fetch user details.
+   * 
+   * Example:
+   * 
+   * ```ts
+   * // client
+   * const res = await rpcCall(rpcEndpoint, {
+   *   data: {
+   *     auth: await stackApp.getAuthJson(),
+   *   },
+   * });
+   * 
+   * // server
+   * function handleRequest(data) {
+   *   const user = await stackServerApp.getUser({ tokenStore: data.auth });
+   *   return new Response("Welcome, " + user.displayName);
+   * }
+   * ```
+   */
+  getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
+
 
   // TODO these should not actually be here
   update(this: T, user: C): Promise<void>,
@@ -2037,66 +2093,6 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | void>,
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | void>,
-
-    /**
-     * With most browsers now disabling third-party cookies by default, the best way to send authenticated requests
-     * across different origins is to pass the tokens in a header.
-     * 
-     * This function returns a header object that can be used with `fetch` or other HTTP request libraries to send
-     * authenticated requests.
-     * 
-     * On the server, you can then pass in the `Request` object to the `tokenStore` option
-     * on your Stack app to fetch user details. Please note that CORS by default does not allow custom headers, so you
-     * must set the [`Access-Control-Allow-Headers` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers)
-     * to include `x-stack-auth` in the CORS preflight response.
-     * 
-     * Example:
-     * 
-     * ```ts
-     * // client
-     * const res = await fetch("https://api.example.com", {
-     *   headers: {
-     *     ...await stackApp.getCrossOriginHeaders()
-     *     // you can also add your own headers here
-     *   },
-     * });
-     * 
-     * // server
-     * function handleRequest(req: Request) {
-     *   const user = await stackServerApp.getUser({ tokenStore: req });
-     *   return new Response("Welcome, " + user.displayName);
-     * }
-     * ```
-     */
-    getCrossOriginHeaders(): Promise<{ "x-stack-auth": string }>,
-
-    /**
-     * With most browsers now disabling third-party cookies by default, there need to be new ways to send authenticated
-     * requests across different origins. While `getCrossOriginHeaders` is the recommended way to do this, there
-     * are some cases where you might want to send the tokens differently, for example when you are using WebSockets
-     * or non-HTTP protocols.
-     * 
-     * This function returns a token object that can be JSON-serialized and sent to the server in any way you like.
-     * There, you can use the `tokenStore` option on your Stack app to fetch user details.
-     * 
-     * Example:
-     * 
-     * ```ts
-     * // client
-     * const res = await rpcCall(rpcEndpoint, {
-     *   data: {
-     *     auth: await stackApp.getCrossOriginTokenObject(),
-     *   },
-     * });
-     * 
-     * // server
-     * function handleRequest(data) {
-     *   const user = await stackServerApp.getUser({ tokenStore: data.auth });
-     *   return new Response("Welcome, " + user.displayName);
-     * }
-     * ```
-     */
-    getCrossOriginTokenObject(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
 
     [stackAppInternalsSymbol]: {
       toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
