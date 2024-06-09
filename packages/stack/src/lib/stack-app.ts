@@ -1,6 +1,6 @@
 import React, { use, useCallback, useMemo } from "react";
 import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
-import { getCookie, setOrDeleteCookie } from "./cookie";
+import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
@@ -440,6 +440,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         try {
           setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
           setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
+          deleteCookie('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
           hasSucceededInWriting = true;
         } catch (e) {
           if (!isBrowserLike()) {

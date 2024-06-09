@@ -98,6 +98,8 @@ pnpm run prisma:server migrate reset
 pnpm run dev
 ```
 
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104.
+
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
 You can also open Prisma Studio to see the database interface and edit data directly:
