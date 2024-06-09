@@ -24,7 +24,7 @@ import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
-import { mergeScopeStrings } from "@stackframe/stack-shared/src/utils/strings";
+import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
