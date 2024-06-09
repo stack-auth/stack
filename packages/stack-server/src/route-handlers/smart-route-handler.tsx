@@ -10,11 +10,18 @@ import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/pro
 import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
 
+class InternalServerError extends StatusError {
+  constructor() {
+    super(StatusError.InternalServerError);
+  }
+}
+
 /**
  * Known errors that are common and should not be logged with their stacktrace.
  */
 const commonErrors = [
   KnownErrors.AccessTokenExpired,
+  InternalServerError,
 ];
 
 /**
@@ -34,7 +41,7 @@ function catchError(error: unknown): StatusError {
 
   if (error instanceof StatusError) return error;
   captureError(`route-handler`, error);
-  return new StatusError(StatusError.InternalServerError);
+  return new InternalServerError();
 }
 
 /**
