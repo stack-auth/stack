@@ -37,7 +37,25 @@ export function suspendIfSsr(caller?: string) {
   if (!isBrowserLike()) {
     const error = Object.assign(
       new Error(deindent`
-        ${caller ?? "This code path"} attempted to display a loading indicator during SSR by falling back to the nearest Suspense boundary. If you see this error, it means no Suspense boundary was found, and no loading indicator could be displayed. Make sure you are not catching this error with try-catch, and that the component is rendered inside a Suspense boundary, for example by adding a \`loading.tsx\` file in your app directory.
+        ${caller ?? "This code path"} attempted to display a loading indicator during SSR by falling back to the nearest Suspense boundary. If you see this error, it means no Suspense boundary was found, and no loading indicator could be displayed.
+        
+        This usually has one of three causes:
+        
+        1. You are missing a loading.tsx file in your app directory. Fix it by adding a loading.tsx file in your app directory.
+
+        2. The component is rendered in the root (outermost) layout.tsx or template.tsx file. Next.js does not wrap those files in a Suspense boundary, even if there is a loading.tsx file in the same folder. To fix it, wrap your layout inside a route group like this:
+
+          - app
+            - layout.tsx  // contains <html> and <body>, alongside providers and other components that don't need ${caller ?? "this code path"}
+            - loading.tsx  // required for suspense
+            - (main)
+              - layout.tsx  // contains the main layout of your app, like a sidebar or a header, and can use ${caller ?? "this code path"}
+              - route.tsx  // your actual main page
+              - the rest of your app
+
+          For more information on this approach, see Next's documentation on route groups: https://nextjs.org/docs/app/building-your-application/routing/route-groups
+        
+        3. You caught this error with try-catch or a custom error boundary. Fix this by rethrowing the error or not catching it in the first place.
 
         See: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
 
