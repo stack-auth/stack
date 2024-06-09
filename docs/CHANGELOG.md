@@ -1,5 +1,7 @@
 # stack-docs
 
+## 2.4.23
+
 ## 2.4.22
 
 ### Patch Changes
