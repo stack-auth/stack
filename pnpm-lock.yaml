@@ -469,7 +469,7 @@ importers:
         version: 3.3.4(react-hook-form@7.51.4(react@18.2.0))
       '@mdx-js/loader':
         specifier: ^3
-        version: 3.0.0(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))
+        version: 3.0.0(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11))
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.0.0(@types/react@18.2.66)(react@18.2.0)
@@ -478,7 +478,7 @@ importers:
         version: 14.1.0
       '@next/mdx':
         specifier: ^14
-        version: 14.1.0(@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)))(@mdx-js/react@3.0.0(@types/react@18.2.66)(react@18.2.0))
+        version: 14.1.0(@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)))(@mdx-js/react@3.0.0(@types/react@18.2.66)(react@18.2.0))
       '@node-oauth/oauth2-server':
         specifier: ^5.1.0
         version: 5.1.0
@@ -580,7 +580,7 @@ importers:
         version: 0.0.14(react@18.2.0)
       '@sentry/nextjs':
         specifier: ^7.105.0
-        version: 7.110.0(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))
+        version: 7.110.0(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11))
       '@stackframe/stack':
         specifier: workspace:*
         version: link:../stack
@@ -656,6 +656,9 @@ importers:
       pg:
         specifier: ^8.11.3
         version: 8.11.3
+      posthog-js:
+        specifier: ^1.138.1
+        version: 1.138.1
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -6058,6 +6061,9 @@ packages:
     resolution: {integrity: sha512-u5/sxGfiMfZNtJ3OvQpXcvotFpYkL0n9u9mM2vkui2nGo8b4wvDkJ8gAkYqbA8QpGyFCv3RK0Z+Iv+9veCS9bQ==}
     engines: {node: '>=0.4.0'}
 
+  fflate@0.4.8:
+    resolution: {integrity: sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==}
+
   file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -8403,6 +8409,12 @@ packages:
   postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
+
+  posthog-js@1.138.1:
+    resolution: {integrity: sha512-hLahTznM0/iSM3vl6QGcmdG/zgCcW2DaQqPf7OtXCoqxNdYCWTNp6/sqepd6CxtDmJfm1S5Cbu1tD9TSksOYcA==}
+
+  preact@10.22.0:
+    resolution: {integrity: sha512-RRurnSjJPj4rp5K6XoP45Ui33ncb7e4H7WiOHVpjbkvqvA3U+N8Z6Qbo0AE6leGYBV66n8EhEaFixvIu3SkxFw==}
 
   prebuild-install@7.1.1:
     resolution: {integrity: sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==}
@@ -12606,11 +12618,11 @@ snapshots:
       - encoding
       - supports-color
 
-  '@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))':
+  '@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11))':
     dependencies:
       '@mdx-js/mdx': 3.0.0
       source-map: 0.7.4
-      webpack: 5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)
+      webpack: 5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)
     transitivePeerDependencies:
       - supports-color
 
@@ -12916,11 +12928,11 @@ snapshots:
     dependencies:
       glob: 10.3.10
 
-  '@next/mdx@14.1.0(@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)))(@mdx-js/react@3.0.0(@types/react@18.2.66)(react@18.2.0))':
+  '@next/mdx@14.1.0(@mdx-js/loader@3.0.0(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)))(@mdx-js/react@3.0.0(@types/react@18.2.66)(react@18.2.0))':
     dependencies:
       source-map: 0.7.4
     optionalDependencies:
-      '@mdx-js/loader': 3.0.0(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))
+      '@mdx-js/loader': 3.0.0(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11))
       '@mdx-js/react': 3.0.0(@types/react@18.2.66)(react@18.2.0)
 
   '@next/swc-darwin-arm64@14.1.0':
@@ -14833,7 +14845,7 @@ snapshots:
       '@sentry/utils': 7.110.0
       localforage: 1.10.0
 
-  '@sentry/nextjs@7.110.0(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))':
+  '@sentry/nextjs@7.110.0(next@14.1.0(@babel/core@7.24.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)(webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11))':
     dependencies:
       '@rollup/plugin-commonjs': 24.0.0(rollup@2.78.0)
       '@sentry/core': 7.110.0
@@ -14851,7 +14863,7 @@ snapshots:
       rollup: 2.78.0
       stacktrace-parser: 0.1.10
     optionalDependencies:
-      webpack: 5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)
+      webpack: 5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -15391,7 +15403,7 @@ snapshots:
     dependencies:
       '@types/node': 20.11.18
       tapable: 2.2.1
-      webpack: 5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)
+      webpack: 5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
@@ -17587,6 +17599,8 @@ snapshots:
   feed@4.2.2:
     dependencies:
       xml-js: 1.6.11
+
+  fflate@0.4.8: {}
 
   file-entry-cache@6.0.1:
     dependencies:
@@ -20420,6 +20434,13 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
+  posthog-js@1.138.1:
+    dependencies:
+      fflate: 0.4.8
+      preact: 10.22.0
+
+  preact@10.22.0: {}
+
   prebuild-install@7.1.1:
     dependencies:
       detect-libc: 2.0.2
@@ -21965,18 +21986,6 @@ snapshots:
 
   term-size@2.2.1: {}
 
-  terser-webpack-plugin@5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.22
-      jest-worker: 27.5.1
-      schema-utils: 3.3.0
-      serialize-javascript: 6.0.2
-      terser: 5.27.1
-      webpack: 5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)
-    optionalDependencies:
-      '@swc/core': 1.3.101(@swc/helpers@0.5.11)
-      esbuild: 0.19.11
-
   terser-webpack-plugin@5.3.10(@swc/core@1.3.101)(esbuild@0.19.11)(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.22
@@ -22627,37 +22636,6 @@ snapshots:
       wildcard: 2.0.1
 
   webpack-sources@3.2.3: {}
-
-  webpack@5.90.1(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11):
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.5
-      '@webassemblyjs/ast': 1.11.6
-      '@webassemblyjs/wasm-edit': 1.11.6
-      '@webassemblyjs/wasm-parser': 1.11.6
-      acorn: 8.11.3
-      acorn-import-assertions: 1.9.0(acorn@8.11.3)
-      browserslist: 4.23.0
-      chrome-trace-event: 1.0.3
-      enhanced-resolve: 5.15.0
-      es-module-lexer: 1.4.1
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.0
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 3.3.0
-      tapable: 2.2.1
-      terser-webpack-plugin: 5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.11))(esbuild@0.19.11)(webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11))
-      watchpack: 2.4.0
-      webpack-sources: 3.2.3
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
 
   webpack@5.90.1(@swc/core@1.3.101)(esbuild@0.19.11):
     dependencies:
