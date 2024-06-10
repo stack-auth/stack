@@ -765,7 +765,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
     
       // TODO these should not actually be on Auth, instead on User
-      async updateSelectedTeam(team: Team | null) {
+      async setSelectedTeam(team: Team | null) {
         await app._updateUser({ selectedTeamId: team?.id ?? null }, session);
       },
       update(update) {
@@ -1853,7 +1853,7 @@ type Auth<T, C> = {
 
   // TODO these should not actually be here
   update(this: T, user: C): Promise<void>,
-  updateSelectedTeam(this: T, team: Team | null): Promise<void>,
+  setSelectedTeam(this: T, team: Team | null): Promise<void>,
   sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
   updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 };
