@@ -91,7 +91,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   }
 
   if (outerInfoDB.expiresAt < new Date()) {
-    redirectOrThrowError(new KnownErrors.OAuthTimeout(), project, errorRedirectUrl);
+    redirectOrThrowError(new KnownErrors.OuterOAuthTimeout(), project, errorRedirectUrl);
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);
