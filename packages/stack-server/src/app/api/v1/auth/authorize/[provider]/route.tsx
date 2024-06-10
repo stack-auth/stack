@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { generators } from "openid-client";
 import { cookies } from "next/headers";
-import { encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
@@ -12,6 +11,10 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { prismaClient } from "@/prisma-client";
+
+
+const expireMinutes = 10;
 
 const getSchema = yup.object({
   query: yup.object({
@@ -100,28 +103,37 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     extraScope: providerScope,
   });
 
-  const cookie = await encryptJWT({
-    projectId,
-    publishableClientKey,
-    redirectUri: redirectUri.split('#')[0], // remove hash
-    scope,
-    state,
-    grantType,
-    codeChallenge,
-    codeChallengeMethod,
-    responseType,
-    innerCodeVerifier,
-    innerState,
-    type,
-    projectUserId,
-    providerScope,
-    errorRedirectUrl,
-    afterCallbackRedirectUrl,
-  } satisfies yup.InferType<typeof oauthCookieSchema>);
-
-  cookies().set("stack-oauth", cookie, {
-    httpOnly: true,
-    maxAge: 1000 * 60 * 5, // 5 minutes
+  const outerInfo = await prismaClient.oAuthOuterInfo.create({
+    data: {
+      info: {
+        projectId,
+        publishableClientKey,
+        redirectUri: redirectUri.split('#')[0], // remove hash
+        scope,
+        state,
+        grantType,
+        codeChallenge,
+        codeChallengeMethod,
+        responseType,
+        innerCodeVerifier,
+        innerState,
+        type,
+        projectUserId,
+        providerScope,
+        errorRedirectUrl,
+        afterCallbackRedirectUrl,
+      } satisfies yup.InferType<typeof oauthCookieSchema>,
+      expiresAt: new Date(Date.now() + 1000 * 60 * expireMinutes),
+    },
   });
+
+  cookies().set(
+    "stack-oauth-" + innerState.slice(0, 8),
+    outerInfo.id, 
+    {
+      httpOnly: true,
+      maxAge: 60 * expireMinutes,
+    }
+  );
   return NextResponse.redirect(oauthUrl);
 });

@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { decryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getProvider, oauthServer } from "@/oauth";
@@ -11,7 +10,7 @@ import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
-import { createTeamOnSignUp, getServerUser } from "@/lib/users";
+import { createTeamOnSignUp } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { validateUrl } from "@/lib/utils";
@@ -45,17 +44,28 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const providerId = options.params.provider;
 
-  const cookie = cookies().get("stack-oauth");
-  if (!cookie) {
+  const infoId = cookies().get("stack-oauth-" + state.slice(0, 8));
+  cookies().delete("stack-oauth-" + state.slice(0, 8));
+  cookies().delete("stack-oauth"); // remove the old cookie from the old version
+  
+  if (!infoId) {
     throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
   }
 
-  let decodedCookie: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
+  const outerInfoDB = await prismaClient.oAuthOuterInfo.findUnique({
+    where: {
+      id: infoId.value,
+    },
+  });
+  if (!outerInfoDB) {
+    throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth cookie value. Please try signing in again.");
+  }
+
+  let outerInfo: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
   try {
-    decodedCookie = await oauthCookieSchema.validate(await decryptJWT(cookie.value));
+    outerInfo = await oauthCookieSchema.validate(outerInfoDB.info);
   } catch (error) {
-    console.warn("Invalid stack-oauth cookie value", { cause: error });
-    throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth cookie value. Please try signing in again."); 
+    throw new StackAssertionError("Invalid outer info");
   }
 
   const {
@@ -68,9 +78,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     providerScope,
     errorRedirectUrl,
     afterCallbackRedirectUrl,
-  } = decodedCookie;
+  } = outerInfo;
 
-  if (!await checkApiKeySet(projectId, { publishableClientKey })) {
+  if (!(await checkApiKeySet(projectId, { publishableClientKey }))) {
     throw new KnownErrors.ApiKeyNotFound();
   }
 
@@ -79,6 +89,10 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   if (!project) {
     // This should never happen, make typescript happy
     throw new StackAssertionError("Project not found");
+  }
+
+  if (outerInfoDB.expiresAt < new Date()) {
+    redirectOrThrowError(new KnownErrors.OAuthTimeout(), project, errorRedirectUrl);
   }
 
   const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === providerId);
@@ -130,15 +144,15 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     body: {},
     method: "GET",
     query: {
-      client_id: decodedCookie.projectId,
-      client_secret: decodedCookie.publishableClientKey,
-      redirect_uri: decodedCookie.redirectUri,
-      state: decodedCookie.state,
-      scope: decodedCookie.scope,
-      grant_type: decodedCookie.grantType,
-      code_challenge: decodedCookie.codeChallenge,
-      code_challenge_method: decodedCookie.codeChallengeMethod,
-      response_type: decodedCookie.responseType,
+      client_id: outerInfo.projectId,
+      client_secret: outerInfo.publishableClientKey,
+      redirect_uri: outerInfo.redirectUri,
+      state: outerInfo.state,
+      scope: outerInfo.scope,
+      grant_type: outerInfo.grantType,
+      code_challenge: outerInfo.codeChallenge,
+      code_challenge_method: outerInfo.codeChallengeMethod,
+      response_type: outerInfo.responseType,
     }
   });
 
@@ -146,7 +160,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     if (userInfo.refreshToken) {
       await prismaClient.oAuthToken.create({
         data: {
-          projectId: decodedCookie.projectId,
+          projectId: outerInfo.projectId,
           oAuthProviderConfigId: provider.id,
           refreshToken: userInfo.refreshToken,
           providerAccountId: userInfo.accountId,
@@ -167,7 +181,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
             const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
               where: {
                 projectId_oauthProviderConfigId_providerAccountId: {
-                  projectId: decodedCookie.projectId,
+                  projectId: outerInfo.projectId,
                   oauthProviderConfigId: provider.id,
                   providerAccountId: userInfo.accountId,
                 },
@@ -203,7 +217,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                     projectUser: {
                       connect: {
                         projectId_projectUserId: {
-                          projectId: decodedCookie.projectId,
+                          projectId: outerInfo.projectId,
                           projectUserId: projectUserId,
                         },
                       },
