@@ -21,7 +21,7 @@ type TeamSwitcherProps = {
 
 function TeamIcon(props: { displayName: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.75rem', height: '1.75rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.5rem', height: '1.5rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
       <Text style={{ color: 'black', fontWeight: 400 }}>{props.displayName.slice(0, 1).toUpperCase()}</Text>
     </div>
   );
@@ -29,7 +29,6 @@ function TeamIcon(props: { displayName: string }) {
 
 export default function TeamSwitcher(props: TeamSwitcherProps) {
   const user = useUser();
-  const app = useStackApp();
   const router = useRouter();
   const selectedTeam = user?.useSelectedTeam();
   const rawTeams = user?.useTeams();
@@ -44,6 +43,7 @@ export default function TeamSwitcher(props: TeamSwitcherProps) {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent style={{ zIndex: 1500 }}>
+        <DropdownMenuLabel>Teams</DropdownMenuLabel>
         {teams && teams.map(team => (
           <DropdownMenuItem
             key={team.id}
