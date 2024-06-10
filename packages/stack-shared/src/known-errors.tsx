@@ -869,6 +869,16 @@ const UserAlreadyConnectedToAnotherOAuthConnection = createKnownErrorConstructor
   () => [] as const,
 );
 
+const OuterOAuthTimeout = createKnownErrorConstructor(
+  KnownError,
+  "OUTER_OAUTH_TIMEOUT",
+  () => [
+    408,
+    "The OAuth flow has timed out. Please sign in again.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -947,6 +957,7 @@ export const KnownErrors = {
   OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
   UserAlreadyConnectedToAnotherOAuthConnection,
+  OuterOAuthTimeout,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
