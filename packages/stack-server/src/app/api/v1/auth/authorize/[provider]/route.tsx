@@ -135,5 +135,6 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       maxAge: 60 * expireMinutes,
     }
   );
+  cookies().delete("stack-oauth"); // remove the old cookie from the old version
   return NextResponse.redirect(oauthUrl);
 });
