@@ -10,14 +10,13 @@ import { Button } from "@/components/ui/button";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { ActionDialog } from "@/components/action-dialog";
 import Typography from "@/components/ui/typography";
-
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 type CreateDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  setShowNotifyPasswordDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  setcurrentUserPassword: React.Dispatch<React.SetStateAction<string>>;
-
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+  setShowNotifyPasswordDialog: React.Dispatch<React.SetStateAction<boolean>>,
+  setCurrentUserPassword: React.Dispatch<React.SetStateAction<string>>,
 };
 
 export default function PageClient() {
@@ -25,13 +24,12 @@ export default function PageClient() {
   const allUsers = stackAdminApp.useServerUsers();
   const [addUserOpen, setAddUserOpen] = React.useState(false);
   const [showNotifyPasswordDialog, setShowNotifyPasswordDialog] = React.useState(false);
-  const [currentUserPassword, setcurrentUserPassword] = React.useState("");
-
+  const [currentUserPassword, setCurrentUserPassword] = React.useState("");
 
   const handlePasswordNotificationClose = async () => {
     setShowNotifyPasswordDialog(false);
   };
-
+  
   return (
     <PageLayout
       title="Users"
@@ -53,7 +51,7 @@ export default function PageClient() {
         open={addUserOpen}
         onOpenChange={setAddUserOpen}
         setShowNotifyPasswordDialog={setShowNotifyPasswordDialog}
-        setcurrentUserPassword={setcurrentUserPassword}
+        setCurrentUserPassword={setCurrentUserPassword}
       />
       <ActionDialog
         title="Password Change Required"
@@ -62,14 +60,14 @@ export default function PageClient() {
           onClick: handlePasswordNotificationClose,
         }}
         open={showNotifyPasswordDialog}
-        onClose={handlePasswordNotificationClose}
+        onClose={()=>runAsynchronously(handlePasswordNotificationClose())}
       >
         <div className="flex flex-col gap-2">
           <Typography className="mb-4">
             Please change your password soon to ensure account security.
           </Typography>
           <Typography className="mb-4">
-           Your Current Password:  {currentUserPassword}
+            Your Current Password:  {currentUserPassword}
           </Typography>
         </div>
       </ActionDialog>
@@ -77,7 +75,7 @@ export default function PageClient() {
   );
 }
 
-function CreateDialog({ open, onOpenChange, setShowNotifyPasswordDialog,setcurrentUserPassword }: CreateDialogProps) {
+function CreateDialog({ open, onOpenChange, setShowNotifyPasswordDialog, setCurrentUserPassword }: CreateDialogProps) {
   const stackAdminApp = useAdminApp();
 
   const formSchema = yup.object({
@@ -85,11 +83,12 @@ function CreateDialog({ open, onOpenChange, setShowNotifyPasswordDialog,setcurre
   });
 
   const handleCreateUser = async (values: { email: string }) => {
-   const res=  await stackAdminApp.createUserWithCredential({
+
+    const res = await stackAdminApp.createUserWithCredential({
       email: values.email,
     });
     if (typeof res === 'string') {
-      setcurrentUserPassword(res);
+      setCurrentUserPassword(res);
       setShowNotifyPasswordDialog(true);
     } else {
       console.error('Unexpected response:', res);
