@@ -66,7 +66,9 @@ For further configuration and usage, refer to [our documentation](https://docs.s
 
 ## 🏗️ Development & Contribution
 
-This is for you if you want to contribute to the Stack project.
+This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
+
+Please read the [contribution guidelines](CONTRIBUTING.md) before contributing.
 
 ### Requirements
 
