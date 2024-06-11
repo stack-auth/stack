@@ -615,9 +615,9 @@ export class StackClientInterface {
 
   async signUpWithCredential(
     email: string,
-    password: string,
+    password: string | null,
     emailVerificationRedirectUrl: string,
-    session: InternalSession,
+    session: InternalSession | null,
   ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",

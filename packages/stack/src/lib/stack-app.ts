@@ -25,6 +25,7 @@ import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
@@ -1017,6 +1018,23 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this.redirectToAfterSignIn({ replace: true });
     }
     return result;
+  }
+
+  async createUserWithCredential(options: {
+    email: string,
+  }): Promise<string | KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | undefined> {
+    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
+    const password =generateSecureRandomString()
+    const errorCode = await this._interface.signUpWithCredential(
+      options.email,
+      password,
+      emailVerificationRedirectUrl,
+      null,
+    );
+    if (!errorCode) {
+      return password
+    }
+    return errorCode;
   }
 
   async signUpWithCredential(options: {
