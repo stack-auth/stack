@@ -32,7 +32,7 @@ export function parseOpenAPI(options: {
   return result;
 }
 
-export function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOptions<O>) {
+function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOptions<O>) {
   const serverSchema = options.schema.server;
   
   let result: any = {};

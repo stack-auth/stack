@@ -25,7 +25,9 @@
     "release": "only-allow pnpm && release",
     "peek": "only-allow pnpm && pnpm release --peek",
     "changeset": "only-allow pnpm && changeset",
-    "test": "only-allow pnpm && turbo run test"
+    "test": "only-allow pnpm && turbo run test",
+    "generate-docs": "only-allow pnpm && turbo run generate-docs --no-cache",
+    "generate-keys": "only-allow pnpm && turbo run generate-keys --no-cache"
   },
   "devDependencies": {
     "only-allow": "^1.2.1",

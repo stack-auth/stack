@@ -15,7 +15,9 @@
     "codegen": "npm run prisma -- generate",
     "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run with-env -- prisma",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-docs": "npm run with-env -- tsx scripts/generate-docs.ts",
+    "generate-keys": "npm run with-env -- tsx scripts/generate-keys.ts"
   },
   "prisma": {
     "seed": "npm run with-env -- tsx prisma/seed.ts"
