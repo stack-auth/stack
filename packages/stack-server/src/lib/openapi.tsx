@@ -73,7 +73,8 @@ function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOpt
     result.delete = parseSchema({
       metadata: deleteMetadata,
       pathSchema: options.pathSchema,
-      responseSchema: serverSchema.deleteSchema,
+      parameterSchema: serverSchema.deleteSchema,
+      responseSchema: serverSchema.readSchema,
     });
   }
 
@@ -161,6 +162,19 @@ function toRequired(schema: yup.Schema) {
     .map(([key]) => key);
 }
 
+function toExamples(schema: yup.Schema) {
+  if (!(schema instanceof yup.object)) {
+    return {};
+  }
+  const description = schema.describe();
+  return Object.entries(description.fields).reduce((acc, [key, field]) => {
+    const schema = getFieldSchema(field);
+    if (!schema) return acc;
+    const example = (field as any).meta.example;
+    return { ...acc, [key]: schema.type === 'object' ? example: { example } };
+  }, {});
+}
+
 export function parseSchema(options: {
   metadata: yup.InferType<typeof endpointMetadataSchema>,
   pathSchema?: yup.Schema,
@@ -182,6 +196,7 @@ export function parseSchema(options: {
             type: 'object',
             properties: toProperties(options.requestBodySchema),
             required: toRequired(options.requestBodySchema),
+            example: toExamples(options.requestBodySchema),
           },
         },
       },
