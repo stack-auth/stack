@@ -3,7 +3,8 @@ import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import yaml from 'yaml';
 
 export default async function Page() {
-  return <textarea style={{ height: '500px', width: '500px' }}>
-    {yaml.stringify(parse(usersCrud))}
-  </textarea>;
+  return <textarea 
+    style={{ height: '95vh', width: '95vw' }} 
+    defaultValue={yaml.stringify(parse({ schema: usersCrud }))}
+  />;
 }

@@ -3,7 +3,6 @@ import * as yup from 'yup';
 
 export function parse<O extends CrudSchemaCreationOptions>(options: {
   schema: CrudSchemaFromOptions<O>,
-  path: string,
 }) {
   if (!options.schema.server.readSchema) return;
   return parseSchema({
@@ -27,28 +26,33 @@ const fieldMetadataSchema = yup.object({
 
 function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any } | null {
   // @ts-ignore
-  const common = fieldMetadataSchema.validateSync(field.meta);
-  if (common.hide) {
+  let schema: any = fieldMetadataSchema.validateSync(field.meta);
+  if (schema.hide) {
     return null;
   }
-
+  
   switch (field.type) {
     case 'string':
     case 'number':
     case 'boolean': {
-      return { type: field.type, ...common };
+      schema = { type: field.type, ...schema };
+      break;
     }
     case 'mixed': {
-      return { type: 'object', ...common };
+      schema = { type: 'object', ...schema };
+      break;
     }
     case 'array': {
       // @ts-ignore
-      return { type: 'array', items: getFieldSchema(field.innerType), ...common };
+      schema = { type: 'array', items: getFieldSchema(field.innerType), ...schema };
+      break;
     }
     default: {
       throw new Error(`Unsupported field type: ${field.type}`);
     }
   }
+
+  return schema;
 }
 
 function toParameters(schema: yup.Schema) {
@@ -60,7 +64,7 @@ function toParameters(schema: yup.Schema) {
     return {
       name: key,
       in: 'query',
-      schema: getFieldSchema(field)
+      schema: getFieldSchema(field),
     };
   }).filter((x) => x.schema !== null);
 }
@@ -75,6 +79,15 @@ function toProperties(schema: yup.Schema) {
     if (!schema) return acc;
     return { ...acc, [key]: schema };
   }, {});
+}
+
+function toRequired(schema: yup.Schema) {
+  if (!(schema instanceof yup.object)) {
+    throw new Error('Expected object schema');
+  }
+  const description = schema.describe();
+  // @ts-ignore
+  return Object.entries(description.fields).filter(([_, field]) => !field.optional && !field.nullable).map(([key]) => key);
 }
 
 export function parseSchema(options: {
@@ -105,6 +118,7 @@ export function parseSchema(options: {
               schema: {
                 type: 'object',
                 properties: outputProperties,
+                required: toRequired(options.responseSchema),
               },
             },
           },
