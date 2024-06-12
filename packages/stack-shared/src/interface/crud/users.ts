@@ -19,6 +19,8 @@ export const usersCrudServerReadSchema = yup.object({
   displayName: yup.string().nullable().defined(),
   clientMetadata: yupJson,
   selectedTeamId: yup.string().nullable().defined(),
+  // TODO give this one the type of an actual team
+  selectedTeam: yup.mixed().nullable().defined(),
   profileImageUrl: yup.string().nullable().defined(),
   signedUpAtMillis: yup.number().required(),
   /**

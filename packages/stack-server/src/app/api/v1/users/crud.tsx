@@ -1,3 +1,4 @@
+import { getServerTeamFromDbType } from "@/lib/teams";
 import { serverUserInclude } from "@/lib/users";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -51,6 +52,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       authWithEmail: prisma.authWithEmail,
       oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
       selectedTeamId: prisma.selectedTeamId,
+      selectedTeam: prisma.selectedTeam && getServerTeamFromDbType(prisma.selectedTeam),
     };
   },
 });
