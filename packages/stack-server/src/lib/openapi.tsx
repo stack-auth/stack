@@ -96,8 +96,7 @@ const fieldMetadataSchema = yup.object({
 });
 
 function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any } | null {
-  // @ts-ignore
-  let schema: any = fieldMetadataSchema.validateSync(field.meta);
+  let schema: any = fieldMetadataSchema.validateSync((field as any).meta);
   if (schema.hide) {
     return null;
   }
@@ -135,8 +134,7 @@ function toParameters(schema: yup.Schema, inType: 'query' | 'path' = 'query') {
       name: key,
       in: inType,
       schema: getFieldSchema(field),
-      // @ts-ignore
-      required: !field.optional && !field.nullable,
+      required: !(field as any).optional && !(field as any).nullable,
     };
   }).filter((x) => x.schema !== null);
 }
@@ -158,8 +156,9 @@ function toRequired(schema: yup.Schema) {
     return [];
   }
   const description = schema.describe();
-  // @ts-ignore
-  return Object.entries(description.fields).filter(([_, field]) => !field.optional && !field.nullable).map(([key]) => key);
+  return Object.entries(description.fields)
+    .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
+    .map(([key]) => key);
 }
 
 export function parseSchema(options: {
