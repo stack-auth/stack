@@ -1,33 +1,71 @@
 import { CrudSchemaCreationOptions, CrudSchemaFromOptions } from '@stackframe/stack-shared/dist/crud';
 import * as yup from 'yup';
 
-export function parse<O extends CrudSchemaCreationOptions>(options: {
+type endpointOptions<O extends CrudSchemaCreationOptions> = {
   schema: CrudSchemaFromOptions<O>,
   pathSchema?: yup.Schema,
   path: string,
-}) {
-  if (!options.schema.server.readSchema) return;
-  // return parseSchema({
-  //   pathSchema: options.pathSchema,
-  //   parameterSchema: yup.object().meta(options.schema.server.readSchema.describe().meta || {}),
-  //   responseSchema: options.schema.server.readSchema,
-  //   type: 'get',
-  // });
-  if (!options.schema.server.updateSchema) return;
+};
 
-  return parseSchema({
-    metadata: endpointMetadataSchema.validateSync(options.schema.server.updateSchema.describe().meta),
-    pathSchema: options.pathSchema,
-    requestBodySchema: options.schema.server.updateSchema,
-    responseSchema: options.schema.server.readSchema,
-    type: 'put',
-  });
+
+export function parseOpenAPI(options: {
+  endpoints: endpointOptions<any>[],
+}) {
+  let result: any = {
+    openapi: '3.1.0',
+    info: {
+      title: 'Stack API',
+      version: '1.0.0',
+    },
+    servers: [{
+      url: 'https://app.stack-auth.com/api/v1',
+      description: 'Stack API server',
+    }],
+    paths: {},
+  };
+
+  for (const endpoint of options.endpoints) {
+    const parsed = parseEndpoint(endpoint);
+    result.paths = { ...result.paths, ...parsed };
+  }
+
+  return result;
+}
+
+export function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOptions<O>) {
+  let result: any = {};
+  if (!options.schema.server.readSchema) throw new Error('Missing read schema');
+
+  const readMetadata = endpointMetadataSchema.validateSync(options.schema.server.readSchema.describe().meta);
+  if (!readMetadata.hide) {
+    result.get = parseSchema({
+      metadata: readMetadata,
+      pathSchema: options.pathSchema,
+      parameterSchema: yup.object().meta(readMetadata),
+      responseSchema: options.schema.server.readSchema,
+    });
+  }
+
+  if (options.schema.server.updateSchema) {
+    const updateMetadata = endpointMetadataSchema.validateSync(options.schema.server.updateSchema.describe().meta);
+    result.put = parseSchema({
+      metadata: updateMetadata,
+      pathSchema: options.pathSchema,
+      requestBodySchema: options.schema.server.updateSchema,
+      responseSchema: options.schema.server.readSchema,
+    });
+  }
+
+  return {
+    [options.path]: result,
+  };
 }
 
 const endpointMetadataSchema = yup.object({
   summary: yup.string().required(),
   description: yup.string().required(),
   operationId: yup.string().optional(),
+  hide: yup.boolean().optional(),
 });
 
 const fieldMetadataSchema = yup.object({
@@ -110,7 +148,6 @@ export function parseSchema(options: {
   parameterSchema?: yup.Schema,
   requestBodySchema?: yup.Schema,
   responseSchema: yup.Schema,
-  type: 'get' | 'post' | 'put' | 'delete',
 }) {
   const pathParameters = options.pathSchema ? toParameters(options.pathSchema, 'path') : [];
   const queryParameters = options.parameterSchema ? toParameters(options.parameterSchema) : [];
@@ -119,6 +156,7 @@ export function parseSchema(options: {
   let requestBody;
   if (options.requestBodySchema) {
     requestBody = {
+      required: true,
       content: {
         'application/json': {
           schema: {
@@ -132,26 +170,24 @@ export function parseSchema(options: {
   }
 
   return {
-    [options.type]: {
-      summary: options.metadata.summary,
-      description: options.metadata.description,
-      operationId: options.metadata.operationId,
-      parameters: queryParameters.concat(pathParameters),
-      requestBody,
-      responses: {
-        200: {
-          description: 'Successful response',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: responseProperties,
-                required: toRequired(options.responseSchema),
-              },
+    summary: options.metadata.summary,
+    description: options.metadata.description,
+    operationId: options.metadata.operationId,
+    parameters: queryParameters.concat(pathParameters),
+    requestBody,
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: responseProperties,
+              required: toRequired(options.responseSchema),
             },
           },
         },
       },
-    }
+    },
   };
 }
