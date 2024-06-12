@@ -412,6 +412,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected get _refreshTokenCookieName() {
     return `stack-refresh-${this.projectId}`;
   }
+  protected _getTokensFromCookies(cookies: { refreshTokenCookie: string | null, accessTokenCookie: string | null }): TokenObject {
+    const refreshToken = cookies.refreshTokenCookie;
+    const accessTokenObject = cookies.accessTokenCookie?.startsWith('[\"') ? JSON.parse(cookies.accessTokenCookie) : null;  // gotta check for validity first for backwards-compat, and also in case someone messes with the cookie value
+    const accessToken = accessTokenObject && refreshToken === accessTokenObject[0] ? accessTokenObject[1] : null;  // if the refresh token has changed, the access token is invalid
+    return {
+      refreshToken,
+      accessToken,
+    };
+  }
   protected get _accessTokenCookieName() {
     // The access token, unlike the refresh token, should not depend on the project ID. We never want to store the
     // access token in cookies more than once because of how big it is (there's a limit of 4096 bytes for all cookies
@@ -425,15 +434,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     if (this._storedCookieTokenStore === null) {
-      const getCurrentValue = (old: TokenObject | null) => {
-        const refreshToken = getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh');  // keep old cookie name for backwards-compatibility
+      const getCurrentValue = (old: TokenObject | null) => {          
+        const tokens = this._getTokensFromCookies({
+          refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+          accessTokenCookie: getCookie(this._accessTokenCookieName),
+        });
         return {
-          refreshToken,
-        
-          // if there is an access token in memory already, and the refresh token hasn't changed, don't update the
-          // access token based on cookies (access token cookies may be set by another project on the same domain)
-          // see the comment in _accessTokenCookieName for more information
-          accessToken: old !== null && refreshToken === old.refreshToken ? old.accessToken : getCookie(this._accessTokenCookieName),
+          refreshToken: tokens.refreshToken,
+          accessToken: tokens.accessToken ?? (old?.refreshToken === tokens.refreshToken ? old.accessToken : null),
         };
       };
       this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
@@ -451,7 +459,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._storedCookieTokenStore.onChange((value) => {
         try {
           setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
+          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
           deleteCookie('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
           hasSucceededInWriting = true;
         } catch (e) {
@@ -478,15 +486,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (isBrowserLike()) {
           return this._getCookieTokenStore();
         } else {
-          const refreshToken = getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh');  // keep old cookie name for backwards-compatibility
-          const store = new Store<TokenObject>({
-            refreshToken,
-            accessToken: getCookie(this._accessTokenCookieName),
+          const tokens = this._getTokensFromCookies({
+            refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            accessTokenCookie: getCookie(this._accessTokenCookieName),
           });
+          const store = new Store<TokenObject>(tokens);
           store.onChange((value) => {
             try {
               setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken, { maxAge: 60 * 60 * 24 });
+              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
             } catch (e) {
               // ignore
             }
