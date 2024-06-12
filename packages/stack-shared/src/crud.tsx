@@ -31,7 +31,7 @@ export type CrudSchema<
   hasDelete: boolean,
 };
 
-type CrudSchemaCreationOptions = {
+export type CrudSchemaCreationOptions = {
   clientCreateSchema?: yup.Schema<any>,
   clientReadSchema?: yup.Schema<any>,
   clientUpdateSchema?: yup.Schema<any>,
@@ -76,7 +76,7 @@ type CrudSchemaFromOptionsInner<O extends FillInOptionals<any>> = CrudSchema<
   InnerCrudSchema<O['adminCreateSchema'], O['adminReadSchema'], O['adminUpdateSchema'], O['adminDeleteSchema']>
 >;
 
-type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
+export type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
 
 type InnerCrudTypeOf<S extends InnerCrudSchema> =
   & (S['createSchema'] extends {} ? { Create: yup.InferType<S['createSchema']> } : {})
