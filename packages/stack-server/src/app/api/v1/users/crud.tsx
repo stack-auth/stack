@@ -1,4 +1,5 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
+import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
@@ -30,7 +31,8 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     const projectId = auth.project.id;
     return {
       displayName: crud.displayName,
-      clientMetadata: crud.clientMetadata,
+      clientMetadata: crud.clientMetadata === null ? Prisma.JsonNull : crud.clientMetadata,
+      serverMetadata: crud.serverMetadata === null ? Prisma.JsonNull : crud.serverMetadata,
       projectId,
       primaryEmail: crud.primaryEmail,
       primaryEmailVerified: crud.primaryEmailVerified,

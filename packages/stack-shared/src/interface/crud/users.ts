@@ -41,6 +41,10 @@ export const usersCrud = createCrud({
     description: 'Update server user by id',
     operationId: 'update server user',
   }),
-  serverDeleteSchema,
+  serverDeleteSchema: serverDeleteSchema.meta({
+    summary: 'Delete server user',
+    description: 'Delete server user by id',
+    operationId: 'delete server user',
+  }),
 });
 export type UsersCrud = CrudTypeOf<typeof usersCrud>;

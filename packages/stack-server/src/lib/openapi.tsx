@@ -33,26 +33,47 @@ export function parseOpenAPI(options: {
 }
 
 export function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOptions<O>) {
+  const serverSchema = options.schema.server;
+  
   let result: any = {};
-  if (!options.schema.server.readSchema) throw new Error('Missing read schema');
+  if (!serverSchema.readSchema) throw new Error('Missing read schema');
 
-  const readMetadata = endpointMetadataSchema.validateSync(options.schema.server.readSchema.describe().meta);
+  if (serverSchema.createSchema) {
+    const createMetadata = endpointMetadataSchema.validateSync(serverSchema.createSchema.describe().meta);
+    result.post = parseSchema({
+      metadata: createMetadata,
+      pathSchema: options.pathSchema,
+      requestBodySchema: serverSchema.createSchema,
+      responseSchema: serverSchema.readSchema,
+    });
+  }
+
+  const readMetadata = endpointMetadataSchema.validateSync(serverSchema.readSchema.describe().meta);
   if (!readMetadata.hide) {
     result.get = parseSchema({
       metadata: readMetadata,
       pathSchema: options.pathSchema,
       parameterSchema: yup.object().meta(readMetadata),
-      responseSchema: options.schema.server.readSchema,
+      responseSchema: serverSchema.readSchema,
     });
   }
 
-  if (options.schema.server.updateSchema) {
-    const updateMetadata = endpointMetadataSchema.validateSync(options.schema.server.updateSchema.describe().meta);
+  if (serverSchema.updateSchema) {
+    const updateMetadata = endpointMetadataSchema.validateSync(serverSchema.updateSchema.describe().meta);
     result.put = parseSchema({
       metadata: updateMetadata,
       pathSchema: options.pathSchema,
-      requestBodySchema: options.schema.server.updateSchema,
-      responseSchema: options.schema.server.readSchema,
+      requestBodySchema: serverSchema.updateSchema,
+      responseSchema: serverSchema.readSchema,
+    });
+  }
+
+  if (serverSchema.deleteSchema) {
+    const deleteMetadata = endpointMetadataSchema.validateSync(serverSchema.deleteSchema.describe().meta);
+    result.delete = parseSchema({
+      metadata: deleteMetadata,
+      pathSchema: options.pathSchema,
+      responseSchema: serverSchema.deleteSchema,
     });
   }
 
@@ -93,8 +114,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       break;
     }
     case 'array': {
-      // @ts-ignore
-      schema = { type: 'array', items: getFieldSchema(field.innerType), ...schema };
+      schema = { type: 'array', items: getFieldSchema((field as any).innerType), ...schema };
       break;
     }
     default: {
@@ -107,7 +127,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
 
 function toParameters(schema: yup.Schema, inType: 'query' | 'path' = 'query') {
   if (!(schema instanceof yup.object)) {
-    throw new Error('Expected object schema');
+    return [];
   }
   const description = schema.describe();
   return Object.entries(description.fields).map(([key, field]) => {
@@ -123,7 +143,7 @@ function toParameters(schema: yup.Schema, inType: 'query' | 'path' = 'query') {
 
 function toProperties(schema: yup.Schema) {
   if (!(schema instanceof yup.object)) {
-    throw new Error('Expected object schema');
+    return {};
   }
   const description = schema.describe();
   return Object.entries(description.fields).reduce((acc, [key, field]) => {
@@ -135,7 +155,7 @@ function toProperties(schema: yup.Schema) {
 
 function toRequired(schema: yup.Schema) {
   if (!(schema instanceof yup.object)) {
-    throw new Error('Expected object schema');
+    return [];
   }
   const description = schema.describe();
   // @ts-ignore
