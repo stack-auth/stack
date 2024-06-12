@@ -3,9 +3,12 @@ import * as yup from 'yup';
 
 export function parse<O extends CrudSchemaCreationOptions>(options: {
   schema: CrudSchemaFromOptions<O>,
+  pathSchema?: yup.Schema,
+  path: string,
 }) {
   if (!options.schema.server.readSchema) return;
   return parseSchema({
+    pathSchema: options.pathSchema,
     parameterSchema: yup.object().meta(options.schema.server.readSchema.describe().meta || {}),
     responseSchema: options.schema.server.readSchema,
     type: 'get',
@@ -55,7 +58,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
   return schema;
 }
 
-function toParameters(schema: yup.Schema) {
+function toParameters(schema: yup.Schema, inType: 'query' | 'path' = 'query') {
   if (!(schema instanceof yup.object)) {
     throw new Error('Expected object schema');
   }
@@ -63,8 +66,10 @@ function toParameters(schema: yup.Schema) {
   return Object.entries(description.fields).map(([key, field]) => {
     return {
       name: key,
-      in: 'query',
+      in: inType,
       schema: getFieldSchema(field),
+      // @ts-ignore
+      required: !field.optional && !field.nullable,
     };
   }).filter((x) => x.schema !== null);
 }
@@ -91,6 +96,7 @@ function toRequired(schema: yup.Schema) {
 }
 
 export function parseSchema(options: {
+  pathSchema?: yup.Schema,
   parameterSchema: yup.Schema,
   responseSchema: yup.Schema,
   type: 'get' | 'post' | 'put' | 'delete',
@@ -101,6 +107,7 @@ export function parseSchema(options: {
   const description = options.parameterSchema.describe();
   const metadata = endpointMetadataSchema.validateSync(description.meta);
 
+  const pathParameters = options.pathSchema ? toParameters(options.pathSchema, 'path') : [];
   const inputParameters = toParameters(options.parameterSchema);
   const outputProperties = toProperties(options.responseSchema);
 
@@ -109,7 +116,7 @@ export function parseSchema(options: {
       summary: metadata.summary,
       description: metadata.description,
       operationId: metadata.operationId,
-      parameters: inputParameters,
+      parameters: inputParameters.concat(pathParameters),
       responses: {
         200: {
           description: 'Successful response',
