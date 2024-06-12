@@ -7,11 +7,20 @@ export function parse<O extends CrudSchemaCreationOptions>(options: {
   path: string,
 }) {
   if (!options.schema.server.readSchema) return;
+  // return parseSchema({
+  //   pathSchema: options.pathSchema,
+  //   parameterSchema: yup.object().meta(options.schema.server.readSchema.describe().meta || {}),
+  //   responseSchema: options.schema.server.readSchema,
+  //   type: 'get',
+  // });
+  if (!options.schema.server.updateSchema) return;
+
   return parseSchema({
+    metadata: endpointMetadataSchema.validateSync(options.schema.server.updateSchema.describe().meta),
     pathSchema: options.pathSchema,
-    parameterSchema: yup.object().meta(options.schema.server.readSchema.describe().meta || {}),
+    requestBodySchema: options.schema.server.updateSchema,
     responseSchema: options.schema.server.readSchema,
-    type: 'get',
+    type: 'put',
   });
 }
 
@@ -96,27 +105,39 @@ function toRequired(schema: yup.Schema) {
 }
 
 export function parseSchema(options: {
+  metadata: yup.InferType<typeof endpointMetadataSchema>,
   pathSchema?: yup.Schema,
-  parameterSchema: yup.Schema,
+  parameterSchema?: yup.Schema,
+  requestBodySchema?: yup.Schema,
   responseSchema: yup.Schema,
   type: 'get' | 'post' | 'put' | 'delete',
 }) {
-  if (!(options.parameterSchema instanceof yup.object)) {
-    throw new Error('Expected object schema');
-  }
-  const description = options.parameterSchema.describe();
-  const metadata = endpointMetadataSchema.validateSync(description.meta);
-
   const pathParameters = options.pathSchema ? toParameters(options.pathSchema, 'path') : [];
-  const inputParameters = toParameters(options.parameterSchema);
-  const outputProperties = toProperties(options.responseSchema);
+  const queryParameters = options.parameterSchema ? toParameters(options.parameterSchema) : [];
+  const responseProperties = toProperties(options.responseSchema);
+
+  let requestBody;
+  if (options.requestBodySchema) {
+    requestBody = {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: toProperties(options.requestBodySchema),
+            required: toRequired(options.requestBodySchema),
+          },
+        },
+      },
+    };
+  }
 
   return {
     [options.type]: {
-      summary: metadata.summary,
-      description: metadata.description,
-      operationId: metadata.operationId,
-      parameters: inputParameters.concat(pathParameters),
+      summary: options.metadata.summary,
+      description: options.metadata.description,
+      operationId: options.metadata.operationId,
+      parameters: queryParameters.concat(pathParameters),
+      requestBody,
       responses: {
         200: {
           description: 'Successful response',
@@ -124,7 +145,7 @@ export function parseSchema(options: {
             'application/json': {
               schema: {
                 type: 'object',
-                properties: outputProperties,
+                properties: responseProperties,
                 required: toRequired(options.responseSchema),
               },
             },

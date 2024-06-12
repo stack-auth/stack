@@ -4,8 +4,8 @@ import { yupJson } from "../../utils/yup";
 
 export const usersCrudServerUpdateSchema = yup.object({
   displayName: yup.string().optional(),
-  clientMetadata: yup.object().optional(),
-  serverMetadata: yup.object().optional(),
+  clientMetadata: yupJson.optional(),
+  serverMetadata: yupJson.optional(),
   primaryEmail: yup.string().optional(),
   primaryEmailVerified: yup.boolean().optional(),
   selectedTeamId: yup.string().nullable().optional(),
@@ -36,7 +36,11 @@ export const usersCrud = createCrud({
     description: 'Get server user by id', 
     operationId: 'getServerUser' 
   }),
-  serverUpdateSchema: usersCrudServerUpdateSchema,
+  serverUpdateSchema: usersCrudServerUpdateSchema.meta({
+    summary: 'Update server user',
+    description: 'Update server user by id',
+    operationId: 'update server user',
+  }),
   serverDeleteSchema,
 });
 export type UsersCrud = CrudTypeOf<typeof usersCrud>;
