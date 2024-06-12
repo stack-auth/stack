@@ -12,7 +12,7 @@ import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
-import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -73,7 +73,7 @@ export type OAuthScopesOnSignIn = {
 
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
-type ProjectCurrentSeverUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
+type ProjectCurrentServerUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
 
 function permissionDefinitionScopeToType(scope: PermissionDefinitionScopeJson): 'team' | 'global' {
   return ({"any-team": "team", "specific-team": "team", "global": "global"} as const)[scope.type];
@@ -308,7 +308,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
             errorRedirectUrl: this.urls.error, 
             providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
           },
-          this._getSession()
+          session,
         );
         return await neverResolve();
       } else if (!hasConnection) {
@@ -397,6 +397,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._uniqueIdentifier!;
   }
 
+  protected async _checkFeatureSupport(featureName: string, options: any) {
+    return await this._interface.checkFeatureSupport({ ...options, featureName });
+  }
+
+  protected _useCheckFeatureSupport(featureName: string, options: any): never {
+    runAsynchronously(this._checkFeatureSupport(featureName, options));
+    throw new StackAssertionError(`${featureName} is not currently supported. Please reach out to Stack support for more information.`);
+  }
+
   protected _memoryTokenStore = createEmptyTokenStore();
   protected _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
   protected _storedCookieTokenStore: Store<TokenObject> | null = null;
@@ -416,14 +425,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     if (this._storedCookieTokenStore === null) {
-      const getCurrentValue = (old: TokenObject | null) => ({
-        refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+      const getCurrentValue = (old: TokenObject | null) => {
+        const refreshToken = getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh');  // keep old cookie name for backwards-compatibility
+        return {
+          refreshToken,
         
-        // if there is an access token in memory already, don't update the access token based on cookies (access token
-        // cookies may be set by another project on the same domain)
-        // see the comment in _accessTokenCookieName for more information
-        accessToken: old === null ? getCookie(this._accessTokenCookieName) : old.accessToken,
-      });
+          // if there is an access token in memory already, and the refresh token hasn't changed, don't update the
+          // access token based on cookies (access token cookies may be set by another project on the same domain)
+          // see the comment in _accessTokenCookieName for more information
+          accessToken: old !== null && refreshToken === old.refreshToken ? old.accessToken : getCookie(this._accessTokenCookieName),
+        };
+      };
       this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
       let hasSucceededInWriting = true;
 
@@ -466,8 +478,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (isBrowserLike()) {
           return this._getCookieTokenStore();
         } else {
+          const refreshToken = getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh');  // keep old cookie name for backwards-compatibility
           const store = new Store<TokenObject>({
-            refreshToken: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            refreshToken,
             accessToken: getCookie(this._accessTokenCookieName),
           });
           store.onChange((value) => {
@@ -573,7 +586,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _useSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
     const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
     const subscribe = useCallback((cb: () => void) => {
-      const { unsubscribe } = tokenStore.onChange(() => cb());
+      const { unsubscribe } = tokenStore.onChange(() => {
+        cb();
+      });
       return unsubscribe;
     }, [tokenStore]);
     const getSnapshot = useCallback(() => this._getSessionFromTokenStore(tokenStore), [tokenStore]);
@@ -633,100 +648,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _userFromJson(json: UserJson): User {
-    const app = this;
-
-    async function getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
-    async function getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
-    async function getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
-      const scopeString = options?.scopes?.join(" ");
-      return await app._currentUserOAuthConnectionCache.getOrWait([app._getSession(), id, scopeString || "", options?.or === 'redirect'], "write-only");
-    }
-
-    function useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
-    function useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
-    function useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
-      const scopeString = options?.scopes?.join(" ");
-      return useAsyncCache(app._currentUserOAuthConnectionCache, [app._useSession(), id, scopeString || "", options?.or === 'redirect'], "user.useConnection()");
-    }
-
-    return {
-      projectId: json.projectId,
-      id: json.id,
-      displayName: json.displayName,
-      primaryEmail: json.primaryEmail,
-      primaryEmailVerified: json.primaryEmailVerified,
-      profileImageUrl: json.profileImageUrl,
-      signedUpAt: new Date(json.signedUpAtMillis),
-      clientMetadata: json.clientMetadata,
-      authMethod: json.authMethod,
-      hasPassword: json.hasPassword,
-      authWithEmail: json.authWithEmail,
-      oauthProviders: json.oauthProviders,
-      getConnection,
-      useConnection,
-      async getSelectedTeam() {
-        return await this.getTeam(json.selectedTeamId || "");
-      },
-      useSelectedTeam() {
-        return this.useTeam(json.selectedTeamId || "");
-      },
-      async getTeam(teamId: string) {
-        const teams = await this.listTeams();
-        return teams.find((t) => t.id === teamId) ?? null;
-      },
-      useTeam(teamId: string) {
-        const teams = this.useTeams();
-        return useMemo(() => {
-          return teams.find((t) => t.id === teamId) ?? null;
-        }, [teams, teamId]);
-      },
-      onTeamChange(teamId: string, callback: (team: Team | null) => void) {
-        return this.onTeamsChange((teams) => {
-          // TODO only call callback if the team actually changed
-          const team = teams.find((t) => t.id === teamId) ?? null;
-          callback(team);
-        });
-      },
-      async listTeams() {
-        const teams = await app._currentUserTeamsCache.getOrWait([app._getSession()], "write-only");
-        return teams.map((json) => app._teamFromJson(json));
-      },
-      useTeams() {
-        const session = app._useSession();
-        const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
-        return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
-      },
-      onTeamsChange(callback: (value: Team[], oldValue: Team[] | undefined) => void) {
-        return app._currentUserTeamsCache.onChange([app._getSession()], (value, oldValue) => {
-          callback(value.map((json) => app._teamFromJson(json)), oldValue?.map((json) => app._teamFromJson(json)));
-        });
-      },
-      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
-        const permissions = await app._currentUserPermissionsCache.getOrWait([app._getSession(), scope.id, 'team', !!options?.direct], "write-only");
-        return permissions.map((json) => app._permissionFromJson(json));
-      },
-      usePermissions(scope: Team, options?: { direct?: boolean }): Permission[] {
-        const permissions = useAsyncCache(app._currentUserPermissionsCache, [app._getSession(), scope.id, 'team', !!options?.direct], "user.usePermissions()");
-        return useMemo(() => permissions.map((json) => app._permissionFromJson(json)), [permissions]);
-      },
-      usePermission(scope: Team, permissionId: string): Permission | null {
-        const permissions = this.usePermissions(scope);
-        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
-      },
-      async getPermission(scope: Team, permissionId: string): Promise<Permission | null> {
-        const permissions = await this.listPermissions(scope);
-        return permissions.find((p) => p.id === permissionId) ?? null;
-      },
-      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
-        return (await this.getPermission(scope, permissionId)) !== null;
-      },
-      toJson() {
-        return json;
-      },
-    };
-  }
-
   protected _teamMemberFromJson(json: TeamMemberJson): TeamMember;
   protected _teamMemberFromJson(json: TeamMemberJson | null): TeamMember | null;
   protected _teamMemberFromJson(json: TeamMemberJson | null): TeamMember | null {
@@ -738,7 +659,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _authFromJson<T, C>(session: InternalSession): Auth<T, C> {
+  protected _createAuth(session: InternalSession): Auth {
     const app = this;
     return {
       _internalSession: session,
@@ -763,14 +684,111 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signOut() {
         return app._signOut(session);
       },
-    
-      // TODO these should not actually be on Auth, instead on User
+    };
+  }
+
+  protected _createBaseUser(json: UserJson): BaseUser {
+    return {
+      projectId: json.projectId,
+      id: json.id,
+      displayName: json.displayName,
+      primaryEmail: json.primaryEmail,
+      primaryEmailVerified: json.primaryEmailVerified,
+      profileImageUrl: json.profileImageUrl,
+      signedUpAt: new Date(json.signedUpAtMillis),
+      clientMetadata: json.clientMetadata,
+      hasPassword: json.hasPassword,
+      authWithEmail: json.authWithEmail,
+      oauthProviders: json.oauthProviders,
+      selectedTeam: json.selectedTeam && this._teamFromJson(json.selectedTeam),
+      toClientJson(): UserJson {
+        return pick(json, [
+          "projectId",
+          "id",
+          "displayName",
+          "primaryEmail",
+          "primaryEmailVerified",
+          "profileImageUrl",
+          "signedUpAtMillis",
+          "clientMetadata",
+          "hasPassword",
+          "authMethod",
+          "authWithEmail",
+          "selectedTeamId",
+          "selectedTeam",
+          "oauthProviders",
+        ]);
+      },
+    };
+  }
+
+  protected _createUserExtra(json: UserJson, session: InternalSession): UserExtra {
+    const app = this;
+    async function getConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
+    async function getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
+    async function getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
+      const scopeString = options?.scopes?.join(" ");
+      return await app._currentUserOAuthConnectionCache.getOrWait([session, id, scopeString || "", options?.or === 'redirect'], "write-only");
+    }
+
+    function useConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
+    function useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
+    function useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
+      const scopeString = options?.scopes?.join(" ");
+      return useAsyncCache(app._currentUserOAuthConnectionCache, [session, id, scopeString || "", options?.or === 'redirect'], "user.useConnectedAccount()");
+    }
+
+    return {
+      setDisplayName(displayName: string) {
+        return this.update({ displayName });
+      },
+      setClientMetadata(metadata: Record<string, any>) {
+        return this.update({ clientMetadata: metadata });
+      },
       async setSelectedTeam(team: Team | null) {
-        await app._updateUser({ selectedTeamId: team?.id ?? null }, session);
+        await this.update({ selectedTeamId: team?.id ?? null });
+      },
+      getConnectedAccount: getConnectedAccount,
+      useConnectedAccount: useConnectedAccount,
+      async getTeam(teamId: string) {
+        const teams = await this.listTeams();
+        return teams.find((t) => t.id === teamId) ?? null;
+      },
+      useTeam(teamId: string) {
+        const teams = this.useTeams();
+        return useMemo(() => {
+          return teams.find((t) => t.id === teamId) ?? null;
+        }, [teams, teamId]);
+      },
+      async listTeams() {
+        const teams = await app._currentUserTeamsCache.getOrWait([session], "write-only");
+        return teams.map((json) => app._teamFromJson(json));
+      },
+      useTeams() {
+        const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
+        return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
+      },
+      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
+        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, 'team', !!options?.direct], "write-only");
+        return permissions.map((json) => app._permissionFromJson(json));
+      },
+      usePermissions(scope: Team, options?: { direct?: boolean }): Permission[] {
+        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, 'team', !!options?.direct], "user.usePermissions()");
+        return useMemo(() => permissions.map((json) => app._permissionFromJson(json)), [permissions]);
+      },
+      usePermission(scope: Team, permissionId: string): Permission | null {
+        const permissions = this.usePermissions(scope);
+        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
+      },
+      async getPermission(scope: Team, permissionId: string): Promise<Permission | null> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.find((p) => p.id === permissionId) ?? null;
+      },
+      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
+        return (await this.getPermission(scope, permissionId)) !== null;
       },
       update(update) {
-        // TODO make types work without `as any`
-        return app._updateUser(update as any, session);
+        return app._updateUser(update, session);
       },
       sendVerificationEmail() {
         return app._sendVerificationEmail(session);
@@ -781,37 +799,32 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentUserFromJson(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId>;
-  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null;
-  protected _currentUserFromJson(json: UserJson | null, session: InternalSession): ProjectCurrentUser<ProjectId> | null {
-    if (json === null) return null;
+  protected _createInternalUserExtra(session: InternalSession): InternalUserExtra {
     const app = this;
-    const currentUser: CurrentUser = {
-      ...this._userFromJson(json),
-      ...this._authFromJson(session),
+    this._ensureInternalProject();
+    return {
+      createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
+        return app._createProject(session, newProject);
+      },
+      listOwnedProjects() {
+        return app._listOwnedProjects(session);
+      },
+      useOwnedProjects() {
+        return app._useOwnedProjects(session);
+      },
     };
-    if (this._isInternalProject()) {
-      const internalUser: CurrentInternalUser = {
-        ...currentUser,
-        createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
-          return app._createProject(newProject);
-        },
-        listOwnedProjects() {
-          return app._listOwnedProjects();
-        },
-        useOwnedProjects() {
-          return app._useOwnedProjects();
-        },
-        onOwnedProjectsChange(callback: (projects: Project[]) => void) {
-          return app._onOwnedProjectsChange(callback);
-        }
-      };
-      Object.freeze(internalUser);
-      return internalUser;
-    } else {
-      Object.freeze(currentUser);
-      return currentUser as any;
-    }
+  }
+
+  protected _createCurrentUser(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId> {
+    const currentUser = {
+      ...this._createBaseUser(json),
+      ...this._createAuth(session),
+      ...this._createUserExtra(json, session),
+      ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
+    } satisfies CurrentUser;
+
+    Object.freeze(currentUser);
+    return currentUser as ProjectCurrentUser<ProjectId>;
   }
 
   protected _projectAdminFromJson(data: ProjectJson, adminInterface: StackAdminInterface, onRefresh: () => Promise<void>): Project {
@@ -918,10 +931,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.verifyEmail(code);
   }
 
-  async getUser(options: GetUserOptions & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>;
-  async getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>;
-  async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>;
-  async getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null> {
+  async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>;
+  async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>;
+  async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null>;
+  async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null> {
     this._ensurePersistentTokenStore(options?.tokenStore);
     const session = this._getSession(options?.tokenStore);
     const userJson = await this._currentUserCache.getOrWait([session], "write-only");
@@ -941,17 +954,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     }
 
-    return this._currentUserFromJson(userJson, session);
+    return userJson && this._createCurrentUser(userJson, session);
   }
 
-  useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>;
-  useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>;
-  useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null;
-  useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null {
+  useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>;
+  useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentUser<ProjectId>;
+  useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentUser<ProjectId> | null;
+  useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentUser<ProjectId> | null {
     this._ensurePersistentTokenStore(options?.tokenStore);
 
     const router = NextNavigation.useRouter();
-    const session = this._getSession(options?.tokenStore);
+    const session = this._useSession(options?.tokenStore);
     const userJson = useAsyncCache(this._currentUserCache, [session], "useUser()");
     const triggerRedirectToSignIn = useTrigger(() => router.replace(this.urls.signIn));
 
@@ -975,16 +988,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     return useMemo(() => {
-      return this._currentUserFromJson(userJson, session);
+      return userJson && this._createCurrentUser(userJson, session);
     }, [userJson, session, options?.or]);
-  }
-
-  onUserChange(callback: (user: CurrentUser | null) => void) {
-    this._ensurePersistentTokenStore();
-    const session = this._getSession();
-    return this._currentUserCache.onChange([session], (userJson) => {
-      callback(this._currentUserFromJson(userJson, session));
-    });
   }
 
   protected async _updateUser(update: UserUpdateJson, session: InternalSession) {
@@ -1105,13 +1110,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return useAsyncCache(this._currentProjectCache, [], "useProject()");
   }
 
-  onProjectChange(callback: (project: ClientProjectJson) => void) {
-    return this._currentProjectCache.onChange([], callback);
-  }
-
-  protected async _listOwnedProjects(): Promise<Project[]> {
+  protected async _listOwnedProjects(session: InternalSession): Promise<Project[]> {
     this._ensureInternalProject();
-    const session = this._getSession();
     const json = await this._ownedProjectsCache.getOrWait([session], "write-only");
     return json.map((j) => this._projectAdminFromJson(
       j,
@@ -1120,9 +1120,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ));
   }
 
-  protected _useOwnedProjects(): Project[] {
+  protected _useOwnedProjects(session: InternalSession): Project[] {
     this._ensureInternalProject();
-    const session = this._getSession();
     const json = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
     return useMemo(() => json.map((j) => this._projectAdminFromJson(
       j,
@@ -1131,21 +1130,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     )), [json]);
   }
 
-  protected _onOwnedProjectsChange(callback: (projects: Project[]) => void) {
+  protected async _createProject(session: InternalSession, newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
     this._ensureInternalProject();
-    const session = this._getSession();
-    return this._ownedProjectsCache.onChange([session], (projects) => {
-      callback(projects.map((j) => this._projectAdminFromJson(
-        j,
-        this._createAdminInterface(j.id, session),
-        () => this._refreshOwnedProjects(session),
-      )));
-    });
-  }
-
-  protected async _createProject(newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
-    this._ensureInternalProject();
-    const session = this._getSession();
     const json = await this._interface.createProject(newProject, session);
     const res = this._projectAdminFromJson(
       json,
@@ -1244,7 +1230,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamsCache = createCache(async () => {
     return await this._interface.listTeams();
   });
-  private readonly _serverTeamMembersCache = createCache<string[], TeamMemberJson[]>(async ([teamId]) => {
+  private readonly _serverTeamMembersCache = createCache<string[], ServerTeamMemberJson[]>(async ([teamId]) => {
     return await this._interface.listTeamMembers(teamId);
   });
   private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
@@ -1289,26 +1275,87 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected _serverUserFromJson(json: ServerUserJson): ServerUser;
-  protected _serverUserFromJson(json: ServerUserJson | null): ServerUser | null;
-  protected _serverUserFromJson(json: ServerUserJson | null): ServerUser | null {
-    if (json === null) return null;
+  protected override _createBaseUser(json: ServerUserJson): ServerBaseUser;
+  protected override _createBaseUser(json: UserJson): BaseUser;
+  protected override _createBaseUser(json: UserJson | ServerUserJson): BaseUser | ServerBaseUser {
+    return {
+      ...super._createBaseUser(json),
+      ..."serverMetadata" in json ? {
+        serverMetadata: json.serverMetadata,
+        toServerJson() {
+          return {
+            ...this.toClientJson(),
+            ...pick(json, [
+              "serverMetadata"
+            ]),
+          };
+        },
+      } : {},
+    };
+  }
+
+  protected override _createUserExtra(json: ServerUserJson): ServerUserExtra;
+  protected override _createUserExtra(json: UserJson): UserExtra;
+  protected override _createUserExtra(json: UserJson | ServerUserJson): ServerUserExtra {
     const app = this;
     return {
-      ...this._userFromJson(json),
-      serverMetadata: json.serverMetadata,
-      async delete() {
-        const res = await app._interface.deleteServerUser(this.id);
-        await app._refreshUsers();
-        return res;
+      async setDisplayName(displayName: string) {
+        return await this.update({ displayName });
       },
-      async update(update: ServerUserUpdateJson) {
-        const res = await app._interface.setServerUserCustomizableData(this.id, update);
-        await app._refreshUsers();
-        return res;
+      async setClientMetadata(metadata: Record<string, any>) {
+        return await this.update({ clientMetadata: metadata });
       },
-      getClientUser() {
-        return app._userFromJson(json);
+      async setServerMetadata(metadata: Record<string, any>) {
+        return await this.update({ serverMetadata: metadata });
+      },
+      async setSelectedTeam(team: Team | null) {
+        return await this.update({ selectedTeamId: team?.id ?? null });
+      },
+      async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
+        return await this.update({ primaryEmail: email });
+      },
+      getConnectedAccount: async () => {
+        return await app._checkFeatureSupport("getConnectedAccount() on ServerUser", {});
+      },
+      useConnectedAccount: () => {
+        return app._useCheckFeatureSupport("useConnectedAccount() on ServerUser", {});
+      },
+      async getTeam(teamId: string) {
+        const teams = await this.listTeams();
+        return teams.find((t) => t.id === teamId) ?? null;
+      },
+      useTeam(teamId: string) {
+        const teams = this.useTeams();
+        return useMemo(() => {
+          return teams.find((t) => t.id === teamId) ?? null;
+        }, [teams, teamId]);
+      },
+      async listTeams() {
+        const teams = await app.listTeams();
+        const withMembers = await Promise.all(teams.map(async (t) => [t, await t.listMembers()] as const));
+        return withMembers.filter(([_, members]) => members.find((m) => m.userId === json.id)).map(([t]) => t);
+      },
+      useTeams() {
+        return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
+      },
+      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
+        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
+        return permissions.map((json) => app._serverPermissionFromJson(json));
+      },
+      usePermissions(scope: Team, options?: { direct?: boolean }): ServerPermission[] {
+        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, json.id, 'team', !!options?.direct], "user.usePermissions()");
+        return useMemo(() => permissions.map((json) => app._serverPermissionFromJson(json)), [permissions]);
+      },
+      async getPermission(scope: Team, permissionId: string): Promise<ServerPermission | null> {
+        const permissions = await this.listPermissions(scope);
+        return permissions.find((p) => p.id === permissionId) ?? null;
+      },
+      usePermission(scope: Team, permissionId: string): ServerPermission | null {
+        const permissions = this.usePermissions(scope);
+        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
+      },
+      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
+        return await this.getPermission(scope, permissionId) !== null;
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
         await app._interface.grantTeamUserPermission(scope.id, json.id, permissionId, 'team');
@@ -1322,105 +1369,42 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
         }
       },
-      async getTeam(teamId: string) {
-        const teams = await this.listTeams();
-        return teams.find((t) => t.id === teamId) ?? null;
+      async delete() {
+        const res = await app._interface.deleteServerUser(json.id);
+        await app._refreshUsers();
+        return res;
       },
-      useTeam(teamId: string) {
-        const teams = this.useTeams();
-        return useMemo(() => {
-          return teams.find((t) => t.id === teamId) ?? null;
-        }, [teams, teamId]);
+      async update(update: ServerUserUpdateJson) {
+        const res = await app._interface.setServerUserCustomizableData(json.id, update);
+        await app._refreshUsers();
+        return res;
       },
-      onTeamChange(teamId: string, callback: (team: ServerTeam | null) => void) {
-        return this.onTeamsChange((teams) => {
-          // TODO only call callback if the team actually changed
-          const team = teams.find((t) => t.id === teamId) ?? null;
-          callback(team);
-        });
+      async sendVerificationEmail() {
+        return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
       },
-      async listTeams() {
-        const teams = await app._serverTeamsCache.getOrWait([app._getSession()], "write-only");
-        return teams.map((json) => app._serverTeamFromJson(json));
-      },
-      useTeams() {
-        const teams = useAsyncCache(app._serverTeamsCache, [app._getSession()], "user.useTeams()");
-        return useMemo(() => teams.map((json) => app._serverTeamFromJson(json)), [teams]);
-      },
-      onTeamsChange(callback: (value: ServerTeam[], oldValue: ServerTeam[] | undefined) => void) {
-        return app._serverTeamsCache.onChange([app._getSession()], (value, oldValue) => {
-          callback(value.map((json) => app._serverTeamFromJson(json)), oldValue?.map((json) => app._serverTeamFromJson(json)));
-        });
-      },
-      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
-        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
-        return permissions.map((json) => app._serverPermissionFromJson(json));
-      },
-      usePermissions(scope: Team, options?: { direct?: boolean }): ServerPermission[] {
-        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, json.id, 'team', !!options?.direct], "user.usePermissions()");
-        return useMemo(() => permissions.map((json) => app._serverPermissionFromJson(json)), [permissions]);
-      },
-      usePermission(scope: Team, permissionId: string): ServerPermission | null {
-        const permissions = this.usePermissions(scope);
-        return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
-      },
-      async getPermission(scope: Team, permissionId: string): Promise<ServerPermission | null> {
-        const permissions = await this.listPermissions(scope);
-        return permissions.find((p) => p.id === permissionId) ?? null;
-      },
-      async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
-        const permissions = await this.listPermissions(scope);
-        return permissions.some((p) => p.id === permissionId);
-      },
-      toJson() {
-        return json;
+      async updatePassword(options: { oldPassword?: string, newPassword: string}) {
+        return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
       },
     };
   }
 
-  protected _currentServerUserFromJson(json: ServerUserJson, session: InternalSession): ProjectCurrentSeverUser<ProjectId>;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, session: InternalSession): ProjectCurrentSeverUser<ProjectId> | null;
-  protected _currentServerUserFromJson(json: ServerUserJson | null, session: InternalSession): ProjectCurrentSeverUser<ProjectId> | null {
-    if (json === null) return null;
-    const app = this;
-    const nonCurrentServerUser = this._serverUserFromJson(json);
-    const currentUser: CurrentServerUser = {
-      ...nonCurrentServerUser,
-      ...this._authFromJson(session),
-      async delete() {
-        const res = await nonCurrentServerUser.delete();
-        // TODO instead of refreshing user session in this override, the normal ServerUser delete function should invalidate all sessions with that user ID
-        // same for everywhere else where user sessions are refreshed
-        await app._refreshUser(session);
-        return res;
-      },
-      getClientUser() {
-        return app._currentUserFromJson(json, session);
-      },
+  protected _createUser(json: ServerUserJson): ServerUser {
+    return {
+      ...this._createBaseUser(json),
+      ...this._createUserExtra(json),
     };
+  }
 
-    if (this._isInternalProject()) {
-      const internalUser: CurrentInternalServerUser = {
-        ...currentUser,
-        createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
-          return app._createProject(newProject);
-        },
-        listOwnedProjects() {
-          return app._listOwnedProjects();
-        },
-        useOwnedProjects() {
-          return app._useOwnedProjects();
-        },
-        onOwnedProjectsChange(callback: (projects: Project[]) => void) {
-          return app._onOwnedProjectsChange(callback);
-        }
-      };
-      Object.freeze(internalUser);
-      return internalUser;
-    } else {
-      Object.freeze(currentUser);
-      return currentUser as any;
-    }
+  protected override _createCurrentUser(json: ServerUserJson, session: InternalSession): ProjectCurrentServerUser<ProjectId> {
+    const app = this;
+    const currentUser = {
+      ...this._createUser(json),
+      ...this._createAuth(session),
+      ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
+    } satisfies ServerUser;
+
+    Object.freeze(currentUser);
+    return currentUser as ProjectCurrentServerUser<ProjectId>;
   }
 
   protected _serverTeamMemberFromJson(json: ServerTeamMemberJson): ServerTeamMember;
@@ -1430,11 +1414,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const app = this;
     return {
       ...app._teamMemberFromJson(json),
-      async getUser() {
-        const user = app._serverUserFromJson(await app._serverUserCache.getOrWait([json.userId], "write-only"));
-        if (!user) throw new Error(`User ${json.userId} not found`);
-        return user;
-      }
+      user: app._createUser(json.user),
     };
   }
 
@@ -1479,58 +1459,97 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  async getServerUser(): Promise<ProjectCurrentSeverUser<ProjectId> | null> {
-    this._ensurePersistentTokenStore();
-    const session = this._getSession();
+
+  async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>;
+  async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>;
+  async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>;
+  async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null> {
+    // TODO this code is duplicated from the client app; fix that
+    this._ensurePersistentTokenStore(options?.tokenStore);
+    const session = this._getSession(options?.tokenStore);
     const userJson = await this._currentServerUserCache.getOrWait([session], "write-only");
-    return this._currentServerUserFromJson(userJson, session);
+
+    if (userJson === null) {
+      switch (options?.or) {
+        case 'redirect': {
+          await this.redirectToSignIn();
+          break;
+        }
+        case 'throw': {
+          throw new Error("User is not signed in but getUser was called with { or: 'throw' }");
+        }
+        default: {
+          return null;
+        }
+      }
+    }
+
+    return userJson && this._createCurrentUser(userJson, session);
+  }
+
+  async getServerUser(): Promise<ProjectCurrentServerUser<ProjectId> | null> {
+    console.warn("stackServerApp.getServerUser is deprecated; use stackServerApp.getUser instead");
+    return await this.getUser();
   }
 
   async getServerUserById(userId: string): Promise<ServerUser | null> {
     const json = await this._serverUserCache.getOrWait([userId], "write-only");
-    return this._serverUserFromJson(json);
+    return json && this._createUser(json);
   }
 
-  useServerUser(options?: { required: boolean }): ProjectCurrentSeverUser<ProjectId> | null {
-    // TODO deprecate in favor of making useUser return server users automatically
-    this._ensurePersistentTokenStore();
+  useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>;
+  useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>;
+  useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null;
+  useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null {
+    // TODO this code is duplicated from the client app; fix that
+    this._ensurePersistentTokenStore(options?.tokenStore);
 
-    const session = this._getSession();
-    const userJson = useAsyncCache(this._currentServerUserCache, [session], "useServerUser()");
+    const router = NextNavigation.useRouter();
+    const session = this._getSession(options?.tokenStore);
+    const userJson = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
+    const triggerRedirectToSignIn = useTrigger(() => router.replace(this.urls.signIn));
 
-    return useMemo(() => {
-      if (options?.required && userJson === null) {
-        use(this.redirectToSignIn());
+    if (userJson === null) {
+      switch (options?.or) {
+        case 'redirect': {
+          // Updating the router is not allowed during the component render function, so we do it in a different async tick
+          // The error would be: "Cannot update a component (`Router`) while rendering a different component."
+          triggerRedirectToSignIn();
+          suspend();
+          throw new StackAssertionError("suspend should never return");
+        }
+        case 'throw': {
+          throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
+        }
+        case undefined:
+        case "return-null": {
+          // do nothing
+        }
       }
+    }
 
-      return this._currentServerUserFromJson(userJson, session);
-    }, [userJson, session, options?.required]);
-  }
-
-  onServerUserChange(callback: (user: CurrentServerUser | null) => void) {
-    this._ensurePersistentTokenStore();
-    const session = this._getSession();
-    return this._currentServerUserCache.onChange([session], (userJson) => {
-      callback(this._currentServerUserFromJson(userJson, session));
-    });
-  }
-
-  async listServerUsers(): Promise<ServerUser[]> {
-    const json = await this._serverUsersCache.getOrWait([], "write-only");
-    return json.map((j) => this._serverUserFromJson(j));
-  }
-
-  useServerUsers(): ServerUser[] {
-    const json = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
     return useMemo(() => {
-      return json.map((j) => this._serverUserFromJson(j));
+      return userJson && this._createCurrentUser(userJson, session);
+    }, [userJson, session, options?.or]);
+  }
+
+  useUserById(userId: string): ServerUser | null {
+    const json = useAsyncCache(this._serverUserCache, [userId], "useUserById()");
+    return useMemo(() => {
+      return json && this._createUser(json);
     }, [json]);
   }
 
-  onServerUsersChange(callback: (users: ServerUser[]) => void) {
-    return this._serverUsersCache.onChange([], (users) => {
-      callback(users.map((j) => this._serverUserFromJson(j)));
-    });
+  async listUsers(): Promise<ServerUser[]> {
+    const json = await this._serverUsersCache.getOrWait([], "write-only");
+    return json.map((j) => this._createUser(j));
+  }
+
+  useUsers(): ServerUser[] {
+    const json = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
+    return useMemo(() => {
+      return json.map((j) => this._createUser(j));
+    }, [json]);
   }
 
   async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
@@ -1720,16 +1739,6 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     ), [json]);
   }
 
-  onProjectAdminChange(callback: (project: Project) => void) {
-    return this._adminProjectCache.onChange([], (project) => {
-      callback(this._projectAdminFromJson(
-        project,
-        this._interface,
-        () => this._refreshProject()
-      ));
-    });
-  }
-
   async listApiKeySets(): Promise<ApiKeySet[]> {
     const json = await this._apiKeySetsCache.getOrWait([], "write-only");
     return json.map((j) => this._createApiKeySetFromJson(j));
@@ -1740,12 +1749,6 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     return useMemo(() => {
       return json.map((j) => this._createApiKeySetFromJson(j));
     }, [json]);
-  }
-
-  onApiKeySetsChange(callback: (apiKeySets: ApiKeySet[]) => void) {
-    return this._apiKeySetsCache.onChange([], (apiKeySets) => {
-      callback(apiKeySets.map((j) => this._createApiKeySetFromJson(j)));
-    });
   }
 
   async createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView> {
@@ -1777,10 +1780,10 @@ type Session = {
 /**
  * Contains everything related to the current user session.
  */
-type Auth<T, C> = {
+type Auth = {
   readonly _internalSession: InternalSession,
   readonly currentSession: Session,
-  signOut(this: T): Promise<void>,
+  signOut(): Promise<void>,
 
   /**
    * Returns headers for sending authenticated HTTP requests to external servers. Most commonly used in cross-origin
@@ -1849,28 +1852,15 @@ type Auth<T, C> = {
    * ```
    */
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
-
-
-  // TODO these should not actually be here
-  update(this: T, user: C): Promise<void>,
-  setSelectedTeam(this: T, team: Team | null): Promise<void>,
-  sendVerificationEmail(this: T): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
-  updatePassword(this: T, options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 };
 
-type InternalAuth<T> = {
-  createProject(this: T, newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project>,
-  listOwnedProjects(this: T): Promise<Project[]>,
-  useOwnedProjects(this: T): Project[],
-  onOwnedProjectsChange(this: T, callback: (projects: Project[]) => void): void,
-};
-
-export type User = (
+export type User =
   & {
     readonly projectId: string,
     readonly id: string,
 
     readonly displayName: string | null,
+    setDisplayName(displayName: string): Promise<void>,
 
     /**
      * The user's email address.
@@ -1879,82 +1869,116 @@ export type User = (
      */
     readonly primaryEmail: string | null,
     readonly primaryEmailVerified: boolean,
+    sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
 
     readonly profileImageUrl: string | null,
 
     readonly signedUpAt: Date,
 
     readonly clientMetadata: ReadonlyJson,
+    setClientMetadata(metadata: ReadonlyJson): Promise<void>,
 
-    readonly authMethod: 'credential' | 'oauth', // not used anymore, for backwards compatibility
-    readonly hasPassword: boolean,
+    /**
+     * Whether the primary e-mail can be used for authentication.
+     */
     readonly authWithEmail: boolean,
+    /**
+     * Whether the user has a password set.
+     */
+    readonly hasPassword: boolean,
     readonly oauthProviders: readonly string[],
+    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
-    hasPermission(this: CurrentUser, scope: Team, permissionId: string): Promise<boolean>,
-    getSelectedTeam(this: CurrentUser): Promise<Team | null>,
-    useSelectedTeam(this: CurrentUser): Team | null,
-    
-    getConnection(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>,
-    getConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
-    getConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null>,
-    useConnection(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null,
-    useConnection(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
-    useConnection(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null,
+    /**
+     * A shorthand method to update multiple fields of the user at once.
+     */
+    update(update: UserUpdateJson): Promise<void>,
 
-    toJson(this: CurrentUser): UserJson,
+    hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+
+    readonly selectedTeam: Team | null,
+    setSelectedTeam(team: Team | null): Promise<void>,
+
+    getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
+    getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
+    useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
+    useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
+
+    toClientJson(): UserJson,
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
-  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>, "onPermissionChange">
-  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>, "onPermissionsChange">
-);
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>;
 
-export type CurrentUser = Auth<User, UserUpdateJson> & User;
+type BaseUser = Pick<User,
+  | "projectId"
+  | "id"
+  | "displayName"
+  | "primaryEmail"
+  | "primaryEmailVerified"
+  | "profileImageUrl"
+  | "signedUpAt"
+  | "clientMetadata"
+  | "hasPassword"
+  | "authWithEmail"
+  | "oauthProviders"
+  | "selectedTeam"
+  | "toClientJson"
+>;
 
-export type CurrentInternalUser = CurrentUser & InternalAuth<CurrentUser>;
+type UserExtra = Omit<User, keyof BaseUser>;
+
+type InternalUserExtra =
+  & {
+    createProject(newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project>,
+  }
+  & AsyncStoreProperty<"ownedProjects", [], Project[], true>
+
+export type CurrentUser = Auth & User;
+
+export type CurrentInternalUser = CurrentUser & InternalUserExtra;
 
 /**
  * A user including sensitive fields that should only be used on the server, never sent to the client
  * (such as sensitive information and serverMetadata).
  */
-export type ServerUser = (
-  Omit<
-    User, 
-    'hasPermission' | 'toJson' 
-      | keyof AsyncStoreProperty<"team", [], Team | null, false>
-      | keyof AsyncStoreProperty<"teams", [], Team[], true>
-      | keyof AsyncStoreProperty<"permission", [], Permission[], false> 
-      | keyof AsyncStoreProperty<"permissions", [], Permission[], true> 
-  > & {
+export type ServerUser =
+  & {
+    setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
+
     readonly serverMetadata: ReadonlyJson,
+    setServerMetadata(metadata: ReadonlyJson): Promise<void>,
 
-    /**
-     * Returns a new user object with the sensitive fields removed.
-     */
-    getClientUser(this: ServerUser): User,
+    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
-    update(this: ServerUser, user: Partial<ServerUserUpdateJson>): Promise<void>,
-    delete(this: ServerUser): Promise<void>,
+    update(user: Partial<ServerUserUpdateJson>): Promise<void>,
+    delete(): Promise<void>,
 
     grantPermission(scope: Team, permissionId: string): Promise<void>,
     revokePermission(scope: Team, permissionId: string): Promise<void>,
 
     hasPermission(scope: Team, permissionId: string): Promise<boolean>,
 
-    toJson(this: ServerUser): ServerUserJson,
-  } 
+    toServerJson(): ServerUserJson,
+  }
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & Omit<AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>, "onPermissionChange">
-  & Omit<AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>, "onPermissionsChange">
-)
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>
+  & User;
 
-export type CurrentServerUser = Auth<ServerUser, ServerUserUpdateJson> & Omit<ServerUser, "getClientUser"> & {
-  getClientUser(this: CurrentServerUser): CurrentUser,
-};
+type ServerBaseUser = Pick<ServerUser,
+  | keyof BaseUser
+  | "serverMetadata"
+  | "toServerJson"
+>;
 
-export type CurrentInternalServerUser = CurrentServerUser & InternalAuth<CurrentServerUser>;
+type ServerUserExtra = Omit<ServerUser, keyof ServerBaseUser>;
+
+export type CurrentServerUser = Auth & ServerUser;
+
+export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 
 export type Project = {
   readonly id: string,
@@ -1986,7 +2010,7 @@ export type Team = {
   displayName: string,
   createdAt: Date,
 
-  toJson(this: Team): TeamJson,
+  toJson(): TeamJson,
 };
 
 export type ServerTeam = Team & {
@@ -2005,7 +2029,7 @@ export type TeamMember = {
 }
 
 export type ServerTeamMember = TeamMember & {
-  getUser(): Promise<ServerUser>,
+  user: ServerUser,
 }
 
 export type Permission = {
@@ -2068,14 +2092,17 @@ export type DomainConfig = DomainConfigJson;
 
 export type OAuthProviderConfig = OAuthProviderConfigJson;
 
-export type GetUserOptions = {
-  or?: 'redirect' | 'throw' | 'return-null',
-  tokenStore?: TokenStoreInit,
-};
+export type GetUserOptions<HasTokenStore> =
+  & {
+    or?: 'redirect' | 'throw' | 'return-null',
+    tokenStore?: TokenStoreInit,
+  }
+  & (HasTokenStore extends false ? {
+    tokenStore: TokenStoreInit,
+  } : {});
 
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
-  & { [key in `on${Capitalize<Name>}Change`]: (...tupleArgs: [...args: Args, callback: (value: Value) => void]) => void }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
@@ -2095,6 +2122,14 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | void>,
 
+    redirectToOAuthCallback(): Promise<void>,
+    useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
+    useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
+    useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentUser<ProjectId> | null,
+    getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>,
+    getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>,
+    getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null>,
+
     [stackAppInternalsSymbol]: {
       toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
       setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
@@ -2102,18 +2137,6 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
   }
   & AsyncStoreProperty<"project", [], ClientProjectJson, false>
   & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: (options?: RedirectToOptions) => Promise<void> }
-  & (HasTokenStore extends false
-    ? {}
-    : {
-      redirectToOAuthCallback(): Promise<void>,
-      useUser(options: GetUserOptions & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
-      useUser(options: GetUserOptions & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
-      useUser(options?: GetUserOptions): ProjectCurrentUser<ProjectId> | null,
-      getUser(options: GetUserOptions & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>,
-      getUser(options: GetUserOptions & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>,
-      getUser(options?: GetUserOptions): Promise<ProjectCurrentUser<ProjectId> | null>,
-      onUserChange: AsyncStoreProperty<"user", [], CurrentUser | null, false>["onUserChange"],
-    })
 );
 type StackClientAppConstructor = {
   new <
@@ -2132,7 +2155,6 @@ type StackClientAppConstructor = {
 export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 
 export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
-  & StackClientApp<HasTokenStore, ProjectId>
   & {
     createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
     createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>,
@@ -2144,11 +2166,23 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']>,
     updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void>,
     resetEmailTemplate(type: EmailTemplateType): Promise<void>,
+
+    /**
+     * @deprecated use `getUser()` instead
+     */
+    getServerUser(): Promise<ProjectCurrentServerUser<ProjectId> | null>,
+
+    useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>,
+    useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>,
+    useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null,
+    getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>,
+    getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
+    getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
   }
-  & AsyncStoreProperty<"serverUser", [], CurrentServerUser | null, false>
-  & AsyncStoreProperty<"serverUsers", [], ServerUser[], true>
-  & Omit<AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>, "onTeamChange">
-  & Omit<AsyncStoreProperty<"teams", [], ServerTeam[], true>, "onTeamsChange">
+  & StackClientApp<HasTokenStore, ProjectId>
+  & AsyncStoreProperty<"users", [], ServerUser[], true>
+  & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
+  & AsyncStoreProperty<"teams", [], ServerTeam[], true>
 );
 type StackServerAppConstructor = {
   new <

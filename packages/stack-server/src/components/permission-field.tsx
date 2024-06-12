@@ -207,8 +207,8 @@ export function PermissionListField<F extends FieldValues>(props: {
                     />
                   </FormControl>
                   <FieldLabel>
-                    {permission.id} 
-                    {inheritedFrom && <span className="text-gray-500"> {inheritedFrom}</span>}
+                    {permission.id}
+                    {inheritedFrom && <span className="text-gray-500 ml-1">{inheritedFrom}</span>}
                   </FieldLabel>
                   <FormMessage />
                 </label>

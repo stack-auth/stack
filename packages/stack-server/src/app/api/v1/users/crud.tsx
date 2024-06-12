@@ -1,3 +1,4 @@
+import { serverUserInclude } from "@/lib/users";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -22,9 +23,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       },
     };
   },
-  include: async () => ({
-    projectUserOAuthAccounts: true,
-  }),
+  include: async () => serverUserInclude,
   createNotFoundError: () => new KnownErrors.UserNotFound(),
   crudToPrisma: async (crud, { auth }) => {
     const projectId = auth.project.id;

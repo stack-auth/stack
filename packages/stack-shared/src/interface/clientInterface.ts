@@ -33,6 +33,7 @@ export type UserJson = UserCustomizableJson & {
   authWithEmail: boolean,
   oauthProviders: string[],
   selectedTeamId: string | null,
+  selectedTeam: TeamJson | null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
@@ -433,6 +434,18 @@ export class StackClientInterface {
     }
 
     return Result.ok(res);
+  }
+
+  public async checkFeatureSupport(options: { featureName?: string } & ReadonlyJson): Promise<never> {
+    const res = await this.sendClientRequest("/check-feature-support", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(options),
+    }, null);
+
+    throw new StackAssertionError(await res.text());
   }
 
   async sendForgotPasswordEmail(

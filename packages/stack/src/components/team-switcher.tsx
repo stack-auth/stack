@@ -30,7 +30,7 @@ function TeamIcon(props: { displayName: string }) {
 export default function TeamSwitcher(props: TeamSwitcherProps) {
   const user = useUser();
   const router = useRouter();
-  const selectedTeam = user?.useSelectedTeam();
+  const selectedTeam = user?.selectedTeam;
   const rawTeams = user?.useTeams();
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 

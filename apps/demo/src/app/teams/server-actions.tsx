@@ -3,7 +3,7 @@
 import { stackServerApp } from "src/stack";
 
 export const createTeam = async (data) => {
-  const user = await stackServerApp.getServerUser();
+  const user = await stackServerApp.getUser();
   if (!user) {
     throw new Error('Unauthorized');
   }

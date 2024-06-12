@@ -93,6 +93,10 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
 };
 
 export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-project-id" | "not-admin" | null> {
+  if (!adminAccessToken) {
+    return "unparsable-access-token";
+  }
+
   let decoded;
   try {
     decoded = await decodeAccessToken(adminAccessToken);
@@ -100,7 +104,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     if (error instanceof KnownErrors.AccessTokenExpired) {
       return "access-token-expired";
     }
-    console.warn("Failed to decode a user-provided access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
+    console.warn("Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
     return "unparsable-access-token";
   }
   const { userId, projectId: accessTokenProjectId } = decoded;

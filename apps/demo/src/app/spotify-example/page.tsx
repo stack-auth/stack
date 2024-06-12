@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
   const user = useUser({ or: 'redirect' });
-  const connection = user.useConnection('spotify', { or: 'redirect' });
+  const connection = user.useConnectedAccount('spotify', { or: 'redirect' });
   const token = connection.useAccessToken();
   const [playList, setPlayList] = useState<any>();
 
@@ -25,7 +25,7 @@ export default function Page() {
 
   return (
     <>
-      <Button onClick={async () => console.log(await (await user.getConnection('spotify', { or: 'redirect', scopes: ['playlist-read-private'] })).getAccessToken())}>
+      <Button onClick={async () => console.log(await (await user.getConnectedAccount('spotify', { or: 'redirect', scopes: ['playlist-read-private'] })).getAccessToken())}>
         Get Spotify Playlist
       </Button>
       <div>

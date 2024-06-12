@@ -2,16 +2,15 @@ import { CurrentUser, GetUserOptions as AppGetUserOptions, StackClientApp, Curre
 import { StackContext } from "../providers/stack-provider-client";
 import { useContext } from "react";
 
+type GetUserOptions = AppGetUserOptions<true> & {
+  projectIdMustMatch?: string,
+};
+
 /**
  * Returns the current user object. Equivalent to `useStackApp().useUser()`.
  * 
  * @returns the current user
  */
-
-type GetUserOptions = AppGetUserOptions & {
-  projectIdMustMatch?: string,
-}
-
 export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw', projectIdMustMatch: "internal" }): CurrentInternalUser;
 export function useUser(options: GetUserOptions & { or: 'redirect' | 'throw' }): CurrentUser;
 export function useUser(options: GetUserOptions & { projectIdMustMatch: "internal" }): CurrentInternalUser | null;

@@ -166,7 +166,7 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
   useEffect(() => {
     async function load() {
       const promises = props.members.map(async member => {
-        const user = await member.getUser();
+        const user = member.user;
         const permissions = await user.listPermissions(props.team, { direct: true });
         return {
           user,

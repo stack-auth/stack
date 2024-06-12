@@ -47,7 +47,7 @@ export default function MagicLinkSignIn() {
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Button disabled={sent} style={{ marginTop: '1.5rem' }} type="submit">
-        {sent ? 'Email sent' : 'Send magic link'}
+        {sent ? 'Email sent!' : 'Send magic link'}
       </Button>
     </form>
   );
