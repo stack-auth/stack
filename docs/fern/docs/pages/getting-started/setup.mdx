@@ -2,9 +2,6 @@
 slug: getting-started/setup
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## Setup
 
 To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
@@ -17,7 +14,7 @@ cd stack-example
 You can choose between two ways to install Stack: the setup wizard or manual installation. We recommend using the setup wizard first as it is very easy. However, if you have a non-standard project structure or the setup wizard doesn't work for you, you can follow the manual installation guide.
 
 <Tabs>
-  <TabItem value="wizard" label="Setup wizard (Recommended)" default>
+  <Tab title="Setup wizard (Recommended)">
 
 
 To setup stack, you can run Stack's installation wizard with the following command:
@@ -34,9 +31,9 @@ NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
 STACK_SECRET_SERVER_KEY=<your-secret-server-key>
 ```
 
-  </TabItem>
+  </Tab>
 
-  <TabItem value="manual" label="Manual installation">
+  <Tab title="Manual installation">
 
 First, install Stack with npm, yarn, or pnpm:
 
@@ -114,16 +111,16 @@ npm install @stackframe/stack
       </>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
 
-    ![Stack sign up page](../imgs/signup-page.png)
+![Stack sign up page](../imgs/signup-page.png)
 
-    After signing up/in, you will be redirected back to the home page, which is empty/default for now. We will add some useful information to it in the next section. You can also check out [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
+After signing up/in, you will be redirected back to the home page, which is empty/default for now. We will add some useful information to it in the next section. You can also check out [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
 
-    ![Stack account settings page](../imgs/account-settings-page.png)
+![Stack account settings page](../imgs/account-settings-page.png)
 
 
 

@@ -2,9 +2,6 @@
 slug: getting-started/teams
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Teams provide a structured way to group users and manage their permissions. Users can belong to multiple teams, which can represent departments, B2B customers, or projects.
 
 To assign users to a default team upon sign-up, activate the corresponding toggle in the Stack dashboard under the team settings tab. This setting automatically assigns each new user to a team.
@@ -23,13 +20,11 @@ const team = await stackServerApp.createTeam({
 
 ### Adding a User to a Team
 
-To add a user to a team, you can call the `addUserToTeam` method on the `stackServerApp`. Here is an example:
+To add a user to a team, you can call the `addUser` method on the `Team` object. Here is an example:
 
 ```tsx
-await stackServerApp.addUserToTeam({
-  teamId: team.id,
-  userId: user.id,
-});
+const team = await stackServerApp.getTeam('teamId');
+await team.addUser(user);
 ```
 
 ### List All the Teams of a User
@@ -37,7 +32,7 @@ await stackServerApp.addUserToTeam({
 You can list all the teams a user belongs to by using the `listTeams` method or `useTeams` hook on the User object. Here is how you can do it:
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component">
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -51,9 +46,9 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -66,7 +61,7 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 
@@ -75,7 +70,7 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
 To obtain details of a specific team that a user belongs to, use the `getTeam` method or `useTeam` hook. Note, this may return `null` if the user is not a member of the team. Here is an example:
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component">
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -89,9 +84,9 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -104,7 +99,7 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 ### List All the Teams
@@ -162,7 +157,7 @@ Permissions can be nested, allowing you to create a hierarchical structure. For 
 You can check if a user has a specific permission by using the `getPermission` method or `usePermission` hook on the `User` object. This returns the `Permission` object if the user has it; otherwise, it returns `null`. Be cautious with client-side checks for permissions, as they can be bypassed. Always perform permission checks on the server side for business logic. Here is an example:
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component">
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -177,9 +172,9 @@ You can check if a user has a specific permission by using the `getPermission` m
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -193,7 +188,7 @@ You can check if a user has a specific permission by using the `getPermission` m
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 
@@ -202,7 +197,7 @@ You can check if a user has a specific permission by using the `getPermission` m
 To get all permissions a user has, use the `listPermissions` method or `usePermissions` hook on the User object. This method retrieves all direct and indirect permissions. Here is an example:
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component" default>
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -216,9 +211,9 @@ To get all permissions a user has, use the `listPermissions` method or `usePermi
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -231,7 +226,7 @@ To get all permissions a user has, use the `listPermissions` method or `usePermi
       </div>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 ### Grant a Permission to a User

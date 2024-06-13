@@ -2,9 +2,6 @@
 slug: getting-started/users
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 In [the last guide](./setup.mdx), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
 ## Client Components
@@ -52,7 +49,7 @@ The difference between `getUser()` and `useUser()` is that `useUser()` will re-r
 Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect the page. If the user is not logged in, they will be redirected to the sign-in page.
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component">
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -62,9 +59,9 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
       return <h1>You can only see this if you are logged in</h1>
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -73,7 +70,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
       return <h1>You can only see this if you are logged in</h1>
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 
@@ -83,7 +80,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
 
 <Tabs>
-  <TabItem value="client" label="user.signOut()" default>
+  <Tab title="user.signOut()">
     ```tsx
     "use client";
     import { useUser } from "@stackframe/stack";
@@ -95,9 +92,9 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
       </button>;
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Redirect">
+  <Tab title="Redirect">
     ```tsx
     import { stackServerApp } from "@/stack";
 
@@ -107,7 +104,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
       </a>;
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 
@@ -116,7 +113,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 Stack automatically creates a user profile on sign-up. Let's create a page that displays this information. In `app/profile/page.tsx`:
 
 <Tabs>
-  <TabItem value="client" label="Client Component" default>
+  <Tab title="Client Component">
     ```tsx
     'use client';
     import { useUser, useStackApp, UserButton } from "@stackframe/stack";
@@ -144,9 +141,9 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       );
     }
     ```
-  </TabItem>
+  </Tab>
 
-  <TabItem value="server" label="Server Component">
+  <Tab title="Server Component">
     ```tsx
     import { stackServerApp } from "@/stack";
     import { UserButton } from "@stackframe/stack";
@@ -173,7 +170,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
       );
     }
     ```
-  </TabItem>
+  </Tab>
 </Tabs>
 
 Note the `UserButton` is a component that you normally put in the top right corner of your page. It shows the user's profile picture (and optionally their name) and opens a dropdown with the user's profile, account settings, and sign-out button. It looks like this:
