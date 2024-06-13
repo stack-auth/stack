@@ -4,13 +4,16 @@ import yaml from 'yaml';
 import * as yup from 'yup';
 
 console.log(yaml.stringify(parseOpenAPI({
-  endpointOptions: [{
-    handler: usersCrudHandlers,
-    path: '/users/{userId}',
-    pathSchema: yup.object({
-      userId: yup.string().required().meta({ description: 'The user ID' })
-    }),
-  }],
+  endpointOptions: [
+    {
+      handler: usersCrudHandlers.listHandler,
+      path: '/users'
+    },
+    {
+      handler: usersCrudHandlers,
+      path: '/users/{userId}',
+    }
+  ],
 })));
 
 // console.log(usersCrudHandlers.readHandler.schemas.get('server')?.request?.describe().fields)

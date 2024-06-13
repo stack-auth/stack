@@ -110,6 +110,11 @@ type SmartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 > = {
+  metadata?: {
+    summary: string,
+    description: string,
+    operationId: string,
+  },
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
@@ -121,7 +126,13 @@ type SmartRouteHandlerGenerator<
   Res extends SmartResponse,
 > = (param: OverloadParam) => SmartRouteHandler<Req, Res>;
 
-export type RouteHandlerSchemaMap = Map<string, { request: yup.Schema, response: yup.Schema }>;
+export type RouteHandlerMetadata = {
+  summary: string,
+  description: string,
+  operationId: string,
+};
+
+export type RouteHandlerSchemaMap = Map<string, { metadata?: RouteHandlerMetadata, request: yup.Schema, response: yup.Schema }>;
 
 export type RouteHandler = ((req: NextRequest, options: any) => Promise<Response>) & {
   schemas: RouteHandlerSchemaMap,
@@ -186,6 +197,7 @@ export function smartRouteHandler<
       acc.set(overloadParam as string, {
         request: handler.request,
         response: handler.response,
+        metadata: handler.metadata,
       });
       return acc;
     }, new Map()),

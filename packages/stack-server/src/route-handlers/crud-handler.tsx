@@ -2,7 +2,7 @@ import "../polyfills";
 
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { RouteHandler, routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
+import { RouteHandler, RouteHandlerMetadata, routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
@@ -37,10 +37,19 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
   onDelete: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
+export type RouteHandlerMetadataMap = {
+  create?: RouteHandlerMetadata,
+  read?: RouteHandlerMetadata,
+  list?: RouteHandlerMetadata,
+  update?: RouteHandlerMetadata,
+  delete?: RouteHandlerMetadata,
+};
+
 type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
   & FilterUndefined<CrudRouteHandlersUnfiltered<T, Record<ParamNames, string>>>
   & {
     paramNames: ParamNames[],
+    metadataMap?: RouteHandlerMetadataMap,
   };
 
 type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = CrudHandlers<
@@ -49,7 +58,7 @@ type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>>
   | ("onList" extends keyof O ? "List" : never)
   | ("onUpdate" extends keyof O ? "Update" : never)
   | ("onDelete" extends keyof O ? "Delete" : never)
->;
+>
 
 export type CrudHandlers<
   T extends "Create" | "Read" | "List" | "Update" | "Delete",
@@ -57,7 +66,10 @@ export type CrudHandlers<
   [K in `${Lowercase<T>}Handler`]: RouteHandler
 };
 
-export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(crud: S, options: O): CrudHandlersFromOptions<O> {
+export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
+  crud: S, 
+  options: O,
+): CrudHandlersFromOptions<O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
 
   const operations = [
@@ -143,7 +155,10 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 };
               },
             });
-            return frw;
+            return {
+              ...frw,
+              metadata: options.metadataMap?.[typedToLowercase(crudOperation)],
+            };
           }
         );
         return [`${typedToLowercase(crudOperation)}Handler`, routeHandler];

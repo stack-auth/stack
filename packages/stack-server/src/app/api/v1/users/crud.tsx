@@ -4,6 +4,28 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
+  metadataMap: {
+    read: {
+      summary: 'Get a user',
+      description: 'Get a user by user ID',
+      operationId: 'getUser',
+    },
+    update: {
+      summary: 'Update a user',
+      description: 'Update a user by user ID',
+      operationId: 'updateUser',
+    },
+    delete: {
+      summary: 'Delete a user',
+      description: 'Delete a user by user ID',
+      operationId: 'deleteUser',
+    },
+    list: {
+      summary: 'List users',
+      description: 'List users',
+      operationId: 'listUsers',
+    },
+  },
   paramNames: ["userId"],
   baseFields: async ({ auth, params }) => {
     const projectId = auth.project.id;

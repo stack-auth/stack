@@ -1,5 +1,5 @@
 import { CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { CrudHandlers, createCrudHandlers } from "./crud-handler";
+import { CrudHandlers, RouteHandlerMetadataMap, createCrudHandlers } from "./crud-handler";
 import { SmartRequestAuth } from "./smart-request";
 import { Prisma } from "@prisma/client";
 import { GetResult } from "@prisma/client/runtime/library";
@@ -54,6 +54,7 @@ export function createPrismaCrudHandlers<
       prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<ParamName>) => Promise<CRead<CrudTypeOf<S>>>,
       fieldMapping?: any,
       createNotFoundError?: (context: Context<ParamName>) => Error,
+      metadataMap?: RouteHandlerMetadataMap,
     }
     & (
       | {
@@ -145,5 +146,6 @@ export function createPrismaCrudHandlers<
         },
       });
     }),
+    metadataMap: options.metadataMap,
   });
 }

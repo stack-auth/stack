@@ -18,7 +18,6 @@ function crudHandlerToArray(crudHandler: any) {
 
 type EndpointOption = {
   handler: RouteHandler | CrudHandlers<any>,
-  pathSchema?: yup.Schema,
   path: string,
 };
 
@@ -42,10 +41,7 @@ export function parseOpenAPI(options: {
 
     const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
     for (const handler of handlers) {
-      const parsed = parseRouteHandler({
-        handler,
-        pathSchema: endpoint.pathSchema,
-      });
+      const parsed = parseRouteHandler({ handler });
       result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };
     }
   }
@@ -73,17 +69,12 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
 
 function parseRouteHandler(options: {
   handler: RouteHandler,
-  pathSchema?: yup.Schema,
 }) {
   const serverSchema = options.handler.schemas.get('server');
   if (!serverSchema) throw new Error('Missing server schema');
 
   // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);
-  const metadata = {
-    summary: randomInt(1000).toString(),
-    description: randomInt(1000).toString(),
-    operationId: randomInt(1000).toString(),
-  };
+  if (!serverSchema.metadata) throw new Error('Missing metadata');
 
   let result: any = {};
   const requestFields = (serverSchema.request.describe() as any).fields;
@@ -91,7 +82,7 @@ function parseRouteHandler(options: {
 
   for (const method of requestFields.method.oneOf) {
     result[method.toLowerCase()] = parseSchema({
-      metadata,
+      metadata: serverSchema.metadata,
       pathDesc: undefinedIfMixed(requestFields.params),
       parameterDesc: undefinedIfMixed(requestFields.query),
       requestBodyDesc: undefinedIfMixed(requestFields.body),
@@ -145,18 +136,42 @@ function toParameters(description: yup.SchemaDescription, inType: 'query' | 'pat
   }).filter((x) => x.schema !== null);
 }
 
-function toProperties(description: yup.SchemaDescription) {
-  return Object.entries((description as any).fields).reduce((acc, [key, field]) => {
-    const schema = getFieldSchema(field as any);
-    if (!schema) return acc;
-    return { ...acc, [key]: schema };
-  }, {});
+function toSchema(description: yup.SchemaDescription): any {
+  switch (description.type) {
+    case 'object': {
+      return {
+        type: 'object',
+        properties: Object.entries((description as any).fields).reduce((acc, [key, field]) => {
+          const schema = getFieldSchema(field as any);
+          if (!schema) return acc;
+          return { ...acc, [key]: schema };
+        }, {})
+      };
+    }
+    case 'array': {
+      console.log(description);
+      return {
+        type: 'array',
+        items: toSchema((description as any).innerType),
+      };
+    }
+    default: {
+      throw new Error(`Unsupported description type: ${description.type}`);
+    }
+  }
 }
 
 function toRequired(description: yup.SchemaDescription) {
-  return Object.entries((description as any).fields)
-    .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
-    .map(([key]) => key);
+  switch (description.type) {
+    case 'object': {
+      return Object.entries((description as any).fields)
+        .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
+        .map(([key]) => key);
+    }
+    case 'array': {
+      return [];
+    }
+  }
 }
 
 function toExamples(description: yup.SchemaDescription) {
@@ -177,7 +192,7 @@ export function parseSchema(options: {
 }) {
   const pathParameters = options.pathDesc ? toParameters(options.pathDesc, 'path') : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
-  const responseProperties = options.responseDesc ? toProperties(options.responseDesc) : {};
+  const responseSchema = options.responseDesc ? toSchema(options.responseDesc) : {};
   const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : [];
 
   let requestBody;
@@ -187,8 +202,7 @@ export function parseSchema(options: {
       content: {
         'application/json': {
           schema: {
-            type: 'object',
-            properties: toProperties(options.requestBodyDesc),
+            ...toSchema(options.requestBodyDesc),
             required: toRequired(options.requestBodyDesc),
             example: toExamples(options.requestBodyDesc),
           },
@@ -209,8 +223,7 @@ export function parseSchema(options: {
         content: {
           'application/json': {
             schema: {
-              type: 'object',
-              properties: responseProperties,
+              ...responseSchema,
               required: responseRequired,
             },
           },
