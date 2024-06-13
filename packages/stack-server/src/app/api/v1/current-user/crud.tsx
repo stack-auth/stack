@@ -21,4 +21,16 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
     if (!user) throw new KnownErrors.UserNotFound();
     return user;
   },
+  metadataMap: {
+    read: {
+      summary: 'Get the current user',
+      description: 'Get user by session',
+      operationId: 'getCurrentUser',
+    },
+    update: {
+      summary: 'Update the current user',
+      description: 'Update the user by session. Only the values provided will be updated',
+      operationId: 'updateCurrentUser',
+    },
+  },
 });

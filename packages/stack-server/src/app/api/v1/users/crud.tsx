@@ -12,17 +12,17 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     },
     update: {
       summary: 'Update a user',
-      description: 'Update a user by user ID',
+      description: 'Update a user. Only the values provided will be updated',
       operationId: 'updateUser',
     },
     delete: {
       summary: 'Delete a user',
-      description: 'Delete a user by user ID',
+      description: 'Delete a user. Use this with caution',
       operationId: 'deleteUser',
     },
     list: {
       summary: 'List users',
-      description: 'List users',
+      description: 'List all the users in the project',
       operationId: 'listUsers',
     },
   },

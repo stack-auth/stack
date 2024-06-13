@@ -13,7 +13,7 @@ function crudHandlerToArray(crudHandler: any) {
     crudHandler.readHandler,
     crudHandler.updateHandler,
     crudHandler.deleteHandler,
-  ].filter(x => x.schemas.size > 0);
+  ].filter(x => x && x.schemas.size > 0);
 }
 
 type EndpointOption = {
@@ -70,19 +70,20 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
 function parseRouteHandler(options: {
   handler: RouteHandler,
 }) {
-  const serverSchema = options.handler.schemas.get('server');
-  if (!serverSchema) throw new Error('Missing server schema');
+  let schema = options.handler.schemas.get('server');
+  if (!schema) schema = options.handler.schemas.get('client');
+  if (!schema) throw new Error('Missing schema');
 
   // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);
-  if (!serverSchema.metadata) throw new Error('Missing metadata');
+  if (!schema.metadata) throw new Error('Missing metadata');
 
   let result: any = {};
-  const requestFields = (serverSchema.request.describe() as any).fields;
-  const responseFields = (serverSchema.response.describe() as any).fields;
+  const requestFields = (schema.request.describe() as any).fields;
+  const responseFields = (schema.response.describe() as any).fields;
 
   for (const method of requestFields.method.oneOf) {
     result[method.toLowerCase()] = parseSchema({
-      metadata: serverSchema.metadata,
+      metadata: schema.metadata,
       pathDesc: undefinedIfMixed(requestFields.params),
       parameterDesc: undefinedIfMixed(requestFields.query),
       requestBodyDesc: undefinedIfMixed(requestFields.body),
@@ -149,7 +150,6 @@ function toSchema(description: yup.SchemaDescription): any {
       };
     }
     case 'array': {
-      console.log(description);
       return {
         type: 'array',
         items: toSchema((description as any).innerType),

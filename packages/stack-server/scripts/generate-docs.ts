@@ -1,7 +1,7 @@
+import { currentUserCrudHandlers } from '@/app/api/v1/current-user/crud';
 import { usersCrudHandlers } from '@/app/api/v1/users/crud';
 import { parseOpenAPI } from '@/lib/openapi';
 import yaml from 'yaml';
-import * as yup from 'yup';
 
 console.log(yaml.stringify(parseOpenAPI({
   endpointOptions: [
@@ -12,8 +12,10 @@ console.log(yaml.stringify(parseOpenAPI({
     {
       handler: usersCrudHandlers,
       path: '/users/{userId}',
+    },
+    {
+      handler: currentUserCrudHandlers,
+      path: '/current-user',
     }
   ],
 })));
-
-// console.log(usersCrudHandlers.readHandler.schemas.get('server')?.request?.describe().fields)
