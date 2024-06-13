@@ -1,15 +1,21 @@
-import { CrudSchemaCreationOptions, CrudSchemaFromOptions } from '@stackframe/stack-shared/dist/crud';
+import { SmartRequest } from '@/route-handlers/smart-request';
+import { SmartResponse } from '@/route-handlers/smart-response';
+import { RouteHandler } from '@/route-handlers/smart-route-handler';
+import { DeepPartial } from '@stackframe/stack-shared/dist/utils/objects';
+import { randomInt } from 'crypto';
 import * as yup from 'yup';
 
-type endpointOptions<O extends CrudSchemaCreationOptions> = {
-  schema: CrudSchemaFromOptions<O>,
+type EndpointOption<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> = {
+  handlers: RouteHandler[],
   pathSchema?: yup.Schema,
   path: string,
 };
 
-
 export function parseOpenAPI(options: {
-  endpoints: endpointOptions<any>[],
+  endpointOptions: EndpointOption<any, any>[],
 }) {
   let result: any = {
     openapi: '3.1.0',
@@ -24,63 +30,17 @@ export function parseOpenAPI(options: {
     paths: {},
   };
 
-  for (const endpoint of options.endpoints) {
-    const parsed = parseEndpoint(endpoint);
-    result.paths = { ...result.paths, ...parsed };
+  for (const endpoint of options.endpointOptions) {
+    for (const handler of endpoint.handlers) {
+      const parsed = parseRouteHandler({
+        handler,
+        pathSchema: endpoint.pathSchema,
+      });
+      result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };
+    }
   }
 
   return result;
-}
-
-function parseEndpoint<O extends CrudSchemaCreationOptions>(options: endpointOptions<O>) {
-  const serverSchema = options.schema.server;
-  
-  let result: any = {};
-  if (!serverSchema.readSchema) throw new Error('Missing read schema');
-
-  if (serverSchema.createSchema) {
-    const createMetadata = endpointMetadataSchema.validateSync(serverSchema.createSchema.describe().meta);
-    result.post = parseSchema({
-      metadata: createMetadata,
-      pathSchema: options.pathSchema,
-      requestBodySchema: serverSchema.createSchema,
-      responseSchema: serverSchema.readSchema,
-    });
-  }
-
-  const readMetadata = endpointMetadataSchema.validateSync(serverSchema.readSchema.describe().meta);
-  if (!readMetadata.hide) {
-    result.get = parseSchema({
-      metadata: readMetadata,
-      pathSchema: options.pathSchema,
-      parameterSchema: yup.object().meta(readMetadata),
-      responseSchema: serverSchema.readSchema,
-    });
-  }
-
-  if (serverSchema.updateSchema) {
-    const updateMetadata = endpointMetadataSchema.validateSync(serverSchema.updateSchema.describe().meta);
-    result.put = parseSchema({
-      metadata: updateMetadata,
-      pathSchema: options.pathSchema,
-      requestBodySchema: serverSchema.updateSchema,
-      responseSchema: serverSchema.readSchema,
-    });
-  }
-
-  if (serverSchema.deleteSchema) {
-    const deleteMetadata = endpointMetadataSchema.validateSync(serverSchema.deleteSchema.describe().meta);
-    result.delete = parseSchema({
-      metadata: deleteMetadata,
-      pathSchema: options.pathSchema,
-      parameterSchema: serverSchema.deleteSchema,
-      responseSchema: serverSchema.readSchema,
-    });
-  }
-
-  return {
-    [options.path]: result,
-  };
 }
 
 const endpointMetadataSchema = yup.object({
@@ -95,6 +55,44 @@ const fieldMetadataSchema = yup.object({
   example: yup.mixed().optional(),
   hide: yup.boolean().optional(),
 });
+
+function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaDescription | undefined {
+  if (!value) return undefined;
+  return value.type === 'mixed' ? undefined : value;
+}
+
+function parseRouteHandler<
+  Req extends DeepPartial<SmartRequest>,
+  Res extends SmartResponse,
+> (options: {
+  handler: RouteHandler,
+  pathSchema?: yup.Schema,
+}) {
+  const serverSchema = options.handler.schemas.get('server');
+  if (!serverSchema) throw new Error('Missing server schema');
+
+  // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);
+  const metadata = {
+    summary: randomInt(1000).toString(),
+    description: randomInt(1000).toString(),
+    operationId: randomInt(1000).toString(),
+  };
+
+  let result: any = {};
+  const requestFields = (serverSchema.request.describe() as any).fields;
+  const responseFields = (serverSchema.response.describe() as any).fields;
+
+  for (const method of requestFields.method.oneOf) {
+    result[method.toLowerCase()] = parseSchema({
+      metadata,
+      pathDesc: undefinedIfMixed(requestFields.params),
+      parameterDesc: undefinedIfMixed(requestFields.query),
+      requestBodyDesc: undefinedIfMixed(requestFields.body),
+      responseDesc: undefinedIfMixed(responseFields.body),
+    });
+  }
+  return result;
+}
 
 function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any } | null {
   let schema: any = fieldMetadataSchema.validateSync((field as any).meta);
@@ -113,6 +111,10 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       schema = { type: 'object', ...schema };
       break;
     }
+    case 'object': {
+      schema = { type: 'object', ...schema };
+      break;
+    }
     case 'array': {
       schema = { type: 'array', items: getFieldSchema((field as any).innerType), ...schema };
       break;
@@ -125,50 +127,34 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
   return schema;
 }
 
-function toParameters(schema: yup.Schema, inType: 'query' | 'path' = 'query') {
-  if (!(schema instanceof yup.object)) {
-    return [];
-  }
-  const description = schema.describe();
-  return Object.entries(description.fields).map(([key, field]) => {
+function toParameters(description: yup.SchemaDescription, inType: 'query' | 'path' = 'query') {
+  return Object.entries((description as any).fields).map(([key, field]) => {
     return {
       name: key,
       in: inType,
-      schema: getFieldSchema(field),
+      schema: getFieldSchema(field as any),
       required: !(field as any).optional && !(field as any).nullable,
     };
   }).filter((x) => x.schema !== null);
 }
 
-function toProperties(schema: yup.Schema) {
-  if (!(schema instanceof yup.object)) {
-    return {};
-  }
-  const description = schema.describe();
-  return Object.entries(description.fields).reduce((acc, [key, field]) => {
-    const schema = getFieldSchema(field);
+function toProperties(description: yup.SchemaDescription) {
+  return Object.entries((description as any).fields).reduce((acc, [key, field]) => {
+    const schema = getFieldSchema(field as any);
     if (!schema) return acc;
     return { ...acc, [key]: schema };
   }, {});
 }
 
-function toRequired(schema: yup.Schema) {
-  if (!(schema instanceof yup.object)) {
-    return [];
-  }
-  const description = schema.describe();
-  return Object.entries(description.fields)
+function toRequired(description: yup.SchemaDescription) {
+  return Object.entries((description as any).fields)
     .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
     .map(([key]) => key);
 }
 
-function toExamples(schema: yup.Schema) {
-  if (!(schema instanceof yup.object)) {
-    return {};
-  }
-  const description = schema.describe();
-  return Object.entries(description.fields).reduce((acc, [key, field]) => {
-    const schema = getFieldSchema(field);
+function toExamples(description: yup.SchemaDescription) {
+  return Object.entries((description as any).fields).reduce((acc, [key, field]) => {
+    const schema = getFieldSchema(field as any);
     if (!schema) return acc;
     const example = (field as any).meta.example;
     return { ...acc, [key]: schema.type === 'object' ? example: { example } };
@@ -177,26 +163,27 @@ function toExamples(schema: yup.Schema) {
 
 export function parseSchema(options: {
   metadata: yup.InferType<typeof endpointMetadataSchema>,
-  pathSchema?: yup.Schema,
-  parameterSchema?: yup.Schema,
-  requestBodySchema?: yup.Schema,
-  responseSchema: yup.Schema,
+  pathDesc?: yup.SchemaDescription,
+  parameterDesc?: yup.SchemaDescription,
+  requestBodyDesc?: yup.SchemaDescription,
+  responseDesc?: yup.SchemaDescription,
 }) {
-  const pathParameters = options.pathSchema ? toParameters(options.pathSchema, 'path') : [];
-  const queryParameters = options.parameterSchema ? toParameters(options.parameterSchema) : [];
-  const responseProperties = toProperties(options.responseSchema);
+  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, 'path') : [];
+  const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
+  const responseProperties = options.responseDesc ? toProperties(options.responseDesc) : {};
+  const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : [];
 
   let requestBody;
-  if (options.requestBodySchema) {
+  if (options.requestBodyDesc) {
     requestBody = {
       required: true,
       content: {
         'application/json': {
           schema: {
             type: 'object',
-            properties: toProperties(options.requestBodySchema),
-            required: toRequired(options.requestBodySchema),
-            example: toExamples(options.requestBodySchema),
+            properties: toProperties(options.requestBodyDesc),
+            required: toRequired(options.requestBodyDesc),
+            example: toExamples(options.requestBodyDesc),
           },
         },
       },
@@ -217,7 +204,7 @@ export function parseSchema(options: {
             schema: {
               type: 'object',
               properties: responseProperties,
-              required: toRequired(options.responseSchema),
+              required: responseRequired,
             },
           },
         },

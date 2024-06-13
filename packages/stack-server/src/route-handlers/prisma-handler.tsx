@@ -26,7 +26,7 @@ type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R }
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
 type CEitherWrite<T extends CrudTypeOf<any>> = CCreate<T> | CUpdate<T>;
 
-type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHandlers<
+export type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHandlers<
   | ("Create" extends keyof T["Admin"] ? "Create" : never)
   | ("Read" extends keyof T["Admin"] ? "Read" : never)
   | ("Read" extends keyof T["Admin"] ? "List" : never)

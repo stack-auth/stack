@@ -2,7 +2,7 @@ import "../polyfills";
 
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
+import { RouteHandler, routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
@@ -43,11 +43,6 @@ type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
     paramNames: ParamNames[],
   };
 
-type SingleCrudHandler = (
-  req: NextRequest,
-  options: { params: any },
-) => Promise<Response>;
-
 type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = CrudHandlers<
   | ("onCreate" extends keyof O ? "Create" : never)
   | ("onRead" extends keyof O ? "Read" : never)
@@ -56,8 +51,10 @@ type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>>
   | ("onDelete" extends keyof O ? "Delete" : never)
 >;
 
-export type CrudHandlers<T extends "Create" | "Read" | "List" | "Update" | "Delete"> = {
-  [K in `${Lowercase<T>}Handler`]: SingleCrudHandler
+export type CrudHandlers<
+  T extends "Create" | "Read" | "List" | "Update" | "Delete",
+> = {
+  [K in `${Lowercase<T>}Handler`]: RouteHandler
 };
 
 export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(crud: S, options: O): CrudHandlersFromOptions<O> {
@@ -99,7 +96,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           return crud[accessType][`${typedToLowercase(crudOperationWithoutList)}Schema`] !== undefined;
         });
 
-        const routeHandler: SingleCrudHandler = smartRouteHandler(
+        const routeHandler: RouteHandler = smartRouteHandler(
           availableAccessTypes,
           (accessType) => {
             const adminSchemas = getSchemas("admin");
