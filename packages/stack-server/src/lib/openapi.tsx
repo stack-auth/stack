@@ -23,6 +23,7 @@ type EndpointOption = {
 
 export function parseOpenAPI(options: {
   endpointOptions: EndpointOption[],
+  audience: 'client' | 'server' | 'admin',
 }) {
   let result: any = {
     openapi: '3.1.0',
@@ -41,7 +42,7 @@ export function parseOpenAPI(options: {
 
     const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
     for (const handler of handlers) {
-      const parsed = parseRouteHandler({ handler });
+      const parsed = parseRouteHandler({ handler, audience: options.audience });
       result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };
     }
   }
@@ -69,9 +70,9 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
 
 function parseRouteHandler(options: {
   handler: RouteHandler,
+  audience: 'client' | 'server' | 'admin',
 }) {
-  let schema = options.handler.schemas.get('server');
-  if (!schema) schema = options.handler.schemas.get('client');
+  let schema = options.handler.schemas.get(options.audience);
   if (!schema) throw new Error('Missing schema');
 
   // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);

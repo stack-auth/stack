@@ -1,0 +1,78 @@
+instances:
+  - url: https://stack-auth.docs.buildwithfern.com
+title: Stack Auth Documentation
+
+tabs:
+  documentation:
+    display-name: Documentation
+    icon: 'fa-solid fa-home'
+    slug: docs
+  sdk:
+    display-name: SDK Reference
+    icon: 'fa-solid fa-hammer'
+    slug: sdk
+  api:
+    display-name: API Reference
+    icon: 'fa-solid fa-code'
+    slug: rest-api
+
+navigation:
+  - tab: documentation
+    layout: 
+      - section: Get Started
+        contents:
+          - page: Why Stack?
+            path: ./docs/pages/01-getting-started/01-why-stack.mdx
+          - page: Installation & Setup
+            path: ./docs/pages/01-getting-started/02-setup.mdx
+          - page: Users & Protected Pages
+            path: ./docs/pages/01-getting-started/03-users.mdx
+          - page: Teams & Permissions
+            path: ./docs/pages/01-getting-started/04-teams.mdx
+      - section: Customization
+        contents:
+          - page: Overview
+            path: ./docs/pages/02-customization/01-overview.mdx
+          - page: Colors & Color Mode
+            path: ./docs/pages/02-customization/02-custom-colors.mdx
+          - page: Custom Components
+            path: ./docs/pages/02-customization/03-custom-components.mdx
+          - page: Custom Pages
+            path: ./docs/pages/02-customization/04-custom-pages.mdx
+          - section: Page Examples
+            contents:
+              - page: Sign In
+                path: ./docs/pages/02-customization/05-page-examples/01-signin.mdx
+              - page: Sign Up
+                path: ./docs/pages/02-customization/05-page-examples/02-signup.mdx
+  - tab: sdk
+    layout: 
+      - section: Overview
+        contents: []
+  - tab: api
+    layout: 
+      - api: API Reference
+        skip-slug: true
+
+colors:
+  accentPrimary: 
+    light: '#000000'
+    dark: '#FFFFFF'
+  background: 
+    light: '#FFFFFF'
+    dark: '#000000'
+  sidebar-background: 
+    light: '#FFFFFF'
+    dark: '#000000'
+  card-background: 
+    light: '#FFFFFF'
+    dark: '#111111'
+layout:
+  page-width: full
+  content-width: 40rem
+  disable-header: true
+favicon: ./docs/assets/favicon.ico
+logo:
+  light: ./docs/assets/logo-light-mode.svg
+  dark: ./docs/assets/logo-dark-mode.svg
+  height: 28

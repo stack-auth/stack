@@ -1,0 +1,193 @@
+openapi: 3.1.0
+info:
+  title: Stack API
+  version: 1.0.0
+servers:
+  - url: https://app.stack-auth.com/api/v1
+    description: Stack API server
+paths:
+  /current-user:
+    get:
+      summary: Get the current user
+      description: Get user by session
+      operationId: getCurrentUser
+      parameters: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projectId:
+                    type: string
+                    description: Stack dashboard project ID
+                    example: project-id
+                  id:
+                    type: string
+                    description: Unique user identifier
+                    example: user-id
+                  primaryEmail:
+                    type: string
+                    description: Primary email
+                    example: johndoe@email.com
+                  primaryEmailVerified:
+                    type: boolean
+                    description: Primary email verified
+                    example: true
+                  displayName:
+                    type: string
+                    description: User display name
+                    example: John Doe
+                  clientMetadata:
+                    type: object
+                    description: Client metadata. Used as a data store, accessible from the client
+                      side
+                    example:
+                      key: value
+                  profileImageUrl:
+                    type: string
+                    description: Profile image URL
+                    example: https://example.com/image.jpg
+                  signedUpAtMillis:
+                    type: number
+                    description: Signed up at milliseconds
+                    example: 1630000000000
+                  hasPassword:
+                    type: boolean
+                    description: Whether the user has a password
+                    example: true
+                  authWithEmail:
+                    type: boolean
+                    description: Whether the user can authenticate with email (email/password and
+                      magic link, depending on the project setting on the
+                      dashboard)
+                    example: true
+                  oauthProviders:
+                    type: array
+                    items:
+                      type: string
+                    description: All the OAuth providers connected to this account
+                    example:
+                      - google
+                      - github
+                  selectedTeamId:
+                    type: string
+                    description: Selected team ID
+                    example: team-id
+                required:
+                  - projectId
+                  - id
+                  - primaryEmailVerified
+                  - signedUpAtMillis
+                  - authMethod
+                  - hasPassword
+                  - authWithEmail
+                  - oauthProviders
+    put:
+      summary: Update the current user
+      description: Update the user by session. Only the values provided will be updated
+      operationId: updateCurrentUser
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  description: User display name
+                  example: John Doe
+                clientMetadata:
+                  type: object
+                  description: Client metadata. Used as a data store, accessible from the client
+                    side
+                  example: &a1
+                    key: value
+                selectedTeamId:
+                  type: string
+                  description: Selected team ID
+                  example: team-id
+              required: []
+              example:
+                displayName:
+                  example: John Doe
+                clientMetadata: *a1
+                selectedTeamId:
+                  example: team-id
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projectId:
+                    type: string
+                    description: Stack dashboard project ID
+                    example: project-id
+                  id:
+                    type: string
+                    description: Unique user identifier
+                    example: user-id
+                  primaryEmail:
+                    type: string
+                    description: Primary email
+                    example: johndoe@email.com
+                  primaryEmailVerified:
+                    type: boolean
+                    description: Primary email verified
+                    example: true
+                  displayName:
+                    type: string
+                    description: User display name
+                    example: John Doe
+                  clientMetadata:
+                    type: object
+                    description: Client metadata. Used as a data store, accessible from the client
+                      side
+                    example:
+                      key: value
+                  profileImageUrl:
+                    type: string
+                    description: Profile image URL
+                    example: https://example.com/image.jpg
+                  signedUpAtMillis:
+                    type: number
+                    description: Signed up at milliseconds
+                    example: 1630000000000
+                  hasPassword:
+                    type: boolean
+                    description: Whether the user has a password
+                    example: true
+                  authWithEmail:
+                    type: boolean
+                    description: Whether the user can authenticate with email (email/password and
+                      magic link, depending on the project setting on the
+                      dashboard)
+                    example: true
+                  oauthProviders:
+                    type: array
+                    items:
+                      type: string
+                    description: All the OAuth providers connected to this account
+                    example:
+                      - google
+                      - github
+                  selectedTeamId:
+                    type: string
+                    description: Selected team ID
+                    example: team-id
+                required:
+                  - projectId
+                  - id
+                  - primaryEmailVerified
+                  - signedUpAtMillis
+                  - authMethod
+                  - hasPassword
+                  - authWithEmail
+                  - oauthProviders
