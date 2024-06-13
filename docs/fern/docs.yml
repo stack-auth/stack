@@ -82,7 +82,8 @@ colors:
 layout:
   page-width: full
   content-width: 40rem
-  disable-header: true
+  disable-header: false
+  header-height: 60px
 favicon: ./docs/assets/favicon.ico
 logo:
   light: ./docs/assets/logo-light-mode.svg
