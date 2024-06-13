@@ -6,6 +6,8 @@ servers:
   - url: https://app.stack-auth.com/api/v1
     description: Stack API server
 paths:
+  /users: {}
+  /users/{userId}: {}
   /current-user:
     get:
       summary: Get the current user

@@ -22,33 +22,41 @@ navigation:
       - section: Get Started
         contents:
           - page: Why Stack?
-            path: ./docs/pages/01-getting-started/01-why-stack.mdx
+            path: ./docs/pages/getting-started/why-stack.mdx
           - page: Installation & Setup
-            path: ./docs/pages/01-getting-started/02-setup.mdx
+            path: ./docs/pages/getting-started/setup.mdx
           - page: Users & Protected Pages
-            path: ./docs/pages/01-getting-started/03-users.mdx
+            path: ./docs/pages/getting-started/users.mdx
           - page: Teams & Permissions
-            path: ./docs/pages/01-getting-started/04-teams.mdx
+            path: ./docs/pages/getting-started/teams.mdx
       - section: Customization
         contents:
           - page: Overview
-            path: ./docs/pages/02-customization/01-overview.mdx
+            path: ./docs/pages/customization/overview.mdx
           - page: Colors & Color Mode
-            path: ./docs/pages/02-customization/02-custom-colors.mdx
+            path: ./docs/pages/customization/custom-colors.mdx
           - page: Custom Components
-            path: ./docs/pages/02-customization/03-custom-components.mdx
+            path: ./docs/pages/customization/custom-components.mdx
           - page: Custom Pages
-            path: ./docs/pages/02-customization/04-custom-pages.mdx
+            path: ./docs/pages/customization/custom-pages.mdx
           - section: Page Examples
             contents:
               - page: Sign In
-                path: ./docs/pages/02-customization/05-page-examples/01-signin.mdx
+                path: ./docs/pages/customization/page-examples/signin.mdx
               - page: Sign Up
-                path: ./docs/pages/02-customization/05-page-examples/02-signup.mdx
+                path: ./docs/pages/customization/page-examples/signup.mdx
   - tab: sdk
     layout: 
       - section: Overview
-        contents: []
+        contents:
+          - page: User
+            path: ./docs/pages/sdk/user.mdx
+          - page: useUser
+            path: ./docs/pages/sdk/use-user.mdx
+          - page: App
+            path: ./docs/pages/sdk/app.mdx
+          - page: useStackApp
+            path: ./docs/pages/sdk/use-stack-app.mdx
   - tab: api
     layout: 
       - api: Client API Reference

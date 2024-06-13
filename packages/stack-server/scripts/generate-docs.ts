@@ -4,33 +4,24 @@ import { parseOpenAPI } from '@/lib/openapi';
 import yaml from 'yaml';
 import fs from 'fs';
 
-const serverOpenAPI = yaml.stringify(parseOpenAPI({
-  endpointOptions: [
-    {
-      handler: usersCrudHandlers.listHandler,
-      path: '/users'
-    },
-    {
-      handler: usersCrudHandlers,
-      path: '/users/{userId}',
-    },
-    {
-      handler: currentUserCrudHandlers,
-      path: '/current-user',
-    }
-  ],
-  audience: 'server',
-}));
+for (const audience of ['client', 'server'] as const) {
+  const openAPISchema = yaml.stringify(parseOpenAPI({
+    endpointOptions: [
+      {
+        handler: usersCrudHandlers.listHandler,
+        path: '/users'
+      },
+      {
+        handler: usersCrudHandlers,
+        path: '/users/{userId}',
+      },
+      {
+        handler: currentUserCrudHandlers,
+        path: '/current-user',
+      }
+    ],
+    audience,
+  }));
 
-const clientOpenAPI = yaml.stringify(parseOpenAPI({
-  endpointOptions: [
-    {
-      handler: currentUserCrudHandlers,
-      path: '/current-user',
-    }
-  ],
-  audience: 'client',
-}));
-
-fs.writeFileSync('../../docs/fern/openapi/server.yaml', serverOpenAPI);
-fs.writeFileSync('../../docs/fern/openapi/client.yaml', clientOpenAPI);
+  fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
+}

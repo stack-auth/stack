@@ -73,7 +73,7 @@ function parseRouteHandler(options: {
   audience: 'client' | 'server' | 'admin',
 }) {
   let schema = options.handler.schemas.get(options.audience);
-  if (!schema) throw new Error('Missing schema');
+  if (!schema) return {};
 
   // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);
   if (!schema.metadata) throw new Error('Missing metadata');
