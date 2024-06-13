@@ -51,8 +51,12 @@ navigation:
         contents: []
   - tab: api
     layout: 
-      - api: API Reference
-        skip-slug: true
+      - api: Client API Reference
+        slug: client
+        api-name: client
+      - api: Server API Reference
+        slug: server
+        api-name: server
 
 colors:
   accentPrimary: 
