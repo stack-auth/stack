@@ -66,6 +66,14 @@ navigation:
         slug: server
         api-name: server
 
+navbar-links:
+  - type: secondary
+    text: GitHub
+    url: https://github.com/stack-auth/stack
+  - type: primary
+    text: Dashboard
+    url: https://app.stack-auth.com
+
 colors:
   accentPrimary: 
     light: '#000000'
