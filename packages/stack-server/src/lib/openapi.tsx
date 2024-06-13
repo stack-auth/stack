@@ -1,3 +1,4 @@
+import { CrudHandlers } from '@/route-handlers/crud-handler';
 import { SmartRequest } from '@/route-handlers/smart-request';
 import { SmartResponse } from '@/route-handlers/smart-response';
 import { RouteHandler } from '@/route-handlers/smart-route-handler';
@@ -5,11 +6,24 @@ import { DeepPartial } from '@stackframe/stack-shared/dist/utils/objects';
 import { randomInt } from 'crypto';
 import * as yup from 'yup';
 
+function isRouteHandler(handlers: any): handlers is CrudHandlers<any> {
+  return handlers.schemas !== undefined;
+}
+
+function crudHandlerToArray(crudHandler: any) {
+  return [
+    crudHandler.createHandler,
+    crudHandler.readHandler,
+    crudHandler.updateHandler,
+    crudHandler.deleteHandler,
+  ].filter(x => x.schemas.size > 0);
+}
+
 type EndpointOption<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 > = {
-  handlers: RouteHandler[],
+  handler: RouteHandler | CrudHandlers<any>,
   pathSchema?: yup.Schema,
   path: string,
 };
@@ -31,7 +45,9 @@ export function parseOpenAPI(options: {
   };
 
   for (const endpoint of options.endpointOptions) {
-    for (const handler of endpoint.handlers) {
+
+    const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
+    for (const handler of handlers) {
       const parsed = parseRouteHandler({
         handler,
         pathSchema: endpoint.pathSchema,
