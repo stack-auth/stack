@@ -1,8 +1,5 @@
 import { CrudHandlers } from '@/route-handlers/crud-handler';
-import { SmartRequest } from '@/route-handlers/smart-request';
-import { SmartResponse } from '@/route-handlers/smart-response';
 import { RouteHandler } from '@/route-handlers/smart-route-handler';
-import { DeepPartial } from '@stackframe/stack-shared/dist/utils/objects';
 import { randomInt } from 'crypto';
 import * as yup from 'yup';
 
@@ -19,17 +16,14 @@ function crudHandlerToArray(crudHandler: any) {
   ].filter(x => x.schemas.size > 0);
 }
 
-type EndpointOption<
-  Req extends DeepPartial<SmartRequest>,
-  Res extends SmartResponse,
-> = {
+type EndpointOption = {
   handler: RouteHandler | CrudHandlers<any>,
   pathSchema?: yup.Schema,
   path: string,
 };
 
 export function parseOpenAPI(options: {
-  endpointOptions: EndpointOption<any, any>[],
+  endpointOptions: EndpointOption[],
 }) {
   let result: any = {
     openapi: '3.1.0',
@@ -77,10 +71,7 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
   return value.type === 'mixed' ? undefined : value;
 }
 
-function parseRouteHandler<
-  Req extends DeepPartial<SmartRequest>,
-  Res extends SmartResponse,
-> (options: {
+function parseRouteHandler(options: {
   handler: RouteHandler,
   pathSchema?: yup.Schema,
 }) {
