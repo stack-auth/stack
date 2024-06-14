@@ -4,7 +4,7 @@ slug: getting-started/users
 
 In [the last guide](./setup.mdx), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
-## Client Components
+## Use the current user in a client component
 
 We can use the `useStackApp()` hook to get a `StackClientApp` object. With it, we can retrieve the current user in Client Components:
 
@@ -21,12 +21,11 @@ export function MyComponent() {
 
 Because it's so common, `useUser()` is also exposed as a standalone hook. This means that you can simply invoke `useUser()` as an alias for `useStackApp().useUser()`. (This is not true for other hooks; for example, you must call `useStackApp().useProject()` instead of `useProject()`.)
 
-## Server Components
+## Use the current user in a server component
 
 On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter:
 
 ```tsx focus={5-6} title="Server user profile"
-// server side only
 import { stackServerApp } from "@/stack";
 
 export default async function MyComponent() {
