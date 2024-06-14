@@ -22,8 +22,8 @@ navigation:
     layout: 
       - section: Get Started
         contents:
-          - page: Why Stack?
-            path: ./docs/pages/getting-started/why-stack.mdx
+          - page: Overview
+            path: ./docs/pages/getting-started/overview.mdx
           - page: Installation & Setup
             path: ./docs/pages/getting-started/setup.mdx
           - page: Users & Protected Pages
