@@ -68,6 +68,9 @@ navigation:
 
 navbar-links:
   - type: secondary
+    text: Discord
+    url: https://discord.stack-auth.com
+  - type: secondary
     text: GitHub
     url: https://github.com/stack-auth/stack
   - type: primary
