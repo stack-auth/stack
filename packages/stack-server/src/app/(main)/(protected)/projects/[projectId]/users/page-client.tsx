@@ -9,7 +9,7 @@ import { UserTable } from "@/components/data-table/user-table";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const allUsers = stackAdminApp.useServerUsers();
+  const allUsers = stackAdminApp.useUsers();
 
   return (
     <PageLayout title="Users">

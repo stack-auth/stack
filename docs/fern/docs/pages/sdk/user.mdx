@@ -78,11 +78,9 @@ if (error) {
 }
 ```
 
-## `CurrentServerUser` Object
+## `CurrentServerUser`
 
-You can call `stackServerApp.getServerUser()` to get the `CurrentServerUser` object. `CurrentServerUser` has all the attributes and methods of `CurrentUser` and some additional ones shown below. 
-
-Note the `CurrentServerUser` should only be used on the server side because it contains server only metadata.
+If you call `getUser()` on a `StackServerApp`, you will get the `CurrentServerUser` object. It contains all the fields and methods of `CurrentUser`, but also has some additional data.
 
 ### Attributes
 

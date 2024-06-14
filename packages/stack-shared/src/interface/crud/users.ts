@@ -17,6 +17,7 @@ export const usersCrudServerReadSchema = yup.object({
   primaryEmail: fieldSchema.primaryEmailSchema.nullable().defined(),
   primaryEmailVerified: fieldSchema.primaryEmailVerifiedSchema.required(),
   displayName: fieldSchema.userDisplayNameSchema.nullable().defined(),
+  // TODO give this one the type of an actual team
   selectedTeamId: fieldSchema.selectedTeamIdSchema.nullable().defined(),
   profileImageUrl: fieldSchema.profileImageUrlSchema.nullable().defined(),
   signedUpAtMillis: fieldSchema.signedUpAtMillisSchema.required(),

@@ -3,14 +3,19 @@ import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterfac
 import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
+import { getServerUserFromDbType } from "./users";
+import { serverUserInclude } from "./users";
 
-export const fullTeamMemberInclude = {
+// TODO technically we can split this; listUserTeams only needs `team`, and listServerTeams only needs `projectUser`; listTeams needs neither
+// note: this is a function to prevent circular dependencies between the teams and users file
+export const createFullTeamMemberInclude = () => ({
   team: true,
-} as const satisfies Prisma.TeamMemberInclude;
+  projectUser: {
+    include: serverUserInclude,
+  },
+} as const satisfies Prisma.TeamMemberInclude);
 
-export type ServerTeamMemberDB = Prisma.TeamMemberGetPayload<{ include: {
-  projectUser: true,
-}, }>;
+export type ServerTeamMemberDB = Prisma.TeamMemberGetPayload<{ include: ReturnType<typeof createFullTeamMemberInclude> }>;
 
 export async function listUserTeams(projectId: string, userId: string): Promise<TeamJson[]> {
   const members = await prismaClient.teamMember.findMany({
@@ -18,7 +23,7 @@ export async function listUserTeams(projectId: string, userId: string): Promise<
       projectId,
       projectUserId: userId,
     },
-    include: fullTeamMemberInclude,
+    include: createFullTeamMemberInclude(),
   });
 
   return members.map((member) => ({
@@ -56,9 +61,7 @@ export async function listServerTeamMembers(projectId: string, teamId: string): 
       projectId,
       teamId,
     },
-    include: {
-      projectUser: true
-    },
+    include: createFullTeamMemberInclude(),
   });
 
   return members.map((member) => getServerTeamMemberFromDbType(member));
@@ -133,9 +136,26 @@ export async function removeUserFromTeam(projectId: string, teamId: string, user
   });
 }
 
+export function getClientTeamFromServerTeam(team: ServerTeamJson): TeamJson {
+  return {
+    id: team.id,
+    displayName: team.displayName,
+    createdAtMillis: team.createdAtMillis,
+  };
+}
+
+export function getServerTeamFromDbType(team: Prisma.TeamGetPayload<{}>): ServerTeamJson {
+  return {
+    id: team.teamId,
+    displayName: team.displayName,
+    createdAtMillis: team.createdAt.getTime(),
+  };
+}
+
 export function getServerTeamMemberFromDbType(member: ServerTeamMemberDB): ServerTeamMemberJson {
   return {
     userId: member.projectUserId,
+    user: getServerUserFromDbType(member.projectUser),
     teamId: member.teamId,
     displayName: member.projectUser.displayName,
   };

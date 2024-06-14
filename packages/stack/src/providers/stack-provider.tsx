@@ -21,6 +21,6 @@ export default function StackProvider({
 }
 
 function UserFetcher(props: { app: StackClientApp<true> }) {
-  const userPromise = props.app.getUser().then((user) => user?.toJson() ?? null);
+  const userPromise = props.app.getUser().then((user) => user?.toClientJson() ?? null);
   return <UserSetter userJsonPromise={userPromise} />;
 }

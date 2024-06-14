@@ -29,7 +29,9 @@ export type ServerOrglikeJson = OrglikeJson & {};
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
 
-export type ServerTeamMemberJson = TeamMemberJson
+export type ServerTeamMemberJson = TeamMemberJson & {
+  user: ServerUserJson,
+};
 
 export type ServerPermissionDefinitionCustomizableJson = {
   readonly id: string,

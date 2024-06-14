@@ -50,7 +50,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   }
 
   async function redirectIfHasUser() {
-    const user = await app.getServerUser();
+    const user = await app.getUser();
     if (user) {
       redirect(app.urls.afterSignIn);
     }
