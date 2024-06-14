@@ -1,5 +1,6 @@
 instances:
   - url: https://stack-auth.docs.buildwithfern.com
+    custom-domain: docs.stack-auth.com
 title: Stack Auth Documentation
 
 tabs:
