@@ -47,7 +47,7 @@ navigation:
                 path: ./docs/pages/customization/page-examples/signup.mdx
   - tab: sdk
     layout: 
-      - section: Overview
+      - section: Next.js SDK
         contents:
           - page: User
             path: ./docs/pages/sdk/user.mdx

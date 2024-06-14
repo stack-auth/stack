@@ -6,7 +6,7 @@ slug: getting-started/setup
 
 To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
   
-```sh
+```sh title="Terminal"
 npx create-next-app@latest --app stack-example
 cd stack-example
 ```
@@ -19,13 +19,13 @@ You can choose between two ways to install Stack: the setup wizard or manual ins
 
 To setup stack, you can run Stack's installation wizard with the following command:
 
-```sh
+```sh title="Terminal"
 npx @stackframe/init-stack@latest
 ```
 
 You will be guided through the installation process. To complete it, you must create an account on [our dashboard](https://app.stack-auth.com/projects), create a new project with an API key, and copy the project ID, publishable client key, and secret server key into the `.env.local` file in the root of your Next.js project:
 
-```sh
+```sh title=".env.local"
 NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
 NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
 STACK_SECRET_SERVER_KEY=<your-secret-server-key>
@@ -37,13 +37,13 @@ STACK_SECRET_SERVER_KEY=<your-secret-server-key>
 
 First, install Stack with npm, yarn, or pnpm:
 
-```bash
+```bash title="Terminal"
 npm install @stackframe/stack
 ```
 
 1. If you haven't already, [register a new account on Stack](https://app.stack-auth.com/handler/signup). Create a project in the dashboard, create a new API key from the left sidebar, and copy the project ID, publishable client key, and secret server key into a new file called `.env.local` in the root of your Next.js project:
 
-    ```sh
+    ```sh title=".env.local"
     NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
     NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
     STACK_SECRET_SERVER_KEY=<your-secret-server-key>
@@ -51,7 +51,7 @@ npm install @stackframe/stack
 
 2. Create a new file `stack.ts` in your root directory and fill it with the following:
   
-    ```tsx
+    ```tsx title="stack.ts"
     import "server-only";
     import { StackServerApp } from "@stackframe/stack";
 
@@ -67,7 +67,7 @@ npm install @stackframe/stack
 
 3. Create a new file in `app/handler/[...stack]/page.tsx` and paste the following code: 
 
-    ```tsx
+    ```tsx title="app/handler/[...stack]/page.tsx"
     import { StackHandler } from "@stackframe/stack";
     import { stackServerApp } from "@/stack";
 
@@ -81,7 +81,7 @@ npm install @stackframe/stack
 
 4. In your `app/layout.tsx`, wrap the entire body with a `StackProvider` and `StackTheme`. Afterwards, it should look like this:
 
-    ```tsx
+    ```tsx title="app/layout.tsx"
     import React from "react";
     import { StackProvider, StackTheme } from "@stackframe/stack";
     import { stackServerApp } from "@/stack";
@@ -103,7 +103,7 @@ npm install @stackframe/stack
 
 5. By default, Stack uses [`Suspense`](https://react.dev/reference/react/Suspense) to handle loading states. To show a loading indicator while Stack is fetching user data, make sure there is a `loading.tsx` file in your `app` directory:
 
-    ```tsx
+    ```tsx title="app/loading.tsx"
     export default function Loading() {
       // You can use any loading indicator here
       return <>

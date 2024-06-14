@@ -8,14 +8,13 @@ In [the last guide](./setup.mdx), we created `StackServerApp` and `StackProvider
 
 We can use the `useStackApp()` hook to get a `StackClientApp` object. With it, we can retrieve the current user in Client Components:
 
-```tsx
+```tsx focus={5-7} title="Client user profile"
 "use client";
 import { useStackApp } from "@stackframe/stack";
 
 export function MyComponent() {
   const app = useStackApp();
   const user = app.useUser(); // or just import useUser and use it directly
-
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
@@ -26,22 +25,19 @@ Because it's so common, `useUser()` is also exposed as a standalone hook. This m
 
 On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter:
 
-```tsx
-import "server-only";
+```tsx focus={5-6} title="Server user profile"
+// server side only
 import { stackServerApp } from "@/stack";
 
 export default async function MyComponent() {
   const user = await stackServerApp.getUser();
-
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
-:::info
-
+<Note>
 The difference between `getUser()` and `useUser()` is that `useUser()` will re-render the component when the user changes (for example on signout), while `getUser()` will only fetch the user once. Since Server Components cannot re-render, `useUser()` cannot be used there. 
-
-:::
+</Note>
 
 
 ## Protecting a page
@@ -50,7 +46,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx
+    ```tsx focus={5-6} title="Client-side protection"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -62,7 +58,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx focus={4-5} title="Server-side protection"
     import { stackServerApp } from "@/stack";
 
     export default async function Protected() {
@@ -81,27 +77,23 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
 <Tabs>
   <Tab title="user.signOut()">
-    ```tsx
+    ```tsx focus={5-6} title="Sign-out button"
     "use client";
     import { useUser } from "@stackframe/stack";
 
     export default function SignOutButton() {
       const user = useUser();
-      return <button onClick={user?.signOut}>
-        Sign Out
-      </button>;
+      return <button onClick={user?.signOut}>Sign Out</button>;
     }
     ```
   </Tab>
 
   <Tab title="Redirect">
-    ```tsx
+    ```tsx focus={4-4} title="Sign-out link"
     import { stackServerApp } from "@/stack";
 
     export default async function SignOutLink() {
-      return <a href={stackServerApp.urls.signOut}>
-        Sign Out
-      </a>;
+      return <a href={stackServerApp.urls.signOut}>Sign Out</a>;
     }
     ```
   </Tab>
@@ -114,7 +106,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx
+    ```tsx title="Client profile page"
     'use client';
     import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 
@@ -144,7 +136,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx title="Server profile page"
     import { stackServerApp } from "@/stack";
     import { UserButton } from "@stackframe/stack";
 
@@ -185,7 +177,7 @@ To see more examples of how to use the `User` object, check out the [User API do
 
 You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook is automatically will also be updated automatically. Here is an example:
 
-```tsx
+```tsx title="Update user display name" focus={6-8}
 'user client';
 import { useUser } from "@stackframe/stack";
 
@@ -199,7 +191,7 @@ export default function UpdateUser() {
 
 You can store custom data in the `clientMetadata` field. Note that this data is visible on the client side and should not contain any sensitive information.
 
-```tsx
+```tsx title="Store client metadata"
 await user.update({
   clientMetadata: {
     mailingAddress: "123 Main St",
@@ -209,14 +201,14 @@ await user.update({
 
 You can then get the `clientMetadata` field from the `User` object:
 
-```tsx
+```tsx title="Read client metadata"
 const user = useUser();
 console.log(user.clientMetadata);
 ```
 
 If you want to store sensitive information that is only visible on the server side, you can use the `serverMetadata` field. This data will not be sent accessible on the client side. So you also have to use the `getUser()` on the `StackServerApp` to access this data.
 
-```tsx
+```tsx title="Store server metadata"
 // server side only
 import { stackServerApp } from "@/stack";
 const user = await stackServerApp.getUser();
@@ -229,7 +221,7 @@ await user.update({
 
 You can also access them from the `User` object:
 
-```tsx
+```tsx title="Read server metadata"
 // server side only
 import { stackServerApp } from "@/stack";
 const user = await stackServerApp.getUser();
