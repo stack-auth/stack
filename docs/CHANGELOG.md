@@ -1,5 +1,11 @@
 # stack-docs
 
+## 2.4.24
+
+### Patch Changes
+
+- Team switcher
+
 ## 2.4.23
 
 ## 2.4.22

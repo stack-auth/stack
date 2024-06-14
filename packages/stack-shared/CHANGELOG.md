@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.4.24
+
+### Patch Changes
+
+- Team switcher
+  - @stackframe/stack-sc@2.4.24
+
 ## 2.4.23
 
 ### Patch Changes
