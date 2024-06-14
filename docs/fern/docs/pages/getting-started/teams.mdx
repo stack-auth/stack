@@ -12,7 +12,7 @@ To assign users to a default team upon sign-up, activate the corresponding toggl
 
 To create a team, you can call the `createTeam` method on the `stackServerApp`. Here is an example:
 
-```tsx
+```tsx title="Create a Team"
 const team = await stackServerApp.createTeam({
   displayName: 'New Team',
 });
@@ -22,7 +22,7 @@ const team = await stackServerApp.createTeam({
 
 To add a user to a team, you can call the `addUser` method on the `Team` object. Here is an example:
 
-```tsx
+```tsx title="Add a User to a Team"
 const team = await stackServerApp.getTeam('teamId');
 await team.addUser(user);
 ```
@@ -33,7 +33,7 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx
+    ```tsx focus={5-10} title="List teams of a user on the client"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -49,7 +49,7 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx focus={4-9} title="List teams of a user on the server"
     import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserTeams() {
@@ -71,7 +71,7 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx
+    ```tsx focus={5-10} title="Get a specific team of a user on the client"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -87,7 +87,7 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx focus={4-9} title="Get a specific team of a user on the server"
     import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserTeam(props: { teamId: string }) {
@@ -158,7 +158,7 @@ You can check if a user has a specific permission by using the `getPermission` m
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx
+    ```tsx focus={5-11} title="Check user permission on the client"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -175,7 +175,7 @@ You can check if a user has a specific permission by using the `getPermission` m
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx focus={4-10} title="Check user permission on the server"
     import { stackServerApp } from "@/stack";
 
     export default async function CheckUserPermission() {
@@ -198,7 +198,7 @@ To get all permissions a user has, use the `listPermissions` method or `usePermi
 
 <Tabs>
   <Tab title="Client Component" default>
-    ```tsx
+    ```tsx focus={5-10} title="List user permissions on the client"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -214,7 +214,7 @@ To get all permissions a user has, use the `listPermissions` method or `usePermi
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx
+    ```tsx focus={4-9} title="List user permissions on the server"
     import { stackServerApp } from "@/stack";
 
     export default async function DisplayUserPermissions() {
