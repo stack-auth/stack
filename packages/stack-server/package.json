@@ -104,6 +104,7 @@
     "sharp": "^0.32.6",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "yaml": "^2.4.5",
     "yup": "^1.4.0",
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
