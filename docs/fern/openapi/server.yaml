@@ -11,12 +11,7 @@ paths:
       summary: List users
       description: List all the users in the project
       operationId: listUsers
-      parameters:
-        - name: userId
-          in: path
-          schema:
-            type: string
-          required: false
+      parameters: []
       responses:
         "200":
           description: Successful response
@@ -47,6 +42,8 @@ paths:
                       type: string
                       description: User display name
                       example: John Doe
+                    selectedTeam:
+                      type: object
                     selectedTeamId:
                       type: string
                       description: Selected team ID
@@ -131,6 +128,8 @@ paths:
                     type: string
                     description: User display name
                     example: John Doe
+                  selectedTeam:
+                    type: object
                   selectedTeamId:
                     type: string
                     description: Selected team ID
@@ -269,6 +268,8 @@ paths:
                     type: string
                     description: User display name
                     example: John Doe
+                  selectedTeam:
+                    type: object
                   selectedTeamId:
                     type: string
                     description: Selected team ID
@@ -373,6 +374,8 @@ paths:
                     type: string
                     description: User display name
                     example: John Doe
+                  selectedTeam:
+                    type: object
                   selectedTeamId:
                     type: string
                     description: Selected team ID
@@ -506,6 +509,8 @@ paths:
                     type: string
                     description: User display name
                     example: John Doe
+                  selectedTeam:
+                    type: object
                   selectedTeamId:
                     type: string
                     description: Selected team ID

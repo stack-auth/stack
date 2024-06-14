@@ -43,7 +43,7 @@ export function parseOpenAPI(options: {
 
     const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
     for (const handler of handlers) {
-      const parsed = parseRouteHandler({ handler, audience: options.audience, tags: endpoint.tags });
+      const parsed = parseRouteHandler({ handler, audience: options.audience, tags: endpoint.tags, path: endpoint.path });
       result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };
     }
   }
@@ -71,13 +71,12 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
 
 function parseRouteHandler(options: {
   handler: RouteHandler,
+  path: string,
   audience: 'client' | 'server' | 'admin',
   tags?: string[],
 }) {
   let schema = options.handler.schemas.get(options.audience);
   if (!schema) return {};
-
-  // const metadata = endpointMetadataSchema.validateSync(serverSchema.request.describe().meta);
   if (!schema.metadata) throw new Error('Missing metadata');
 
   let result: any = {};
@@ -88,6 +87,7 @@ function parseRouteHandler(options: {
     result[method.toLowerCase()] = {
       ...parseSchema({
         metadata: schema.metadata,
+        path: options.path,
         pathDesc: undefinedIfMixed(requestFields.params),
         parameterDesc: undefinedIfMixed(requestFields.query),
         requestBodyDesc: undefinedIfMixed(requestFields.body),
@@ -132,11 +132,16 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
   return schema;
 }
 
-function toParameters(description: yup.SchemaDescription, inType: 'query' | 'path' = 'query') {
+function toParameters(description: yup.SchemaDescription, path?: string) {
+  const pathParams: string[] = path ? path.match(/{[^}]+}/g) || [] : [];
+
   return Object.entries((description as any).fields).map(([key, field]) => {
+    if (path && !pathParams.includes(`{${key}}`)) {
+      return { schema: null };
+    }
     return {
       name: key,
-      in: inType,
+      in: path ? 'path' : 'query',
       schema: getFieldSchema(field as any),
       required: !(field as any).optional && !(field as any).nullable,
     };
@@ -191,12 +196,13 @@ function toExamples(description: yup.SchemaDescription) {
 
 export function parseSchema(options: {
   metadata: yup.InferType<typeof endpointMetadataSchema>,
+  path: string,
   pathDesc?: yup.SchemaDescription,
   parameterDesc?: yup.SchemaDescription,
   requestBodyDesc?: yup.SchemaDescription,
   responseDesc?: yup.SchemaDescription,
 }) {
-  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, 'path') : [];
+  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, options.path) : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
   const responseSchema = options.responseDesc ? toSchema(options.responseDesc) : {};
   const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : [];

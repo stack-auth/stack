@@ -78,6 +78,8 @@ paths:
                     type: string
                     description: Selected team ID
                     example: team-id
+                  selectedTeam:
+                    type: object
                 required:
                   - projectId
                   - id
@@ -186,6 +188,8 @@ paths:
                     type: string
                     description: Selected team ID
                     example: team-id
+                  selectedTeam:
+                    type: object
                 required:
                   - projectId
                   - id
