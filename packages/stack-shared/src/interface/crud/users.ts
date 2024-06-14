@@ -33,20 +33,8 @@ export const usersCrudServerReadSchema = yup.object({
 const serverDeleteSchema = yup.mixed();
 
 export const usersCrud = createCrud({
-  serverReadSchema: usersCrudServerReadSchema.meta({ 
-    summary: 'Get server user',
-    description: 'Get server user by ID', 
-    operationId: 'getServerUser' 
-  }),
-  serverUpdateSchema: usersCrudServerUpdateSchema.meta({
-    summary: 'Update server user',
-    description: 'Update server user by ID',
-    operationId: 'updateServerUser',
-  }),
-  serverDeleteSchema: serverDeleteSchema.meta({
-    summary: 'Delete server user',
-    description: 'Delete server user by ID',
-    operationId: 'deleteServerUser',
-  }),
+  serverReadSchema: usersCrudServerReadSchema,
+  serverUpdateSchema: usersCrudServerUpdateSchema,
+  serverDeleteSchema: serverDeleteSchema,
 });
 export type UsersCrud = CrudTypeOf<typeof usersCrud>;

@@ -28,7 +28,6 @@
     "generate-keys": "only-allow pnpm && turbo run generate-keys --no-cache"
   },
   "devDependencies": {
-    "only-allow": "^1.2.1",
     "@changesets/cli": "^2.27.1",
     "@testing-library/react": "^15.0.2",
     "@types/node": "^20.8.10",
@@ -36,6 +35,8 @@
     "@typescript-eslint/eslint-plugin": "^6.x",
     "@typescript-eslint/parser": "^6.x",
     "@vitejs/plugin-react": "^4.2.1",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^8.2.2",
     "eslint": "8.30.0",
     "eslint-config-next": "^14",
     "eslint-config-standard-with-typescript": "^43",
@@ -44,6 +45,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.31.11",
     "jsdom": "^24.0.0",
+    "only-allow": "^1.2.1",
     "rimraf": "^5.0.5",
     "supertest": "^6.3.4",
     "tsup": "^8.0.2",
