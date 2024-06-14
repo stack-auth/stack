@@ -19,6 +19,7 @@ function crudHandlerToArray(crudHandler: any) {
 type EndpointOption = {
   handler: RouteHandler | CrudHandlers<any>,
   path: string,
+  tags?: string[],
 };
 
 export function parseOpenAPI(options: {
@@ -42,7 +43,7 @@ export function parseOpenAPI(options: {
 
     const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
     for (const handler of handlers) {
-      const parsed = parseRouteHandler({ handler, audience: options.audience });
+      const parsed = parseRouteHandler({ handler, audience: options.audience, tags: endpoint.tags });
       result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };
     }
   }
@@ -71,6 +72,7 @@ function undefinedIfMixed(value: yup.SchemaDescription | undefined): yup.SchemaD
 function parseRouteHandler(options: {
   handler: RouteHandler,
   audience: 'client' | 'server' | 'admin',
+  tags?: string[],
 }) {
   let schema = options.handler.schemas.get(options.audience);
   if (!schema) return {};
@@ -83,13 +85,16 @@ function parseRouteHandler(options: {
   const responseFields = (schema.response.describe() as any).fields;
 
   for (const method of requestFields.method.oneOf) {
-    result[method.toLowerCase()] = parseSchema({
-      metadata: schema.metadata,
-      pathDesc: undefinedIfMixed(requestFields.params),
-      parameterDesc: undefinedIfMixed(requestFields.query),
-      requestBodyDesc: undefinedIfMixed(requestFields.body),
-      responseDesc: undefinedIfMixed(responseFields.body),
-    });
+    result[method.toLowerCase()] = {
+      ...parseSchema({
+        metadata: schema.metadata,
+        pathDesc: undefinedIfMixed(requestFields.params),
+        parameterDesc: undefinedIfMixed(requestFields.query),
+        requestBodyDesc: undefinedIfMixed(requestFields.body),
+        responseDesc: undefinedIfMixed(responseFields.body),
+      }),
+      tags: options.tags,
+    };
   }
   return result;
 }

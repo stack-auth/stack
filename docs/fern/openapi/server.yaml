@@ -90,6 +90,8 @@ paths:
                       example:
                         key: value
                 required: []
+      tags:
+        - Users
   /users/{userId}:
     get:
       summary: Get a user
@@ -180,6 +182,8 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: &a3
+        - Users
     put:
       summary: Update a user
       description: Update a user. Only the values provided will be updated
@@ -316,6 +320,7 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: *a3
     delete:
       summary: Delete a user
       description: Delete a user. Use this with caution
@@ -333,6 +338,7 @@ paths:
             application/json:
               schema:
                 required: []
+      tags: *a3
   /current-user:
     get:
       summary: Get the current user
@@ -418,9 +424,11 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: &a6
+        - Users
     put:
       summary: Update the current user
-      description: Update the user by session. Only the values provided will be updated
+      description: Update user by session. Only the values provided will be updated
       operationId: updateCurrentUser
       parameters: []
       requestBody:
@@ -438,13 +446,13 @@ paths:
                   type: object
                   description: Client metadata. Used as a data store, accessible from the client
                     side
-                  example: &a3
+                  example: &a4
                     key: value
                 serverMetadata:
                   type: object
                   description: Server metadata. Used as a data store, only accessible from the
                     server side
-                  example: &a4
+                  example: &a5
                     key: value
                 primaryEmail:
                   type: string
@@ -462,8 +470,8 @@ paths:
               example:
                 displayName:
                   example: John Doe
-                clientMetadata: *a3
-                serverMetadata: *a4
+                clientMetadata: *a4
+                serverMetadata: *a5
                 primaryEmail:
                   example: johndoe@email.com
                 primaryEmailVerified:
@@ -549,3 +557,4 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: *a6

@@ -9,15 +9,18 @@ for (const audience of ['client', 'server'] as const) {
     endpointOptions: [
       {
         handler: usersCrudHandlers.listHandler,
-        path: '/users'
+        path: '/users',
+        tags: ['Users'],
       },
       {
         handler: usersCrudHandlers,
         path: '/users/{userId}',
+        tags: ['Users'],
       },
       {
         handler: currentUserCrudHandlers,
         path: '/current-user',
+        tags: ['Users'],
       }
     ],
     audience,

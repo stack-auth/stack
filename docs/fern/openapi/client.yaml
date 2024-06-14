@@ -87,9 +87,11 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: &a2
+        - Users
     put:
       summary: Update the current user
-      description: Update the user by session. Only the values provided will be updated
+      description: Update user by session. Only the values provided will be updated
       operationId: updateCurrentUser
       parameters: []
       requestBody:
@@ -193,3 +195,4 @@ paths:
                   - hasPassword
                   - authWithEmail
                   - oauthProviders
+      tags: *a2

@@ -29,7 +29,7 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
     },
     update: {
       summary: 'Update the current user',
-      description: 'Update the user by session. Only the values provided will be updated',
+      description: 'Update user by session. Only the values provided will be updated',
       operationId: 'updateCurrentUser',
     },
   },
