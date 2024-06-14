@@ -50,3 +50,7 @@ jobs:
         run: pnpm build
       - name: Lint
         run: pnpm lint
+      - name: Check if docs is generated
+        run: |
+          pnpm generate-docs
+          git diff --exit-code
