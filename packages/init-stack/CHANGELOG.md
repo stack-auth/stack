@@ -1,5 +1,7 @@
 # @stackframe/init-stack
 
+## 2.4.25
+
 ## 2.4.24
 
 ## 2.4.23

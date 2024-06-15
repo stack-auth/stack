@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.4.24",
+  "version": "2.4.25",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
