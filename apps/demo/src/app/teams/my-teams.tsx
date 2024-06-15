@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, TeamSwitcher, Text } from "@stackframe/stack";
+import { Link, SelectedTeamSwitcher, Text } from "@stackframe/stack";
 import { stackServerApp } from 'src/stack';
 import { CreateTeam } from './create-team';
 
@@ -10,7 +10,7 @@ export default async function MyTeams() {
 
   return (
     <div className='flex-col'>
-      <TeamSwitcher />
+      <SelectedTeamSwitcher />
       <CreateTeam />
 
       {teams.length > 0 && teams.map((team) => (

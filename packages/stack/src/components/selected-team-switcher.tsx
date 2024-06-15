@@ -15,7 +15,7 @@ import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-type TeamSwitcherProps = {
+type SelectedTeamSwitcherProps = {
   projectUrlMap?: (projectId: string) => string,
 };
 
@@ -27,7 +27,7 @@ function TeamIcon(props: { displayName: string }) {
   );
 }
 
-export default function TeamSwitcher(props: TeamSwitcherProps) {
+export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const user = useUser();
   const router = useRouter();
   const selectedTeam = user?.selectedTeam;
