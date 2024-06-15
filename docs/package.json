@@ -3,7 +3,9 @@
   "version": "2.4.25",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
+    "clean": "rimraf .next && rimraf node_modules && rimraf fern/openapi/*.yaml",
     "dev": "pnpm run fern docs dev --port 8104",
     "fern": "fern"
   },
@@ -11,5 +13,8 @@
   "author": "",
   "dependencies": {
     "fern-api": "^0.30.7"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.7"
   }
 }
