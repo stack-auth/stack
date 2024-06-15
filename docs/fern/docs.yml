@@ -1,0 +1,103 @@
+instances:
+  - url: https://stack-auth.docs.buildwithfern.com
+    custom-domain: docs.stack-auth.com
+title: Stack Auth Documentation
+
+tabs:
+  documentation:
+    display-name: Documentation
+    icon: 'fa-solid fa-home'
+    slug: docs
+  sdk:
+    display-name: SDK Reference
+    icon: 'fa-solid fa-hammer'
+    slug: sdk
+  api:
+    display-name: API Reference
+    icon: 'fa-solid fa-code'
+    slug: rest-api
+
+navigation:
+  - tab: documentation
+    layout: 
+      - section: Get Started
+        contents:
+          - page: Overview
+            path: ./docs/pages/getting-started/overview.mdx
+          - page: Installation & Setup
+            path: ./docs/pages/getting-started/setup.mdx
+          - page: Users & Protected Pages
+            path: ./docs/pages/getting-started/users.mdx
+          - page: Teams & Permissions
+            path: ./docs/pages/getting-started/teams.mdx
+      - section: Customization
+        contents:
+          - page: Overview
+            path: ./docs/pages/customization/overview.mdx
+          - page: Colors & Color Mode
+            path: ./docs/pages/customization/custom-colors.mdx
+          - page: Custom Components
+            path: ./docs/pages/customization/custom-components.mdx
+          - page: Custom Pages
+            path: ./docs/pages/customization/custom-pages.mdx
+          - section: Page Examples
+            contents:
+              - page: Sign In
+                path: ./docs/pages/customization/page-examples/signin.mdx
+              - page: Sign Up
+                path: ./docs/pages/customization/page-examples/signup.mdx
+  - tab: sdk
+    layout: 
+      - section: Next.js SDK
+        contents:
+          - page: User
+            path: ./docs/pages/sdk/user.mdx
+          - page: useUser
+            path: ./docs/pages/sdk/use-user.mdx
+          - page: App
+            path: ./docs/pages/sdk/app.mdx
+          - page: useStackApp
+            path: ./docs/pages/sdk/use-stack-app.mdx
+  - tab: api
+    layout: 
+      - api: Client API Reference
+        slug: client
+        api-name: client
+      - api: Server API Reference
+        slug: server
+        api-name: server
+
+navbar-links:
+  - type: secondary
+    text: Discord
+    url: https://discord.stack-auth.com
+  - type: secondary
+    text: GitHub
+    url: https://github.com/stack-auth/stack
+  - type: primary
+    text: Dashboard
+    url: https://app.stack-auth.com
+
+colors:
+  accentPrimary: 
+    light: '#000000'
+    dark: '#FFFFFF'
+  background: 
+    light: '#FFFFFF'
+    dark: '#000000'
+  sidebar-background: 
+    light: '#FFFFFF'
+    dark: '#000000'
+  card-background: 
+    light: '#FFFFFF'
+    dark: '#111111'
+layout:
+  page-width: full
+  content-width: 40rem
+  disable-header: false
+  header-height: 60px
+favicon: ./docs/assets/favicon.ico
+logo:
+  light: ./docs/assets/logo-light-mode.svg
+  dark: ./docs/assets/logo-dark-mode.svg
+  height: 28

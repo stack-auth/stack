@@ -1,10 +1,33 @@
 import { getServerTeamFromDbType } from "@/lib/teams";
 import { serverUserInclude } from "@/lib/users";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
+import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
+  metadataMap: {
+    read: {
+      summary: 'Get a user',
+      description: 'Get a user by user ID',
+      operationId: 'getUser',
+    },
+    update: {
+      summary: 'Update a user',
+      description: 'Update a user. Only the values provided will be updated',
+      operationId: 'updateUser',
+    },
+    delete: {
+      summary: 'Delete a user',
+      description: 'Delete a user. Use this with caution',
+      operationId: 'deleteUser',
+    },
+    list: {
+      summary: 'List users',
+      description: 'List all the users in the project',
+      operationId: 'listUsers',
+    },
+  },
   paramNames: ["userId"],
   baseFields: async ({ auth, params }) => {
     const projectId = auth.project.id;
@@ -30,7 +53,8 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     const projectId = auth.project.id;
     return {
       displayName: crud.displayName,
-      clientMetadata: crud.clientMetadata,
+      clientMetadata: crud.clientMetadata === null ? Prisma.JsonNull : crud.clientMetadata,
+      serverMetadata: crud.serverMetadata === null ? Prisma.JsonNull : crud.serverMetadata,
       projectId,
       primaryEmail: crud.primaryEmail,
       primaryEmailVerified: crud.primaryEmailVerified,

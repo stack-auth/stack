@@ -110,6 +110,11 @@ type SmartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 > = {
+  metadata?: {
+    summary: string,
+    description: string,
+    operationId: string,
+  },
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
@@ -121,12 +126,24 @@ type SmartRouteHandlerGenerator<
   Res extends SmartResponse,
 > = (param: OverloadParam) => SmartRouteHandler<Req, Res>;
 
+export type RouteHandlerMetadata = {
+  summary: string,
+  description: string,
+  operationId: string,
+};
+
+export type RouteHandlerSchemaMap = Map<string, { metadata?: RouteHandlerMetadata, request: yup.Schema, response: yup.Schema }>;
+
+export type RouteHandler = ((req: NextRequest, options: any) => Promise<Response>) & {
+  schemas: RouteHandlerSchemaMap,
+}
+
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
   handler: SmartRouteHandler<Req, Res>,
-): (req: NextRequest, options: any) => Promise<Response>;
+): RouteHandler
 export function smartRouteHandler<
   OverloadParam,
   Req extends DeepPartial<SmartRequest>,
@@ -134,17 +151,17 @@ export function smartRouteHandler<
 >(
   overloadParams: readonly OverloadParam[],
   overloadGenerator: SmartRouteHandlerGenerator<OverloadParam, Req, Res>
-): (req: NextRequest, options: any) => Promise<Response>;
+): RouteHandler
 export function smartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
   ...args: [readonly unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
-): (req: NextRequest, options: any) => Promise<Response> {
+): RouteHandler {
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
   const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
 
-  return deprecatedSmartRouteHandler(async (req, options, requestId) => {
+  return Object.assign(deprecatedSmartRouteHandler(async (req, options, requestId) => {
     const reqsParsed: [[Req, SmartRequest], SmartRouteHandler<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
     const bodyBuffer = await req.arrayBuffer();
@@ -174,6 +191,16 @@ export function smartRouteHandler<
     let smartRes = await handler.handler(smartReq as any, fullReq);
 
     return await createResponse(req, requestId, smartRes, handler.response);
+  }), {
+    schemas: overloadParams.reduce((acc: RouteHandlerSchemaMap, overloadParam) => {
+      const handler = overloadGenerator(overloadParam);
+      acc.set(overloadParam as string, {
+        request: handler.request,
+        response: handler.response,
+        metadata: handler.metadata,
+      });
+      return acc;
+    }, new Map()),
   });
 }
 

@@ -14,6 +14,8 @@ declare module 'yup' {
   export interface CustomSchemaMetadata {
     stackFormFieldRender?: (props: { control: ReturnType<typeof useForm>['control'], name: string, label: string, disabled: boolean }) => React.ReactNode,
     stackFormFieldPlaceholder?: string,
+    description?: string,
+    summary?: string,
   }
 }
 
