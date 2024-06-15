@@ -1,0 +1,15 @@
+{
+  "name": "@stackframe/docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm run fern docs dev --port 8104",
+    "fern": "fern"
+  },
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "fern-api": "^0.30.7"
+  }
+}

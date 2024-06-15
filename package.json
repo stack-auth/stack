@@ -13,6 +13,7 @@
     "codegen": "only-allow pnpm && turbo run codegen --no-cache",
     "psql:server": "only-allow pnpm && pnpm run --filter=@stackframe/stack-server psql",
     "prisma:server": "only-allow pnpm && pnpm run --filter=@stackframe/stack-server prisma",
+    "fern": "only-allow pnpm && pnpm run --filter=@stackframe/docs fern",
     "dev": "only-allow pnpm && turbo run dev --parallel --continue",
     "dev:app": "only-allow pnpm && turbo run dev --continue --filter=@stackframe/dev-app...",
     "dev:server": "only-allow pnpm && turbo run dev --continue --filter=@stackframe/stack-server...",

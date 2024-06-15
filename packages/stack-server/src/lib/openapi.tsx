@@ -3,8 +3,8 @@ import { RouteHandler } from '@/route-handlers/smart-route-handler';
 import { randomInt } from 'crypto';
 import * as yup from 'yup';
 
-function isRouteHandler(handlers: any): handlers is CrudHandlers<any> {
-  return handlers.schemas !== undefined;
+function isRouteHandler(handler: object): handler is RouteHandler {
+  return "isSmartRouteHandler" in handler;
 }
 
 function crudHandlerToArray(crudHandler: any) {
@@ -17,7 +17,7 @@ function crudHandlerToArray(crudHandler: any) {
 }
 
 type EndpointOption = {
-  handler: RouteHandler | CrudHandlers<any>,
+  handlers: RouteHandler[],
   path: string,
   tags?: string[],
 };
@@ -40,8 +40,7 @@ export function parseOpenAPI(options: {
   };
 
   for (const endpoint of options.endpointOptions) {
-
-    const handlers = isRouteHandler(endpoint.handler) ? [endpoint.handler] : crudHandlerToArray(endpoint.handler);
+    const handlers = endpoint.handlers;
     for (const handler of handlers) {
       const parsed = parseRouteHandler({ handler, audience: options.audience, tags: endpoint.tags, path: endpoint.path });
       result.paths[endpoint.path] = { ...result.paths[endpoint.path], ...parsed };

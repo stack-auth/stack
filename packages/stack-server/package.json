@@ -11,7 +11,7 @@
     "build": "npm run codegen && next build",
     "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
     "start": "next start --port 8101",
-    "codegen": "npm run prisma -- generate",
+    "codegen": "npm run prisma -- generate && npm run generate-docs",
     "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run with-env -- prisma",
     "lint": "next lint",

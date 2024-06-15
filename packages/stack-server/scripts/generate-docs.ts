@@ -4,21 +4,30 @@ import { parseOpenAPI } from '@/lib/openapi';
 import yaml from 'yaml';
 import fs from 'fs';
 
+const methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"];
+
 for (const audience of ['client', 'server'] as const) {
   const openAPISchema = yaml.stringify(parseOpenAPI({
     endpointOptions: [
       {
-        handler: usersCrudHandlers.listHandler,
+        handlers: [usersCrudHandlers.listHandler],
         path: '/users',
         tags: ['Users'],
       },
       {
-        handler: usersCrudHandlers,
+        handlers: [
+          usersCrudHandlers.readHandler,
+          usersCrudHandlers.updateHandler,
+          usersCrudHandlers.deleteHandler,
+        ],
         path: '/users/{userId}',
         tags: ['Users'],
       },
       {
-        handler: currentUserCrudHandlers,
+        handlers: [
+          currentUserCrudHandlers.readHandler,
+          currentUserCrudHandlers.updateHandler,
+        ],
         path: '/current-user',
         tags: ['Users'],
       }
@@ -27,4 +36,6 @@ for (const audience of ['client', 'server'] as const) {
   }));
 
   fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
+
+  console.log("Successfully updated OpenAPI schema");
 }

@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js v20
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
@@ -42,29 +42,21 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Generate docs
-        run: pnpm generate-docs
-
-      - name: Install Fern
-        run: npm install -g fern-api
-
       - name: Check API is valid
-        run: fern check
-        working-directory: ./docs
+        run: pnpm run fern check
 
       - name: Generate preview URL
         id: generate-docs
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
         run: |
-          OUTPUT=$(fern generate --docs --preview 2>&1) || true
+          OUTPUT=$(pnpm run fern generate --docs --preview 2>&1) || true
           echo "$OUTPUT"
           URL=$(echo "$OUTPUT" | grep -oP 'Published docs to \K.*(?= \()')
           echo "Preview URL: $URL"
-          echo "🌿 Preview your docs: $URL" > preview_url.txt
-        working-directory: ./docs
+          echo "🌿 Preview your docs: $URL" > docs_preview_url.untracked.txt
 
       - name: Comment URL in PR
         uses: thollander/actions-comment-pull-request@v2.4.3
         with:
-          filePath: docs/preview_url.txt
+          filePath: docs_preview_url.untracked.txt

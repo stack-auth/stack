@@ -135,6 +135,7 @@ export type RouteHandlerMetadata = {
 export type RouteHandlerSchemaMap = Map<string, { metadata?: RouteHandlerMetadata, request: yup.Schema, response: yup.Schema }>;
 
 export type RouteHandler = ((req: NextRequest, options: any) => Promise<Response>) & {
+  isSmartRouteHandler: boolean,
   schemas: RouteHandlerSchemaMap,
 }
 
@@ -192,6 +193,7 @@ export function smartRouteHandler<
 
     return await createResponse(req, requestId, smartRes, handler.response);
   }), {
+    isSmartRouteHandler: true,
     schemas: overloadParams.reduce((acc: RouteHandlerSchemaMap, overloadParam) => {
       const handler = overloadGenerator(overloadParam);
       acc.set(overloadParam as string, {
