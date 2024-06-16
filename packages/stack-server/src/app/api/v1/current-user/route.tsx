@@ -1,6 +1,6 @@
 console.log("AAAAAAAA ROUTE");
 
-import { currentUserCrudHandlers } from "./crud";
+import { currentUserCrudHandlers } from "@/app/api/v1/current-user/crud";
 
 console.log("BBBBBBBB ROUTE");
 
