@@ -1,4 +1,5 @@
 import { StackAssertionError, captureError } from "./errors";
+import { DependenciesMap } from "./maps";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
 
@@ -38,28 +39,45 @@ export function createPromise<T>(callback: (resolve: Resolve<T>, reject: Reject)
   } as any);
 }
 
+const resolvedCache = new DependenciesMap<[unknown], ReactPromise<unknown>>();
 /**
- * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook, and caches
+ * the value so that invoking `resolved` twice returns the same promise.
  */
 export function resolved<T>(value: T): ReactPromise<T> {
-  return Object.assign(Promise.resolve(value), {
+  if (resolvedCache.has([value])) {
+    return resolvedCache.get([value]) as ReactPromise<T>;
+  }
+
+  const res = Object.assign(Promise.resolve(value), {
     status: "fulfilled",
     value,
   } as const);
+  resolvedCache.set([value], res);
+  return res;
 }
 
+const rejectedCache = new DependenciesMap<[unknown], ReactPromise<unknown>>();
 /**
- * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ * Like Promise.reject(...), but also adds the status and value properties for use with React's `use` hook, and caches
+ * the value so that invoking `rejected` twice returns the same promise.
  */
 export function rejected<T>(reason: unknown): ReactPromise<T> {
-  return Object.assign(Promise.reject(reason), {
+  if (rejectedCache.has([reason])) {
+    return rejectedCache.get([reason]) as ReactPromise<T>;
+  }
+
+  const res = Object.assign(Promise.reject(reason), {
     status: "rejected",
     reason: reason,
   } as const);
+  rejectedCache.set([reason], res);
+  return res;
 }
 
+const neverResolvePromise = pending(new Promise<never>(() => {}));
 export function neverResolve(): ReactPromise<never> {
-  return pending(new Promise<never>(() => {}));
+  return neverResolvePromise;
 }
 
 export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?: boolean } = {}): ReactPromise<T> {

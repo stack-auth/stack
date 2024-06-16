@@ -198,7 +198,11 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies
 
   // note: we must use React.useSyncExternalStore instead of importing the function directly, as it will otherwise
   // throw an error ("can't import useSyncExternalStore from the server")
-  const value = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const value = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    () => throwErr(new Error("getServerSnapshot should never be called in useAsyncCache because we restrict to CSR earlier"))
+  );
 
   if (value === loadingSentinel) {
     return use(cache.getOrWait(dependencies, "read-write"));
