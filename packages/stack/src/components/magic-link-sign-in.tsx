@@ -32,8 +32,8 @@ export default function MagicLinkSignIn() {
   };
 
   return (
-    <form 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+    <form
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
@@ -43,6 +43,7 @@ export default function MagicLinkSignIn() {
         type="email"
         {...register('email')}
         disabled={sent}
+        style={{ backgroundColor: 'black', color: 'white' }}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 

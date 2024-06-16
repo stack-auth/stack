@@ -39,8 +39,8 @@ export default function CredentialSignUp() {
   };
 
   return (
-    <form 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+    <form
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
@@ -49,6 +49,7 @@ export default function CredentialSignUp() {
         id="email"
         type="email"
         {...register('email')}
+        style={{ backgroundColor: 'black', color: 'white' }}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
@@ -60,9 +61,10 @@ export default function CredentialSignUp() {
           clearErrors('password');
           clearErrors('passwordRepeat');
         }}
+        style={{ backgroundColor: 'black', color: 'white' }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
-        
+
       <Label htmlFor="repeat-password" style={{ marginTop: '1rem' }}>Repeat Password</Label>
       <PasswordField
         id="repeat-password"
@@ -71,6 +73,7 @@ export default function CredentialSignUp() {
           clearErrors('password');
           clearErrors('passwordRepeat');
         }}
+        style={{ backgroundColor: 'black', color: 'white' }}
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 

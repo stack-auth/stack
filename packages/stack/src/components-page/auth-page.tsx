@@ -1,5 +1,4 @@
-'use client';
-
+import { useState } from 'react';
 import CredentialSignIn from '../components/credential-sign-in';
 import SeparatorWithText from '../components/separator-with-text';
 import OAuthGroup from '../components/oauth-group';
@@ -10,12 +9,12 @@ import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../compone
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
 
-export default function AuthPage({ 
-  fullPage=false,
+export default function AuthPage({
+  fullPage = false,
   type,
   mockProject,
-}: { 
-  fullPage?: boolean, 
+}: {
+  fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   mockProject?: ClientProjectJson,
 }) {
@@ -23,6 +22,8 @@ export default function AuthPage({
   const user = useUser();
   const projectFromHook = stackApp.useProject();
   const project = mockProject || projectFromHook;
+
+  const [activeTab, setActiveTab] = useState('magic-link');
 
   if (user && !mockProject) {
     return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
@@ -55,22 +56,22 @@ export default function AuthPage({
       <OAuthGroup type={type} mockProject={mockProject} />
       {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
       {project.credentialEnabled && project.magicLinkEnabled ? (
-        <Tabs defaultValue='magic-link'>
+        <Tabs defaultValue='magic-link' onValueChange={(value) => setActiveTab(value)}>
           <TabsList>
-            <TabsTrigger value='magic-link'>Magic Link</TabsTrigger>
-            <TabsTrigger value='password'>Password</TabsTrigger>
+            <TabsTrigger style={{ backgroundColor: activeTab === 'magic-link' ? 'coral' : '#333333' }} value='magic-link'>Magic Link</TabsTrigger>
+            <TabsTrigger style={{ backgroundColor: activeTab === 'password' ? 'coral' : '#333333' }} value='password'>Password</TabsTrigger>
           </TabsList>
           <TabsContent value='magic-link'>
-            <MagicLinkSignIn/>
+            <MagicLinkSignIn />
           </TabsContent>
           <TabsContent value='password'>
-            {type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+            {type === 'sign-up' ? <CredentialSignUp /> : <CredentialSignIn />}
           </TabsContent>
         </Tabs>
       ) : project.credentialEnabled ? (
-        type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+        type === 'sign-up' ? <CredentialSignUp /> : <CredentialSignIn />
       ) : project.magicLinkEnabled ? (
-        <MagicLinkSignIn/>
+        <MagicLinkSignIn />
       ) : null}
     </MaybeFullPage>
   );
