@@ -19,7 +19,7 @@ async function main() {
         const midfix = suffix.slice(0, suffix.lastIndexOf("/route."));
         const importPath = `${importPathPrefix}${suffix}`;
         const urlPath = midfix.replace("[", "{").replace("]", "}");
-        const module = await import(importPath);
+        const module = require(importPath);
         const handlersByMethod = new Map(
           HTTP_METHODS.map(method => [method, module[method]] as const)
             .filter(([_, handler]) => isSmartRouteHandler(handler))
