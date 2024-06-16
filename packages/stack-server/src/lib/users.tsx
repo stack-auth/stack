@@ -1,15 +1,18 @@
-import { UserJson, ServerUserJson, KnownError, KnownErrors } from "@stackframe/stack-shared";
+import { UserJson, ServerUserJson, KnownErrors } from "@stackframe/stack-shared";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { getProject } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { addUserToTeam, createServerTeam } from "./teams";
+import { addUserToTeam, createServerTeam, getClientTeamFromServerTeam, getServerTeamFromDbType } from "./teams";
 import { upsertUserImage } from "./image";
-export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
+export const serverUserInclude = {
   projectUserOAuthAccounts: true,
-}, }>;
+  selectedTeam: true,
+} as const satisfies Prisma.ProjectUserInclude;
+
+export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: typeof serverUserInclude }>;
 
 export async function getClientUser(projectId: string, userId: string): Promise<UserJson | null> {
   return await updateClientUser(projectId, userId, {});
@@ -24,9 +27,7 @@ export async function listServerUsers(projectId: string): Promise<ServerUserJson
     where: {
       projectId,
     },
-    include: {
-      projectUserOAuthAccounts: true,
-    },
+    include: serverUserInclude,
   });
 
   return users.map((u) => getServerUserFromDbType(u));
@@ -73,9 +74,7 @@ export async function updateServerUser(
           projectUserId: userId,
         },
       },
-      include: {
-        projectUserOAuthAccounts: true,
-      },
+      include: serverUserInclude,
       data: filterUndefined({
         displayName: update.displayName,
         primaryEmail: update.primaryEmail,
@@ -132,6 +131,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     oauthProviders: serverUser.oauthProviders,
     selectedTeamId: serverUser.selectedTeamId,
     uploadedProfileImageId:serverUser.uploadedProfileImageId
+    selectedTeam: serverUser.selectedTeam && getClientTeamFromServerTeam(serverUser.selectedTeam),
   };
 }
 
@@ -154,6 +154,7 @@ export function getServerUserFromDbType(
     oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
     selectedTeamId: user.selectedTeamId,
     uploadedProfileImageId:user.uploadedProfileImageId
+    selectedTeam: user.selectedTeam && getServerTeamFromDbType(user.selectedTeam),
   };
 }
 

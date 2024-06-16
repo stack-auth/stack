@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Text } from "@stackframe/stack";
+import { Link, SelectedTeamSwitcher, Text } from "@stackframe/stack";
 import { stackServerApp } from 'src/stack';
 import { CreateTeam } from './create-team';
 
@@ -10,9 +10,10 @@ export default async function MyTeams() {
 
   return (
     <div className='flex-col'>
+      <SelectedTeamSwitcher />
       <CreateTeam />
 
-      {teams && teams.length > 0 && teams.map((team) => (
+      {teams.length > 0 && teams.map((team) => (
         <div key={team.id}>
           <Text size='md'>{team.displayName}, <Link href={`/teams/${team.id}`}>Open</Link></Text>
         </div>

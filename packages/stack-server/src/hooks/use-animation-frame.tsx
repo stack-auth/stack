@@ -1,3 +1,4 @@
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 export function useAnimationFrame(callback: FrameRequestCallback) {
@@ -6,7 +7,7 @@ export function useAnimationFrame(callback: FrameRequestCallback) {
 
   useLayoutEffect(() => {
     // check if we're in a browser environment
-    if (typeof window === "undefined") return () => {};
+    if (!isBrowserLike()) return () => {};
 
     let handle = -1;
     const newCallback: FrameRequestCallback = (...args) => {

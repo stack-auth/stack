@@ -15,6 +15,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
+import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +33,7 @@ const fontSans = FontSans({
 type TagConfigJson = {
   tagName: string,
   attributes: { [key: string]: string },
-  innerHTML: string,
+  innerHTML?: string,
 };
 
 export default function RootLayout({
@@ -58,26 +59,29 @@ export default function RootLayout({
           });
         })}
       </head>
-      <body 
-        className={cn(
+      <CSPostHogProvider>
+        <body 
+          className={cn(
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
         )}
-        suppressHydrationWarning
-      >
-        <Analytics />
-        <ThemeProvider>
-          <StackProvider app={stackServerApp}>
-            <StackTheme>
-              <RouterProvider>
-                {children}
-              </RouterProvider>
-            </StackTheme>
-          </StackProvider>
-        </ThemeProvider>
-        <DevErrorNotifier />
-        <Toaster />
-      </body>
+          suppressHydrationWarning
+        >
+          <Analytics />
+          <ThemeProvider>
+            <StackProvider app={stackServerApp}>
+              <StackTheme>
+                <RouterProvider>
+                  <UserIdentity />
+                  {children}
+                </RouterProvider>
+              </StackTheme>
+            </StackProvider>
+          </ThemeProvider>
+          <DevErrorNotifier />
+          <Toaster />
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

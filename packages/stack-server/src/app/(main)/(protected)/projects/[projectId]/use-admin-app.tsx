@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useStackApp, useUser } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, StackAdminApp } from "@stackframe/stack";
@@ -16,8 +16,7 @@ const createAdminApp = cacheFunction((baseUrl: string, projectId: string, userId
     baseUrl,
     projectId,
     tokenStore: null,
-    projectOwnerTokens: usersMap.get(userId)!.tokenStore,
-    refreshProjectOwnerTokens: async () => await usersMap.get(userId)!.refreshAccessToken(),
+    projectOwnerSession: usersMap.get(userId)!._internalSession,
   });
 });
 

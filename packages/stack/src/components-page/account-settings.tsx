@@ -2,7 +2,7 @@
 
 import React, {useEffect, useRef } from 'react';
 import { PasswordField, useUser } from '..';
-import RedirectMessageCard from '../components/redirect-message-card';
+import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
 import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
@@ -281,7 +281,7 @@ function PasswordSection() {
           if (errorMessage) {
             setNewPasswordError(errorMessage.message);
           } else {
-            const errorCode = await user?.updatePassword({ oldPassword, newPassword });
+            const errorCode = await user.updatePassword({ oldPassword, newPassword });
             if (errorCode) {
               setOldPasswordError('Incorrect password');
             } else {
@@ -352,7 +352,7 @@ function SignOutSection() {
 export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
   if (!user) {
-    return <RedirectMessageCard type='signedOut' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedOut' fullPage={fullPage} />;
   }
 
   const inner = (

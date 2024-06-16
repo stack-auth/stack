@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { useUser } from "..";
-import GoHomeMessageCard from "../components/redirect-message-card";
+import GoHomeMessageCard from "../components/message-cards/predefined-message-card";
 
 export default function SignOut(props: { fullPage?: boolean }) {
   const user = useUser();

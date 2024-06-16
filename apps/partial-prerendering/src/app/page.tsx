@@ -63,8 +63,8 @@ async function UserInfo() {
     <div>
       {user && <>
         You are logged in.<br />
-        Display name: {user?.displayName ?? "None"}<br />
-        E-mail: {user?.primaryEmail ?? "None"}<br />
+        Display name: {user.displayName ?? "None"}<br />
+        E-mail: {user.primaryEmail ?? "None"}<br />
         <Link href="/handler/account-settings">Account settings</Link>
       </>}
       {!user && <>

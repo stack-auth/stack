@@ -4,7 +4,7 @@
     <a href="https://docs.stack-auth.com">📘 Documentation</a>
     | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
     | <a href="https://demo.stack-auth.com/">✨ Demo</a>
-    | <a href="https://discord.gg/pD4nyYyKrb">Discord</a>
+    | <a href="https://discord.stack-auth.com">Discord</a>
 </h4>
 
 ## 💬 What is Stack?
@@ -44,7 +44,8 @@ We all know how much overhead there is when starting a new project. Developers n
 - [x] Teams [8. May 2024]
 - [x] Permissions [10. May 2024]
 - [x] New dashboard with Shadcn UI [16. May 2024]
-- [x] Email template editor [28. May 2024] 
+- [x] Email template editor [28. May 2024]
+- [x] OAuth scope authorization and access token [05. June 2024] 
 - [ ] User analytics (retention, DAU/MAU, user segments, etc.)
 - [ ] Feature-rich email/notification system
 - [ ] Vue.js, Htmx, and Svelte support
@@ -65,7 +66,9 @@ For further configuration and usage, refer to [our documentation](https://docs.s
 
 ## 🏗️ Development & Contribution
 
-This is for you if you want to contribute to the Stack project.
+This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
+
+Please read the [contribution guidelines](CONTRIBUTING.md) before contributing.
 
 ### Requirements
 
@@ -97,6 +100,8 @@ pnpm run prisma:server migrate reset
 # Start the dev server
 pnpm run dev
 ```
+
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104. Note for any project connecting to the local server (like the demo), you need to set `NEXT_PUBLIC_STACK_URL=http://localhost:8101` in the environment variables.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 

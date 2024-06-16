@@ -1,8 +1,8 @@
-import { smartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
 
-export const GET = smartRouteHandler({
+export const GET = createSmartRouteHandler({
   request: yup.object({
     auth: yup.object({
       type: yup.mixed(),

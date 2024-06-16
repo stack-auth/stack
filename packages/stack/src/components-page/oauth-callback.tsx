@@ -3,7 +3,8 @@
 import { useRef, useEffect, useState } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import MessageCard from "../components/message-card";
+import MessageCard from "../components/message-cards/message-card";
+import { Link } from "../components-core/link";
 
 export default function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();
@@ -20,7 +21,7 @@ export default function OAuthCallback(props: { fullPage?: boolean }) {
     } catch (e: any) {
       setError(e);
     }
-    if (!hasRedirected) {
+    if (!hasRedirected && process.env.NODE_ENV === 'production') {
       await app.redirectToSignIn();
     }
   }), []);
@@ -30,7 +31,7 @@ export default function OAuthCallback(props: { fullPage?: boolean }) {
   }, []);
 
   return <MessageCard title='Redirecting...' fullPage={props.fullPage}>
-    {showRedirectLink ? <p>If you are not redirected automatically, <a href={app.urls.home}>click here</a>.</p> : null}
+    {showRedirectLink ? <p>If you are not redirected automatically, <Link href={app.urls.home}>click here</Link>.</p> : null}
     {error ? <div>
       <p>Something went wrong while processing the OAuth callback:</p>
       <pre>{JSON.stringify(error, null, 2)}</pre>

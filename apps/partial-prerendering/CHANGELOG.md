@@ -1,5 +1,66 @@
 # partial-prerendering
 
+## 2.4.25
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.25
+
+## 2.4.24
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.24
+
+## 2.4.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.23
+
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+- Updated dependencies
+  - @stackframe/stack@2.4.22
+
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.21
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack@2.4.20
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack@2.4.19
+
+## 0.2.18
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.18
+
 ## 0.2.17
 
 ### Patch Changes

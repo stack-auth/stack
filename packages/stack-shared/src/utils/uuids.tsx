@@ -1,3 +1,5 @@
+import { globalVar } from "./globals";
+
 export function generateUuid() {
-  return globalThis.crypto.randomUUID();
+  return globalVar.crypto.randomUUID();
 }

@@ -1,5 +1,4 @@
 import { CopyButton } from "./copy-button";
-import { InlineCode } from "./ui/inline-code";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from "./ui/textarea";
@@ -31,24 +30,31 @@ export default function EnvKeys(props: {
       </TabsContent>
       <TabsContent value={'keys'}>
         <div className="flex flex-col gap-2">
+          {props.projectId && (
+            <CopyField
+              value={props.projectId}
+              label="Project ID"
+              helper="This ID is used in your client-side code and is safe to expose to the public."
+            />
+          )}
           {props.publishableClientKey && (
             <CopyField
               value={props.publishableClientKey}
-              label="Publishable client key"
+              label="Publishable Client Key"
               helper="This key is used in your client-side code and is safe to expose to the public."
             />
           )}
           {props.secretServerKey && (
             <CopyField
               value={props.secretServerKey}
-              label="Secret server key"
+              label="Secret Server Key"
               helper="This key is used on the server-side and can be used to perform actions on behalf of your users. Keep it safe."
             />
           )}
           {props.superSecretAdminKey && (
             <CopyField
               value={props.superSecretAdminKey}
-              label="Super secret admin key"
+              label="Super Secret Admin Key"
               helper="This key is for administrative use only. Anyone owning this key will be able to create unlimited new keys and revoke any other keys. Be careful!"
             />
           )}

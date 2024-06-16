@@ -1,5 +1,5 @@
 import { CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { CrudHandlers, createCrudHandlers } from "./crud-handler";
+import { CrudHandlers, RouteHandlerMetadataMap, createCrudHandlers } from "./crud-handler";
 import { SmartRequestAuth } from "./smart-request";
 import { Prisma } from "@prisma/client";
 import { GetResult } from "@prisma/client/runtime/library";
@@ -10,7 +10,7 @@ type AllPrismaModelNames = Prisma.TypeMap["meta"]["modelProps"];
 type WhereUnique<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findUniqueOrThrow"]["args"]["where"];
 type WhereMany<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findMany"]["args"]["where"];
 type Where<T extends AllPrismaModelNames> = { [K in keyof WhereMany<T> as (K extends keyof WhereUnique<T> ? K : never)]: WhereMany<T>[K] };
-type Include<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findMany"]["args"]["include"];
+type Include<T extends AllPrismaModelNames> = (Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findMany"]["args"] & { include?: unknown })["include"];
 type BaseFields<T extends AllPrismaModelNames> = Where<T> & Partial<PCreate<T>>;
 type PRead<T extends AllPrismaModelNames, W extends Where<T>, I extends Include<T>> = GetResult<Prisma.TypeMap["model"][Capitalize<T>]["payload"], { where: W, include: I }, "findUniqueOrThrow">;
 type PUpdate<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["update"]["args"]["data"];
@@ -26,7 +26,7 @@ type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R }
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
 type CEitherWrite<T extends CrudTypeOf<any>> = CCreate<T> | CUpdate<T>;
 
-type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHandlers<
+export type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHandlers<
   | ("Create" extends keyof T["Admin"] ? "Create" : never)
   | ("Read" extends keyof T["Admin"] ? "Read" : never)
   | ("Read" extends keyof T["Admin"] ? "List" : never)
@@ -54,6 +54,7 @@ export function createPrismaCrudHandlers<
       prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<ParamName>) => Promise<CRead<CrudTypeOf<S>>>,
       fieldMapping?: any,
       createNotFoundError?: (context: Context<ParamName>) => Error,
+      metadataMap?: RouteHandlerMetadataMap,
     }
     & (
       | {
@@ -145,5 +146,6 @@ export function createPrismaCrudHandlers<
         },
       });
     }),
+    metadataMap: options.metadataMap,
   });
 }

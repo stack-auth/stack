@@ -38,6 +38,12 @@
     },
     "test": {
       "cache": false
+    },
+    "generate-docs": {
+      "cache": false
+    },
+    "generate-keys": {
+      "cache": false
     }
   }
 }

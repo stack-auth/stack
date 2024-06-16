@@ -1,118 +1,47 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { GithubProvider } from "./github";
+import { GithubProvider } from "./providers/github";
 import { OAuthModel } from "./model";
-import { OAuthUserInfo } from "./utils";
-import { OAuthBaseProvider } from "./oauth-base";
-import { GoogleProvider } from "./google";
-import { FacebookProvider } from "./facebook";
-import { MicrosoftProvider } from "./microsoft";
-import { SpotifyProvider } from "./spotify";
+import { OAuthBaseProvider } from "./providers/base";
+import { GoogleProvider } from "./providers/google";
+import { FacebookProvider } from "./providers/facebook";
+import { MicrosoftProvider } from "./providers/microsoft";
+import { SpotifyProvider } from "./providers/spotify";
+import { SharedProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
+const _providers = {
+  github: GithubProvider,
+  google: GoogleProvider,
+  facebook: FacebookProvider,
+  microsoft: MicrosoftProvider,
+  spotify: SpotifyProvider,
+} as const;
 
-function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
-  switch (provider.type) {
-    case "github": {
-      return new GithubProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-github": {
-      return new GithubProvider({
-        clientId: getEnvVariable("GITHUB_CLIENT_ID"),
-        clientSecret: getEnvVariable("GITHUB_CLIENT_SECRET"),
-      });
-    }
-    case "google": {
-      return new GoogleProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-google": {
-      return new GoogleProvider({
-        clientId: getEnvVariable("GOOGLE_CLIENT_ID"),
-        clientSecret: getEnvVariable("GOOGLE_CLIENT_SECRET"),
-      });
-    }
-    case "facebook": {
-      return new FacebookProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-facebook": {
-      return new FacebookProvider({
-        clientId: getEnvVariable("FACEBOOK_CLIENT_ID"),
-        clientSecret: getEnvVariable("FACEBOOK_CLIENT_SECRET"),
-      });
-    }
-    case "microsoft": {
-      if (!provider.tenantId) {
-        // this should be prevented by the dashboard and never happen
-        throw new Error("Microsoft provider requires tenantId");
-      }
+const _getEnvForProvider = (provider: keyof typeof _providers) => {
+  return {
+    clientId: getEnvVariable(`${provider.toUpperCase()}_CLIENT_ID`),
+    clientSecret: getEnvVariable(`${provider.toUpperCase()}_CLIENT_SECRET`),
+  };
+};
 
-      return new MicrosoftProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-        tenantId: provider.tenantId,
-      });
-    }
-    case "shared-microsoft": {
-      return new MicrosoftProvider({
-        clientId: getEnvVariable("MICROSOFT_CLIENT_ID"),
-        clientSecret: getEnvVariable("MICROSOFT_CLIENT_SECRET"),
-        tenantId: getEnvVariable("MICROSOFT_TENANT_ID"),
-      });
-    }
-    case "spotify": {
-      return new SpotifyProvider({
-        clientId: provider.clientId,
-        clientSecret: provider.clientSecret,
-      });
-    }
-    case "shared-spotify": {
-      return new SpotifyProvider({
-        clientId: getEnvVariable("SPOTIFY_CLIENT_ID"),
-        clientSecret: getEnvVariable("SPOTIFY_CLIENT_SECRET"),
-      });
-    }
-    default: {
-      throw new Error("Not implemented yet for provider: " + provider);
-    }
+const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
+  return sharedProviders.includes(provider.type as any);
+};
+
+export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
+  if (_isSharedProvider(provider)) {
+    const providerName = toStandardProvider(provider.type);
+    return new _providers[providerName]({
+      clientId: _getEnvForProvider(providerName).clientId,
+      clientSecret: _getEnvForProvider(providerName).clientSecret,
+    });
+  } else {
+    return new _providers[provider.type]({
+      clientId: provider.clientId,
+      clientSecret: provider.clientSecret,
+    });
   }
-}
-
-
-export async function getAuthorizationUrl(
-  provider: OAuthProviderConfigJson,
-  codeVerifier: string,
-  state: string,
-): Promise<string> {
-  // TODO: better error handling
-  // TODO: check callback url
-  return getProvider(provider).getAuthorizationUrl({
-    codeVerifier,
-    state,
-  });
-}
-
-export async function getAuthorizationCallback(
-  provider: OAuthProviderConfigJson,
-  codeVerifier: string,
-  state: string,
-  callbackParams: any,
-): Promise<OAuthUserInfo> {
-  // TODO: better error handling
-  // TODO: check callback url
-  return await getProvider(provider).getCallback({
-    callbackParams,
-    codeVerifier,
-    state,
-  });
 }
 
 export const oauthServer = new OAuth2Server({

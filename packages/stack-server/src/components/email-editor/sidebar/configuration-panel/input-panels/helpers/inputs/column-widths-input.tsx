@@ -36,7 +36,7 @@ export default function ColumnWidthsInput({ defaultValue, onChange, columnsCount
     column3 = (
       <TextDimensionInput
         label="Column 3"
-        defaultValue={currentValue?.[2]}
+        defaultValue={currentValue[2]}
         onChange={(v) => {
           setIndexValue(2, v);
         }}
@@ -47,14 +47,14 @@ export default function ColumnWidthsInput({ defaultValue, onChange, columnsCount
     <div className='flex gap-1'>
       <TextDimensionInput
         label="Column 1"
-        defaultValue={currentValue?.[0]}
+        defaultValue={currentValue[0]}
         onChange={(v) => {
           setIndexValue(0, v);
         }}
       />
       <TextDimensionInput
         label="Column 2"
-        defaultValue={currentValue?.[1]}
+        defaultValue={currentValue[1]}
         onChange={(v) => {
           setIndexValue(1, v);
         }}

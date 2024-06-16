@@ -15,7 +15,7 @@ const putOrGetSchema = yup.object({
     "x-stack-admin-access-token": yup.string().default(""),
     "x-stack-project-id": yup.string().required(),
   }).required(),
-  body: getProjectUpdateSchema().default(undefined),
+  body: getProjectUpdateSchema().optional(),
 });
 
 const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { apiKeyId: string } }) => {
@@ -43,7 +43,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       typedUpdate,
     );
     return NextResponse.json(project);
-  } else if (asValid || pkValid) {
+  } else if (pkValid) {
     if (Object.entries(update).length !== 0) {
       throw new StatusError(StatusError.Forbidden, "Can't update project with only publishable client key");
     }

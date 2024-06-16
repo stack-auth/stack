@@ -7,7 +7,7 @@ import PasswordField from "./password-field";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
 import { Label, Input, Button } from "../components-core";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
 const schema = yup.object().shape({
@@ -41,7 +41,7 @@ export default function CredentialSignUp() {
   return (
     <form 
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
-      onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
+      onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
       <Label htmlFor="email">Email</Label>

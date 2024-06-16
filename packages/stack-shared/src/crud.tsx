@@ -4,6 +4,17 @@ import { filterUndefined } from './utils/objects';
 
 export type CrudOperation = "create" | "read" | "update" | "delete";
 
+declare module 'yup' {
+  export interface CustomSchemaMetadata {
+    openapi?: {
+      description?: string,
+      exampleValue?: any,
+      hide?: boolean,
+    },
+  }
+}
+
+
 type InnerCrudSchema<
   CreateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
   ReadSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
@@ -31,7 +42,7 @@ export type CrudSchema<
   hasDelete: boolean,
 };
 
-type CrudSchemaCreationOptions = {
+export type CrudSchemaCreationOptions = {
   clientCreateSchema?: yup.Schema<any>,
   clientReadSchema?: yup.Schema<any>,
   clientUpdateSchema?: yup.Schema<any>,
@@ -76,7 +87,7 @@ type CrudSchemaFromOptionsInner<O extends FillInOptionals<any>> = CrudSchema<
   InnerCrudSchema<O['adminCreateSchema'], O['adminReadSchema'], O['adminUpdateSchema'], O['adminDeleteSchema']>
 >;
 
-type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
+export type CrudSchemaFromOptions<O extends CrudSchemaCreationOptions> = CrudSchemaFromOptionsInner<FillInOptionals<O>>;
 
 type InnerCrudTypeOf<S extends InnerCrudSchema> =
   & (S['createSchema'] extends {} ? { Create: yup.InferType<S['createSchema']> } : {})

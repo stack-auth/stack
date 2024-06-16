@@ -1,0 +1,59 @@
+import { nicify } from "./strings";
+
+export function logged<T extends object>(name: string, toLog: T, options: {} = {}): T {
+  const proxy = new Proxy(toLog, {
+    get(target, prop, receiver) {
+      const orig = Reflect.get(target, prop, receiver);
+      if (typeof orig === "function") {
+        return function (this: any, ...args: any[]) {
+          const success = (v: any, isPromise: boolean) => console.debug(`logged(...): Called ${name}.${String(prop)}(${args.map(a => nicify(a)).join(", ")}) => ${isPromise ? "Promise<" : ""}${nicify(result)}${isPromise ? ">" : ""}`, { this: this, args, promise: isPromise ? result : false, result: v, trace: new Error() });
+          const error = (e: any, isPromise: boolean) => console.debug(`logged(...): Error in ${name}.${String(prop)}(${args.map(a => nicify(a)).join(", ")})`, { this: this, args, promise: isPromise ? result : false, error: e, trace: new Error() });
+
+          let result: unknown;
+          try {
+            result = orig.apply(this, args);
+          } catch (e) {
+            error(e, false);
+            throw e;
+          }
+          if (result instanceof Promise) {
+            result.then((v) => success(v, true)).catch((e) => error(e, true));
+          } else {
+            success(result, false);
+          }
+          return result;
+        };
+      }
+      return orig;
+    },
+    set(target, prop, value) {
+      console.log(`Setting ${name}.${String(prop)} to ${value}`);
+      return Reflect.set(target, prop, value);
+    },
+    apply(target, thisArg, args) {
+      console.log(`Calling ${name}(${JSON.stringify(args).slice(1, -1)})`);
+      return Reflect.apply(target as any, thisArg, args);
+    },
+    construct(target, args, newTarget) {
+      console.log(`Constructing ${name}(${JSON.stringify(args).slice(1, -1)})`);
+      return Reflect.construct(target as any, args, newTarget);
+    },
+    defineProperty(target, prop, descriptor) {
+      console.log(`Defining ${name}.${String(prop)} as ${JSON.stringify(descriptor)}`);
+      return Reflect.defineProperty(target, prop, descriptor);
+    },
+    deleteProperty(target, prop) {
+      console.log(`Deleting ${name}.${String(prop)}`);
+      return Reflect.deleteProperty(target, prop);
+    },
+    setPrototypeOf(target, prototype) {
+      console.log(`Setting prototype of ${name} to ${prototype}`);
+      return Reflect.setPrototypeOf(target, prototype);
+    },
+    preventExtensions(target) {
+      console.log(`Preventing extensions of ${name}`);
+      return Reflect.preventExtensions(target);
+    },
+  });
+  return proxy;
+}

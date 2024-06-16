@@ -19,7 +19,7 @@ export const Button = React.forwardRef<
     primary: "primary",
     secondary: "neutral",
     warning: "danger",
-  } as const)[variant] || "primary";
+  } as const)[variant];
 
   const { children, action, ref: _, ...validProps } = props;
   const c = Color(color);

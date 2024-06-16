@@ -3,7 +3,7 @@
 import ForgotPasswordElement from "../components/forgot-password";
 import MaybeFullPage from "../components/maybe-full-page";
 import { useUser, useStackApp } from "..";
-import RedirectMessageCard from "../components/redirect-message-card";
+import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
 import { Link, Text } from "../components-core";
 
@@ -14,11 +14,11 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
   const [sent, setSent] = useState(false);
 
   if (user) {
-    return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
   if (sent) {
-    return <RedirectMessageCard type='emailSent' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='emailSent' fullPage={fullPage} />;
   }
 
   return (

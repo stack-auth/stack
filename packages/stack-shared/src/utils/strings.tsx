@@ -105,3 +105,54 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
 
   return templateIdentity(deindentedStrings, ...indentedValues);
 }
+
+export function extractScopes(scope: string, removeDuplicates=true): string[] {
+  const trimmedString = scope.trim();
+  const scopesArray = trimmedString.split(/\s+/);
+  const filtered = scopesArray.filter(scope => scope.length > 0);
+  return removeDuplicates ? [...new Set(filtered)] : filtered;
+}
+
+export function mergeScopeStrings(...scopes: string[]): string {
+  const allScope = scopes.map((s) => extractScopes(s)).flat().join(" ");
+  return extractScopes(allScope).join(" ");
+}
+
+export function nicify(value: unknown, { depth = 5 } = {}): string {
+  switch (typeof value) {
+    case "string": case "boolean": case "number": {
+      return JSON.stringify(value);
+    }
+    case "undefined": {
+      return "undefined";
+    }
+    case "symbol": {
+      return value.toString();
+    }
+    case "bigint": {
+      return `${value}n`;
+    }
+    case "function": {
+      if (value.name) return `function ${value.name}(...) { ... }`;
+      return `(...) => { ... }`;
+    }
+    case "object": {
+      if (value === null) return "null";
+      if (Array.isArray(value)) {
+        if (depth <= 0 && value.length !== 0) return "[...]";
+        return `[${value.map((v) => nicify(v, { depth: depth - 1 })).join(", ")}]`;
+      }
+
+      const entries = Object.entries(value);
+      if (entries.length === 0) return "{}";
+      if (depth <= 0) return "{...}";
+      return `{ ${Object.entries(value).map(([k, v]) => {
+        if (typeof v === "function" && v.name === k) return `${k}(...): { ... }`;
+        else return `${k}: ${nicify(v, { depth: depth - 1 })}`;
+      }).join(", ")} }`;
+    }
+    default: {
+      return `${typeof value}<${value}>`;
+    }
+  }
+}

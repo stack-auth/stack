@@ -56,7 +56,7 @@ export default function TuneMenu({ blockId }: Props) {
               style: block.data.style,
               props: {
                 ...block.data.props,
-                columns: block.data.props?.columns?.map((c) => ({
+                columns: block.data.props?.columns.map((c) => ({
                   childrenIds: filterChildrenIds(c.childrenIds),
                 })),
               },

@@ -25,6 +25,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "authWithEmail",
   "oauthProviders",
   "selectedTeamId",
+  "selectedTeam",
 ]).nullable().defined();
 
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();

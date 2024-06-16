@@ -32,7 +32,7 @@ export default function Footer () {
         <div className="flex gap-4 md:flex-1 md:justify-end">
           {[
             { href: "https://stack-auth.com", label: "Home" },
-            { href: "https://stack-auth.com/docs", label: "Docs" },
+            { href: "https://docs.stack-auth.com", label: "Docs" },
             { href: "mailto:team@stack-auth.com", label: "Contact us" },
           ].map(({ href, label }) => (
             <Link key={label} href={href}>

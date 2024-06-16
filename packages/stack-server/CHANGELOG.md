@@ -1,5 +1,76 @@
 # @stackframe/stack-server
 
+## 2.4.25
+
+### Patch Changes
+
+- Docs update
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.25
+  - @stackframe/stack@2.4.25
+
+## 2.4.24
+
+### Patch Changes
+
+- Team switcher
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.24
+  - @stackframe/stack@2.4.24
+
+## 2.4.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.23
+  - @stackframe/stack@2.4.23
+
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.22
+  - @stackframe/stack@2.4.22
+
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.21
+  - @stackframe/stack-shared@2.4.21
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.20
+  - @stackframe/stack@2.4.20
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack@2.4.19
+  - @stackframe/stack-shared@2.4.19
+
+## 0.4.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.14
+  - @stackframe/stack@2.4.18
+
 ## 0.4.18
 
 ### Patch Changes

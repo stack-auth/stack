@@ -24,10 +24,11 @@ import { ActionDialog } from "@/components/action-dialog";
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-  const emailConfig = project.evaluatedConfig?.emailConfig;
+  const emailConfig = project.evaluatedConfig.emailConfig;
   const emailTemplates = stackAdminApp.useEmailTemplates();
   const router = useRouter();
-  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType | null>();
+  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("EMAIL_VERIFICATION");
+  const [resetTemplateDialogOpen, setResetTemplateDialogOpen] = useState(false);
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -63,7 +64,15 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell dangerItems={[{ item: 'Reset to Default', onClick: () => { setResetTemplateType(template.type); } }]} />}
+                {!template.default && <ActionCell
+                  dangerItems={[{
+                    item: 'Reset to Default',
+                    onClick: () => {
+                      setResetTemplateType(template.type);
+                      setResetTemplateDialogOpen(true);
+                    }
+                  }]}
+                />}
               </div>
             </div>
             <EmailPreview content={template.content} type={template.type} />
@@ -71,11 +80,11 @@ export default function PageClient() {
         ))}
       </SettingCard>
 
-      {resetTemplateType && <ResetEmailTemplateDialog 
+      <ResetEmailTemplateDialog 
         templateType={resetTemplateType} 
-        open={resetTemplateType !== null} 
-        onClose={() => setResetTemplateType(null)}
-      />}
+        open={resetTemplateDialogOpen} 
+        onClose={() => setResetTemplateDialogOpen(false)}
+      />
     </PageLayout>
   );
 }

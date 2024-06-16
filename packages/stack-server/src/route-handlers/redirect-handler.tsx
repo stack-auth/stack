@@ -2,10 +2,10 @@ import "../polyfills";
 
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { smartRouteHandler } from "./smart-route-handler";
+import { createSmartRouteHandler } from "./smart-route-handler";
 
 export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
-  return smartRouteHandler({
+  return createSmartRouteHandler({
     request: yup.object({
       url: yup.string().required(),
       method: yup.string().oneOf(["GET"]).required(),

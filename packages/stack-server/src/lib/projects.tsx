@@ -8,6 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -92,6 +93,10 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
 };
 
 export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-project-id" | "not-admin" | null> {
+  if (!adminAccessToken) {
+    return "unparsable-access-token";
+  }
+
   let decoded;
   try {
     decoded = await decodeAccessToken(adminAccessToken);
@@ -99,6 +104,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     if (error instanceof KnownErrors.AccessTokenExpired) {
       return "access-token-expired";
     }
+    console.warn("Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
     return "unparsable-access-token";
   }
   const { userId, projectId: accessTokenProjectId } = decoded;
@@ -194,7 +200,7 @@ export async function createProject(
       },
     });
 
-    const serverMetadataTx: any = projectUserTx?.serverMetadata ?? {};
+    const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
 
     await tx.projectUser.update({
       where: {
@@ -290,14 +296,12 @@ async function _createOAuthConfigUpdateTransactions(
 
     } else if (standardProviders.includes(providerUpdate.type as StandardProvider)) {
       const typedProviderConfig = providerUpdate as OAuthProviderUpdateOptions & { type: StandardProvider };
-
       providerConfigUpdate = {
         standardOAuthConfig: {
           create: {
             type: toDBStandardProvider(providerUpdate.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            tenantId: typedProviderConfig.tenantId,
           },
         },
       };
@@ -334,7 +338,6 @@ async function _createOAuthConfigUpdateTransactions(
             type: toDBStandardProvider(provider.update.type as StandardProvider),
             clientId: typedProviderConfig.clientId,
             clientSecret: typedProviderConfig.clientSecret,
-            tenantId: typedProviderConfig.tenantId,
           },
         },
       };
@@ -552,7 +555,6 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
             type: fromDBStandardProvider(provider.standardOAuthConfig.type),
             clientId: provider.standardOAuthConfig.clientId,
             clientSecret: provider.standardOAuthConfig.clientSecret,
-            tenantId: provider.standardOAuthConfig.tenantId || undefined,
           }];
         }
         captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));
@@ -576,27 +578,26 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S): S {
 }
 
 const nonRequiredSchemas = {
-  description: yup.string().default(undefined),
-  isProductionMode: yup.boolean().default(undefined),
+  description: yup.string().optional(),
+  isProductionMode: yup.boolean().optional(),
   config: yup.object({
     domains: yup.array(yup.object({
       domain: yup.string().required(),
       handlerPath: yup.string().required(),
-    })).default(undefined),
+    })).optional().default(undefined),
     oauthProviders: yup.array(
       yup.object({
         id: yup.string().required(),
         enabled: yup.boolean().required(),
         type: yup.string().required(),
-        clientId: yup.string().default(undefined),
-        clientSecret: yup.string().default(undefined),
-        tenantId: yup.string().default(undefined),
+        clientId: yup.string().optional(),
+        clientSecret: yup.string().optional(),
       })
-    ).default(undefined),
-    credentialEnabled: yup.boolean().default(undefined),
-    magicLinkEnabled: yup.boolean().default(undefined),
-    allowLocalhost: yup.boolean().default(undefined),
-    createTeamOnSignUp: yup.boolean().default(undefined),
+    ).optional().default(undefined),
+    credentialEnabled: yup.boolean().optional(),
+    magicLinkEnabled: yup.boolean().optional(),
+    allowLocalhost: yup.boolean().optional(),
+    createTeamOnSignUp: yup.boolean().optional(),
     emailConfig: yup.object({
       type: yup.string().oneOf(["shared", "standard"]).required(),
       senderName: requiredWhenShared(yup.string()),
@@ -605,12 +606,12 @@ const nonRequiredSchemas = {
       username: requiredWhenShared(yup.string()),
       password: requiredWhenShared(yup.string()),
       senderEmail: requiredWhenShared(yup.string().email()),
-    }).default(undefined),
-  }).default(undefined),
+    }).optional().default(undefined),
+  }).optional().default(undefined),
 };
 
 export const getProjectUpdateSchema = () => yup.object({
-  displayName: yup.string().default(undefined),
+  displayName: yup.string().optional(),
   ...nonRequiredSchemas,
 });
 
@@ -653,7 +654,6 @@ export const projectSchemaToUpdateOptions = (
             type: provider.type as StandardProvider,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
-            tenantId: provider.tenantId,
           };
         } else {
           throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");

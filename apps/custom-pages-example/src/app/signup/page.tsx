@@ -33,7 +33,10 @@ export default function CustomCredentialSignUp() {
   };
   
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      onSubmit();
+    }}>
       {error}
       <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
       <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
