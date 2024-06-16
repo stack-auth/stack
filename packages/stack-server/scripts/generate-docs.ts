@@ -35,4 +35,7 @@ async function main() {
     console.log("Successfully updated OpenAPI schema");
   }
 }
-runAsynchronously(main);
+main().catch((...args) => {
+  console.error(`ERROR! Could not update OpenAPI schema`, ...args);
+  process.exit(1);
+});
