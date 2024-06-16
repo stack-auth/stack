@@ -91,17 +91,20 @@ Then:
 ```sh
 pnpm install
 
-# Run code generation (repeat this after eg. changing the Prisma schema)
+# Run build to build everything once
+pnpm run build
+
+# Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
 
 # Push the most recent Prisma schema to the database
-pnpm run prisma:server migrate reset
+pnpm run prisma:server db push
 
 # Start the dev server
 pnpm run dev
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104. Note for any project connecting to the local server (like the demo), you need to set `NEXT_PUBLIC_STACK_URL=http://localhost:8101` in the environment variables.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
