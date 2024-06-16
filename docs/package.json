@@ -16,6 +16,7 @@
     "fern-api": "^0.30.7"
   },
   "devDependencies": {
-    "rimraf": "^5.0.7"
+    "rimraf": "^5.0.7",
+    "@stackframe/stack-server": "workspace:*"
   }
 }
