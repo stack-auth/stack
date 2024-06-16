@@ -13,10 +13,10 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "fern-api": "^0.30.7"
+    "fern-api": "^0.30.7",
+    "@stackframe/stack-server": "workspace:*"
   },
   "devDependencies": {
-    "rimraf": "^5.0.7",
-    "@stackframe/stack-server": "workspace:*"
+    "rimraf": "^5.0.7"
   }
 }

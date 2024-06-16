@@ -1,13 +1,11 @@
-import { KnownError } from "..";
 import { StackAssertionError, captureError } from "./errors";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
-import type { RejectedThenable, FulfilledThenable, PendingThenable } from "react";
 
 export type ReactPromise<T> = Promise<T> & (
-  | RejectedThenable<T>
-  | FulfilledThenable<T>
-  | PendingThenable<T>
+  | { status: "rejected", reason: unknown }
+  | { status: "fulfilled", value: T }
+  | { status: "pending" }
 );
 
 type Resolve<T> = (value: T) => void;
