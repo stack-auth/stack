@@ -13,7 +13,7 @@ import * as NextNavigationUnscrambled from "next/navigation";  // import the ent
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { constructRedirectUrl } from "../utils/url";
 import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
-import { neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { ReactPromise, neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
@@ -184,32 +184,38 @@ function createEmptyTokenStore() {
 }
 
 const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
+const cachePromiseByComponentId = new Map<string, Promise<unknown>>();
 function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
   // we explicitly don't want to run this hook in SSR
   suspendIfSsr(caller);
 
+  const id = React.useId();
+
   const subscribe = useCallback((cb: () => void) => {
-    const { unsubscribe } = cache.onChange(dependencies, () => cb());
+    const { unsubscribe } = cache.onStateChange(dependencies, () => {
+      cachePromiseByComponentId.delete(id);
+      cb();
+    });
     return unsubscribe;
   }, [cache, ...dependencies]);
   const getSnapshot = useCallback(() => {
-    return AsyncResult.or(cache.getIfCached(dependencies), loadingSentinel);
+    // React checks whether a promise passed to `use` is still the same as the previous one by comparing the reference.
+    // If we didn't cache here, this wouldn't work because the promise would be recreated every time the value changes.
+    if (!cachePromiseByComponentId.has(id)) {
+      cachePromiseByComponentId.set(id, cache.getOrWait(dependencies, "read-write"));
+    }
+    return cachePromiseByComponentId.get(id) as ReactPromise<T>;
   }, [cache, ...dependencies]);
 
   // note: we must use React.useSyncExternalStore instead of importing the function directly, as it will otherwise
   // throw an error ("can't import useSyncExternalStore from the server")
-  const value = React.useSyncExternalStore(
+  const promise = React.useSyncExternalStore(
     subscribe,
     getSnapshot,
     () => throwErr(new Error("getServerSnapshot should never be called in useAsyncCache because we restrict to CSR earlier"))
   );
 
-  if (value === loadingSentinel) {
-    return use(cache.getOrWait(dependencies, "read-write"));
-  } else {
-    // still need to call `use` because React expects the control flow to not change across two re-renders with the same props/state and it detects that by hook invocations (including `use`)
-    return use(resolved(value));
-  }
+  return use(promise);
 }
 
 function useStore<T>(store: Store<T>): T {

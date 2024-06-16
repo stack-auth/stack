@@ -67,7 +67,7 @@ export class AsyncCache<D extends any[], T> {
   readonly forceSetCachedValueAsync = this._createKeyed("forceSetCachedValueAsync");
   readonly refresh = this._createKeyed("refresh");
   readonly invalidate = this._createKeyed("invalidate");
-  readonly onChange = this._createKeyed("onChange");
+  readonly onStateChange = this._createKeyed("onStateChange");
 }
 
 class AsyncValueCache<T> {
@@ -155,7 +155,7 @@ class AsyncValueCache<T> {
     return await this.refresh();
   }
 
-  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+  onStateChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
     const storeObj = this._store.onChange(callback);
 
     if (this._subscriptionsCount++ === 0 && this._options.onSubscribe) {
