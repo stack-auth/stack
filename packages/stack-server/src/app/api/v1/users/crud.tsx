@@ -10,22 +10,22 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     read: {
       summary: 'Get a user',
       description: 'Get a user by user ID',
-      operationId: 'getUser',
+      tags: ['Users'],
     },
     update: {
       summary: 'Update a user',
       description: 'Update a user. Only the values provided will be updated',
-      operationId: 'updateUser',
+      tags: ['Users'],
     },
     delete: {
       summary: 'Delete a user',
       description: 'Delete a user. Use this with caution',
-      operationId: 'deleteUser',
+      tags: ['Users'],
     },
     list: {
       summary: 'List users',
       description: 'List all the users in the project',
-      operationId: 'listUsers',
+      tags: ['Users'],
     },
   },
   paramNames: ["userId"],

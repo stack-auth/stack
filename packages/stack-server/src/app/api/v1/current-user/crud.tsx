@@ -25,12 +25,12 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
     read: {
       summary: 'Get the current user',
       description: 'Get user by session',
-      operationId: 'getCurrentUser',
+      tags: ['Users'],
     },
     update: {
       summary: 'Update the current user',
       description: 'Update user by session. Only the values provided will be updated',
-      operationId: 'updateCurrentUser',
+      tags: ['Users'],
     },
   },
 });

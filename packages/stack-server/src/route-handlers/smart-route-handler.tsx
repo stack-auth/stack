@@ -1,7 +1,7 @@
 import "../polyfills";
 
 import { NextRequest } from "next/server";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -106,68 +106,78 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
   };
 };
 
-type SmartRouteHandler<
+export type SmartRouteHandlerOverloadMetadata = {
+  summary: string,
+  description: string,
+  tags: string[],
+};
+
+export type SmartRouteHandlerOverload<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 > = {
-  metadata?: {
-    summary: string,
-    description: string,
-    operationId: string,
-  },
+  metadata?: SmartRouteHandlerOverloadMetadata,
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 };
 
-type SmartRouteHandlerGenerator<
+export type SmartRouteHandlerOverloadGenerator<
   OverloadParam,
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
-> = (param: OverloadParam) => SmartRouteHandler<Req, Res>;
+> = (param: OverloadParam) => SmartRouteHandlerOverload<Req, Res>;
 
-export type RouteHandlerMetadata = {
-  summary: string,
-  description: string,
-  operationId: string,
-};
-
-export type RouteHandlerSchemaMap = Map<string, { metadata?: RouteHandlerMetadata, request: yup.Schema, response: yup.Schema }>;
-
-export type RouteHandler = ((req: NextRequest, options: any) => Promise<Response>) & {
-  isSmartRouteHandler: boolean,
-  schemas: RouteHandlerSchemaMap,
+export type SmartRouteHandler<
+  OverloadParam = unknown,
+  Req extends DeepPartial<SmartRequest> = DeepPartial<SmartRequest>,
+  Res extends SmartResponse = SmartResponse,
+> = ((req: NextRequest, options: any) => Promise<Response>) & {
+  overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
 }
 
-export function smartRouteHandler<
+const smartRouteHandlerSymbol = Symbol("smartRouteHandler");
+
+export function isSmartRouteHandler(handler: any): handler is SmartRouteHandler {
+  return handler?.[smartRouteHandlerSymbol] === true;
+}
+
+export function createSmartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  handler: SmartRouteHandler<Req, Res>,
-): RouteHandler
-export function smartRouteHandler<
+  handler: SmartRouteHandlerOverload<Req, Res>,
+): SmartRouteHandler<void, Req, Res>
+export function createSmartRouteHandler<
   OverloadParam,
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
   overloadParams: readonly OverloadParam[],
-  overloadGenerator: SmartRouteHandlerGenerator<OverloadParam, Req, Res>
-): RouteHandler
-export function smartRouteHandler<
+  overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>
+): SmartRouteHandler<OverloadParam, Req, Res>
+export function createSmartRouteHandler<
   Req extends DeepPartial<SmartRequest>,
   Res extends SmartResponse,
 >(
-  ...args: [readonly unknown[], SmartRouteHandlerGenerator<unknown, Req, Res>] | [SmartRouteHandler<Req, Res>]
-): RouteHandler {
+  ...args: [readonly unknown[], SmartRouteHandlerOverloadGenerator<unknown, Req, Res>] | [SmartRouteHandlerOverload<Req, Res>]
+): SmartRouteHandler<unknown, Req, Res> {
   const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
-  const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandler<Req, Res>);
+  const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandlerOverload<Req, Res>);
+
+  const overloads = new Map(overloadParams.map((overloadParam) => [
+    overloadParam,
+    overloadGenerator(overloadParam),
+  ]));
+  if (overloads.size !== overloadParams.length) {
+    throw new StackAssertionError("Duplicate overload parameters");
+  }
 
   return Object.assign(deprecatedSmartRouteHandler(async (req, options, requestId) => {
-    const reqsParsed: [[Req, SmartRequest], SmartRouteHandler<Req, Res>][] = [];
+    const reqsParsed: [[Req, SmartRequest], SmartRouteHandlerOverload<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
     const bodyBuffer = await req.arrayBuffer();
-    for (const overloadParam of overloadParams as unknown[]) {
-      const handler = overloadGenerator(overloadParam);
+    for (const [overloadParam, handler] of overloads.entries()) {
       const requestParser = await createLazyRequestParser(req, bodyBuffer, handler.request, options);
       try {
         const parserRes = await requestParser();
@@ -193,16 +203,8 @@ export function smartRouteHandler<
 
     return await createResponse(req, requestId, smartRes, handler.response);
   }), {
-    isSmartRouteHandler: true,
-    schemas: overloadParams.reduce((acc: RouteHandlerSchemaMap, overloadParam) => {
-      const handler = overloadGenerator(overloadParam);
-      acc.set(overloadParam as string, {
-        request: handler.request,
-        response: handler.response,
-        metadata: handler.metadata,
-      });
-      return acc;
-    }, new Map()),
+    [smartRouteHandlerSymbol]: true,
+    overloads,
   });
 }
 

@@ -1,9 +1,9 @@
-import { smartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
 
-export const POST = smartRouteHandler({
+export const POST = createSmartRouteHandler({
   request: yup.object({
     auth: yup.object({
       type: yup.mixed(),

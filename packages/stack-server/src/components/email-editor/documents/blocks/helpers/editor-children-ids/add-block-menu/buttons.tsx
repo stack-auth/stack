@@ -1,3 +1,4 @@
+import React from "react";  // explicitly import React to avoid issues with JSX eg. when running in non-Next.js server environments (Next.js always imports React first, but other environments may not)
 import { TEditorBlock } from '../../../../editor/core';
 import { BetweenHorizontalEnd, BoxSelect, Columns2, Heading, ImageIcon, Minus, RectangleHorizontal, Text } from 'lucide-react';
 

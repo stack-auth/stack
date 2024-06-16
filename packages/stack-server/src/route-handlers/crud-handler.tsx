@@ -2,7 +2,7 @@ import "../polyfills";
 
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { RouteHandler, RouteHandlerMetadata, routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
+import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
@@ -38,11 +38,11 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
 };
 
 export type RouteHandlerMetadataMap = {
-  create?: RouteHandlerMetadata,
-  read?: RouteHandlerMetadata,
-  list?: RouteHandlerMetadata,
-  update?: RouteHandlerMetadata,
-  delete?: RouteHandlerMetadata,
+  create?: SmartRouteHandlerOverloadMetadata,
+  read?: SmartRouteHandlerOverloadMetadata,
+  list?: SmartRouteHandlerOverloadMetadata,
+  update?: SmartRouteHandlerOverloadMetadata,
+  delete?: SmartRouteHandlerOverloadMetadata,
 };
 
 type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
@@ -63,7 +63,7 @@ type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>>
 export type CrudHandlers<
   T extends "Create" | "Read" | "List" | "Update" | "Delete",
 > = {
-  [K in `${Lowercase<T>}Handler`]: RouteHandler
+  [K in `${Lowercase<T>}Handler`]: SmartRouteHandler
 };
 
 export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
@@ -108,7 +108,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           return crud[accessType][`${typedToLowercase(crudOperationWithoutList)}Schema`] !== undefined;
         });
 
-        const routeHandler: RouteHandler = smartRouteHandler(
+        const routeHandler = createSmartRouteHandler(
           availableAccessTypes,
           (accessType) => {
             const adminSchemas = getSchemas("admin");

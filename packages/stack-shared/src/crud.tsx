@@ -4,6 +4,17 @@ import { filterUndefined } from './utils/objects';
 
 export type CrudOperation = "create" | "read" | "update" | "delete";
 
+declare module 'yup' {
+  export interface CustomSchemaMetadata {
+    openapi?: {
+      description?: string,
+      exampleValue?: any,
+      hide?: boolean,
+    },
+  }
+}
+
+
 type InnerCrudSchema<
   CreateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
   ReadSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,

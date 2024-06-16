@@ -22,10 +22,10 @@ export const usersCrudServerReadSchema = yup.object({
   selectedTeamId: fieldSchema.selectedTeamIdSchema.nullable().defined(),
   profileImageUrl: fieldSchema.profileImageUrlSchema.nullable().defined(),
   signedUpAtMillis: fieldSchema.signedUpAtMillisSchema.required(),
-  authMethod: yup.string().oneOf(["credential", "oauth"]).required().meta({ hide: true }), // not used anymore, for backwards compatibility
-  hasPassword: yup.boolean().required().meta({ description: 'Whether the user has a password', example: true }),
-  authWithEmail: yup.boolean().required().meta({ description: 'Whether the user can authenticate with email (email/password and magic link, depending on the project setting on the dashboard)', example: true }),
-  oauthProviders: yup.array(yup.string().required()).required().meta({ description: 'All the OAuth providers connected to this account', example: ['google', 'github'] }),
+  authMethod: yup.string().oneOf(["credential", "oauth"]).required().meta({ openapi: { hide: true } }), // not used anymore, for backwards compatibility
+  hasPassword: yup.boolean().required().meta({ openapi: { description: 'Whether the user has a password', exampleValue: true } }),
+  authWithEmail: yup.boolean().required().meta({ openapi: { description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  oauthProviders: yup.array(yup.string().required()).required().meta({ openapi: { description: 'All the OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
   clientMetadata: fieldSchema.userClientMetadataSchema,
   serverMetadata: fieldSchema.userServerMetadataSchema,
 }).required();
