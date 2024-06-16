@@ -31,9 +31,8 @@ async function main() {
     }));
 
     fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
-
-    console.log("Successfully updated OpenAPI schema");
   }
+  console.log("Successfully updated OpenAPI schemas");
 }
 main().catch((...args) => {
   console.error(`ERROR! Could not update OpenAPI schema`, ...args);

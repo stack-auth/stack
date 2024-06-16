@@ -1,3 +1,5 @@
+console.log("AAAAAAAA CRUD");
+
 import { updateServerUser } from "@/lib/users";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
