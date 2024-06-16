@@ -91,11 +91,14 @@ Then:
 ```sh
 pnpm install
 
-# Run code generation (repeat this after eg. changing the Prisma schema)
+# Run build to build everything once
+pnpm run build
+
+# Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
 
 # Push the most recent Prisma schema to the database
-pnpm run prisma:server migrate reset
+pnpm run prisma:server db push
 
 # Start the dev server
 pnpm run dev
