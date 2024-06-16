@@ -2,9 +2,8 @@ import { parseOpenAPI } from '@/lib/openapi';
 import yaml from 'yaml';
 import fs from 'fs';
 import { glob } from 'glob';
-import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { HTTP_METHODS, HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
-import { SmartRouteHandler, isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
+import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
 
 async function main() {
   for (const audience of ['client', 'server'] as const) {
