@@ -93,13 +93,13 @@ importers:
 
   docs:
     dependencies:
+      '@stackframe/stack-server':
+        specifier: workspace:*
+        version: link:../packages/stack-server
       fern-api:
         specifier: ^0.30.7
         version: 0.30.7
     devDependencies:
-      '@stackframe/stack-server':
-        specifier: workspace:*
-        version: link:../packages/stack-server
       rimraf:
         specifier: ^5.0.7
         version: 5.0.7
