@@ -6,7 +6,7 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { addUserToTeam, createServerTeam } from "./teams";
-
+import { upsertUserImage } from "./image";
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: {
   projectUserOAuthAccounts: true,
 }, }>;
@@ -44,7 +44,7 @@ export async function updateClientUser(
       displayName: update.displayName,
       clientMetadata: update.clientMetadata,
       selectedTeamId: update.selectedTeamId,
-      uploadedProfileImage:update.uploadedProfileImage
+      uploadedProfileImageId:update.uploadedProfileImageId
     },
   );
   if (!user) {
@@ -60,7 +60,11 @@ export async function updateServerUser(
   update: ServerUserUpdateJson,
 ): Promise<ServerUserJson | null> {
   let user;
+  let userImageId;
   try {
+    if(update.uploadedProfileImage){
+      userImageId=await upsertUserImage(projectId,userId,update.uploadedProfileImage);
+    }
     user = await prismaClient.projectUser.update({
       where: {
         projectId: projectId,
@@ -79,7 +83,7 @@ export async function updateServerUser(
         clientMetadata: update.clientMetadata as any,
         serverMetadata: update.serverMetadata as any,
         selectedTeamId: update.selectedTeamId,
-        uploadedProfileImage:update.uploadedProfileImage,
+        uploadedProfileImageId:userImageId
       }),
     });
   } catch (e) {
@@ -127,7 +131,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
     hasPassword: serverUser.hasPassword,
     oauthProviders: serverUser.oauthProviders,
     selectedTeamId: serverUser.selectedTeamId,
-    uploadedProfileImage:serverUser.uploadedProfileImage
+    uploadedProfileImageId:serverUser.uploadedProfileImageId
   };
 }
 
@@ -149,7 +153,7 @@ export function getServerUserFromDbType(
     authWithEmail: user.authWithEmail,
     oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
     selectedTeamId: user.selectedTeamId,
-    uploadedProfileImage:user.uploadedProfileImage,
+    uploadedProfileImageId:user.uploadedProfileImageId
   };
 }
 

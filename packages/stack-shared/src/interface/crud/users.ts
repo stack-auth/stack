@@ -22,7 +22,7 @@ export const usersCrudServerReadSchema = yup.object({
   selectedTeamId: yup.string().nullable().defined(),
   profileImageUrl: yup.string().nullable().defined(),
   signedUpAtMillis: yup.number().required(),
-  uploadedProfileImage:yup.string().nullable().optional(),
+  uploadedProfileImageId:yup.string().nullable().optional(),
   /**
    * not used anymore, for backwards compatibility
    */

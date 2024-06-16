@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import {
   useUser,
   Text,
@@ -83,19 +83,29 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const user = props.user;
   const app = useStackApp();
   const router = useRouter();
-
+  const [uploadAvatar,setUploadAvatar]=useState('');;
   const textStyles = {
     textOverflow: 'ellipsis', 
     whiteSpace: 'nowrap', 
     overflow: 'hidden',
     margin: 0,
   };
-
+  useEffect(() => {
+    if(user){
+      user.getProfileImage(user.id)
+      .then(uploadedImage => {
+        if (uploadedImage) {
+          setUploadAvatar(uploadedImage.data.userProfileImage);
+        } else {
+        }
+      })
+      }
+  },[])
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <UserAvatar user={user} uploadAvatar={user?.uploadedProfileImage||null}/>
+          <UserAvatar user={user} uploadAvatar={uploadAvatar||null}/>
           {user && props.showUserInfo && <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Text style={textStyles}>{user.displayName}</Text>
             <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
@@ -105,7 +115,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
       <DropdownMenuContent style={{ zIndex: 1500 }}>
         <DropdownMenuLabel>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <UserAvatar user={user} uploadAvatar={user?.uploadedProfileImage||null}/>
+            <UserAvatar user={user} uploadAvatar={uploadAvatar||null}/>
             <div>
               {user && <Text>{user.displayName}</Text>}
               {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}

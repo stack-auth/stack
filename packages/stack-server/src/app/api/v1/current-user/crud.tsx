@@ -18,6 +18,7 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
       userId,
       data,
     );
+    console.log("here")
     if (!user) throw new KnownErrors.UserNotFound();
     return user;
   },

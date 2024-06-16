@@ -455,7 +455,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       hasPassword: json.hasPassword,
       authWithEmail: json.authWithEmail,
       oauthProviders: json.oauthProviders,
-      uploadedProfileImage:json.uploadedProfileImage,
+      uploadedProfileImage:json.uploadedProfileImageId,
       async getSelectedTeam() {
         return await this.getTeam(json.selectedTeamId || "");
       },
@@ -514,6 +514,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       toJson() {
         return json;
       },
+      async getProfileImage(userId:string){
+        return app._interface.getProjectUserProfileImage(userId);
+      }
     };
   }
 
@@ -553,7 +556,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, tokenStore);
-      },
+      }
     };
     if (this._isInternalProject()) {
       const internalUser: CurrentInternalUser = {
@@ -935,6 +938,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await this._ownedProjectsCache.refresh([tokenStore]);
   }
 
+  protected async _getUserProfileImage(userId:string){
+    await this._interface.getProjectUserProfileImage(userId);
+  }
   static get [stackAppInternalsSymbol]() {
     return {
       fromClientJson: <HasTokenStore extends boolean, ProjectId extends string>(
@@ -1589,6 +1595,7 @@ export type User = (
     useSelectedTeam(this: CurrentUser): Team | null,
 
     toJson(this: CurrentUser): UserJson,
+    getProfileImage(this: CurrentUser,userId:any):Promise<any>
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>

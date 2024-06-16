@@ -22,6 +22,7 @@ export type ServerUserUpdateJson = UserUpdateJson & {
   serverMetadata?: ReadonlyJson,
   primaryEmail?: string | null,
   primaryEmailVerified?: boolean,
+  uploadedProfileImage?: string|null
 }
 
 export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName">;

@@ -196,13 +196,14 @@ model ProjectUser {
   displayName          String?
   passwordHash         String?
   authWithEmail        Boolean
-  uploadedProfileImage        String?
   serverMetadata Json?
   clientMetadata Json?
 
   selectedTeam   Team?   @relation(fields: [projectId, selectedTeamId], references: [projectId, teamId])
   selectedTeamId String? @db.Uuid
 
+  uploadedProfileImage    ProjectUserProfileImage?
+  uploadedProfileImageId  String?  @db.Uuid
   @@id([projectId, projectUserId])
 }
 
@@ -452,3 +453,12 @@ enum StandardOAuthProviderType {
 }
 
 //#endregion
+
+model ProjectUserProfileImage {
+  projectId    String
+  id           String @default(uuid()) @db.Uuid      
+  image        Bytes                               
+  userId       String   @db.Uuid         
+  @@unique([projectId, userId])
+  projectUser  ProjectUser? @relation(fields: [projectId, userId], references: [projectId, projectUserId])
+}

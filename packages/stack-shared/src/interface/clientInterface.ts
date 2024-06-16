@@ -13,7 +13,7 @@ type UserCustomizableJson = {
   displayName: string | null,
   clientMetadata: ReadonlyJson,
   selectedTeamId: string | null,
-  uploadedProfileImage:string|null,
+  uploadedProfileImageId:string|null,
 };
 
 export type UserJson = UserCustomizableJson & {
@@ -33,7 +33,7 @@ export type UserJson = UserCustomizableJson & {
   authWithEmail: boolean,
   oauthProviders: string[],
   selectedTeamId: string | null,
-  uploadedProfileImage:string|null,
+  uploadedProfileImageId:string|null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
@@ -897,6 +897,17 @@ export class StackClientInterface {
 
     const json = await fetchResponse.json();
     return json;
+  }
+
+  async getProjectUserProfileImage(userId: string) {
+    const response = await this.sendClientRequest(
+      "/profile-image/"+userId,
+      {},
+      null,
+    );
+    const data = await response.json();
+    if (!data) return Result.error(new Error("Failed to get user"));
+    return Result.ok(data);
   }
 }
 
