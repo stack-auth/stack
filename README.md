@@ -101,7 +101,7 @@ pnpm run prisma:server migrate reset
 pnpm run dev
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104. Note for any project connecting to the local server (like the demo), you need to set `NEXT_PUBLIC_STACK_URL=http://localhost:8101` in the environment variables.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
