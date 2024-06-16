@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.4.26
+
+### Patch Changes
+
+- Improve docs
+
 ## 2.4.25
 
 ## 2.4.24
