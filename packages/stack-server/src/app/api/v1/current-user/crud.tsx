@@ -5,6 +5,8 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 
+console.log("BBBBBBBB CRUD");
+
 export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
   paramNames: [],
   async onRead({ auth }) {
