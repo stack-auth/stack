@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { listUserServerTeams, listUserTeams } from "@/lib/teams";
+import { addUserToTeam, createServerTeam, listUserServerTeams, listUserTeams } from "@/lib/teams";
 import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
@@ -68,4 +68,58 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     const teams = await listUserTeams(projectId, userId);
     return NextResponse.json(teams satisfies TeamJson[]);
   }
+});
+
+
+const postSchema = yup.object({
+  query: yup.object({
+    server: yup.string().oneOf(["true", "false"]).required(),
+  }).required(),
+  headers: yup.object({
+    authorization: authorizationHeaderSchema.optional(),
+    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
+    "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
+    "x-stack-project-id": yup.string().required(),
+  }).required(),
+  body: yup.object({
+    displayName: yup.string().required(),
+  }).required(),
+});
+
+export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+  const {
+    query: {
+      server,
+    },
+    headers: {
+      authorization,
+      "x-stack-publishable-client-key": publishableClientKey,
+      "x-stack-project-id": projectId,
+      "x-stack-secret-server-key": secretServerKey,
+    },
+    body,
+  } = await deprecatedParseRequest(req, postSchema);
+
+  if (!authorization) {
+    return NextResponse.json(null);
+  }
+
+  const skValid = await checkApiKeySet(projectId, { secretServerKey });
+  const pkValid = await checkApiKeySet(projectId, { publishableClientKey });
+
+  if (!pkValid && !skValid) {
+    throw new StatusError(StatusError.Forbidden);
+  }
+
+  const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
+  const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+
+  if (accessTokenProjectId !== projectId) {
+    throw new StatusError(StatusError.NotFound);
+  }
+
+  const team = await createServerTeam(projectId, body);
+  await addUserToTeam({ projectId, teamId: team.id, userId });
+
+  return NextResponse.json(null);
 });
