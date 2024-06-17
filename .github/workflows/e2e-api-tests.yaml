@@ -31,8 +31,8 @@ jobs:
         with:
             version: 9.1.2
 
-      - name: Create .env.local file for stack-backend
-        run: cp apps/stack-backend/.env.development apps/stack-backend/.env.production.local
+      - name: Create .env.local file for stack-dashboard
+        run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
