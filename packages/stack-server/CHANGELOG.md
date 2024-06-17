@@ -1,4 +1,4 @@
-# @stackframe/stack-server
+# @stackframe/stack-dashboard
 
 ## 2.4.27
 

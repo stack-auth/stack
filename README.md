@@ -98,7 +98,7 @@ pnpm run build
 pnpm run codegen
 
 # Push the most recent Prisma schema to the database
-pnpm run prisma:server db push
+pnpm run prisma db push
 
 # Start the dev server
 pnpm run dev
@@ -111,7 +111,7 @@ Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply
 You can also open Prisma Studio to see the database interface and edit data directly:
 
 ```sh
-pnpm run prisma:server studio
+pnpm run prisma studio
 ```
 
 ### Database migrations
@@ -119,5 +119,5 @@ pnpm run prisma:server studio
 If you make changes to the Prisma schema, you need to run the following command to create a migration:
 
 ```sh
-pnpm run prisma:server migrate dev
+pnpm run prisma migrate dev
 ```
