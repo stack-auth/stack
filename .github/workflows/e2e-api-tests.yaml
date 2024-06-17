@@ -32,7 +32,7 @@ jobs:
             version: 9.1.2
 
       - name: Create .env.local file for stack-backend
-        run: cp packages/stack-backend/.env.development packages/stack-backend/.env.production.local
+        run: cp apps/stack-backend/.env.development apps/stack-backend/.env.production.local
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
