@@ -5,8 +5,7 @@ import { useAdminApp } from "../use-admin-app";
 import { Button } from "@/components/ui/button";
 import { PermissionListField } from "@/components/permission-field";
 import { PageLayout } from "../page-layout";
-import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
-import { InputField } from "@/components/form-fields";
+import { SmartFormDialog } from "@/components/form-dialog";
 import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
 
 

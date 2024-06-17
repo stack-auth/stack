@@ -128,7 +128,10 @@ model TeamMemberDirectPermission {
   updatedAt DateTime @updatedAt
 
   teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
+
+  // exactly one of [permissionDbId && permission] or [systemPermission] must be set
+  permission       Permission?           @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
+  systemPermission TeamSystemPermission?
 
   @@id([projectId, projectUserId, teamId, permissionDbId])
 }
@@ -169,16 +172,27 @@ enum PermissionScope {
   TEAM
 }
 
+enum TeamSystemPermission {
+  UPDATE_TEAM
+  DELETE_TEAM
+  READ_MEMBERS
+  REMOVE_MEMBERS
+  INVITE_MEMBERS
+}
+
 model PermissionEdge {
   edgeId String @id @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parentPermissionDbId String     @db.Uuid
-  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
-  childPermissionDbId  String     @db.Uuid
-  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
+  // exactly one of [parentPermissionDbId && parentPermission] or [parentTeamSystemPermission] must be set
+  parentPermissionDbId       String?               @db.Uuid
+  parentPermission           Permission?           @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
+  parentTeamSystemPermission TeamSystemPermission?
+
+  childPermissionDbId String     @db.Uuid
+  childPermission     Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
 }
 
 model ProjectUser {
