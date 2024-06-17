@@ -935,7 +935,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<TeamJson> {
     const response = await this.sendClientRequest(
-      "/teams",
+      "/current-user/teams?server=false",
       {
         method: "POST",
         headers: {

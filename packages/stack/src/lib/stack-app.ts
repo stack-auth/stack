@@ -1244,17 +1244,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return Result.or(user, null);
   });
   private readonly _serverUsersCache = createCache(async () => {
-    return this._interface.listServerUsers();
+    return await this._interface.listServerUsers();
   });
   private readonly _serverUserCache = createCache<string[], ServerUserJson | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
     return Result.or(user, null);
   });
   private readonly _serverTeamsCache = createCache(async () => {
-    return this._interface.listServerTeams();
+    return await this._interface.listServerTeams();
   });
   private readonly _serverTeamMembersCache = createCache<string[], ServerTeamMemberJson[]>(async ([teamId]) => {
-    return this._interface.listServerTeamMembers(teamId);
+    return await this._interface.listServerTeamMembers(teamId);
   });
   private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
     return await this._interface.listPermissionDefinitions();
@@ -1263,7 +1263,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, string, 'team' | 'global', boolean], 
     ServerPermissionDefinitionJson[]
   >(async ([teamId, userId, type, direct]) => {
-    return this._interface.listServerTeamMemberPermissions({ teamId, userId, type, direct });
+    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, type, direct });
   });
   private readonly _serverEmailTemplatesCache = createCache(async () => {
     return await this._interface.listEmailTemplates();
@@ -1361,7 +1361,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
       },
       createTeam: async () => {
-        
+        throw new Error();
       },
       async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
         const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");

@@ -91,7 +91,7 @@ export async function updateServerTeam(projectId: string, teamId: string, update
   });
 }
 
-export async function createServerTeam(projectId: string, team: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
+export async function createTeam(projectId: string, team: ServerTeamCustomizableJson): Promise<TeamJson> {
   const result = await prismaClient.team.create({
     data: {
       projectId,
@@ -103,6 +103,10 @@ export async function createServerTeam(projectId: string, team: ServerTeamCustom
     displayName: result.displayName,
     createdAtMillis: result.createdAt.getTime(),
   };
+}
+
+export async function createServerTeam(projectId: string, team: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
+  return await createTeam(projectId, team); // currently ServerTeam and ClientTeam are the same
 }
 
 export async function deleteServerTeam(projectId: string, teamId: string): Promise<void> {

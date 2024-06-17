@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { addUserToTeam, createServerTeam, listUserServerTeams, listUserTeams } from "@/lib/teams";
+import { addUserToTeam, createServerTeam, createTeam, listUserServerTeams, listUserTeams } from "@/lib/teams";
 import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
@@ -118,8 +118,19 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.NotFound);
   }
 
-  const team = await createServerTeam(projectId, body);
-  await addUserToTeam({ projectId, teamId: team.id, userId });
-
-  return NextResponse.json(null);
+  if (server === "true") {
+    if (!skValid) {
+      throw new StatusError(StatusError.Forbidden, "Secret server key is invalid");
+    }
+    const team = await createServerTeam(projectId, body);
+    await addUserToTeam({ projectId, teamId: team.id, userId });
+    return NextResponse.json(team);
+  } else {
+    if (!pkValid) {
+      throw new StatusError(StatusError.Forbidden, "Publishable client key is invalid");
+    }
+    const team = await createTeam(projectId, body);
+    await addUserToTeam({ projectId, teamId: team.id, userId });
+    return NextResponse.json(team);
+  }
 });
