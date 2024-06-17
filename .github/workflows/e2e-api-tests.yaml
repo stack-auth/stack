@@ -39,12 +39,12 @@ jobs:
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
 
-      - name: Build stack-backend
-        run: pnpm build:backend
+      - name: Build stack-dashboard
+        run: pnpm build:dashboard
   
-      - name: Start stack-backend in background
-        run: pnpm run start:backend &
-      - name: Wait for stack-backend to start
+      - name: Start stack-dashboard in background
+        run: pnpm run start:dashboard &
+      - name: Wait for stack-dashboard to start
         run: npx wait-on@7.2.0 http://localhost:8101
 
       - name: Run tests
