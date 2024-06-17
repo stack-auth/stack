@@ -1,0 +1,250 @@
+---
+slug: getting-started/teams
+---
+
+Teams provide a structured way to group users and manage their permissions. Users can belong to multiple teams, which can represent departments, B2B customers, or projects.
+
+To assign users to a default team upon sign-up, activate the corresponding toggle in the Stack dashboard under the team settings tab. This setting automatically assigns each new user to a team.
+
+## Teams
+
+### Creating a Team
+
+To create a team, you can call the `createTeam` method on the `stackServerApp`. Here is an example:
+
+```tsx title="Create a Team"
+const team = await stackServerApp.createTeam({
+  displayName: 'New Team',
+});
+```
+
+### Adding a User to a Team
+
+To add a user to a team, you can call the `addUser` method on the `Team` object. Here is an example:
+
+```tsx title="Add a User to a Team"
+const team = await stackServerApp.getTeam('teamId');
+await team.addUser(user);
+```
+
+### List All the Teams of a User
+
+You can list all the teams a user belongs to by using the `listTeams` method or `useTeams` hook on the User object. Here is how you can do it:
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx focus={5-10} title="List teams of a user on the client"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export function DisplayUserTeams() {
+      const user = useUser({ or: 'redirect' });
+      const teams = user.useTeams();
+
+      return <div>
+        {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+      </div>;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx focus={4-9} title="List teams of a user on the server"
+    import { stackServerApp } from "@/stack";
+
+    export default async function DisplayUserTeams() {
+      const user = await stackServerApp.getUser({ or: 'redirect' });
+      const teams = await user.listTeams();
+
+      return <div>
+        {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+      </div>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+
+### Get Specific Team of a User
+
+To obtain details of a specific team that a user belongs to, use the `getTeam` method or `useTeam` hook. Note, this may return `null` if the user is not a member of the team. Here is an example:
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx focus={5-10} title="Get a specific team of a user on the client"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export function DisplayUserTeam(props: { teamId: string }) {
+      const user = useUser({ or: 'redirect' });
+      const team = user.useTeam(props.teamId);
+
+      return <div>
+        {team ? team.displayName : 'Not a member of this team'}
+      </div>;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx focus={4-9} title="Get a specific team of a user on the server"
+    import { stackServerApp } from "@/stack";
+
+    export default async function DisplayUserTeam(props: { teamId: string }) {
+      const user = await stackServerApp.getUser({ or: 'redirect' });
+      const team = await user.getTeam(props.teamId);
+
+      return <div>
+        {team ? team.displayName : 'Not a member of this team'}
+      </div>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### List All the Teams
+
+To list all the teams, you can call the `listTeams` method on the `stackServerApp`, this is an example:
+
+```tsx
+const teams = await stackServerApp.listTeams();
+```
+
+### Update a Team
+
+To update a team, use the `update` method on a server-side team object. Here is an example:
+
+```tsx
+const team = await stackServerApp.getTeam('teamId');
+await team.update({
+  displayName: 'New Team Name',
+});
+```
+
+### Remove a User from a Team
+
+To remove a user from a team, you can call the `removeUserFromTeam` method on the `stackServerApp`, this is an example:
+
+```tsx
+await stackServerApp.removeUserFromTeam({
+  teamId: team.id,
+  userId: user.id,
+});
+```
+
+### List All the Members of a Team
+
+To list all the members of a team, you can call the `listMembers` method on a server side team object. Note that the returned result is a list of `TeamMember` objects, from which you can also get the user object. This is an example:
+
+```tsx
+const team = await stackServerApp.getTeam('teamId');
+const members = await team.listMembers();
+for (const member of members) {
+  const user = await member.getUser();
+  console.log(user.displayName, 'is a member of', team.displayName);
+}
+```
+
+## Permissions
+
+Permissions control what each user can do within your application. Create permissions on the Stack dashboard and assign them to users. You can then verify in your app whether a user has a specific permission.
+
+Permissions can be nested, allowing you to create a hierarchical structure. For instance, an `admin` permission can include `moderator` and `user` permissions. We provide tools to help you verify whether a user has a permission directly or indirectly.
+
+
+### Check if a User has a Permission
+
+You can check if a user has a specific permission by using the `getPermission` method or `usePermission` hook on the `User` object. This returns the `Permission` object if the user has it; otherwise, it returns `null`. Be cautious with client-side checks for permissions, as they can be bypassed. Always perform permission checks on the server side for business logic. Here is an example:
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx focus={5-11} title="Check user permission on the client"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export function CheckUserPermission() {
+      const user = useUser({ or: 'redirect' });
+      const permission = user.usePermission('read');
+
+      // Don't rely on client side permission checks for business logic
+      return <div>
+        {permission ? 'You have the read permission' : 'You shall not pass'}
+      </div>;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx focus={4-10} title="Check user permission on the server"
+    import { stackServerApp } from "@/stack";
+
+    export default async function CheckUserPermission() {
+      const user = await stackServerApp.getUser({ or: 'redirect' });
+      const permission = await user.getPermission('read');
+
+      // This is a server side check, so it's secure
+      return <div>
+        {permission ? 'You have the read permission' : 'You shall not pass'}
+      </div>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+
+### List All the Permissions of a User
+
+To get all permissions a user has, use the `listPermissions` method or `usePermissions` hook on the User object. This method retrieves all direct and indirect permissions. Here is an example:
+
+<Tabs>
+  <Tab title="Client Component" default>
+    ```tsx focus={5-10} title="List user permissions on the client"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export function DisplayUserPermissions() {
+      const user = useUser({ or: 'redirect' });
+      const permissions = user.usePermissions();
+
+      return <div>
+        {permissions.map(permission => <div key={permission.id}>{permission.id}</div>)}
+      </div>;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx focus={4-9} title="List user permissions on the server"
+    import { stackServerApp } from "@/stack";
+
+    export default async function DisplayUserPermissions() {
+      const user = await stackServerApp.getUser({ or: 'redirect' });
+      const permissions = await user.listPermissions();
+
+      return <div>
+        {permissions.map(permission => <div key={permission.id}>{permission.id}</div>)}
+      </div>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Grant a Permission to a User
+
+To grant a permission to a user, you can call the `grantPermission` method on the `ServerUser`. Here is an example:
+
+```tsx
+const team = await stackServerApp.getTeam('teamId');
+const user = await stackServerApp.getUser();
+await user.grantPermission(team, 'read');
+```
+
+### Revoke a Permission from a User
+
+To revoke a permission from a user, you can call the `revokePermission` method on the `ServerUser`. Here is an example:
+
+```tsx
+const team = await stackServerApp.getTeam('teamId');
+const user = await stackServerApp.getUser();
+await user.revokePermission(team, 'read');
+```

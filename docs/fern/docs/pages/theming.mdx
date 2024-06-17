@@ -1,0 +1,74 @@
+---
+subtitle: Configure the SDK's theme to match your branding
+--- 
+
+During the initialisation of the the SDK, in `Health.employer.init()` or `Health.employee.init()`, an optional parameter is allowed that accepts a config object. The config object may can contain a theme property that could be used to match the style of the embed to the look like your application. 
+
+## `theme` object
+In the `theme` object, each field is optional, but if provided should be hexadecimal color value for fields suffixed with 'Color', and should use rem for the 'radius'. Any omitted fields will default to using our default value for that variable. 
+
+<Tip title="Stack's Default Theme">
+Our theme uses a simple background/foreground convention for colors, for example; theming a primary button uses the `primaryColor` as the background color, and `primaryForegroundColor` as the text color.
+</Tip>
+
+```json
+{
+  accentColor: string;
+  accentForegroundColor: string;
+  backgroundColor: string;
+  borderColor: string;
+  cardColor: string;
+  cardForegroundColor: string;
+  destructiveColor: string;
+  destructiveForegroundColor: string;
+  foregroundColor: string;
+  inputColor: string;
+  mutedColor: string;
+  mutedForegroundColor: string;
+  popoverColor: string;
+  popoverForegroundColor: string;
+  primaryColor: string;
+  primaryForegroundColor: string;
+  radius: string;
+  ringColor: string;
+  secondaryColor: string;
+  secondaryForegroundColor: string;
+  warningColor: string;
+  warningForegroundColor: string;
+}
+```
+Below is an example snippet for the usage of `theme`
+
+```html
+<script>
+      const themeConfig = {
+        primaryColor: '#00ffa6',
+        backgroundColor: '#04110c',
+        radius: '0rem',
+        ringColor: '#00ffa6'
+      };
+      
+      const employerEmbed = Stack.Health.employer();
+      
+      employerEmbed.init('<your_employer_access_token_here>', 
+        {theme: themeConfig} //pass the theme 
+      );
+</script>
+```
+
+| Category | Details | 
+| -------- | ------- |
+| **Primary** | Primary Background/Text colors for buttons/badges/etc. | 
+| **Secondary** | Secondary Background/Text colors for buttons/badges/etc. | 
+| **Accent** | Background/Text for accents such as hover effects on dropdown menus & selects. | 
+| **Foreground** | Default text color of the embed. | 
+| **Background** | Default background color of the embed. | 
+| **Border** | Default border color. | 
+| **Card** | Background/Text color for cards. | 
+| **Destructive** | Used for destructive actions such as delete buttons. | 
+| **Input** | Border color for inputs like form inputs, selects, radio buttons. | 
+| **Muted** | Background/Text for off states of components like tabs & switches. | 
+| **Popover** | Background/Text colors for popovers. | 
+| **Radius** | Border radius for card, input and buttons. Use rem units. | 
+| **Ring** | Color of focus ring. | 
+| **Warning** | Background/Text colors for warning badges/alerts. | 

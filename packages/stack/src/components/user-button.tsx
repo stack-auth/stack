@@ -1,27 +1,35 @@
 'use client';
 import React, { Suspense } from "react";
-import { useUser, Text, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, useStackApp, useDesign, Avatar, AvatarImage, AvatarFallback, Button, Skeleton, CurrentUser } from "..";
-import { RxPerson, RxEnter, RxHalf2, RxFilePlus, RxPencil2 } from "react-icons/rx";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { SECONDARY_FONT_COLORS } from "../utils/constants";
+import {
+  useUser,
+  Text,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  useStackApp,
+  Skeleton,
+  CurrentUser,
+} from "..";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
 import { typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import styled from "styled-components";
+import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 
 const icons = typedFromEntries(typedEntries({
-  RxPencil2,
-  RxPerson,
-  RxEnter,
-  RxHalf2,
-  RxFilePlus
+  CircleUser,
+  UserPlus,
+  SunMoon,
+  LogIn,
+  LogOut,
 } as const).map(([key, value]) => {
   const styledComponent = styled(value)`
-    color: ${SECONDARY_FONT_COLORS.light};
-
-    html[data-stack-theme='dark'] & {
-      color: ${SECONDARY_FONT_COLORS.dark};
-    }
+    height: 1rem;
+    width: 1rem;
   `;
   return [
     key,
@@ -32,7 +40,7 @@ const icons = typedFromEntries(typedEntries({
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
     <DropdownMenuItem 
-      onClick={() => runAsynchronously(props.onClick)}
+      onClick={() => runAsynchronouslyWithAlert(props.onClick)}
       style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
     >
       {props.icon}
@@ -101,25 +109,25 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
             <div>
               {user && <Text>{user.displayName}</Text>}
               {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}
-              {!user && <Text variant="secondary">Not signed in</Text>}
+              {!user && <Text>Not signed in</Text>}
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {user && <Item 
           text="Account settings" 
-          onClick={() => runAsynchronously(router.push(app.urls.accountSettings))}
-          icon={icons.RxPerson}
+          onClick={() => router.push(app.urls.accountSettings)}
+          icon={icons.CircleUser}
         />}
         {!user && <Item
           text="Sign in"
-          onClick={() => runAsynchronously(router.push(app.urls.signIn))}
-          icon={icons.RxPerson}
+          onClick={() => router.push(app.urls.signIn)}
+          icon={icons.LogIn}
         />}
         {!user && <Item
           text="Sign up"
-          onClick={() => runAsynchronously(router.push(app.urls.signUp))}
-          icon={icons.RxPencil2}
+          onClick={() => router.push(app.urls.signUp)}
+          icon={icons.UserPlus}
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (
           <Item key={index} {...item} />
@@ -128,13 +136,13 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <Item 
             text="Toggle theme" 
             onClick={props.colorModeToggle} 
-            icon={icons.RxHalf2}
+            icon={icons.SunMoon}
           />
         )}
         {user && <Item 
           text="Sign out" 
           onClick={() => user.signOut()} 
-          icon={icons.RxEnter}
+          icon={icons.LogOut}
         />}
       </DropdownMenuContent>
     </DropdownMenu>

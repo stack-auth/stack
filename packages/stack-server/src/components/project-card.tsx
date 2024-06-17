@@ -1,8 +1,8 @@
-'use client';;
+'use client';
 import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
 import { Project } from '@stackframe/stack';
 import { useFromNow } from '@/hooks/use-from-now';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/components/router";
 import Typography from './ui/typography';
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -12,7 +12,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <ClickableCard className='flex flex-col' onClick={() => router.push(`/projects/${project.id}`)}>
       <CardHeader>
-        <CardTitle>{project.displayName}</CardTitle>
+        <CardTitle className="normal-case">{project.displayName}</CardTitle>
         <CardDescription>{project.description}</CardDescription>
       </CardHeader>
       <CardFooter className="flex justify-between">

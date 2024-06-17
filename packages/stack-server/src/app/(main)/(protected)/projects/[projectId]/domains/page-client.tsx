@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import * as yup from "yup";
 import React, { useMemo } from "react";
 import { ActionDialog } from "@/components/action-dialog";
@@ -32,13 +32,13 @@ function EditDialog(props: {
       ),
     }),
     domain: yup.string()
-      .matches(/^https?:\/\//, "Domain must start with http:// or https://")
-      .url("Domain must a valid URL")
+      .matches(/^https?:\/\//, "Origin must start with http:// or https://")
+      .url("Domain must be a valid URL")
       .notOneOf(props.domains
         .filter((_, i) => i !== props.editIndex)
         .map(({ domain }) => domain), "Domain already exists")
       .required()
-      .label("Domain with protocol")
+      .label("Origin (protocol + domain)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }),

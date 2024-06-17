@@ -1,28 +1,55 @@
 import { StackClientInterface } from "@stackframe/stack-shared";
 import { saveVerifierAndState, getVerifierAndState } from "./cookie";
 import { constructRedirectUrl } from "../utils/url";
-import { TokenStore } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { neverResolve, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
-  {
-    provider,
-    redirectUrl,
-  } : { 
+  options: { 
     provider: string,
-    redirectUrl?: string,
+    redirectUrl: string,
+    errorRedirectUrl: string,
+    providerScope?: string,
   }
 ) {
-  redirectUrl = constructRedirectUrl(redirectUrl);
   const { codeChallenge, state } = await saveVerifierAndState();
-  const location = await iface.getOAuthUrl(
-    provider,
-    redirectUrl,
+  const location = await iface.getOAuthUrl({
+    provider: options.provider,
+    redirectUrl: constructRedirectUrl(options.redirectUrl),
+    errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
     codeChallenge,
     state,
-  );
+    type: "authenticate",
+    providerScope: options.providerScope,
+  });
+  window.location.assign(location);
+  await neverResolve();
+}
+
+export async function addNewOAuthProviderOrScope(
+  iface: StackClientInterface,
+  options: { 
+    provider: string,
+    redirectUrl: string,
+    errorRedirectUrl: string,
+    providerScope?: string,
+  },
+  session: InternalSession,
+) {
+  const { codeChallenge, state } = await saveVerifierAndState();
+  const location = await iface.getOAuthUrl({
+    provider: options.provider,
+    redirectUrl: constructRedirectUrl(options.redirectUrl),
+    errorRedirectUrl: constructRedirectUrl(options.errorRedirectUrl),
+    afterCallbackRedirectUrl: constructRedirectUrl(window.location.href),
+    codeChallenge,
+    state,
+    type: "link",
+    session,
+    providerScope: options.providerScope,
+  });
   window.location.assign(location);
   await neverResolve();
 }
@@ -66,7 +93,6 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
 
 export async function callOAuthCallback(
   iface: StackClientInterface,
-  tokenStore: TokenStore,
   redirectUrl: string,
 ) {
   // note: this part of the function (until the return) needs
@@ -82,13 +108,12 @@ export async function callOAuthCallback(
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback)
   try {
-    return await iface.callOAuthCallback(
-      originalUrl.searchParams,
-      constructRedirectUrl(redirectUrl),
+    return await iface.callOAuthCallback({
+      oauthParams: originalUrl.searchParams,
+      redirectUri: constructRedirectUrl(redirectUrl),
       codeVerifier,
       state,
-      tokenStore,
-    );
+    });
   } catch (e) {
     throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });
   }

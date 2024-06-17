@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useMemo, useState } from "react";
 import { ApiKeySet } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";

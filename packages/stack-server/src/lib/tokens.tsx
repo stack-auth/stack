@@ -13,6 +13,26 @@ const accessTokenSchema = yup.object({
   exp: yup.number().required(),
 });
 
+export const oauthCookieSchema = yup.object({
+  projectId: yup.string().required(),
+  publishableClientKey: yup.string().required(),
+  innerCodeVerifier: yup.string().required(),
+  innerState: yup.string().required(),
+  redirectUri: yup.string().required(),
+  scope: yup.string().required(),
+  state: yup.string().required(),
+  grantType: yup.string().required(),
+  codeChallenge: yup.string().required(),
+  codeChallengeMethod: yup.string().required(),
+  responseType: yup.string().required(),
+  type: yup.string().oneOf(['authenticate', 'link']).required(),
+  projectUserId: yup.string().optional(),
+  providerScope: yup.string().optional(),
+  errorRedirectUrl: yup.string().optional(),
+  afterCallbackRedirectUrl: yup.string().optional(),
+});
+
+
 export async function decodeAccessToken(accessToken: string) {
   let decoded;
   try {
@@ -46,7 +66,7 @@ export async function createAuthTokens({
   projectId: string,
   projectUserId: string,
 }) {
-  const refreshToken =  await generateSecureRandomString();
+  const refreshToken = generateSecureRandomString();
   const accessToken = await encodeAccessToken({
     projectId,
     userId: projectUserId,

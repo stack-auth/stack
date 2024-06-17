@@ -1,4 +1,5 @@
-"use client";;
+"use client";
+
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingText } from "@/components/settings";
@@ -9,11 +10,25 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { Project } from "@stackframe/stack";
+import { Reader } from "@/components/email-editor/email-builder";
+import { Card } from "@/components/ui/card";
+import Typography from "@/components/ui/typography";
+import { ActionCell } from "@/components/data-table/elements/cells";
+import { useRouter } from "@/components/router";
+import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@/email/utils";
+import { useMemo, useState } from "react";
+import { validateEmailTemplateContent } from "@/email/utils";
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ActionDialog } from "@/components/action-dialog";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
-  const emailConfig = project.evaluatedConfig?.emailConfig;
+  const emailConfig = project.evaluatedConfig.emailConfig;
+  const emailTemplates = stackAdminApp.useEmailTemplates();
+  const router = useRouter();
+  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("EMAIL_VERIFICATION");
+  const [resetTemplateDialogOpen, setResetTemplateDialogOpen] = useState(false);
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
@@ -34,8 +49,83 @@ export default function PageClient() {
           {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stack-auth.com'}
         </SettingText>
       </SettingCard>
+
+      <SettingCard title="Email Templates" description="Customize the emails sent">
+        {emailTemplates.map((template) => (
+          <Card key={template.type} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-2">
+              <div>
+                <Typography className="font-medium">
+                  {EMAIL_TEMPLATES_METADATA[template.type].label}
+                </Typography>
+                <Typography type='label' variant='secondary'>
+                  Subject: <SubjectPreview subject={template.subject} type={template.type} />
+                </Typography>
+              </div>
+              <div className="flex-grow flex justify-start items-end gap-2">
+                <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
+                {!template.default && <ActionCell
+                  dangerItems={[{
+                    item: 'Reset to Default',
+                    onClick: () => {
+                      setResetTemplateType(template.type);
+                      setResetTemplateDialogOpen(true);
+                    }
+                  }]}
+                />}
+              </div>
+            </div>
+            <EmailPreview content={template.content} type={template.type} />
+          </Card>
+        ))}
+      </SettingCard>
+
+      <ResetEmailTemplateDialog 
+        templateType={resetTemplateType} 
+        open={resetTemplateDialogOpen} 
+        onClose={() => setResetTemplateDialogOpen(false)}
+      />
     </PageLayout>
   );
+}
+
+function EmailPreview(props: { content: any, type: EmailTemplateType }) {
+  const project = useAdminApp().useProjectAdmin();
+  const [valid, document] = useMemo(() => {
+    const valid = validateEmailTemplateContent(props.content);
+    if (!valid) return [false, null];
+
+    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project);
+    const document = convertEmailTemplateVariables(props.content, metadata.variables);
+    return [true, document];
+  }, [props.content, props.type, project]);
+
+  let reader;
+  if (valid && document) {
+    reader = (
+      <div className="scale-50 w-[400px] origin-top-left">
+        <Reader document={document} rootBlockId='root' />
+      </div>
+    );
+  } else {
+    reader = <div className="flex items-center justify-center h-full text-red-500">Invalid template</div>;
+  }
+
+  return (
+    <div className="max-h-[150px] min-h-[150px] max-w-[200px] sm:min-w-[200px] overflow-hidden rounded border" inert=''>
+      <div className="absolute inset-0 bg-transparent z-10"/>
+      {reader}
+    </div>
+  );
+}
+
+function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
+  const project = useAdminApp().useProjectAdmin();
+  const subject = useMemo(() => {
+    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project);
+    return convertEmailSubjectVariables(props.subject, metadata.variables);
+  }, [props.subject, props.type, project]);
+  return subject;
 }
 
 function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
@@ -73,6 +163,7 @@ const emailServerSchema = yup.object({
   senderEmail: requiredWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
   senderName: requiredWhenShared(yup.string(), "Email sender name is required"),
 });
+
 function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
 }) {
@@ -142,4 +233,25 @@ function EditEmailServerDialog(props: {
       </>
     )}
   />;
+}
+
+function ResetEmailTemplateDialog(props: {
+  open?: boolean,
+  onClose?: () => void,
+  templateType: EmailTemplateType,
+}) {
+  const stackAdminApp = useAdminApp();
+  return <ActionDialog
+    danger
+    open={props.open}
+    onClose={props.onClose}
+    title="Reset Email Template"
+    okButton={{ 
+      label: "Reset", 
+      onClick: async () => { await stackAdminApp.resetEmailTemplate(props.templateType); }
+    }}
+    confirmText="I understand this cannot be undone"
+  >
+    Are you sure you want to reset the email template to the default? You will lose all the changes you have made.
+  </ActionDialog>;
 }

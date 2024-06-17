@@ -13,13 +13,16 @@ import { StackProvider, StackTheme } from '@stackframe/stack';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { DevErrorNotifier } from '@/components/dev-error-notifier';
+import { RouterProvider } from '@/components/router';
+import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Stack',
-    template: '%s | Stack',
+    default: 'Stack Auth Dashboard',
+    template: '%s | Stack Auth',
   },
-  description: 'Some frontend with auth built by N2D4',
+  description: 'Stack Auth is the fastest way to add authentication to your web app.',
 };
 
 const fontSans = FontSans({
@@ -30,43 +33,7 @@ const fontSans = FontSans({
 type TagConfigJson = {
   tagName: string,
   attributes: { [key: string]: string },
-  innerHTML: string,
-};
-
-const script = () => {
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'data-joy-color-scheme') {
-        const colorTheme = document.documentElement.getAttribute('data-joy-color-scheme');
-        if (!colorTheme) {
-          return;
-        }
-        document.documentElement.setAttribute('class', colorTheme);
-      }
-    });
-  });
-
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-joy-color-scheme'],
-  });
-};
-
-const theme = {
-  colors: {
-    dark: {
-      primaryColor: '#fff',
-      secondaryColor: '#444',
-      backgroundColor: 'black',
-      neutralColor: '#27272a',
-    },
-    light: {
-      primaryColor: '#000',
-      secondaryColor: '#ccc',
-      backgroundColor: 'white',
-      neutralColor: '#e4e4e7',
-    },
-  },
+  innerHTML?: string,
 };
 
 export default function RootLayout({
@@ -92,24 +59,29 @@ export default function RootLayout({
           });
         })}
       </head>
-      <body 
-        className={cn(
+      <CSPostHogProvider>
+        <body 
+          className={cn(
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
         )}
-        suppressHydrationWarning
-      >
-        <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
-        <Analytics />
-        <ThemeProvider>
-          <StackProvider app={stackServerApp}>
-            <StackTheme theme={theme}>
-              {children}
-            </StackTheme>
-          </StackProvider>
-        </ThemeProvider>
-        <Toaster />
-      </body>
+          suppressHydrationWarning
+        >
+          <Analytics />
+          <ThemeProvider>
+            <StackProvider app={stackServerApp}>
+              <StackTheme>
+                <RouterProvider>
+                  <UserIdentity />
+                  {children}
+                </RouterProvider>
+              </StackTheme>
+            </StackProvider>
+          </ThemeProvider>
+          <DevErrorNotifier />
+          <Toaster />
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

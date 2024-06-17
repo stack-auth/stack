@@ -1,9 +1,7 @@
 import { 
   ClientInterfaceOptions, 
   UserJson, 
-  TokenStore, 
   StackClientInterface,
-  ReadonlyTokenStore,
   OrglikeJson,
   UserUpdateJson,
   PermissionDefinitionJson,
@@ -12,6 +10,8 @@ import {
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
+import { EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
+import { InternalSession } from "../sessions";
 
 export type ServerUserJson = UserJson & {
   serverMetadata: ReadonlyJson,
@@ -29,7 +29,9 @@ export type ServerOrglikeJson = OrglikeJson & {};
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
 export type ServerTeamJson = ServerOrglikeJson;
 
-export type ServerTeamMemberJson = TeamMemberJson
+export type ServerTeamMemberJson = TeamMemberJson & {
+  user: ServerUserJson,
+};
 
 export type ServerPermissionDefinitionCustomizableJson = {
   readonly id: string,
@@ -50,18 +52,20 @@ export type ServerAuthApplicationOptions = (
       readonly secretServerKey: string,
     }
     | {
-      readonly projectOwnerTokens: ReadonlyTokenStore,
+      readonly projectOwnerSession: InternalSession,
     }
   )
 );
 
+export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
+export type EmailTemplateType = typeof emailTemplateTypes[number];
 
 export class StackServerInterface extends StackClientInterface {
   constructor(public override options: ServerAuthApplicationOptions) {
     super(options);
   }
 
-  protected async sendServerRequest(path: string, options: RequestInit, tokenStore: TokenStore | null, requestType: "server" | "admin" = "server") {
+  protected async sendServerRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "server" | "admin" = "server") {
     return await this.sendClientRequest(
       path,
       {
@@ -71,16 +75,16 @@ export class StackServerInterface extends StackClientInterface {
           ...options.headers,
         },
       },
-      tokenStore,
+      session,
       requestType,
     );
   }
 
-  async getServerUserByToken(tokenStore: TokenStore): Promise<Result<ServerUserJson>> {
+  async getServerUserByToken(session: InternalSession): Promise<Result<ServerUserJson>> {
     const response = await this.sendServerRequest(
       "/current-user?server=true",
       {},
-      tokenStore,
+      session,
     );
     const user: ServerUserJson | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
@@ -104,22 +108,22 @@ export class StackServerInterface extends StackClientInterface {
       type: 'global' | 'team', 
       direct: boolean, 
     },
-    tokenStore: TokenStore
+    session: InternalSession
   ): Promise<ServerPermissionDefinitionJson[]> {
     const response = await this.sendServerRequest(
       `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}&server=true`,
       {},
-      tokenStore,
+      session,
     );
     const permissions: ServerPermissionDefinitionJson[] = await response.json();
     return permissions;
   }
 
-  async listServerUserTeams(tokenStore: TokenStore): Promise<ServerTeamJson[]> {
+  async listServerUserTeams(session: InternalSession): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest(
       "/current-user/teams?server=true",
       {},
-      tokenStore,
+      session,
     );
     const teams: ServerTeamJson[] = await response.json();
     return teams;
@@ -327,6 +331,33 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify({}),
       },
+      null,
+    );
+  }
+
+  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(`/email-templates?server=true`, {}, null);
+    return await response.json();
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+    await this.sendServerRequest(
+      `/email-templates/${type}?server=true`,
+      {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
+    await this.sendServerRequest(
+      `/email-templates/${type}?server=true`,
+      { method: "DELETE" },
       null,
     );
   }

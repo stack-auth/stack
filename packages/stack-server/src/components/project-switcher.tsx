@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import {
   Select,
   SelectContent,
@@ -7,14 +7,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { useMemo } from "react";
 
 export function ProjectAvatar(props: { displayName: string }) {
   return (
     <div className="w-7 h-7 rounded-sm bg-zinc-200 dark:bg-zinc-700 mr-1 flex items-center justify-center">
       <p>
-        {props.displayName?.slice(0,1)?.toUpperCase()}
+        {props.displayName.slice(0,1).toUpperCase()}
       </p>
     </div>
   );

@@ -1,5 +1,180 @@
 # @stackframe/stack-server
 
+## 2.4.26
+
+### Patch Changes
+
+- Improve docs
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.26
+  - @stackframe/stack@2.4.26
+
+## 2.4.25
+
+### Patch Changes
+
+- Docs update
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.25
+  - @stackframe/stack@2.4.25
+
+## 2.4.24
+
+### Patch Changes
+
+- Team switcher
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.24
+  - @stackframe/stack@2.4.24
+
+## 2.4.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.23
+  - @stackframe/stack@2.4.23
+
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.22
+  - @stackframe/stack@2.4.22
+
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.21
+  - @stackframe/stack-shared@2.4.21
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.20
+  - @stackframe/stack@2.4.20
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack@2.4.19
+  - @stackframe/stack-shared@2.4.19
+
+## 0.4.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.14
+  - @stackframe/stack@2.4.18
+
+## 0.4.18
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.4.17
+
+## 0.4.17
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.13
+  - @stackframe/stack@2.4.16
+
+## 0.4.16
+
+### Patch Changes
+
+- Improved client styling, added login form, added spotify oauth
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.12
+  - @stackframe/stack@2.4.15
+
+## 0.4.15
+
+### Patch Changes
+
+- Added email editor
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.11
+  - @stackframe/stack@2.4.14
+
+## 0.4.14
+
+### Patch Changes
+
+- Bug fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.10
+  - @stackframe/stack@2.4.13
+
+## 0.4.13
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.9
+  - @stackframe/stack@2.4.12
+
+## 0.4.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.11
+
+## 0.4.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.8
+  - @stackframe/stack@2.4.10
+
+## 0.4.10
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.7
+  - @stackframe/stack@2.4.9
+
+## 0.4.9
+
+### Patch Changes
+
+- Remove crypto-browserify dependency
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.6
+  - @stackframe/stack@2.4.8
+
+## 0.4.8
+
+### Patch Changes
+
+- Team selection
+- Updated dependencies
+  - @stackframe/stack-shared@2.4.5
+  - @stackframe/stack@2.4.7
+
 ## 0.4.7
 
 ### Patch Changes

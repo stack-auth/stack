@@ -9,7 +9,15 @@ export { default as SignUp } from "./components-page/sign-up";
 export { default as EmailVerification } from "./components-page/email-verification";
 export { default as PasswordReset } from "./components-page/password-reset";
 export { default as ForgotPassword } from "./components-page/forgot-password";
-export { default as MessageCard } from "./components/message-card";
+export { default as MessageCard } from "./components/message-cards/message-card";
+export {
+  default as SelectedTeamSwitcher,
+  /**
+   * @deprecated This was renamed to `SelectedTeamSwitcher`.
+   */
+  default as TeamSwitcher
+} from "./components/selected-team-switcher";
+
 
 export { default as CredentialSignIn } from "./components/credential-sign-in";
 export { default as CredentialSignUp } from "./components/credential-sign-up";

@@ -3,6 +3,10 @@ import Footer from "./footer";
 import { stackServerApp } from "@/stack";
 import { redirect } from "next/navigation";
 
+export const metadata = {
+  title: "Projects",
+};
+
 export default async function Page() {
   const user = await stackServerApp.getUser();
   if (!user) {
@@ -15,9 +19,7 @@ export default async function Page() {
   
   return (
     <>
-      <div className="flex-grow p-4">
-        <PageClient />
-      </div>
+      <PageClient />
       <Footer />
     </>
   );

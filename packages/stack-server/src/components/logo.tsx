@@ -1,9 +1,9 @@
 import { SmartImage } from "./smart-image";
-import Link from "next/link";
 import logoLightMode from "../../public/logo.svg";
 import logoFullLightMode from "../../public/logo-full.svg";
 import logoDarkMode from "../../public/logo-bright.svg";
 import logoFullDarkMode from "../../public/logo-full-bright.svg";
+import { Link } from "./link";
 
 type ImageProps = React.ComponentProps<typeof SmartImage>;
 

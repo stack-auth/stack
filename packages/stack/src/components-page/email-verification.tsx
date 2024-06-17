@@ -2,8 +2,8 @@
 
 import { use } from "react";
 import { useStackApp } from "..";
-import MessageCard from "../components/message-card";
-import RedirectMessageCard from "../components/redirect-message-card";
+import MessageCard from "../components/message-cards/message-card";
+import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 export default function EmailVerification({ 
@@ -45,5 +45,5 @@ export default function EmailVerification({
     throw error;
   }
 
-  return <RedirectMessageCard type='emailVerified' fullPage={fullPage} />;
+  return <PredefinedMessageCard type='emailVerified' fullPage={fullPage} />;
 }

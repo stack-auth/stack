@@ -2,7 +2,7 @@ import "../polyfills";
 
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { routeHandlerTypeHelper, smartRouteHandler } from "./smart-route-handler";
+import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
@@ -37,16 +37,20 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
   onDelete: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
+export type RouteHandlerMetadataMap = {
+  create?: SmartRouteHandlerOverloadMetadata,
+  read?: SmartRouteHandlerOverloadMetadata,
+  list?: SmartRouteHandlerOverloadMetadata,
+  update?: SmartRouteHandlerOverloadMetadata,
+  delete?: SmartRouteHandlerOverloadMetadata,
+};
+
 type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
   & FilterUndefined<CrudRouteHandlersUnfiltered<T, Record<ParamNames, string>>>
   & {
     paramNames: ParamNames[],
+    metadataMap?: RouteHandlerMetadataMap,
   };
-
-type SingleCrudHandler = (
-  req: NextRequest,
-  options: { params: any },
-) => Promise<Response>;
 
 type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = CrudHandlers<
   | ("onCreate" extends keyof O ? "Create" : never)
@@ -54,13 +58,18 @@ type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>>
   | ("onList" extends keyof O ? "List" : never)
   | ("onUpdate" extends keyof O ? "Update" : never)
   | ("onDelete" extends keyof O ? "Delete" : never)
->;
+>
 
-export type CrudHandlers<T extends "Create" | "Read" | "List" | "Update" | "Delete"> = {
-  [K in `${Lowercase<T>}Handler`]: SingleCrudHandler
+export type CrudHandlers<
+  T extends "Create" | "Read" | "List" | "Update" | "Delete",
+> = {
+  [K in `${Lowercase<T>}Handler`]: SmartRouteHandler
 };
 
-export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(crud: S, options: O): CrudHandlersFromOptions<O> {
+export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
+  crud: S, 
+  options: O,
+): CrudHandlersFromOptions<O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
 
   const operations = [
@@ -99,7 +108,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           return crud[accessType][`${typedToLowercase(crudOperationWithoutList)}Schema`] !== undefined;
         });
 
-        const routeHandler: SingleCrudHandler = smartRouteHandler(
+        const routeHandler = createSmartRouteHandler(
           availableAccessTypes,
           (accessType) => {
             const adminSchemas = getSchemas("admin");
@@ -125,7 +134,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
               }),
               handler: async (req, fullReq) => {
                 const data = req.body;
-                const adminData = await validate(data, adminSchemas.input, true, "Input validation");
+                const adminData = await validate(data, adminSchemas.input, "Input validation");
 
                 const result = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: req.params,
@@ -133,8 +142,8 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                   auth: fullReq.auth ?? throwErr("Auth not found in CRUD handler; this should never happen! (all clients are at least client to access CRUD handler)"),
                 });
 
-                const resultAdminValidated = await validate(result, adminSchemas.output, false, "Result admin validation");
-                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, false, `Result ${accessType} validation`);
+                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
+                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
 
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
@@ -146,7 +155,10 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 };
               },
             });
-            return frw;
+            return {
+              ...frw,
+              metadata: options.metadataMap?.[typedToLowercase(crudOperation)],
+            };
           }
         );
         return [`${typedToLowercase(crudOperation)}Handler`, routeHandler];
@@ -154,12 +166,11 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
   ) as any;
 }
 
-async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, name: string): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.ISchema<T>, name: string): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
-      strict: !cast,
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
@@ -170,7 +181,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, cast: boolean, 
           Errors:
             ${error.errors.join("\n")}
         `,
-        { obj: JSON.stringify(obj), schema, cast },
+        { obj: JSON.stringify(obj), schema },
         { cause: error }
       );
     }

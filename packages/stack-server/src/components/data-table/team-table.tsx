@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { ServerTeam } from '@stackframe/stack';
@@ -11,7 +11,7 @@ import { FormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/router";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 
 function toolbarRender<TData>(table: Table<TData>) {

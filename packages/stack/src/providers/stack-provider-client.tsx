@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { StackClientApp, StackClientAppJson, stackAppInternalsSymbol } from "../lib/stack-app";
 import React from "react";
 import { UserJson } from "@stackframe/stack-shared";
 import { useStackApp } from "..";
+import { globalVar } from "@stackframe/stack-shared/dist/utils/globals";
 
 export const StackContext = React.createContext<null | {
   app: StackClientApp<true>,
@@ -18,7 +19,7 @@ export function StackProviderClient(props: {
   const app = StackClientApp[stackAppInternalsSymbol].fromClientJson(appJson);
 
   if (process.env.NODE_ENV === "development") {
-    (globalThis as any).stackApp = app;
+    globalVar.stackApp = app;
   }
   
   return (

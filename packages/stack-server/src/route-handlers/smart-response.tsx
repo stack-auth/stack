@@ -32,7 +32,6 @@ async function validate<T>(req: NextRequest, obj: unknown, schema: yup.Schema<T>
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
-      strict: true,
     });
   } catch (error) {
     throw new StackAssertionError(`Error occured during ${req.url} response validation: ${error}`, { obj, schema, error }, { cause: error });
@@ -54,7 +53,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
   const headers = new Map<string, string[]>;
 
   let arrayBufferBody;
-  if (req.body === undefined) {
+  if (obj.body === undefined) {
     arrayBufferBody = new ArrayBuffer(0);
   } else {
     const bodyType = validated.bodyType ?? (isBinaryBody(validated.body) ? "binary" : "json");
@@ -104,7 +103,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
         ...Object.entries({
           ...Object.fromEntries(headers),
           ...validated.headers ?? {}
-        }).flatMap(([key, values]) => values?.map(v => [key.toLowerCase(), v!] as [string, string]) ?? []),
+        }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
       ],
     },
   );

@@ -1,9 +1,9 @@
 'use client';
 
 import ForgotPasswordElement from "../components/forgot-password";
-import CardFrame from "../components/card-frame";
+import MaybeFullPage from "../components/maybe-full-page";
 import { useUser, useStackApp } from "..";
-import RedirectMessageCard from "../components/redirect-message-card";
+import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
 import { Link, Text } from "../components-core";
 
@@ -14,15 +14,15 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
   const [sent, setSent] = useState(false);
 
   if (user) {
-    return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
   if (sent) {
-    return <RedirectMessageCard type='emailSent' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='emailSent' fullPage={fullPage} />;
   }
 
   return (
-    <CardFrame fullPage={fullPage}>
+    <MaybeFullPage fullPage={fullPage}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <Text size="xl" as='h2'>Reset Your Password</Text>
         <Text>
@@ -33,6 +33,6 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
         </Text>
       </div>
       <ForgotPasswordElement onSent={() => setSent(true)} />
-    </CardFrame>
+    </MaybeFullPage>
   );
 };

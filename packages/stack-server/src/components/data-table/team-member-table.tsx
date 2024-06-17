@@ -1,4 +1,4 @@
-'use client';;
+'use client';
 import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { ServerTeam, ServerTeamMember, ServerUser } from '@stackframe/stack';
@@ -153,20 +153,20 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
 
   // TODO: Optimize this
   const [users, setUsers] = useState<ServerUser[]>([]);
-  const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>({});
+  const [userPermissions, setUserPermissions] = useState<Map<string, string[]>>(new Map());
   const [updateCounter, setUpdateCounter] = useState(0);
 
   const extendedUsers: ExtendedServerUserForTeam[] = useMemo(() => {
     return extendUsers(users).map((user) => ({
       ...user,
-      permissions: userPermissions[user.id] || [],
+      permissions: userPermissions.get(user.id) ?? [],
     }));
   }, [users, userPermissions]);
   
   useEffect(() => {
     async function load() {
       const promises = props.members.map(async member => {
-        const user = await member.getUser();
+        const user = member.user;
         const permissions = await user.listPermissions(props.team, { direct: true });
         return {
           user,
@@ -177,7 +177,7 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
     }
     
     load().then((data) => {
-      setUserPermissions(Object.fromEntries(
+      setUserPermissions(new Map(
         props.members.map((member, index) => [member.userId, data[index].permissions.map(p => p.id)])
       ));
       setUsers(data.map(d => d.user));

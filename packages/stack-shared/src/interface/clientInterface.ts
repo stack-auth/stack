@@ -1,18 +1,19 @@
 import * as oauth from 'oauth4webapi';
-import crypto from "crypto";
 
 import { Result } from "../utils/results";
 import { ReadonlyJson } from '../utils/json';
-import { AsyncStore, ReadonlyAsyncStore } from '../utils/stores';
 import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError, throwErr } from '../utils/errors';
+import { StackAssertionError, captureError, throwErr } from '../utils/errors';
 import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
 import { generateSecureRandomString } from '../utils/crypto';
+import { AccessToken, RefreshToken, InternalSession } from '../sessions';
+import { globalVar } from '../utils/globals';
 
 type UserCustomizableJson = {
   displayName: string | null,
   clientMetadata: ReadonlyJson,
+  selectedTeamId: string | null,
 };
 
 export type UserJson = UserCustomizableJson & {
@@ -31,6 +32,8 @@ export type UserJson = UserCustomizableJson & {
   hasPassword: boolean,
   authWithEmail: boolean,
   oauthProviders: string[],
+  selectedTeamId: string | null,
+  selectedTeam: TeamJson | null,
 };
 
 export type UserUpdateJson = Partial<UserCustomizableJson>;
@@ -52,23 +55,25 @@ export type ClientInterfaceOptions = {
 } & ({
   publishableClientKey: string,
 } | {
-  projectOwnerTokens: ReadonlyTokenStore,
+  projectOwnerSession: InternalSession,
 });
 
-export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft";
+export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify";
 export const sharedProviders = [
   "shared-github",
   "shared-google",
   "shared-facebook",
   "shared-microsoft",
+  "shared-spotify",
 ] as const;
 
-export type StandardProvider = "github" | "facebook" | "google" | "microsoft";
+export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify";
 export const standardProviders = [
   "github",
   "facebook",
   "google",
   "microsoft",
+  "spotify",
 ] as const;
 
 export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
@@ -78,19 +83,6 @@ export function toStandardProvider(provider: SharedProvider | StandardProvider):
 export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
   return "shared-" + provider as SharedProvider;
 }
-
-
-function getSessionCookieName(projectId: string) {
-  return "__stack-token-" + crypto.createHash("sha256").update(projectId).digest("hex");
-}
-
-export type ReadonlyTokenStore = ReadonlyAsyncStore<TokenObject>;
-export type TokenStore = AsyncStore<TokenObject>;
-
-export type TokenObject = Readonly<{
-  refreshToken: string | null,
-  accessToken: string | null,
-}>;
 
 export type ProjectJson = {
   id: string,
@@ -120,7 +112,6 @@ export type OAuthProviderConfigJson = {
     type: StandardProvider,
     clientId: string,
     clientSecret: string,
-    tenantId?: string,
   }
 );
 
@@ -186,29 +177,16 @@ export class StackClientInterface {
     return this.options.projectId;
   }
 
-  getSessionCookieName() {
-    return getSessionCookieName(this.projectId);
-  }
-
   getApiUrl() {
     return this.options.baseUrl + "/api/v1";
   }
 
-  protected async refreshAccessToken(tokenStore: TokenStore) {
+  public async fetchNewAccessToken(refreshToken: RefreshToken) {
     if (!('publishableClientKey' in this.options)) {
-      // TODO fix
-      throw new Error("Admin session token is currently not supported for fetching new access token");
+      // TODO support it
+      throw new Error("Admin session token is currently not supported for fetching new access token. Did you try to log in on a StackApp initiated with the admin session?");
     }
 
-    const refreshToken = (await tokenStore.getOrWait()).refreshToken;
-    if (!refreshToken) {
-      tokenStore.set({
-        accessToken: null,
-        refreshToken: null,
-      });
-      return;
-    }
-    
     const as = {
       issuer: this.options.baseUrl,
       algorithm: 'oauth2',
@@ -223,17 +201,14 @@ export class StackClientInterface {
     const rawResponse = await oauth.refreshTokenGrantRequest(
       as,
       client,
-      refreshToken,
+      refreshToken.token,
     );
     const response = await this._processResponse(rawResponse);
 
     if (response.status === "error") {
       const error = response.error;
       if (error instanceof KnownErrors.RefreshTokenError) {
-        return tokenStore.set({
-          accessToken: null,
-          refreshToken: null,
-        });
+        return null;
       }
       throw error;
     }
@@ -243,53 +218,58 @@ export class StackClientInterface {
       throw new Error(`Failed to send refresh token request: ${response.status} ${body}`);
     }
 
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response.data))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
-
     const result = await oauth.processRefreshTokenResponse(as, client, response.data);
     if (oauth.isOAuth2Error(result)) {
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("OAuth error", { result });
     }
 
-    tokenStore.update(old => ({
-      accessToken: result.access_token ?? null,
-      refreshToken: result.refresh_token ?? old?.refreshToken ?? null,
-    }));
+    if (!result.access_token) {
+      throw new StackAssertionError("Access token not found in token endpoint response, this is weird!");
+    }
+
+    return new AccessToken(result.access_token);
   }
 
   protected async sendClientRequest(
     path: string, 
     requestOptions: RequestInit, 
-    tokenStoreOrNull: TokenStore | null,
+    session: InternalSession | null,
     requestType: "client" | "server" | "admin" = "client",
   ) {
-    const tokenStore = tokenStoreOrNull ?? new AsyncStore<TokenObject>({
-      accessToken: null,
+    session ??= this.createSession({
       refreshToken: null,
     });
 
 
     return await Result.orThrowAsync(
       Result.retry(
-        () => this.sendClientRequestInner(path, requestOptions, tokenStore!, requestType),
+        () => this.sendClientRequestInner(path, requestOptions, session!, requestType),
         5,
         { exponentialDelayBase: 1000 },
       )
     );
   }
 
+  public createSession(options: Omit<ConstructorParameters<typeof InternalSession>[0], "refreshAccessTokenCallback">): InternalSession {
+    const session = new InternalSession({
+      refreshAccessTokenCallback: async (refreshToken) => await this.fetchNewAccessToken(refreshToken),
+      ...options,
+    });
+    return session;
+  }
+
   protected async sendClientRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
     path: string, 
     requestOptions: RequestInit, 
-    tokenStoreOrNull: TokenStore | null,
+    tokenStoreOrNull: InternalSession | null,
     errorsToCatch: readonly E[],
   ): Promise<Result<
     Response & {
-      usedTokens: TokenObject,
+      usedTokens: {
+        accessToken: AccessToken,
+        refreshToken: RefreshToken | null,
+      } | null,
     },
     InstanceType<E>
   >> {
@@ -308,19 +288,21 @@ export class StackClientInterface {
   private async sendClientRequestInner(
     path: string,
     options: RequestInit,
-    /**
-     * This object will be modified for future retries, so it should be passed by reference.
-     */
-    tokenStore: TokenStore,
+    session: InternalSession,
     requestType: "client" | "server" | "admin",
   ): Promise<Result<Response & {
-    usedTokens: TokenObject,
+    usedTokens: {
+      accessToken: AccessToken,
+      refreshToken: RefreshToken | null,
+    } | null,
   }>> {
-    let tokenObj = await tokenStore.getOrWait();
-    if (!tokenObj.accessToken && tokenObj.refreshToken) {
-      await this.refreshAccessToken(tokenStore);
-      tokenObj = await tokenStore.getOrWait();
-    }
+    /**
+     * `tokenObj === null` means the session is invalid/not logged in
+     */
+    let tokenObj = await session.getPotentiallyExpiredTokens();
+
+    let adminSession = "projectOwnerSession" in this.options ? this.options.projectOwnerSession : null;
+    let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
 
     // all requests should be dynamic to prevent Next.js caching
     cookies?.();
@@ -333,46 +315,85 @@ export class StackClientInterface {
        * 
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
        * implement reliance on cookies anywhere.
+       * 
+       * However, Cloudflare Workers don't actually support `credentials`, so we only set it
+       * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
-      credentials: "omit",
+      ...("WebSocketPair" in globalVar ? {} : {
+        credentials: "omit",
+      }),
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
         "X-Stack-Request-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
-        ...tokenObj.accessToken ? {
-          "Authorization": "StackSession " + tokenObj.accessToken,
-          "X-Stack-Access-Token": tokenObj.accessToken,
-        } : {},
-        ...tokenObj.refreshToken ? {
-          "X-Stack-Refresh-Token": tokenObj.refreshToken,
-        } : {},
-        ...'publishableClientKey' in this.options ? {
+        ...(tokenObj ? {
+          "Authorization": "StackSession " + tokenObj.accessToken.token,
+          "X-Stack-Access-Token": tokenObj.accessToken.token,
+        } : {}),
+        ...(tokenObj?.refreshToken ? {
+          "X-Stack-Refresh-Token": tokenObj.refreshToken.token,
+        } : {}),
+        ...('publishableClientKey' in this.options ? {
           "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
-        } : {},
-        ...'projectOwnerTokens' in this.options ? {
-          "X-Stack-Admin-Access-Token": (await this.options.projectOwnerTokens?.getOrWait())?.accessToken ?? "",
-        } : {},
+        } : {}),
+        ...(adminTokenObj ? {
+          "X-Stack-Admin-Access-Token": adminTokenObj.accessToken.token,
+        } : {}),
+        /**
+         * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
+         * 
+         * This header is used to change the cache key and hence always disable it, because we do our own caching.
+         * 
+         * When we drop support for Next.js <15, we may be able to remove this header, but please make sure that this is
+         * the case (I haven't actually tested.)
+         */
         "X-Stack-Random-Nonce": generateSecureRandomString(),
         ...options.headers,
       },
-      cache: "no-store",
+      /**
+       * Cloudflare Workers does not support cache, so don't pass it there
+       */
+      ...("WebSocketPair" in globalVar ? {} : {
+        cache: "no-store",
+      }),
     };
 
-    const rawRes = await fetch(url, params);
+    let rawRes;
+    try {
+      rawRes = await fetch(url, params);
+    } catch (e) {
+      if (e instanceof TypeError) {
+        // Network error, retry
+        console.log("Stack detected a network error, retrying.", e);
+        return Result.error(e);
+      }
+      throw e;
+    }
+
     const processedRes = await this._processResponse(rawRes);
     if (processedRes.status === "error") {
-      // If the access token is expired, reset it and retry
+      // If the access token is invalid, reset it and retry
       if (processedRes.error instanceof KnownErrors.InvalidAccessToken) {
-        tokenStore.set({
-          accessToken: null,
-          refreshToken: tokenObj.refreshToken,
-        });
-        return Result.error(new Error("Access token expired"));
+        if (!tokenObj) {
+          throw new StackAssertionError("Received invalid access token, but session is not logged in", { tokenObj, processedRes });
+        }
+        session.markAccessTokenExpired(tokenObj.accessToken);
+        return Result.error(processedRes.error);
       }
 
-      // Known errors are client side errors, and should hence not be retried (except for access token expired above).
+      // Same for the admin access token
+      // TODO HACK: Some of the backend hasn't been ported to use the new error codes, so if we have project owner tokens we need to check for ApiKeyNotFound too. Once the migration to smartRouteHandlers is complete, we can check for InvalidAdminAccessToken only.
+      if (adminSession && (processedRes.error instanceof KnownErrors.InvalidAdminAccessToken || processedRes.error instanceof KnownErrors.ApiKeyNotFound)) {
+        if (!adminTokenObj) {
+          throw new StackAssertionError("Received invalid admin access token, but admin session is not logged in", { adminTokenObj, processedRes });
+        }
+        adminSession.markAccessTokenExpired(adminTokenObj.accessToken);
+        return Result.error(processedRes.error);
+      }
+
+      // Known errors are client side errors, so except for the ones above they should not be retried
       // Hence, throw instead of returning an error
       throw processedRes.error;
     }
@@ -406,13 +427,25 @@ export class StackClientInterface {
     if (res.headers.has("x-stack-known-error")) {
       const errorJson = await res.json();
       if (res.headers.get("x-stack-known-error") !== errorJson.code) {
-        throw new Error("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
+        throw new StackAssertionError("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
       }
       const error = KnownError.fromJson(errorJson);
       return Result.error(error);
     }
 
     return Result.ok(res);
+  }
+
+  public async checkFeatureSupport(options: { featureName?: string } & ReadonlyJson): Promise<never> {
+    const res = await this.sendClientRequest("/check-feature-support", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(options),
+    }, null);
+
+    throw new StackAssertionError(await res.text());
   }
 
   async sendForgotPasswordEmail(
@@ -442,7 +475,7 @@ export class StackClientInterface {
 
   async sendVerificationEmail(
     emailVerificationRedirectUrl: string, 
-    tokenStore: TokenStore
+    session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/send-verification-email",
@@ -455,7 +488,7 @@ export class StackClientInterface {
           emailVerificationRedirectUrl,
         }),
       },
-      tokenStore,
+      session,
       [KnownErrors.EmailAlreadyVerified]
     );
 
@@ -512,7 +545,7 @@ export class StackClientInterface {
 
   async updatePassword(
     options: { oldPassword: string, newPassword: string }, 
-    tokenStore: TokenStore
+    session: InternalSession
   ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/update-password",
@@ -523,7 +556,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify(options),
       },
-      tokenStore,
+      session,
       [KnownErrors.PasswordMismatch, KnownErrors.PasswordRequirementsNotMet]
     );
 
@@ -564,8 +597,8 @@ export class StackClientInterface {
   async signInWithCredential(
     email: string, 
     password: string, 
-    tokenStore: TokenStore
-  ): Promise<KnownErrors["EmailPasswordMismatch"] | undefined> {
+    session: InternalSession
+  ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signin",
       {
@@ -578,7 +611,7 @@ export class StackClientInterface {
           password,
         }),
       },
-      tokenStore,
+      session,
       [KnownErrors.EmailPasswordMismatch]
     );
 
@@ -587,18 +620,18 @@ export class StackClientInterface {
     }
 
     const result = await res.data.json();
-    tokenStore.set({
+    return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-    });
+    };
   }
 
   async signUpWithCredential(
     email: string,
     password: string,
     emailVerificationRedirectUrl: string,
-    tokenStore: TokenStore,
-  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    session: InternalSession,
+  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/signup",
       {
@@ -612,7 +645,7 @@ export class StackClientInterface {
           emailVerificationRedirectUrl,
         }),
       },
-      tokenStore,
+      session,
       [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
     );
 
@@ -621,13 +654,13 @@ export class StackClientInterface {
     }
 
     const result = await res.data.json();
-    tokenStore.set({
+    return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-    });
+    };
   }
 
-  async signInWithMagicLink(code: string, tokenStore: TokenStore): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean }> {
+  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/magic-link-verification",
       {
@@ -648,20 +681,26 @@ export class StackClientInterface {
     }
 
     const result = await res.data.json();
-    tokenStore.set({
+    return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
-    });
-    return { newUser: result.newUser };
+      newUser: result.newUser,
+    };
   }
 
   async getOAuthUrl(
-    provider: string, 
-    redirectUrl: string, 
-    codeChallenge: string, 
-    state: string
+    options: {
+      provider: string, 
+      redirectUrl: string, 
+      errorRedirectUrl: string,
+      afterCallbackRedirectUrl?: string,
+      codeChallenge: string, 
+      state: string,
+      type: "authenticate" | "link",
+      providerScope?: string,
+    } & ({ type: "authenticate" } | { type: "link", session: InternalSession })
   ): Promise<string> {
-    const updatedRedirectUrl = new URL(redirectUrl);
+    const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
       if (updatedRedirectUrl.searchParams.has(key)) {
         console.warn("Redirect URL already contains " + key + " parameter, removing it as it will be overwritten by the OAuth callback");
@@ -673,26 +712,41 @@ export class StackClientInterface {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
-    const url = new URL(this.getApiUrl() + "/auth/authorize/" + provider.toLowerCase());
+    const url = new URL(this.getApiUrl() + "/auth/authorize/" + options.provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
     url.searchParams.set("scope", "openid");
-    url.searchParams.set("state", state);
+    url.searchParams.set("state", options.state);
     url.searchParams.set("grant_type", "authorization_code");
-    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("code_challenge", options.codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
+    url.searchParams.set("type", options.type);
+    url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
+    
+    if (options.afterCallbackRedirectUrl) {
+      url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
+    }
+    
+    if (options.type === "link") {
+      const tokens = await options.session.getPotentiallyExpiredTokens();
+      url.searchParams.set("token", tokens?.accessToken.token || "");
+
+      if (options.providerScope) {
+        url.searchParams.set("providerScope", options.providerScope);
+      }
+    }
+
     return url.toString();
   }
 
-  async callOAuthCallback(
+  async callOAuthCallback(options: {
     oauthParams: URLSearchParams, 
     redirectUri: string,
     codeVerifier: string, 
     state: string,
-    tokenStore: TokenStore,
-  ) {
+  }): Promise<{ newUser: boolean, afterCallbackRedirectUrl?: string, accessToken: string, refreshToken: string }> {
     if (!('publishableClientKey' in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
@@ -707,60 +761,59 @@ export class StackClientInterface {
       client_secret: this.options.publishableClientKey,
       token_endpoint_auth_method: 'client_secret_basic',
     };
-    const params = oauth.validateAuthResponse(as, client, oauthParams, state);
+    const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
     if (oauth.isOAuth2Error(params)) {
-      throw new StackAssertionError("Error validating OAuth response", { params }); // Handle OAuth 2.0 redirect error
+      throw new StackAssertionError("Error validating outer OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
     const response = await oauth.authorizationCodeGrantRequest(
       as,
       client,
       params,
-      redirectUri,
-      codeVerifier,
+      options.redirectUri,
+      options.codeVerifier,
     );
-
-    let challenges: oauth.WWWAuthenticateChallenge[] | undefined;
-    if ((challenges = oauth.parseWwwAuthenticateChallenges(response))) {
-      // TODO Handle WWW-Authenticate Challenges as needed
-      throw new StackAssertionError("OAuth WWW-Authenticate challenge not implemented", { challenges });
-    }
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
       // TODO Handle OAuth 2.0 response body error
-      throw new StackAssertionError("OAuth error", { result });
+      throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
-    tokenStore.update(old => ({
-      accessToken: result.access_token ?? null,
-      refreshToken: result.refresh_token ?? old?.refreshToken ?? null,
-    }));
 
-    return result;
+    return {
+      newUser: result.newUser as boolean,
+      afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token ?? throwErr("Refresh token not found in outer OAuth response"),
+    };
   }
 
-  async signOut(tokenStore: TokenStore): Promise<void> {
-    const tokenObj = await tokenStore.getOrWait();
-    const res = await this.sendClientRequest(
-      "/auth/signout",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          refreshToken: tokenObj.refreshToken ?? "",
-        }),
-      },
-      tokenStore,
-    );
-    await res.json();
-    tokenStore.set({
-      accessToken: null,
-      refreshToken: null,
-    });
+  async signOut(session: InternalSession): Promise<void> {
+    const tokenObj = await session.getPotentiallyExpiredTokens();
+    if (tokenObj) {
+      if (!tokenObj.refreshToken) {
+        // TODO implement this
+        captureError("clientInterface.signOut()", new StackAssertionError("Signing out a user without access to the refresh token does not invalidate the session on the server. Please open an issue in the Stack repository if you see this error"));
+      } else {
+        const res = await this.sendClientRequest(
+          "/auth/signout",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              refreshToken: tokenObj.refreshToken.token,
+            }),
+          },
+          session,
+        );
+        await res.json();
+      }
+    }
+    session.markInvalid();
   }
 
-  async getClientUserByToken(tokenStore: TokenStore): Promise<Result<UserJson>> {
+  async getClientUserByToken(tokenStore: InternalSession): Promise<Result<UserJson>> {
     const response = await this.sendClientRequest(
       "/current-user",
       {},
@@ -777,22 +830,22 @@ export class StackClientInterface {
       type: 'global' | 'team', 
       direct: boolean, 
     },
-    tokenStore: TokenStore
+    session: InternalSession
   ): Promise<PermissionDefinitionJson[]> {
     const response = await this.sendClientRequest(
       `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
       {},
-      tokenStore,
+      session,
     );
     const permissions: PermissionDefinitionJson[] = await response.json();
     return permissions;
   }
 
-  async listClientUserTeams(tokenStore: TokenStore): Promise<TeamJson[]> {
+  async listClientUserTeams(session: InternalSession): Promise<TeamJson[]> {
     const response = await this.sendClientRequest(
       "/current-user/teams",
       {},
-      tokenStore,
+      session,
     );
     const teams: TeamJson[] = await response.json();
     return teams;
@@ -805,7 +858,7 @@ export class StackClientInterface {
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: UserUpdateJson, tokenStore: TokenStore) {
+  async setClientUserCustomizableData(update: UserUpdateJson, session: InternalSession) {
     await this.sendClientRequest(
       "/current-user",
       {
@@ -815,12 +868,12 @@ export class StackClientInterface {
         },
         body: JSON.stringify(update),
       },
-      tokenStore,
+      session,
     );
   }
 
-  async listProjects(tokenStore: TokenStore): Promise<ProjectJson[]> {
-    const response = await this.sendClientRequest("/projects", {}, tokenStore);
+  async listProjects(session: InternalSession): Promise<ProjectJson[]> {
+    const response = await this.sendClientRequest("/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
     }
@@ -831,7 +884,7 @@ export class StackClientInterface {
 
   async createProject(
     project: ProjectUpdateOptions & { displayName: string },
-    tokenStore: TokenStore,
+    session: InternalSession,
   ): Promise<ProjectJson> {
     const fetchResponse = await this.sendClientRequest(
       "/projects",
@@ -842,7 +895,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify(project),
       },
-      tokenStore,
+      session,
     );
     if (!fetchResponse.ok) {
       throw new Error("Failed to create project: " + fetchResponse.status + " " + (await fetchResponse.text()));
@@ -850,6 +903,28 @@ export class StackClientInterface {
 
     const json = await fetchResponse.json();
     return json;
+  }
+
+  async getAccessToken(
+    provider: string,
+    scope: string,
+    session: InternalSession,
+  ): Promise<{ accessToken: string }> {
+    const response = await this.sendClientRequest(
+      `/auth/access-token/${provider}`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ scope }),
+      },
+      session,
+    );
+    const json = await response.json();
+    return {
+      accessToken: json.accessToken,
+    };
   }
 }
 

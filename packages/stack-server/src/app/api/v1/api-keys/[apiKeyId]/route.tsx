@@ -5,7 +5,6 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, getApiKeySet, revokeApiKeySet, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { deleteServerUser, updateServerUser } from "@/lib/users";
 
 const putOrGetSchema = yup.object({
   headers: yup.object({
@@ -14,7 +13,7 @@ const putOrGetSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    revoke: yup.boolean().default(undefined),
+    revoke: yup.boolean().default(false),
   }).nullable(),
 });
 

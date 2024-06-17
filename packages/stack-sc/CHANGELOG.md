@@ -1,5 +1,65 @@
 # @stackframe/stack-sc
 
+## 2.4.26
+
+### Patch Changes
+
+- Improve docs
+
+## 2.4.25
+
+## 2.4.24
+
+## 2.4.23
+
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+
+## 1.5.6
+
+### Patch Changes
+
+- Improve setup flow
+
+## 1.5.5
+
+### Patch Changes
+
+- Bug fixes
+
+## 1.5.4
+
+### Patch Changes
+
+- Bugfixes
+
+## 1.5.3
+
+### Patch Changes
+
+- Bugfixes
+
 ## 1.5.2
 
 ### Patch Changes

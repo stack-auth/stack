@@ -5,6 +5,7 @@ import { useUser } from "@stackframe/stack";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, StackAdminApp } from "@stackframe/stack";
+import { useRouter } from "@/components/router";
 
 const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
 
@@ -15,12 +16,20 @@ const createAdminApp = cacheFunction((baseUrl: string, projectId: string, userId
     baseUrl,
     projectId,
     tokenStore: null,
-    projectOwnerTokens: usersMap.get(userId)!.tokenStore,
+    projectOwnerSession: usersMap.get(userId)!._internalSession,
   });
 });
 
 export function AdminAppProvider(props: { projectId: string, children: React.ReactNode }) {
-  const user = useUser({ or: "redirect" });
+  const router = useRouter();
+  const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
+  const projects = user.useOwnedProjects();
+
+  const project = projects.find(p => p.id === props.projectId);
+  if (!project) {
+    console.warn(`User ${user.id} does not have access to project ${props.projectId}`);
+    setTimeout(() => router.push("/"), 0);
+  }
 
   usersMap.set(user.id, user);
   const stackAdminApp = createAdminApp(

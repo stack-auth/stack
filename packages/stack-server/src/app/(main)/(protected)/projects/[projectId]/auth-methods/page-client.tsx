@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch, availableProviders } from "./providers";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";

@@ -72,7 +72,7 @@ function SmartFormField(props: {
     label: ("label" in props.description ? props.description.label : null) ?? props.id,
     disabled: props.disabled,
     required: !("optional" in props.description && props.description.optional),
-    placeholder: "meta" in props.description && props.description.meta?.stackFormFieldPlaceholder !== undefined ? props.description.meta?.stackFormFieldPlaceholder :
+    placeholder: "meta" in props.description && props.description.meta?.stackFormFieldPlaceholder !== undefined ? props.description.meta.stackFormFieldPlaceholder :
       typeof props.defaultValue === "string" ? `Eg.: ${props.defaultValue}` : undefined,
     defaultValue: props.defaultValue,
   };

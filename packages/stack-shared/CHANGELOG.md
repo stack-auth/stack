@@ -1,5 +1,134 @@
 # @stackframe/stack-shared
 
+## 2.4.26
+
+### Patch Changes
+
+- Improve docs
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.26
+
+## 2.4.25
+
+### Patch Changes
+
+- Docs update
+  - @stackframe/stack-sc@2.4.25
+
+## 2.4.24
+
+### Patch Changes
+
+- Team switcher
+  - @stackframe/stack-sc@2.4.24
+
+## 2.4.23
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.4.23
+
+## 2.4.22
+
+### Patch Changes
+
+- OAuth scopes
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.22
+
+## 2.4.21
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.21
+
+## 2.4.20
+
+### Patch Changes
+
+- Support multiple projects on the same domain
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.20
+
+## 2.4.19
+
+### Patch Changes
+
+- Sync package versions
+- Updated dependencies
+  - @stackframe/stack-sc@2.4.19
+
+## 2.4.14
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.4.13
+
+### Patch Changes
+
+- Improve setup flow
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.6
+
+## 2.4.12
+
+### Patch Changes
+
+- Improved client styling, added login form, added spotify oauth
+
+## 2.4.11
+
+### Patch Changes
+
+- Added email editor
+
+## 2.4.10
+
+### Patch Changes
+
+- Bug fixes
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.5
+
+## 2.4.9
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.4
+
+## 2.4.8
+
+### Patch Changes
+
+- Improved UUID generation
+
+## 2.4.7
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@1.5.3
+
+## 2.4.6
+
+### Patch Changes
+
+- Remove crypto-browserify dependency
+
+## 2.4.5
+
+### Patch Changes
+
+- Team selection
+
 ## 2.4.4
 
 ### Patch Changes

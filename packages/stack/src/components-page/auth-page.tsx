@@ -3,9 +3,9 @@
 import CredentialSignIn from '../components/credential-sign-in';
 import SeparatorWithText from '../components/separator-with-text';
 import OAuthGroup from '../components/oauth-group';
-import CardFrame from '../components/card-frame';
+import MaybeFullPage from '../components/maybe-full-page';
 import { useUser, useStackApp, CredentialSignUp } from '..';
-import RedirectMessageCard from '../components/redirect-message-card';
+import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
 import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
@@ -21,18 +21,21 @@ export default function AuthPage({
 }) {
   const stackApp = useStackApp();
   const user = useUser();
-  const project = mockProject || stackApp.useProject();
+  const projectFromHook = stackApp.useProject();
+  const project = mockProject || projectFromHook;
 
   if (user && !mockProject) {
-    return <RedirectMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
   const enableSeparator = (project.credentialEnabled || project.magicLinkEnabled) && project.oauthProviders.filter(p => p.enabled).length > 0;
 
   return (
-    <CardFrame fullPage={fullPage}>
+    <MaybeFullPage fullPage={fullPage}>
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2'>{type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}</Text>
+        <Text size="xl" as='h2' style={{ fontWeight: 500 }}>
+          {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
+        </Text>
         {type === 'sign-in' ? (
           <Text>
             {"Don't have an account? "}
@@ -49,7 +52,7 @@ export default function AuthPage({
           </Text>
         )}
       </div>
-      <OAuthGroup type='signin' mockProject={mockProject} />
+      <OAuthGroup type={type} mockProject={mockProject} />
       {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
       {project.credentialEnabled && project.magicLinkEnabled ? (
         <Tabs defaultValue='magic-link'>
@@ -69,6 +72,6 @@ export default function AuthPage({
       ) : project.magicLinkEnabled ? (
         <MagicLinkSignIn/>
       ) : null}
-    </CardFrame>
+    </MaybeFullPage>
   );
 }

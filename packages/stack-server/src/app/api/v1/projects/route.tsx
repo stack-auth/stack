@@ -58,7 +58,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     throw new StatusError(StatusError.Forbidden, "Invalid project user");
   }
 
-  const { ...update } = body ?? {};
+  const { ...update } = body;
   const typedUpdate = projectSchemaToCreateOptions(update);
   const project = await createProject(projectUser, typedUpdate);
 

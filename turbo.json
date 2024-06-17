@@ -36,10 +36,13 @@
     "typecheck": {
       "cache": false
     },
-    "email": {
+    "test": {
       "cache": false
     },
-    "test": {
+    "generate-docs": {
+      "cache": false
+    },
+    "generate-keys": {
       "cache": false
     }
   }

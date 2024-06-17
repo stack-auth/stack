@@ -8,33 +8,42 @@ import open from 'open';
 
 const jsLikeFileExtensions = ['mtsx', 'ctsx', 'tsx', 'mts', 'cts', 'ts', 'mjsx', 'cjsx', 'jsx', 'mjs', 'cjs', 'js'];
 
+class UserError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UserError';
+  }
+}
+
+let savedProjectPath = process.argv[2] || undefined;
+
 async function main() {
   console.log("Welcome to the Stack installation wizard! 🧙‍♂️");
 
-  const projectPath = getProjectPath();
+  let projectPath = await getProjectPath();
   if (!fs.existsSync(projectPath)) {
-    throw new Error(`The project path ${projectPath} does not exist`);
+    throw new UserError(`The project path ${projectPath} does not exist`);
   }
 
   const packageJsonPath = path.join(projectPath, 'package.json');
   if (!fs.existsSync(packageJsonPath)) {
-    throw new Error(`The package.json file does not exist in the project path ${projectPath}. You must initialize a new project first before installing Stack.`);
+    throw new UserError(`The package.json file does not exist in the project path ${projectPath}. You must initialize a new project first before installing Stack.`);
   }
 
   const nextConfigPathWithoutExtension = path.join(projectPath, 'next.config');
   const nextConfigFileExtension = await findJsExtension(nextConfigPathWithoutExtension);
-  const nextConfigPath = nextConfigPathWithoutExtension + '.' + nextConfigFileExtension;
+  const nextConfigPath = nextConfigPathWithoutExtension + '.' + (nextConfigFileExtension ?? "js");
   if (!fs.existsSync(nextConfigPath)) {
-    throw new Error(`Expected file at ${nextConfigPath}. Only Next.js projects are currently supported supported.`);
+    throw new UserError(`Expected file at ${nextConfigPath}. Only Next.js projects are currently supported.`);
   }
 
   const envLocalPath = path.join(projectPath, '.env.local');
 
-  const hasSrcFolder = fs.existsSync(path.join(projectPath, 'src'));
-  const srcPath = path.join(projectPath, hasSrcFolder ? 'src' : '');
+  const hasSrcAppFolder = fs.existsSync(path.join(projectPath, 'src/app'));
+  const srcPath = path.join(projectPath, hasSrcAppFolder ? 'src' : '');
   const appPath = path.join(srcPath, 'app');
   if (!fs.existsSync(appPath)) {
-    throw new Error(`The app path ${appPath} does not exist. Only the Next.js app router is supported.`);
+    throw new UserError(`The app path ${appPath} does not exist. Only the Next.js app router is supported.`);
   }
 
   const layoutPathWithoutExtension = path.join(appPath, 'layout');
@@ -54,9 +63,9 @@ async function main() {
   const stackAppContent = await readFile(stackAppPath);
   if (stackAppContent) {
     if (!stackAppContent.includes("@stackframe/stack")) {
-      throw new Error(`A file at the path ${stackAppPath} already exists. Stack uses the /src/stack-app file to initialize the Stack SDK. Please remove the existing file and try again.`);
+      throw new UserError(`A file at the path ${stackAppPath} already exists. Stack uses the /src/stack-app file to initialize the Stack SDK. Please remove the existing file and try again.`);
     }
-    throw new Error(`It seems that you've already installed Stack in this project.`);
+    throw new UserError(`It seems that you've already installed Stack in this project.`);
   }
 
 
@@ -65,7 +74,7 @@ async function main() {
   const handlerPath = handlerPathWithoutExtension + '.' + handlerFileExtension;
   const handlerContent = await readFile(handlerPath);
   if (handlerContent && !handlerContent.includes("@stackframe/stack")) {
-    throw new Error(`A file at the path ${handlerPath} already exists. Stack uses the /handler path to handle incoming requests. Please remove the existing file and try again.`);
+    throw new UserError(`A file at the path ${handlerPath} already exists. Stack uses the /handler path to handle incoming requests. Please remove the existing file and try again.`);
   }
 
 
@@ -85,7 +94,7 @@ async function main() {
   try {
     await shellNicelyFormatted(versionCommand, { shell: true });
   } catch (err) {
-    throw new Error(`Could not run the package manager command ${versionCommand}. Please make sure ${packageManager} is installed on your system.`);
+    throw new UserError(`Could not run the package manager command ${versionCommand}. Please make sure ${packageManager} is installed on your system.`);
   }
 
   console.log();
@@ -94,9 +103,9 @@ async function main() {
   
   console.log();
   console.log("Writing files...");
-  await writeFileIfNotExists(envLocalPath, "NEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n");
+  await writeFileIfNotExists(envLocalPath, "# Stack Auth keys\n# Get these variables by creating a project on https://app.stack-auth.com.\nNEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n");
   await writeFileIfNotExists(loadingPath, `export default function Loading() {\n${ind}// Stack uses React Suspense, which will render this page while user data is being fetched.\n${ind}// See: https://nextjs.org/docs/app/api-reference/file-conventions/loading\n${ind}return <></>;\n}\n`);
-  await writeFileIfNotExists(handlerPath, `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\nexport default function Handler(props) {\n${ind}return <StackHandler app={stackServerApp} {...props} />;\n}\n`);
+  await writeFileIfNotExists(handlerPath, `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${handlerFileExtension.includes("ts") ? ": any" : ""}) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`);
   await writeFileIfNotExists(stackAppPath, `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`);
   await writeFile(layoutPath, updatedLayoutContent);
   console.log("Files written successfully!");
@@ -127,11 +136,17 @@ main().then(async() => {
   console.error();
   console.error("===============================================");
   console.error();
-  console.error("[ERR] An error occured during the initialization process. Please try manually installing Stack as described in https://docs.stack-auth.com/docs/getting-started/setup");
+  if (err instanceof UserError) {
+    console.error("[ERR] Error: " + err.message);
+  } else {
+    console.error("[ERR] An error occured during the initialization process.");
+  }
   console.error("[ERR]");
-  console.error("[ERR] If you need assistance, please join our Discord where we're happy to help: https://discord.stack-auth.com");
-  console.error("[ERR]");
-  console.error(`[ERR] Error message: ${err.message}`);
+  console.error("[ERR] If you need assistance, please try installing Slack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com");
+  if (!(err instanceof UserError)) {
+    console.error("[ERR]");
+    console.error(`[ERR] Error message: ${err.message}`);
+  }
   console.error();
   console.error("===============================================");
   console.error();
@@ -199,9 +214,23 @@ function getLineIndex(lines, stringIndex) {
   throw new Error(`Index ${stringIndex} is out of bounds for lines ${JSON.stringify(lines)}`);
 }
 
-function getProjectPath() {
-  const path = process.argv[2] || process.cwd();
-  return path;
+async function getProjectPath() {
+  if (savedProjectPath === undefined) {
+    savedProjectPath = process.cwd();
+
+    const askForPathModification = !fs.existsSync(path.join(savedProjectPath, 'package.json'));
+    if (askForPathModification) {
+      savedProjectPath = (await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'newPath',
+          message: 'Please enter the path to your project:',
+          default: ".",
+        },
+      ])).newPath;
+    }
+  }
+  return savedProjectPath;
 }
 
 async function findJsExtension(fullPathWithoutExtension) {
@@ -215,9 +244,10 @@ async function findJsExtension(fullPathWithoutExtension) {
 }
 
 async function getPackageManager() {
-  const yarnLock = fs.existsSync(path.join(getProjectPath(), 'yarn.lock'));
-  const pnpmLock = fs.existsSync(path.join(getProjectPath(), 'pnpm-lock.yaml'));
-  const npmLock = fs.existsSync(path.join(getProjectPath(), 'package-lock.json'));
+  const projectPath = await getProjectPath();
+  const yarnLock = fs.existsSync(path.join(projectPath, 'yarn.lock'));
+  const pnpmLock = fs.existsSync(path.join(projectPath, 'pnpm-lock.yaml'));
+  const npmLock = fs.existsSync(path.join(projectPath, 'package-lock.json'));
 
   if (yarnLock && !pnpmLock && !npmLock) {
     return 'yarn';

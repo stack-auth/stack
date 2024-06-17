@@ -2,14 +2,14 @@
 
 import { use } from "react";
 import { useUser } from "..";
-import GoHomeMessageCard from "../components/redirect-message-card";
+import GoHomeMessageCard from "../components/message-cards/predefined-message-card";
 
-export default function Signout() {
+export default function SignOut(props: { fullPage?: boolean }) {
   const user = useUser();
   
   if (user) {
     use(user.signOut());
   }
   
-  return <GoHomeMessageCard type='signedOut' fullPage />;
+  return <GoHomeMessageCard type='signedOut' fullPage={props.fullPage} />;
 }

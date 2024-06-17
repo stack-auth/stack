@@ -1,7 +1,14 @@
-import * as crypto from "crypto";
 import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
 import { ReactPromise, pending, rejected, resolved } from "./promises";
+
+export type ReadonlyStore<T> = {
+  get(): T,
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+};
+
+export type AsyncStoreStateChangeCallback<T> = (args: { state: AsyncResult<T>, oldState: AsyncResult<T>, lastOkValue: T | undefined }) => void;
 
 export type ReadonlyAsyncStore<T> = {
   isAvailable(): boolean,
@@ -9,17 +16,61 @@ export type ReadonlyAsyncStore<T> = {
   getOrWait(): ReactPromise<T>,
   onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
   onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+  onStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void },
+  onceStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void },
 };
+
+export class Store<T> implements ReadonlyStore<T> {
+  private readonly _callbacks: Map<string, ((value: T, oldValue: T | undefined) => void)> = new Map();
+
+  constructor(
+    private _value: T
+  ) {}
+
+  get(): T {
+    return this._value;
+  }
+
+  set(value: T): void {
+    const oldValue = this._value;
+    this._value = value;
+    this._callbacks.forEach((callback) => callback(value, oldValue));
+  }
+
+  update(updater: (value: T) => T): T {
+    const value = updater(this._value);
+    this.set(value);
+    return value;
+  }
+
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+    const uuid = generateUuid();
+    this._callbacks.set(uuid, callback);
+    return {
+      unsubscribe: () => {
+        this._callbacks.delete(uuid);
+      },
+    };
+  }
+
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+    const { unsubscribe } = this.onChange((...args) => {
+      unsubscribe();
+      callback(...args);
+    });
+    return { unsubscribe };
+  }
+}
 
 export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   private _isAvailable: boolean;
-  private _value: T | undefined = undefined;
+  private _mostRecentOkValue: T | undefined = undefined;
 
   private _isRejected = false;
   private _rejectionError: unknown;
   private readonly _waitingRejectFunctions = new Map<string, ((error: unknown) => void)>();
 
-  private readonly _callbacks: Map<string, ((value: T, oldValue: T | undefined) => void)> = new Map();
+  private readonly _callbacks: Map<string, AsyncStoreStateChangeCallback<T>> = new Map();
 
   private _updateCounter = 0;
   private _lastSuccessfulUpdate = -1;
@@ -29,7 +80,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
       this._isAvailable = false;
     } else {
       this._isAvailable = true;
-      this._value = args[0];
+      this._mostRecentOkValue = args[0];
     }
   }
 
@@ -45,7 +96,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     if (this.isRejected()) {
       return AsyncResult.error(this._rejectionError);
     } else if (this.isAvailable()) {
-      return AsyncResult.ok(this._value as T);
+      return AsyncResult.ok(this._mostRecentOkValue as T);
     } else {
       return AsyncResult.pending();
     }
@@ -56,7 +107,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     if (this.isRejected()) {
       return rejected(this._rejectionError);
     } else if (this.isAvailable()) {
-      return resolved(this._value as T);
+      return resolved(this._mostRecentOkValue as T);
     }
     const promise = new Promise<T>((resolve, reject) => {
       this.onceChange((value) => {
@@ -71,17 +122,22 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   }
 
   _setIfLatest(result: Result<T>, curCounter: number) {
+    const oldState = this.get();
+    const oldValue = this._mostRecentOkValue;
     if (curCounter > this._lastSuccessfulUpdate) {
       switch (result.status) {
         case "ok": {
-          if (!this._isAvailable || this._isRejected || this._value !== result.data) {
-            const oldValue = this._value;
+          if (!this._isAvailable || this._isRejected || this._mostRecentOkValue !== result.data) {
             this._lastSuccessfulUpdate = curCounter;
             this._isAvailable = true;
             this._isRejected = false;
-            this._value = result.data;
+            this._mostRecentOkValue = result.data;
             this._rejectionError = undefined;
-            this._callbacks.forEach((callback) => callback(result.data, oldValue));
+            this._callbacks.forEach((callback) => callback({
+              state: this.get(),
+              oldState,
+              lastOkValue: oldValue,
+            }));
             return true;
           }
           return false;
@@ -90,9 +146,13 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
           this._lastSuccessfulUpdate = curCounter;
           this._isAvailable = false;
           this._isRejected = true;
-          this._value = undefined;
           this._rejectionError = result.error;
           this._waitingRejectFunctions.forEach((reject) => reject(result.error));
+          this._callbacks.forEach((callback) => callback({
+            state: this.get(),
+            oldState,
+            lastOkValue: oldValue,
+          }));
           return true;
         }
       }
@@ -105,7 +165,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   }
 
   update(updater: (value: T | undefined) => T): T {
-    const value = updater(this._value);
+    const value = updater(this._mostRecentOkValue);
     this.set(value);
     return value;
   }
@@ -120,7 +180,6 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
     this._lastSuccessfulUpdate = ++this._updateCounter;
     this._isAvailable = false;
     this._isRejected = false;
-    this._value = undefined;
     this._rejectionError = undefined;
   }
 
@@ -137,6 +196,14 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   }
 
   onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
+    return this.onStateChange(({ state, lastOkValue }) => {
+      if (state.status === "ok") {
+        callback(state.data, lastOkValue);
+      }
+    });
+  }
+
+  onStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void } {
     const uuid = generateUuid();
     this._callbacks.set(uuid, callback);
     return {
@@ -148,6 +215,14 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
 
   onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
     const { unsubscribe } = this.onChange((...args) => {
+      unsubscribe();
+      callback(...args);
+    });
+    return { unsubscribe };
+  }
+
+  onceStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void } {
+    const { unsubscribe } = this.onStateChange((...args) => {
       unsubscribe();
       callback(...args);
     });

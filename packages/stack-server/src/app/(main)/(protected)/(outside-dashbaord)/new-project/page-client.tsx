@@ -1,18 +1,18 @@
-'use client';;
+'use client';
 import { AuthPage, useUser } from "@stackframe/stack";
 import * as yup from "yup";
 import { Separator } from "@/components/ui/separator";
-import { Card } from "@/components/ui/card";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Form } from "@/components/ui/form";
 import { InputField, SwitchListField } from "@/components/form-fields";
-import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
+import { runAsynchronously, runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { useRouter } from "@/components/router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import { toSharedProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { BrowserFrame } from "@/components/browser-frame";
+import { useForm } from "react-hook-form";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Project name is required").required(),
@@ -63,7 +63,7 @@ export default function PageClient () {
           })).filter(({ enabled }) => enabled),
         }
       });
-      await router.push('/projects/' + newProject.id);
+      router.push('/projects/' + newProject.id);
       await wait(2000);
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export default function PageClient () {
           </div>
             
           <Form {...form}>
-            <form onSubmit={e => runAsynchronously(form.handleSubmit(onSubmit)(e))} className="space-y-4">
+            <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
 
@@ -106,21 +106,24 @@ export default function PageClient () {
       </div>
       <Separator orientation="vertical" />
 
-      <div className="w-1/2 self-stretch p-4 bg-zinc-300 dark:bg-zinc-800 hidden md:flex">
-        {mockProject ? 
+      <div className="w-1/2 self-stretch py-4 px-4 lg:px-20 bg-zinc-300 dark:bg-zinc-800 hidden md:flex items-center">
+        {
           (
-            // The inert attribute is not available in typescript, so this is a hack to make type works
-            <div className='w-full sm:max-w-sm m-auto scale-90' {...{ inert: '' }}>
-              {/* a transparent cover that prevents the card being clicked */}
-              <div className="absolute inset-0 bg-transparent z-10"></div>
-              <Card className="p-6">
-                <AuthPage 
-                  type="sign-in" 
-                  mockProject={mockProject} 
-                />
-              </Card>
+            <div className="w-full">
+              <BrowserFrame url="your-website.com/signin">
+                <div className="flex flex-col items-center justify-center min-h-[400px]">
+                  <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
+                    {/* a transparent cover that prevents the card being clicked */}
+                    <div className="absolute inset-0 bg-transparent z-10"></div>
+                    <AuthPage 
+                      type="sign-in" 
+                      mockProject={mockProject} 
+                    />
+                  </div>
+                </div>
+              </BrowserFrame>
             </div>
-          ): null}
+          )}
       </div> 
     </div>
   );

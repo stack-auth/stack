@@ -3,5 +3,5 @@ export function hasClickableParent(element: HTMLElement): boolean {
   if (!parent) return false;
   if (parent.dataset.n2Clickable) return true;
 
-  return !!element.parentElement && hasClickableParent(element.parentElement);
+  return hasClickableParent(element.parentElement);
 }

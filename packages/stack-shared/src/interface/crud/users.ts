@@ -1,31 +1,33 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
+import * as fieldSchema from "./fields";
 
 export const usersCrudServerUpdateSchema = yup.object({
-  displayName: yup.string().optional(),
-  clientMetadata: yup.object().optional(),
-  serverMetadata: yup.object().optional(),
-  primaryEmail: yup.string().optional(),
-  primaryEmailVerified: yup.boolean().optional(),
+  displayName: fieldSchema.userDisplayNameSchema.optional(),
+  clientMetadata: fieldSchema.userClientMetadataSchema.optional(),
+  serverMetadata: fieldSchema.userServerMetadataSchema.optional(),
+  primaryEmail: fieldSchema.primaryEmailSchema.nullable().optional(),
+  primaryEmailVerified: fieldSchema.primaryEmailVerifiedSchema.optional(),
+  selectedTeamId: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
 export const usersCrudServerReadSchema = yup.object({
-  projectId: yup.string().required(),
-  id: yup.string().required(),
-  primaryEmail: yup.string().nullable().defined(),
-  primaryEmailVerified: yup.boolean().required(),
-  displayName: yup.string().nullable().defined(),
-  clientMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
-  profileImageUrl: yup.string().nullable().defined(),
-  signedUpAtMillis: yup.number().required(),
-  /**
-   * not used anymore, for backwards compatibility
-   */
-  authMethod: yup.string().oneOf(["credential", "oauth"]).required(),
-  hasPassword: yup.boolean().required(),
-  authWithEmail: yup.boolean().required(),
-  oauthProviders: yup.array(yup.string().required()).required(),
-  serverMetadata: yup.object().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value))),
+  projectId: fieldSchema.projectIdSchema.required(),
+  id: fieldSchema.userIdSchema.required(),
+  primaryEmail: fieldSchema.primaryEmailSchema.nullable().defined(),
+  primaryEmailVerified: fieldSchema.primaryEmailVerifiedSchema.required(),
+  displayName: fieldSchema.userDisplayNameSchema.nullable().defined(),
+  // TODO give this one the type of an actual team
+  selectedTeam: yup.mixed().nullable().defined(),
+  selectedTeamId: fieldSchema.selectedTeamIdSchema.nullable().defined(),
+  profileImageUrl: fieldSchema.profileImageUrlSchema.nullable().defined(),
+  signedUpAtMillis: fieldSchema.signedUpAtMillisSchema.required(),
+  authMethod: yup.string().oneOf(["credential", "oauth"]).required().meta({ openapi: { hide: true } }), // not used anymore, for backwards compatibility
+  hasPassword: yup.boolean().required().meta({ openapi: { description: 'Whether the user has a password', exampleValue: true } }),
+  authWithEmail: yup.boolean().required().meta({ openapi: { description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  oauthProviders: yup.array(yup.string().required()).required().meta({ openapi: { description: 'All the OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
+  clientMetadata: fieldSchema.userClientMetadataSchema,
+  serverMetadata: fieldSchema.userServerMetadataSchema,
 }).required();
 
 const serverDeleteSchema = yup.mixed();
@@ -33,6 +35,6 @@ const serverDeleteSchema = yup.mixed();
 export const usersCrud = createCrud({
   serverReadSchema: usersCrudServerReadSchema,
   serverUpdateSchema: usersCrudServerUpdateSchema,
-  serverDeleteSchema,
+  serverDeleteSchema: serverDeleteSchema,
 });
 export type UsersCrud = CrudTypeOf<typeof usersCrud>;

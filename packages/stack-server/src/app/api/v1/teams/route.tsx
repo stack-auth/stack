@@ -7,6 +7,7 @@ import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { createServerTeam, listServerTeams } from "@/lib/teams";
 import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
   query: yup.object({
@@ -35,9 +36,10 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
   let teams: ServerTeamJson[] = [];
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
-      throw new StatusError(StatusError.Forbidden);
+      throw new KnownErrors.ApiKeyNotFound();
     }
     teams = await listServerTeams(projectId);
   }
@@ -75,6 +77,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);

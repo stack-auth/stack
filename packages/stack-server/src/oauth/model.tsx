@@ -1,12 +1,12 @@
-import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, OAuth2Server, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
+import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken, encodeAccessToken } from "@/lib/tokens";
-import { validateUrl } from "@/utils/url";
+import { validateUrl } from "@/lib/utils";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const enabledScopes = ["openid"];
 
@@ -49,7 +49,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     };
   }
 
-  async validateScope(user: User, client: Client, scope?: string[]): Promise<string[] | Falsey> {
+  async validateScope(user: User | null, client: Client | null, scope?: string[]): Promise<string[] | Falsey> {
     if (!user) {
       return false;
     }
@@ -95,6 +95,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     return {
       ...token,
       newUser: user.newUser,
+      afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
     };
   }
 
@@ -169,6 +170,7 @@ export class OAuthModel implements AuthorizationCodeModel {
         expiresAt: code.expiresAt,
         projectUserId: user.id,
         newUser: user.newUser,
+        afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
         projectId: client.id,
       },
     });
@@ -209,6 +211,7 @@ export class OAuthModel implements AuthorizationCodeModel {
       user: {
         id: code.projectUserId,
         newUser: code.newUser,
+        afterCallbackRedirectUrl: code.afterCallbackRedirectUrl,
       },
     };
   }
@@ -235,7 +238,7 @@ export class OAuthModel implements AuthorizationCodeModel {
 
     if (!project) {
       // This should in theory never happen, make typescript happy
-      return false;
+      throw new StackAssertionError("Project not found");
     }
 
     return validateUrl(

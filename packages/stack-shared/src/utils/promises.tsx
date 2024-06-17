@@ -1,13 +1,12 @@
-import { KnownError } from "..";
 import { StackAssertionError, captureError } from "./errors";
+import { DependenciesMap } from "./maps";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
-import type { RejectedThenable, FulfilledThenable, PendingThenable } from "react";
 
 export type ReactPromise<T> = Promise<T> & (
-  | RejectedThenable<T>
-  | FulfilledThenable<T>
-  | PendingThenable<T>
+  | { status: "rejected", reason: unknown }
+  | { status: "fulfilled", value: T }
+  | { status: "pending" }
 );
 
 type Resolve<T> = (value: T) => void;
@@ -40,28 +39,45 @@ export function createPromise<T>(callback: (resolve: Resolve<T>, reject: Reject)
   } as any);
 }
 
+const resolvedCache = new DependenciesMap<[unknown], ReactPromise<unknown>>();
 /**
- * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook, and caches
+ * the value so that invoking `resolved` twice returns the same promise.
  */
 export function resolved<T>(value: T): ReactPromise<T> {
-  return Object.assign(Promise.resolve(value), {
+  if (resolvedCache.has([value])) {
+    return resolvedCache.get([value]) as ReactPromise<T>;
+  }
+
+  const res = Object.assign(Promise.resolve(value), {
     status: "fulfilled",
     value,
   } as const);
+  resolvedCache.set([value], res);
+  return res;
 }
 
+const rejectedCache = new DependenciesMap<[unknown], ReactPromise<unknown>>();
 /**
- * Like Promise.resolve(...), but also adds the status and value properties for use with React's `use` hook.
+ * Like Promise.reject(...), but also adds the status and value properties for use with React's `use` hook, and caches
+ * the value so that invoking `rejected` twice returns the same promise.
  */
 export function rejected<T>(reason: unknown): ReactPromise<T> {
-  return Object.assign(Promise.reject(reason), {
+  if (rejectedCache.has([reason])) {
+    return rejectedCache.get([reason]) as ReactPromise<T>;
+  }
+
+  const res = Object.assign(Promise.reject(reason), {
     status: "rejected",
     reason: reason,
   } as const);
+  rejectedCache.set([reason], res);
+  return res;
 }
 
+const neverResolvePromise = pending(new Promise<never>(() => {}));
 export function neverResolve(): ReactPromise<never> {
-  return pending(new Promise<never>(() => {}));
+  return neverResolvePromise;
 }
 
 export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?: boolean } = {}): ReactPromise<T> {
@@ -96,10 +112,25 @@ class ErrorDuringRunAsynchronously extends Error {
   }
 }
 
+export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchronously>) {
+  return runAsynchronously(
+    args[0],
+    {
+      ...args[1],
+      onError: error => {
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}`);
+        args[1]?.onError?.(error);
+      },
+    },
+    ...args.slice(2) as [],
+  );
+}
+
 export function runAsynchronously(
   promiseOrFunc: void | Promise<unknown> | (() => void | Promise<unknown>) | undefined,
   options: {
-    ignoreErrors?: boolean,
+    noErrorLogging?: boolean,
+    onError?: (error: Error) => void,
   } = {},
 ): void {
   if (typeof promiseOrFunc === "function") {
@@ -116,7 +147,8 @@ export function runAsynchronously(
         cause: error,
       }
     );
-    if (!options.ignoreErrors) {
+    options.onError?.(newError);
+    if (!options.noErrorLogging) {
       captureError("runAsynchronously", newError);
     }
   });

@@ -1,13 +1,12 @@
 'use client';
 
-import MessageCard from "../components/message-card";
+import MessageCard from "../components/message-cards/message-card";
 import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
 import PasswordResetInner from "../components/password-reset-inner";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { Text } from "../components-core";
 import { KnownErrors } from "@stackframe/stack-shared";
-import React from "react";
 
 const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyPasswordResetCode(code);

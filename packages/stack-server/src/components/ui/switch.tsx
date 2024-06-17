@@ -4,7 +4,7 @@ import * as React from "react";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 
 import { cn } from "@/lib/utils";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 import { Spinner } from "./spinner";
 
@@ -55,8 +55,8 @@ const Switch = React.forwardRef<
       <OriginalSwitch
         {...props}
         ref={ref}
-        onClick={(e) => runAsynchronously(handleClick(e))}
-        onCheckedChange={(checked) => runAsynchronously(handleCheckedChange(checked))}
+        onClick={(e) => runAsynchronouslyWithAlert(handleClick(e))}
+        onCheckedChange={(checked) => runAsynchronouslyWithAlert(handleCheckedChange(checked))}
         disabled={props.disabled || loading}
         style={{
           visibility: loading ? "hidden" : "visible",

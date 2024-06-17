@@ -32,6 +32,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);
@@ -85,6 +86,7 @@ export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, optio
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
 
+  // eslint-disable-next-line
   if (server === "true") {
     if (!skValid && !asValid) {
       throw new StatusError(StatusError.Forbidden);

@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import * as yup from "yup";
 import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { useState } from "react";
@@ -17,6 +17,8 @@ import Typography from "@/components/ui/typography";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { FormDialog } from "@/components/form-dialog";
 import { SimpleTooltip } from "@/components/simple-tooltip";
+import { InlineCode } from "@/components/ui/inline-code";
+import { Label } from "@/components/ui/label";
 
 /**
  * All the different types of OAuth providers that can be created.
@@ -36,7 +38,8 @@ function toTitle(id: ProviderType) {
     google: "Google",
     facebook: "Facebook",
     microsoft: "Microsoft",
-  }[id] ?? `Custom OAuth provider: ${id}`;
+    spotify: "Spotify",
+  }[id];
 }
 
 export const providerFormSchema = yup.object({
@@ -62,7 +65,7 @@ export function ProviderSettingDialog(props: Props) {
   const defaultValues = { 
     shared: isShared, 
     clientId: (props.provider as any)?.clientId ?? "", 
-    clientSecret: (props.provider as any)?.clientSecret ?? "" 
+    clientSecret: (props.provider as any)?.clientSecret ?? "",
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
@@ -96,9 +99,17 @@ export function ProviderSettingDialog(props: Props) {
             label="Shared keys"
           />
 
-          {form.watch("shared") && <Typography variant="secondary" type="footnote">
+          {form.watch("shared") ? 
+            <Typography variant="secondary" type="footnote">
             Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
-          </Typography>}
+            </Typography> :
+            <div className="flex flex-col gap-2">
+              <Label>Redirect URL for the OAuth provider settings
+              </Label>
+              <Typography type="footnote">
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/callback/${props.provider?.id}`}</InlineCode>
+              </Typography>
+            </div>}
 
           {!form.watch("shared") && (
             <>
@@ -174,7 +185,7 @@ export function ProviderSettingSwitch(props: Props) {
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
             {isShared && enabled && 
-              <SimpleTooltip tooltip="Shared keys are created by the Stack team for easy development experience">
+              <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
             }

@@ -8,7 +8,7 @@ export default function OAuthGroup({
   type,
   mockProject,
 }: {
-  type: 'signin' | 'signup',
+  type: 'sign-in' | 'sign-up',
   mockProject?: ClientProjectJson,
 }) {
   const stackApp = useStackApp();

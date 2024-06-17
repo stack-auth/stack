@@ -43,6 +43,7 @@ export function InputField<F extends FieldValues>(props: {
             <FormControl>
               <Input
                 {...field} 
+                value={field.value ?? ""}
                 placeholder={props.placeholder} 
                 className="max-w-lg" 
                 disabled={props.disabled} 
