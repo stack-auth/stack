@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.4.27
+
+### Patch Changes
+
+- Export MagicLinkSignIn component
+  - @stackframe/stack-sc@2.4.27
+  - @stackframe/stack-shared@2.4.27
+
 ## 2.4.26
 
 ### Patch Changes
