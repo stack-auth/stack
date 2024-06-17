@@ -183,7 +183,6 @@ function createEmptyTokenStore() {
   });
 }
 
-const loadingSentinel = Symbol("stackAppCacheLoadingSentinel");
 const cachePromiseByComponentId = new Map<string, Promise<unknown>>();
 function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
   // we explicitly don't want to run this hook in SSR

@@ -1,0 +1,480 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_CONNECTION_STRING")
+  directUrl = env("DIRECT_DATABASE_CONNECTION_STRING")
+}
+
+model Project {
+  // Note that the project with ID `internal` is handled as a special case.
+  id String @id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  displayName      String
+  description      String?                @default("")
+  configId         String                 @db.Uuid
+  config           ProjectConfig          @relation(fields: [configId], references: [id])
+  configOverride   ProjectConfigOverride?
+  isProductionMode Boolean
+
+  users      ProjectUser[] @relation("ProjectUsers")
+  teams      Team[]
+  apiKeySets ApiKeySet[]
+}
+
+// Contains all the configuration for a project.
+// 
+// More specifically, "configuration" is what we call those settings that only depend on environment variables and overrides between different deployments.
+model ProjectConfig {
+  id String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  allowLocalhost     Boolean
+  credentialEnabled  Boolean
+  magicLinkEnabled   Boolean
+  createTeamOnSignUp Boolean
+
+  projects             Project[]
+  oauthProviderConfigs OAuthProviderConfig[]
+  emailServiceConfig   EmailServiceConfig?
+  domains              ProjectDomain[]
+  permissions          Permission[]
+}
+
+model ProjectDomain {
+  projectConfigId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  domain      String
+  handlerPath String
+
+  projectConfig ProjectConfig @relation(fields: [projectConfigId], references: [id])
+
+  @@unique([projectConfigId, domain])
+}
+
+// Environment-specific overrides for a configuration.
+//
+// This is a quick and dirty way to allow for environment-specific overrides of the configuration.
+//
+// For most cases, you should prefer to use environment variables.
+//
+// Note: Overrides (and environment variables) are currently unimplemented, so this model is empty.
+model ProjectConfigOverride {
+  projectId String @id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Team {
+  projectId String
+  teamId    String @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  displayName String
+
+  project             Project       @relation(fields: [projectId], references: [id])
+  permissions         Permission[]
+  teamMembers         TeamMember[]
+  selectedProjectUser ProjectUser[]
+
+  @@id([projectId, teamId])
+}
+
+model TeamMember {
+  projectId     String
+  projectUserId String @db.Uuid
+  teamId        String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+
+  directPermissions TeamMemberDirectPermission[]
+
+  @@id([projectId, projectUserId, teamId])
+}
+
+model TeamMemberDirectPermission {
+  projectId      String
+  projectUserId  String @db.Uuid
+  teamId         String @db.Uuid
+  permissionDbId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
+
+  @@id([projectId, projectUserId, teamId, permissionDbId])
+}
+
+model Permission {
+  // The ID of this permission, as is chosen by and exposed to the user. It is different from the database ID, which is randomly generated and only used internally.
+  queryableId     String
+  // The database ID of this permission. This is never exposed to any client and is only used to make sure the database has an ID column.
+  dbId            String  @id @default(uuid()) @db.Uuid
+  // exactly one of [projectConfigId && projectConfig] or [projectId && teamId && team] must be set
+  projectConfigId String? @db.Uuid
+  projectId       String?
+  teamId          String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  description String?
+
+  // The scope of the permission. If projectConfigId is set, may be GLOBAL or TEAM; if teamId is set, must be TEAM.
+  scope         PermissionScope
+  projectConfig ProjectConfig?  @relation(fields: [projectConfigId], references: [id])
+  team          Team?           @relation(fields: [projectId, teamId], references: [projectId, teamId])
+
+  parentEdges                PermissionEdge[]             @relation("ChildPermission")
+  childEdges                 PermissionEdge[]             @relation("ParentPermission")
+  teamMemberDirectPermission TeamMemberDirectPermission[]
+
+  @@unique([projectConfigId, queryableId])
+  @@unique([projectId, teamId, queryableId])
+}
+
+enum PermissionScope {
+  GLOBAL
+  TEAM
+}
+
+model PermissionEdge {
+  edgeId String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentPermissionDbId String     @db.Uuid
+  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
+  childPermissionDbId  String     @db.Uuid
+  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
+}
+
+model ProjectUser {
+  projectId     String
+  projectUserId String @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project                          Project                            @relation("ProjectUsers", fields: [projectId], references: [id])
+  projectUserRefreshTokens         ProjectUserRefreshToken[]
+  projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
+  projectUserOAuthAccounts         ProjectUserOAuthAccount[]
+  projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
+  projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
+  projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
+  teamMembers                      TeamMember[]
+
+  primaryEmail         String?
+  primaryEmailVerified Boolean
+  profileImageUrl      String?
+  displayName          String?
+  passwordHash         String?
+  authWithEmail        Boolean
+
+  serverMetadata Json?
+  clientMetadata Json?
+
+  selectedTeam   Team?   @relation(fields: [projectId, selectedTeamId], references: [projectId, teamId])
+  selectedTeamId String? @db.Uuid
+
+  @@id([projectId, projectUserId])
+}
+
+model ProjectUserOAuthAccount {
+  projectId             String
+  projectUserId         String @db.Uuid
+  projectConfigId       String @db.Uuid
+  oauthProviderConfigId String
+  providerAccountId     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
+  projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  oauthTokens    OAuthToken[]
+
+  email String?
+
+  @@id([projectId, oauthProviderConfigId, providerAccountId])
+}
+
+model OAuthToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  projectId             String
+  oAuthProviderConfigId String
+  providerAccountId     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oAuthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+
+  refreshToken String
+  scopes       String[]
+}
+
+model OAuthOuterInfo {
+  id        String   @id @default(uuid()) @db.Uuid
+  info      Json
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectUserRefreshToken {
+  projectId     String
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshToken String    @unique
+  expiresAt    DateTime?
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, refreshToken])
+}
+
+model ProjectUserAuthorizationCode {
+  projectId     String
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorizationCode String   @unique
+  redirectUri       String
+  expiresAt         DateTime
+
+  codeChallenge       String
+  codeChallengeMethod String
+
+  newUser                  Boolean
+  afterCallbackRedirectUrl String?
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, authorizationCode])
+}
+
+model ProjectUserEmailVerificationCode {
+  projectId     String
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  code        String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  redirectUrl String
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, code])
+}
+
+model ProjectUserPasswordResetCode {
+  projectId     String
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  code        String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  redirectUrl String
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, code])
+}
+
+model ProjectUserMagicLinkCode {
+  projectId     String
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  code        String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  redirectUrl String
+  newUser     Boolean
+
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, code])
+}
+
+//#region API keys
+
+model ApiKeySet {
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  id        String   @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  description          String
+  expiresAt            DateTime
+  manuallyRevokedAt    DateTime?
+  publishableClientKey String?   @unique
+  secretServerKey      String?   @unique
+  superSecretAdminKey  String?   @unique
+
+  @@id([projectId, id])
+}
+
+model EmailServiceConfig {
+  projectConfigId String        @id @db.Uuid
+  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  proxiedEmailServiceConfig  ProxiedEmailServiceConfig?
+  standardEmailServiceConfig StandardEmailServiceConfig?
+
+  emailTemplates EmailTemplate[]
+}
+
+enum EmailTemplateType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  MAGIC_LINK
+}
+
+model EmailTemplate {
+  projectConfigId    String             @db.Uuid
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  content Json
+  type    EmailTemplateType
+  subject String
+
+  @@id([projectConfigId, type])
+}
+
+model ProxiedEmailServiceConfig {
+  projectConfigId    String             @id @db.Uuid
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model StandardEmailServiceConfig {
+  projectConfigId    String             @id @db.Uuid
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  senderName  String
+  senderEmail String
+  host        String
+  port        Int
+  username    String
+  password    String
+}
+
+//#endregion
+
+//#region OAuth
+
+// Exactly one of the xyzOAuthConfig variables should be set.
+model OAuthProviderConfig {
+  projectConfigId String        @db.Uuid
+  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id])
+  id              String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enabled Boolean @default(true)
+
+  proxiedOAuthConfig       ProxiedOAuthProviderConfig?
+  standardOAuthConfig      StandardOAuthProviderConfig?
+  projectUserOAuthAccounts ProjectUserOAuthAccount[]
+
+  @@id([projectConfigId, id])
+}
+
+model ProxiedOAuthProviderConfig {
+  projectConfigId String              @db.Uuid
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  id              String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  type ProxiedOAuthProviderType
+
+  @@id([projectConfigId, id])
+  @@unique([projectConfigId, type])
+}
+
+enum ProxiedOAuthProviderType {
+  GITHUB
+  FACEBOOK
+  GOOGLE
+  MICROSOFT
+  SPOTIFY
+}
+
+model StandardOAuthProviderConfig {
+  projectConfigId String              @db.Uuid
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  id              String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  type         StandardOAuthProviderType
+  clientId     String
+  clientSecret String
+
+  @@id([projectConfigId, id])
+}
+
+enum StandardOAuthProviderType {
+  GITHUB
+  FACEBOOK
+  GOOGLE
+  MICROSOFT
+  SPOTIFY
+}
+
+//#endregion

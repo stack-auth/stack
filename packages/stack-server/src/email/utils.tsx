@@ -6,7 +6,7 @@ import { magicLinkTemplate } from "./templates/magic-link";
 import { render } from "@react-email/render";
 import { Reader } from "@/components/email-editor/email-builder";
 import { Body, Head, Html, Preview } from "@react-email/components";
-import * as Handlebars from 'handlebars';
+import * as Handlebars from 'handlebars/dist/handlebars.js';
 import _ from 'lodash';
 
 const userVars = [

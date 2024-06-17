@@ -1,19 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
-import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
-import remarkGfm from "remark-gfm";
-import remarkHeadingId from "remark-heading-id";
-
-import createMDX from "@next/mdx";
-
 import createBundleAnalyzer from "@next/bundle-analyzer";
-
-const withMDX = createMDX({
-  options: {
-    rehypePlugins: [rehypeKatex],
-    remarkPlugins: [remarkMath, remarkGfm, remarkHeadingId],
-  },
-});
 
 const withBundleAnalyzer = createBundleAnalyzer({
   enabled: !!process.env.ANALYZE_BUNDLE,
@@ -29,7 +15,7 @@ const withConfiguredSentryConfig = (nextConfig) =>
       // Suppresses source map uploading logs during build
       silent: true,
       org: "stackframe-pw",
-      project: "stack-server",
+      project: "stack-api",
     },
     {
       // For all available options, see:
@@ -63,16 +49,9 @@ const withConfiguredSentryConfig = (nextConfig) =>
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
-
   // we're open-source, so we can provide source maps
   productionBrowserSourceMaps: true,
-
   poweredByHeader: false,
-
-  experimental: {
-    optimizePackageImports: ["@mui/joy"],
-  },
 
   async headers() {
     return [
@@ -110,5 +89,7 @@ const nextConfig = {
 };
 
 export default withConfiguredSentryConfig(
-  withBundleAnalyzer(withMDX(nextConfig))
+  withBundleAnalyzer(
+    nextConfig
+  )
 );

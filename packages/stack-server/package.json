@@ -7,16 +7,14 @@
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -c development --",
     "with-env:prod": "dotenv -c --",
-    "dev": "concurrently \"next dev --port 8101\" \"npm run watch-docs\"",
+    "dev": "next dev --port 8101",
     "build": "npm run codegen && next build",
     "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
     "start": "next start --port 8101",
-    "codegen": "npm run prisma -- generate && npm run generate-docs",
+    "codegen": "npm run prisma -- generate",
     "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
     "prisma": "npm run with-env -- prisma",
     "lint": "next lint",
-    "watch-docs": "npm run with-env -- chokidar --silent '../../**/*' -i '../../docs/**' -i '../../**/node_modules/**' -i '../../**/.next/**' -i '../../**/dist/**' -c 'tsx scripts/generate-docs.ts'",
-    "generate-docs": "npm run with-env -- tsx scripts/generate-docs.ts",
     "generate-keys": "npm run with-env -- tsx scripts/generate-keys.ts"
   },
   "prisma": {
