@@ -556,13 +556,21 @@ export async function updatePermissionDefinitions(
     edgeUpdateData = {
       parentEdges: {
         deleteMany: {},
-        create: parentDbIds.map(parentDbId => ({
-          parentPermission: {
-            connect: {
-              dbId: parentDbId,
-            },
-          },
-        })),
+        create: parentDbIds.map(parentDbId => {
+          if (isTeamSystemPermission(parentDbId)) {
+            return {
+              parentTeamSystemPermission: teamSystemPermissionStringToDBType(parentDbId),
+            };
+          } else {
+            return {
+              parentPermission: {
+                connect: {
+                  dbId: parentDbId,
+                },
+              },
+            };
+          }
+        }),
       },
     };
   }

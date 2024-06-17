@@ -131,7 +131,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
       column={column}
       columnTitle={<div className="flex items-center gap-1">
         Contained Permissions
-        <SimpleTooltip tooltip="Only showing permissions that are contained directly." type='info' />
+        <SimpleTooltip tooltip="Only showing permissions that are contained directly (non-recursive)." type='info' />
       </div>}
     />,
     cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
