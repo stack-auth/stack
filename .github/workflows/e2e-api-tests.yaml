@@ -54,4 +54,4 @@ jobs:
         run: npx wait-on@7.2.0 http://localhost:8101
 
       - name: Run tests
-        run: pnpm test:ci
+        run: pnpm test
