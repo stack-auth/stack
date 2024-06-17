@@ -27,6 +27,7 @@ export { default as PasswordField } from "./components/password-field";
 export { default as UserButton } from "./components/user-button";
 export { default as AccountSettings } from "./components-page/account-settings";
 export { default as AuthPage } from "./components-page/auth-page";
+export { default as MagicLinkSignIn } from "./components/magic-link-sign-in";
 
 export { useDesign } from './providers/design-provider';
 export type { ColorPalette } from './providers/design-provider';
