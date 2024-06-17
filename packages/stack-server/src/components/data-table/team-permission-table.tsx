@@ -83,12 +83,12 @@ function DeleteDialog(props: {
   </ActionDialog>;
 }
 
-function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
+function Actions({ row, invisible }: { row: Row<PermissionDefinitionJson>, invisible: boolean }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   return (
-    <>
+    <div className={`flex items-center gap-2 ${invisible ? "invisible" : ""}`}>
       <EditDialog selectedPermissionId={row.original.id} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteDialog permission={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ActionCell
@@ -103,7 +103,7 @@ function Actions({ row }: { row: Row<PermissionDefinitionJson> }) {
           onClick: () => setIsDeleteModalOpen(true),
         }]}
       />
-    </>
+    </div>
   );
 }
 
@@ -111,7 +111,14 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
-    cell: ({ row }) => <TextCell size={160}>{row.getValue("id")}</TextCell>,
+    cell: ({ row }) => <TextCell size={160}>
+      <div className="flex items-center gap-1">
+        {row.original.id}
+        {row.original.id.startsWith('$') ? 
+          <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but you can contain it in other permissions." type='info'/>
+          : null}
+      </div>
+    </TextCell>,
   },
   {
     accessorKey: "description",
@@ -131,7 +138,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   },
   {
     id: "actions",
-    cell: ({ row }) => <Actions row={row} />,
+    cell: ({ row }) => <Actions row={row} invisible={row.original.id.startsWith('$')} />,
   },
 ];
 
