@@ -52,8 +52,6 @@ const postSchema = yup.object({
     server: yup.string().oneOf(["true"]).required(),
   }).required(),
   headers: yup.object({
-    authorization: authorizationHeaderSchema.optional(),
-    "x-stack-publishable-client-key": publishableClientKeyHeaderSchema.default(""),
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
     "x-stack-admin-access-token": yup.string().default(""),
     "x-stack-project-id": yup.string().required(),
@@ -72,15 +70,12 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId,
       "x-stack-secret-server-key": secretServerKey,
       "x-stack-admin-access-token": adminAccessToken,
-      "x-stack-publishable-client-key": publishableClientKey,
-      authorization,
     },
     body,
   } = await deprecatedParseRequest(req, postSchema);
 
   const skValid = await checkApiKeySet(projectId, { secretServerKey });
   const asValid = await isProjectAdmin(projectId, adminAccessToken);
-  const pkValid = await checkApiKeySet(projectId, { publishableClientKey });
 
   // eslint-disable-next-line
   if (server === "true") {
@@ -90,20 +85,6 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
     const team = await createServerTeam(projectId, body);
     return NextResponse.json(team);
-  } else {
-    if (!pkValid || !authorization) {
-      throw new StatusError(StatusError.Forbidden);
-    }
-
-    const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
-    const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
-
-    if (accessTokenProjectId !== projectId) {
-      throw new StatusError(StatusError.Forbidden);
-    }
-
-    const team = await createServerTeam(projectId, body);
-    await addUserToTeam({ projectId, teamId: team.id, userId });
   }
 
   return NextResponse.json(null);

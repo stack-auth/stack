@@ -151,6 +151,9 @@ export type TeamJson = OrglikeJson;
 
 export type OrganizationJson = OrglikeJson;
 
+export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName">;
+export type TeamCustomizableJson = OrglikeCustomizableJson;
+
 export type TeamMemberJson = {
   userId: string,
   teamId: string,
@@ -925,6 +928,24 @@ export class StackClientInterface {
     return {
       accessToken: json.accessToken,
     };
+  }
+
+  async createClientTeam(
+    data: TeamCustomizableJson,
+    session: InternalSession,
+  ): Promise<TeamJson> {
+    const response = await this.sendClientRequest(
+      "/teams",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
   }
 }
 

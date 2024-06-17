@@ -176,23 +176,23 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listUsers(): Promise<ServerUserJson[]> {
+  async listServerUsers(): Promise<ServerUserJson[]> {
     const response = await this.sendServerRequest("/users?server=true", {}, null);
     return await response.json();
   }
 
-  async listTeams(): Promise<ServerTeamJson[]> {
+  async listServerTeams(): Promise<ServerTeamJson[]> {
     const response = await this.sendServerRequest("/teams?server=true", {}, null);
     const json = await response.json();
     return json;
   }
 
-  async listTeamMembers(teamId: string): Promise<ServerTeamMemberJson[]> {
+  async listServerTeamMembers(teamId: string): Promise<ServerTeamMemberJson[]> {
     const response = await this.sendServerRequest(`/teams/${teamId}/users?server=true`, {}, null);
     return await response.json();
   }
 
-  async createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
+  async createServerTeam(data: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
     const response = await this.sendServerRequest(
       "/teams?server=true",
       {
@@ -207,7 +207,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
   
-  async updateTeam(teamId: string, data: Partial<ServerTeamCustomizableJson>): Promise<void> {
+  async updateServerTeam(teamId: string, data: Partial<ServerTeamCustomizableJson>): Promise<void> {
     await this.sendServerRequest(
       `/teams/${teamId}?server=true`,
       {
@@ -221,7 +221,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async deleteTeam(teamId: string): Promise<void> {
+  async deleteServerTeam(teamId: string): Promise<void> {
     await this.sendServerRequest(
       `/teams/${teamId}?server=true`,
       { method: "DELETE" },
@@ -229,7 +229,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async addUserToTeam(options: {
+  async addServerUserToTeam(options: {
     userId: string, 
     teamId: string,
   }) {
@@ -246,7 +246,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async removeUserFromTeam(options: {
+  async removeServerUserFromTeam(options: {
     userId: string, 
     teamId: string,
   }) {
@@ -277,7 +277,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listTeamMemberPermissions(
+  async listServerTeamMemberPermissions(
     options: {
       teamId: string, 
       userId: string, 
@@ -293,7 +293,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async grantTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
+  async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
     await this.sendServerRequest(
       `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
       { 
@@ -307,7 +307,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async revokeTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
+  async revokeServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
     await this.sendServerRequest(
       `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
       { 
@@ -321,7 +321,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async deleteServerUser(userId: string) {
+  async deleteServerServerUser(userId: string) {
     await this.sendServerRequest(
       `/users/${userId}?server=true`,
       {
