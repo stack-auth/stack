@@ -33,6 +33,9 @@ jobs:
 
       - name: Create .env.local file for stack-dashboard
         run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
+      
+      - name: Create .env.local file for E2E test suite
+        run: cp apps/e2e/.env.development apps/e2e/.env.production.local
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,7 +55,3 @@ jobs:
 
       - name: Run tests
         run: pnpm -C apps/e2e test:ci
-        env:
-          SERVER_BASE_URL: http://localhost:8101
-          INTERNAL_PROJECT_ID: internal
-          INTERNAL_PROJECT_CLIENT_KEY: internal-project-client-api-key

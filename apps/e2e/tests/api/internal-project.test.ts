@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import request from "supertest";
-import { BASE_URL, INTERNAL_PROJECT_CLIENT_KEY, INTERNAL_PROJECT_ID } from "../../helpers";
+import { BASE_URL, INTERNAL_PROJECT_CLIENT_KEY, INTERNAL_PROJECT_ID } from "../helpers";
 import crypto from "crypto";
 
 const AUTH_HEADER = {
