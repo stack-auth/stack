@@ -116,22 +116,22 @@ export async function deleteServerTeam(projectId: string, teamId: string): Promi
   });
 }
 
-export async function addUserToTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+export async function addUserToTeam(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
   await prismaClient.teamMember.create({
     data: {
-      projectId,
-      teamId,
-      projectUserId: userId,
+      projectId: options.projectId,
+      teamId: options.teamId,
+      projectUserId: options.userId,
     },
   });
 }
 
-export async function removeUserFromTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+export async function removeUserFromTeam(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
   await prismaClient.teamMember.deleteMany({
     where: {
-      projectId,
-      teamId,
-      projectUserId: userId,
+      projectId: options.projectId,
+      teamId: options.teamId,
+      projectUserId: options.userId,
     },
   });
 }

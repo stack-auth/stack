@@ -167,5 +167,5 @@ export async function createTeamOnSignUp(projectId: string, userId: string): Pro
     projectId, 
     { displayName: user.displayName ? `${user.displayName}'s personal team` : 'Personal team' }
   );
-  await addUserToTeam(projectId, team.id, userId);
+  await addUserToTeam({ projectId, teamId: team.id, userId });
 }

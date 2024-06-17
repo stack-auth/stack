@@ -53,7 +53,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
       throw new StatusError(StatusError.BadRequest, "User is already in the team");
     }
 
-    await addUserToTeam(projectId, options.params.teamId, options.params.userId);
+    await addUserToTeam({ projectId, teamId: options.params.teamId, userId: options.params.userId });
   }
 
   return NextResponse.json(null);
@@ -92,7 +92,7 @@ export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, optio
       throw new StatusError(StatusError.Forbidden);
     }
 
-    await removeUserFromTeam(projectId, options.params.teamId, options.params.userId);
+    await removeUserFromTeam({ projectId, teamId: options.params.teamId, userId: options.params.userId });
   }
 
   return NextResponse.json(null);
