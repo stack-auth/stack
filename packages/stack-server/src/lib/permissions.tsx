@@ -459,16 +459,20 @@ export async function listUserDirectPermissions({
 }
 
 export async function listPotentialParentPermissions(projectId: string, scope: PermissionDefinitionScopeJson): Promise<ServerPermissionDefinitionJson[]> {
-  const scopes: PermissionDefinitionScopeJson[] = [
-    { type: "global" } as const,
-    ...scope.type === "global" ? [] : [
-      { type: "any-team" } as const,
+  if (scope.type === "global") {
+    return await listServerPermissionDefinitions(projectId, { type: "global" });
+  } else {
+    const scopes: PermissionDefinitionScopeJson[] = [
+      { type: "any-team" },
       ...scope.type === "any-team" ? [] : [
         { type: "specific-team", teamId: scope.teamId } as const,
       ],
-    ],
-  ];
-  return (await Promise.all(scopes.map(s => listServerPermissionDefinitions(projectId, s)))).flat(1);
+    ];
+
+    const permissions = (await Promise.all(scopes.map(s => listServerPermissionDefinitions(projectId, s))).then(res => res.flat(1)));
+    const systemPermissions = Object.values(DBTeamSystemPermission).map(serverPermissionDefinitionJsonFromTeamSystemDbType);
+    return [...permissions, ...systemPermissions];
+  }
 }
 
 export async function createPermissionDefinition(
@@ -502,13 +506,21 @@ export async function createPermissionDefinition(
         projectConfigId: project.configId,
       },
       parentEdges: {
-        create: parentDbIds.map(parentDbId => ({
-          parentPermission: {
-            connect: {
-              dbId: parentDbId,
-            },
-          },
-        })),
+        create: parentDbIds.map(parentDbId => {
+          if (isTeamSystemPermission(parentDbId)) {
+            return {
+              parentTeamSystemPermission: teamSystemPermissionStringToDBType(parentDbId),
+            };
+          } else {
+            return {
+              parentPermission: {
+                connect: {
+                  dbId: parentDbId,
+                },
+              },
+            };
+          }
+        })
       },
     },
     include: fullPermissionInclude,
