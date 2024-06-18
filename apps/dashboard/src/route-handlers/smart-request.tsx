@@ -158,21 +158,21 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       case "client": {
         if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { publishableClientKey });
-        if (!isValid) throw new KnownErrors.InvalidPublishableClientKey();
+        if (!isValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
         projectAccessType = "key";
         break;
       }
       case "server": {
         if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { secretServerKey });
-        if (!isValid) throw new KnownErrors.InvalidSecretServerKey();
+        if (!isValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
         projectAccessType = "key";
         break;
       }
       case "admin": {
         if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { superSecretAdminKey });
-        if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey();
+        if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         projectAccessType = "key";
         break;
       }

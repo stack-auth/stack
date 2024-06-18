@@ -240,31 +240,40 @@ const RequestTypeWithoutProjectId = createKnownErrorConstructor(
 const InvalidPublishableClientKey = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "INVALID_PUBLISHABLE_CLIENT_KEY",
-  () => [
+  (projectId: string) => [
     401,
-    "The publishable key is not valid for the given project. Does the project and/or the key exist?",
+    `The publishable key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
+    {
+      projectId,
+    },
   ] as const,
-  () => [] as const,
+  (json: any) => [json.projectId] as const,
 );
 
 const InvalidSecretServerKey = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "INVALID_SECRET_SERVER_KEY",
-  () => [
+  (projectId: string) => [
     401,
-    "The secret server key is not valid for the given project. Does the project and/or the key exist?",
+    `The secret server key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
+    {
+      projectId,
+    },
   ] as const,
-  () => [] as const,
+  (json: any) => [json.projectId] as const,
 );
 
 const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "INVALID_SUPER_SECRET_ADMIN_KEY",
-  () => [
+  (projectId: string) => [
     401,
-    "The super secret admin key is not valid for the given project. Does the project and/or the key exist?",
+    `The super secret admin key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
+    {
+      projectId,
+    },
   ] as const,
-  () => [] as const,
+  (json: any) => [json.projectId] as const,
 );
 
 const InvalidAdminAccessToken = createKnownErrorConstructor(
