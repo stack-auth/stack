@@ -41,6 +41,7 @@ export abstract class KnownError extends StatusError {
       code: this.errorCode,
       message: this.humanReadableMessage,
       details: this.details,
+      error: true,
     }, undefined, 2));
   }
 
