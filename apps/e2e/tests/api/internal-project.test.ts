@@ -10,7 +10,7 @@ const AUTH_HEADER = {
 
 const JSON_HEADER = {
   "content-type": "application/json"
-}
+};
 
 function randomString() {
   return crypto.randomBytes(16).toString("hex");
@@ -48,8 +48,8 @@ describe("Various internal project tests", () => {
     const response = await request(BASE_URL).get("/api/v1");
     console.log(response);
     expect(response.status).toBe(200);
-    expect(response.text).contains("Stack API")
-    expect(response.text).contains("Authentication: None")
+    expect(response.text).contains("Stack API");
+    expect(response.text).contains("Authentication: None");
   });
 
   test("Credential sign up", async () => {
@@ -84,7 +84,7 @@ describe("Various internal project tests", () => {
         'authorization': 'StackSession ' + response.body.accessToken,
       });
     expect(response2.status).toBe(200);
-    expect(response2.body.primaryEmail).toBe(email)
+    expect(response2.body.primaryEmail).toBe(email);
   });
 
   test("Can't get current user with invalid token", async () => {

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test:watch": "dotenv -c development -- vitest watch",
-    "test": "dotenv -c development -- vitest run"
+    "test": "dotenv -c development -- vitest run",
+    "lint": "eslint --ext .tsx,.ts .",
+    "clean": "rimraf dist && rimraf node_modules"
   },
   "dependencies": {},
   "devDependencies": {
