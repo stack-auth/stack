@@ -13,3 +13,14 @@ If you would like to contribute to the project, you can start by looking at the 
 ## Security & bug bounties
 
 For any security-related concerns & bug bounties, please email us at [security@stack-auth.com](mailto:security@stack-auth.com).
+
+
+## Before creating a pull request
+
+Please make sure to:
+
+- Install ESLint in your IDE and follow the code format of the code base (e.g., spaces around `=`, semicolons at the end, etc.).
+- Run `pnpm typecheck`, `pnpm lint`, and `pnpm build`. `pnpm prisma migrate dev` All of them should pass.
+- Create only one DB migration file per PR.
+- Ensure all dependencies are in the correct `package.json` files.
+- Ensure the PR is ready for review. If you want to discuss WIP code, make it a draft.
