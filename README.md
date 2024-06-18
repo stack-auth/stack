@@ -128,11 +128,6 @@ Thanks to our amazing community who have helped us build Stack!
 
 Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to help.
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+<a href="https://github.com/stack-auth/stack/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=stack-auth/stack" />
+</a>
