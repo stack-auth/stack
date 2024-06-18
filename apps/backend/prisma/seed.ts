@@ -29,8 +29,8 @@ async function seed() {
       apiKeySets: {
         create: [{
           description: "Internal API key set",
-          publishableClientKey: getEnvVariable("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY"),
-          secretServerKey: getEnvVariable("STACK_SECRET_SERVER_KEY"),
+          publishableClientKey: "this-publishable-client-key-is-for-local-development-only",
+          secretServerKey: "this-secret-server-key-is-for-local-development-only",
           expiresAt: new Date('2099-12-31T23:59:59Z'),
         }],
       },
