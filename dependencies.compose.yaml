@@ -13,7 +13,7 @@ services:
     image: inbucket/inbucket:latest
     ports:
       - 2500:2500
-      - 9000:9000
+      - 8105:9000
       - 1100:1100
     volumes:
       - inbucket-data:/data
