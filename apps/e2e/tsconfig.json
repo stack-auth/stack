@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "rootDir": "tests",
+    "declaration": true,
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "noErrorTruncation": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["tests/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "dotenv -c -- vitest watch",
-    "test:ci": "vitest run"
+    "test:watch": "dotenv -c development -- vitest watch",
+    "test": "dotenv -c development -- vitest run",
+    "lint": "eslint --ext .tsx,.ts .",
+    "clean": "rimraf dist && rimraf node_modules"
   },
   "dependencies": {},
   "devDependencies": {

@@ -98,20 +98,20 @@ pnpm run build
 pnpm run codegen
 
 # Push the most recent Prisma schema to the database
-pnpm run prisma:server db push
+pnpm run prisma db push
 
 # Start the dev server
 pnpm run dev
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), demo on port 8103, and docs on port 8104.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, and docs on port 8104. You can also run the tests with `pnpm run test:watch`.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
 You can also open Prisma Studio to see the database interface and edit data directly:
 
 ```sh
-pnpm run prisma:server studio
+pnpm run prisma studio
 ```
 
 ### Database migrations
@@ -119,5 +119,15 @@ pnpm run prisma:server studio
 If you make changes to the Prisma schema, you need to run the following command to create a migration:
 
 ```sh
-pnpm run prisma:server migrate dev
+pnpm run prisma migrate dev
 ```
+
+## Contributors
+
+Thanks to our amazing community who have helped us build Stack!
+
+Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to help.
+
+<a href="https://github.com/stack-auth/stack/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=stack-auth/stack" />
+</a>
