@@ -932,7 +932,7 @@ export class StackClientInterface {
     };
   }
 
-  async createClientTeam(
+  async createTeamForCurrentUser(
     data: TeamCustomizableJson,
     session: InternalSession,
   ): Promise<TeamJson> {
