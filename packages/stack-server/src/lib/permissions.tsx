@@ -5,6 +5,18 @@ import { PermissionDefinitionScopeJson } from "@stackframe/stack-shared/dist/int
 import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import * as yup from "yup";
+
+export const teamPermissionIdSchema = yup.string()
+  .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
+  .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
+    if (!value) return true;
+    if (value.startsWith('$') && !isTeamSystemPermission(value)) {
+      return ctx.createError({ message: 'Invalid system permission' });
+    }
+    return true;
+  });
+
 
 export const fullPermissionInclude = {
   parentEdges: {

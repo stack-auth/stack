@@ -41,7 +41,10 @@ function CreateDialog(props: {
   const permissions = stackAdminApp.usePermissionDefinitions();
 
   const formSchema = yup.object({
-    id: yup.string().required().notOneOf(permissions.map((p) => p.id), "ID already exists").label("ID"),
+    id: yup.string().required()
+      .notOneOf(permissions.map((p) => p.id), "ID already exists")
+      .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":" and "_" are allowed')
+      .label("ID"),
     description: yup.string().label("Description"),
     containPermissionIds: yup.array().of(yup.string().required()).required().default([]).meta({
       stackFormFieldRender: (props) => (

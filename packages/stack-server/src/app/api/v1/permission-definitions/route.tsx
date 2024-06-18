@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { createPermissionDefinition, listServerPermissionDefinitions } from "@/lib/permissions";
+import { createPermissionDefinition, listServerPermissionDefinitions, teamPermissionIdSchema } from "@/lib/permissions";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
@@ -58,7 +58,7 @@ const postSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    id: yup.string().required(),
+    id: teamPermissionIdSchema.required(),
     description: yup.string(),
     scope: yup.object({
       type: yup.string().oneOf(["any-team"]).required(),

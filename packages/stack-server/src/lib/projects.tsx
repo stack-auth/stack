@@ -8,7 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { isTeamSystemPermission, listServerPermissionDefinitions, teamDBTypeToSystemPermissionString, teamSystemPermissionStringToDBType } from "./permissions";
+import { isTeamSystemPermission, listServerPermissionDefinitions, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -684,8 +684,8 @@ const nonRequiredSchemas = {
       password: requiredWhenShared(yup.string()),
       senderEmail: requiredWhenShared(yup.string().email()),
     }).optional().default(undefined),
-    teamCreatorDefaultPermissionIds: yup.array(yup.string().required()).optional().default(undefined),
-    teamMemberDefaultPermissionIds: yup.array(yup.string().required()).optional().default(undefined),
+    teamCreatorDefaultPermissionIds: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
+    teamMemberDefaultPermissionIds: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
   }).optional().default(undefined),
 };
 
