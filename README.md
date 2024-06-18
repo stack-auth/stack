@@ -124,7 +124,9 @@ pnpm run prisma migrate dev
 
 ## Contributors
 
-Thanks to our amazing community who have helped us build Stack! Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to contribute.
+Thanks to our amazing community who have helped us build Stack!
+
+Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to help.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
