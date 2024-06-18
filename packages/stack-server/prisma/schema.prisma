@@ -51,8 +51,10 @@ model ProjectConfig {
   domains              ProjectDomain[]
   permissions          Permission[]
 
-  teamCreatorDefaultPermissions Permission[] @relation("TeamCreatorDefaultPermissions")
-  teamJoinerDefaultPermissions  Permission[] @relation("TeamJoinerDefaultPermissions")
+  teamCreatorDefaultPermissions      Permission[]           @relation("TeamCreatorDefaultPermissions")
+  teamCreateDefaultSystemPermissions TeamSystemPermission[]
+  teamMemberDefaultPermissions       Permission[]           @relation("TeamMemberDefaultPermissions")
+  teamMemberDefaultSystemPermissions TeamSystemPermission[]
 }
 
 model ProjectDomain {
@@ -119,21 +121,23 @@ model TeamMember {
 }
 
 model TeamMemberDirectPermission {
+  id             String  @id @default(uuid()) @db.Uuid
   projectId      String
-  projectUserId  String @db.Uuid
-  teamId         String @db.Uuid
-  permissionDbId String @db.Uuid
+  projectUserId  String  @db.Uuid
+  teamId         String  @db.Uuid
+  permissionDbId String? @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
 
-  // exactly one of [permissionDbId && permission] or [systemPermission] must be set
+  // exactly one of [permission] or [systemPermission] must be set
   permission       Permission?           @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
   systemPermission TeamSystemPermission?
 
-  @@id([projectId, projectUserId, teamId, permissionDbId])
+  @@unique([projectId, projectUserId, teamId, permissionDbId])
+  @@unique([projectId, projectUserId, teamId, systemPermission])
 }
 
 model Permission {
@@ -161,7 +165,7 @@ model Permission {
   teamMemberDirectPermission TeamMemberDirectPermission[]
 
   teamCreatorDefaultProjectConfig ProjectConfig? @relation("TeamCreatorDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_creator_permissions")
-  teamJoinerProjectConfig         ProjectConfig? @relation("TeamJoinerDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_joiner_permissions")
+  teamMemberProjectConfig         ProjectConfig? @relation("TeamMemberDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_member_permissions")
 
   @@unique([projectConfigId, queryableId])
   @@unique([projectId, teamId, queryableId])

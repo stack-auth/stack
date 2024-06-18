@@ -8,7 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
+import { isTeamSystemPermission, listServerPermissionDefinitions, teamDBTypeToSystemPermissionString, teamSystemPermissionStringToDBType } from "./permissions";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -67,6 +67,8 @@ export const fullProjectInclude = {
           standardEmailServiceConfig: true,
         },
       },
+      teamCreatorDefaultPermissions: true,
+      teamMemberDefaultPermissions: true,
       domains: true,
     },
   },
@@ -88,6 +90,12 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
     > | null,
     domains: Prisma.ProjectDomainGetPayload<
       typeof fullProjectInclude.config.include.domains
+    >[],
+    teamCreatorDefaultPermissions: Prisma.PermissionGetPayload<
+      typeof fullProjectInclude.config.include.teamCreatorDefaultPermissions
+    >[],
+    teamMemberDefaultPermissions: Prisma.PermissionGetPayload<
+      typeof fullProjectInclude.config.include.teamMemberDefaultPermissions
     >[],
   },
 };
@@ -429,6 +437,68 @@ async function _createEmailConfigUpdateTransactions(
   return transactions;
 }
 
+async function _createDefaultPermissionsUpdateTransactions(
+  projectId: string,
+  options: ProjectUpdateOptions
+) {
+  const project = await prismaClient.project.findUnique({
+    where: { id: projectId },
+    include: fullProjectInclude,
+  });
+
+  if (!project) {
+    throw new Error(`Project with id '${projectId}' not found`);
+  }
+
+  const transactions = [];
+  const permissions = await listServerPermissionDefinitions(projectId, { type: 'any-team' });
+
+  const params = [
+    {
+      optionName: 'teamCreatorDefaultPermissionIds',
+      dbName: 'teamCreatorDefaultPermissions',
+      dbSystemName: 'teamCreateDefaultSystemPermissions',
+    },
+    {
+      optionName: 'teamMemberDefaultPermissionIds',
+      dbName: 'teamMemberDefaultPermissions',
+      dbSystemName: 'teamMemberDefaultSystemPermissions',
+    },
+  ] as const;
+
+  for (const param of params) {
+    const creatorPerms = options.config?.[param.optionName];
+    if (creatorPerms) {
+      if (!creatorPerms.every((id) => permissions.some((perm) => perm.id === id))) {
+        throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
+      }
+
+      const connect = creatorPerms
+        .filter(x => !isTeamSystemPermission(x))
+        .map((id) => ({
+          projectConfigId_queryableId: { 
+            projectConfigId: project.config.id, 
+            queryableId: id 
+          },
+        }));
+    
+      const systemPerms = creatorPerms
+        .filter(isTeamSystemPermission)
+        .map(teamSystemPermissionStringToDBType);
+
+      transactions.push(prismaClient.projectConfig.update({
+        where: { id: project.config.id },
+        data: {
+          [param.dbName]: { connect },
+          [param.dbSystemName]: systemPerms,
+        },
+      }));
+    }
+  }
+
+  return transactions;
+}
+
 export async function updateProject(
   projectId: string,
   options: ProjectUpdateOptions,
@@ -467,6 +537,7 @@ export async function updateProject(
 
   transaction.push(...(await _createOAuthConfigUpdateTransactions(projectId, options)));
   transaction.push(...(await _createEmailConfigUpdateTransactions(projectId, options)));
+  transaction.push(...(await _createDefaultPermissionsUpdateTransactions(projectId, options)));
 
   transaction.push(prismaClient.projectConfig.update({
     where: { id: project.config.id },
@@ -561,6 +632,12 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         return [];
       }),
       emailConfig,
+      teamCreatorDefaultPermissionIds: project.config.teamCreatorDefaultPermissions
+        .map((perm) => perm.queryableId)
+        .concat(project.config.teamCreateDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
+      teamMemberDefaultPermissionIds: project.config.teamMemberDefaultPermissions
+        .map((perm) => perm.queryableId)
+        .concat(project.config.teamMemberDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
     },
   };
 }
@@ -607,6 +684,8 @@ const nonRequiredSchemas = {
       password: requiredWhenShared(yup.string()),
       senderEmail: requiredWhenShared(yup.string().email()),
     }).optional().default(undefined),
+    teamCreatorDefaultPermissionIds: yup.array(yup.string().required()).optional().default(undefined),
+    teamMemberDefaultPermissionIds: yup.array(yup.string().required()).optional().default(undefined),
   }).optional().default(undefined),
 };
 
@@ -672,6 +751,8 @@ export const projectSchemaToUpdateOptions = (
           senderEmail: update.config.emailConfig.senderEmail!,
         }
       ),
+      teamCreatorDefaultPermissionIds: update.config.teamCreatorDefaultPermissionIds,
+      teamMemberDefaultPermissionIds: update.config.teamMemberDefaultPermissionIds,
     },
   };
 };

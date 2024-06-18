@@ -100,6 +100,8 @@ export type ProjectJson = {
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
     createTeamOnSignUp: boolean,
+    teamCreatorDefaultPermissionIds: string[],
+    teamMemberDefaultPermissionIds: string[],
   },
 };
 

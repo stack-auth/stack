@@ -22,6 +22,10 @@ export function teamSystemPermissionStringToDBType(permission: `$${Lowercase<DBT
   return typedToUppercase(permission.slice(1)) as DBTeamSystemPermission;
 }
 
+export function teamDBTypeToSystemPermissionString(permission: DBTeamSystemPermission): `$${Lowercase<DBTeamSystemPermission>}` {
+  return '$' + typedToLowercase(permission) as `$${Lowercase<DBTeamSystemPermission>}`;
+}
+
 const teamSystemPermissionDescriptionMap: Record<DBTeamSystemPermission, string> = {
   "UPDATE_TEAM": "Update the team information",
   "DELETE_TEAM": "Delete the team",
@@ -194,11 +198,11 @@ export async function grantTeamUserPermission({
       if (isTeamSystemPermission(permissionId)) {
         await prismaClient.teamMemberDirectPermission.upsert({
           where: {
-            projectId_projectUserId_teamId_permissionDbId: {
+            projectId_projectUserId_teamId_systemPermission: {
               projectId,
               projectUserId,
               teamId,
-              permissionDbId: permissionId,
+              systemPermission: teamSystemPermissionStringToDBType(permissionId),
             },
           },
           create: {
@@ -215,6 +219,7 @@ export async function grantTeamUserPermission({
           },
           update: {},
         });
+        break;
       }
 
       const teamSpecificPermission = await prismaClient.permission.findUnique({
@@ -310,6 +315,20 @@ export async function revokeTeamUserPermission({
       break;
     }
     case "team": {
+      if (isTeamSystemPermission(permissionId)) {
+        await prismaClient.teamMemberDirectPermission.deleteMany({
+          where: {
+            systemPermission: teamSystemPermissionStringToDBType(permissionId),
+            teamMember: {
+              projectId,
+              projectUserId,
+              teamId,
+            },
+          },
+        });
+        break;
+      }
+
       const teamSpecificPermission = await prismaClient.permission.findUnique({
         where: {
           projectId_teamId_queryableId: {
@@ -389,7 +408,7 @@ export async function listUserPermissionDefinitionsRecursive({
   const result = new Map<string, ServerPermissionDefinitionJson>();
   const idsToProcess = [...user.directPermissions.map(p => 
     p.permission?.queryableId || 
-    p.systemPermission || 
+    (p.systemPermission ? teamDBTypeToSystemPermissionString(p.systemPermission) : null) ||
     throwErr(new StackAssertionError(`Permission should have either queryableId or systemPermission`, { p }))
   )];
   while (idsToProcess.length > 0) {
