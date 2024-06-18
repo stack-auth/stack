@@ -40,13 +40,11 @@ async function signInWithEmailPassword(email: string, password: string) {
 describe("Various internal project tests", () => {
   test("Main Page", async () => {
     const response = await request(BASE_URL).get("/");
-    console.log(response);
     expect(response.status).toBe(307);
   });
 
   test("API root (no authentication)", async () => {
     const response = await request(BASE_URL).get("/api/v1");
-    console.log(response);
     expect(response.status).toBe(200);
     expect(response.text).contains("Stack API");
     expect(response.text).contains("Authentication: None");
@@ -54,21 +52,18 @@ describe("Various internal project tests", () => {
 
   test("Credential sign up", async () => {
     const { response } = await signUpWithEmailPassword();
-    console.log(response);
     expect(response.status).toBe(200);
   });
 
   test("Credential sign in", async () => {
     const { email, password } = await signUpWithEmailPassword();
     const { response } = await signInWithEmailPassword(email, password);
-    console.log(response);
 
     expect(response.status).toBe(200);
   });
 
   test("No current user without authentication", async () => {
     const response = await request(BASE_URL).get("/api/v1/current-user").set(AUTH_HEADER);
-    console.log(response);
     expect(response.status).toBe(200);
     expect(response.body).toBe(null);
   });
