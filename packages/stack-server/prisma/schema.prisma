@@ -51,9 +51,7 @@ model ProjectConfig {
   domains              ProjectDomain[]
   permissions          Permission[]
 
-  teamCreatorDefaultPermissions      Permission[]           @relation("TeamCreatorDefaultPermissions")
   teamCreateDefaultSystemPermissions TeamSystemPermission[]
-  teamMemberDefaultPermissions       Permission[]           @relation("TeamMemberDefaultPermissions")
   teamMemberDefaultSystemPermissions TeamSystemPermission[]
 }
 
@@ -132,7 +130,7 @@ model TeamMemberDirectPermission {
 
   teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
 
-  // exactly one of [permission] or [systemPermission] must be set
+  // exactly one of [permissionId && permission] or [systemPermission] must be set
   permission       Permission?           @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
   systemPermission TeamSystemPermission?
 
@@ -164,8 +162,8 @@ model Permission {
   childEdges                 PermissionEdge[]             @relation("ParentPermission")
   teamMemberDirectPermission TeamMemberDirectPermission[]
 
-  teamCreatorDefaultProjectConfig ProjectConfig? @relation("TeamCreatorDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_creator_permissions")
-  teamMemberProjectConfig         ProjectConfig? @relation("TeamMemberDefaultPermissions", fields: [projectConfigId], references: [id], map: "fk_team_member_permissions")
+  isDefaultTeamCreatorPermission Boolean @default(false)
+  isDefaultTeamMemberPermission  Boolean @default(false)
 
   @@unique([projectConfigId, queryableId])
   @@unique([projectId, teamId, queryableId])

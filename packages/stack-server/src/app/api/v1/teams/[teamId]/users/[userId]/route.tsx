@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { addUserToTeam, getTeam, listUserTeams, removeUserFromTeam } from "@/lib/teams";
+import { addUserToTeam, getTeam, grantDefaultTeamMemberPermissions, listUserTeams, removeUserFromTeam } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 import { isProjectAdmin } from "@/lib/projects";
 
@@ -54,6 +54,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
     }
 
     await addUserToTeam({ projectId, teamId: options.params.teamId, userId: options.params.userId });
+    await grantDefaultTeamMemberPermissions({ projectId, teamId: options.params.teamId, userId: options.params.userId });
   }
 
   return NextResponse.json(null);

@@ -168,13 +168,15 @@ export function getServerTeamMemberFromDbType(member: ServerTeamMemberDB): Serve
   };
 }
 
-async function grantDefaultTeamCreatorPermissions(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
+async function grantDefaultTeamPermissions(options: { projectId: string, teamId: string, userId: string, type: 'creator' | 'member' }): Promise<void> {
   const project = await getProject(options.projectId);
   if (!project) {
     throw new StackAssertionError("Project not found");
   }
 
-  const permissionIds = project.evaluatedConfig.teamCreatorDefaultPermissionIds;
+  const permissionIds = options.type === 'creator' ? 
+    project.evaluatedConfig.teamCreatorDefaultPermissionIds :
+    project.evaluatedConfig.teamMemberDefaultPermissionIds;
 
   // TODO: improve performance by batching
   for (const permissionId of permissionIds) {
@@ -186,6 +188,14 @@ async function grantDefaultTeamCreatorPermissions(options: { projectId: string, 
       type: 'team',
     });
   }
+}
+
+export async function grantDefaultTeamCreatorPermissions(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
+  await grantDefaultTeamPermissions({ ...options, type: 'creator' });
+}
+
+export async function grantDefaultTeamMemberPermissions(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
+  await grantDefaultTeamPermissions({ ...options, type: 'member' });
 }
 
 export async function createTeamForUser(options: { projectId: string, userId: string, data: ServerTeamCustomizableJson }): Promise<TeamJson> {

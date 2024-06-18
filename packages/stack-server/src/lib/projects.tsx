@@ -67,8 +67,7 @@ export const fullProjectInclude = {
           standardEmailServiceConfig: true,
         },
       },
-      teamCreatorDefaultPermissions: true,
-      teamMemberDefaultPermissions: true,
+      permissions: true,
       domains: true,
     },
   },
@@ -91,11 +90,8 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
     domains: Prisma.ProjectDomainGetPayload<
       typeof fullProjectInclude.config.include.domains
     >[],
-    teamCreatorDefaultPermissions: Prisma.PermissionGetPayload<
-      typeof fullProjectInclude.config.include.teamCreatorDefaultPermissions
-    >[],
-    teamMemberDefaultPermissions: Prisma.PermissionGetPayload<
-      typeof fullProjectInclude.config.include.teamMemberDefaultPermissions
+    permissions: Prisma.PermissionGetPayload<
+      typeof fullProjectInclude.config.include.permissions
     >[],
   },
 };
@@ -197,6 +193,38 @@ export async function createProject(
         },
       },
       include: fullProjectInclude,
+    });
+
+    await tx.permission.create({
+      data: {
+        projectId: project.id,
+        projectConfigId: project.config.id,
+        queryableId: "member",
+        description: "Default permission for team members",
+        scope: 'TEAM',
+        parentEdges: {
+          createMany: {
+            data: (['READ_MEMBERS', 'INVITE_MEMBERS'] as const).map(p => ({ parentTeamSystemPermission: p })),
+          },
+        },
+        isDefaultTeamMemberPermission: true,
+      },
+    });
+    
+    await tx.permission.create({
+      data: {
+        projectId: project.id,
+        projectConfigId: project.config.id,
+        queryableId: "admin",
+        description: "Default permission for team creators",
+        scope: 'TEAM',
+        parentEdges: {
+          createMany: {
+            data: (['UPDATE_TEAM', 'DELETE_TEAM', 'READ_MEMBERS', 'REMOVE_MEMBERS', 'INVITE_MEMBERS'] as const).map(p =>({ parentTeamSystemPermission: p }))
+          },
+        },
+        isDefaultTeamCreatorPermission: true,
+      },
     });
 
     const projectUserTx = await tx.projectUser.findUniqueOrThrow({
@@ -632,10 +660,10 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         return [];
       }),
       emailConfig,
-      teamCreatorDefaultPermissionIds: project.config.teamCreatorDefaultPermissions
+      teamCreatorDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
         .map((perm) => perm.queryableId)
         .concat(project.config.teamCreateDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
-      teamMemberDefaultPermissionIds: project.config.teamMemberDefaultPermissions
+      teamMemberDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
         .map((perm) => perm.queryableId)
         .concat(project.config.teamMemberDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
     },
