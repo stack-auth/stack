@@ -39,9 +39,10 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost     Boolean
-  credentialEnabled  Boolean
-  magicLinkEnabled   Boolean
+  allowLocalhost    Boolean
+  credentialEnabled Boolean
+  magicLinkEnabled  Boolean
+
   createTeamOnSignUp Boolean
 
   projects             Project[]
@@ -49,6 +50,9 @@ model ProjectConfig {
   emailServiceConfig   EmailServiceConfig?
   domains              ProjectDomain[]
   permissions          Permission[]
+
+  teamCreateDefaultSystemPermissions TeamSystemPermission[]
+  teamMemberDefaultSystemPermissions TeamSystemPermission[]
 }
 
 model ProjectDomain {
@@ -115,18 +119,23 @@ model TeamMember {
 }
 
 model TeamMemberDirectPermission {
+  id             String  @id @default(uuid()) @db.Uuid
   projectId      String
-  projectUserId  String @db.Uuid
-  teamId         String @db.Uuid
-  permissionDbId String @db.Uuid
+  projectUserId  String  @db.Uuid
+  teamId         String  @db.Uuid
+  permissionDbId String? @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
 
-  @@id([projectId, projectUserId, teamId, permissionDbId])
+  // exactly one of [permissionId && permission] or [systemPermission] must be set
+  permission       Permission?           @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
+  systemPermission TeamSystemPermission?
+
+  @@unique([projectId, projectUserId, teamId, permissionDbId])
+  @@unique([projectId, projectUserId, teamId, systemPermission])
 }
 
 model Permission {
@@ -153,6 +162,9 @@ model Permission {
   childEdges                 PermissionEdge[]             @relation("ParentPermission")
   teamMemberDirectPermission TeamMemberDirectPermission[]
 
+  isDefaultTeamCreatorPermission Boolean @default(false)
+  isDefaultTeamMemberPermission  Boolean @default(false)
+
   @@unique([projectConfigId, queryableId])
   @@unique([projectId, teamId, queryableId])
 }
@@ -162,16 +174,27 @@ enum PermissionScope {
   TEAM
 }
 
+enum TeamSystemPermission {
+  UPDATE_TEAM
+  DELETE_TEAM
+  READ_MEMBERS
+  REMOVE_MEMBERS
+  INVITE_MEMBERS
+}
+
 model PermissionEdge {
   edgeId String @id @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parentPermissionDbId String     @db.Uuid
-  parentPermission     Permission @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
-  childPermissionDbId  String     @db.Uuid
-  childPermission      Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
+  // exactly one of [parentPermissionDbId && parentPermission] or [parentTeamSystemPermission] must be set
+  parentPermissionDbId       String?               @db.Uuid
+  parentPermission           Permission?           @relation("ParentPermission", fields: [parentPermissionDbId], references: [dbId], onDelete: Cascade)
+  parentTeamSystemPermission TeamSystemPermission?
+
+  childPermissionDbId String     @db.Uuid
+  childPermission     Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
 }
 
 model ProjectUser {

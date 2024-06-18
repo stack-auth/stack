@@ -4,7 +4,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
-import { addUserToTeam, getTeam, listUserTeams, removeUserFromTeam } from "@/lib/teams";
+import { addUserToTeam, getTeam, grantDefaultTeamMemberPermissions, listUserTeams, removeUserFromTeam } from "@/lib/teams";
 import { getClientUser } from "@/lib/users";
 import { isProjectAdmin } from "@/lib/projects";
 
@@ -53,7 +53,8 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
       throw new StatusError(StatusError.BadRequest, "User is already in the team");
     }
 
-    await addUserToTeam(projectId, options.params.teamId, options.params.userId);
+    await addUserToTeam({ projectId, teamId: options.params.teamId, userId: options.params.userId });
+    await grantDefaultTeamMemberPermissions({ projectId, teamId: options.params.teamId, userId: options.params.userId });
   }
 
   return NextResponse.json(null);
@@ -92,7 +93,7 @@ export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, optio
       throw new StatusError(StatusError.Forbidden);
     }
 
-    await removeUserFromTeam(projectId, options.params.teamId, options.params.userId);
+    await removeUserFromTeam({ projectId, teamId: options.params.teamId, userId: options.params.userId });
   }
 
   return NextResponse.json(null);

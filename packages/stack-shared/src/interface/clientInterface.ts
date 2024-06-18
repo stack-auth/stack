@@ -100,6 +100,8 @@ export type ProjectJson = {
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
     createTeamOnSignUp: boolean,
+    teamCreatorDefaultPermissionIds: string[],
+    teamMemberDefaultPermissionIds: string[],
   },
 };
 
@@ -150,6 +152,9 @@ export type OrglikeJson = {
 export type TeamJson = OrglikeJson;
 
 export type OrganizationJson = OrglikeJson;
+
+export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName">;
+export type TeamCustomizableJson = OrglikeCustomizableJson;
 
 export type TeamMemberJson = {
   userId: string,
@@ -925,6 +930,24 @@ export class StackClientInterface {
     return {
       accessToken: json.accessToken,
     };
+  }
+
+  async createClientTeam(
+    data: TeamCustomizableJson,
+    session: InternalSession,
+  ): Promise<TeamJson> {
+    const response = await this.sendClientRequest(
+      "/current-user/teams?server=false",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
   }
 }
 

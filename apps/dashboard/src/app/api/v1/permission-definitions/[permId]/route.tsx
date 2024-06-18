@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { deletePermissionDefinition, updatePermissionDefinitions } from "@/lib/permissions";
+import { deletePermissionDefinition, teamPermissionIdSchema, updatePermissionDefinitions } from "@/lib/permissions";
 
 const putSchema = yup.object({
   query: yup.object({
@@ -17,7 +17,7 @@ const putSchema = yup.object({
     "x-stack-project-id": yup.string().required(),
   }).required(),
   body: yup.object({
-    id: yup.string(),
+    id: teamPermissionIdSchema,
     description: yup.string(),
     containPermissionIds: yup.array(yup.string().required()),
   }).required(),

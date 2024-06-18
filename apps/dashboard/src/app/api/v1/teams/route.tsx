@@ -11,7 +11,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 
 const getSchema = yup.object({
   query: yup.object({
-    server: yup.string().oneOf(["true"]).required(),
+    server: yup.string().oneOf(["true", "false"]).required(),
   }).required(),
   headers: yup.object({
     "x-stack-secret-server-key": secretServerKeyHeaderSchema.default(""),
@@ -42,8 +42,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new KnownErrors.ApiKeyNotFound();
     }
     teams = await listServerTeams(projectId);
-  }
-
+  } 
   return NextResponse.json(teams);
 });
 

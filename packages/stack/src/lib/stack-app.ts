@@ -3,10 +3,10 @@ import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, Stack
 import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { AsyncResult, Result } from "@stackframe/stack-shared/dist/utils/results";
+import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider, TeamCustomizableJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
@@ -785,6 +785,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
         return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
       },
+      async createTeam(data: TeamCustomizableJson) {
+        const teamJson = await app._interface.createClientTeam(data, session);
+        await app._currentUserTeamsCache.refresh([session]);
+        return app._teamFromJson(teamJson);
+      },
       async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
         const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, 'team', !!options?.direct], "write-only");
         return permissions.map((json) => app._permissionFromJson(json));
@@ -865,6 +870,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
         createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
+        teamCreatorDefaultPermissionIds: data.evaluatedConfig.teamCreatorDefaultPermissionIds,
+        teamMemberDefaultPermissionIds: data.evaluatedConfig.teamMemberDefaultPermissionIds,
       },
 
       async update(update: ProjectUpdateOptions) {
@@ -1238,17 +1245,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return Result.or(user, null);
   });
   private readonly _serverUsersCache = createCache(async () => {
-    return await this._interface.listUsers();
+    return await this._interface.listServerUsers();
   });
   private readonly _serverUserCache = createCache<string[], ServerUserJson | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
     return Result.or(user, null);
   });
   private readonly _serverTeamsCache = createCache(async () => {
-    return await this._interface.listTeams();
+    return await this._interface.listServerTeams();
   });
   private readonly _serverTeamMembersCache = createCache<string[], ServerTeamMemberJson[]>(async ([teamId]) => {
-    return await this._interface.listTeamMembers(teamId);
+    return await this._interface.listServerTeamMembers(teamId);
   });
   private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
     return await this._interface.listPermissionDefinitions();
@@ -1257,12 +1264,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, string, 'team' | 'global', boolean], 
     ServerPermissionDefinitionJson[]
   >(async ([teamId, userId, type, direct]) => {
-    return await this._interface.listTeamMemberPermissions({ teamId, userId, type, direct });
+    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, type, direct });
   });
   private readonly _serverEmailTemplatesCache = createCache(async () => {
     return await this._interface.listEmailTemplates();
   });
-
 
   constructor(options: 
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -1355,6 +1361,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeams() {
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
       },
+      createTeam: async () => {
+        throw new Error();
+      },
       async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
         const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
         return permissions.map((json) => app._serverPermissionFromJson(json));
@@ -1375,19 +1384,19 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.getPermission(scope, permissionId) !== null;
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.grantTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        await app._interface.grantServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
         for (const direct of [true, false]) {
           await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
         }
       },
       async revokePermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.revokeTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        await app._interface.revokeServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
         for (const direct of [true, false]) {
           await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
         }
       },
       async delete() {
-        const res = await app._interface.deleteServerUser(json.id);
+        const res = await app._interface.deleteServerServerUser(json.id);
         await app._refreshUsers();
         return res;
       },
@@ -1442,14 +1451,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       displayName: json.displayName,
       createdAt: new Date(json.createdAtMillis),
       async listMembers() {
-        return (await app._interface.listTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
+        return (await app._interface.listServerTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
       },
       async update(update: Partial<ServerTeamCustomizableJson>) {
-        await app._interface.updateTeam(json.id, update);
+        await app._interface.updateServerTeam(json.id, update);
         await app._serverTeamsCache.refresh([]);
       },
       async delete() {
-        await app._interface.deleteTeam(json.id);
+        await app._interface.deleteServerTeam(json.id);
         await app._serverTeamsCache.refresh([]);
       },
       useMembers() {
@@ -1457,14 +1466,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => result.map((u) => app._serverTeamMemberFromJson(u)), [result]);
       },
       async addUser(userId) {
-        await app._interface.addUserToTeam({
+        await app._interface.addServerUserToTeam({
           teamId: json.id,
           userId,
         });
         await app._serverTeamMembersCache.refresh([json.id]);
       },
       async removeUser(userId) {
-        await app._interface.removeUserFromTeam({
+        await app._interface.removeServerUserFromTeam({
           teamId: json.id,
           userId,
         });
@@ -1608,7 +1617,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async createTeam(data: ServerTeamCustomizableJson) : Promise<ServerTeam> {
-    const team = await this._interface.createTeam(data);
+    const team = await this._interface.createServerTeam(data);
     await this._serverTeamsCache.refresh([]);
     return this._serverTeamFromJson(team);
   }
@@ -1916,6 +1925,8 @@ export type User =
     readonly selectedTeam: Team | null,
     setSelectedTeam(team: Team | null): Promise<void>,
 
+    createTeam(data: TeamCustomizableJson): Promise<Team>,
+
     getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
     getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
     useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
@@ -2013,6 +2024,8 @@ export type Project = {
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
     readonly createTeamOnSignUp: boolean,
+    readonly teamCreatorDefaultPermissionIds: string[],
+    readonly teamMemberDefaultPermissionIds: string[],
   },
 
   update(this: Project, update: ProjectUpdateOptions): Promise<void>,

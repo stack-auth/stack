@@ -43,6 +43,8 @@ export type ProjectUpdateOptions = {
     allowLocalhost?: boolean,
     createTeamOnSignUp?: boolean,
     emailConfig?: EmailConfigJson,
+    teamCreatorDefaultPermissionIds?: string[],
+    teamMemberDefaultPermissionIds?: string[],
   },
 };
 

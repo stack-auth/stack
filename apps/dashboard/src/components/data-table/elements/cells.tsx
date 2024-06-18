@@ -1,6 +1,6 @@
 
 'use client';
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,14 +13,39 @@ import { Button } from "@/components/ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
+import { SimpleTooltip } from "@/components/simple-tooltip";
 
 export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
+  const textRef = useRef<HTMLDivElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const overflowStyle = "text-ellipsis text-nowrap overflow-x-hidden";
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (textRef.current) {
+        const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
+        setIsOverflowing(isOverflowing);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => {
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, []);
+
   return (
     <div className="relative" style={{ minWidth: props.size }}>
       <div className="flex items-center gap-2 absolute inset-0">
-        <div className="text-ellipsis text-nowrap overflow-x-hidden">
-          {props.children}
+        <div className={overflowStyle} ref={textRef}>
+          {isOverflowing ? (
+            <SimpleTooltip tooltip={props.children}>
+              <div className={overflowStyle}>
+                {props.children}
+              </div>
+            </SimpleTooltip>
+          ) : props.children}
         </div>
         {props.icon && <div>{props.icon}</div>}
       </div>

@@ -121,6 +121,7 @@ export class PermissionGraph {
 export function PermissionListField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
+  label: React.ReactNode,
   permissions: ServerPermissionDefinitionJson[],
   type: 'new' | 'edit' | 'edit-user',
 } & ({
@@ -173,7 +174,7 @@ export function PermissionListField<F extends FieldValues>(props: {
       name={props.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Contained permissions</FormLabel>
+          <FormLabel>{props.label}</FormLabel>
           <div className="flex-col rounded-lg border p-3 shadow-sm max-h-64 overflow-y-auto">
             {[...graph.permissions.values()].map(permission => {
               if (permission.id === CURRENTLY_EDITED_PERMISSION_SENTINEL) return null;

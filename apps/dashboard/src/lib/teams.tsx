@@ -1,10 +1,13 @@
 import { prismaClient } from "@/prisma-client";
-import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { TeamCustomizableJson, TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
 import { getServerUserFromDbType } from "./users";
 import { serverUserInclude } from "./users";
+import { getProject } from "./projects";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { grantTeamUserPermission } from "./permissions";
 
 // TODO technically we can split this; listUserTeams only needs `team`, and listServerTeams only needs `projectUser`; listTeams needs neither
 // note: this is a function to prevent circular dependencies between the teams and users file
@@ -91,7 +94,7 @@ export async function updateServerTeam(projectId: string, teamId: string, update
   });
 }
 
-export async function createServerTeam(projectId: string, team: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
+export async function createTeam(projectId: string, team: TeamCustomizableJson): Promise<TeamJson> {
   const result = await prismaClient.team.create({
     data: {
       projectId,
@@ -105,6 +108,10 @@ export async function createServerTeam(projectId: string, team: ServerTeamCustom
   };
 }
 
+export async function createServerTeam(projectId: string, team: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
+  return await createTeam(projectId, team); // currently ServerTeam and ClientTeam are the same
+}
+
 export async function deleteServerTeam(projectId: string, teamId: string): Promise<void> {
   const deleted = await prismaClient.team.delete({
     where: {
@@ -116,22 +123,22 @@ export async function deleteServerTeam(projectId: string, teamId: string): Promi
   });
 }
 
-export async function addUserToTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+export async function addUserToTeam(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
   await prismaClient.teamMember.create({
     data: {
-      projectId,
-      teamId,
-      projectUserId: userId,
+      projectId: options.projectId,
+      teamId: options.teamId,
+      projectUserId: options.userId,
     },
   });
 }
 
-export async function removeUserFromTeam(projectId: string, teamId: string, userId: string): Promise<void> {
+export async function removeUserFromTeam(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
   await prismaClient.teamMember.deleteMany({
     where: {
-      projectId,
-      teamId,
-      projectUserId: userId,
+      projectId: options.projectId,
+      teamId: options.teamId,
+      projectUserId: options.userId,
     },
   });
 }
@@ -159,4 +166,45 @@ export function getServerTeamMemberFromDbType(member: ServerTeamMemberDB): Serve
     teamId: member.teamId,
     displayName: member.projectUser.displayName,
   };
+}
+
+async function grantDefaultTeamPermissions(options: { projectId: string, teamId: string, userId: string, type: 'creator' | 'member' }): Promise<void> {
+  const project = await getProject(options.projectId);
+  if (!project) {
+    throw new StackAssertionError("Project not found");
+  }
+
+  const permissionIds = options.type === 'creator' ? 
+    project.evaluatedConfig.teamCreatorDefaultPermissionIds :
+    project.evaluatedConfig.teamMemberDefaultPermissionIds;
+
+  // TODO: improve performance by batching
+  for (const permissionId of permissionIds) {
+    await grantTeamUserPermission({
+      projectId: options.projectId,
+      teamId: options.teamId,
+      projectUserId: options.userId,
+      permissionId,
+      type: 'team',
+    });
+  }
+}
+
+export async function grantDefaultTeamCreatorPermissions(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
+  await grantDefaultTeamPermissions({ ...options, type: 'creator' });
+}
+
+export async function grantDefaultTeamMemberPermissions(options: { projectId: string, teamId: string, userId: string }): Promise<void> {
+  await grantDefaultTeamPermissions({ ...options, type: 'member' });
+}
+
+export async function createTeamForUser(options: { projectId: string, userId: string, data: ServerTeamCustomizableJson }): Promise<TeamJson> {
+  const team = await createTeam(options.projectId, options.data);
+  await addUserToTeam({ projectId: options.projectId, teamId: team.id, userId: options.userId });
+  await grantDefaultTeamCreatorPermissions({ projectId: options.projectId, teamId: team.id, userId: options.userId });
+  return team;
+}
+
+export async function createServerTeamForUser(options: { projectId: string, userId: string, data: ServerTeamCustomizableJson }): Promise<ServerTeamJson> {
+  return await createTeamForUser(options); // currently ServerTeam and ClientTeam are the same
 }
