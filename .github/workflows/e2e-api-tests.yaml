@@ -31,14 +31,14 @@ jobs:
         with:
             version: 9.1.2
 
-      - name: Create .env.local file for stack-dashboard
-        run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
-      
-      - name: Create .env.local file for E2E test suite
-        run: cp apps/e2e/.env.development apps/e2e/.env.production.local
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Create .env.local file for stack-dashboard
+        run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
+        
+      - name: Create .env.local file for E2E test suite
+        run: cp apps/e2e/.env.development apps/e2e/.env.production.local
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
