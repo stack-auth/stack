@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 const prisma = new PrismaClient();
 
 
@@ -28,8 +29,8 @@ async function seed() {
       apiKeySets: {
         create: [{
           description: "Internal API key set",
-          publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY ?? require('crypto').randomBytes(8).toString("hex"),
-          secretServerKey: process.env.STACK_SECRET_SERVER_KEY ?? require('crypto').randomBytes(8).toString("hex"),
+          publishableClientKey: getEnvVariable("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY"),
+          secretServerKey: getEnvVariable("STACK_SECRET_SERVER_KEY"),
           expiresAt: new Date('2099-12-31T23:59:59Z'),
         }],
       },
