@@ -3,12 +3,11 @@ import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { checkApiKeySet, publishableClientKeyHeaderSchema, secretServerKeyHeaderSchema } from "@/lib/api-keys";
+import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { addUserToTeam, createServerTeam, listServerTeams } from "@/lib/teams";
+import { createServerTeam, listServerTeams } from "@/lib/teams";
 import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { authorizationHeaderSchema, decodeAccessToken } from "@/lib/tokens";
 
 const getSchema = yup.object({
   query: yup.object({

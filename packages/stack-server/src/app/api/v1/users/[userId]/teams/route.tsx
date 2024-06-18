@@ -1,6 +1,6 @@
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
-import { addUserToTeam, createServerTeam } from "@/lib/teams";
+import { createServerTeamForUser } from "@/lib/teams";
 import { getServerUser } from "@/lib/users";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
@@ -49,8 +49,8 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest, options
       throw new StatusError(StatusError.NotFound, "User not found");
     }
 
-    const team = await createServerTeam(projectId, body);
-    await addUserToTeam({ projectId, teamId: team.id, userId: options.params.userId });
+    const team = await createServerTeamForUser({ projectId, userId: options.params.userId, data: body });
+    return NextResponse.json(team);
   }
 
   return NextResponse.json(null);

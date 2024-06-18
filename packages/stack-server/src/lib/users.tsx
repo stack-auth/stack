@@ -5,7 +5,11 @@ import { getProject } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { addUserToTeam, createServerTeam, getClientTeamFromServerTeam, getServerTeamFromDbType } from "./teams";
+import {
+  createServerTeamForUser,
+  getClientTeamFromServerTeam,
+  getServerTeamFromDbType,
+} from "./teams";
 
 export const serverUserInclude = {
   projectUserOAuthAccounts: true,
@@ -163,9 +167,9 @@ export async function createTeamOnSignUp(projectId: string, userId: string): Pro
     throw new Error('User not found');
   }
 
-  const team = await createServerTeam(
-    projectId, 
-    { displayName: user.displayName ? `${user.displayName}'s personal team` : 'Personal team' }
-  );
-  await addUserToTeam({ projectId, teamId: team.id, userId });
+  await createServerTeamForUser({
+    projectId,
+    userId,
+    data: { displayName: user.displayName ? `${user.displayName}'s personal team` : 'Personal team' },
+  });
 }
