@@ -121,3 +121,16 @@ If you make changes to the Prisma schema, you need to run the following command 
 ```sh
 pnpm run prisma migrate dev
 ```
+
+## Contributors
+
+Thanks to our amazing community who have helped us build Stack! Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to contribute.
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
