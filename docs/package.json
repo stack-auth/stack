@@ -14,7 +14,7 @@
   "author": "",
   "dependencies": {
     "fern-api": "^0.30.7",
-    "@stackframe/stack-server": "workspace:*"
+    "@stackframe/stack-backend": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.7"

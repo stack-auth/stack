@@ -30,45 +30,31 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
             version: 9.1.2
-            
-      - name: Create .env.local file for stack-server
-        run: |
-          cat > packages/stack-server/.env.local <<EOF
-          NEXT_PUBLIC_STACK_URL=http://localhost:8101
-          NEXT_PUBLIC_STACK_PROJECT_ID=internal
-          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=internal-project-client-api-key
-          STACK_SECRET_SERVER_KEY=internal-project-server-api-key
-          SERVER_SECRET=23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
 
-          EMAIL_HOST=0.0.0.0
-          EMAIL_PORT=2500
-          EMAIL_USERNAME=some-username
-          EMAIL_PASSWORD=some-password
-          EMAIL_SENDER=noreply@example.com
-    
-          DATABASE_CONNECTION_STRING=postgres://postgres:password@localhost:5432/stackframe
-          DIRECT_DATABASE_CONNECTION_STRING=postgres://postgres:password@localhost:5432/stackframe
-          EOF
-          
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Create .env.local file for stack-backend
+        run: cp apps/backend/.env.development apps/backend/.env.production.local
+
+      - name: Create .env.local file for stack-dashboard
+        run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
+
+      - name: Build stack-backend
+        run: pnpm build:backend
+
+      - name: Build stack-dashboard
+        run: pnpm build:dashboard
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
       - name: Initialize database
-        run: pnpm run prisma:server -- migrate reset --force
-
-      - name: Build stack-server
-        run: pnpm build:server
+        run: pnpm run prisma -- migrate reset --force
   
-      - name: Start stack-server in background
-        run: pnpm -C packages/stack-server start &
-      - name: Wait for stack-server to start
+      - name: Start stack-dashboard in background
+        run: pnpm run start:dashboard &
+      - name: Wait for stack-dashboard to start
         run: npx wait-on@7.2.0 http://localhost:8101
 
       - name: Run tests
-        run: pnpm -C apps/e2e test:ci
-        env:
-          SERVER_BASE_URL: http://localhost:8101
-          INTERNAL_PROJECT_ID: internal
-          INTERNAL_PROJECT_CLIENT_KEY: internal-project-client-api-key
+        run: pnpm test
