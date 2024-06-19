@@ -191,7 +191,7 @@ export function createSmartRouteHandler<
         throw reqsErrors[0];
       } else {
         const caughtErrors = reqsErrors.map(e => catchError(e));
-        throw new KnownErrors.AllOverloadsFailed(caughtErrors.map(e => e.toHttpJson()));
+        throw createOverloadsError(caughtErrors);
       }
     }
 
@@ -206,6 +206,53 @@ export function createSmartRouteHandler<
     [smartRouteHandlerSymbol]: true,
     overloads,
   });
+}
+
+function createOverloadsError(errors: StatusError[]) {
+  return tryMergingOverloadErrors(errors) ?? new KnownErrors.AllOverloadsFailed(errors.map(e => e.toHttpJson()));
+}
+
+function tryMergingOverloadErrors(errors: StatusError[]): StatusError | null {
+  if (errors.length > 6) {
+    // TODO fix this
+    throw new StackAssertionError("Too many overloads failed, refusing to trying to merge them as it would be computationally expensive and could be used for a DoS attack. Fix this if we ever have an endpoint with > 8 overloads");
+  } else if (errors.length === 0) {
+    throw new StackAssertionError("No errors to merge");
+  } else if (errors.length === 1) {
+    return errors[0];
+  } else if (errors.length === 2) {
+    const [a, b] = errors;
+
+    // Merge errors with the same JSON
+    if (JSON.stringify(a.toHttpJson()) === JSON.stringify(b.toHttpJson())) {
+      return a;
+    }
+
+    // Merge "InsufficientAccessType" errors
+    if (
+      a instanceof KnownErrors.InsufficientAccessType
+      && b instanceof KnownErrors.InsufficientAccessType
+      && a.constructorArgs[0] === b.constructorArgs[0]
+    ) {
+      return new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])]);
+    }
+
+    return null;
+  } else {
+    // brute-force all combinations recursively
+    for (let i = 0; i < errors.length; i++) {
+      const errorsWithoutCurrent = [...errors];
+      errorsWithoutCurrent.splice(i, 1);
+      const mergedWithoutCurrent = tryMergingOverloadErrors(errorsWithoutCurrent);
+      if (mergedWithoutCurrent !== null) {
+        const merged = tryMergingOverloadErrors([errors[i], mergedWithoutCurrent]);
+        if (merged !== null) {
+          return merged;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /**

@@ -112,7 +112,10 @@ export function createPrismaCrudHandlers<
           ...await options.where?.(context),
         },
       });
-      return await Promise.all(prisma.map((p) => prismaToCrud(p, context)));
+      const items = await Promise.all(prisma.map((p) => prismaToCrud(p, context)));
+      return {
+        items,
+      };
     }),
     onCreate: wrapper(async (data, context) => {
       const prisma = await (prismaClient[prismaModelName].create as any)({

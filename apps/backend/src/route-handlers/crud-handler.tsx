@@ -8,6 +8,7 @@ import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
+import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -95,7 +96,9 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           const read = crud[accessType].readSchema ?? yup.mixed().oneOf([undefined]);
           const output =
             crudOperation === "List"
-              ? yup.array(read).required()
+              ? yup.object({
+                items: yup.array(read).required(),
+              }).required()
               : crudOperation === "Delete"
                 ? yup.mixed().oneOf([undefined])
                 : read;
@@ -116,7 +119,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
             const frw = routeHandlerTypeHelper({
               request: yup.object({
                 auth: yup.object({
-                  type: yup.string().oneOf([accessType]).required(),
+                  type: yup.string().oneOf(["server", accessType]).required(),
                 }).required(),
                 url: yup.string().required(),
                 method: yup.string().oneOf([httpMethod]).required(),

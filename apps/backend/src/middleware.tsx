@@ -13,7 +13,7 @@ const corsAllowedRequestHeaders = [
   'x-stack-client-version',
   
   // Project auth
-  'x-stack-request-type',
+  'x-stack-access-type',
   'x-stack-publishable-client-key',
   'x-stack-secret-server-key',
   'x-stack-super-secret-admin-key',

@@ -22,6 +22,8 @@ const hideHeaders = [
   "vary",
   "x-content-type-options",
   "x-frame-options",
+  "content-encoding",
+  "etag",
 ];
 
 const stripHeaders = ["x-stack-request-id"];
@@ -48,7 +50,7 @@ const snapshotSerializer: SnapshotSerializer = {
             [stackSnapshotSerializerSymbol]: {
               headersHidden: true,
             },
-            getNicifiedObjectExtraLines: () => [`<several headers hidden>`],
+            getNicifiedObjectExtraLines: () => [`<some headers may have been hidden>`],
           })];
         }
 

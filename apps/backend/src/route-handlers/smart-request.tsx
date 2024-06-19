@@ -46,10 +46,24 @@ async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
+      const inners = error.inner.length ? error.inner : [error];
+      const description = schema.describe();
+      
+      for (const inner of inners) {
+        if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
+          throw new KnownErrors.AccessTypeRequired();
+        }
+        if (inner.path === "auth.type" && inner.type === "oneOf") {
+          // Project access type not sufficient
+          const authTypeField = ((description as yup.SchemaObjectDescription).fields["auth"] as yup.SchemaObjectDescription).fields["type"] as yup.SchemaDescription;
+          throw new KnownErrors.InsufficientAccessType(inner.value, authTypeField.oneOf as any[]);
+        }
+      }
+
       throw new KnownErrors.SchemaError(
         deindent`
           Request validation failed on ${req.method} ${req.nextUrl.pathname}:
-            ${(error.inner.length ? error.inner : [error]).map(e => deindent`
+            ${inners.map(e => deindent`
               - ${e.message}
             `).join("\n")}
         `,
@@ -106,7 +120,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
 
 async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const projectId = req.headers.get("x-stack-project-id");
-  let requestType = req.headers.get("x-stack-request-type");
+  let requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
   const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");

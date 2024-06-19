@@ -6,7 +6,7 @@ export const GET = createSmartRouteHandler({
   request: yup.object({
     auth: yup.object({
       type: yup.mixed(),
-      user: yup.mixed(),
+      user: yup.mixed().nullable(),
       project: yup.mixed(),
     }).nullable(),
     method: yup.string().oneOf(["GET"]).required(),

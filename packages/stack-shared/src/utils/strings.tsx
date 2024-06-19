@@ -196,11 +196,11 @@ export function nicify(
     parent: { value, options: fullOptions },
     keyInParent: null,
   };
-  const nestedNicify = (newValue: unknown, newPath: string, indent: boolean, keyInParent: PropertyKey | null) => {
+  const nestedNicify = (newValue: unknown, newPath: string, keyInParent: PropertyKey | null) => {
     return nicify(newValue, {
       ...newOptions,
       path: newPath,
-      currentIndent: currentIndent + (indent ? lineIndent : ""),
+      currentIndent: currentIndent + lineIndent,
       keyInParent,
     });
   };
@@ -228,10 +228,10 @@ export function nicify(
         const extraLines = getNicifiedObjectExtraLines(value);
         const resValueLength = value.length + extraLines.length;
         if (maxDepth <= 0 && resValueLength === 0) return "[...]";
-        const shouldIndent = multiline && resValueLength > 1;
-        const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, shouldIndent, i));
+        const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, i));
         resValues.push(...extraLines);
         if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+        const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
         if (shouldIndent) {
           return `[${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}]`;
         } else {
@@ -239,7 +239,7 @@ export function nicify(
         }
       }
 
-      const constructorName = [null, Object].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
+      const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
 
       const entries = getNicifiableEntries(value);
@@ -247,18 +247,18 @@ export function nicify(
       const resValueLength = entries.length + extraLines.length;
       if (resValueLength === 0) return `${constructorString}{}`;
       if (maxDepth <= 0) return `${constructorString}{ ... }`;
-      const shouldIndent = multiline && resValueLength > 1;
       const resValues = entries.map(([k, v], keyIndex) => {
-        const keyNicified = nestedNicify(k, `Object.keys(${path})[${keyIndex}]`, shouldIndent, null);
+        const keyNicified = nestedNicify(k, `Object.keys(${path})[${keyIndex}]`, null);
         const keyInObjectLiteral = typeof k === "string" ? JSON.stringify(k) : `[${keyNicified}]`;
         if (typeof v === "function" && v.name === k) {
           return `${keyInObjectLiteral}(...): { ... }`;
         } else {
-          return `${keyInObjectLiteral}: ${nestedNicify(v, `${path}[${keyNicified}]`, shouldIndent, k)}`;
+          return `${keyInObjectLiteral}: ${nestedNicify(v, `${path}[${keyNicified}]`, k)}`;
         }
       });
       resValues.push(...extraLines);
       if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+      const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
 
       if (resValues.length === 0) return `${constructorString}{}`;
       if (shouldIndent) {

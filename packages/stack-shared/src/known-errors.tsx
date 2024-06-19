@@ -16,8 +16,8 @@ export type AbstractKnownErrorConstructor<Args extends any[]> =
     constructorArgsFromJson: (json: KnownErrorJson) => Args,
   };
 
-export type KnownErrorConstructor<Instance extends KnownError, Args extends any[]> = {
-  new (...args: Args): Instance,
+export type KnownErrorConstructor<SuperInstance extends KnownError, Args extends any[]> = {
+  new (...args: Args): SuperInstance & { constructorArgs: Args },
   errorCode: string,
   constructorArgsFromJson: (json: KnownErrorJson) => Args,
 };
@@ -39,9 +39,8 @@ export abstract class KnownError extends StatusError {
   public override getBody(): Uint8Array {
     return new TextEncoder().encode(JSON.stringify({
       code: this.errorCode,
-      message: this.humanReadableMessage,
       details: this.details,
-      error: true,
+      error: this.humanReadableMessage,
     }, undefined, 2));
   }
 
@@ -118,10 +117,12 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   class KnownErrorImpl extends SuperClass {
     public static readonly errorCode = errorCode;
     public name = `KnownError<${errorCode}>`;
+    public readonly constructorArgs: Args;
 
     constructor(...args: Args) {
       // @ts-expect-error
       super(...createFn(...args));
+      this.constructorArgs = args;
     }
 
     static constructorArgsFromJson(json: KnownErrorJson): Args {
@@ -196,15 +197,18 @@ const ProjectAuthenticationError = createKnownErrorConstructor(
   "inherit",
 );
 
-const InvalidProjectAuthentication = createKnownErrorConstructor(
+const InvalidProjectAccess = createKnownErrorConstructor(
   ProjectAuthenticationError,
   "INVALID_PROJECT_AUTHENTICATION",
   "inherit",
   "inherit",
 );
 
+/**
+ * @deprecated Use ProjectKeyWithoutAccessType instead
+ */
 const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
   () => [
     400,
@@ -213,8 +217,11 @@ const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InvalidAccessType instead
+ */
 const InvalidRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_REQUEST_TYPE",
   (requestType: string) => [
     400,
@@ -225,8 +232,11 @@ const InvalidRequestType = createKnownErrorConstructor(
   ] as const,
 );
 
+/**
+ * @deprecated Use AccessTypeWithoutProjectId instead
+ */
 const RequestTypeWithoutProjectId = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "REQUEST_TYPE_WITHOUT_PROJECT_ID",
   (requestType: "client" | "server" | "admin") => [
     400,
@@ -238,8 +248,70 @@ const RequestTypeWithoutProjectId = createKnownErrorConstructor(
   (json: any) => [json.requestType] as const,
 );
 
+const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "PROJECT_KEY_WITHOUT_ACCESS_TYPE",
+  () => [
+    400,
+    "Either an API key or an admin access token was provided, but the x-stack-access-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
+  ] as const,
+  () => [] as const,
+);
+
+const InvalidAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "INVALID_ACCESS_TYPE",
+  (requestType: string) => [
+    400,
+    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
+  ] as const,
+  (json) => [
+    (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
+  ] as const,
+);
+
+const AccessTypeWithoutProjectId = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "ACCESS_TYPE_WITHOUT_PROJECT_ID",
+  (requestType: "client" | "server" | "admin") => [
+    400,
+    `The x-stack-access-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
+    {
+      requestType,
+    },
+  ] as const,
+  (json: any) => [json.requestType] as const,
+);
+
+const AccessTypeRequired = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "ACCESS_TYPE_REQUIRED",
+  () => [
+    400,
+    `You are not allowed to access this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.`,
+  ] as const,
+  () => [] as const,
+);
+
+const InsufficientAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "INSUFFICIENT_ACCESS_TYPE",
+  (actualAccessType: "client" | "server" | "admin", allowedAccessTypes: ("client" | "server" | "admin")[]) => [
+    401,
+    `The x-stack-access-type header must be ${allowedAccessTypes.map(s => `'${s}'`).join(" or ")}, but was '${actualAccessType}'.`,
+    {
+      allowedAccessTypes,
+      actualAccessType,
+    },
+  ] as const,
+  (json: any) => [
+    json.details.actualAccessType,
+    json.details.allowedAccessTypes,
+  ] as const,
+);
+
 const InvalidPublishableClientKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_PUBLISHABLE_CLIENT_KEY",
   (projectId: string) => [
     401,
@@ -252,7 +324,7 @@ const InvalidPublishableClientKey = createKnownErrorConstructor(
 );
 
 const InvalidSecretServerKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_SECRET_SERVER_KEY",
   (projectId: string) => [
     401,
@@ -265,7 +337,7 @@ const InvalidSecretServerKey = createKnownErrorConstructor(
 );
 
 const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_SUPER_SECRET_ADMIN_KEY",
   (projectId: string) => [
     401,
@@ -278,7 +350,7 @@ const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
 );
 
 const InvalidAdminAccessToken = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_ADMIN_ACCESS_TOKEN",
   "inherit",
   "inherit",
@@ -324,6 +396,9 @@ const AdminAccessTokenIsNotAdmin = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ProjectAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationError,
   "PROJECT_AUTHENTICATION_REQUIRED",
@@ -331,6 +406,10 @@ const ProjectAuthenticationRequired = createKnownErrorConstructor(
   "inherit",
 );
 
+
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_AUTHENTICATION_REQUIRED",
@@ -341,6 +420,9 @@ const ClientAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ServerAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "SERVER_AUTHENTICATION_REQUIRED",
@@ -351,6 +433,9 @@ const ServerAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrServerAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_SERVER_AUTHENTICATION_REQUIRED",
@@ -361,6 +446,9 @@ const ClientOrServerAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrAdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_ADMIN_AUTHENTICATION_REQUIRED",
@@ -371,6 +459,9 @@ const ClientOrAdminAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrServerOrAdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_SERVER_OR_ADMIN_AUTHENTICATION_REQUIRED",
@@ -381,6 +472,9 @@ const ClientOrServerOrAdminAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const AdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "ADMIN_AUTHENTICATION_REQUIRED",
@@ -885,10 +979,15 @@ export const KnownErrors = {
   SchemaError,
   AllOverloadsFailed,
   ProjectAuthenticationError,
-  InvalidProjectAuthentication,
+  InvalidProjectAuthentication: InvalidProjectAccess,
   ProjectKeyWithoutRequestType,
   InvalidRequestType,
   RequestTypeWithoutProjectId,
+  ProjectKeyWithoutAccessType,
+  InvalidAccessType,
+  AccessTypeWithoutProjectId,
+  AccessTypeRequired,
+  InsufficientAccessType,
   InvalidPublishableClientKey,
   InvalidSecretServerKey,
   InvalidSuperSecretAdminKey,
