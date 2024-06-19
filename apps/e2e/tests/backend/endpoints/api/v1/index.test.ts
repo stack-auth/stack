@@ -29,7 +29,7 @@ describe("without project ID", () => {
           "details": { "requestType": "client" },
           "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
         },
-        "headers": _Headers {
+        "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some headers may have been hidden>,
@@ -57,7 +57,7 @@ describe("with internal project ID", async () => {
           "code": "SERVER_AUTHENTICATION_REQUIRED",
           "error": "The secret server key must be provided.",
         },
-        "headers": _Headers {
+        "headers": Headers {
           "x-stack-known-error": "SERVER_AUTHENTICATION_REQUIRED",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some headers may have been hidden>,
@@ -78,7 +78,7 @@ describe("with internal project ID", async () => {
         NiceResponse {
           "status": 200,
           "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Client\\n         Project: internal\\n         User: None",
-          "headers": _Headers {
+          "headers": Headers {
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
             <some headers may have been hidden>,
           },
@@ -95,7 +95,7 @@ describe("with internal project ID", async () => {
         NiceResponse {
           "status": 200,
           "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Server\\n         Project: internal\\n         User: None",
-          "headers": _Headers {
+          "headers": Headers {
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
             <some headers may have been hidden>,
           },
@@ -115,7 +115,7 @@ describe("with internal project ID", async () => {
             "code": "ADMIN_AUTHENTICATION_REQUIRED",
             "error": "The super secret admin key must be provided.",
           },
-          "headers": _Headers {
+          "headers": Headers {
             "x-stack-known-error": "ADMIN_AUTHENTICATION_REQUIRED",
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
             <some headers may have been hidden>,
