@@ -30,7 +30,7 @@
     "dev": "rimraf dist && tsup-node --watch",
     "lint": "eslint --ext .tsx,.ts .",
     "css": "npm run css:tailwind && npm run css:scope",
-    "css:tailwind": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --minify",
+    "css:tailwind": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
     "css:scope": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope"
   },
   "files": [
@@ -48,9 +48,12 @@
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
     "color": "^4.2.3",
     "cookie": "^0.6.0",
     "js-cookie": "^3.0.5",
@@ -60,6 +63,8 @@
     "rimraf": "^5.0.5",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.8",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.7.2",
     "yup": "^1.4.0"
   },

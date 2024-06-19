@@ -5,7 +5,7 @@ import autoprefixer from 'autoprefixer';
 import postcssNested from 'postcss-nested';
 import { replaceAll } from '@stackframe/stack-shared/dist/utils/strings';
 
-const sentinel = '--this-is-gonna-get-replaced--';
+const sentinel = '--stack-sentinel--';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -17,15 +17,27 @@ async function main() {
 
   const inputPath = path.resolve(args[0]);
   const outputPath = path.resolve(args[1]);
-  const wrapString = args[2];
+  const scopeName = args[2];
 
   let content = fs.readFileSync(inputPath, 'utf8');
-  content = `.${wrapString}, .${sentinel} {\n${content}\n}`;
+
+  // set the scope and sentinel, sentinel is used for same level selectors later
+  content = `.${scopeName}, .${sentinel} {\n${content}\n}`;
+
+  // use postcss to nest the scope
   content = await postcss([autoprefixer, postcssNested]).process(content, { from: undefined }).css;
-  content = replaceAll(content, `${sentinel} `, wrapString);
+
+  // swap the case like .scope img to img.scope
+  content = content.replace(/(\.--stack-sentinel--\s)([*a-zA-Z0-9\-]+)([^,{\n]*)/g, `$2.${scopeName}$3`)
+  
+  // replace the remaining sentinels
+  content = replaceAll(content, sentinel + ' ', scopeName);
+
+  // double check that all sentinels were replaced
   if (content.includes(sentinel)) {
     throw new Error('Sentinel not replaced');
   }
+
   content = JSON.stringify(content);
   content = "export const globalCSS = " + content + ";";
 
