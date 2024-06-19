@@ -40,7 +40,7 @@ const snapshotSerializer: SnapshotSerializer = {
       overrides: (value, options) => {
         const stackSnapshotSerializer: null | {
           headersHidden?: true,
-        } = (value as any)[stackSnapshotSerializerSymbol];
+        } = (value as any)?.[stackSnapshotSerializerSymbol] ?? null;
 
         // Hide headers
         if (value instanceof Headers && !stackSnapshotSerializer?.headersHidden) {

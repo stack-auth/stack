@@ -50,4 +50,16 @@ describe("with client access", () => {
       }
     `);
   });
+
+  describe("with server access", () => {
+    it.todo("should be able to list users");
+
+    it.todo("should be able to read a user");
+
+    it.todo("should not be able to create a user");
+
+    it.todo("should be able to update a user");
+
+    it.todo("should be able to delete a user");
+  });
 });
