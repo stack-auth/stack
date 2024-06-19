@@ -8,7 +8,7 @@ In [the last guide](./setup.mdx), we created `StackServerApp` and `StackProvider
 
 We can use the `useStackApp()` hook to get a `StackClientApp` object. With it, we can retrieve the current user in Client Components:
 
-```tsx focus={5-7} title="Client user profile"
+```tsx title="Client user profile"
 "use client";
 import { useStackApp } from "@stackframe/stack";
 
@@ -25,7 +25,7 @@ Because it's so common, `useUser()` is also exposed as a standalone hook. This m
 
 On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter:
 
-```tsx focus={4-5} title="Server user profile"
+```tsx title="Server user profile"
 import { stackServerApp } from "@/stack";
 
 export default async function MyComponent() {
@@ -45,7 +45,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx focus={5-6} title="Client-side protection"
+    ```tsx title="Client-side protection"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -57,7 +57,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx focus={4-5} title="Server-side protection"
+    ```tsx title="Server-side protection"
     import { stackServerApp } from "@/stack";
 
     export default async function Protected() {
@@ -76,7 +76,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
 <Tabs>
   <Tab title="user.signOut()">
-    ```tsx focus={5-6} title="Sign-out button"
+    ```tsx title="Sign-out button"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -88,7 +88,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
   </Tab>
 
   <Tab title="Redirect">
-    ```tsx focus={4-4} title="Sign-out link"
+    ```tsx title="Sign-out link"
     import { stackServerApp } from "@/stack";
 
     export default async function SignOutLink() {
@@ -176,7 +176,7 @@ To see more examples of how to use the `User` object, check out the [User API do
 
 You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook is automatically will also be updated automatically. Here is an example:
 
-```tsx title="Update user display name" focus={6-8}
+```tsx title="Update user display name"
 'user client';
 import { useUser } from "@stackframe/stack";
 
