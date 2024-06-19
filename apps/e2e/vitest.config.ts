@@ -7,5 +7,6 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 20_000,
     globalSetup: './tests/global-setup.ts',
+    snapshotSerializers: ["./tests/snapshot-serializer.ts"],
   },
 })

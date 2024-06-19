@@ -505,7 +505,10 @@ importers:
         version: 4.15.5
 
   apps/e2e:
-    devDependencies:
+    dependencies:
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../../packages/stack-shared
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
