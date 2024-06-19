@@ -28,7 +28,10 @@
     "build": "rimraf dist && tsup-node",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "rimraf dist && tsup-node --watch",
-    "lint": "eslint --ext .tsx,.ts ."
+    "lint": "eslint --ext .tsx,.ts .",
+    "css": "npm run css1 && npm run css2",
+    "css1": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
+    "css2": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope"
   },
   "files": [
     "README.md",
@@ -37,7 +40,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "rimraf": "^5.0.5",
     "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.0.3",
@@ -55,8 +57,10 @@
     "lucide-react": "^0.378.0",
     "oauth4webapi": "^2.10.3",
     "react-hook-form": "^7.51.4",
+    "rimraf": "^5.0.5",
     "server-only": "^0.0.1",
     "styled-components": "^6.1.8",
+    "tsx": "^4.7.2",
     "yup": "^1.4.0"
   },
   "peerDependencies": {
@@ -74,9 +78,13 @@
     "@types/cookie": "^0.6.0",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.2.66",
+    "autoprefixer": "^10.4.17",
     "esbuild": "^0.20.2",
-    "tsup": "^8.0.2",
     "next": "^14.1.0",
-    "react": "^18.2.0"
+    "postcss": "^8.4.38",
+    "postcss-nested": "^6.0.1",
+    "react": "^18.2.0",
+    "tailwindcss": "^3.4.4",
+    "tsup": "^8.0.2"
   }
 }
