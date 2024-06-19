@@ -122,6 +122,13 @@ export function mergeScopeStrings(...scopes: string[]): string {
 }
 
 
+/**
+ * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
+ * so we create an object of overrides to handle these cases.
+ */
+const nicifiableClassNameOverrides = new Map(Object.entries({
+  Headers,
+} as Record<string, unknown>).map(([k, v]) => [v, k]));
 export type Nicifiable = {
   getNicifiableKeys?(): PropertyKey[],
   getNicifiedObjectExtraLines?(): string[],
@@ -232,7 +239,7 @@ export function nicify(
         }
       }
 
-      const constructorName = [null, Object].includes(Object.getPrototypeOf(value)) ? null : value.constructor.name;
+      const constructorName = [null, Object].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
 
       const entries = getNicifiableEntries(value);

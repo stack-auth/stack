@@ -7,7 +7,7 @@ describe("Backend index page", () => {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
-        "headers": _Headers {
+        "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <several headers hidden>,
         },
