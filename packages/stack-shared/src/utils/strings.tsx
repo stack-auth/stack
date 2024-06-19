@@ -156,3 +156,7 @@ export function nicify(value: unknown, { depth = 5 } = {}): string {
     }
   }
 }
+
+export function replaceAll(input: string, searchValue: string, replaceValue: string): string {
+  return input.split(searchValue).join(replaceValue);
+}

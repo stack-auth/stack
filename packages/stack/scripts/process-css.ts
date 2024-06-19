@@ -3,6 +3,9 @@ import * as path from 'path';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import postcssNested from 'postcss-nested';
+import { replaceAll } from '@stackframe/stack-shared/dist/utils/strings';
+
+const sentinel = '--this-is-gonna-get-replaced--';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -17,10 +20,14 @@ async function main() {
   const wrapString = args[2];
 
   let content = fs.readFileSync(inputPath, 'utf8');
-  content = `.${wrapString} {\n${content}\n}`;
+  content = `.${wrapString}, .${sentinel} {\n${content}\n}`;
   content = await postcss([autoprefixer, postcssNested]).process(content, { from: undefined }).css;
-  content = content.replace(/`/g, '\\`');
-  content = "export const globalCSS = \`\n" + content + "\n\`;";
+  content = replaceAll(content, `${sentinel} `, wrapString);
+  if (content.includes(sentinel)) {
+    throw new Error('Sentinel not replaced');
+  }
+  content = JSON.stringify(content);
+  content = "export const globalCSS = " + content + ";";
 
   fs.writeFileSync(outputPath, content);
 

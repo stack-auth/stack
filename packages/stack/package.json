@@ -29,9 +29,9 @@
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "rimraf dist && tsup-node --watch",
     "lint": "eslint --ext .tsx,.ts .",
-    "css": "npm run css1 && npm run css2",
-    "css1": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
-    "css2": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope"
+    "css": "npm run css:tailwind && npm run css:scope",
+    "css:tailwind": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --minify",
+    "css:scope": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope"
   },
   "files": [
     "README.md",
