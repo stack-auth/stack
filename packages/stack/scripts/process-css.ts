@@ -30,14 +30,14 @@ async function main() {
   // swap the case like .scope img to img.scope
   content = content.replace(/(\.--stack-sentinel--\s)([*a-zA-Z0-9\-]+)([^,{\n]*)/g, `$2.${scopeName}$3`)
 
+  // swap the case like .scope [data-foo="bar"] to [data-foo="bar"] .scope
+  content = content.replace(/(\.--stack-sentinel--\s)(\[.*?\])([^,{\n]*)/g, `$2 .${scopeName}$3`)
+
   // replace the remaining sentinels
   content = replaceAll(content, sentinel + ' ', scopeName);
 
   // remove all :root
   content = replaceAll(content, ':root', '');
-
-  // use custom data attribute for dark mode
-  content = replaceAll(content, `.${scopeName} .dark`, `[data-stack-theme="dark"] .${scopeName}`);
 
   // double check that all sentinels were replaced
   if (content.includes(sentinel)) {

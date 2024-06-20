@@ -1,4 +1,5 @@
 'use client';
+
 import React, { Suspense } from "react";
 import {
   useUser,
@@ -12,8 +13,6 @@ import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-
-const iconProps = { size: 20, className: 'h-4 w-4' };
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
@@ -61,28 +60,24 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const user = props.user;
   const app = useStackApp();
   const router = useRouter();
-
-  const textStyles = {
-    textOverflow: 'ellipsis', 
-    whiteSpace: 'nowrap', 
-    overflow: 'hidden',
-    margin: 0,
-  };
+  
+  const iconProps = { size: 20, className: 'h-4 w-4' };
+  const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="outline-none">
+      <DropdownMenuTrigger className="outline-none stack-scope">
         <div className="flex gap-2 items-center">
           <UserAvatar user={user} />
           {user && props.showUserInfo && 
             <div className="flex flex-col justify-center">
-              <Text style={textStyles}>{user.displayName}</Text>
-              <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
+              <Text className={textClasses}>{user.displayName}</Text>
+              <Text className={textClasses} variant="secondary" size="sm">{user.primaryEmail}</Text>
             </div>
           }
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="stack-scope">
         <DropdownMenuLabel>
           <div className="flex gap-2 items-center">
             <UserAvatar user={user} />
