@@ -6,8 +6,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
-import { Button, Input, Label } from "../components-core";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Button } from "./ui/button";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')
@@ -33,11 +35,11 @@ export default function MagicLinkSignIn() {
 
   return (
     <form 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      className="flex flex-col items-stretch"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email">Email</Label>
+      <Label htmlFor="email" className="mb-2">Email</Label>
       <Input
         id="email"
         type="email"
@@ -46,7 +48,7 @@ export default function MagicLinkSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Button disabled={sent} style={{ marginTop: '1.5rem' }} type="submit">
+      <Button disabled={sent} type="submit" className="mt-4">
         {sent ? 'Email sent!' : 'Send magic link'}
       </Button>
     </form>
