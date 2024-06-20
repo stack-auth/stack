@@ -27,11 +27,13 @@
     "typecheck": "tsc --noEmit",
     "build": "rimraf dist && tsup-node",
     "clean": "rimraf dist && rimraf node_modules",
-    "dev": "rimraf dist && tsup-node --watch",
+    "dev": "rimraf dist && concurrently \"tsup-node --watch\" \"npm run css:tw:watch\" \"npm run css:sc:watch\"",
     "lint": "eslint --ext .tsx,.ts .",
-    "css": "npm run css:tailwind && npm run css:scope",
-    "css:tailwind": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
-    "css:scope": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope"
+    "css": "npm run css:tw && npm run css:sc",
+    "css:tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
+    "css:tw": "tailwindcss -i $npm_package_config_in -o ./src/generated/tailwind.css",
+    "css:sc": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope",
+    "css:sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope'"
   },
   "files": [
     "README.md",
