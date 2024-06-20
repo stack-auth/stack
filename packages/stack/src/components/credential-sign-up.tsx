@@ -46,7 +46,7 @@ export default function CredentialSignUp() {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-2">Email</Label>
+      <Label htmlFor="email" className="mb-1">Email</Label>
       <Input
         id="email"
         type="email"
@@ -54,7 +54,7 @@ export default function CredentialSignUp() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" className="mt-4 mb-2">Password</Label>
+      <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
       <PasswordInput
         id="password"
         {...register('password')}
@@ -65,7 +65,7 @@ export default function CredentialSignUp() {
       />
       <FormWarningText text={errors.password?.message?.toString()} />
         
-      <Label htmlFor="repeat-password" className="mt-4 mb-2">Repeat Password</Label>
+      <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
       <PasswordInput
         id="repeat-password"
         {...register('passwordRepeat')}
@@ -76,7 +76,7 @@ export default function CredentialSignUp() {
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
       
-      <Button type="submit" className="mt-4">
+      <Button type="submit" className="mt-6">
         Sign Up
       </Button>
     </form>

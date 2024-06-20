@@ -39,7 +39,7 @@ export default function MagicLinkSignIn() {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-2">Email</Label>
+      <Label htmlFor="email" className="mb-1">Email</Label>
       <Input
         id="email"
         type="email"
@@ -48,7 +48,7 @@ export default function MagicLinkSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Button disabled={sent} type="submit" className="mt-4">
+      <Button disabled={sent} type="submit" className="mt-6">
         {sent ? 'Email sent!' : 'Send magic link'}
       </Button>
     </form>

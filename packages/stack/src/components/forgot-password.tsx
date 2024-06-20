@@ -5,8 +5,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
-import { Button, Input, Label } from "../components-core";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')
@@ -26,11 +28,11 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
 
   return (
     <form
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}       
+      className="flex flex-col items-stretch stack-scope" 
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email">Your Email</Label>
+      <Label htmlFor="email" className="mb-1">Your Email</Label>
       <Input
         id="email"
         type="email"
@@ -39,10 +41,7 @@ export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Button
-        type="submit"
-        style={{ marginTop: '1.5rem' }}
-      >
+      <Button type="submit" className="mt-6">
         Send Email
       </Button>
     </form>

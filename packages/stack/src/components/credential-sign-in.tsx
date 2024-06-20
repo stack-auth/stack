@@ -36,7 +36,7 @@ export default function CredentialSignIn() {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-2">Email</Label>
+      <Label htmlFor="email" className="mb-1">Email</Label>
       <Input
         id="email"
         type="email"
@@ -44,18 +44,18 @@ export default function CredentialSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" className="mt-4 mb-2">Password</Label>
+      <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
       <PasswordInput
         id="password"
         {...register('password')}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
 
-      <Link href={app.urls.forgotPassword} className="mt-2 text-sm underline">
+      <Link href={app.urls.forgotPassword} className="mt-1 text-sm underline">
         Forgot password?
       </Link>
 
-      <Button type="submit" className="mt-4">
+      <Button type="submit" className="mt-6">
         Sign In
       </Button>
     </form>
