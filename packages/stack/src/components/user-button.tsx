@@ -10,33 +10,16 @@ import {
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
-import { typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import styled from "styled-components";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
-const icons = typedFromEntries(typedEntries({
-  CircleUser,
-  UserPlus,
-  SunMoon,
-  LogIn,
-  LogOut,
-} as const).map(([key, value]) => {
-  const styledComponent = styled(value)`
-    height: 1rem;
-    width: 1rem;
-  `;
-  return [
-    key,
-    React.createElement(styledComponent, { size: 20 })
-  ];
-}));
+const iconProps = { size: 20, className: 'h-4 w-4' };
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
     <DropdownMenuItem 
       onClick={() => runAsynchronouslyWithAlert(props.onClick)}
-      style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+      className="flex gap-2 items-center"
     >
       {props.icon}
       <Text>{props.text}</Text>
@@ -114,17 +97,17 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         {user && <Item 
           text="Account settings" 
           onClick={() => router.push(app.urls.accountSettings)}
-          icon={icons.CircleUser}
+          icon={<CircleUser {...iconProps} />}
         />}
         {!user && <Item
           text="Sign in"
           onClick={() => router.push(app.urls.signIn)}
-          icon={icons.LogIn}
+          icon={<LogIn {...iconProps} />}
         />}
         {!user && <Item
           text="Sign up"
           onClick={() => router.push(app.urls.signUp)}
-          icon={icons.UserPlus}
+          icon={<UserPlus {...iconProps}/> }
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (
           <Item key={index} {...item} />
@@ -133,13 +116,13 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <Item 
             text="Toggle theme" 
             onClick={props.colorModeToggle} 
-            icon={icons.SunMoon}
+            icon={<SunMoon {...iconProps} />}
           />
         )}
         {user && <Item 
           text="Sign out" 
           onClick={() => user.signOut()} 
-          icon={icons.LogOut}
+          icon={<LogOut {...iconProps} />}
         />}
       </DropdownMenuContent>
     </DropdownMenu>
