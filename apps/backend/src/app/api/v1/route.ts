@@ -1,3 +1,4 @@
+import { SmartRequestAdaptSentinel } from "@/route-handlers/smart-request";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
@@ -5,9 +6,9 @@ import * as yup from "yup";
 export const GET = createSmartRouteHandler({
   request: yup.object({
     auth: yup.object({
-      type: yup.mixed(),
-      user: yup.mixed().nullable(),
-      project: yup.mixed(),
+      type: yup.mixed<SmartRequestAdaptSentinel>().required(),
+      user: yup.mixed<SmartRequestAdaptSentinel>(),
+      project: yup.mixed<SmartRequestAdaptSentinel>(),
     }).nullable(),
     method: yup.string().oneOf(["GET"]).required(),
   }),

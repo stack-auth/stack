@@ -3,11 +3,10 @@ import "../polyfills";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
+import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createLazyRequestParser } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
@@ -113,24 +112,24 @@ export type SmartRouteHandlerOverloadMetadata = {
 };
 
 export type SmartRouteHandlerOverload<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 > = {
   metadata?: SmartRouteHandlerOverloadMetadata,
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+  handler: (req: MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 };
 
 export type SmartRouteHandlerOverloadGenerator<
   OverloadParam,
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 > = (param: OverloadParam) => SmartRouteHandlerOverload<Req, Res>;
 
 export type SmartRouteHandler<
   OverloadParam = unknown,
-  Req extends DeepPartial<SmartRequest> = DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel = DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse = SmartResponse,
 > = ((req: NextRequest, options: any) => Promise<Response>) & {
   overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
@@ -143,21 +142,21 @@ export function isSmartRouteHandler(handler: any): handler is SmartRouteHandler 
 }
 
 export function createSmartRouteHandler<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   handler: SmartRouteHandlerOverload<Req, Res>,
 ): SmartRouteHandler<void, Req, Res>
 export function createSmartRouteHandler<
   OverloadParam,
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   overloadParams: readonly OverloadParam[],
   overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>
 ): SmartRouteHandler<OverloadParam, Req, Res>
 export function createSmartRouteHandler<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   ...args: [readonly unknown[], SmartRouteHandlerOverloadGenerator<unknown, Req, Res>] | [SmartRouteHandlerOverload<Req, Res>]
@@ -260,7 +259,7 @@ function tryMergingOverloadErrors(errors: StatusError[]): StatusError | null {
  *
  * if you can remove this wherever it's used without causing type errors, it's safe to remove
  */
-export function routeHandlerTypeHelper<Req extends DeepPartial<SmartRequest>, Res extends SmartResponse>(handler: {
+export function routeHandlerTypeHelper<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(handler: {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,

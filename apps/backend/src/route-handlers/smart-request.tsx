@@ -17,10 +17,17 @@ const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as c
 
 export type SmartRequestAuth = {
   project: ProjectJson,
-  user: ServerUserJson | null,
+  user: ServerUserJson | undefined,
   projectAccessType: "key" | "internal-user-token",
   type: "client" | "server" | "admin",
 };
+
+declare const SmartRequestAdaptSentinel: unique symbol;
+export type SmartRequestAdaptSentinel = typeof SmartRequestAdaptSentinel;
+
+export type DeepPartialSmartRequestWithSentinel<T = SmartRequest> = (T extends object ? {
+  [P in keyof T]?: DeepPartialSmartRequestWithSentinel<T[P]>
+} : T) | SmartRequestAdaptSentinel;
 
 export type SmartRequest = {
   auth: SmartRequestAuth | null,
@@ -33,10 +40,29 @@ export type SmartRequest = {
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  IsAny<T> extends true ? MSQ : (
-    T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : MSQ)
-    : T
-  );
+  T extends SmartRequestAdaptSentinel ? NonNullable<MSQ> : (IsAny<T> extends true ? MSQ : (
+    T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : (T & MSQ))
+    : (T & MSQ)
+  ));
+
+/*
+// TODO ASAP remove before merging this to dev
+// the code below might help you debug & understand the types above
+type T = MergeSmartRequest<{ a: 1 | 2 }, { a?: 2 | 3 | undefined } | null>;
+
+const mixed = yup.object({
+  auth: yup.object({
+    type: yup.mixed<12345>().required(),
+    user: yup.mixed(),
+    project: yup.mixed(),
+  }).nullable(),
+  method: yup.string().oneOf(["GET"]).required(),
+});
+const mx = yup.mixed<12345>();
+type Y = yup.InferType<typeof mixed>;
+type Y2 = yup.InferType<typeof mx>;
+type Z = MergeSmartRequest<Y, { auth: { type: "client" | "server" | undefined } | null }>;
+*/
 
 async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest): Promise<T> {
   try {
@@ -219,13 +245,13 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   return {
     project,
-    user,
+    user: user ?? undefined,
     projectAccessType,
     type: requestType,
   };
 }
 
-export async function createLazyRequestParser<T extends DeepPartial<SmartRequest>>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
+export async function createLazyRequestParser<T extends DeepPartialSmartRequestWithSentinel>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
   const urlObject = new URL(req.url);  
   const toValidate: SmartRequest = {
     url: req.url,
