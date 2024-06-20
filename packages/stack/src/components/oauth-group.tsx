@@ -15,7 +15,7 @@ export default function OAuthGroup({
   const project = mockProject || stackApp.useProject();
 
   return (
-    <div style={{ gap: '16px', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+    <div className='gap-4 flex flex-col items-stretch stack-scope'>
       {project.oauthProviders.filter(p => p.enabled).map(p => (
         <OAuthButton key={p.id} provider={p.id} type={type}/>
       ))}

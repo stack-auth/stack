@@ -4,12 +4,12 @@ import { Separator, Text } from "../components-core";
 
 export default function SeparatorWithText({ text }: { text: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-      <div style={{ flex: 1 }}>
+    <div className="flex items-center justify-center my-6 stack-scope">
+      <div className="flex-1">
         <Separator />
       </div>
-      <Text style={{ padding: '0 16px' }} variant="secondary" size='sm'>{text}</Text>
-      <div style={{ flex: 1 }}>
+      <Text variant="secondary" size='sm' className="mx-2">{text}</Text>
+      <div className="flex-1">
         <Separator />
       </div>
     </div>

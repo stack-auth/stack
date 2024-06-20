@@ -36,21 +36,13 @@ export default function MaybeFullPage({
         <div 
           id={id}
           suppressHydrationWarning
-          style={{ 
-            minHeight: '100vh',
-            alignSelf: 'stretch',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-          }}
+          className="min-h-screen flex items-center justify-center self-stretch"
         >
-          <Container size={380} style={{ padding: '1rem 1rem' }}>
+          <Container size={380} className="p-4">
             {children}
           </Container>
         </div>
-        <script dangerouslySetInnerHTML={{
-          __html: scriptString,
-        }} />
+        <script dangerouslySetInnerHTML={{ __html: scriptString }} />
       </>
     );
   } else {
