@@ -16,22 +16,22 @@ function CreateDialog(props: {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const permissions = stackAdminApp.usePermissionDefinitions();
+  const selectedPermissionIds = props.type === "creator" ?
+    project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
+    project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().default([]).meta({
+    permissions: yup.array().of(yup.string().required()).required().meta({
       stackFormFieldRender: (props) => (
         <PermissionListField 
           {...props} 
-          permissions={permissions} 
-          type="new"
+          permissions={permissions}
+          selectedPermissionIds={selectedPermissionIds}
+          type="select"
           label="Default Permissions"
         />
       ),
-    }),
-  }).default({ 
-    permissions: props.type === "creator" ? 
-      project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) : 
-      project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id) 
+    }).default(selectedPermissionIds),
   });
 
   return <SmartFormDialog
