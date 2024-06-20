@@ -8,7 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { isTeamSystemPermission, listServerPermissionDefinitions, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
+import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -67,7 +67,9 @@ export const fullProjectInclude = {
           standardEmailServiceConfig: true,
         },
       },
-      permissions: true,
+      permissions: {
+        include: fullPermissionInclude,
+      },
       domains: true,
     },
   },
@@ -660,12 +662,12 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         return [];
       }),
       emailConfig,
-      teamCreatorDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map((perm) => perm.queryableId)
-        .concat(project.config.teamCreateDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
-      teamMemberDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map((perm) => perm.queryableId)
-        .concat(project.config.teamMemberDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
+      teamCreatorDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
+        .map(serverPermissionDefinitionJsonFromDbType)
+        .concat(project.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
+      teamMemberDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
+        .map(serverPermissionDefinitionJsonFromDbType)
+        .concat(project.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
     },
   };
 }

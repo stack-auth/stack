@@ -870,8 +870,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
         createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
-        teamCreatorDefaultPermissionIds: data.evaluatedConfig.teamCreatorDefaultPermissionIds,
-        teamMemberDefaultPermissionIds: data.evaluatedConfig.teamMemberDefaultPermissionIds,
+        teamCreatorDefaultPermissions: data.evaluatedConfig.teamCreatorDefaultPermissions,
+        teamMemberDefaultPermissions: data.evaluatedConfig.teamMemberDefaultPermissions,
       },
 
       async update(update: ProjectUpdateOptions) {
@@ -2026,8 +2026,8 @@ export type Project = {
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
     readonly createTeamOnSignUp: boolean,
-    readonly teamCreatorDefaultPermissionIds: string[],
-    readonly teamMemberDefaultPermissionIds: string[],
+    readonly teamCreatorDefaultPermissions: PermissionDefinitionJson[],
+    readonly teamMemberDefaultPermissions: PermissionDefinitionJson[],
   },
 
   update(this: Project, update: ProjectUpdateOptions): Promise<void>,
