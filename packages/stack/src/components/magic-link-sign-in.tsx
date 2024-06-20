@@ -35,7 +35,7 @@ export default function MagicLinkSignIn() {
 
   return (
     <form 
-      className="flex flex-col items-stretch"
+      className="flex flex-col items-stretch stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >

@@ -6,9 +6,11 @@ import OAuthGroup from '../components/oauth-group';
 import MaybeFullPage from '../components/maybe-full-page';
 import { useUser, useStackApp, CredentialSignUp } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Link, Tabs, TabsContent, TabsList, TabsTrigger, Text } from "../components-core";
+import { Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
+import { Link } from '../components/ui/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 export default function AuthPage({ 
   fullPage=false,
@@ -32,46 +34,48 @@ export default function AuthPage({
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2' style={{ fontWeight: 500 }}>
-          {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
-        </Text>
-        {type === 'sign-in' ? (
-          <Text>
-            {"Don't have an account? "}
-            <Link href={stackApp.urls.signUp}>
+      <div className='stack-scope flex flex-col items-stretch'>
+        <div className="text-center mb-6">
+          <Text size="xl" as='h2' className='font-medium'>
+            {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
+          </Text>
+          {type === 'sign-in' ? (
+            <Text>
+              {"Don't have an account? "}
+              <Link href={stackApp.urls.signUp} className='underline'>
               Sign up
-            </Link>
-          </Text>
-        ) : (
-          <Text>
-            {"Already have an account? "}
-            <Link href={stackApp.urls.signIn}>
+              </Link>
+            </Text>
+          ) : (
+            <Text>
+              {"Already have an account? "}
+              <Link href={stackApp.urls.signIn} className='underline'>
               Sign in
-            </Link>
-          </Text>
-        )}
+              </Link>
+            </Text>
+          )}
+        </div>
+        <OAuthGroup type={type} mockProject={mockProject} />
+        {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
+        {project.credentialEnabled && project.magicLinkEnabled ? (
+          <Tabs defaultValue='magic-link'>
+            <TabsList className='w-full mb-2'>
+              <TabsTrigger value='magic-link' className='flex-1'>Magic Link</TabsTrigger>
+              <TabsTrigger value='password' className='flex-1'>Password</TabsTrigger>
+            </TabsList>
+            <TabsContent value='magic-link'>
+              <MagicLinkSignIn/>
+            </TabsContent>
+            <TabsContent value='password'>
+              {type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+            </TabsContent>
+          </Tabs>
+        ) : project.credentialEnabled ? (
+          type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+        ) : project.magicLinkEnabled ? (
+          <MagicLinkSignIn/>
+        ) : null}
       </div>
-      <OAuthGroup type={type} mockProject={mockProject} />
-      {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
-      {project.credentialEnabled && project.magicLinkEnabled ? (
-        <Tabs defaultValue='magic-link'>
-          <TabsList>
-            <TabsTrigger value='magic-link'>Magic Link</TabsTrigger>
-            <TabsTrigger value='password'>Password</TabsTrigger>
-          </TabsList>
-          <TabsContent value='magic-link'>
-            <MagicLinkSignIn/>
-          </TabsContent>
-          <TabsContent value='password'>
-            {type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
-          </TabsContent>
-        </Tabs>
-      ) : project.credentialEnabled ? (
-        type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
-      ) : project.magicLinkEnabled ? (
-        <MagicLinkSignIn/>
-      ) : null}
     </MaybeFullPage>
   );
 }

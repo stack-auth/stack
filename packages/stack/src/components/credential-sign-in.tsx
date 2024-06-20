@@ -32,7 +32,7 @@ export default function CredentialSignIn() {
 
   return (
     <form 
-      className="flex flex-col stack-scope"
+      className="flex flex-col items-stretch stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
