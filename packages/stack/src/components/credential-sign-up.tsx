@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import PasswordField from "./password-input";
+import { PasswordInput } from "./password-input";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
 import { Label, Input, Button } from "../components-core";
@@ -53,7 +53,7 @@ export default function CredentialSignUp() {
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
-      <PasswordField
+      <PasswordInput
         id="password"
         {...register('password')}
         onChange={(e) => {
@@ -64,7 +64,7 @@ export default function CredentialSignUp() {
       <FormWarningText text={errors.password?.message?.toString()} />
         
       <Label htmlFor="repeat-password" style={{ marginTop: '1rem' }}>Repeat Password</Label>
-      <PasswordField
+      <PasswordInput
         id="repeat-password"
         {...register('passwordRepeat')}
         onChange={(e) => {

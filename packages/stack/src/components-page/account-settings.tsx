@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PasswordField, useUser } from '..';
+import { PasswordInput, useUser } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
 import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
 import UserAvatar from '../components/user-avatar';
@@ -151,7 +151,7 @@ function PasswordSection() {
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Label htmlFor='old-password'>Old Password</Label>
-        <PasswordField
+        <PasswordInput
           id='old-password' 
           value={oldPassword} 
           onChange={(e) => {
@@ -163,7 +163,7 @@ function PasswordSection() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Label htmlFor='new-password'>New Password</Label>
-        <PasswordField
+        <PasswordInput
           id='new-password' 
           value={newPassword} 
           onChange={(e) => {

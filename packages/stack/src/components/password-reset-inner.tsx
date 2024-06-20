@@ -6,7 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import PasswordField from "./password-input";
+import { PasswordInput } from "./password-input";
 import FormWarningText from "./form-warning";
 import PredefinedMessageCard from "./message-cards/predefined-message-card";
 import MessageCard from "./message-cards/message-card";
@@ -75,7 +75,7 @@ export default function PasswordResetInner(
         noValidate
       >
         <Label htmlFor="password">New Password</Label>
-        <PasswordField
+        <PasswordInput
           id="password"
           {...register('password')}
           onChange={() => {
@@ -86,7 +86,7 @@ export default function PasswordResetInner(
         <FormWarningText text={errors.password?.message?.toString()} />
 
         <Label htmlFor="repeat-password" style={{ marginTop: "1rem" }}>Repeat New Password</Label>
-        <PasswordField
+        <PasswordInput
           id="repeat-password"
           {...register('passwordRepeat')}
           onChange={() => {
