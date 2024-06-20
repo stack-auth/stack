@@ -3,7 +3,7 @@
 import React from 'react';
 import { PasswordInput, useUser } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Container } from "../components-core";
+import { Container } from "../components-core/container";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
 import FormWarningText from '../components/form-warning';
@@ -13,6 +13,7 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import Typography from '../components/ui/typography';
+import { cn } from '../utils/shadcn';
 
 function SettingSection(props: {
   title: string, 
@@ -27,17 +28,17 @@ function SettingSection(props: {
     <Card>
       <CardHeader>
         <div>
-          <Typography type='h3'>{props.title}</Typography>
+          <Typography type='h4'>{props.title}</Typography>
           <Typography type='label' variant='secondary'>{props.desc}</Typography>
         </div>
       </CardHeader>
       {props.children && <CardContent>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className='flex flex-col gap-4'>
           {props.children}
         </div>
       </CardContent>}
       {props.buttonText && <CardFooter>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        <div className='flex justify-end w-full'>
           <Button
             disabled={props.buttonDisabled}
             onClick={props.onButtonClick}
@@ -67,15 +68,15 @@ function ProfileSection() {
         setChanged(false);
       }}
     >
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className='flex gap-4 items-center'>
         <UserAvatar user={user} size={50}/>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className='flex flex-col'>
           <Typography>{user?.displayName}</Typography>
           <Typography variant='secondary' type='label'>{user?.primaryEmail}</Typography>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className='flex flex-col'>
         <Label htmlFor='display-name' className='mb-1'>Display Name</Label>
         <Input
           id='display-name'
@@ -156,7 +157,7 @@ function PasswordSection() {
         }
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className='flex flex-col'>
         <Label htmlFor='old-password' className='mb-1'>Old Password</Label>
         <PasswordInput
           id='old-password' 
@@ -168,7 +169,7 @@ function PasswordSection() {
         />
         <FormWarningText text={oldPasswordError} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className='flex flex-col'>
         <Label htmlFor='new-password' className='mb-1'>New Password</Label>
         <PasswordInput
           id='new-password' 
@@ -205,7 +206,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
   }
 
   const inner = (
-    <div style={{ padding: fullPage ? '1rem' : 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className={cn(fullPage ? 'p-4' : '', 'flex flex-col gap-4')}>
       <div>
         <Typography type='h2'>Account Settings</Typography>
         <Typography variant='secondary' type='label'>Manage your account</Typography>

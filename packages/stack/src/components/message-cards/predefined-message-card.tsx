@@ -1,8 +1,8 @@
 "use client";
 
 import { useStackApp } from "../..";
+import Typography from "../ui/typography";
 import MessageCard from "./message-card";
-import { Text } from "../../components-core";
 
 export default function PredefinedMessageCard({ 
   type,
@@ -74,7 +74,7 @@ export default function PredefinedMessageCard({
       secondaryButtonText={secondaryButton || undefined} 
       secondaryAction={secondaryAction || undefined}
     >
-      {message && <Text>{message}</Text>}
+      {message && <Typography>{message}</Typography>}
     </MessageCard>
   );
 }

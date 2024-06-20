@@ -1,8 +1,8 @@
 "use client";
 
 import { useStackApp } from "../..";
+import Typography from "../ui/typography";
 import MessageCard from "./message-card";
-import { Text } from "../../components-core";
 import { KnownError } from "@stackframe/stack-shared";
 
 export default function KnownErrorMessageCard({ 
@@ -21,8 +21,8 @@ export default function KnownErrorMessageCard({
       primaryButtonText={"Go to Home"}
       primaryAction={() => stackApp.redirectToHome()}
     >
-      {<Text>Error Code: {error.errorCode}</Text>}
-      {<Text>Error Message: {error.message}</Text>}
+      {<Typography>Error Code: {error.errorCode}</Typography>}
+      {<Typography>Error Message: {error.message}</Typography>}
     </MessageCard>
   );
 }

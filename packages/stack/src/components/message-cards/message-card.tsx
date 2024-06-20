@@ -2,7 +2,8 @@
 
 import React from "react";
 import MaybeFullPage from "../maybe-full-page";
-import { Button, Text } from "../../components-core";
+import Typography from "../ui/typography";
+import { Button } from "../ui/button";
 
 export default function MessageCard(
   { fullPage=false, ...props }: 
@@ -19,7 +20,7 @@ export default function MessageCard(
   return (
     <MaybeFullPage fullPage={fullPage}>
       <div style={{ textAlign: 'center' }}>
-        <Text size="xl" as='h2' style={{ marginBottom: '24px' }}>{props.title}</Text>
+        <Typography type='h3' className="mb-6">{props.title}</Typography>
         {props.children}
         {(props.primaryButtonText || props.secondaryButtonText) && (
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: 20 }}>

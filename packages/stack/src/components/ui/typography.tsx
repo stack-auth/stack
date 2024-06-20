@@ -8,6 +8,7 @@ export const typographyVariants = cva("text-md", {
       h1: "text-3xl font-semibold",
       h2: "text-2xl font-medium",
       h3: "text-xl font-medium",
+      h4: "text-lg font-medium",
       p: "text-md",
       label: "text-sm",
       footnote: "text-xs",
