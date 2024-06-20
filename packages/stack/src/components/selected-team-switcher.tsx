@@ -1,18 +1,12 @@
 'use client';
 
-import {
-  useUser,
-  Text,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-} from "..";
+import { useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import Typography from "./ui/typography";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 type SelectedTeamSwitcherProps = {
   projectUrlMap?: (projectId: string) => string,
@@ -21,7 +15,7 @@ type SelectedTeamSwitcherProps = {
 function TeamIcon(props: { displayName: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.5rem', height: '1.5rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
-      <Text style={{ color: 'black', fontWeight: 400 }}>{props.displayName.slice(0, 1).toUpperCase()}</Text>
+      <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
     </div>
   );
 }
@@ -38,10 +32,10 @@ export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
       <DropdownMenuTrigger>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <TeamIcon displayName={selectedTeam?.displayName || ''} />
-          <Text>{selectedTeam?.displayName || 'Select team'}</Text>
+          <Typography>{selectedTeam?.displayName || 'Select team'}</Typography>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ zIndex: 1500 }}>
+      <DropdownMenuContent>
         <DropdownMenuLabel>Teams</DropdownMenuLabel>
         {teams && teams.map(team => (
           <DropdownMenuItem
@@ -58,7 +52,7 @@ export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           >
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <TeamIcon displayName={team.displayName} />
-              <Text>{team.displayName}</Text>
+              <Typography>{team.displayName}</Typography>
             </div>
             <Check style={{ marginLeft: '0.5rem', visibility: team.id === selectedTeam?.id ? 'visible' : 'hidden', height: '1rem', width: '1rem' }} />
           </DropdownMenuItem>

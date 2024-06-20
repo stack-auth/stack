@@ -6,7 +6,6 @@ import OAuthGroup from '../components/oauth-group';
 import MaybeFullPage from '../components/maybe-full-page';
 import { useUser, useStackApp, CredentialSignUp } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
 import { StyledLink } from '../components/ui/link';
@@ -41,19 +40,19 @@ export default function AuthPage({
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
           </Typography>
           {type === 'sign-in' ? (
-            <Text>
+            <Typography>
               {"Don't have an account? "}
               <StyledLink href={stackApp.urls.signUp}>
                 Sign up
               </StyledLink>
-            </Text>
+            </Typography>
           ) : (
-            <Text>
+            <Typography>
               {"Already have an account? "}
               <StyledLink href={stackApp.urls.signIn}>
                 Sign in
               </StyledLink>
-            </Text>
+            </Typography>
           )}
         </div>
         <OAuthGroup type={type} mockProject={mockProject} />

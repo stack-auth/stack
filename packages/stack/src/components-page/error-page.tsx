@@ -2,9 +2,9 @@
 
 import { MessageCard, useStackApp, useUser } from "..";
 import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
-import { Text } from "../components-core";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import KnownErrorMessageCard from "../components/message-cards/known-error-message-card";
+import Typography from "../components/ui/typography";
 
 
 export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
@@ -35,9 +35,9 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
-        <Text>
+        <Typography>
           This account is already connected to another user. Please connect a different account.
-        </Text>
+        </Typography>
       </MessageCard>
     );
   }
@@ -51,9 +51,9 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
-        <Text>
+        <Typography>
           The user is already connected to another OAuth account. Did you maybe selected the wrong account on the OAuth provider page?
-        </Text>
+        </Typography>
       </MessageCard>
     );
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Separator, Text } from "../components-core";
+import { Separator } from "./ui/separator";
 
 export default function SeparatorWithText({ text }: { text: string }) {
   return (

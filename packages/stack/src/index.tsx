@@ -31,7 +31,6 @@ export { default as MagicLinkSignIn } from "./components/magic-link-sign-in";
 
 export { useDesign } from './providers/design-provider';
 export type { ColorPalette } from './providers/design-provider';
-export { useComponents } from './providers/component-provider';
 export { StackTheme } from './providers/theme-provider';
 export type { ThemeConfig } from './providers/theme-provider';
 
@@ -48,5 +47,3 @@ export type {
   ServerPermission as Permission,
   ServerPermission,
 } from './lib/stack-app';
-
-export * from './components-core';

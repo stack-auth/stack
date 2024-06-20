@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import styled from 'styled-components';
-import { Text, useDesign } from '..';
+import { useDesign } from '..';
 import { ColorPalette } from '../providers/design-provider';
 import { FONT_SIZES, SHADOW } from '../utils/constants';
 

@@ -3,9 +3,7 @@
 import React, { Suspense } from "react";
 import {
   useUser,
-  Text,
   useStackApp,
-  Skeleton,
   CurrentUser,
 } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
@@ -13,6 +11,8 @@ import UserAvatar from "./user-avatar";
 import { useRouter } from "next/navigation";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import Typography from "./ui/typography";
+import { Skeleton } from "../components-core/skeleton";
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
@@ -21,7 +21,7 @@ function Item(props: { text: string, icon: React.ReactNode, onClick: () => void 
       className="flex gap-2 items-center"
     >
       {props.icon}
-      <Text>{props.text}</Text>
+      <Typography>{props.text}</Typography>
     </DropdownMenuItem>
   );
 }
@@ -71,8 +71,8 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <UserAvatar user={user} />
           {user && props.showUserInfo && 
             <div className="flex flex-col justify-center">
-              <Text className={textClasses}>{user.displayName}</Text>
-              <Text className={textClasses} variant="secondary" size="sm">{user.primaryEmail}</Text>
+              <Typography className={textClasses}>{user.displayName}</Typography>
+              <Typography className={textClasses} variant="secondary" type='label'>{user.primaryEmail}</Typography>
             </div>
           }
         </div>
@@ -82,9 +82,9 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <div className="flex gap-2 items-center">
             <UserAvatar user={user} />
             <div>
-              {user && <Text>{user.displayName}</Text>}
-              {user && <Text variant="secondary" size="sm">{user.primaryEmail}</Text>}
-              {!user && <Text>Not signed in</Text>}
+              {user && <Typography>{user.displayName}</Typography>}
+              {user && <Typography variant="secondary" type='label'>{user.primaryEmail}</Typography>}
+              {!user && <Typography>Not signed in</Typography>}
             </div>
           </div>
         </DropdownMenuLabel>
