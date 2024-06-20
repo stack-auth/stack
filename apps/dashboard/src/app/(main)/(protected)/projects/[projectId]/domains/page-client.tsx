@@ -21,8 +21,17 @@ function EditDialog(props: {
   domains: DomainConfigJson[],
   project: Project,
   type: 'update' | 'create',
-  editIndex?: number,
-}) {
+} & (
+  { 
+    type: 'create', 
+  } | 
+  { 
+    type: 'update', 
+    editIndex: number, 
+    defaultDomain: string,
+    defaultHandlerPath: string,
+  }
+)) {
   const domainFormSchema = yup.object({
     makeSureAlert: yup.mixed().meta({
       stackFormFieldRender: () => (
@@ -35,18 +44,18 @@ function EditDialog(props: {
       .matches(/^https?:\/\//, "Origin must start with http:// or https://")
       .url("Domain must be a valid URL")
       .notOneOf(props.domains
-        .filter((_, i) => i !== props.editIndex)
+        .filter((_, i) => props.type === 'update' && i !== props.editIndex)
         .map(({ domain }) => domain), "Domain already exists")
       .required()
       .label("Origin (protocol + domain)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
-      }),
+      }).default(props.type === 'update' ? props.defaultDomain : ""),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
       .required()
       .label("Handler path")
-      .default("/handler"),
+      .default(props.type === 'update' ? props.defaultHandlerPath : "/handler"),
   });
 
   return <SmartFormDialog
@@ -163,6 +172,8 @@ export default function PageClient() {
                         project={project}
                         type="update"
                         editIndex={i}
+                        defaultDomain={domain}
+                        defaultHandlerPath={handlerPath}
                       />
                       <DeleteDialog
                         open={isDeleteModalOpen}
