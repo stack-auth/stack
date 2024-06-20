@@ -25,6 +25,7 @@ const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
 	        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
 	        onClick={() => setShowPassword((prev) => !prev)}
 	        disabled={props.disabled}
+	        aria-label={showPassword ? "Hide password" : "Show password"}
 	      >
 	        {showPassword ? (
 	          <EyeIcon
@@ -37,20 +38,7 @@ const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
 	            aria-hidden="true"
 	          />
 	        )}
-	        <span className="sr-only">
-	          {showPassword ? "Hide password" : "Show password"}
-	        </span>
 	      </Button>
-
-	      {/* hides browsers password toggles */}
-	      <style>{`
-					.hide-password-toggle::-ms-reveal,
-					.hide-password-toggle::-ms-clear {
-						visibility: hidden;
-						pointer-events: none;
-						display: none;
-					}
-				`}</style>
 	    </div>
 	  );
 	},
