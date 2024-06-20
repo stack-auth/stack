@@ -3,12 +3,6 @@ import React, { Suspense } from "react";
 import {
   useUser,
   Text,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   useStackApp,
   Skeleton,
   CurrentUser,
@@ -19,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import styled from "styled-components";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 const icons = typedFromEntries(typedEntries({
   CircleUser,
@@ -93,22 +88,24 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <DropdownMenuTrigger className="outline-none">
+        <div className="flex gap-2 items-center">
           <UserAvatar user={user} />
-          {user && props.showUserInfo && <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Text style={textStyles}>{user.displayName}</Text>
-            <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
-          </div>}
+          {user && props.showUserInfo && 
+            <div className="flex flex-col justify-center">
+              <Text style={textStyles}>{user.displayName}</Text>
+              <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
+            </div>
+          }
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ zIndex: 1500 }}>
+      <DropdownMenuContent>
         <DropdownMenuLabel>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             <UserAvatar user={user} />
             <div>
               {user && <Text>{user.displayName}</Text>}
-              {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}
+              {user && <Text variant="secondary" size="sm">{user.primaryEmail}</Text>}
               {!user && <Text>Not signed in</Text>}
             </div>
           </div>
