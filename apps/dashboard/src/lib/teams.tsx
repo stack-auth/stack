@@ -175,8 +175,8 @@ async function grantDefaultTeamPermissions(options: { projectId: string, teamId:
   }
 
   const permissionIds = options.type === 'creator' ? 
-    project.evaluatedConfig.teamCreatorDefaultPermissionIds :
-    project.evaluatedConfig.teamMemberDefaultPermissionIds;
+    project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
+    project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
 
   // TODO: improve performance by batching
   for (const permissionId of permissionIds) {
