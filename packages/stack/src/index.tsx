@@ -23,7 +23,7 @@ export { default as CredentialSignIn } from "./components/credential-sign-in";
 export { default as CredentialSignUp } from "./components/credential-sign-up";
 export { default as OAuthButton } from "./components/oauth-button";
 export { default as OAuthGroup } from "./components/oauth-group";
-export { PasswordInput } from "./components/password-input";
+export { PasswordInput } from "./components/ui/password-input";
 export { default as UserButton } from "./components/user-button";
 export { default as AccountSettings } from "./components-page/account-settings";
 export { default as AuthPage } from "./components-page/auth-page";

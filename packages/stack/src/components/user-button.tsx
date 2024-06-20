@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import Typography from "./ui/typography";
-import { Skeleton } from "../components-core/skeleton";
+import { Skeleton } from "./ui/skeleton";
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (

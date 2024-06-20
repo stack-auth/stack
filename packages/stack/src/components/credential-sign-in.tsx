@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import FormWarningText from "./form-warning";
-import { PasswordInput } from "./password-input";
+import { PasswordInput } from "./ui/password-input";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Label } from "./ui/label";

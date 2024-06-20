@@ -3,7 +3,7 @@
 import React from 'react';
 import { PasswordInput, useUser } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Container } from "../components-core/container";
+import { Container } from "../components/ui/container";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
 import FormWarningText from '../components/form-warning';
