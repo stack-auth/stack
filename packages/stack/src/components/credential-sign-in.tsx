@@ -32,11 +32,11 @@ export default function CredentialSignIn() {
 
   return (
     <form 
-      className="flex flex-col space-y-4 stack-scope"
+      className="flex flex-col stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email">Email</Label>
+      <Label htmlFor="email" className="mb-2">Email</Label>
       <Input
         id="email"
         type="email"
@@ -44,7 +44,7 @@ export default function CredentialSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" className="mt-4">Password</Label>
+      <Label htmlFor="password" className="mt-4 mb-2">Password</Label>
       <PasswordInput
         id="password"
         {...register('password')}
