@@ -4,10 +4,13 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import FormWarningText from "./form-warning";
-import PasswordField from "./password-field";
+import { PasswordInput } from "./password-input";
 import { useStackApp } from "..";
-import { Button, Input, Label, Link } from "../components-core";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { Link } from "./ui/link";
+import { Button } from "./ui/button";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email'),
@@ -29,7 +32,7 @@ export default function CredentialSignIn() {
 
   return (
     <form 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      className="flex flex-col space-y-4 stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
@@ -41,18 +44,18 @@ export default function CredentialSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" style={{ marginTop: '1rem' }}>Password</Label>
-      <PasswordField
+      <Label htmlFor="password" className="mt-4">Password</Label>
+      <PasswordInput
         id="password"
         {...register('password')}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
 
-      <Link href={app.urls.forgotPassword} size='sm' style={{ marginTop: '0.5rem' }}>
+      <Link href={app.urls.forgotPassword} className="mt-2 text-sm underline">
         Forgot password?
       </Link>
 
-      <Button type="submit" style={{ marginTop: '1.5rem' }}>
+      <Button type="submit" className="mt-4">
         Sign In
       </Button>
     </form>

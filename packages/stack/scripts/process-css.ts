@@ -37,7 +37,7 @@ async function main() {
   content = replaceAll(content, ':root', '');
 
   // use custom data attribute for dark mode
-  content = replaceAll(content, '.dark', '[data-stack-theme="dark"]');
+  content = replaceAll(content, `.${scopeName} .dark`, '[data-stack-theme="dark"] .${scopeName}');
 
   // double check that all sentinels were replaced
   if (content.includes(sentinel)) {

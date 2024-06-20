@@ -3,9 +3,12 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../../utils/shadcn";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Spinner } from "./spinner";
+import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -34,13 +37,13 @@ const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps
+export interface OriginalButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean,
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const OriginalButton = React.forwardRef<HTMLButtonElement, OriginalButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -49,6 +52,34 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       />
+    );
+  }
+);
+OriginalButton.displayName = "Button";
+
+interface ButtonProps extends OriginalButtonProps {
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
+  loading?: boolean,
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ onClick, loading: loadingProp, children, ...props }, ref) => {
+    const [handleClick, isLoading] = useAsyncCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+      await onClick?.(e);
+    }, [onClick]);
+
+    const loading = loadingProp || isLoading;
+
+    return (
+      <OriginalButton
+        {...props}
+        ref={ref}
+        disabled={props.disabled || loading}
+        onClick={(e) => runAsynchronouslyWithAlert(handleClick(e))}
+      >
+        {loading && <Spinner className="mr-2" />}
+        {children}
+      </OriginalButton>
     );
   }
 );

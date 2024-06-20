@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import PasswordField from "./password-field";
+import PasswordField from "./password-input";
 import FormWarningText from "./form-warning";
 import { useStackApp } from "..";
 import { Label, Input, Button } from "../components-core";

@@ -6,7 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import PasswordField from "./password-field";
+import PasswordField from "./password-input";
 import FormWarningText from "./form-warning";
 import PredefinedMessageCard from "./message-cards/predefined-message-card";
 import MessageCard from "./message-cards/message-card";
