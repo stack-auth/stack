@@ -2,7 +2,7 @@
 slug: getting-started/users
 ---
 
-In [the last guide](./setup.mdx), we created `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize them for accessing and modifying the current user information on Server Components and Client Components, respectively.
+In [the last guide](./setup.mdx), we initialized Stack. This created new files containing a `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize those for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
 ## Use the current user in a client component
 
@@ -14,16 +14,16 @@ import { useStackApp } from "@stackframe/stack";
 
 export function MyComponent() {
   const app = useStackApp();
-  const user = app.useUser(); // or just import useUser and use it directly
+  const user = app.useUser();
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
-Because it's so common, `useUser()` is also exposed as a standalone hook. This means that you can simply invoke `useUser()` as an alias for `useStackApp().useUser()`. (This is not true for other hooks; for example, you must call `useStackApp().useProject()` instead of `useProject()`.)
+Because it's so common, `useUser()` is also exposed as a standalone hook: `import { useUser } from "@stackframe/stack"`. This is simply a shortcut because `useUser()` is shorter than `useStackApp().useUser()`. (This is not the case with other hooks; most are on the `StackClientApp` object, for example, you must explicitly call `useStackApp().useProject()` versus `useProject()`.)
 
 ## Use the current user in a server component
 
-On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter:
+On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter (usually you would find it in the root or `src` directory):
 
 ```tsx title="Server user profile"
 import { stackServerApp } from "@/stack";
@@ -41,11 +41,27 @@ The difference between `getUser()` and `useUser()` is that `useUser()` will re-r
 
 ## Protecting a page
 
-Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect the page. If the user is not logged in, they will be redirected to the sign-in page.
+There are three ways to protect a page: Using middleware, in Client Components with `useUser({ or: "redirect" })`, and in Server Components with `await getUser({ or: "redirect" })`.
+
+Middleware can be used whenever it is easy to tell whether a page should be protected given just the URL, for example you have a `/private` section only accessible to logged-in users.
+
+On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the user to the sign-in page if they are not logged in. Similarly, on Server Components, call `await getUser({ or: "redirect" })` to protect a page (or component).
 
 <Tabs>
+  <Tab title="Middleware">
+    ```tsx title="middleware.tsx"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export default function Protected() {
+      useUser({ or: 'redirect' });
+      return <h1>You can only see this if you are logged in</h1>
+    }
+    ```
+  </Tab>
+
   <Tab title="Client Component">
-    ```tsx title="Client-side protection"
+    ```tsx title="my-component.tsx"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -57,7 +73,7 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx title="Server-side protection"
+    ```tsx title="my-component.tsx"
     import { stackServerApp } from "@/stack";
 
     export default async function Protected() {
@@ -68,11 +84,20 @@ Call `useUser` (or `getUser`) with the `{ or: 'redirect' }` option to protect th
   </Tab>
 </Tabs>
 
+<Note>
+  If you have sensitive information hidden in the page HTML itself, be aware of Next.js differences when using Server vs. Client Components. Irregardless of which method you use, attackers will never be able to, say, impersonate a user.
+
+  **Server Components**: Next.js may send individual components on the same page to the client separately. For example, if you have two files `layout.tsx` (protected) and `page.tsx` (not protected), the bundled HTML of the `page.tsx` may still be sent to the browser even if the user is not logged in. (Normal browsers will never display it, but attackers may be able to retrieve it.)
+  
+  To remediate this, every component that contains sensitive information should be protected, not just the page/layout. Usually, this is quite natural, as you need the `User` object to retrieve sensitive data anyways.
+
+  **Client Components**: Client components are always sent to the user, regardless of page protection. This is standard Next.js behavior. For more information, please refer to the [Next.js documentation](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment). (Again, this will not allow attackers to impersonate a user).
+</Note>
+
 
 ## Signing out
 
-You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`. The user will be redirected to `afterSignOut` URL. you can customize it in the `StackServerApp` constructor (see [here](/docs/api-documentation/app)).
-
+You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`. They will be redirected to the URL [configured as `afterSignOut` in the `StackServerApp`](/docs/api-documentation/app).
 
 <Tabs>
   <Tab title="user.signOut()">
@@ -82,7 +107,7 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
 
     export default function SignOutButton() {
       const user = useUser();
-      return <button onClick={user?.signOut}>Sign Out</button>;
+      return user ? <button onClick={() => user.signOut()}>Sign Out</button> : "Not signed in";
     }
     ```
   </Tab>
@@ -174,7 +199,7 @@ To see more examples of how to use the `User` object, check out the [User API do
 
 ## Custom User Information
 
-You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook is automatically will also be updated automatically. Here is an example:
+You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook will also be updated automatically. Here is an example:
 
 ```tsx title="Update user display name"
 'user client';

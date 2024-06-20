@@ -4,20 +4,20 @@ slug: getting-started/setup
 
 ## Setup
 
-To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, run the following:
+To get started with Stack, you need to create a [Next.js](https://nextjs.org/docs) project with the App router. If you are starting from scratch, you can just run the following:
   
 ```sh title="Terminal"
 npx create-next-app@latest --app stack-example
 cd stack-example
+npx @stackframe/init-stack@latest
 ```
 
-You can choose between two ways to install Stack: the setup wizard or manual installation. We recommend using the setup wizard first as it is very easy. However, if you have a non-standard project structure or the setup wizard doesn't work for you, you can follow the manual installation guide.
+If you are adding Stack to an existing project, you can choose between two ways to install Stack: the setup wizard or manual installation. We recommend using the setup wizard first. However, if you have a non-standard project structure or the setup wizard doesn't work for you, you can follow the manual installation guide.
 
 <Tabs>
   <Tab title="Setup wizard (Recommended)">
 
-
-To setup stack, you can run Stack's installation wizard with the following command:
+You can run Stack's installation wizard with the following command:
 
 ```sh title="Terminal"
 npx @stackframe/init-stack@latest
@@ -114,11 +114,11 @@ npm install @stackframe/stack
   </Tab>
 </Tabs>
 
-That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page!
+That's it! Stack is now configured in your Next.js project. If you start your Next.js app with `npm run dev` and navigate to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup), you will see the Stack sign-up page.
 
 ![Stack sign up page](../imgs/signup-page.png)
 
-After signing up/in, you will be redirected back to the home page, which is empty/default for now. We will add some useful information to it in the next section. You can also check out [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
+After signing up/in, you will be redirected back to the home page. We will show you how to add useful information to it in the next section. You can also check out the [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
 
 ![Stack account settings page](../imgs/account-settings-page.png)
 
