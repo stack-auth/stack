@@ -1,12 +1,11 @@
 'use client';
-
-import EmailEditor from "@/components/email-editor/editor";
+import EmailEditor from "@/email/editor/editor";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
 import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@/email/utils";
 import ErrorPage from "@/components/ui/error-page";
-import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
+import { TEditorConfiguration } from "@/email/editor/documents/editor/core";
 import { useToast } from "@/components/ui/use-toast";
 import { usePathname } from "next/navigation";
 

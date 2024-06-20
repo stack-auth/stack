@@ -5,7 +5,7 @@ import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/
 import { getProject } from '@/lib/projects';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
-import { renderEmailTemplate } from './utils';
+import { renderEmailTemplate } from '../email/utils';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 
 

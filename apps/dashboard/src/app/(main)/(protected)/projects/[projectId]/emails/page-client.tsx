@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { Project } from "@stackframe/stack";
-import { Reader } from "@/components/email-editor/email-builder";
+import { Reader } from "@/email/editor/email-builder";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";

@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";

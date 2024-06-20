@@ -51,12 +51,12 @@ On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the u
 <Tabs>
   <Tab title="Middleware">
     ```tsx title="middleware.tsx"
-    "use client";
-    import { useUser } from "@stackframe/stack";
-
-    export default function Protected() {
-      useUser({ or: 'redirect' });
-      return <h1>You can only see this if you are logged in</h1>
+    export async function middleware(request: NextRequest) {
+      const user = await stackServerApp.getUser();
+      if (!user) {
+        return NextResponse.redirect(new URL('/handler/signin', request.url));
+      }
+      return NextResponse.next();
     }
     ```
   </Tab>
@@ -86,13 +86,18 @@ On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the u
 </Tabs>
 
 <Note>
-  If you have sensitive information hidden in the page HTML itself, be aware of Next.js differences when using Server vs. Client Components. Irregardless of which method you use, attackers will never be able to, say, impersonate a user.
+  If you have sensitive information hidden in the page HTML itself, be aware of Next.js differences when using Server vs. Client Components.
 
-  **Server Components**: Next.js may send individual components on the same page to the client separately. For example, if you have two files `layout.tsx` (protected) and `page.tsx` (not protected), the bundled HTML of the `page.tsx` may still be sent to the browser even if the user is not logged in. (Normal browsers will never display it, but attackers may be able to retrieve it.)
+  - **Client Components**: Client components are always sent to the browser, regardless of page protection. This is standard Next.js behavior. For more information, please refer to the [Next.js documentation](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment). (Again, this will not allow attackers to impersonate a user).
+
+  - **Server Components**: If a component is protected, it is guaranteed that its bundled HTML will not be sent to browser. However, this is not necessarily true for its children and the rest of the page, as Next.js may split components on the same page and send them to the client separately for performance.
   
-  To remediate this, every component that contains sensitive information should be protected, not just the page/layout. Usually, this is quite natural, as you need the `User` object to retrieve sensitive data anyways.
+    For example, if your page is `<Parent><Child /></Parent>`, where `Parent` is protected and `Child` is not, Next.js may still send `<Child />` to the browser. (Normal browsers will never display it, but attackers may be able to retrieve it.)
+  
+    To remediate this, every component that contains sensitive information should protect itself, instead of relying on an outer layout. This is good practice anyways; it prevents you from accidentally exposing the data.
+  
+  Irregardless of which method you use, attackers will never be able to, say, impersonate a user.
 
-  **Client Components**: Client components are always sent to the user, regardless of page protection. This is standard Next.js behavior. For more information, please refer to the [Next.js documentation](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment). (Again, this will not allow attackers to impersonate a user).
 </Note>
 
 

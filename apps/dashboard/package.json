@@ -8,17 +8,17 @@
     "with-env": "dotenv -c development --",
     "with-env:prod": "dotenv -c --",
     "dev": "next dev --port 8101",
-    "build": "npm run codegen && next build",
-    "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
+    "build": "pnpm run codegen && next build",
+    "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8101",
-    "codegen": "npm run prisma -- generate",
-    "psql": "npm run with-env -- bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
-    "prisma": "npm run with-env -- prisma",
+    "codegen": "pnpm run prisma generate",
+    "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
+    "prisma": "pnpm run with-env prisma",
     "lint": "next lint",
-    "generate-keys": "npm run with-env -- tsx scripts/generate-keys.ts"
+    "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
   },
   "prisma": {
-    "seed": "npm run with-env -- tsx prisma/seed.ts"
+    "seed": "pnpm run with-env tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

@@ -4,7 +4,7 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { getProject } from "./projects";
 import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
-import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
+import { TEditorConfiguration } from "@/email/editor/documents/editor/core";
 
 export async function listEmailTemplatesWithDefault(projectId: string) {
   const project = await getProject(projectId);

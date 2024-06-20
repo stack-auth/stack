@@ -3,9 +3,9 @@
   "version": "2.5.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8106",
+    "dev": "next dev --port 8110",
     "build": "next build",
-    "start": "next start --port 8106",
+    "start": "next start --port 8110",
     "lint": "next lint"
   },
   "dependencies": {

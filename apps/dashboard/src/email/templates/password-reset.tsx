@@ -1,4 +1,4 @@
-import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
+import { TEditorConfiguration } from "@/email/editor/documents/editor/core";
 
 export const passwordResetTemplate: TEditorConfiguration = {
   "root": {
