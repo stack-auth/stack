@@ -1,3 +1,6 @@
+import { StackAssertionError } from "./errors";
+import { filterUndefined } from "./objects";
+
 export function typedToLowercase<S extends string>(s: S): Lowercase<S> {
   return s.toLowerCase() as Lowercase<S>;
 }
@@ -118,7 +121,90 @@ export function mergeScopeStrings(...scopes: string[]): string {
   return extractScopes(allScope).join(" ");
 }
 
-export function nicify(value: unknown, { depth = 5 } = {}): string {
+
+/**
+ * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
+ * so we create an object of overrides to handle these cases.
+ */
+const nicifiableClassNameOverrides = new Map(Object.entries({
+  Headers,
+} as Record<string, unknown>).map(([k, v]) => [v, k]));
+export type Nicifiable = {
+  getNicifiableKeys?(): PropertyKey[],
+  getNicifiedObjectExtraLines?(): string[],
+};
+export type NicifyOptions = {
+  maxDepth: number,
+  currentIndent: string,
+  lineIndent: string,
+  multiline: boolean,
+  refs: Map<unknown, string>,
+  path: string,
+  parent: null | {
+    options: NicifyOptions,
+    value: unknown,
+  },
+  keyInParent: PropertyKey | null,
+  overrides: (...args: Parameters<typeof nicify>) => ["result", string] | ["replace", unknown] | null,
+};
+export function nicify(
+  value: unknown,
+  options: Partial<NicifyOptions> = {},
+): string {
+  const fullOptions: NicifyOptions = {
+    maxDepth: 5,
+    currentIndent: "",
+    lineIndent: "  ",
+    multiline: true,
+    refs: new Map(),
+    path: "value",
+    parent: null,
+    overrides: () => null,
+    keyInParent: null,
+    ...filterUndefined(options),
+  };
+  const {
+    maxDepth,
+    currentIndent,
+    lineIndent,
+    multiline,
+    refs,
+    path,
+    overrides,
+  } = fullOptions;
+  const nl = `\n${currentIndent}`;
+
+  if (["function", "object", "symbol"].includes(typeof value)) {
+    if (refs.has(value)) {
+      return `Ref<${refs.get(value)}>`;
+    }
+    refs.set(value, path);
+  }
+
+  const overrideResult = overrides(value, options);
+  if (overrideResult?.[0] === "result") return overrideResult[1];
+  else if (overrideResult?.[0] === "replace") return nicify(overrideResult[1], options);
+
+  const newOptions: NicifyOptions = {
+    maxDepth: maxDepth - 1,
+    currentIndent,
+    lineIndent,
+    multiline,
+    refs,
+    path: path + "->[unknown property]",
+    overrides,
+    parent: { value, options: fullOptions },
+    keyInParent: null,
+  };
+  const nestedNicify = (newValue: unknown, newPath: string, indent: boolean, keyInParent: PropertyKey | null) => {
+    return nicify(newValue, {
+      ...newOptions,
+      path: newPath,
+      currentIndent: currentIndent + (indent ? lineIndent : ""),
+      keyInParent,
+    });
+  };
+
   switch (typeof value) {
     case "string": case "boolean": case "number": {
       return JSON.stringify(value);
@@ -139,17 +225,47 @@ export function nicify(value: unknown, { depth = 5 } = {}): string {
     case "object": {
       if (value === null) return "null";
       if (Array.isArray(value)) {
-        if (depth <= 0 && value.length !== 0) return "[...]";
-        return `[${value.map((v) => nicify(v, { depth: depth - 1 })).join(", ")}]`;
+        const extraLines = getNicifiedObjectExtraLines(value);
+        const resValueLength = value.length + extraLines.length;
+        if (maxDepth <= 0 && resValueLength === 0) return "[...]";
+        const shouldIndent = multiline && resValueLength > 1;
+        const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, shouldIndent, i));
+        resValues.push(...extraLines);
+        if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+        if (shouldIndent) {
+          return `[${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}]`;
+        } else {
+          return `[${resValues.join(", ")}]`;
+        }
       }
 
-      const entries = Object.entries(value);
-      if (entries.length === 0) return "{}";
-      if (depth <= 0) return "{...}";
-      return `{ ${Object.entries(value).map(([k, v]) => {
-        if (typeof v === "function" && v.name === k) return `${k}(...): { ... }`;
-        else return `${k}: ${nicify(v, { depth: depth - 1 })}`;
-      }).join(", ")} }`;
+      const constructorName = [null, Object].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
+      const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
+
+      const entries = getNicifiableEntries(value);
+      const extraLines = getNicifiedObjectExtraLines(value);
+      const resValueLength = entries.length + extraLines.length;
+      if (resValueLength === 0) return `${constructorString}{}`;
+      if (maxDepth <= 0) return `${constructorString}{ ... }`;
+      const shouldIndent = multiline && resValueLength > 1;
+      const resValues = entries.map(([k, v], keyIndex) => {
+        const keyNicified = nestedNicify(k, `Object.keys(${path})[${keyIndex}]`, shouldIndent, null);
+        const keyInObjectLiteral = typeof k === "string" ? JSON.stringify(k) : `[${keyNicified}]`;
+        if (typeof v === "function" && v.name === k) {
+          return `${keyInObjectLiteral}(...): { ... }`;
+        } else {
+          return `${keyInObjectLiteral}: ${nestedNicify(v, `${path}[${keyNicified}]`, shouldIndent, k)}`;
+        }
+      });
+      resValues.push(...extraLines);
+      if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+
+      if (resValues.length === 0) return `${constructorString}{}`;
+      if (shouldIndent) {
+        return `${constructorString}{${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}}`;
+      } else {
+        return `${constructorString}{ ${resValues.join(", ")} }`;
+      }
     }
     default: {
       return `${typeof value}<${value}>`;
@@ -160,3 +276,29 @@ export function nicify(value: unknown, { depth = 5 } = {}): string {
 export function replaceAll(input: string, searchValue: string, replaceValue: string): string {
   return input.split(searchValue).join(replaceValue);
 }
+
+function nicifyPropertyString(str: string) {
+  if (/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(str)) return str;
+  return JSON.stringify(str);
+}
+
+function getNicifiableKeys(value: Nicifiable | object) {
+  return ("getNicifiableKeys" in value ? value.getNicifiableKeys : null)?.() ?? Object.keys(value).sort();
+}
+
+function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {
+  const recordLikes = [Headers];
+  function isRecordLike(value: unknown): value is InstanceType<typeof recordLikes[number]> {
+    return recordLikes.some(x => value instanceof x);
+  }
+
+  if (isRecordLike(value)) {
+    return [...value.entries()].sort(([a], [b]) => String(a).localeCompare(String(b)));
+  }
+  const keys = getNicifiableKeys(value);
+  return keys.map((k) => [k, value[k as never]] as [PropertyKey, unknown]);
+}
+
+function getNicifiedObjectExtraLines(value: Nicifiable | object) {
+  return ("getNicifiedObjectExtraLines" in value ? value.getNicifiedObjectExtraLines : null)?.() ?? [];
+} 

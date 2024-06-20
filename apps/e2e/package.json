@@ -9,8 +9,9 @@
     "lint": "eslint --ext .tsx,.ts .",
     "clean": "rimraf dist && rimraf node_modules"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "dotenv": "^16.4.5"
-  }
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "@stackframe/stack-shared": "workspace:*"
+  },
+  "devDependencies": {}
 }

@@ -786,7 +786,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
       },
       async createTeam(data: TeamCustomizableJson) {
-        const teamJson = await app._interface.createClientTeam(data, session);
+        const teamJson = await app._interface.createTeamForCurrentUser(data, session);
         await app._currentUserTeamsCache.refresh([session]);
         return app._teamFromJson(teamJson);
       },
@@ -870,8 +870,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         emailConfig: data.evaluatedConfig.emailConfig,
         domains: data.evaluatedConfig.domains,
         createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
-        teamCreatorDefaultPermissionIds: data.evaluatedConfig.teamCreatorDefaultPermissionIds,
-        teamMemberDefaultPermissionIds: data.evaluatedConfig.teamMemberDefaultPermissionIds,
+        teamCreatorDefaultPermissions: data.evaluatedConfig.teamCreatorDefaultPermissions,
+        teamMemberDefaultPermissions: data.evaluatedConfig.teamMemberDefaultPermissions,
       },
 
       async update(update: ProjectUpdateOptions) {
@@ -1361,8 +1361,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeams() {
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
       },
-      createTeam: async () => {
-        throw new Error();
+      createTeam: async (data: ServerTeamCustomizableJson) => {
+        const team =  await app._interface.createServerTeamForUser(json.id, data, app._getSession());
+        await app._serverTeamsCache.refresh([]);
+        return app._serverTeamFromJson(team);
       },
       async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
         const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
@@ -2024,8 +2026,8 @@ export type Project = {
     readonly emailConfig?: EmailConfig,
     readonly domains: DomainConfig[],
     readonly createTeamOnSignUp: boolean,
-    readonly teamCreatorDefaultPermissionIds: string[],
-    readonly teamMemberDefaultPermissionIds: string[],
+    readonly teamCreatorDefaultPermissions: PermissionDefinitionJson[],
+    readonly teamMemberDefaultPermissions: PermissionDefinitionJson[],
   },
 
   update(this: Project, update: ProjectUpdateOptions): Promise<void>,
