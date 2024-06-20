@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import FormWarningText from "./form-warning";
+import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Label } from "./ui/label";
@@ -14,7 +14,7 @@ const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')
 });
 
-export default function ForgotPassword({ onSent }: { onSent?: () => void }) {
+export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });

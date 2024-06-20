@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { PasswordInput, useUser } from '..';
-import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
+import { useUser } from '..';
+import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { Container } from "../components/ui/container";
-import UserAvatar from '../components/user-avatar';
+import { UserAvatar } from '../components/elements/user-avatar';
 import { useState } from 'react';
-import FormWarningText from '../components/form-warning';
+import { FormWarningText } from '../components/elements/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -14,6 +14,7 @@ import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import Typography from '../components/ui/typography';
 import { cn } from '../utils/shadcn';
+import { PasswordInput } from '../components/ui/password-input';
 
 function SettingSection(props: {
   title: string, 
@@ -199,7 +200,7 @@ function SignOutSection() {
   );
 }
 
-export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
   if (!user) {
     return <PredefinedMessageCard type='signedOut' fullPage={fullPage} />;

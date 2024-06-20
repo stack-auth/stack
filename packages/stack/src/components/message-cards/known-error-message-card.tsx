@@ -2,10 +2,10 @@
 
 import { useStackApp } from "../..";
 import Typography from "../ui/typography";
-import MessageCard from "./message-card";
+import { MessageCard } from "./message-card";
 import { KnownError } from "@stackframe/stack-shared";
 
-export default function KnownErrorMessageCard({ 
+export function KnownErrorMessageCard({ 
   error,
   fullPage=false,
 }: { 

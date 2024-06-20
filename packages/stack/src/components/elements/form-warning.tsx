@@ -1,6 +1,6 @@
 'use client';
 
-export default function FormWarningText({ text }: { text?: string }) {
+export function FormWarningText({ text }: { text?: string }) {
   if (!text) {
     return null;
   }

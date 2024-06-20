@@ -7,10 +7,10 @@ import * as yup from "yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
 import { PasswordInput } from "./ui/password-input";
-import FormWarningText from "./form-warning";
-import PredefinedMessageCard from "./message-cards/predefined-message-card";
-import MessageCard from "./message-cards/message-card";
-import MaybeFullPage from "./maybe-full-page";
+import { FormWarningText } from "./elements/form-warning";
+import { PredefinedMessageCard } from "./message-cards/predefined-message-card";
+import { MessageCard } from "./message-cards/message-card";
+import { MaybeFullPage } from "./elements/maybe-full-page";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
@@ -31,7 +31,7 @@ const schema = yup.object().shape({
   passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
 });
 
-export default function PasswordResetInner(
+export default function PasswordResetForm(
   { code, fullPage = false }:
   { code: string, fullPage?: boolean }
 ) {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import FormWarningText from "./form-warning";
+import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Input } from "./ui/input";
@@ -15,7 +15,7 @@ const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')
 });
 
-export default function MagicLinkSignIn() {
+export function MagicLinkSignInForm() {
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });

@@ -7,7 +7,7 @@ import {
   CurrentUser,
 } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import UserAvatar from "./user-avatar";
+import { UserAvatar } from "./elements/user-avatar";
 import { useRouter } from "next/navigation";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -36,7 +36,7 @@ type UserButtonProps = {
   }[],
 };
 
-export default function UserButton(props: UserButtonProps) {
+export function UserButton(props: UserButtonProps) {
   return (
     <Suspense
       fallback={

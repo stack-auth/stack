@@ -1,8 +1,8 @@
 'use client';
 
-import { Separator } from "./ui/separator";
+import { Separator } from "../ui/separator";
 
-export default function SeparatorWithText({ text }: { text: string }) {
+export function SeparatorWithText({ text }: { text: string }) {
   return (
     <div className="flex items-center justify-center my-6 stack-scope">
       <div className="flex-1">

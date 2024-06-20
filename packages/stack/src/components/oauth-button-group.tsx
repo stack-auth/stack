@@ -2,9 +2,9 @@
 
 import { ClientProjectJson } from "@stackframe/stack-shared";
 import { useStackApp } from "../lib/hooks";
-import OAuthButton from "./oauth-button";
+import { OAuthButton } from "./oauth-button";
 
-export default function OAuthGroup({
+export function OAuthButtonGroup({
   type,
   mockProject,
 }: {

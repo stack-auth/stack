@@ -1,8 +1,8 @@
 import { UserRound } from "lucide-react";
-import { User } from "../lib/stack-app";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { User } from "../../lib/stack-app";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-export default function UserAvatar(props: { size?: number, user: User | null }) {
+export function UserAvatar(props: { size?: number, user: User | null }) {
   const user = props.user;
   return (
     <Avatar style={{ height: props.size || '36px', width: props.size || '36px' }}>

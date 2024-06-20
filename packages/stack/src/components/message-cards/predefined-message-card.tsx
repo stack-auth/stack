@@ -2,9 +2,9 @@
 
 import { useStackApp } from "../..";
 import Typography from "../ui/typography";
-import MessageCard from "./message-card";
+import { MessageCard } from "./message-card";
 
-export default function PredefinedMessageCard({ 
+export function PredefinedMessageCard({ 
   type,
   fullPage=false,
 }: { 
@@ -66,7 +66,7 @@ export default function PredefinedMessageCard({
   }
 
   return (
-    <MessageCard 
+    <MessageCard
       title={title} 
       fullPage={fullPage} 
       primaryButtonText={primaryButton} 

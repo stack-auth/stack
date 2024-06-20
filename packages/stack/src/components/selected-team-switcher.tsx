@@ -20,7 +20,7 @@ function TeamIcon(props: { displayName: string }) {
   );
 }
 
-export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const user = useUser();
   const router = useRouter();
   const selectedTeam = user?.selectedTeam;

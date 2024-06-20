@@ -1,9 +1,9 @@
 'use client';
 
-import MessageCard from "../components/message-cards/message-card";
+import { MessageCard } from "../components/message-cards/message-card";
 import { StackClientApp, useStackApp } from "..";
 import { use } from "react";
-import PasswordResetInner from "../components/password-reset-inner";
+import PasswordResetForm from "../components/password-reset-form";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { KnownErrors } from "@stackframe/stack-shared";
 import Typography from "../components/ui/typography";
@@ -12,7 +12,7 @@ const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClient
   return await stackApp.verifyPasswordResetCode(code);
 });
 
-export default function PasswordReset({
+export function PasswordReset({
   searchParams,
   fullPage = false,
 }: { 
@@ -56,5 +56,5 @@ export default function PasswordReset({
     throw error;
   }
 
-  return <PasswordResetInner code={code} fullPage={fullPage} />;
+  return <PasswordResetForm code={code} fullPage={fullPage} />;
 }

@@ -1,13 +1,14 @@
 'use client';
 
-import { MessageCard, useStackApp, useUser } from "..";
-import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
+import { useStackApp } from "..";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
-import KnownErrorMessageCard from "../components/message-cards/known-error-message-card";
+import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import Typography from "../components/ui/typography";
+import { MessageCard } from "../components/message-cards/message-card";
 
 
-export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
   const stackApp = useStackApp();
   const errorCode = searchParams.errorCode;
   const message = searchParams.message;
@@ -29,7 +30,7 @@ export default function ErrorPage({ fullPage=false, searchParams }: { fullPage?:
   if (error instanceof KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser) {
     // TODO: add "Connect a different account" button
     return (
-      <MessageCard 
+      <MessageCard
         title="Failed to connect account" 
         fullPage={fullPage}
         primaryButtonText="Go to Home"

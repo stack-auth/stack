@@ -1,11 +1,11 @@
 'use client';
 
 import React from "react";
-import MaybeFullPage from "../maybe-full-page";
+import { MaybeFullPage } from "../elements/maybe-full-page";
 import Typography from "../ui/typography";
 import { Button } from "../ui/button";
 
-export default function MessageCard(
+export function MessageCard(
   { fullPage=false, ...props }: 
   { 
     children?: React.ReactNode, 

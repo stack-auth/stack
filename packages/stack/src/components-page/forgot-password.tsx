@@ -1,15 +1,15 @@
 'use client';
 
-import ForgotPasswordElement from "../components/forgot-password";
-import MaybeFullPage from "../components/maybe-full-page";
+import { ForgotPasswordForm } from "../components/forgot-password-form";
+import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { useUser, useStackApp } from "..";
-import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
 import { StyledLink } from "../components/ui/link";
 import Typography from "../components/ui/typography";
 
 
-export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
+export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const [sent, setSent] = useState(false);
@@ -33,7 +33,7 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
           </StyledLink>
         </Typography>
       </div>
-      <ForgotPasswordElement onSent={() => setSent(true)} />
+      <ForgotPasswordForm onSent={() => setSent(true)} />
     </MaybeFullPage>
   );
 };

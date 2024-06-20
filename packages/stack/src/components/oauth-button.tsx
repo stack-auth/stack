@@ -72,7 +72,7 @@ const StyledButton = styled(Button)<{ $bgColor?: string, $hoverBgColor?: string,
   }
 `;
 
-export default function OAuthButton({
+export function OAuthButton({
   provider,
   type,
 }: {

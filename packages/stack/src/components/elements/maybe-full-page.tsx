@@ -1,9 +1,9 @@
 "use client";
 
-import { Container } from "./ui/container";
+import { Container } from "../ui/container";
 import React, { useEffect, useId } from "react";
 
-export default function MaybeFullPage({ 
+export function MaybeFullPage({ 
   children, 
   fullPage=true
 }: { 
