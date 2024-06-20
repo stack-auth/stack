@@ -485,11 +485,13 @@ async function _createDefaultPermissionsUpdateTransactions(
 
   const params = [
     {
+      type: 'creator',
       optionName: 'teamCreatorDefaultPermissionIds',
       dbName: 'teamCreatorDefaultPermissions',
       dbSystemName: 'teamCreateDefaultSystemPermissions',
     },
     {
+      type: 'member',
       optionName: 'teamMemberDefaultPermissionIds',
       dbName: 'teamMemberDefaultPermissions',
       dbSystemName: 'teamMemberDefaultSystemPermissions',
@@ -513,19 +515,33 @@ async function _createDefaultPermissionsUpdateTransactions(
           [param.dbSystemName]: systemPerms,
         },
       }));
+      
+      // Remove existing default permissions
+      transactions.push(prismaClient.permission.updateMany({
+        where: {
+          projectConfigId: project.config.id,
+          scope: 'TEAM',
+        },
+        data: {
+          isDefaultTeamCreatorPermission: param.type === 'creator' ? false : undefined,
+          isDefaultTeamMemberPermission: param.type === 'member' ? false : undefined,
+        },
+      }));
 
-      creatorPerms.filter(x => !isTeamSystemPermission(x)).forEach((queryableId) => {
-        transactions.push(prismaClient.permission.updateMany({
-          where: {
-            projectConfigId: project.config.id,
-            queryableId,
+      // Add new default permissions
+      transactions.push(prismaClient.permission.updateMany({
+        where: {
+          projectConfigId: project.config.id,
+          queryableId: {
+            in: creatorPerms.filter(x => !isTeamSystemPermission(x)),
           },
-          data: {
-            isDefaultTeamCreatorPermission: param.optionName === 'teamCreatorDefaultPermissionIds',
-            isDefaultTeamMemberPermission: param.optionName === 'teamMemberDefaultPermissionIds',
-          },
-        }));
-      });
+          scope: 'TEAM',
+        },
+        data: {
+          isDefaultTeamCreatorPermission: param.type === 'creator',
+          isDefaultTeamMemberPermission: param.type === 'member',
+        },
+      }));
     }
   }
 
