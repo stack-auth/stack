@@ -36,9 +36,9 @@ export default function AuthPage({
     <MaybeFullPage fullPage={fullPage}>
       <div className='stack-scope flex flex-col items-stretch'>
         <div className="text-center mb-6">
-          <Text size="xl" as='h2' className='font-medium'>
+          <h2 className='font-medium text-lg'>
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
-          </Text>
+          </h2>
           {type === 'sign-in' ? (
             <Text>
               {"Don't have an account? "}
