@@ -36,6 +36,9 @@ async function main() {
   // remove all :root
   content = replaceAll(content, ':root', '');
 
+  // use custom data attribute for dark mode
+  content = replaceAll(content, '.dark', '[data-stack-theme="dark"]');
+
   // double check that all sentinels were replaced
   if (content.includes(sentinel)) {
     throw new Error('Sentinel not replaced');
