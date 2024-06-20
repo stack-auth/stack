@@ -21,8 +21,7 @@ export const POST = createSmartRouteHandler({
   }),
   response: yup.object({
     statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["text"]).required(),
-    body: yup.string().required(),
+    bodyType: yup.string().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, body: { email, redirectUrl } }, fullReq) {
     if (!project.evaluatedConfig.magicLinkEnabled) {
@@ -69,8 +68,7 @@ export const POST = createSmartRouteHandler({
     
     return {
       statusCode: 200,
-      bodyType: "text",
-      body: `OK`,
+      bodyType: "success",
     };
   },
 });

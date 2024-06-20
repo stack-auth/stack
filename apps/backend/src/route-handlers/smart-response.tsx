@@ -11,19 +11,27 @@ export type SmartResponse = {
 } & (
   | {
     bodyType?: undefined,
-    body?: ArrayBuffer | Json,
+    body?: ArrayBuffer | Json | undefined,
+  }
+  | {
+    bodyType: "empty",
+    body: undefined,
   }
   | {
     bodyType: "text",
-    body?: string,
+    body: string,
   }
   | {
     bodyType: "json",
-    body?: Json,
+    body: Json,
   }
   | {
     bodyType: "binary",
-    body?: ArrayBuffer,
+    body: ArrayBuffer,
+  }
+  | {
+    bodyType: "success",
+    body?: undefined,
   }
 );
 
@@ -53,30 +61,39 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
   const headers = new Map<string, string[]>;
 
   let arrayBufferBody;
-  if (obj.body === undefined) {
-    arrayBufferBody = new ArrayBuffer(0);
-  } else {
-    const bodyType = validated.bodyType ?? (isBinaryBody(validated.body) ? "binary" : "json");
-    switch (bodyType) {
-      case "json": {
-        headers.set("content-type", ["application/json; charset=utf-8"]);
-        arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
-        break;
-      }
-      case "text": {
-        headers.set("content-type", ["text/plain; charset=utf-8"]);
-        if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
-        arrayBufferBody = new TextEncoder().encode(validated.body);
-        break;
-      }
-      case "binary": {
-        if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
-        arrayBufferBody = validated.body;
-        break;
-      }
-      default: {
-        throw new Error(`Invalid body type: ${bodyType}`);
-      }
+
+  const bodyType = validated.bodyType ?? (validated.body === undefined ? "empty" : isBinaryBody(validated.body) ? "binary" : "json");
+  switch (bodyType) {
+    case "empty": {
+      arrayBufferBody = new ArrayBuffer(0);
+      break;
+    }
+    case "json": {
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+      break;
+    }
+    case "text": {
+      headers.set("content-type", ["text/plain; charset=utf-8"]);
+      if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
+      arrayBufferBody = new TextEncoder().encode(validated.body);
+      break;
+    }
+    case "binary": {
+      if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
+      arrayBufferBody = validated.body;
+      break;
+    }
+    case "success": {
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify({
+        success: true,
+      }));
+      console.log("Success response", { requestId });
+      break;
+    }
+    default: {
+      throw new Error(`Invalid body type: ${bodyType}`);
     }
   }
 

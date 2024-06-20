@@ -41,6 +41,7 @@ const snapshotSerializer: SnapshotSerializer = {
         const stackSnapshotSerializer: null | {
           headersHidden?: true,
         } = (value as any)?.[stackSnapshotSerializerSymbol] ?? null;
+        const parentValue = options?.parent?.value;
 
         // Hide headers
         if (value instanceof Headers && !stackSnapshotSerializer?.headersHidden) {
@@ -59,6 +60,19 @@ const snapshotSerializer: SnapshotSerializer = {
           const headerName = options.keyInParent?.toString().toLowerCase();
           if (typedIncludes(stripHeaders, headerName)) {
             return ["result", `<stripped header '${headerName}'>`];
+          }
+        }
+
+        // Strip fields
+        if (
+          (typeof parentValue === "object" || typeof parentValue === "function")
+          && parentValue
+          && options.keyInParent
+          && "getSnapshotSerializerOptions" in parentValue
+        ) {
+          const parentSnapshotSerializerOptions = (parentValue.getSnapshotSerializerOptions as any)();
+          if (parentSnapshotSerializerOptions?.stripFields?.includes(options.keyInParent)) {
+            return ["result", `<stripped field '${options.keyInParent.toString()}'>`];
           }
         }
 
