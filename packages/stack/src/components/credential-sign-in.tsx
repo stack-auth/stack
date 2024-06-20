@@ -9,7 +9,7 @@ import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Link } from "./ui/link";
+import { StyledLink } from "./ui/link";
 import { Button } from "./ui/button";
 
 const schema = yup.object().shape({
@@ -51,9 +51,9 @@ export default function CredentialSignIn() {
       />
       <FormWarningText text={errors.password?.message?.toString()} />
 
-      <Link href={app.urls.forgotPassword} className="mt-1 text-sm underline">
+      <StyledLink href={app.urls.forgotPassword} className="mt-1 text-sm">
         Forgot password?
-      </Link>
+      </StyledLink>
 
       <Button type="submit" className="mt-6">
         Sign In

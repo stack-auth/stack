@@ -11,8 +11,10 @@ import FormWarningText from "./form-warning";
 import PredefinedMessageCard from "./message-cards/predefined-message-card";
 import MessageCard from "./message-cards/message-card";
 import MaybeFullPage from "./maybe-full-page";
-import { Button, Label, Text } from "../components-core";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Label } from "./ui/label";
+import { Button } from "./ui/button";
+import Typography from "./ui/typography";
 
 const schema = yup.object().shape({
   password: yup.string().required('Please enter your password').test({
@@ -58,15 +60,15 @@ export default function PasswordResetInner(
   if (resetError) {
     return (
       <MessageCard title="Failed to reset password" fullPage={fullPage}>
-        <Text>Failed to reset password. Please request a new password reset link</Text>
+        Failed to reset password. Please request a new password reset link
       </MessageCard>
     );
   }
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2'>Reset Your Password</Text>
+      <div className="text-center mb-6">
+        <Typography type='h2'>Reset Your Password</Typography>
       </div>
 
       <form 
@@ -74,7 +76,7 @@ export default function PasswordResetInner(
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
-        <Label htmlFor="password">New Password</Label>
+        <Label htmlFor="password" className="mb-1">New Password</Label>
         <PasswordInput
           id="password"
           {...register('password')}
@@ -85,7 +87,7 @@ export default function PasswordResetInner(
         />
         <FormWarningText text={errors.password?.message?.toString()} />
 
-        <Label htmlFor="repeat-password" style={{ marginTop: "1rem" }}>Repeat New Password</Label>
+        <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat New Password</Label>
         <PasswordInput
           id="repeat-password"
           {...register('passwordRepeat')}
@@ -96,7 +98,7 @@ export default function PasswordResetInner(
         />
         <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
-        <Button style={{ marginTop: '1.5rem' }} type="submit">
+        <Button type="submit" className="mt-6">
           Reset Password
         </Button>
       </form>

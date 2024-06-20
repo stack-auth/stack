@@ -9,8 +9,9 @@ import PredefinedMessageCard from '../components/message-cards/predefined-messag
 import { Text } from "../components-core";
 import MagicLinkSignIn from '../components/magic-link-sign-in';
 import { ClientProjectJson } from "@stackframe/stack-shared";
-import { Link } from '../components/ui/link';
+import { StyledLink } from '../components/ui/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import Typography from '../components/ui/typography';
 
 export default function AuthPage({ 
   fullPage=false,
@@ -36,22 +37,22 @@ export default function AuthPage({
     <MaybeFullPage fullPage={fullPage}>
       <div className='stack-scope flex flex-col items-stretch'>
         <div className="text-center mb-6">
-          <h2 className='font-medium text-lg'>
+          <Typography type='h2'>
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
-          </h2>
+          </Typography>
           {type === 'sign-in' ? (
             <Text>
               {"Don't have an account? "}
-              <Link href={stackApp.urls.signUp} className='underline'>
-              Sign up
-              </Link>
+              <StyledLink href={stackApp.urls.signUp}>
+                Sign up
+              </StyledLink>
             </Text>
           ) : (
             <Text>
               {"Already have an account? "}
-              <Link href={stackApp.urls.signIn} className='underline'>
-              Sign in
-              </Link>
+              <StyledLink href={stackApp.urls.signIn}>
+                Sign in
+              </StyledLink>
             </Text>
           )}
         </div>

@@ -3,11 +3,16 @@
 import React from 'react';
 import { PasswordInput, useUser } from '..';
 import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
+import { Container } from "../components-core";
 import UserAvatar from '../components/user-avatar';
 import { useState } from 'react';
 import FormWarningText from '../components/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { Label } from '../components/ui/label';
+import Typography from '../components/ui/typography';
 
 function SettingSection(props: {
   title: string, 
@@ -15,14 +20,16 @@ function SettingSection(props: {
   buttonText?: string, 
   buttonDisabled?: boolean,
   onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
-  buttonVariant?: 'primary' | 'secondary',
+  buttonVariant?: 'default' | 'secondary',
   children?: React.ReactNode, 
 }) {
   return (
     <Card>
       <CardHeader>
-        <Text as='h3' style={{ fontWeight: 500 }}>{props.title}</Text>
-        <Text variant='secondary' size='sm'>{props.desc}</Text>
+        <div>
+          <Typography type='h3'>{props.title}</Typography>
+          <Typography type='label' variant='secondary'>{props.desc}</Typography>
+        </div>
       </CardHeader>
       {props.children && <CardContent>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -63,13 +70,13 @@ function ProfileSection() {
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         <UserAvatar user={user} size={50}/>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Text>{user?.displayName}</Text>
-          <Text variant='secondary' size='sm'>{user?.primaryEmail}</Text>
+          <Typography>{user?.displayName}</Typography>
+          <Typography variant='secondary' type='label'>{user?.primaryEmail}</Typography>
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='display-name'>Display Name</Label>
+        <Label htmlFor='display-name' className='mb-1'>Display Name</Label>
         <Input
           id='display-name'
           value={userInfo.displayName}
@@ -105,8 +112,8 @@ function EmailVerificationSection() {
       }}
     >
       {user?.primaryEmailVerified ? 
-        <Text variant='success'>Your email has been verified</Text> : 
-        <Text variant='warning'>Your email has not been verified</Text>}
+        <Typography variant='success'>Your email has been verified</Typography> :
+        <Typography variant='destructive'>Your email has not been verified</Typography>}
     </SettingSection>
   );
 }
@@ -150,7 +157,7 @@ function PasswordSection() {
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='old-password'>Old Password</Label>
+        <Label htmlFor='old-password' className='mb-1'>Old Password</Label>
         <PasswordInput
           id='old-password' 
           value={oldPassword} 
@@ -162,7 +169,7 @@ function PasswordSection() {
         <FormWarningText text={oldPasswordError} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='new-password'>New Password</Label>
+        <Label htmlFor='new-password' className='mb-1'>New Password</Label>
         <PasswordInput
           id='new-password' 
           value={newPassword} 
@@ -200,8 +207,8 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
   const inner = (
     <div style={{ padding: fullPage ? '1rem' : 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
-        <Text size="xl" as='h1' style={{ fontWeight: '600' }}>Account Settings</Text>
-        <Text variant='secondary' size='sm'>Manage your account</Text>
+        <Typography type='h2'>Account Settings</Typography>
+        <Typography variant='secondary' type='label'>Manage your account</Typography>
       </div>
       
       <ProfileSection />

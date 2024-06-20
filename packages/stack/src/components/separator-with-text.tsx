@@ -8,7 +8,7 @@ export default function SeparatorWithText({ text }: { text: string }) {
       <div className="flex-1">
         <Separator />
       </div>
-      <Text variant="secondary" size='sm' className="mx-2">{text}</Text>
+      <div className="mx-2 text-sm text-zinc-500">{text}</div>
       <div className="flex-1">
         <Separator />
       </div>

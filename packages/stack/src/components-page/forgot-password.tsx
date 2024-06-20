@@ -5,8 +5,8 @@ import MaybeFullPage from "../components/maybe-full-page";
 import { useUser, useStackApp } from "..";
 import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
-import { Text } from "../components-core";
-import { Link } from "../components/ui/link";
+import { StyledLink } from "../components/ui/link";
+import Typography from "../components/ui/typography";
 
 
 export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
@@ -25,13 +25,13 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
   return (
     <MaybeFullPage fullPage={fullPage}>
       <div className="text-center mb-6 stack-scope">
-        <Text size="xl" as='h2'>Reset Your Password</Text>
-        <Text>
+        <Typography type='h2'>Reset Your Password</Typography>
+        <Typography>
           {"Don't need to reset? "}
-          <Link href={stackApp.urls['signUp']} className='underline'>
+          <StyledLink href={stackApp.urls['signUp']}>
             Sign in
-          </Link>
-        </Text>
+          </StyledLink>
+        </Typography>
       </div>
       <ForgotPasswordElement onSent={() => setSent(true)} />
     </MaybeFullPage>
