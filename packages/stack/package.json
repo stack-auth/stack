@@ -11,15 +11,6 @@
       "require": {
         "default": "./dist/index.js"
       }
-    },
-    "./joy": {
-      "types": "./dist/joy.d.ts",
-      "import": {
-        "default": "./dist/esm/joy.js"
-      },
-      "require": {
-        "default": "./dist/joy.js"
-      }
     }
   },
   "homepage": "https://stack-auth.com",
@@ -72,14 +63,8 @@
     "yup": "^1.4.0"
   },
   "peerDependencies": {
-    "@mui/joy": "^5.0.0-beta.30",
     "next": ">=14.1",
     "react": ">=18.2"
-  },
-  "peerDependenciesMeta": {
-    "@mui/joy": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@types/color": "^3.0.6",
