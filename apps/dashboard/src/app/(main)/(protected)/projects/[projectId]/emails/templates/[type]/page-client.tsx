@@ -1,11 +1,11 @@
 'use client';
-import EmailEditor from "@/email/editor/editor";
+import EmailEditor from "@stackframe/stack-emails/dist/editor/editor";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
-import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@/email/utils";
+import { confirmAlertMessage, useRouter, useRouterConfirm } from "@/components/router";
+import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import ErrorPage from "@/components/ui/error-page";
-import { TEditorConfiguration } from "@/email/editor/documents/editor/core";
+import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
 import { useToast } from "@/components/ui/use-toast";
 import { usePathname } from "next/navigation";
 
@@ -15,7 +15,9 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   const template = emailTemplates.find((template) => template.type === props.templateType);
   const router = useRouter();
   const pathname = usePathname();
+  const { setNeedConfirm } = useRouterConfirm();
   const { toast } = useToast();
+  const project = app.useProjectAdmin();
 
   if (!template) {
     // this should not happen, the outer server component should handle this
@@ -50,6 +52,9 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
         metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
         onSave={onSave} 
         onCancel={onCancel} 
+        confirmAlertMessage={confirmAlertMessage}
+        setNeedConfirm={setNeedConfirm}
+        projectDisplayName={project.displayName}
       />
     </div>
   );

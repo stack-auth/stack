@@ -5,8 +5,8 @@ import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/
 import { getProject } from '@/lib/projects';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
-import { renderEmailTemplate } from '../email/utils';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
+import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 
 
 function getPortConfig(port: number | string) {

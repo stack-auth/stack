@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
 import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { Project } from "@stackframe/stack";
-import { Reader } from "@/email/editor/email-builder";
+import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
 import { useMemo, useState } from "react";
-import { validateEmailTemplateContent } from "@/email/utils";
+import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { ActionDialog } from "@/components/action-dialog";
 
@@ -95,7 +95,7 @@ function EmailPreview(props: { content: any, type: EmailTemplateType }) {
     const valid = validateEmailTemplateContent(props.content);
     if (!valid) return [false, null];
 
-    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project);
+    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project.displayName);
     const document = convertEmailTemplateVariables(props.content, metadata.variables);
     return [true, document];
   }, [props.content, props.type, project]);
@@ -122,7 +122,7 @@ function EmailPreview(props: { content: any, type: EmailTemplateType }) {
 function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
   const project = useAdminApp().useProjectAdmin();
   const subject = useMemo(() => {
-    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project);
+    const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project.displayName);
     return convertEmailSubjectVariables(props.subject, metadata.variables);
   }, [props.subject, props.type, project]);
   return subject;
