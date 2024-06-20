@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { SmartRequestAdaptSentinel } from "@/route-handlers/smart-request";
-import { sendMagicLink } from "@/email";
+import { sendMagicLink } from "@/lib/emails";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";

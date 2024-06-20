@@ -3,6 +3,7 @@
   "version": "2.4.28",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "private": true,
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",

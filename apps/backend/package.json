@@ -32,6 +32,7 @@
     "@react-email/tailwind": "^0.0.14",
     "@sentry/nextjs": "^7.105.0",
     "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-emails": "workspace:*",
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
     "date-fns": "^3.6.0",
