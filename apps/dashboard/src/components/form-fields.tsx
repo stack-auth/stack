@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "./ui/checkbox";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Textarea } from "./ui/textarea";
 
 
 export function FieldLabel(props: {
@@ -21,6 +22,39 @@ export function FieldLabel(props: {
     {props.children} 
     {props.required ? <span className="text-zinc-500">{'*'}</span> : null}
   </FormLabel>;
+}
+
+export function TextAreaField<F extends FieldValues>(props: {
+  rows?: number,
+  required?: boolean,
+  placeholder?: string,
+  helperText?: string | JSX.Element,
+  control: Control<F>,
+  name: Path<F>,
+  label: React.ReactNode,
+}) {
+  return (
+    <FormField
+      control={props.control}
+      name={props.name}
+      render={({ field }) => (
+        <FormItem>
+          <label className="flex flex-col gap-2">
+            <FieldLabel required={props.required}>{props.label}</FieldLabel>
+            <FormControl>
+              <Textarea
+                {...field}
+                rows={props.rows}
+                placeholder={props.placeholder}
+                value={field.value ?? ""}
+              />
+            </FormControl>
+            <FormMessage />
+          </label>
+        </FormItem>
+      )}
+    />
+  );
 }
 
 export function InputField<F extends FieldValues>(props: { 
@@ -46,7 +80,7 @@ export function InputField<F extends FieldValues>(props: {
                 value={field.value ?? ""}
                 placeholder={props.placeholder} 
                 className="max-w-lg" 
-                disabled={props.disabled} 
+                disabled={props.disabled}
                 type={props.type} 
               />
             </FormControl>
