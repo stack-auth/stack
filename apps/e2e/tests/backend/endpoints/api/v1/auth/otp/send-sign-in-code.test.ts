@@ -12,7 +12,6 @@ it("should send a sign-in code per e-mail", async ({ expect }) => {
       redirectUrl: "http://localhost:12345",
     },
   });
-  console.log(response.headers);
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
