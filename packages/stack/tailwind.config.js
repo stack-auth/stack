@@ -2,10 +2,8 @@
 module.exports = {
   darkMode: ["selector", '[data-stack-theme="dark"]'],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./node_modules/@stackframe/stack-ui/src/**/*.{ts,tsx}",
   ],
   prefix: "",
   theme: {
