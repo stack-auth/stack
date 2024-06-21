@@ -145,7 +145,8 @@ export type NicifyOptions = {
     value: unknown,
   },
   keyInParent: PropertyKey | null,
-  overrides: (...args: Parameters<typeof nicify>) => ["result", string] | ["replace", unknown] | null,
+  hideFields: PropertyKey[],
+  overrides: (...args: Parameters<typeof nicify>) => string | null,
 };
 export function nicify(
   value: unknown,
@@ -161,6 +162,7 @@ export function nicify(
     parent: null,
     overrides: () => null,
     keyInParent: null,
+    hideFields: [],
     ...filterUndefined(options),
   };
   const {
@@ -171,8 +173,12 @@ export function nicify(
     refs,
     path,
     overrides,
+    hideFields,
   } = fullOptions;
   const nl = `\n${currentIndent}`;
+
+  const overrideResult = overrides(value, options);
+  if (overrideResult !== null) return overrideResult;
 
   if (["function", "object", "symbol"].includes(typeof value)) {
     if (refs.has(value)) {
@@ -180,10 +186,6 @@ export function nicify(
     }
     refs.set(value, path);
   }
-
-  const overrideResult = overrides(value, options);
-  if (overrideResult?.[0] === "result") return overrideResult[1];
-  else if (overrideResult?.[0] === "replace") return nicify(overrideResult[1], options);
 
   const newOptions: NicifyOptions = {
     maxDepth: maxDepth - 1,
@@ -195,6 +197,7 @@ export function nicify(
     overrides,
     parent: { value, options: fullOptions },
     keyInParent: null,
+    hideFields: [],
   };
   const nestedNicify = (newValue: unknown, newPath: string, keyInParent: PropertyKey | null) => {
     return nicify(newValue, {
@@ -242,8 +245,11 @@ export function nicify(
       const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
 
-      const entries = getNicifiableEntries(value);
-      const extraLines = getNicifiedObjectExtraLines(value);
+      const entries = getNicifiableEntries(value).filter(([k]) => !hideFields.includes(k));
+      const extraLines = [
+        ...getNicifiedObjectExtraLines(value),
+        ...hideFields.length > 0 ? [`<some fields may have been hidden>`] : [],
+      ];
       const resValueLength = entries.length + extraLines.length;
       if (resValueLength === 0) return `${constructorString}{}`;
       if (maxDepth <= 0) return `${constructorString}{ ... }`;

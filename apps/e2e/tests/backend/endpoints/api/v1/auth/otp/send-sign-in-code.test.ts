@@ -20,22 +20,15 @@ it("should send a sign-in code per e-mail", async ({ expect }) => {
       "body": { "success": true },
       "headers": Headers {
         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some headers may have been hidden>,
+        <some fields may have been hidden>,
       },
     }
   `);
-  expect(await mailbox.fetchMessages()).toMatchInlineSnapshot(`
+  expect(await mailbox.fetchMessages({ subjectOnly: true })).toMatchInlineSnapshot(`
     [
       MailboxMessage {
-        "date": <stripped field 'date'>,
-        "from": "Stack Dashboard <noreply@example.com>",
-        "id": <stripped field 'id'>,
-        "mailbox": <stripped field 'mailbox'>,
-        "posix-millis": <stripped field 'posix-millis'>,
-        "seen": false,
-        "size": 10576,
         "subject": "Sign in to Stack Dashboard",
-        "to": <stripped field 'to'>,
+        <some fields may have been hidden>,
       },
     ]
   `);

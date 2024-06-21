@@ -11,7 +11,7 @@ describe("without project ID", () => {
         "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: None",
         "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some headers may have been hidden>,
+          <some fields may have been hidden>,
         },
       }
     `);
@@ -32,7 +32,7 @@ describe("without project ID", () => {
         "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some headers may have been hidden>,
+          <some fields may have been hidden>,
         },
       }
     `);
@@ -60,7 +60,7 @@ describe("with internal project ID", async () => {
         "headers": Headers {
           "x-stack-known-error": "SERVER_AUTHENTICATION_REQUIRED",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some headers may have been hidden>,
+          <some fields may have been hidden>,
         },
       }
     `);
@@ -80,7 +80,7 @@ describe("with internal project ID", async () => {
           "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Client\\n         Project: internal\\n         User: None",
           "headers": Headers {
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-            <some headers may have been hidden>,
+            <some fields may have been hidden>,
           },
         }
       `);
@@ -97,7 +97,7 @@ describe("with internal project ID", async () => {
           "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Server\\n         Project: internal\\n         User: None",
           "headers": Headers {
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-            <some headers may have been hidden>,
+            <some fields may have been hidden>,
           },
         }
       `);
@@ -118,7 +118,7 @@ describe("with internal project ID", async () => {
           "headers": Headers {
             "x-stack-known-error": "ADMIN_AUTHENTICATION_REQUIRED",
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-            <some headers may have been hidden>,
+            <some fields may have been hidden>,
           },
         }
       `);

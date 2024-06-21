@@ -2,8 +2,6 @@ import { SnapshotSerializer } from "vitest";
 import { Nicifiable, nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 
-const stackSnapshotSerializerSymbol = Symbol("stackSnapshotSerializer");
-
 const hideHeaders = [
   "access-control-allow-headers",
   "access-control-allow-methods",
@@ -28,6 +26,12 @@ const hideHeaders = [
 
 const stripHeaders = ["x-stack-request-id"];
 
+function addAll<T>(set: Set<T>, values: T[]) {
+  for (const value of values) {
+    set.add(value);
+  }
+}
+
 const snapshotSerializer: SnapshotSerializer = {
   serialize(val, config, indentation, depth, refs, printer) {
     return nicify(val, {
@@ -38,29 +42,35 @@ const snapshotSerializer: SnapshotSerializer = {
       multiline: true,
       path: "snapshot",
       overrides: (value, options) => {
-        const stackSnapshotSerializer: null | {
-          headersHidden?: true,
-        } = (value as any)?.[stackSnapshotSerializerSymbol] ?? null;
         const parentValue = options?.parent?.value;
-
-        // Hide headers
-        if (value instanceof Headers && !stackSnapshotSerializer?.headersHidden) {
-          const originalHeaders = [...value.entries()];
-          const filteredHeaders = originalHeaders.filter(([key]) => !typedIncludes(hideHeaders, key.toLowerCase()));
-          return ["replace", Object.assign(new Headers(filteredHeaders), {
-            [stackSnapshotSerializerSymbol]: {
-              headersHidden: true,
-            },
-            getNicifiedObjectExtraLines: () => [`<some headers may have been hidden>`],
-          })];
-        }
 
         // Strip headers
         if (options?.parent?.value instanceof Headers) {
           const headerName = options.keyInParent?.toString().toLowerCase();
           if (typedIncludes(stripHeaders, headerName)) {
-            return ["result", `<stripped header '${headerName}'>`];
+            return `<stripped header '${headerName}'>`;
           }
+        }
+
+        // Hide fields
+        const oldHideFields = options?.hideFields ?? [];
+        let newHideFields = new Set<PropertyKey>(oldHideFields);
+        if (
+          (typeof value === "object" || typeof value === "function")
+          && value
+          && "getSnapshotSerializerOptions" in value
+        ) {
+          const snapshotSerializerOptions = (value.getSnapshotSerializerOptions as any)();
+          addAll(newHideFields, snapshotSerializerOptions?.hideFields ?? []);
+        }
+        if (value instanceof Headers) {
+          addAll(newHideFields, hideHeaders);
+        }
+        if (newHideFields.size !== oldHideFields.length) {
+          return nicify(value, {
+            ...options,
+            hideFields: [...newHideFields],
+          });
         }
 
         // Strip fields
@@ -72,7 +82,7 @@ const snapshotSerializer: SnapshotSerializer = {
         ) {
           const parentSnapshotSerializerOptions = (parentValue.getSnapshotSerializerOptions as any)();
           if (parentSnapshotSerializerOptions?.stripFields?.includes(options.keyInParent)) {
-            return ["result", `<stripped field '${options.keyInParent.toString()}'>`];
+            return `<stripped field '${options.keyInParent.toString()}'>`;
           }
         }
 

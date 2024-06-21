@@ -15,7 +15,7 @@ describe("without project access", () => {
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some headers may have been hidden>,
+          <some fields may have been hidden>,
         },
       }
     `);
@@ -45,7 +45,7 @@ describe("with client access", () => {
         "headers": Headers {
           "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some headers may have been hidden>,
+          <some fields may have been hidden>,
         },
       }
     `);

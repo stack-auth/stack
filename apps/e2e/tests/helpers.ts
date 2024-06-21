@@ -47,24 +47,34 @@ class MailboxMessage {
 
   getSnapshotSerializerOptions() {
     return ({
-      stripFields: [
-        "date",
+      stripFields: [],
+      hideFields: [
         "posix-millis",
-        "mailbox",
+        "header",
+        "date",
+        "from",
         "to",
+        "mailbox",
         "id",
+        "size",
+        "seen",
       ],
     });
   };
 }
 
-export function createMailbox(): { emailAddress: string, fetchMessages: () => Promise<MailboxMessage[]> } {
+export function createMailbox(): { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> } {
   const mailboxName = generateSecureRandomString();
   return {
     emailAddress: `${mailboxName}@stack-test.example.com`,
-    async fetchMessages() {
+    async fetchMessages({ subjectOnly } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
-      return (res.body as any[]).map((message) => new MailboxMessage(message));
+      return await Promise.all((res.body as any[]).map(async (message) => {
+        const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
+        const fullMessage: any = fullMessageRes.body;
+        const messagePart = subjectOnly ? { subject: fullMessage.subject } : fullMessage;
+        return new MailboxMessage(messagePart);
+      }));
     },
   };
 }
