@@ -1,6 +1,5 @@
 import { createMailbox, it } from "../../../../../../helpers";
 import { niceBackendFetch } from "../../../../../backend-helpers";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 it("should send a sign-in code per e-mail", async ({ expect }) => {
   const mailbox = createMailbox();
