@@ -46,6 +46,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "color": "^4.2.3",

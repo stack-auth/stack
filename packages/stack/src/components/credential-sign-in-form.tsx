@@ -10,7 +10,7 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { StyledLink } from "./ui/link";
-import { Button } from "./ui/button";
+import { Button } from "@stackframe/stack-ui";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email'),
@@ -18,7 +18,7 @@ const schema = yup.object().shape({
 });
 
 export function CredentialSignInForm() {
-  const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
+  const { register, handleSubmit, setError, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
   const app = useStackApp();
