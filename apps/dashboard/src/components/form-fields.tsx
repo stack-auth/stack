@@ -80,7 +80,7 @@ export function InputField<F extends FieldValues>(props: {
                 value={field.value ?? ""}
                 placeholder={props.placeholder} 
                 className="max-w-lg" 
-                disabled={props.disabled}
+                disabled={props.disabled} 
                 type={props.type} 
               />
             </FormControl>
