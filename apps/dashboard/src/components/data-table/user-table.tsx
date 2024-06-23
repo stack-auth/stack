@@ -10,7 +10,7 @@ import { standardProviders } from "@stackframe/stack-shared/dist/interface/clien
 import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField } from "../form-fields";
+import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
 import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
@@ -45,11 +45,25 @@ function userToolbarRender<TData>(table: Table<TData>) {
   );
 }
 
+const yupJsonValidator =  yup.string().test("json", "Invalid JSON format", (value) => {
+  if(!value){
+    return true ;
+  }
+  try {
+    JSON.parse(value);
+    return true;
+  } catch (error) {
+    return false;
+  }
+})
+
 const userEditFormSchema = yup.object({
   displayName: yup.string(),
   primaryEmail: yup.string().email("Primary Email must be a valid email address"),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
+  clientMetadata: yupJsonValidator,
+  serverMetadata: yupJsonValidator
 });
 
 function EditUserDialog(props: { 
@@ -62,6 +76,8 @@ function EditUserDialog(props: {
     primaryEmail: props.user.primaryEmail || undefined,
     primaryEmailVerified: props.user.primaryEmailVerified,
     signedUpAt: props.user.signedUpAt,
+    clientMetadata: JSON.stringify(props.user.clientMetadata || undefined),
+    serverMetadata:JSON.stringify(props.user.serverMetadata || undefined)
   };
 
   return <FormDialog
@@ -86,9 +102,19 @@ function EditUserDialog(props: {
         </div>
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
+        <TextAreaField control={form.control} label="clientMetadata" name="clientMetadata" />
+        <TextAreaField control={form.control} label="serverMetadata" name="serverMetadata" />
       </>
     )}
-    onSubmit={async (values) => { await props.user.update(values); }}
+    onSubmit={async (values) => { 
+      
+      console.log("Values are ",values)
+      const updatedValues = {
+        ...values ,
+        serverMetadata: values.serverMetadata ? JSON.parse(values.serverMetadata) : undefined ,
+        clientMetadata:values.clientMetadata ? JSON.parse(values.clientMetadata) : undefined
+      }
+      await props.user.update(updatedValues); }}
     cancelButton
   />;
 }
