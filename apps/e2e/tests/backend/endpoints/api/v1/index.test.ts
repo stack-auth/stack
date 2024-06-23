@@ -1,8 +1,12 @@
 import { it } from "../../../../helpers";
-import { niceBackendFetch } from "../../../backend-helpers";
+import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
 import { describe } from "vitest";
 
 describe("without project ID", () => {
+  backendContext.set({
+    projectKeys: "no-project",
+  });
+
   it("should load", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1");
     expect(response).toMatchInlineSnapshot(`
@@ -42,9 +46,12 @@ describe("without project ID", () => {
 });
 
 describe("with internal project ID", async () => {
+  backendContext.set({
+    projectKeys: InternalProjectKeys,
+  });
+
   it("should not have server access without server API key", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1", {
-      internalProject: true,
       accessType: "server",
       headers: {
         "x-stack-secret-server-key": "",
@@ -71,7 +78,6 @@ describe("with internal project ID", async () => {
   describe("with API keys", () => {
     it("should have client access", async ({ expect }) => {
       const response = await niceBackendFetch("/api/v1", {
-        internalProject: true,
         accessType: "client",
       });
       expect(response).toMatchInlineSnapshot(`
@@ -88,7 +94,6 @@ describe("with internal project ID", async () => {
 
     it("should have server access", async ({ expect }) => {
       const response = await niceBackendFetch("/api/v1", {
-        internalProject: true,
         accessType: "server",
       });
       expect(response).toMatchInlineSnapshot(`
@@ -105,7 +110,6 @@ describe("with internal project ID", async () => {
 
     it("should have admin access", async ({ expect }) => {
       const response = await niceBackendFetch("/api/v1", {
-        internalProject: true,
         accessType: "admin",
       });
       expect(response).toMatchInlineSnapshot(`

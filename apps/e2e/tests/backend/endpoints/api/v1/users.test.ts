@@ -1,10 +1,14 @@
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
-import { niceBackendFetch } from "../../../backend-helpers";
+import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
+  backendContext.set({
+    projectKeys: "no-project",
+  });
+
   it("should not be able to list users", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/users", {});
+    const response = await niceBackendFetch("/api/v1/users");
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
@@ -25,7 +29,6 @@ describe("without project access", () => {
 describe("with client access", () => {
   it("should not be able to list users", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/users", {
-      internalProject: true,
       accessType: "client",
     });
     expect(response).toMatchInlineSnapshot(`
