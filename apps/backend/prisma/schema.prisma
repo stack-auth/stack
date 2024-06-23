@@ -226,6 +226,9 @@ model ProjectUser {
   selectedTeam   Team?   @relation(fields: [projectId, selectedTeamId], references: [projectId, teamId])
   selectedTeamId String? @db.Uuid
 
+  uploadedProfileImage    ProjectUserProfileImage?
+  uploadedProfileImageId  String?  @db.Uuid
+
   @@id([projectId, projectUserId])
 }
 
@@ -490,6 +493,15 @@ model StandardOAuthProviderConfig {
   clientSecret String
 
   @@id([projectConfigId, id])
+}
+
+model ProjectUserProfileImage {
+  projectId    String
+  id           String @default(uuid()) @db.Uuid      
+  image        Bytes                               
+  userId       String   @db.Uuid         
+  @@unique([projectId, userId])
+  projectUser  ProjectUser? @relation(fields: [projectId, userId], references: [projectId, projectUserId])
 }
 
 enum StandardOAuthProviderType {

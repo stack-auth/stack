@@ -949,6 +949,21 @@ export class StackClientInterface {
     );
     return await response.json();
   }
+
+  async saveUpdateProfileImage(options:{userId:string,projectId:string,image:string}):Promise<void>
+  {
+    await this.sendClientRequest(
+      "/profile-image/",
+      {
+        method: "POST",
+        body: JSON.stringify(options),
+        headers:{
+          "content-type": "application/json",
+        },
+      },
+      null,
+    );
+  }
 }
 
 export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
