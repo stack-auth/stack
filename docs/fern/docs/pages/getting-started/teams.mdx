@@ -126,10 +126,8 @@ await team.update({
 To remove a user from a team, you can call the `removeUserFromTeam` method on the `stackServerApp`, this is an example:
 
 ```tsx
-await stackServerApp.removeUserFromTeam({
-  teamId: team.id,
-  userId: user.id,
-});
+  const team = await stackServerApp.getTeam(teamId);
+  await team?.removeUser(userId);
 ```
 
 ### List All the Members of a Team
