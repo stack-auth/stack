@@ -2,10 +2,7 @@ export { default as StackProvider } from "./providers/stack-provider";
 export { useUser, useStackApp } from "./lib/hooks";
 export { StackClientApp, StackServerApp, StackAdminApp } from "./lib/stack-app";
 export { default as StackHandler } from "./components-page/stack-handler";
-export { useDesign } from './providers/design-provider';
-export type { ColorPalette } from './providers/design-provider';
 export { StackTheme } from './providers/theme-provider';
-export type { ThemeConfig } from './providers/theme-provider';
 export type {
   CurrentUser, 
   Project, 

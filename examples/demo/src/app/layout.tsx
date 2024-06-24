@@ -20,9 +20,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body suppressHydrationWarning>
-        <StackProvider
-          app={stackServerApp}
-        >
+        <StackProvider app={stackServerApp}>
           <StackTheme>
             <Provider>
               <div className="flex flex-col h-screen">
