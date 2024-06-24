@@ -33,3 +33,7 @@ it("should sign up new users and sign in existing users", async ({ expect }) => 
     }
   `);
 });
+
+it.todo("should not sign in if primary e-mail changed since sign-in code was sent");
+
+it.todo("should verify primary e-mail");

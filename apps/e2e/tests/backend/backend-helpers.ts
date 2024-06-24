@@ -120,8 +120,10 @@ export namespace Auth {
 
     type SignInResult = SendSignInCodeResult & {
       signInResponse: NiceResponse,
-      accessToken: string,
-      refreshToken: string,
+      userAuth: {
+        accessToken: string,
+        refreshToken: string,
+      },
     };
     export async function signIn(): Promise<SignInResult> {
       const mailbox = backendContext.value.mailbox;
@@ -149,8 +151,10 @@ export namespace Auth {
       return {
         ...sendSignInCodeRes,
         signInResponse: response,
-        accessToken: response.body.accessToken,
-        refreshToken: response.body.refreshToken,
+        userAuth: {
+          accessToken: response.body.accessToken,
+          refreshToken: response.body.refreshToken,
+        },
       };
     }
   }
