@@ -7,9 +7,7 @@ import { ThemeProvider } from "next-themes";
 export default function Provider({ children }) {
   return (
     <ThemeProvider>
-      <StackTheme>
-        {children}
-      </StackTheme>
+      {children}
     </ThemeProvider>
   );
 }

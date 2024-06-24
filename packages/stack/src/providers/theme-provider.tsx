@@ -17,8 +17,8 @@ export function StackTheme({
 }) {
   return (
     <StyledComponentsRegistry>
-      <style dangerouslySetInnerHTML={{ __html: globalCSS }} />
       <BrowserScript />
+      <style dangerouslySetInnerHTML={{ __html: globalCSS }} />
       <StackDesignProvider {...theme}>
         {children}
       </StackDesignProvider>
