@@ -32,7 +32,9 @@ navigation:
             path: ./docs/pages/getting-started/teams.mdx
       - section: Customization
         contents:
-          - page: Dark Mode, Colors, and Styles
+          - page: Dark/Light Mode
+            path: ./docs/pages/customization/dark-mode.mdx
+          - page: Colors and Styles
             path: ./docs/pages/customization/custom-styles.mdx
           - page: Custom Layouts and Pages
             path: ./docs/pages/customization/custom-pages.mdx
