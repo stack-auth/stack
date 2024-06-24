@@ -1,6 +1,5 @@
 import React from 'react';
 import { SelectedTeamSwitcher } from "@stackframe/stack";
-import { StyledLink, Typography } from '@stackframe/stack-ui';
 import { stackServerApp } from 'src/stack';
 import { CreateTeam } from './create-team';
 
@@ -16,7 +15,7 @@ export default async function MyTeams() {
 
       {teams.length > 0 && teams.map((team) => (
         <div key={team.id}>
-          <Typography>{team.displayName}, <StyledLink href={`/teams/${team.id}`}>Open</StyledLink></Typography>
+          <p>{team.displayName}, <a href={`/teams/${team.id}`}>Open</a></p>
         </div>
       ))}
     </div>

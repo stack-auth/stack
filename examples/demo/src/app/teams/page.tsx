@@ -1,5 +1,4 @@
 
-import { Link, Separator, Typography } from "@stackframe/stack-ui";
 import { stackServerApp } from "src/stack";
 import MyTeams from "./my-teams";
 
@@ -10,19 +9,17 @@ export default async function Page() {
 
   return (
     <div>
-      <Typography type='h2'>My Teams</Typography>
+      <h2>My Teams</h2>
 
       <MyTeams />
 
-      <Separator className="my-10" />
-
-      <Typography type='h3'>All Teams</Typography>
+      <h3>All Teams</h3>
 
       {teams.map((team) => (
         <div key={team.id} className="flex gap-4 items-center">
-          <Typography>{team.displayName}</Typography>
-          <Link href={`/teams/${team.id}`}>Open</Link>
-          <Typography variant="secondary">{userTeams.some(t => t.id === team.id) ? '(You are a member)' : ''}</Typography>
+          <p>{team.displayName}</p>
+          <a href={`/teams/${team.id}`}>Open</a>
+          <p>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : ''}</p>
         </div>
       ))}
     </div>

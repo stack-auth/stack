@@ -29,6 +29,7 @@ export { MessageCard } from "./components/message-cards/message-card";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
 export { UserButton } from "./components/user-button";
 export { AccountSettings } from "./components-page/account-settings";
+export { AuthPage } from "./components-page/auth-page";
 export { 
   SelectedTeamSwitcher,
   /**

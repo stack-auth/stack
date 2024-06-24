@@ -2,7 +2,7 @@ import { cn } from "../../lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 
-export const typographyVariants = cva("text-md", {
+const typographyVariants = cva("text-md", {
   variants: {
     type: {
       h1: "text-3xl font-bold",
@@ -26,7 +26,7 @@ export const typographyVariants = cva("text-md", {
   },
 });
 
-export interface TypographyProps
+interface TypographyProps
   extends React.HTMLAttributes<HTMLHeadingElement>,
     VariantProps<typeof typographyVariants> {}
 

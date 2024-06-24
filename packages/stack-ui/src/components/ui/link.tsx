@@ -12,7 +12,7 @@ type LinkProps = {
   prefetch?: boolean,
 };
 
-export function Link(props: LinkProps) {
+function Link(props: LinkProps) {
   return <NextLink
     href={props.href}
     target={props.target}
@@ -23,11 +23,12 @@ export function Link(props: LinkProps) {
   </NextLink>;
 }
 
-
-export function StyledLink(props: LinkProps) {
+function StyledLink(props: LinkProps) {
   return (
     <Link {...props} className={cn("underline font-medium", props.className)}>
       {props.children}
     </Link>
   );
 }
+
+export { Link, StyledLink };

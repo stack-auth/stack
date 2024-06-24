@@ -580,6 +580,9 @@ importers:
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../../packages/stack-shared
+      '@stackframe/stack-ui':
+        specifier: workspace:*
+        version: link:../../packages/stack-ui
       next:
         specifier: ^14.1
         version: 14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

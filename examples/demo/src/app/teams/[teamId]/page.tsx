@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Typography } from "@stackframe/stack-ui";
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
 
@@ -16,26 +15,26 @@ export default async function Page({ params }: { params: { teamId: string } }) {
   const permissions = await user.listPermissions(team);
 
   return <div>
-    <Typography type='h2'>Team Name: {team.displayName}</Typography>
-    <Typography variant='secondary'>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : '(You are not a member)'}</Typography>
+    <h2>Team Name: {team.displayName}</h2>
+    <p>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : '(You are not a member)'}</p>
 
     <div className="mb-5"></div>
 
-    <Typography>My permissions: {permissions.map(p => p.id).join(', ')}</Typography>
+    <p>My permissions: {permissions.map(p => p.id).join(', ')}</p>
 
     <div className="mb-5"></div>
 
-    <Typography>{'You can see this if you are a member (get access by joining the team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</Typography>
-    <Typography>{'You can see this if you have the "read:content" permission (get access by pressing the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</Typography>
-    <Typography>{'You can see this if you have the "read:secret" permission (only the creator of the team has access): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</Typography>
+    <p>{'You can see this if you are a member (get access by joining the team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</p>
+    <p>{'You can see this if you have the "read:content" permission (get access by pressing the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</p>
+    <p>{'You can see this if you have the "read:secret" permission (only the creator of the team has access): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</p>
 
     <div className="mb-10"></div>
 
-    <Typography type='h3'>Members</Typography>
+    <h3>Members</h3>
 
     {members.map((teamUser) => (
       <div key={teamUser.userId}>
-        <Typography>- {teamUser.displayName || '[no name]'}</Typography>
+        <p>- {teamUser.displayName || '[no name]'}</p>
       </div>
     ))}
 
