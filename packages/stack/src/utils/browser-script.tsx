@@ -1,3 +1,4 @@
+import Color from "color";
 import { Theme } from "../providers/theme-provider";
 
 // Note that this script can not import anything from outside as it will be converted to a string and executed in the browser.
@@ -45,11 +46,22 @@ function convertKeysToDashCase(obj: Record<string, string>) {
   return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
 }
 
+function convertColorToHSL(obj: Record<string, string>) {
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => {
+    const color = Color(value).hsl().array();
+    return [key, `${color[0]} ${color[1]}% ${color[2]}%`];
+  }));
+}
+
+function processColors(colors: Record<string, string>) {
+  return convertColorToHSL(convertKeysToDashCase(colors));
+}
+
 export function BrowserScript(props: { theme: Theme }) {
   const { dark, light, ...rest } = props.theme;
   const convertedColors = {
-    light: { ...convertKeysToDashCase(light), ...rest },
-    dark: convertKeysToDashCase(dark),
+    light: { ...processColors(light), ...rest },
+    dark: processColors(dark),
   };
   return (
     <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${JSON.stringify(convertedColors)})` }}/>
