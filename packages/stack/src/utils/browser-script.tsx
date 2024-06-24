@@ -1,4 +1,4 @@
-import { ColorPalette } from "..";
+import { Theme } from "../providers/theme-provider";
 
 // Note that this script can not import anything from outside as it will be converted to a string and executed in the browser.
 // Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
@@ -46,10 +46,11 @@ function convertKeysToDashCase(obj: Record<string, string>) {
   return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
 }
 
-export function BrowserScript(props: { colors: ColorPalette }) {
+export function BrowserScript(props: { theme: Theme }) {
+  const { dark, light, ...rest } = props.theme;
   const convertedColors = {
-    light: convertKeysToDashCase(props.colors.light),
-    dark: convertKeysToDashCase(props.colors.dark),
+    light: { ...convertKeysToDashCase(light), ...rest },
+    dark: convertKeysToDashCase(dark),
   };
   return (
     <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${JSON.stringify(convertedColors)})` }}/>
