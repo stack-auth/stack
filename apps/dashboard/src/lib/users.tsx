@@ -10,10 +10,15 @@ import {
   getClientTeamFromServerTeam,
   getServerTeamFromDbType,
 } from "./teams";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const serverUserInclude = {
   projectUserOAuthAccounts: true,
-  selectedTeam: true,
+  teamMembers: {
+    include: {
+      team: true,
+    },
+  },
 } as const satisfies Prisma.ProjectUserInclude;
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: typeof serverUserInclude }>;
@@ -57,7 +62,6 @@ export async function updateClientUser(
 
   return getClientUserFromServerUser(user);
 }
-
 export async function updateServerUser(
   projectId: string,
   userId: string,
@@ -65,24 +69,52 @@ export async function updateServerUser(
 ): Promise<ServerUserJson | null> {
   let user;
   try {
-    user = await prismaClient.projectUser.update({
-      where: {
-        projectId: projectId,
-        projectId_projectUserId: {
+    const transactions = [];
+
+    if (update.selectedTeamId !== undefined) {
+      transactions.push(prismaClient.teamMember.updateMany({
+        where: {
           projectId,
           projectUserId: userId,
         },
-      },
-      include: serverUserInclude,
-      data: filterUndefined({
-        displayName: update.displayName,
-        primaryEmail: update.primaryEmail,
-        primaryEmailVerified: update.primaryEmailVerified,
-        clientMetadata: update.clientMetadata as any,
-        serverMetadata: update.serverMetadata as any,
-        selectedTeamId: update.selectedTeamId,
-      }),
-    });
+        data: {
+          selected: false,
+        },
+      }));
+
+      if (update.selectedTeamId !== null) {
+        transactions.push(prismaClient.teamMember.update({
+          where: {
+            projectId_projectUserId_teamId: {
+              projectId,
+              projectUserId: userId,
+              teamId: update.selectedTeamId,
+            },
+          },
+          data: {
+            selected: true,
+          },
+        }));
+      }
+
+      transactions.push(prismaClient.projectUser.update({
+        where: {
+          projectId_projectUserId: {
+            projectId,
+            projectUserId: userId,
+          },
+        },
+        data: filterUndefined({
+          displayName: update.displayName,
+          primaryEmail: update.primaryEmail,
+          primaryEmailVerified: update.primaryEmailVerified,
+          clientMetadata: update.clientMetadata as any,
+          serverMetadata: update.serverMetadata as any,
+        }),
+      }));
+
+      await prismaClient.$transaction(transactions);
+    }
   } catch (e) {
     // TODO this is kinda hacky, instead we should have the entire method throw an error instead of returning null and have a separate getServerUser function that may return null
     if ((e as any)?.code === 'P2025') {
@@ -91,6 +123,18 @@ export async function updateServerUser(
     throw e;
   }
 
+  user = await prismaClient.projectUser.findUnique({
+    where: {
+      projectId_projectUserId: {
+        projectId,
+        projectUserId: userId,
+      },
+    },
+    include: serverUserInclude,
+  });
+  if (!user) {
+    throw new StackAssertionError('User not found');
+  }
   return getServerUserFromDbType(user);
 }
 
@@ -135,6 +179,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
+  const rawSelectedTeam = user.teamMembers.filter(m => m.selected)[0]?.team;
   return {
     projectId: user.projectId,
     id: user.projectUserId,
@@ -149,8 +194,10 @@ export function getServerUserFromDbType(
     hasPassword: !!user.passwordHash,
     authWithEmail: user.authWithEmail,
     oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
-    selectedTeamId: user.selectedTeamId,
-    selectedTeam: user.selectedTeam && getServerTeamFromDbType(user.selectedTeam),
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    selectedTeamId: rawSelectedTeam?.teamId ?? null,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    selectedTeam: (rawSelectedTeam && getServerTeamFromDbType(rawSelectedTeam)) ?? null,
   };
 }
 

@@ -94,10 +94,9 @@ model Team {
 
   displayName String
 
-  project             Project       @relation(fields: [projectId], references: [id])
-  permissions         Permission[]
-  teamMembers         TeamMember[]
-  selectedProjectUser ProjectUser[]
+  project     Project      @relation(fields: [projectId], references: [id])
+  permissions Permission[]
+  teamMembers TeamMember[]
 
   @@id([projectId, teamId])
 }
@@ -112,10 +111,12 @@ model TeamMember {
 
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
   team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+  selected    Boolean?
 
   directPermissions TeamMemberDirectPermission[]
 
   @@id([projectId, projectUserId, teamId])
+  @@unique([projectId, projectUserId, selected])
 }
 
 model TeamMemberDirectPermission {
@@ -222,9 +223,6 @@ model ProjectUser {
 
   serverMetadata Json?
   clientMetadata Json?
-
-  selectedTeam   Team?   @relation(fields: [projectId, selectedTeamId], references: [projectId, teamId])
-  selectedTeamId String? @db.Uuid
 
   @@id([projectId, projectUserId])
 }
