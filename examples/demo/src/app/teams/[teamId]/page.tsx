@@ -1,5 +1,5 @@
-import { Text } from "@stackframe/stack";
 import { notFound } from "next/navigation";
+import { Typography } from "@stackframe/stack-ui";
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
 
@@ -16,26 +16,26 @@ export default async function Page({ params }: { params: { teamId: string } }) {
   const permissions = await user.listPermissions(team);
 
   return <div>
-    <Text size='xl'>Team Name: {team.displayName}</Text>
-    <Text variant='secondary'>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : '(You are not a member)'}</Text>
+    <Typography type='h2'>Team Name: {team.displayName}</Typography>
+    <Typography variant='secondary'>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : '(You are not a member)'}</Typography>
 
     <div className="mb-5"></div>
 
-    <Text>My permissions: {permissions.map(p => p.id).join(', ')}</Text>
+    <Typography>My permissions: {permissions.map(p => p.id).join(', ')}</Typography>
 
     <div className="mb-5"></div>
 
-    <Text>{'You can see this if you are a member (get access by joining the team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</Text>
-    <Text>{'You can see this if you have the "read:content" permission (get access by pressing the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</Text>
-    <Text>{'You can see this if you have the "read:secret" permission (only the creator of the team has access): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</Text>
+    <Typography>{'You can see this if you are a member (get access by joining the team): ' + (userTeams.some(t => t.id === team.id) ? '[YOU ARE A MEMBER]' : '🔒')}</Typography>
+    <Typography>{'You can see this if you have the "read:content" permission (get access by pressing the button below): ' + (canReadContent ? '[THIS IS THE CONTENT]' : '🔒')}</Typography>
+    <Typography>{'You can see this if you have the "read:secret" permission (only the creator of the team has access): ' + (canReadSecret ? '[THIS IS THE SECRET]' : '🔒')}</Typography>
 
     <div className="mb-10"></div>
 
-    <Text size='lg'>Members</Text>
+    <Typography type='h3'>Members</Typography>
 
     {members.map((teamUser) => (
       <div key={teamUser.userId}>
-        <Text>- {teamUser.displayName || '[no name]'}</Text>
+        <Typography>- {teamUser.displayName || '[no name]'}</Typography>
       </div>
     ))}
 

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@stackframe/stack-ui";
 export function UserAvatar(props: { size?: number, user: User | null }) {
   const user = props.user;
   return (
-    <Avatar style={{ height: props.size || '36px', width: props.size || '36px' }}>
+    <Avatar style={{ height: props.size || '34px', width: props.size || '34px' }}>
       <AvatarImage src={user?.profileImageUrl || ''} />
       <AvatarFallback>
         {user ? 
