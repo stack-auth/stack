@@ -94,9 +94,10 @@ model Team {
 
   displayName String
 
-  project     Project      @relation(fields: [projectId], references: [id])
-  permissions Permission[]
-  teamMembers TeamMember[]
+  project             Project       @relation(fields: [projectId], references: [id])
+  permissions         Permission[]
+  teamMembers         TeamMember[]
+  selectedProjectUser ProjectUser[] // TODO: remove in next release
 
   @@id([projectId, teamId])
 }
@@ -223,6 +224,9 @@ model ProjectUser {
 
   serverMetadata Json?
   clientMetadata Json?
+
+  selectedTeam   Team?   @relation(fields: [projectId, selectedTeamId], references: [projectId, teamId]) // TODO: remove in next release
+  selectedTeamId String? @db.Uuid // TODO: remove in next release
 
   @@id([projectId, projectUserId])
 }
