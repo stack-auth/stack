@@ -5,8 +5,7 @@ import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { useUser, useStackApp } from "..";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
-import { StyledLink } from "../components/ui/link";
-import Typography from "../components/ui/typography";
+import { StyledLink, Typography } from "@stackframe/stack-ui";
 
 
 export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {

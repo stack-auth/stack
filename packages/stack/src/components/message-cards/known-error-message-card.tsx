@@ -1,7 +1,7 @@
 "use client";
 
 import { useStackApp } from "../..";
-import Typography from "../ui/typography";
+import { Typography } from "@stackframe/stack-ui";
 import { MessageCard } from "./message-card";
 import { KnownError } from "@stackframe/stack-shared";
 

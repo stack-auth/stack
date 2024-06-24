@@ -1,7 +1,7 @@
 "use client";
 
+import { Typography } from "@stackframe/stack-ui";
 import { useStackApp } from "../..";
-import Typography from "../ui/typography";
 import { MessageCard } from "./message-card";
 
 export function PredefinedMessageCard({ 

@@ -8,10 +8,8 @@ import { useUser, useStackApp } from '..';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { MagicLinkSignInForm } from '../components/magic-link-sign-in-form';
 import { ClientProjectJson } from "@stackframe/stack-shared";
-import { StyledLink } from '../components/ui/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import Typography from '../components/ui/typography';
 import { CredentialSignUpForm } from '../components/credential-sign-up-form';
+import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
 
 export function AuthPage({ 
   fullPage=false,

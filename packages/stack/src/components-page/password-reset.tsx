@@ -6,7 +6,7 @@ import { use } from "react";
 import PasswordResetForm from "../components/password-reset-form";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { KnownErrors } from "@stackframe/stack-shared";
-import Typography from "../components/ui/typography";
+import { Typography } from "@stackframe/stack-ui";
 
 const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyPasswordResetCode(code);

@@ -7,9 +7,7 @@ import * as yup from "yup";
 import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
+import { Button, Input, Label } from "@stackframe/stack-ui";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')

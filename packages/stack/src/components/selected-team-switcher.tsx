@@ -5,8 +5,7 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import Typography from "./ui/typography";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Typography, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@stackframe/stack-ui";
 
 type SelectedTeamSwitcherProps = {
   projectUrlMap?: (projectId: string) => string,

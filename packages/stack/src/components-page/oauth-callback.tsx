@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { MessageCard } from "../components/message-cards/message-card";
-import { StyledLink } from "../components/ui/link";
+import { StyledLink } from "@stackframe/stack-ui";
 
 export function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();

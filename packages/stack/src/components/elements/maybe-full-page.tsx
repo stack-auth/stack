@@ -1,6 +1,6 @@
 "use client";
 
-import { Container } from "../ui/container";
+import { Container } from "@stackframe/stack-ui";
 import React, { useEffect, useId } from "react";
 
 export function MaybeFullPage({ 

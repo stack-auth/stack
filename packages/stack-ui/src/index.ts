@@ -42,3 +42,7 @@ export * from "./components/ui/toggle-group";
 export * from "./components/ui/tooltip";
 export * from "./components/ui/typography";
 export * from "./components/ui/use-toast";
+export * from "./components/ui/container";
+export * from "./components/ui/password-input";
+export * from "./components/ui/link";
+export { cn } from "./lib/utils";

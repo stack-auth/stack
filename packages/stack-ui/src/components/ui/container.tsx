@@ -1,10 +1,9 @@
 'use client';
 
-import { useDesign } from "../../providers/design-provider";
 import styled from 'styled-components';
 
 type ContainerProps = {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number,
+  size: number,
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
 
 const OuterContainer = styled.div`
@@ -21,14 +20,13 @@ const InnerContainer = styled.div<{ $breakpoint: number }>`
 `;
 
 export function Container({
-  size='md',
+  size,
   ...props
 } : ContainerProps) {
-  const { breakpoints } = useDesign();
   return (
     <OuterContainer>
       <InnerContainer
-        $breakpoint={typeof size === 'number' ? size : breakpoints[size]}
+        $breakpoint={size}
         {...props}
       >
         {props.children}

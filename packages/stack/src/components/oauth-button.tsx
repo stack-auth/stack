@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
-import { Button } from './ui/button';
 import Color from 'color';
 import styled from 'styled-components';
 

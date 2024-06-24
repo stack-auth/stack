@@ -6,15 +6,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { useStackApp } from "..";
-import { PasswordInput } from "./ui/password-input";
 import { FormWarningText } from "./elements/form-warning";
 import { PredefinedMessageCard } from "./message-cards/predefined-message-card";
 import { MessageCard } from "./message-cards/message-card";
 import { MaybeFullPage } from "./elements/maybe-full-page";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
-import Typography from "./ui/typography";
+import { Button, Label, PasswordInput, Typography } from "@stackframe/stack-ui";
 
 const schema = yup.object().shape({
   password: yup.string().required('Please enter your password').test({

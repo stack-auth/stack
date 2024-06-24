@@ -4,7 +4,7 @@ import { useStackApp } from "..";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
-import Typography from "../components/ui/typography";
+import { Typography } from "@stackframe/stack-ui";
 import { MessageCard } from "../components/message-cards/message-card";
 
 
