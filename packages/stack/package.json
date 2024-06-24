@@ -24,8 +24,8 @@
     "css": "npm run css:tw && npm run css:sc",
     "css:tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
     "css:tw": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
-    "css:sc": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope",
-    "css:sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts stack-scope'"
+    "css:sc": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts",
+    "css:sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts'"
   },
   "files": [
     "README.md",

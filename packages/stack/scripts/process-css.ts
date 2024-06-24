@@ -6,18 +6,18 @@ import postcssNested from 'postcss-nested';
 import { replaceAll } from '@stackframe/stack-shared/dist/utils/strings';
 
 const sentinel = '--stack-sentinel--';
+const scopeName = 'stack-scope'
 
 async function main() {
   const args = process.argv.slice(2);
 
-  if (args.length !== 3) {
-    console.error('Please provide exactly three arguments: input file path, output file path, and scope name');
+  if (args.length !== 2) {
+    console.error('Please provide exactly three arguments: input file path and output file path');
     process.exit(1);
   }
 
   const inputPath = path.resolve(args[0]);
   const outputPath = path.resolve(args[1]);
-  const scopeName = args[2];
 
   let content = fs.readFileSync(inputPath, 'utf8');
 

@@ -32,20 +32,16 @@ navigation:
             path: ./docs/pages/getting-started/teams.mdx
       - section: Customization
         contents:
-          - page: Overview
-            path: ./docs/pages/customization/overview.mdx
-          - page: Colors & Color Mode
-            path: ./docs/pages/customization/custom-colors.mdx
-          - page: Custom Components
-            path: ./docs/pages/customization/custom-components.mdx
-          - page: Custom Pages
+          - page: Dark Mode, Colors, and Styles
+            path: ./docs/pages/customization/custom-styles.mdx
+          - page: Custom Layouts and Pages
             path: ./docs/pages/customization/custom-pages.mdx
-          - section: Page Examples
+          - section: Custom Page Examples
             contents:
               - page: Sign In
-                path: ./docs/pages/customization/page-examples/signin.mdx
+                path: ./docs/pages/customization/page-examples/sign-in.mdx
               - page: Sign Up
-                path: ./docs/pages/customization/page-examples/signup.mdx
+                path: ./docs/pages/customization/page-examples/sign-up.mdx
   - tab: sdk
     layout: 
       - section: Next.js SDK
