@@ -77,7 +77,7 @@ export async function updateServerUser(
           projectUserId: userId,
         },
         data: {
-          selected: false,
+          selected: null,
         },
       }));
 
