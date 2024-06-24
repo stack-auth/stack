@@ -3,6 +3,7 @@
 import React from 'react';
 import { createContext, useContext } from "react";
 import { DEFAULT_COLORS } from '../utils/constants';
+import { BrowserScript } from '../utils/browser-script';
 
 type Colors = {
   background: string,
@@ -32,12 +33,17 @@ export type ColorPalette = {
   dark: Colors,
 };
 
+export type OptionalColorPalette = {
+  light?: Partial<Colors>,
+  dark?: Partial<Colors>,
+};
+
 type DesignContextValue = {
   colors: ColorPalette,
 }
 
 export type DesignConfig = {
-  colors?: Partial<ColorPalette>,
+  colors?: OptionalColorPalette,
 }
 
 const DesignContext = createContext<DesignContextValue | undefined>(undefined);
@@ -52,6 +58,7 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
 
   return (
     <DesignContext.Provider value={designValue}>
+      <BrowserScript colors={designValue.colors} />
       {props.children}
     </DesignContext.Provider> 
   );

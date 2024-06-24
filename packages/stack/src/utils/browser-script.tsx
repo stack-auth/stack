@@ -1,4 +1,4 @@
-import { DEFAULT_COLORS } from "./constants";
+import { ColorPalette } from "..";
 
 // Note that this script can not import anything from outside as it will be converted to a string and executed in the browser.
 // Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
@@ -46,10 +46,10 @@ function convertKeysToDashCase(obj: Record<string, string>) {
   return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
 }
 
-export function BrowserScript() {
+export function BrowserScript(props: { colors: ColorPalette }) {
   const convertedColors = {
-    light: convertKeysToDashCase(DEFAULT_COLORS.light),
-    dark: convertKeysToDashCase(DEFAULT_COLORS.dark),
+    light: convertKeysToDashCase(props.colors.light),
+    dark: convertKeysToDashCase(props.colors.dark),
   };
   return (
     <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${JSON.stringify(convertedColors)})` }}/>

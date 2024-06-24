@@ -5,7 +5,6 @@ export { default as StackHandler } from "./components-page/stack-handler";
 export { useDesign } from './providers/design-provider';
 export type { ColorPalette } from './providers/design-provider';
 export { StackTheme } from './providers/theme-provider';
-export type { ThemeConfig } from './providers/theme-provider';
 export type {
   CurrentUser, 
   Project, 
