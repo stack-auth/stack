@@ -38,7 +38,6 @@ const script = (colors: { light: Record<string, string>, dark: Record<string, st
   const cssVars = '.stack-scope {\n' + colorsToCSSVars(colors.light) + '}\n[data-stack-theme="dark"] .stack-scope {\n' + colorsToCSSVars(colors.dark) + '}';
   const style = document.createElement('style');
   style.textContent = cssVars;
-  style.id = 'stack-css-vars';
   document.head.appendChild(style);
 };
 
