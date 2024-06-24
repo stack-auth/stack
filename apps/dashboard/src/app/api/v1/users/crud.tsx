@@ -61,6 +61,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     };
   },
   prismaToCrud: async (prisma, { auth }) => {    
+    const rawSelectedTeam = prisma.teamMembers.filter(m => m.selected)[0]?.team;
     return {
       projectId: prisma.projectId,
       id: prisma.projectUserId,
@@ -75,8 +76,10 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       hasPassword: !!prisma.passwordHash,
       authWithEmail: prisma.authWithEmail,
       oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
-      selectedTeamId: prisma.selectedTeamId,
-      selectedTeam: prisma.selectedTeam && getServerTeamFromDbType(prisma.selectedTeam),
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      selectedTeamId: rawSelectedTeam?.teamId ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      selectedTeam: (rawSelectedTeam && getServerTeamFromDbType(rawSelectedTeam)) ?? null,
     };
   },
 });
