@@ -1,5 +1,6 @@
+import React from "react";
 import { Metadata } from "next";
-import { StackProvider } from "@stackframe/stack";
+import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "src/stack";
 import Provider from "src/components/provider";
 import Header from "src/components/header";
@@ -22,14 +23,16 @@ export default function RootLayout({
         <StackProvider
           app={stackServerApp}
         >
-          <Provider>
-            <div className="flex flex-col h-screen">
-              <Header />
-              <div className="flex-grow">
-                {children}
+          <StackTheme>
+            <Provider>
+              <div className="flex flex-col h-screen">
+                <Header />
+                <div className="flex-grow">
+                  {children}
+                </div>
               </div>
-            </div>
-          </Provider>
+            </Provider>
+          </StackTheme>
         </StackProvider>
       </body>
     </html>

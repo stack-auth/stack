@@ -16,33 +16,15 @@ export type ColorPalette = {
   dark: Colors,
 };
 
-type Breakpoints = {
-  xs: number,
-  sm: number,
-  md: number,
-  lg: number,
-  xl: number,
-};
-
 type DesignContextValue = {
   colors: ColorPalette,
-  breakpoints: Breakpoints,
 }
 
 export type DesignConfig = {
   colors?: Partial<ColorPalette>,
-  breakpoints?: Partial<Breakpoints>,
 }
 
 const DesignContext = createContext<DesignContextValue | undefined>(undefined);
-
-const defaultBreakpoints: Breakpoints = {
-  xs: 400,
-  sm: 600,
-  md: 900,
-  lg: 1200,
-  xl: 1536,
-};
 
 export function StackDesignProvider(props: { children?: React.ReactNode } & DesignConfig) {
   const designValue = {
@@ -50,7 +32,6 @@ export function StackDesignProvider(props: { children?: React.ReactNode } & Desi
       dark: { ...DEFAULT_COLORS.dark, ...props.colors?.dark }, 
       light: { ...DEFAULT_COLORS.light, ...props.colors?.light } 
     },
-    breakpoints: { ...defaultBreakpoints, ...props.breakpoints },
   };
 
   return (

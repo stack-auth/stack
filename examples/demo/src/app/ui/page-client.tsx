@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Container, Separator, Input, Label, Link, Text } from '@stackframe/stack';
+import { Button, Container, Separator, Input, Label, Link, Typography, StyledLink } from '@stackframe/stack-ui';
 
 const text = "This is a test sentence. ";
 
@@ -8,61 +8,55 @@ export default function PageClient() {
   
   return (
     <div>
-      <Container size='sm'>
+      <Container size={600}>
         <div style={{ display: 'flex', 'flexDirection': 'column', 'gap': 20 }}>
           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-            <Button size='sm' variant="primary">
+            <Button size='sm'>
               Button
             </Button>
-            <Button size='md' variant="primary">
+            <Button>
               Button
             </Button>
-            <Button size='lg' variant="primary">
+            <Button size='lg'>
               Button
             </Button>
           </div>
         
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' variant="primary">
+            <Button>
               Button
             </Button>
-            <Button size='md' variant="secondary">
+            <Button variant="secondary">
               Button
             </Button>
-            <Button size='md' variant="warning">
-              Button
-            </Button>
-            <Button size='md' color="orange">
+            <Button variant='destructive'>
               Button
             </Button>
           </div>
 
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' variant="primary" disabled>
+            <Button disabled>
               Button
             </Button>
-            <Button size='md' variant="secondary" disabled>
+            <Button variant="secondary" disabled>
               Button
             </Button>
-            <Button size='md' variant="warning" disabled>
-              Button
-            </Button>
-            <Button size='md' color='orange' disabled>
+            <Button variant="destructive" disabled>
               Button
             </Button>
           </div>
 
           <div style={{ display: 'flex', gap: 5 }}>
-            <Button size='md' variant="primary" loading>
+            <Button loading>
               Button
             </Button>
-            <Button size='md' variant="secondary" loading>
+            <Button variant="secondary" loading>
               Button
             </Button>
-            <Button size='md' variant="warning" loading>
+            <Button loading>
               Button
             </Button>
-            <Button size='md' color='orange' loading>
+            <Button color='orange' loading>
               Button
             </Button>
           </div>
@@ -71,29 +65,28 @@ export default function PageClient() {
 
           <div style={{ display: 'flex', gap: 20}}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Text size='xs'>{text}</Text>
-              <Text size='sm'>{text}</Text>
-              <Text size='md'>{text}</Text>
-              <Text size='lg'>{text}</Text>
-              <Text size='xl'>{text}</Text>
+              <Typography type='h1'>{text}</Typography>
+              <Typography type='h2'>{text}</Typography>
+              <Typography type='h3'>{text}</Typography>
+              <Typography type='h4'>{text}</Typography>
+              <Typography type='p'>{text}</Typography>
+              <Typography type='label'>{text}</Typography>
+              <Typography type='footnote'>{text}</Typography>
             </div>
           
             <Separator orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-              <Text variant="primary">{text}</Text>
-              <Text variant="secondary">{text}</Text>
-              <Text variant="warning">{text}</Text>
-              <Text variant="success">{text}</Text>
+              <Typography variant='primary'>{text}</Typography>
+              <Typography variant="secondary">{text}</Typography>
+              <Typography variant="destructive">{text}</Typography>
+              <Typography variant="success">{text}</Typography>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>
-            <Link href='/test' size='xs'>link</Link>
-            <Link href='/test' size='sm'>link</Link>
-            <Link href='/test' size='md'>link</Link>
-            <Link href='/test' size='lg'>link</Link>
-            <Link href='/test' size='xl'>link</Link>
+            <Link href='/test'>link</Link>
+            <StyledLink href='/test'>styled link</StyledLink>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>

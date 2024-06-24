@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useDesign, UserButton, ColorPalette } from "@stackframe/stack";
 import { useTheme } from "next-themes";
 import styled from "styled-components";
-import ColorMode from "./color-mode";
-import Select from "./select";
-import { useCurrentUI } from "./provider";
 
 const StyledHeader = styled.div<{ $colors: ColorPalette }>`
   border-bottom: 1px solid ${props => props.$colors.light.neutralColor};
@@ -21,7 +18,6 @@ const StyledHeader = styled.div<{ $colors: ColorPalette }>`
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { colors } = useDesign();
-  const { ui, setUi } = useCurrentUI();
 
   return (
     <>
@@ -34,15 +30,6 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center justify-end gap-5">
-          <Select 
-            options={[
-              { value: 'default', label: 'Default UI' },
-              { value: 'joy', label: 'Joy UI' }
-            ]}
-            value={ui}
-            onChange={(e) => setUi(e.target.value as any)}
-          />
-          <ColorMode />
           <UserButton colorModeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
         </div>
       </StyledHeader>

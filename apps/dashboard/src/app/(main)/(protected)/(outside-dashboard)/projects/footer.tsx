@@ -1,6 +1,6 @@
 import { Link } from "@/components/link";
 import { Separator } from "@/components/ui/separator";
-import { Text } from "@stackframe/stack";
+import Typography from "@/components/ui/typography";
 import { FaDiscord, FaGithub, FaLinkedin } from "react-icons/fa";
 
 export default function Footer () {
@@ -26,7 +26,7 @@ export default function Footer () {
         </div>
 
         <div className="flex text-sm md:flex-1 md:justify-center">
-          <Text variant="secondary" size='sm'>© 2024 Stackframe Inc.</Text>
+          <Typography variant="secondary" type='label'>© 2024 Stackframe Inc.</Typography>
         </div>
 
         <div className="flex gap-4 md:flex-1 md:justify-end">
@@ -36,7 +36,7 @@ export default function Footer () {
             { href: "mailto:team@stack-auth.com", label: "Contact us" },
           ].map(({ href, label }) => (
             <Link key={label} href={href}>
-              <Text variant="secondary" size='sm'>{label}</Text>
+              <Typography variant="secondary" type='label'>{label}</Typography>
             </Link>
           ))}
         </div>

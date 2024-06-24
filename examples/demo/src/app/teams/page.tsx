@@ -1,4 +1,4 @@
-import { Link, Separator, Text } from "@stackframe/stack";
+
 import { stackServerApp } from "src/stack";
 import MyTeams from "./my-teams";
 
@@ -9,19 +9,17 @@ export default async function Page() {
 
   return (
     <div>
-      <Text size='xl'>My Teams</Text>
+      <h2>My Teams</h2>
 
       <MyTeams />
 
-      <Separator className="my-10" />
-
-      <Text size='xl'>All Teams</Text>
+      <h3>All Teams</h3>
 
       {teams.map((team) => (
         <div key={team.id} className="flex gap-4 items-center">
-          <Text>{team.displayName}</Text>
-          <Link href={`/teams/${team.id}`}>Open</Link>
-          <Text variant="secondary">{userTeams.some(t => t.id === team.id) ? '(You are a member)' : ''}</Text>
+          <p>{team.displayName}</p>
+          <a href={`/teams/${team.id}`}>Open</a>
+          <p>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : ''}</p>
         </div>
       ))}
     </div>

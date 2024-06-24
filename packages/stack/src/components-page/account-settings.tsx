@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { PasswordField, useUser } from '..';
-import PredefinedMessageCard from '../components/message-cards/predefined-message-card';
-import { Text, Label, Input, Button, Card, CardHeader, CardContent, CardFooter, Container } from "../components-core";
-import UserAvatar from '../components/user-avatar';
+import { useUser } from '..';
+import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
+import { UserAvatar } from '../components/elements/user-avatar';
 import { useState } from 'react';
-import FormWarningText from '../components/form-warning';
+import { FormWarningText } from '../components/elements/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography, cn } from '@stackframe/stack-ui';
 
 function SettingSection(props: {
   title: string, 
@@ -15,22 +15,24 @@ function SettingSection(props: {
   buttonText?: string, 
   buttonDisabled?: boolean,
   onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
-  buttonVariant?: 'primary' | 'secondary',
+  buttonVariant?: 'default' | 'secondary',
   children?: React.ReactNode, 
 }) {
   return (
     <Card>
       <CardHeader>
-        <Text as='h3' style={{ fontWeight: 500 }}>{props.title}</Text>
-        <Text variant='secondary' size='sm'>{props.desc}</Text>
+        <div>
+          <Typography type='h4'>{props.title}</Typography>
+          <Typography type='label' variant='secondary'>{props.desc}</Typography>
+        </div>
       </CardHeader>
       {props.children && <CardContent>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className='flex flex-col gap-4'>
           {props.children}
         </div>
       </CardContent>}
       {props.buttonText && <CardFooter>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        <div className='flex justify-end w-full'>
           <Button
             disabled={props.buttonDisabled}
             onClick={props.onButtonClick}
@@ -60,16 +62,16 @@ function ProfileSection() {
         setChanged(false);
       }}
     >
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className='flex gap-4 items-center'>
         <UserAvatar user={user} size={50}/>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Text>{user?.displayName}</Text>
-          <Text variant='secondary' size='sm'>{user?.primaryEmail}</Text>
+        <div className='flex flex-col'>
+          <Typography>{user?.displayName}</Typography>
+          <Typography variant='secondary' type='label'>{user?.primaryEmail}</Typography>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='display-name'>Display Name</Label>
+      <div className='flex flex-col'>
+        <Label htmlFor='display-name' className='mb-1'>Display Name</Label>
         <Input
           id='display-name'
           value={userInfo.displayName}
@@ -105,8 +107,8 @@ function EmailVerificationSection() {
       }}
     >
       {user?.primaryEmailVerified ? 
-        <Text variant='success'>Your email has been verified</Text> : 
-        <Text variant='warning'>Your email has not been verified</Text>}
+        <Typography variant='success'>Your email has been verified</Typography> :
+        <Typography variant='destructive'>Your email has not been verified</Typography>}
     </SettingSection>
   );
 }
@@ -149,9 +151,9 @@ function PasswordSection() {
         }
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='old-password'>Old Password</Label>
-        <PasswordField
+      <div className='flex flex-col'>
+        <Label htmlFor='old-password' className='mb-1'>Old Password</Label>
+        <PasswordInput
           id='old-password' 
           value={oldPassword} 
           onChange={(e) => {
@@ -161,9 +163,9 @@ function PasswordSection() {
         />
         <FormWarningText text={oldPasswordError} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Label htmlFor='new-password'>New Password</Label>
-        <PasswordField
+      <div className='flex flex-col'>
+        <Label htmlFor='new-password' className='mb-1'>New Password</Label>
+        <PasswordInput
           id='new-password' 
           value={newPassword} 
           onChange={(e) => {
@@ -191,17 +193,17 @@ function SignOutSection() {
   );
 }
 
-export default function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser();
   if (!user) {
     return <PredefinedMessageCard type='signedOut' fullPage={fullPage} />;
   }
 
   const inner = (
-    <div style={{ padding: fullPage ? '1rem' : 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className={cn(fullPage ? 'p-4' : '', 'flex flex-col gap-4')}>
       <div>
-        <Text size="xl" as='h1' style={{ fontWeight: '600' }}>Account Settings</Text>
-        <Text variant='secondary' size='sm'>Manage your account</Text>
+        <Typography type='h2'>Account Settings</Typography>
+        <Typography variant='secondary' type='label'>Manage your account</Typography>
       </div>
       
       <ProfileSection />
@@ -213,7 +215,7 @@ export default function AccountSettings({ fullPage=false }: { fullPage?: boolean
 
   if (fullPage) {
     return (
-      <Container size='sm'>
+      <Container size={600} className='stack-scope'>
         {inner}
       </Container>
     );

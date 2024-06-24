@@ -1,50 +1,25 @@
 'use client';
+
 import React, { Suspense } from "react";
 import {
   useUser,
-  Text,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   useStackApp,
-  Skeleton,
   CurrentUser,
 } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import UserAvatar from "./user-avatar";
+import { UserAvatar } from "./elements/user-avatar";
 import { useRouter } from "next/navigation";
-import { typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import styled from "styled-components";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
-
-const icons = typedFromEntries(typedEntries({
-  CircleUser,
-  UserPlus,
-  SunMoon,
-  LogIn,
-  LogOut,
-} as const).map(([key, value]) => {
-  const styledComponent = styled(value)`
-    height: 1rem;
-    width: 1rem;
-  `;
-  return [
-    key,
-    React.createElement(styledComponent, { size: 20 })
-  ];
-}));
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton, Typography } from "@stackframe/stack-ui";
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
     <DropdownMenuItem 
       onClick={() => runAsynchronouslyWithAlert(props.onClick)}
-      style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+      className="flex gap-2 items-center"
     >
       {props.icon}
-      <Text>{props.text}</Text>
+      <Typography>{props.text}</Typography>
     </DropdownMenuItem>
   );
 }
@@ -59,7 +34,7 @@ type UserButtonProps = {
   }[],
 };
 
-export default function UserButton(props: UserButtonProps) {
+export function UserButton(props: UserButtonProps) {
   return (
     <Suspense
       fallback={
@@ -83,33 +58,31 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const user = props.user;
   const app = useStackApp();
   const router = useRouter();
-
-  const textStyles = {
-    textOverflow: 'ellipsis', 
-    whiteSpace: 'nowrap', 
-    overflow: 'hidden',
-    margin: 0,
-  };
+  
+  const iconProps = { size: 20, className: 'h-4 w-4' };
+  const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <DropdownMenuTrigger className="outline-none stack-scope">
+        <div className="flex gap-2 items-center">
           <UserAvatar user={user} />
-          {user && props.showUserInfo && <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Text style={textStyles}>{user.displayName}</Text>
-            <Text style={{ ...textStyles, fontWeight: 400 }} variant="secondary" size="sm">{user.primaryEmail}</Text>
-          </div>}
+          {user && props.showUserInfo && 
+            <div className="flex flex-col justify-center">
+              <Typography className={textClasses}>{user.displayName}</Typography>
+              <Typography className={textClasses} variant="secondary" type='label'>{user.primaryEmail}</Typography>
+            </div>
+          }
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ zIndex: 1500 }}>
+      <DropdownMenuContent className="stack-scope">
         <DropdownMenuLabel>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             <UserAvatar user={user} />
             <div>
-              {user && <Text>{user.displayName}</Text>}
-              {user && <Text variant="secondary" size="sm" style={{ fontWeight: 400 }}>{user.primaryEmail}</Text>}
-              {!user && <Text>Not signed in</Text>}
+              {user && <Typography>{user.displayName}</Typography>}
+              {user && <Typography variant="secondary" type='label'>{user.primaryEmail}</Typography>}
+              {!user && <Typography>Not signed in</Typography>}
             </div>
           </div>
         </DropdownMenuLabel>
@@ -117,17 +90,17 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         {user && <Item 
           text="Account settings" 
           onClick={() => router.push(app.urls.accountSettings)}
-          icon={icons.CircleUser}
+          icon={<CircleUser {...iconProps} />}
         />}
         {!user && <Item
           text="Sign in"
           onClick={() => router.push(app.urls.signIn)}
-          icon={icons.LogIn}
+          icon={<LogIn {...iconProps} />}
         />}
         {!user && <Item
           text="Sign up"
           onClick={() => router.push(app.urls.signUp)}
-          icon={icons.UserPlus}
+          icon={<UserPlus {...iconProps}/> }
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (
           <Item key={index} {...item} />
@@ -136,13 +109,13 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <Item 
             text="Toggle theme" 
             onClick={props.colorModeToggle} 
-            icon={icons.SunMoon}
+            icon={<SunMoon {...iconProps} />}
           />
         )}
         {user && <Item 
           text="Sign out" 
           onClick={() => user.signOut()} 
-          icon={icons.LogOut}
+          icon={<LogOut {...iconProps} />}
         />}
       </DropdownMenuContent>
     </DropdownMenu>

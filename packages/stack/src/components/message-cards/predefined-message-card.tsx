@@ -1,10 +1,10 @@
 "use client";
 
+import { Typography } from "@stackframe/stack-ui";
 import { useStackApp } from "../..";
-import MessageCard from "./message-card";
-import { Text } from "../../components-core";
+import { MessageCard } from "./message-card";
 
-export default function PredefinedMessageCard({ 
+export function PredefinedMessageCard({ 
   type,
   fullPage=false,
 }: { 
@@ -66,7 +66,7 @@ export default function PredefinedMessageCard({
   }
 
   return (
-    <MessageCard 
+    <MessageCard
       title={title} 
       fullPage={fullPage} 
       primaryButtonText={primaryButton} 
@@ -74,7 +74,7 @@ export default function PredefinedMessageCard({
       secondaryButtonText={secondaryButton || undefined} 
       secondaryAction={secondaryAction || undefined}
     >
-      {message && <Text>{message}</Text>}
+      {message && <Typography>{message}</Typography>}
     </MessageCard>
   );
 }

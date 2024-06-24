@@ -273,6 +273,10 @@ export function nicify(
   }
 }
 
+export function replaceAll(input: string, searchValue: string, replaceValue: string): string {
+  return input.split(searchValue).join(replaceValue);
+}
+
 function nicifyPropertyString(str: string) {
   if (/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(str)) return str;
   return JSON.stringify(str);

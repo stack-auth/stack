@@ -1,10 +1,10 @@
 'use client';
 
 import React from "react";
-import MaybeFullPage from "../maybe-full-page";
-import { Button, Text } from "../../components-core";
+import { MaybeFullPage } from "../elements/maybe-full-page";
+import { Button, Typography } from "@stackframe/stack-ui";
 
-export default function MessageCard(
+export function MessageCard(
   { fullPage=false, ...props }: 
   { 
     children?: React.ReactNode, 
@@ -19,7 +19,7 @@ export default function MessageCard(
   return (
     <MaybeFullPage fullPage={fullPage}>
       <div style={{ textAlign: 'center' }}>
-        <Text size="xl" as='h2' style={{ marginBottom: '24px' }}>{props.title}</Text>
+        <Typography type='h3' className="mb-6">{props.title}</Typography>
         {props.children}
         {(props.primaryButtonText || props.secondaryButtonText) && (
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: 20 }}>

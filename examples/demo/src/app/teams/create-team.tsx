@@ -1,6 +1,7 @@
 "use client";
 
-import { Input, Button, useUser } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
+import { Button, Input } from "@stackframe/stack-ui";
 import React from "react";
 
 export function CreateTeam() {

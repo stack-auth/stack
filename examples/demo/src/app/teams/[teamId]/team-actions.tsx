@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, useUser } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
+import { Button } from "@stackframe/stack-ui";
 import { grantReadContentPermission, joinTeam, leaveTeam } from "./server-actions";
 
 export default function TeamActions(props: { teamId: string }) {
@@ -11,7 +12,7 @@ export default function TeamActions(props: { teamId: string }) {
     <div>
       {team ? 
         <div className="flex gap-5">
-          <Button 
+          <Button
             onClick={async () => {
               await grantReadContentPermission(team.id);
               window.location.reload();

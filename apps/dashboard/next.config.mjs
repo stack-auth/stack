@@ -70,10 +70,6 @@ const nextConfig = {
 
   poweredByHeader: false,
 
-  experimental: {
-    optimizePackageImports: ["@mui/joy"],
-  },
-
   async headers() {
     return [
       {
