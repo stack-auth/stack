@@ -23,8 +23,13 @@ const schema = yup.object().shape({
       }
     }
   }),
-  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  passwordRepeat: yup.string()
+    .required('Please repeat your password')
+    .test('passwords-match', 'Passwords do not match', function (value) {
+      return value === this.resolve(yup.ref('password')) || value === null;
+    })
 });
+
 
 export default function CredentialSignUp() {
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
@@ -39,8 +44,8 @@ export default function CredentialSignUp() {
   };
 
   return (
-    <form 
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+    <form
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
@@ -62,7 +67,7 @@ export default function CredentialSignUp() {
         }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
-        
+
       <Label htmlFor="repeat-password" style={{ marginTop: '1rem' }}>Repeat Password</Label>
       <PasswordField
         id="repeat-password"
