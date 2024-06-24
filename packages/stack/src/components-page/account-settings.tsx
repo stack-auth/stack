@@ -215,7 +215,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
 
   if (fullPage) {
     return (
-      <Container size={600}>
+      <Container size={600} className='stack-scope'>
         {inner}
       </Container>
     );

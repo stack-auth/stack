@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import styled from 'styled-components';
 
 type ContainerProps = {
@@ -19,18 +20,21 @@ const InnerContainer = styled.div<{ $breakpoint: number }>`
   }
 `;
 
-export function Container({
+const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
   size,
   ...props
-} : ContainerProps) {
+}, ref) => {
   return (
     <OuterContainer>
       <InnerContainer
         $breakpoint={size}
         {...props}
+        ref={ref}
       >
         {props.children}
       </InnerContainer>
     </OuterContainer>
   );
-}
+});
+
+export { Container };
