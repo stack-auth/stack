@@ -59,7 +59,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       serverMetadata: crud.serverMetadata === null ? Prisma.JsonNull : crud.serverMetadata,
       projectId,
       primaryEmail: crud.primaryEmail,
-      primaryEmailVerified: crud.primaryEmailVerified,
+      primaryEmailVerified: crud.primaryEmailVerified ?? (crud.primaryEmail !== undefined ? false : undefined),
     };
   },
   prismaToCrud: async (prisma, { auth }) => {    

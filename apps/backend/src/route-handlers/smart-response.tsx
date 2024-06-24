@@ -89,7 +89,6 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
       arrayBufferBody = new TextEncoder().encode(JSON.stringify({
         success: true,
       }));
-      console.log("Success response", { requestId });
       break;
     }
     default: {

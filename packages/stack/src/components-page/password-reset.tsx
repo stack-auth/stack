@@ -46,11 +46,11 @@ export function PasswordReset({
 
   const error = use(cachedVerifyPasswordResetCode(stackApp, code));
   
-  if (error instanceof KnownErrors.PasswordResetCodeNotFound) {
+  if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
-  } else if (error instanceof KnownErrors.PasswordResetCodeExpired) {
+  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
     return expiredJsx;
-  } else if (error instanceof KnownErrors.PasswordResetCodeAlreadyUsed) {
+  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
     return usedJsx;
   } else if (error) {
     throw error;

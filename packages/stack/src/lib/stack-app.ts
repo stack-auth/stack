@@ -941,16 +941,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return error;
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["PasswordResetError"] | void> {
+  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["VerificationCodeError"] | void> {
     const error = await this._interface.resetPassword(options);
     return error;
   }
 
-  async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | void> {
+  async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     return await this._interface.verifyPasswordResetCode(code);
   }
 
-  async verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | void> {
+  async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     return await this._interface.verifyEmail(code);
   }
 
@@ -1066,7 +1066,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return result;
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | void> {
+  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     const result = await this._interface.signInWithMagicLink(code, session);
@@ -2146,10 +2146,10 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
-    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["PasswordResetError"] | void>,
-    verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | void>,
-    verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | void>,
-    signInWithMagicLink(code: string): Promise<KnownErrors["MagicLinkError"] | void>,
+    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
+    verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,

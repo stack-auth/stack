@@ -37,8 +37,8 @@ describe("with client access", () => {
         "body": {
           "code": "INSUFFICIENT_ACCESS_TYPE",
           "details": {
-            "actualAccessType": "client",
-            "allowedAccessTypes": [
+            "actual_access_type": "client",
+            "allowed_access_types": [
               "server",
               "admin",
             ],

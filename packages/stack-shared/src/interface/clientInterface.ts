@@ -529,7 +529,7 @@ export class StackClientInterface {
 
   async resetPassword(
     options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
-  ): Promise<KnownErrors["PasswordResetError"] | undefined> {
+  ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password-reset",
       {
@@ -540,7 +540,7 @@ export class StackClientInterface {
         body: JSON.stringify(options),
       },
       null,
-      [KnownErrors.PasswordResetError]
+      [KnownErrors.VerificationCodeError]
     );
 
     if (res.status === "error") {
@@ -570,15 +570,15 @@ export class StackClientInterface {
     }
   }
 
-  async verifyPasswordResetCode(code: string): Promise<KnownErrors["PasswordResetCodeError"] | undefined> {
+  async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.resetPassword({ code, onlyVerifyCode: true });
-    if (res && !(res instanceof KnownErrors.PasswordResetCodeError)) {
+    if (res && !(res instanceof KnownErrors.VerificationCodeError)) {
       throw res;
     }
     return res;
   }
 
-  async verifyEmail(code: string): Promise<KnownErrors["EmailVerificationError"] | undefined> {
+  async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/email-verification",
       {
@@ -591,7 +591,7 @@ export class StackClientInterface {
         }),
       },
       null,
-      [KnownErrors.EmailVerificationError]
+      [KnownErrors.VerificationCodeError]
     );
 
     if (res.status === "error") {
@@ -665,7 +665,7 @@ export class StackClientInterface {
     };
   }
 
-  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["MagicLinkError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/magic-link-verification",
       {
@@ -678,7 +678,7 @@ export class StackClientInterface {
         }),
       },
       null,
-      [KnownErrors.MagicLinkError]
+      [KnownErrors.VerificationCodeError]
     );
 
     if (res.status === "error") {

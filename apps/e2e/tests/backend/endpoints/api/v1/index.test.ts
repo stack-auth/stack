@@ -30,7 +30,7 @@ describe("without project ID", () => {
         "status": 400,
         "body": {
           "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "details": { "requestType": "client" },
+          "details": { "request_type": "client" },
           "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
         },
         "headers": Headers {

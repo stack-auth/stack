@@ -10,8 +10,11 @@ import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, c
 import { SmartResponse, createResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
-  constructor() {
-    super(StatusError.InternalServerError);
+  constructor(error: unknown) {
+    super(
+      StatusError.InternalServerError,
+      ...process.env.NODE_ENV === "development" ? [`Internal Server Error: ${error}`] : [],
+    );
   }
 }
 
@@ -40,7 +43,7 @@ function catchError(error: unknown): StatusError {
 
   if (error instanceof StatusError) return error;
   captureError(`route-handler`, error);
-  return new InternalServerError();
+  return new InternalServerError(error);
 }
 
 /**

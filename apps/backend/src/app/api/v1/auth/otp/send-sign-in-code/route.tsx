@@ -2,11 +2,10 @@ import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { SmartRequestAdaptSentinel } from "@/route-handlers/smart-request";
-import { sendMagicLink } from "@/lib/emails";
-import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { createTeamOnSignUp } from "@/lib/users";
+import { signInVerificationCodeHandler } from "../sign-in/route";
 
 export const POST = createSmartRouteHandler({
   request: yup.object({
@@ -35,7 +34,7 @@ export const POST = createSmartRouteHandler({
         authWithEmail: true,
       },
     });
-  
+
     if (users.length > 1) {
       throw new StackAssertionError(`Multiple users found in the database with the same primary email ${email}, and all with e-mail sign-in allowed. This should never happen (only non-email/OAuth accounts are allowed to share the same primaryEmail).`);
     }
@@ -53,18 +52,28 @@ export const POST = createSmartRouteHandler({
   
       await createTeamOnSignUp(project.id, user.projectUserId);
     }
-    
-    if (
-      !validateRedirectUrl(
-        redirectUrl, 
-        project.evaluatedConfig.domains,
-        project.evaluatedConfig.allowLocalhost 
-      )
-    ) {
-      throw new KnownErrors.RedirectUrlNotWhitelisted();
-    }
-    
-    await sendMagicLink(project.id, user.projectUserId, redirectUrl, isNewUser);
+
+    const { link } = await signInVerificationCodeHandler.sendCode({
+      project,
+      method: { email },
+      data: {
+        user_id: user.projectUserId,
+        is_new_user: isNewUser,
+      },
+      redirectUrl,
+    });
+
+    await sendEmailFromTemplate({
+      project,
+      email,
+      templateId: "MAGIC_LINK",
+      variables: {
+        userDisplayName: user.displayName,
+        userPrimaryEmail: user.primaryEmail,
+        projectDisplayName: project.displayName,
+        magicLink: link.toString(),
+      },
+    });
     
     return {
       statusCode: 200,

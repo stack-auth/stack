@@ -25,15 +25,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!codeRecord) {
-    throw new KnownErrors.MagicLinkCodeNotFound();
+    throw new KnownErrors.VerificationCodeNotFound();
   }
 
   if (codeRecord.expiresAt < new Date()) {
-    throw new KnownErrors.MagicLinkCodeExpired();
+    throw new KnownErrors.VerificationCodeExpired();
   }
 
   if (codeRecord.usedAt) {
-    throw new KnownErrors.MagicLinkCodeAlreadyUsed();
+    throw new KnownErrors.VerificationCodeAlreadyUsed();
   }
   
   await prismaClient.projectUser.update({

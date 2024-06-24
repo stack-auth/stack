@@ -7,6 +7,8 @@ import { UserJson, ProjectJson } from '@stackframe/stack-shared';
 import { getClientUser } from '@/lib/users';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
+import { EmailTemplateType } from '@prisma/client';
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 
 
 function getPortConfig(port: number | string) {
@@ -58,6 +60,56 @@ export async function sendEmail({
   });
 }
 
+export async function sendEmailFromTemplate(options: {
+  project: ProjectJson,
+  email: string,
+  templateId: EmailTemplateType,
+  variables: Record<string, string | null>,
+}) {
+  const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
+
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, options.variables);
+  
+  await sendEmail({
+    emailConfig: await getEmailConfig(options.project),
+    to: options.email,
+    subject,
+    html,
+    text,
+  });   
+}
+
+async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
+  const projectEmailConfig = project.evaluatedConfig.emailConfig;
+  if (!projectEmailConfig) {
+    throw new Error('Email service config not found. TODO: When can this even happen?');
+  }
+
+  if (projectEmailConfig.type === 'shared') {
+    return {
+      host: getEnvVariable('EMAIL_HOST'),
+      port: parseInt(getEnvVariable('EMAIL_PORT')),
+      username: getEnvVariable('EMAIL_USERNAME'),
+      password: getEnvVariable('EMAIL_PASSWORD'),
+      senderEmail: getEnvVariable('EMAIL_SENDER'),
+      senderName: project.displayName,
+      secure: getPortConfig(getEnvVariable('EMAIL_PORT')).secure,
+      type: 'shared',
+    };
+  } else {
+    return {
+      host: projectEmailConfig.host,
+      port: projectEmailConfig.port,
+      username: projectEmailConfig.username,
+      password: projectEmailConfig.password,
+      senderEmail: projectEmailConfig.senderEmail,
+      senderName: projectEmailConfig.senderName,
+      secure: getPortConfig(projectEmailConfig.port).secure,
+      type: 'standard',
+    };
+  }
+}
+
 async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   emailConfig: EmailConfig,
   project: ProjectJson,
@@ -69,35 +121,6 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
     throw new Error('Project not found');
   }
 
-  const projectEmailConfig = project.evaluatedConfig.emailConfig;
-  if (!projectEmailConfig) {
-    throw new Error('Email service config not found');
-  }
-
-  let emailConfig: EmailConfig;
-  if (projectEmailConfig.type === 'shared') {
-    emailConfig = {
-      host: getEnvVariable('EMAIL_HOST'),
-      port: parseInt(getEnvVariable('EMAIL_PORT')),
-      username: getEnvVariable('EMAIL_USERNAME'),
-      password: getEnvVariable('EMAIL_PASSWORD'),
-      senderEmail: getEnvVariable('EMAIL_SENDER'),
-      senderName: project.displayName,
-      secure: getPortConfig(getEnvVariable('EMAIL_PORT')).secure,
-      type: 'shared',
-    };
-  } else {
-    emailConfig = {
-      host: projectEmailConfig.host,
-      port: projectEmailConfig.port,
-      username: projectEmailConfig.username,
-      password: projectEmailConfig.password,
-      senderEmail: projectEmailConfig.senderEmail,
-      senderName: projectEmailConfig.senderName,
-      secure: getPortConfig(projectEmailConfig.port).secure,
-      type: 'standard',
-    };
-  }
 
   const projectUser = await getClientUser(projectId, projectUserId);
 
@@ -106,7 +129,7 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   }
 
   return {
-    emailConfig,
+    emailConfig: await getEmailConfig(project),
     project,
     projectUser,
   };
@@ -191,51 +214,6 @@ export async function sendPasswordResetEmail(
   };
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
 
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primaryEmail,
-    subject,
-    html,
-    text,
-  });
-}
-
-export async function sendMagicLink(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-  newUser: boolean,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primaryEmail) {
-    throw Error('The user does not have a primary email');
-  }
-
-  const magicLinkCode = await prismaClient.projectUserMagicLinkCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // expires in 30 min
-      newUser,
-    }
-  });
-
-  const magicLink = new URL(redirectUrl);
-  magicLink.searchParams.append('code', magicLinkCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'MAGIC_LINK');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.displayName,
-    userPrimaryEmail: projectUser.primaryEmail,
-    projectDisplayName: project.displayName,
-    magicLink: magicLink.toString(),
-  };
-
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,

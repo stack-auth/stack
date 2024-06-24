@@ -1,6 +1,7 @@
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch } from "../helpers";
 import { expect } from "vitest";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 type BackendContext = {
   projectKeys: ProjectKeys,
@@ -32,6 +33,22 @@ export const InternalProjectKeys = {
   superSecretAdminKey: STACK_INTERNAL_PROJECT_ADMIN_KEY,
 };
 
+function expectSnakeCase(obj: unknown, path: string): void {
+  if (typeof obj !== "object" || obj === null) return;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      expectSnakeCase(obj[i], `${path}[${i}]`);
+    }
+  } else {
+    for (const [key, value] of Object.entries(obj)) {
+      if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_")) {
+        throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
+      }
+      expectSnakeCase(value, `${path}.${key}`);
+    }
+  }
+}
+
 export async function niceBackendFetch(url: string, options?: Omit<RequestInit, "body"> & {
   accessType?: null | "client" | "server" | "admin",
   body?: unknown,
@@ -61,37 +78,81 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
       code: res.headers.get("x-stack-known-error"),
     });
   }
+  if (typeof res.body === "object" && res.body) {
+    expectSnakeCase(res.body, "body");
+  }
   return res;
 }
 
 
-type SendSignInCodeResult = {
-  sendSignInCodeEndpointResponse: NiceResponse,
-};
-export async function sendSignInCode(options: {} = {}): Promise<SendSignInCodeResult> {
-  const mailbox = backendContext.value.mailbox;
-  const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
-    method: "POST",
-    accessType: "client",
-    body: {
-      email: mailbox.emailAddress,
-      redirectUrl: "http://localhost:12345",
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": { "success": true },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+export namespace Auth {
+  export namespace Otp {
+    type SendSignInCodeResult = {
+      sendSignInCodeResponse: NiceResponse,
+    };
+    export async function sendSignInCode(): Promise<SendSignInCodeResult> {
+      const mailbox = backendContext.value.mailbox;
+      const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          email: mailbox.emailAddress,
+          redirectUrl: "http://localhost:12345",
+        },
+      });
+      expect(response).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": { "success": true },
+          "headers": Headers {
+            "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+            <some fields may have been hidden>,
+          },
+        }
+      `);
+      const messages = await mailbox.fetchMessages({ subjectOnly: true });
+      const subjects = messages.map((message) => message.subject);
+      expect(subjects).toContain("Sign in to Stack Dashboard");
+      return {
+        sendSignInCodeResponse: response,
+      };
     }
-  `);
-  const messages = await mailbox.fetchMessages({ subjectOnly: true });
-  const subjects = messages.map((message) => message.subject);
-  expect(subjects).toContain("Sign in to Stack Dashboard");
-  return {
-    sendSignInCodeEndpointResponse: response,
-  };
+
+    type SignInResult = SendSignInCodeResult & {
+      signInResponse: NiceResponse,
+      accessToken: string,
+      refreshToken: string,
+    };
+    export async function signIn(): Promise<SignInResult> {
+      const mailbox = backendContext.value.mailbox;
+      const sendSignInCodeRes = await sendSignInCode();
+      const messages = await mailbox.fetchMessages();
+      const message = messages.findLast((message) => message.subject === "Sign in to Stack Dashboard") ?? throwErr("Sign-in code message not found");
+      const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
+      const response = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          code: signInCode,
+        },
+      });
+      expect(response).toMatchObject({
+        status: 200,
+        body: {
+          access_token: expect.any(String),
+          refresh_token: expect.any(String),
+          is_new_user: expect.any(Boolean),
+        },
+        headers: expect.anything(),
+      });
+
+      return {
+        ...sendSignInCodeRes,
+        signInResponse: response,
+        accessToken: response.body.accessToken,
+        refreshToken: response.body.refreshToken,
+      };
+    }
+  }
 }
+

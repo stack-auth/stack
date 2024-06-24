@@ -315,6 +315,27 @@ model ProjectUserAuthorizationCode {
   @@id([projectId, authorizationCode])
 }
 
+model VerificationCode {
+  projectId     String
+  id            String @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  code          String
+  expiresAt     DateTime
+  usedAt        DateTime?
+  redirectUrl   String?
+
+  email         String
+
+  data          Json
+
+  @@id([projectId, id])
+  @@unique([projectId, code])
+}
+
+// @deprecated
 model ProjectUserEmailVerificationCode {
   projectId     String
   projectUserId String @db.Uuid
@@ -332,6 +353,7 @@ model ProjectUserEmailVerificationCode {
   @@id([projectId, code])
 }
 
+// @deprecated
 model ProjectUserPasswordResetCode {
   projectId     String
   projectUserId String @db.Uuid
@@ -349,6 +371,7 @@ model ProjectUserPasswordResetCode {
   @@id([projectId, code])
 }
 
+// @deprecated
 model ProjectUserMagicLinkCode {
   projectId     String
   projectUserId String @db.Uuid

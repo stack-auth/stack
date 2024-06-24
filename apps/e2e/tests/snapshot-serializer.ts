@@ -26,6 +26,8 @@ const hideHeaders = [
 
 const stripHeaders = ["x-stack-request-id"];
 
+const stripFields = ["access_token", "refresh_token", "id", "date"];
+
 function addAll<T>(set: Set<T>, values: T[]) {
   for (const value of values) {
     set.add(value);
@@ -84,6 +86,9 @@ const snapshotSerializer: SnapshotSerializer = {
           if (parentSnapshotSerializerOptions?.stripFields?.includes(options.keyInParent)) {
             return `<stripped field '${options.keyInParent.toString()}'>`;
           }
+        }
+        if (typedIncludes(stripFields, options?.keyInParent)) {
+          return `<stripped field '${options.keyInParent}'>`;
         }
 
         // Otherwise, use default serialization

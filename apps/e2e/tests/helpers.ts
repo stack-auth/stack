@@ -82,7 +82,7 @@ export class NiceResponse implements Nicifiable {
   constructor(
     public readonly status: number,
     public readonly headers: Headers,
-    public readonly body: unknown,
+    public readonly body: any,
   ) {}
 
   getNicifiableKeys(): string[] {
