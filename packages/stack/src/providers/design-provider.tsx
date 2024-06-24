@@ -5,10 +5,26 @@ import { createContext, useContext } from "react";
 import { DEFAULT_COLORS } from '../utils/constants';
 
 type Colors = {
-  primaryColor: string,
-  secondaryColor: string,
-  backgroundColor: string,
-  neutralColor: string,
+  background: string,
+  foreground: string,
+  card: string,
+  cardForeground: string,
+  popover: string,
+  popoverForeground: string,
+  primary: string,
+  primaryForeground: string,
+  secondary: string,
+  secondaryForeground: string,
+  muted: string,
+  mutedForeground: string,
+  accent: string,
+  accentForeground: string,
+  destructive: string,
+  destructiveForeground: string,
+  border: string,
+  input: string,
+  ring: string,
+  radius: string,
 }
 
 export type ColorPalette = {

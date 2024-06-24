@@ -1,6 +1,8 @@
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { DEFAULT_COLORS } from "./constants";
 
-const script = () => {
+// Note that this script can not import anything from outside as it will be converted to a string and executed in the browser.
+// Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
+const script = (colors: { light: Record<string, string>, dark: Record<string, string> }) => {
   const attributes = ['data-joy-color-scheme', 'data-mui-color-scheme', 'data-theme', 'data-color-scheme', 'class'];
 
   const observer = new MutationObserver((mutations) => {
@@ -27,78 +29,29 @@ const script = () => {
     attributeFilter: attributes,
   });
 
-  const cssVars = `
-  .stack-scope {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-
-    --radius: 0.5rem;
+  function colorsToCSSVars(colors: Record<string, string>) {
+    return Object.entries(colors).map((params) => { 
+      return "--" + params[0] + ": " + params[1] + ";\n";
+    }).join('');
   }
-
-  [data-stack-theme="dark"] .stack-scope {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
-  `;
-
+  
+  const cssVars = '.stack-scope {\n' + colorsToCSSVars(colors.light) + '}\n[data-stack-theme="dark"] .stack-scope {\n' + colorsToCSSVars(colors.dark) + '}';
   const style = document.createElement('style');
   style.textContent = cssVars;
   style.id = 'stack-css-vars';
   document.head.appendChild(style);
 };
 
+function convertKeysToDashCase(obj: Record<string, string>) {
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
+}
+
 export function BrowserScript() {
+  const convertedColors = {
+    light: convertKeysToDashCase(DEFAULT_COLORS.light),
+    dark: convertKeysToDashCase(DEFAULT_COLORS.dark),
+  };
   return (
-    <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})()` }}/>
+    <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${JSON.stringify(convertedColors)})` }}/>
   );
 }
