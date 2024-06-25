@@ -5,6 +5,8 @@ import StyledComponentsRegistry from "./styled-components-registry";
 import { globalCSS } from "../generated/global-css";
 import { BrowserScript } from "../utils/browser-script";
 import { DEFAULT_THEME } from "../utils/constants";
+import Color from "color";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 type Colors = {
   background: string,
@@ -38,6 +40,39 @@ type ThemeConfig = {
   light?: Partial<Colors>,
   dark?: Partial<Colors>,
 } & Partial<Omit<Theme, 'light' | 'dark'>>;
+
+function convertKeysToDashCase(obj: Record<string, string>) {
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
+}
+
+function convertColorToHSL(obj: Record<string, string>) {
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => {
+    const color = Color(value).hsl().array();
+    return [key, `${color[0]} ${color[1]}% ${color[2]}%`];
+  }));
+}
+
+function convertColorsToCSS(theme: Theme) {
+  const { dark, light, ...rest } = theme;
+  const colors = {
+    light: { ...convertColorToHSL(convertKeysToDashCase(light)), ...rest },
+    dark: convertColorToHSL(convertKeysToDashCase(dark)),
+  };
+
+  function colorsToCSSVars(colors: Record<string, string>) {
+    return Object.entries(colors).map((params) => { 
+      return `--${params[0]}: ${params[1]};\n`;
+    }).join('');
+  }
+  
+  return deindent`
+  .stack-scope {
+  ${colorsToCSSVars(colors.light)}
+  }
+  [data-stack-theme="dark"] .stack-scope {
+  ${colorsToCSSVars(colors.dark)}
+  }`;
+}
   
 
 export function StackTheme({
@@ -56,8 +91,8 @@ export function StackTheme({
 
   return (
     <StyledComponentsRegistry>
-      <BrowserScript theme={themeValue} />
-      <style dangerouslySetInnerHTML={{ __html: globalCSS }} />
+      <BrowserScript />
+      <style dangerouslySetInnerHTML={{ __html: globalCSS + '\n' + convertColorsToCSS(themeValue) }} />
       {children}
     </StyledComponentsRegistry>
   );
