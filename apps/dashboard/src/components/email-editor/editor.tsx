@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { setDocument, setMetadata, setSubject, useDocument, useSubject } from './documents/editor/editor-context';
+import { resetDocument, setDocument, setMetadata, setSubject, useDocument, useSubject } from './documents/editor/editor-context';
 import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
@@ -14,6 +14,7 @@ export default function EmailEditor(props: {
   metadata: EmailTemplateMetadata,
   onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>,
   onCancel?: () => void | Promise<void>,
+  resetSignal?: any,
 }) {
   const document = useDocument();
   const subject = useSubject();
@@ -25,6 +26,13 @@ export default function EmailEditor(props: {
     setSubject(props.subject);
     setMetadata(convertEmailTemplateMetadataExampleValues(props.metadata, project));
   }, [props.document, props.metadata, project, props.subject]);
+
+  useEffect(() => {
+    if (props.resetSignal) {
+      resetDocument(props.document);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.resetSignal]);
 
   const edited = useMemo(() => {
     return !_.isEqual(props.document, document) || props.subject !== subject;

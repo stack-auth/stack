@@ -1,4 +1,5 @@
 'use client';
+
 import EmailEditor from "@/components/email-editor/editor";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { useAdminApp } from "../../../use-admin-app";
@@ -7,12 +8,14 @@ import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@/email/
 import ErrorPage from "@/components/ui/error-page";
 import { TEditorConfiguration } from "@/components/email-editor/documents/editor/core";
 import { useToast } from "@/components/ui/use-toast";
+import { usePathname } from "next/navigation";
 
 export default function PageClient(props: { templateType: EmailTemplateType }) {
   const app = useAdminApp();
   const emailTemplates = app.useEmailTemplates();
   const template = emailTemplates.find((template) => template.type === props.templateType);
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
 
   if (!template) {
@@ -41,7 +44,8 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
 
   return (
     <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
-      <EmailEditor 
+      <EmailEditor
+        resetSignal={pathname}
         document={template.content} 
         subject={template.subject}
         metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
