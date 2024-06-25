@@ -10,10 +10,15 @@ import {
   getClientTeamFromServerTeam,
   getServerTeamFromDbType,
 } from "./teams";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const serverUserInclude = {
   projectUserOAuthAccounts: true,
-  selectedTeam: true,
+  teamMembers: {
+    include: {
+      team: true,
+    },
+  },
 } as const satisfies Prisma.ProjectUserInclude;
 
 export type ServerUserDB = Prisma.ProjectUserGetPayload<{ include: typeof serverUserInclude }>;
@@ -65,9 +70,35 @@ export async function updateServerUser(
 ): Promise<ServerUserJson | null> {
   let user;
   try {
+    if (update.selectedTeamId !== undefined) {
+      await prismaClient.teamMember.updateMany({
+        where: {
+          projectId,
+          projectUserId: userId,
+        },
+        data: {
+          selected: null,
+        },
+      });
+
+      if (update.selectedTeamId !== null) {
+        await prismaClient.teamMember.update({
+          where: {
+            projectId_projectUserId_teamId: {
+              projectId,
+              projectUserId: userId,
+              teamId: update.selectedTeamId,
+            },
+          },
+          data: {
+            selected: true,
+          },
+        });
+      }
+    }
+
     user = await prismaClient.projectUser.update({
       where: {
-        projectId: projectId,
         projectId_projectUserId: {
           projectId,
           projectUserId: userId,
@@ -135,6 +166,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
+  const rawSelectedTeam = user.teamMembers.filter(m => m.selected)[0]?.team;
   return {
     projectId: user.projectId,
     id: user.projectUserId,
@@ -149,8 +181,10 @@ export function getServerUserFromDbType(
     hasPassword: !!user.passwordHash,
     authWithEmail: user.authWithEmail,
     oauthProviders: user.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
-    selectedTeamId: user.selectedTeamId,
-    selectedTeam: user.selectedTeam && getServerTeamFromDbType(user.selectedTeam),
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    selectedTeamId: rawSelectedTeam?.teamId ?? null,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    selectedTeam: (rawSelectedTeam && getServerTeamFromDbType(rawSelectedTeam)) ?? null,
   };
 }
 
