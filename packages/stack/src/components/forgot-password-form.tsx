@@ -7,6 +7,7 @@ import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label } from "@stackframe/stack-ui";
+import { useState } from "react";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email')
@@ -17,11 +18,17 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
     resolver: yupResolver(schema)
   });
   const stackApp = useStackApp();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
-    const { email } = data;
-    await stackApp.sendForgotPasswordEmail(email);
+    setLoading(true);
+    try {
+      const { email } = data;
+      await stackApp.sendForgotPasswordEmail(email);
     onSent?.();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +46,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Button type="submit" className="mt-6">
+      <Button type="submit" className="mt-6" loading={loading}>
         Send Email
       </Button>
     </form>

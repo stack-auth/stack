@@ -7,6 +7,7 @@ import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
+import { useState } from "react";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email'),
@@ -18,12 +19,18 @@ export function CredentialSignInForm() {
     resolver: yupResolver(schema)
   });
   const app = useStackApp();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
-    const { email, password } = data;
+    setLoading(true);
 
-    const error = await app.signInWithCredential({ email, password });
-    setError('email', { type: 'manual', message: error?.message });
+    try {
+      const { email, password } = data;
+      const error = await app.signInWithCredential({ email, password });
+      setError('email', { type: 'manual', message: error?.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,7 +58,7 @@ export function CredentialSignInForm() {
         Forgot password?
       </StyledLink>
 
-      <Button type="submit" className="mt-6">
+      <Button type="submit" className="mt-6" loading={loading}>
         Sign In
       </Button>
     </form>

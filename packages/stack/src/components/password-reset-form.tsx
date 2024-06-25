@@ -38,16 +38,22 @@ export default function PasswordResetForm(
   const stackApp = useStackApp();
   const [finished, setFinished] = useState(false);
   const [resetError, setResetError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
-    const { password } = data;
-    const errorCode = await stackApp.resetPassword({ password, code });
-    if (errorCode) {
-      setResetError(true);
-      return;
-    }
+    setLoading(true);
+    try {
+      const { password } = data;
+      const errorCode = await stackApp.resetPassword({ password, code });
+      if (errorCode) {
+        setResetError(true);
+        return;
+      }
 
-    setFinished(true);
+      setFinished(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (finished) {
@@ -95,7 +101,7 @@ export default function PasswordResetForm(
         />
         <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
-        <Button type="submit" className="mt-6">
+        <Button type="submit" className="mt-6" loading={loading}>
           Reset Password
         </Button>
       </form>

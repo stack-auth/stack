@@ -8,6 +8,7 @@ import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
+import { useState } from "react";
 
 const schema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Please enter your email'),
@@ -30,11 +31,17 @@ export function CredentialSignUpForm() {
     resolver: yupResolver(schema)
   });
   const app = useStackApp();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
-    const { email, password } = data;
-    const error = await app.signUpWithCredential({ email, password });
+    setLoading(true);
+    try {
+      const { email, password } = data;
+      const error = await app.signUpWithCredential({ email, password });
     setError('email', { type: 'manual', message: error?.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -19,16 +19,21 @@ export function MagicLinkSignInForm() {
   });
   const [sent, setSent] = useState(false);
   const app = useStackApp();
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
-    const { email } = data;
-
-    const error = await app.sendMagicLinkEmail(email);
-    if (error) {
-      setError('email', { type: 'manual', message: error.message });
-      return;
-    }
+    setLoading(true);
+    try {
+      const { email } = data;
+      const error = await app.sendMagicLinkEmail(email);
+      if (error) {
+        setError('email', { type: 'manual', message: error.message });
+        return;
+      }
     setSent(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,7 +51,7 @@ export function MagicLinkSignInForm() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Button disabled={sent} type="submit" className="mt-6">
+      <Button disabled={sent} type="submit" className="mt-6" loading={loading}>
         {sent ? 'Email sent!' : 'Send magic link'}
       </Button>
     </form>
