@@ -68,10 +68,8 @@ export async function updateServerUser(
 ): Promise<ServerUserJson | null> {
   let user;
   try {
-    const transactions = [];
-
     if (update.selectedTeamId !== undefined) {
-      transactions.push(prismaClient.teamMember.updateMany({
+      await prismaClient.teamMember.updateMany({
         where: {
           projectId,
           projectUserId: userId,
@@ -79,10 +77,10 @@ export async function updateServerUser(
         data: {
           selected: null,
         },
-      }));
+      });
 
       if (update.selectedTeamId !== null) {
-        transactions.push(prismaClient.teamMember.update({
+        await prismaClient.teamMember.update({
           where: {
             projectId_projectUserId_teamId: {
               projectId,
@@ -93,27 +91,27 @@ export async function updateServerUser(
           data: {
             selected: true,
           },
-        }));
+        });
       }
-
-      transactions.push(prismaClient.projectUser.update({
-        where: {
-          projectId_projectUserId: {
-            projectId,
-            projectUserId: userId,
-          },
-        },
-        data: filterUndefined({
-          displayName: update.displayName,
-          primaryEmail: update.primaryEmail,
-          primaryEmailVerified: update.primaryEmailVerified,
-          clientMetadata: update.clientMetadata as any,
-          serverMetadata: update.serverMetadata as any,
-        }),
-      }));
-
-      await prismaClient.$transaction(transactions);
     }
+
+    user = await prismaClient.projectUser.update({
+      where: {
+        projectId_projectUserId: {
+          projectId,
+          projectUserId: userId,
+        },
+      },
+      include: serverUserInclude,
+      data: filterUndefined({
+        displayName: update.displayName,
+        primaryEmail: update.primaryEmail,
+        primaryEmailVerified: update.primaryEmailVerified,
+        clientMetadata: update.clientMetadata as any,
+        serverMetadata: update.serverMetadata as any,
+        selectedTeamId: update.selectedTeamId,
+      }),
+    });
   } catch (e) {
     // TODO this is kinda hacky, instead we should have the entire method throw an error instead of returning null and have a separate getServerUser function that may return null
     if ((e as any)?.code === 'P2025') {
@@ -122,18 +120,6 @@ export async function updateServerUser(
     throw e;
   }
 
-  user = await prismaClient.projectUser.findUnique({
-    where: {
-      projectId_projectUserId: {
-        projectId,
-        projectUserId: userId,
-      },
-    },
-    include: serverUserInclude,
-  });
-  if (!user) {
-    throw new StackAssertionError('User not found');
-  }
   return getServerUserFromDbType(user);
 }
 
