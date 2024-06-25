@@ -33,7 +33,7 @@ export async function upsertUserImage(
     }
   });
   let updateProfileImageUrl={
-    profileImageUrl:`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/profile-image/${upsertedProfileImage.id}`,
+    profileImageUrl:`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/profile-image/${upsertedProfileImage.id}?reload=${new Date().getTime()}`,
     uploadedProfileImageId:upsertedProfileImage.id,
   };
   const update = await updateServerUser(projectId,userId,updateProfileImageUrl);

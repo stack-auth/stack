@@ -62,7 +62,7 @@ function ProfileSection() {
     fileUploadRef.current.click();
     }
   };
-  const uploadImageDisplay = async () => {
+  const uploadImageDisplay =  () => {
     if (fileUploadRef.current?.files) {
       const uploadedFile = fileUploadRef.current.files[0];
       const maxSizeInBytes = (1 * 1024 * 1024)/2;
@@ -78,11 +78,15 @@ function ProfileSection() {
           fileType:"image/jpeg",
         };
       }
-      const compressedFile = await imageCompression(uploadedFile, options);
-      const fileData = await readFileAsDataURL(compressedFile);
-    setUploadAvatar(fileData);
-    setOpen(true);
-
+      imageCompression(uploadedFile, options)
+        .then(compressedFile => readFileAsDataURL(compressedFile))
+        .then(fileData => {
+        setUploadAvatar(fileData);
+        setOpen(true);
+        })
+        .catch(error => {
+        console.error('Image processing failed:', error);
+        });
     }
   };
   const readFileAsDataURL = (file: File): Promise<string>=> {
@@ -107,7 +111,6 @@ function ProfileSection() {
           "image":dataUrl
         };
         const saveProfileImage=await user.saveUserProfileImage(uploadedImageData);
-    window.location.reload();
       }
     setOpen(false);
     setUploadAvatar(dataUrl);
@@ -128,7 +131,7 @@ function ProfileSection() {
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <UserAvatar user={user} size={50}/>
-          <input type="file" id="file" ref={fileUploadRef} accept="image/*" onChange={() =>uploadImageDisplay} hidden/>
+          <input type="file" id="file" ref={fileUploadRef} accept="image/*" onChange={uploadImageDisplay} hidden/>
           <div 
             onClick={handleImageUpload} 
             style={{ 

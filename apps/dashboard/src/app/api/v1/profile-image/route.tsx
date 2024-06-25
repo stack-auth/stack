@@ -31,7 +31,9 @@ export const POST = async (_req: NextRequest) => {
         image
       },
     } = await deprecatedParseRequest(_req, postSchema);
-    
+    if (!authorization) {
+      return NextResponse.json(null);
+    }
     const insertImage=await upsertUserImage(userId,projectId,image);
     return NextResponse.json(insertImage);
   } catch (error) {
