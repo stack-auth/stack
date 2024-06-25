@@ -1,7 +1,8 @@
 "use client";
 
 import { Container } from "@stackframe/stack-ui";
-import React, { useEffect, useId } from "react";
+import React, { useId } from "react";
+import { SsrScript } from "./ssr-layout-effect";
 
 export function MaybeFullPage({ 
   children, 
@@ -23,13 +24,6 @@ export function MaybeFullPage({
     el.style.minHeight = \`calc(100vh - \${offset}px)\`;
   })(${JSON.stringify([id])})`;
 
-  useEffect(() => {
-    // TODO fix workaround: React has a bug where it doesn't run the script on the first CSR render if SSR has been skipped due to suspense
-    // As a workaround, we run the script in the <script> tag again after the first render
-    // Note that we do an indirect eval as described here: https://esbuild.github.io/content-types/#direct-eval
-    (0, eval)(scriptString);
-  }, []);
-
   if (fullPage) {
     return (
       <>
@@ -49,9 +43,7 @@ export function MaybeFullPage({
             {children}
           </Container>
         </div>
-        <script dangerouslySetInnerHTML={{
-          __html: scriptString,
-        }} />
+        <SsrScript script={scriptString} />
       </>
     );
   } else {
