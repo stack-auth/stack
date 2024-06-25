@@ -1,14 +1,14 @@
 'use client';
 
-import ForgotPasswordElement from "../components/forgot-password";
-import MaybeFullPage from "../components/maybe-full-page";
+import { ForgotPasswordForm } from "../components/forgot-password-form";
+import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { useUser, useStackApp } from "..";
-import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { useState } from "react";
-import { Link, Text } from "../components-core";
+import { StyledLink, Typography } from "@stackframe/stack-ui";
 
 
-export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
+export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const [sent, setSent] = useState(false);
@@ -23,16 +23,16 @@ export default function ForgotPassword({ fullPage=false }: { fullPage?: boolean 
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <Text size="xl" as='h2'>Reset Your Password</Text>
-        <Text>
+      <div className="text-center mb-6 stack-scope">
+        <Typography type='h2'>Reset Your Password</Typography>
+        <Typography>
           {"Don't need to reset? "}
-          <Link href={stackApp.urls['signUp']}>
-            Sign In
-          </Link>
-        </Text>
+          <StyledLink href={stackApp.urls['signUp']}>
+            Sign in
+          </StyledLink>
+        </Typography>
       </div>
-      <ForgotPasswordElement onSent={() => setSent(true)} />
+      <ForgotPasswordForm onSent={() => setSent(true)} />
     </MaybeFullPage>
   );
 };

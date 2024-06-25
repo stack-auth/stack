@@ -363,4 +363,23 @@ export class StackServerInterface extends StackClientInterface {
       null,
     );
   }
+
+  async createServerTeamForUser(
+    userId: string,
+    data: ServerTeamCustomizableJson,
+    session: InternalSession,
+  ): Promise<ServerTeamJson> {
+    const response = await this.sendClientRequest(
+      `/users/${userId}/teams?server=true`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
+  }
 }

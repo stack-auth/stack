@@ -41,6 +41,7 @@ export async function decodeAccessToken(accessToken: string) {
     if (error instanceof JWTExpired) {
       throw new KnownErrors.AccessTokenExpired();
     } else if (error instanceof JOSEError) {
+      console.log('Unparsable access token found. This may be expected behaviour, for example if they switched Stack hosts, but the information below could be useful for debugging.', { accessToken }, error);
       throw new KnownErrors.UnparsableAccessToken();
     }
     throw error;

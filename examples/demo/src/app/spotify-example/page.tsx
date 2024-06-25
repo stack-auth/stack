@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, useUser } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack";
+import { Button } from "@stackframe/stack-ui";
 import { useEffect, useState } from "react";
 
 export default function Page() {

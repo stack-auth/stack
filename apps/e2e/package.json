@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/e2e-tests",
-  "version": "2.4.27",
+  "version": "2.4.28",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,8 +9,9 @@
     "lint": "eslint --ext .tsx,.ts .",
     "clean": "rimraf dist && rimraf node_modules"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "dotenv": "^16.4.5"
-  }
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "@stackframe/stack-shared": "workspace:*"
+  },
+  "devDependencies": {}
 }

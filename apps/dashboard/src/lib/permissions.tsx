@@ -46,7 +46,7 @@ const teamSystemPermissionDescriptionMap: Record<DBTeamSystemPermission, string>
   "INVITE_MEMBERS": "Invite other users to the team",
 };
 
-function serverPermissionDefinitionJsonFromDbType(
+export function serverPermissionDefinitionJsonFromDbType(
   db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>
 ): ServerPermissionDefinitionJson {
   if (!db.projectConfigId && !db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
@@ -74,7 +74,7 @@ function serverPermissionDefinitionJsonFromDbType(
   };
 }
 
-function serverPermissionDefinitionJsonFromTeamSystemDbType(
+export function serverPermissionDefinitionJsonFromTeamSystemDbType(
   db: DBTeamSystemPermission,
 ): ServerPermissionDefinitionJson {
   return {

@@ -1,18 +1,17 @@
 'use client';
-
-import {
-  useUser,
-  Text,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  useStackApp,
-} from "..";
+import { useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+  Typography,
+} from "@stackframe/stack-ui";
 import { useMemo } from "react";
 
 type SelectedTeamSwitcherProps = {
@@ -22,12 +21,12 @@ type SelectedTeamSwitcherProps = {
 function TeamIcon(props: { displayName: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.5rem', height: '1.5rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
-      <Text style={{ color: 'black', fontWeight: 400 }}>{props.displayName.slice(0, 1).toUpperCase()}</Text>
+      <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
     </div>
   );
 }
 
-export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const user = useUser();
   const router = useRouter();
   const selectedTeam = user?.selectedTeam;
@@ -35,17 +34,14 @@ export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <TeamIcon displayName={selectedTeam?.displayName || ''} />
-          <Text>{selectedTeam?.displayName || 'Select team'}</Text>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ zIndex: 1500 }}>
-        <DropdownMenuLabel>Teams</DropdownMenuLabel>
+    <Select>
+      <SelectTrigger className="stack-scope">
+        <SelectValue placeholder="Select team"/>
+      </SelectTrigger>
+      <SelectContent className="stack-scope">
         {teams && teams.map(team => (
-          <DropdownMenuItem
+          <SelectItem
+            value={team.id}
             key={team.id}
             onClick={() => {
               runAsynchronouslyWithAlert(async () => {
@@ -55,16 +51,20 @@ export default function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                 }
               });
             }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="flex items-center">
               <TeamIcon displayName={team.displayName} />
-              <Text>{team.displayName}</Text>
+              <Typography>{team.displayName}</Typography>
             </div>
-            <Check style={{ marginLeft: '0.5rem', visibility: team.id === selectedTeam?.id ? 'visible' : 'hidden', height: '1rem', width: '1rem' }} />
-          </DropdownMenuItem>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+
+        {teams?.length === 0 && (
+          <SelectGroup>
+            <SelectLabel>No teams</SelectLabel>
+          </SelectGroup>
+        )}
+      </SelectContent>
+    </Select>
   );
 }

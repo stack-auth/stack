@@ -782,20 +782,6 @@ const PermissionScopeMismatch = createKnownErrorConstructor(
   (json: any) => [json.details.permissionId, json.details.permissionScope, json.details.testScope] as const,
 );
 
-const UserNotInTeam = createKnownErrorConstructor(
-  KnownError,
-  "USER_NOT_IN_TEAM",
-  (userId: string, teamId: string) => [
-    400,
-    `User ${userId} is not in team ${teamId}.`,
-    {
-      userId,
-      teamId,
-    },
-  ] as const,
-  (json: any) => [json.details.userId, json.details.teamId] as const,
-);
-
 const TeamNotFound = createKnownErrorConstructor(
   KnownError,
   "TEAM_NOT_FOUND",
@@ -969,7 +955,6 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   PermissionNotFound,
   PermissionScopeMismatch,
-  UserNotInTeam,
   TeamNotFound,
   EmailTemplateAlreadyExists,
   OAuthConnectionNotConnectedToUser,

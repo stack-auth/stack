@@ -1,5 +1,12 @@
 # middleware-demo
 
+## 2.4.28
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.4.28
+
 ## 2.4.27
 
 ### Patch Changes

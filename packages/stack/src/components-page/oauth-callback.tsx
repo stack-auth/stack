@@ -3,10 +3,10 @@
 import { useRef, useEffect, useState } from "react";
 import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import MessageCard from "../components/message-cards/message-card";
-import { Link } from "../components-core/link";
+import { MessageCard } from "../components/message-cards/message-card";
+import { StyledLink } from "@stackframe/stack-ui";
 
-export default function OAuthCallback(props: { fullPage?: boolean }) {
+export function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();
   const called = useRef(false);
   const [error, setError] = useState<unknown>(null);
@@ -31,7 +31,7 @@ export default function OAuthCallback(props: { fullPage?: boolean }) {
   }, []);
 
   return <MessageCard title='Redirecting...' fullPage={props.fullPage}>
-    {showRedirectLink ? <p>If you are not redirected automatically, <Link href={app.urls.home}>click here</Link>.</p> : null}
+    {showRedirectLink ? <p>If you are not redirected automatically, <StyledLink href={app.urls.home}>click here</StyledLink>.</p> : null}
     {error ? <div>
       <p>Something went wrong while processing the OAuth callback:</p>
       <pre>{JSON.stringify(error, null, 2)}</pre>

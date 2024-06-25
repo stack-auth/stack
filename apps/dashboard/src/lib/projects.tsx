@@ -8,7 +8,7 @@ import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { isTeamSystemPermission, listServerPermissionDefinitions, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
+import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -67,7 +67,9 @@ export const fullProjectInclude = {
           standardEmailServiceConfig: true,
         },
       },
-      permissions: true,
+      permissions: {
+        include: fullPermissionInclude,
+      },
       domains: true,
     },
   },
@@ -483,11 +485,13 @@ async function _createDefaultPermissionsUpdateTransactions(
 
   const params = [
     {
+      type: 'creator',
       optionName: 'teamCreatorDefaultPermissionIds',
       dbName: 'teamCreatorDefaultPermissions',
       dbSystemName: 'teamCreateDefaultSystemPermissions',
     },
     {
+      type: 'member',
       optionName: 'teamMemberDefaultPermissionIds',
       dbName: 'teamMemberDefaultPermissions',
       dbSystemName: 'teamMemberDefaultSystemPermissions',
@@ -500,15 +504,6 @@ async function _createDefaultPermissionsUpdateTransactions(
       if (!creatorPerms.every((id) => permissions.some((perm) => perm.id === id))) {
         throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
       }
-
-      const connect = creatorPerms
-        .filter(x => !isTeamSystemPermission(x))
-        .map((id) => ({
-          projectConfigId_queryableId: { 
-            projectConfigId: project.config.id, 
-            queryableId: id 
-          },
-        }));
     
       const systemPerms = creatorPerms
         .filter(isTeamSystemPermission)
@@ -517,8 +512,34 @@ async function _createDefaultPermissionsUpdateTransactions(
       transactions.push(prismaClient.projectConfig.update({
         where: { id: project.config.id },
         data: {
-          [param.dbName]: { connect },
           [param.dbSystemName]: systemPerms,
+        },
+      }));
+      
+      // Remove existing default permissions
+      transactions.push(prismaClient.permission.updateMany({
+        where: {
+          projectConfigId: project.config.id,
+          scope: 'TEAM',
+        },
+        data: {
+          isDefaultTeamCreatorPermission: param.type === 'creator' ? false : undefined,
+          isDefaultTeamMemberPermission: param.type === 'member' ? false : undefined,
+        },
+      }));
+
+      // Add new default permissions
+      transactions.push(prismaClient.permission.updateMany({
+        where: {
+          projectConfigId: project.config.id,
+          queryableId: {
+            in: creatorPerms.filter(x => !isTeamSystemPermission(x)),
+          },
+          scope: 'TEAM',
+        },
+        data: {
+          isDefaultTeamCreatorPermission: param.type === 'creator',
+          isDefaultTeamMemberPermission: param.type === 'member',
         },
       }));
     }
@@ -660,12 +681,12 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
         return [];
       }),
       emailConfig,
-      teamCreatorDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map((perm) => perm.queryableId)
-        .concat(project.config.teamCreateDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
-      teamMemberDefaultPermissionIds: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map((perm) => perm.queryableId)
-        .concat(project.config.teamMemberDefaultSystemPermissions.map(teamDBTypeToSystemPermissionString)),
+      teamCreatorDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
+        .map(serverPermissionDefinitionJsonFromDbType)
+        .concat(project.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
+      teamMemberDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
+        .map(serverPermissionDefinitionJsonFromDbType)
+        .concat(project.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
     },
   };
 }

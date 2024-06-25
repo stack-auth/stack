@@ -1,7 +1,9 @@
 'use client';
 
+import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
-import { Button } from "../components-core";
+import Color from 'color';
+import styled from 'styled-components';
 
 const iconSize = 22;
 
@@ -52,7 +54,25 @@ function SpotifyIcon({ iconSize } : { iconSize: number} ) {
     </svg>
   );
 }
-export default function OAuthButton({
+
+const changeColor = (c: Color, value: number) => {
+  if (c.isLight()) {
+    value = -value;
+  }
+  return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
+};
+
+const StyledButton = styled(Button)<{ $bgColor?: string, $hoverBgColor?: string, $textColor?: string, $border?: string }>`
+  ${props => props.$bgColor ? `background-color: ${props.$bgColor} !important;` : ''}
+  ${props => props.$textColor ? `color: ${props.$textColor} !important;` : ''}
+  ${props => props.$border ? `border: ${props.$border} !important;` : ''}
+
+  &:hover {
+    ${props => props.$hoverBgColor ? `background-color: ${props.$hoverBgColor} !important;` : ''}
+  }
+`;
+
+export function OAuthButton({
   provider,
   type,
 }: {
@@ -119,21 +139,25 @@ export default function OAuthButton({
     default: {
       style = {
         name: provider,
-        icon: null
+        icon: null,
       };
     }
   }
-
+  
   return (
-    <Button
-      color={style.backgroundColor}
-      style={{ border: style.border, height: '2.5rem', color: style.textColor }}
+    <StyledButton
       onClick={() => stackApp.signInWithOAuth(provider)}
+      $bgColor={style.backgroundColor}
+      $hoverBgColor={changeColor(Color(style.backgroundColor), 10)}
+      $textColor={style.textColor}
+      $border={style.border}
     >
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem' }}>
+      <div className='flex items-center w-full gap-4'>
         {style.icon}
-        <span style={{ flexGrow: 1 }}>{type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}</span>
+        <span className='flex-1'>
+          {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
+        </span>
       </div>
-    </Button>
+    </StyledButton>
   );
 }

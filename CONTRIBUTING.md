@@ -1,9 +1,12 @@
 # Contributing to Stack Auth
 
-Welcome to Stack Auth! We welcome and appreciate contributors from all over the world. However, due to the nature of authentication, this may not be the easiest project to contribute to, so if you are looking for projects to help you gain programming experience, we may not be a great match. However, if you think you're up for the challenge, feel free to join [our Discord](https://discord.stack-auth.com) and get in touch.
+Welcome to Stack Auth!
 
-# !!! IMPORTANT: WE ARE NOT HIRING.
+Due to the nature of authentication, this may not be the easiest project to contribute to, so if you are looking for projects to help gain programming experience, we may not be a great match. However, the easiest way to help is by contributing to our documentation and creating examples & guides. This way, you can share your knowledge and expertise with everyone else, and it's a great way to understand Stack Auth from the inside before contributing code changes. It is also a great way for us to assess your skills and understand where you could best help the project.
 
+If you're interested, please join [our Discord](https://discord.stack-auth.com) and get in touch.
+
+# Note: We are not currently hiring.
 
 ## First time contributors
 

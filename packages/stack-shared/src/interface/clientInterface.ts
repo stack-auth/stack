@@ -101,8 +101,8 @@ export type ProjectJson = {
     emailConfig?: EmailConfigJson,
     domains: DomainConfigJson[],
     createTeamOnSignUp: boolean,
-    teamCreatorDefaultPermissionIds: string[],
-    teamMemberDefaultPermissionIds: string[],
+    teamCreatorDefaultPermissions: PermissionDefinitionJson[],
+    teamMemberDefaultPermissions: PermissionDefinitionJson[],
   },
 };
 
@@ -933,7 +933,7 @@ export class StackClientInterface {
     };
   }
 
-  async createClientTeam(
+  async createTeamForCurrentUser(
     data: TeamCustomizableJson,
     session: InternalSession,
   ): Promise<TeamJson> {

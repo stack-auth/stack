@@ -123,7 +123,7 @@ export function PermissionListField<F extends FieldValues>(props: {
   name: Path<F>,
   label: React.ReactNode,
   permissions: ServerPermissionDefinitionJson[],
-  type: 'new' | 'edit' | 'edit-user',
+  type: 'new' | 'edit' | 'edit-user' | 'select',
 } & ({
     type: 'new',
   } | {
@@ -133,6 +133,9 @@ export function PermissionListField<F extends FieldValues>(props: {
     type: 'edit-user',
     user: ServerUser,
     team: ServerTeam,
+  } | {
+    type: 'select',
+    selectedPermissionIds: string[],
   })) {
   const [graph, setGraph] = useState<PermissionGraph>();
 
@@ -155,11 +158,15 @@ export function PermissionListField<F extends FieldValues>(props: {
           setGraph(newGraph.addPermission());
           break;
         }
+        case 'select': {
+          setGraph(newGraph.addPermission(props.selectedPermissionIds));
+          break;
+        }
       }
     }
     load().catch(console.error);
   // @ts-ignore
-  }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team]);
+  }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team, props.selectedPermissionIds]);
 
   if (!graph || graph.permissions.size <= 1) {
     return null;

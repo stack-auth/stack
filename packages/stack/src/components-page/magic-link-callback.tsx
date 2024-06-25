@@ -2,12 +2,12 @@
 
 import { use } from "react";
 import { useStackApp, useUser } from "..";
-import MessageCard from "../components/message-cards/message-card";
-import PredefinedMessageCard from "../components/message-cards/predefined-message-card";
+import { MessageCard } from "../components/message-cards/message-card";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
-export default function MagicLinkCallback({ 
+export function MagicLinkCallback({ 
   searchParams: {
     code = "",
   } = {},

@@ -1,7 +1,7 @@
 "use client";
 import { useAdminApp } from "../use-admin-app";
 import { PageLayout } from "../page-layout";
-import { SettingCard, SettingSwitch, SettingText } from "@/components/settings";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 import Typography from "@/components/ui/typography";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { PermissionListField } from "@/components/permission-field";
@@ -16,22 +16,22 @@ function CreateDialog(props: {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProjectAdmin();
   const permissions = stackAdminApp.usePermissionDefinitions();
+  const selectedPermissionIds = props.type === "creator" ?
+    project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
+    project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().default([]).meta({
+    permissions: yup.array().of(yup.string().required()).required().meta({
       stackFormFieldRender: (props) => (
         <PermissionListField 
           {...props} 
-          permissions={permissions} 
-          type="new"
+          permissions={permissions}
+          selectedPermissionIds={selectedPermissionIds}
+          type="select"
           label="Default Permissions"
         />
       ),
-    }),
-  }).default({ 
-    permissions: props.type === "creator" ? 
-      project.evaluatedConfig.teamCreatorDefaultPermissionIds : 
-      project.evaluatedConfig.teamMemberDefaultPermissionIds 
+    }).default(selectedPermissionIds),
   });
 
   return <SmartFormDialog
@@ -86,12 +86,12 @@ export default function PageClient() {
           type: 'creator',
           title: "Team Creator Default Permissions",
           description: "Permissions the user will automatically be granted when creating a team",
-          key: 'teamCreatorDefaultPermissionIds',
+          key: 'teamCreatorDefaultPermissions',
         }, {
           type: 'member',
           title: "Team Member Default Permissions",
           description: "Permissions the user will automatically be granted when joining a team",
-          key: 'teamMemberDefaultPermissionIds',
+          key: 'teamMemberDefaultPermissions',
         }
       ] as const).map(({ type, title, description, key }) => (
         <SettingCard 
@@ -105,8 +105,8 @@ export default function PageClient() {
         >
           <div className="flex flex-wrap gap-2">
             {project.evaluatedConfig[key].length > 0 ? 
-              project.evaluatedConfig[key].map((permissionId) => (
-                <Badge key={permissionId} variant='secondary'>{permissionId}</Badge>
+              project.evaluatedConfig[key].map((p) => (
+                <Badge key={p.id} variant='secondary'>{p.id}</Badge>
               )) : 
               <Typography variant="secondary" type="label">No default permissions set</Typography>
             }
