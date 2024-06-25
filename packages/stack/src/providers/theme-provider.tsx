@@ -41,22 +41,23 @@ type ThemeConfig = {
   dark?: Partial<Colors>,
 } & Partial<Omit<Theme, 'light' | 'dark'>>;
 
-function convertKeysToDashCase(obj: Record<string, string>) {
-  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
-}
-
-function convertColorToHSL(obj: Record<string, string>) {
+function convertColorToCSSVars(obj: Record<string, string>) {
   return Object.fromEntries(Object.entries(obj).map(([key, value]) => {
     const color = Color(value).hsl().array();
-    return [key, `${color[0]} ${color[1]}% ${color[2]}%`];
+    return [
+      // Convert camelCase key to dash-case
+      key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`),
+      // Convert color to CSS HSL string 
+      `${color[0]} ${color[1]}% ${color[2]}%`
+    ];
   }));
 }
 
 function convertColorsToCSS(theme: Theme) {
   const { dark, light, ...rest } = theme;
   const colors = {
-    light: { ...convertColorToHSL(convertKeysToDashCase(light)), ...rest },
-    dark: convertColorToHSL(convertKeysToDashCase(dark)),
+    light: { ...convertColorToCSSVars(light), ...rest },
+    dark: convertColorToCSSVars(dark),
   };
 
   function colorsToCSSVars(colors: Record<string, string>) {
