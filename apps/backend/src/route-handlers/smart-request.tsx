@@ -12,6 +12,7 @@ import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { updateServerUser } from "@/lib/users";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -22,12 +23,9 @@ export type SmartRequestAuth = {
   type: "client" | "server" | "admin",
 };
 
-declare const SmartRequestAdaptSentinel: unique symbol;
-export type SmartRequestAdaptSentinel = typeof SmartRequestAdaptSentinel;
-
 export type DeepPartialSmartRequestWithSentinel<T = SmartRequest> = (T extends object ? {
   [P in keyof T]?: DeepPartialSmartRequestWithSentinel<T[P]>
-} : T) | SmartRequestAdaptSentinel;
+} : T) | StackAdaptSentinel;
 
 export type SmartRequest = {
   auth: SmartRequestAuth | null,
@@ -40,28 +38,28 @@ export type SmartRequest = {
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  T extends SmartRequestAdaptSentinel ? NonNullable<MSQ> : (IsAny<T> extends true ? MSQ : (
-    T extends object ? (MSQ extends object ? { [K in keyof T]: K extends keyof MSQ ? MergeSmartRequest<T[K], MSQ[K]> : undefined } : (T & MSQ))
+  StackAdaptSentinel extends T ? NonNullable<MSQ> | (MSQ & Exclude<T, StackAdaptSentinel>) : (
+    T extends object ? (MSQ extends object ? { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> } : (T & MSQ))
     : (T & MSQ)
-  ));
+  );
 
 /*
-// TODO ASAP remove before merging this to dev
-// the code below might help you debug & understand the types above
+// the code below might help you debug & understand the MergeSmartRequest type above
 type T = MergeSmartRequest<{ a: 1 | 2 }, { a?: 2 | 3 | undefined } | null>;
 
 const mixed = yup.object({
   auth: yup.object({
-    type: yup.mixed<12345>().required(),
-    user: yup.mixed(),
-    project: yup.mixed(),
-  }).nullable(),
+    type: yup.mixed<StackAdaptSentinel>().required(),
+    user: yup.mixed<StackAdaptSentinel>(),
+    project: yup.mixed<StackAdaptSentinel>(),
+  }).nullable().default(null),
   method: yup.string().oneOf(["GET"]).required(),
 });
 const mx = yup.mixed<12345>();
 type Y = yup.InferType<typeof mixed>;
 type Y2 = yup.InferType<typeof mx>;
-type Z = MergeSmartRequest<Y, { auth: { type: "client" | "server" | undefined } | null }>;
+type Z = MergeSmartRequest<Y, { auth: { type: "client" | "server" | undefined, user: "123" } | null }>;
+type Z2 = MergeSmartRequest<StackAdaptSentinel | undefined, "123" | undefined>;
 */
 
 async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest): Promise<T> {

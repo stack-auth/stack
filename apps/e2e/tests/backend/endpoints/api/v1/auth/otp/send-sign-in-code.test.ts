@@ -1,5 +1,5 @@
 import { it } from "../../../../../../helpers";
-import { backendContext, Auth } from "../../../../../backend-helpers";
+import { backendContext, Auth, niceBackendFetch } from "../../../../../backend-helpers";
 
 it("should send a sign-in code per e-mail", async ({ expect }) => {
   await Auth.Otp.sendSignInCode();
@@ -12,3 +12,30 @@ it("should send a sign-in code per e-mail", async ({ expect }) => {
     ]
   `);
 });
+
+it('should refuse to send a sign-in code if the redirect URL is invalid', async ({ expect }) => {
+  const mailbox = backendContext.value.mailbox;
+  const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: mailbox.emailAddress,
+      redirectUrl: "http://evil-website.example.com",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "REDIRECT_URL_NOT_WHITELISTED",
+        "error": "Redirect URL not whitelisted.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "REDIRECT_URL_NOT_WHITELISTED",
+        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+

@@ -1,6 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
-import * as fieldSchema from "./fields";
+import * as fieldSchema from "../../schema-fields";
 
 export const usersCrudServerUpdateSchema = yup.object({
   displayName: fieldSchema.userDisplayNameSchema.optional(),

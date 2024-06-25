@@ -1,9 +1,8 @@
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
+import { accessTokenResponseSchema, refreshTokenResponseSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   data: yup.object({
@@ -13,9 +12,9 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   response: yup.object({
     statusCode: yup.number().oneOf([200]).required(),
     body: yup.object({
-      refresh_token: yup.string().required(),
-      access_token: yup.string().required(),
-      is_new_user: yup.boolean().required(),
+      refresh_token: refreshTokenResponseSchema.required(),
+      access_token: accessTokenResponseSchema.required(),
+      is_new_user: yup.boolean().meta({ openapi: { description: 'Whether the user is a new user', exampleValue: true } }).required(),
     }).required(),
   }),
   async handler(project, { email }, data) {

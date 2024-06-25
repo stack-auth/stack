@@ -52,6 +52,8 @@ describe("with client access", () => {
         },
       }
     `);
+
+    it.todo("should be able to read own user");
   });
 
   describe("with server access", () => {

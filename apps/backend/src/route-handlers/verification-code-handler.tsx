@@ -6,7 +6,7 @@ import { prismaClient } from "@/prisma-client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { SmartRequestAdaptSentinel } from "./smart-request";
+import { adaptSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 type Method = {
   email?: string,
@@ -78,7 +78,7 @@ export function createVerificationCodeHandler<Data, Response extends SmartRespon
     postHandler: createSmartRouteHandler({
       request: yup.object({
         auth: yup.object({
-          project: yup.mixed<SmartRequestAdaptSentinel>().required(),
+          project: adaptSchema.required(),
         }).required(),
         body: yup.object({
           code: yup.string().required(),

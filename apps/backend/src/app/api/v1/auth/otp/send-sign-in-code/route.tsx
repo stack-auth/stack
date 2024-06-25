@@ -1,21 +1,21 @@
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { SmartRequestAdaptSentinel } from "@/route-handlers/smart-request";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createTeamOnSignUp } from "@/lib/users";
 import { signInVerificationCodeHandler } from "../sign-in/route";
+import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, verificationLinkRedirectUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const POST = createSmartRouteHandler({
   request: yup.object({
     auth: yup.object({
-      type: yup.string().oneOf(["client"]).required(),
-      project: yup.mixed<SmartRequestAdaptSentinel>().required(),
+      type: clientOrHigherAuthTypeSchema,
+      project: adaptSchema,
     }).required(),
     body: yup.object({
-      email: yup.string().required(),
-      redirectUrl: yup.string().required(),
+      email: signInEmailSchema.required(),
+      redirectUrl: verificationLinkRedirectUrlSchema,
     }).required(),
   }),
   response: yup.object({
