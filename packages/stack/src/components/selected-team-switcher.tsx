@@ -1,11 +1,18 @@
 'use client';
-
 import { useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+  Typography,
+} from "@stackframe/stack-ui";
 import { useMemo } from "react";
-import { Typography, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@stackframe/stack-ui";
 
 type SelectedTeamSwitcherProps = {
   projectUrlMap?: (projectId: string) => string,
@@ -27,17 +34,14 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <TeamIcon displayName={selectedTeam?.displayName || ''} />
-          <Typography>{selectedTeam?.displayName || 'Select team'}</Typography>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>Teams</DropdownMenuLabel>
+    <Select>
+      <SelectTrigger className="stack-scope">
+        <SelectValue placeholder="Select team"/>
+      </SelectTrigger>
+      <SelectContent className="stack-scope">
         {teams && teams.map(team => (
-          <DropdownMenuItem
+          <SelectItem
+            value={team.id}
             key={team.id}
             onClick={() => {
               runAsynchronouslyWithAlert(async () => {
@@ -47,16 +51,20 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                 }
               });
             }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="flex items-center">
               <TeamIcon displayName={team.displayName} />
               <Typography>{team.displayName}</Typography>
             </div>
-            <Check style={{ marginLeft: '0.5rem', visibility: team.id === selectedTeam?.id ? 'visible' : 'hidden', height: '1rem', width: '1rem' }} />
-          </DropdownMenuItem>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+
+        {teams?.length === 0 && (
+          <SelectGroup>
+            <SelectLabel>No teams</SelectLabel>
+          </SelectGroup>
+        )}
+      </SelectContent>
+    </Select>
   );
 }
