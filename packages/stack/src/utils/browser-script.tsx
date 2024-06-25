@@ -1,9 +1,9 @@
-import Color from "color";
-import { Theme } from "../providers/theme-provider";
-
 // Note that this script can not import anything from outside as it will be converted to a string and executed in the browser.
+
+import { SsrScript } from "../components/elements/ssr-layout-effect";
+
 // Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
-const script = (colors: { light: Record<string, string>, dark: Record<string, string> }) => {
+const script = () => {
   const attributes = ['data-joy-color-scheme', 'data-mui-color-scheme', 'data-theme', 'data-color-scheme', 'class'];
 
   const observer = new MutationObserver((mutations) => {
@@ -29,41 +29,8 @@ const script = (colors: { light: Record<string, string>, dark: Record<string, st
     attributes: true,
     attributeFilter: attributes,
   });
-
-  function colorsToCSSVars(colors: Record<string, string>) {
-    return Object.entries(colors).map((params) => { 
-      return "--" + params[0] + ": " + params[1] + ";\n";
-    }).join('');
-  }
-  
-  const cssVars = '.stack-scope {\n' + colorsToCSSVars(colors.light) + '}\n[data-stack-theme="dark"] .stack-scope {\n' + colorsToCSSVars(colors.dark) + '}';
-  const style = document.createElement('style');
-  style.textContent = cssVars;
-  document.head.appendChild(style);
 };
 
-function convertKeysToDashCase(obj: Record<string, string>) {
-  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`), value]));
-}
-
-function convertColorToHSL(obj: Record<string, string>) {
-  return Object.fromEntries(Object.entries(obj).map(([key, value]) => {
-    const color = Color(value).hsl().array();
-    return [key, `${color[0]} ${color[1]}% ${color[2]}%`];
-  }));
-}
-
-function processColors(colors: Record<string, string>) {
-  return convertColorToHSL(convertKeysToDashCase(colors));
-}
-
-export function BrowserScript(props: { theme: Theme }) {
-  const { dark, light, ...rest } = props.theme;
-  const convertedColors = {
-    light: { ...processColors(light), ...rest },
-    dark: processColors(dark),
-  };
-  return (
-    <script dangerouslySetInnerHTML={{ __html: `(${script.toString()})(${JSON.stringify(convertedColors)})` }}/>
-  );
+export function BrowserScript() {
+  return <SsrScript script={`(${script.toString()})()`}/>;
 }
