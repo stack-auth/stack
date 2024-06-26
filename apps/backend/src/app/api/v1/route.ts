@@ -26,7 +26,7 @@ export const GET = createSmartRouteHandler({
 
         Authentication: ${!req.auth ? "None" : deindent` ${typedCapitalize(req.auth.type)}
           Project: ${req.auth.project.id}
-          User: ${req.auth.user ? req.auth.user.primaryEmail ?? req.auth.user.id : "None"}
+          User: ${req.auth.user ? req.auth.user.primary_email ?? req.auth.user.id : "None"}
         `}
       `,
     };
