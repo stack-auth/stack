@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
 import { oauthServer } from "@/oauth";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { KnownErrors } from "@stackframe/stack-shared";
 
@@ -17,7 +17,7 @@ const postSchema = yup.object({
   })
 });
 
-export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+export const POST = handleApiRequest(async (req: NextRequest) => {
   const { body } = await deprecatedParseRequest(req, postSchema);
   if (body.redirect_uri) {
     body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash

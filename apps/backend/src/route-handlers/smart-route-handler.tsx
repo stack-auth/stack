@@ -6,14 +6,14 @@ import * as yup from "yup";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createLazyRequestParser } from "./smart-request";
+import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...process.env.NODE_ENV === "development" ? [`Internal Server Error: ${error}`] : [],
+      ...process.env.NODE_ENV === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
     );
   }
 }
@@ -50,7 +50,7 @@ function catchError(error: unknown): StatusError {
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
     let hasRequestFinished = false;
@@ -136,12 +136,15 @@ export type SmartRouteHandler<
   Res extends SmartResponse = SmartResponse,
 > = ((req: NextRequest, options: any) => Promise<Response>) & {
   overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
+  invoke: (smartRequest: SmartRequest) => Promise<Response>,
 }
 
-const smartRouteHandlerSymbol = Symbol("smartRouteHandler");
+function getSmartRouteHandlerSymbol() {
+  return Symbol.for("stack-smartRouteHandler");
+}
 
 export function isSmartRouteHandler(handler: any): handler is SmartRouteHandler {
-  return handler?.[smartRouteHandlerSymbol] === true;
+  return handler?.[getSmartRouteHandlerSymbol()] === true;
 }
 
 export function createSmartRouteHandler<
@@ -175,15 +178,13 @@ export function createSmartRouteHandler<
     throw new StackAssertionError("Duplicate overload parameters");
   }
 
-  return Object.assign(deprecatedSmartRouteHandler(async (req, options, requestId) => {
+  const invoke = async (nextRequest: NextRequest | null, requestId: string, smartRequest: SmartRequest) => {
     const reqsParsed: [[Req, SmartRequest], SmartRouteHandlerOverload<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
-    const bodyBuffer = await req.arrayBuffer();
-    for (const [overloadParam, handler] of overloads.entries()) {
-      const requestParser = await createLazyRequestParser(req, bodyBuffer, handler.request, options);
+    for (const [overloadParam, overload] of overloads.entries()) {
       try {
-        const parserRes = await requestParser();
-        reqsParsed.push([parserRes, handler]);
+        const parsedReq = await validateSmartRequest(nextRequest, smartRequest, overload.request);
+        reqsParsed.push([[parsedReq, smartRequest], overload]);
       } catch (e) {
         reqsErrors.push(e);
       }
@@ -203,9 +204,16 @@ export function createSmartRouteHandler<
 
     let smartRes = await handler.handler(smartReq as any, fullReq);
 
-    return await createResponse(req, requestId, smartRes, handler.response);
+    return await createResponse(nextRequest, requestId, smartRes, handler.response);
+  };
+
+  return Object.assign(handleApiRequest(async (req, options, requestId) => {
+    const bodyBuffer = await req.arrayBuffer();
+    const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+    return await invoke(req, requestId, smartRequest);
   }), {
-    [smartRouteHandlerSymbol]: true,
+    [getSmartRouteHandlerSymbol()]: true,
+    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invokation", smartRequest),
     overloads,
   });
 }

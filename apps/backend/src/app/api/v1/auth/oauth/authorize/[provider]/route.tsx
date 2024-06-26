@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { generators } from "openid-client";
 import { cookies } from "next/headers";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getProvider } from "@/oauth";
 import { getProject } from "@/lib/projects";
@@ -38,7 +38,7 @@ const getSchema = yup.object({
   }),
 });
 
-export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
+export const GET = handleApiRequest(async (req: NextRequest, options: { params: { provider: string }}) => {
   const {
     query: {
       type,

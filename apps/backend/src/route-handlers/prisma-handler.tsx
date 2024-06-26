@@ -1,10 +1,11 @@
 import { CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { CrudHandlers, RouteHandlerMetadataMap, createCrudHandlers } from "./crud-handler";
+import { CrudHandlers, ParamsSchema, RouteHandlerMetadataMap, createCrudHandlers } from "./crud-handler";
 import { SmartRequestAuth } from "./smart-request";
 import { Prisma } from "@prisma/client";
 import { GetResult } from "@prisma/client/runtime/library";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { prismaClient } from "@/prisma-client";
+import * as yup from "yup";
 
 type AllPrismaModelNames = Prisma.TypeMap["meta"]["modelProps"];
 type WhereUnique<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findUniqueOrThrow"]["args"]["where"];
@@ -16,8 +17,8 @@ type PRead<T extends AllPrismaModelNames, W extends Where<T>, I extends Include<
 type PUpdate<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["update"]["args"]["data"];
 type PCreate<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["create"]["args"]["data"];
 
-type Context<ParamName extends string> = {
-  params: Record<ParamName, string>,
+type Context<PS extends ParamsSchema> = {
+  params: yup.InferType<PS>,
   auth: SmartRequestAuth,
 };
 
@@ -26,7 +27,9 @@ type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R }
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
 type CEitherWrite<T extends CrudTypeOf<any>> = CCreate<T> | CUpdate<T>;
 
-export type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHandlers<
+export type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>, PS extends ParamsSchema> = CrudHandlers<
+  T,
+  PS,
   | ("Create" extends keyof T["Admin"] ? "Create" : never)
   | ("Read" extends keyof T["Admin"] ? "Read" : never)
   | ("Read" extends keyof T["Admin"] ? "List" : never)
@@ -37,7 +40,7 @@ export type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>> = CrudHan
 export function createPrismaCrudHandlers<
   S extends CrudSchema,
   PrismaModelName extends AllPrismaModelNames,
-  ParamName extends string,
+  PS extends ParamsSchema,
   W extends Where<PrismaModelName>,
   I extends Include<PrismaModelName>,
   B extends BaseFields<PrismaModelName>,
@@ -45,15 +48,15 @@ export function createPrismaCrudHandlers<
   crudSchema: S,
   prismaModelName: PrismaModelName,
   options: & {
-      paramNames: ParamName[],
-      baseFields: (context: Context<ParamName>) => Promise<B>,
-      where?: (context: Context<ParamName>) => Promise<W>,
-      whereUnique?: (context: Context<ParamName>) => Promise<WhereUnique<PrismaModelName>>,
-      include: (context: Context<ParamName>) => Promise<I>,
-      crudToPrisma?: ((crud: CEitherWrite<CrudTypeOf<S>>, context: Context<ParamName>) => Promise<PUpdate<PrismaModelName> | Omit<PCreate<PrismaModelName>, keyof B>>),
-      prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<ParamName>) => Promise<CRead<CrudTypeOf<S>>>,
+      paramsSchema: PS,
+      baseFields: (context: Context<PS>) => Promise<B>,
+      where?: (context: Context<PS>) => Promise<W>,
+      whereUnique?: (context: Context<PS>) => Promise<WhereUnique<PrismaModelName>>,
+      include: (context: Context<PS>) => Promise<I>,
+      crudToPrisma?: ((crud: CEitherWrite<CrudTypeOf<S>>, context: Context<PS>) => Promise<PUpdate<PrismaModelName> | Omit<PCreate<PrismaModelName>, keyof B>>),
+      prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<PS>) => Promise<CRead<CrudTypeOf<S>>>,
       fieldMapping?: any,
-      createNotFoundError?: (context: Context<ParamName>) => Error,
+      createNotFoundError?: (context: Context<PS>) => Error,
       metadataMap?: RouteHandlerMetadataMap,
     }
     & (
@@ -68,10 +71,10 @@ export function createPrismaCrudHandlers<
         fieldMapping: {},
       }
     ),
-): CrudHandlersFromCrudType<CrudTypeOf<S>> {
-  const wrapper = <T,>(func: (data: any, context: Context<ParamName>, queryBase: any) => Promise<T>): (opts: { params: Record<ParamName, string>, data?: unknown, auth: SmartRequestAuth }) => Promise<T> => {
+): CrudHandlersFromCrudType<CrudTypeOf<S>, PS> {
+  const wrapper = <T,>(func: (data: any, context: Context<PS>, queryBase: any) => Promise<T>): (opts: { params: yup.InferType<PS>, data?: unknown, auth: SmartRequestAuth }) => Promise<T> => {
     return async (req) => {
-      const context: Context<ParamName> = {
+      const context: Context<PS> = {
         params: req.params,
         auth: req.auth,
       };
@@ -91,8 +94,8 @@ export function createPrismaCrudHandlers<
   const prismaToCrud = options.prismaToCrud ?? throwErr("missing prismaToCrud is not yet implemented");
   const crudToPrisma = options.crudToPrisma ?? throwErr("missing crudToPrisma is not yet implemented");
 
-  return createCrudHandlers<any, any>(crudSchema, {
-    paramNames: options.paramNames,
+  return createCrudHandlers<any, PS, any>(crudSchema, {
+    paramsSchema: options.paramsSchema,
     onRead: wrapper(async (data, context) => {
       const prisma = await (prismaClient[prismaModelName].findUniqueOrThrow as any)({
         include: await options.include(context),

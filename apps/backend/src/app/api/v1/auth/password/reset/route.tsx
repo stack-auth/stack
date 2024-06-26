@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -15,7 +15,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+export const POST = handleApiRequest(async (req: NextRequest) => {
   const { body: { code, password, onlyVerifyCode } } = await deprecatedParseRequest(req, postSchema);
 
   const codeRecord = await prismaClient.projectUserPasswordResetCode.findUnique({

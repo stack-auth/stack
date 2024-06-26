@@ -2,7 +2,7 @@ import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
 
 export const accessTokenReadSchema = yup.object({
-  accessToken: yup.string().required(),
+  access_token: yup.string().required(),
 }).required();
 
 export const accessTokenCreateSchema = yup.object({

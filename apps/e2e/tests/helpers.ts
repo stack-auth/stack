@@ -2,6 +2,7 @@ import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { afterEach } from "node:test";
 // eslint-disable-next-line no-restricted-imports
 import { beforeEach, onTestFinished, test as vitestTest } from "vitest";
@@ -15,12 +16,16 @@ export class Context<R, T> {
   private _yetToReduce = new Set<string>();
 
   private _reduced: R | undefined;
+  private _withStorage: AsyncLocalStorage<T[]> = new AsyncLocalStorage();
   private _isInTest = false;
 
   constructor(private readonly _getInitialValue: () => R, private readonly _reducer: (acc: R, value: T) => R) {
     beforeEach(async () => {
       if (this._isInTest) {
         throw new StackAssertionError("beforeEach was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
+      }
+      if (this._withStorage.getStore()) {
+        throw new StackAssertionError("Did you wrap an entire test into Context.with(...)?");
       }
       this._reduced = this._getInitialValue();
       this._isInTest = true;
@@ -30,10 +35,20 @@ export class Context<R, T> {
      
       // we use onTestFinished instead of afterEach so that afterEach calls can still use the context
       onTestFinished(async () => {
+        if (this._withStorage.getStore()) {
+          throw new StackAssertionError("Test finished before _withStorage was cleaned up! This should not happen.");
+        }
         this._isInTest = false;
         this._reduced = undefined;
         this._yetToReduce.clear();
       });
+    });
+  }
+
+  async with<X>(value: T, callback: () => Promise<X>) {
+    const oldWithStorage = this._withStorage.getStore() ?? [];
+    return await this._withStorage.run([...oldWithStorage, value], async () => {
+      return await callback();
     });
   }
 
@@ -55,7 +70,8 @@ export class Context<R, T> {
 
   get value(): R {
     this._reduce();
-    return this._reduced as R;
+    const _withStore = this._withStorage.getStore() ?? [];
+    return _withStore.reduce((acc, val) => this._reducer(acc, val), this._reduced as R);
   }
 
   private _reduce() {
@@ -105,8 +121,9 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
 }
 
 
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> };
+export const emailSuffix = "@generated.stack-test.example.com";
 
+export type Mailbox = { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> };
 export class MailboxMessage {
   declare public readonly subject: string;
   declare public readonly from: string;
@@ -146,7 +163,7 @@ export function createMailbox(): Mailbox {
   const mailboxName = generateSecureRandomString();
   const fullMessageCache = new Map<string, any>();
   return {
-    emailAddress: `${mailboxName}@stack-test.example.com`,
+    emailAddress: `${mailboxName}${emailSuffix}`,
     async fetchMessages({ subjectOnly } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
       return await Promise.all((res.body as any[]).map(async (message) => {

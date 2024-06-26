@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { encodeAccessToken } from "@/lib/tokens";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
@@ -22,7 +22,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+export const POST = handleApiRequest(async (req: NextRequest) => {
   const { 
     body: { 
       email,

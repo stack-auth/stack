@@ -10,6 +10,7 @@ it("should sign up new users and sign in existing users", async ({ expect }) => 
         "access_token": <stripped field 'access_token'>,
         "is_new_user": true,
         "refresh_token": <stripped field 'refresh_token'>,
+        "user_id": <stripped field 'user_id'>,
       },
       "headers": Headers {
         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
@@ -25,6 +26,7 @@ it("should sign up new users and sign in existing users", async ({ expect }) => 
         "access_token": <stripped field 'access_token'>,
         "is_new_user": false,
         "refresh_token": <stripped field 'refresh_token'>,
+        "user_id": <stripped field 'user_id'>,
       },
       "headers": Headers {
         "x-stack-request-id": <stripped header 'x-stack-request-id'>,

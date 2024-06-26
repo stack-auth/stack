@@ -6,12 +6,17 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 type BackendContext = {
   projectKeys: ProjectKeys,
   mailbox: Mailbox,
+  userAuth: {
+    refreshToken: string,
+    accessToken?: string,
+  } | null,
 };
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
   () => ({
     projectKeys: InternalProjectKeys,
     mailbox: createMailbox(),
+    userAuth: null,
   }),
   (acc, update) => ({
     ...acc,
@@ -55,7 +60,7 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
   headers?: Record<string, string>,
 }): Promise<NiceResponse> {
   const { body, headers, accessType, ...otherOptions } = options ?? {};
-  const projectKeys = backendContext.value.projectKeys;
+  const { projectKeys, userAuth } = backendContext.value;
   const res = await niceFetch(new URL(url, STACK_BACKEND_BASE_URL), {
     ...otherOptions,
     ...body !== undefined ? { body: JSON.stringify(body) } : {},
@@ -68,6 +73,10 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
         "x-stack-secret-server-key": projectKeys.secretServerKey,
         "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
       } : {},
+      ...!userAuth ? {} : {
+        "x-stack-access-token": userAuth.accessToken,
+        "x-stack-refresh-token": userAuth.refreshToken,
+      }, 
       ...Object.fromEntries(new Headers(headers).entries()),
     }),
   });
@@ -144,17 +153,23 @@ export namespace Auth {
           access_token: expect.any(String),
           refresh_token: expect.any(String),
           is_new_user: expect.any(Boolean),
+          user_id: expect.any(String),
         },
         headers: expect.anything(),
+      });
+
+      const userAuth = {
+        accessToken: response.body.access_token,
+        refreshToken: response.body.refresh_token,
+      };
+      backendContext.set({
+        userAuth,
       });
 
       return {
         ...sendSignInCodeRes,
         signInResponse: response,
-        userAuth: {
-          accessToken: response.body.accessToken,
-          refreshToken: response.body.refreshToken,
-        },
+        userAuth,
       };
     }
   }

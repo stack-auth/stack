@@ -21,6 +21,9 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
     if (!user) throw new KnownErrors.UserNotFound();
     return user;
   },
+  async onDelete({ auth }) {
+    throw new Error("not supported");
+  },
   metadataMap: {
     read: {
       summary: 'Get the current user',

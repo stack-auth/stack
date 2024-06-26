@@ -122,6 +122,15 @@ export function mergeScopeStrings(...scopes: string[]): string {
 }
 
 
+export function snakeCaseToCamelCase(snakeCase: string): string {
+  return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+export function camelCaseToSnakeCase(camelCase: string): string {
+  return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+
 /**
  * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
  * so we create an object of overrides to handle these cases.
@@ -180,7 +189,7 @@ export function nicify(
   const overrideResult = overrides(value, options);
   if (overrideResult !== null) return overrideResult;
 
-  if (["function", "object", "symbol"].includes(typeof value)) {
+  if (["function", "object", "symbol"].includes(typeof value) && value !== null) {
     if (refs.has(value)) {
       return `Ref<${refs.get(value)}>`;
     }

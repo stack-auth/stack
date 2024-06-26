@@ -3,23 +3,23 @@ import "../polyfills";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { KnownErrors, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
-import { IsAny } from "@stackframe/stack-shared/dist/utils/types";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { updateServerUser } from "@/lib/users";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type SmartRequestAuth = {
   project: ProjectJson,
-  user: ServerUserJson | undefined,
-  projectAccessType: "key" | "internal-user-token",
+  user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };
 
@@ -43,55 +43,70 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : (T & MSQ)
   );
 
-/*
-// the code below might help you debug & understand the MergeSmartRequest type above
-type T = MergeSmartRequest<{ a: 1 | 2 }, { a?: 2 | 3 | undefined } | null>;
-
-const mixed = yup.object({
-  auth: yup.object({
-    type: yup.mixed<StackAdaptSentinel>().required(),
-    user: yup.mixed<StackAdaptSentinel>(),
-    project: yup.mixed<StackAdaptSentinel>(),
-  }).nullable().default(null),
-  method: yup.string().oneOf(["GET"]).required(),
-});
-const mx = yup.mixed<12345>();
-type Y = yup.InferType<typeof mixed>;
-type Y2 = yup.InferType<typeof mx>;
-type Z = MergeSmartRequest<Y, { auth: { type: "client" | "server" | undefined, user: "123" } | null }>;
-type Z2 = MergeSmartRequest<StackAdaptSentinel | undefined, "123" | undefined>;
-*/
-
-async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest): Promise<T> {
+async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
     });
   } catch (error) {
-    if (error instanceof yup.ValidationError) {
-      const inners = error.inner.length ? error.inner : [error];
-      const description = schema.describe();
-      
-      for (const inner of inners) {
-        if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
-          throw new KnownErrors.AccessTypeRequired();
-        }
-        if (inner.path === "auth.type" && inner.type === "oneOf") {
-          // Project access type not sufficient
-          const authTypeField = ((description as yup.SchemaObjectDescription).fields["auth"] as yup.SchemaObjectDescription).fields["type"] as yup.SchemaDescription;
-          throw new KnownErrors.InsufficientAccessType(inner.value, authTypeField.oneOf as any[]);
+    if (error instanceof ReplaceFieldWithOwnUserId) {
+      // parse yup path
+      let pathRemaining = error.path;
+      const fieldPath = [];
+      while (pathRemaining.length > 0) {
+        if (pathRemaining.startsWith("[")) {
+          const index = pathRemaining.indexOf("]");
+          if (index < 0) throw new StackAssertionError("Invalid path");
+          fieldPath.push(JSON.parse(pathRemaining.slice(1, index)));
+          pathRemaining = pathRemaining.slice(index + 1);
+        } else {
+          let dotIndex = pathRemaining.indexOf(".");
+          if (dotIndex === -1) dotIndex = pathRemaining.length;
+          fieldPath.push(pathRemaining.slice(0, dotIndex));
+          pathRemaining = pathRemaining.slice(dotIndex + 1);
         }
       }
 
-      throw new KnownErrors.SchemaError(
-        deindent`
-          Request validation failed on ${req.method} ${req.nextUrl.pathname}:
-            ${inners.map(e => deindent`
-              - ${e.message}
-            `).join("\n")}
-        `,
-      );
+      const newObj = deepPlainClone(obj);
+      let it = newObj;
+      for (const field of fieldPath.slice(0, -1)) {
+        if (!Object.prototype.hasOwnProperty.call(it, field)) {
+          throw new StackAssertionError(`Segment ${field} of path ${error.path} not found in object`);
+        }
+        it = (it as any)[field];
+      }
+      (it as any)[fieldPath[fieldPath.length - 1]] = obj.auth?.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+
+      return await validate(newObj, schema, req);
+    } else if (error instanceof yup.ValidationError) {
+      if (req === null) {
+        // we weren't called by a HTTP request, so it must be a logical error in a manual invokation
+        throw new StackAssertionError("Request validation failed", {}, { cause: error });
+      } else {
+        const inners = error.inner.length ? error.inner : [error];
+        const description = schema.describe();
+        
+        for (const inner of inners) {
+          if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
+            throw new KnownErrors.AccessTypeRequired();
+          }
+          if (inner.path === "auth.type" && inner.type === "oneOf") {
+            // Project access type not sufficient
+            const authTypeField = ((description as yup.SchemaObjectDescription).fields["auth"] as yup.SchemaObjectDescription).fields["type"] as yup.SchemaDescription;
+            throw new KnownErrors.InsufficientAccessType(inner.value, authTypeField.oneOf as any[]);
+          }
+        }
+
+        throw new KnownErrors.SchemaError(
+          deindent`
+            Request validation failed on ${req.method} ${req.nextUrl.pathname}:
+              ${inners.map(e => deindent`
+                - ${e.message}
+              `).join("\n")}
+          `,
+        );
+      }
     }
     throw error;
   }
@@ -149,7 +164,8 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
   const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
-  const authorization = req.headers.get("authorization");
+  const accessToken = req.headers.get("x-stack-access-token");
+  const refreshToken = req.headers.get("x-stack-refresh-token");
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
@@ -226,32 +242,30 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   }
 
   let user = null;
-  if (authorization) {
-    const decodedAccessToken = await decodeAccessToken(authorization.split(" ")[1]);
+  if (accessToken) {
+    const decodedAccessToken = await decodeAccessToken(accessToken);
     const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
 
     if (accessTokenProjectId !== projectId) {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    user = await updateServerUser(
-      projectId,
+    user = await usersCrudHandlers.adminRead({
+      project,
       userId,
-      {},
-    );
+    });
   }
 
   return {
     project,
     user: user ?? undefined,
-    projectAccessType,
     type: requestType,
   };
 }
 
-export async function createLazyRequestParser<T extends DeepPartialSmartRequestWithSentinel>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
+export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
   const urlObject = new URL(req.url);  
-  const toValidate: SmartRequest = {
+  return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
     body: await parseBody(req, bodyBuffer),
@@ -262,22 +276,9 @@ export async function createLazyRequestParser<T extends DeepPartialSmartRequestW
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
     auth: await parseAuth(req),
-  };
-
-  return async () => [await validate(toValidate, schema, req), toValidate];
+  } satisfies SmartRequest;
 }
 
-export async function deprecatedParseRequest<T extends DeepPartial<Omit<SmartRequest, "headers" | "auth"> & { headers: Record<string, string> }>>(req: NextRequest, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<T> {
-  const urlObject = new URL(req.url);
-  const toValidate: Omit<SmartRequest, "headers"> & { headers: Record<string, string> } = {
-    url: req.url,
-    method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
-    body: await parseBody(req, await req.arrayBuffer()),
-    headers: Object.fromEntries([...req.headers.entries()].map(([k, v]) => [k.toLowerCase(), v])),
-    query: Object.fromEntries(urlObject.searchParams.entries()),
-    params: options?.params ?? {},
-    auth: null,
-  };
-
-  return await validate(toValidate, schema, req);
+export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.Schema<T>): Promise<T> {
+  return await validate(smartReq, schema, nextReq);
 }

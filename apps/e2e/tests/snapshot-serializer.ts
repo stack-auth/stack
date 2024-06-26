@@ -1,6 +1,7 @@
 import { SnapshotSerializer } from "vitest";
-import { Nicifiable, nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { emailSuffix } from "./helpers";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -26,7 +27,14 @@ const hideHeaders = [
 
 const stripHeaders = ["x-stack-request-id"];
 
-const stripFields = ["access_token", "refresh_token", "id", "date"];
+const stripFields = [
+  "access_token",
+  "refresh_token",
+  "id",
+  "date",
+  "signed_up_at_millis",
+  "user_id",
+];
 
 function addAll<T>(set: Set<T>, values: T[]) {
   for (const value of values) {
@@ -45,6 +53,11 @@ const snapshotSerializer: SnapshotSerializer = {
       path: "snapshot",
       overrides: (value, options) => {
         const parentValue = options?.parent?.value;
+
+        // Strip auto-generated e-mails
+        if (typeof value === "string" && value.endsWith(emailSuffix)) {
+          return `<stripped auto-generated e-mail>`;
+        }
 
         // Strip headers
         if (options?.parent?.value instanceof Headers) {

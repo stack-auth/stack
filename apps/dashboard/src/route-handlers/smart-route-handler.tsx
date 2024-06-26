@@ -14,7 +14,7 @@ class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...process.env.NODE_ENV === "development" ? [`Internal Server Error: ${error}`] : [],
+      ...process.env.NODE_ENV === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
     );
   }
 }

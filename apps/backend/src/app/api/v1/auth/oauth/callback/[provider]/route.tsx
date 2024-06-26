@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
@@ -36,7 +36,7 @@ const getSchema = yup.object({
   })
 });
 
-export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options: { params: { provider: string }}) => {
+export const GET = handleApiRequest(async (req: NextRequest, options: { params: { provider: string }}) => {
   const { query: {
     code,
     state,

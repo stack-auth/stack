@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
@@ -20,7 +20,7 @@ const postSchema = yup.object({
   }).required(),
 });
 
-const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+const handler = handleApiRequest(async (req: NextRequest) => {
   const {
     headers: {
       authorization,

@@ -288,7 +288,7 @@ const AccessTypeRequired = createKnownErrorConstructor(
   "ACCESS_TYPE_REQUIRED",
   () => [
     400,
-    `You are not allowed to access this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.`,
+    `You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.`,
   ] as const,
   () => [] as const,
 );
@@ -603,6 +603,16 @@ const UserEmailAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const CannotGetOwnUserWithoutUser = createKnownErrorConstructor(
+  KnownError,
+  "CANNOT_GET_OWN_USER_WITHOUT_USER",
+  () => [
+    400,
+    "You have specified 'me' as a userId, but did not provide authentication for a user.",
+  ] as const,
+  () => [] as const,
+);
+
 const UserNotFound = createKnownErrorConstructor(
   KnownError,
   "USER_NOT_FOUND",
@@ -906,6 +916,7 @@ export const KnownErrors = {
   InvalidAccessType,
   AccessTypeWithoutProjectId,
   AccessTypeRequired,
+  CannotGetOwnUserWithoutUser,
   InsufficientAccessType,
   InvalidPublishableClientKey,
   InvalidSecretServerKey,

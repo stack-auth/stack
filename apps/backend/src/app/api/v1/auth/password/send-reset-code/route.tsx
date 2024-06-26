@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
-import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { sendPasswordResetEmail } from "@/email";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
@@ -21,7 +21,7 @@ const postSchema = yup.object({
   }),
 });
 
-export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
+export const POST = handleApiRequest(async (req: NextRequest) => {
   const { 
     headers: { 
       "x-stack-project-id": projectId, 
