@@ -172,7 +172,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
             const frw = routeHandlerTypeHelper({
               request: yup.object({
                 auth: yup.object({
-                  type: yup.string().oneOf(["server", accessType]).required(),
+                  type: yup.string().oneOf([accessType]).required(),
                 }).required(),
                 url: yup.string().required(),
                 method: yup.string().oneOf([httpMethod]).required(),
