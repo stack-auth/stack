@@ -14,7 +14,6 @@ export function SmartImage(props: NextImageProps & { disableStrictCLS?: boolean 
     : undefined;
 
   return (
-    // eslint-disable-next-line react/forbid-elements
     <NextImage
       width={width ?? (disableStrictCLS ? 16 : undefined)}
       height={height ?? (disableStrictCLS ? 16 : undefined)}

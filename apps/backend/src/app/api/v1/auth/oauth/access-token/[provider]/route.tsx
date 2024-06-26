@@ -75,7 +75,7 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
     }
 
     return {
-      accessToken: tokenSet.access_token,
+      access_token: tokenSet.access_token,
     };
   },
 });

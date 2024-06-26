@@ -30,7 +30,6 @@ export default function EmailEditor(props: {
     if (props.resetSignal) {
       resetDocument(props.document);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.resetSignal]);
 
   const edited = useMemo(() => {

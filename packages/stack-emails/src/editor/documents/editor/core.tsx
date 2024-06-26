@@ -57,7 +57,6 @@ const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
     Component: (props) => {
       return (
         <EditorBlockWrapper>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image {...props} />
         </EditorBlockWrapper>
       );
