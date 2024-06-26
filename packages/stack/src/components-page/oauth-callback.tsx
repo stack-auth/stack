@@ -21,7 +21,7 @@ export function OAuthCallback(props: { fullPage?: boolean }) {
     } catch (e: any) {
       setError(e);
     }
-    if (!hasRedirected && process.env.NODE_ENV === 'production') {
+    if (!hasRedirected && (!error || process.env.NODE_ENV === 'production')) {
       await app.redirectToSignIn();
     }
   }), []);
