@@ -57,7 +57,7 @@ const OriginalButton = React.forwardRef<HTMLButtonElement, OriginalButtonProps>(
 );
 OriginalButton.displayName = "Button";
 
-interface ButtonProps extends OriginalButtonProps {
+export interface ButtonProps extends OriginalButtonProps {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
   loading?: boolean,
 }
