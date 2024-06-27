@@ -1,0 +1,31 @@
+---
+slug: getting-started/production
+subtitle: Things to do before using Stack in a production application
+---
+
+Stack is designed to be developer friendly, so we have many options set to some values that are easy for development. However, when you are ready to go to production, these options need to be changed for better security and user experience. Here is a check list for entering the production mode
+
+### Domains and handlers
+
+By default, we allow all the localhost paths to be a valid callback URL (no need to worry if you don't know what these callbackes exactly do, you just need to know that Stack will call some of the handler endpoints on your website). However, we can't just blindly trust any domain in the production, otherwise an attacker might just put in their own website as the callback URL and receive information that they should not receive. Therefore, Stack needs to know the domain of your website (like `https://you-website.com`) and only allow callbacks from those domains. 
+
+When you decide to push your application to a domain, here are the steps that you need to go through:
+1. Add your domain on the Stack dashboard `Domain & Handlers` tab. If you didn't configure your handler, you can just leave the handler as default (read more information about handler [here](../sdk/app.mdx)).
+2. Disable `allow all localhost` for better security
+
+### OAuth Providers
+
+By default, Stack creates shared OAuth keys for the OAuth providers so you can use the "Sign in with Google/Github/etc." without going though all the setup process. This is very useful for development, however this is not secure for production as it shows "Stack Development" on the providers' consent screens and the user won't know if the OAuth authorization request is really from your website. So you should setup your own OAuth keys on the providers website and connect them with Stack.
+
+So to use your own OAuth provider setups in production, you need to go through all the providers you use and:
+1. Register accounts on the providers websites (like Google Console for Google, Azure for Microsoft, etc.)
+2. Create an OAuth app on the providers websites (more informaiton (here)[TODO]), set the callback url to `https://app.stack-auth.com/api/v1/auth/callback/<provider-name>`. Copy the client ID and client secret from the providers website
+3. Go to Stack dashboard `Auth Methods`, open the setting of the corresponding provider, switch from shared keys to custom keys, enter the client ID and the client secret from the provider's website.
+
+### Email Server
+
+Stack creates a shared email server for development so you don't need to handle email sending during development. However, all the emails are sent from Stack's email domain and it is not ideal in production, as your user can't tell if the email is really from your website or not. So you should use an email server that is connected with your own domain in production.
+
+Here are the steps to connect your email server with Stack:
+1. Setup your own email server (this is out of the scope of Stack's documentation, but [here is a good tutorial](TODO) if you don't know how to do it )
+2. Go to Stack dashboard `Emails` section, click on the `Edit` button of the `Email Server` section, switch from `shared email server` to `custom SMTP server`, copy your SMTP configurations and save it.
