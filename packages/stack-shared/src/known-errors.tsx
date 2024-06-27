@@ -182,11 +182,11 @@ const AllOverloadsFailed = createKnownErrorConstructor(
         `).join("\n\n")}
     `,
     {
-      overloadErrors,
+      overload_errors: overloadErrors,
     },
   ] as const,
   (json) => [
-    (json.details as any)?.overloadErrors ?? throwErr("overloadErrors not found in AllOverloadsFailed details"),
+    (json.details as any)?.overload_errors ?? throwErr("overload_errors not found in AllOverloadsFailed details"),
   ] as const,
 );
 
