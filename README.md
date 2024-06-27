@@ -87,11 +87,13 @@ docker compose -f dependencies.compose.yaml up
 ```
 
 Then:
-
+if you are starting locally, go to the `.env` file in the `app/backend` and uncomment the `DATABASE_CONNECTION_STRING`
 ```sh
 pnpm install
 
 # Run build to build everything once
+pnpm run prisma:seed_backend
+
 pnpm run build
 
 # Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
