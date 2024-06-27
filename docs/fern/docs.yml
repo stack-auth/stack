@@ -45,11 +45,13 @@ navigation:
             path: ./docs/pages/getting-started/users.mdx
           - page: Teams
             icon: fa-regular fa-users
+            path: ./docs/pages/concepts/teams.mdx
           - page: Selecting a Team
             icon: fa-regular fa-exchange
+            path: ./docs/pages/concepts/team-selection.mdx
           - page: Permissions
             icon: fa-regular fa-user-lock
-            path: ./docs/pages/getting-started/users.mdx
+            path: ./docs/pages/getting-started/permissions.mdx
           - page: Local Development
             path: ./docs/pages/getting-started/users.mdx
       - section: Customization

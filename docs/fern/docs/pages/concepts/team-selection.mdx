@@ -1,0 +1,109 @@
+---
+slug: getting-started/teams
+subtitle: Current team, default team, and deep link a team
+---
+
+A user can be members of multiple teams, so most websites using teams will need a way to select a "current team" for the users to work on. There are two ways to accomplish this:
+- **Deep link**: Each team has a unique URL, for example `your-website.com/team/<team-id>`, when ever you select a team, it is just a redirect to the page.
+- **Current Team**: Whenever the user selects a team, the app store a global state of "current team". In this way, the URL of the current team will be something like `your-website.com/current-team` and the URL won't change after switching team. 
+
+The down-side of the "current team" method is that it can lead to people opening a link for the wrong project (for example if a user shares a link to their co-worker who is also in the team, but the co-worker has another team opened, then the co-worker will see the wrong information), and it can also behave un-intuitively when a user have multiple browser tabs opened with different teams.
+
+We recommend most of the applications to do the "deep link" method, as the "current team" method might behave weirdly in some cases, but we do provide `user.selectedTeam` attribute and `user.setSelectedTeam(team)` method. You can either use these functions to implement the "current team" method, or you can use it combined with the "deep link" method and use it as "the default team" or "most recent team".
+
+## Selected Team Switcher
+
+Stack provides a component for you to switch between teams, it looks like this:
+
+TODO
+
+To use it, you can simply importort it like this. If you don't pass any parameter to it, it is more useful for the "current team" method. The component will update the `selectedTeam` when the user clicks on a team:
+
+```jsx 
+import { SelectedTeamSwitcher } from "@stackframe/stack";
+
+export function MyPage() {
+  return <div>
+    <SelectedTeamSwitcher/>
+  </div>;
+}
+```
+
+However, if you want to use it combined with the "peep link" method, you can pass in the `urlMap` and `openedTeam`. The `urlMap` takes in a function that generates a path based on the team information, the `openedTeam` takes in a team that the user currently is working on and update it to the `selectedTeam`. This is useful if you want to implement "deep link" + "most recent team"
+
+```jsx
+<SelectedTeamSwitcher 
+  urlMap={team => `/team/${team.id}`} 
+  openedTeam={team}
+/>
+```
+
+You can also pass in `noUpdateSelectedTeam` to the component to not let it manually update the team based on the selection. This is useful when you want to implement the "deep link" + "default team" method (for example if you want to update the `selectedTeam` only if the user clicks on a "set to default team" button)
+
+```jsx
+<SelectedTeamSwitcher 
+  urlMap={team => `/team/${team.id}`} 
+  openedTeam={team} 
+  noUpdateSelectedTeam
+/>
+```
+
+## An Example of Deep Link + Most Recent Team
+
+Let's first create a page at `/app/team/[teamId]/page.tsx` for showing information about a specific team:
+
+```jsx title="/app/team/[teamId]/page" 
+"use client";
+
+import { useUser, SelectedTeamSwitcher } from "@stackframe/stack";
+
+export function Page({ params }: { params: { teamId: string } }) {
+  const user = useUser({ or: 'redirect' });
+  const team = user.useTeam(teamId);
+
+  if (!team) {
+    return <div>Team not found</div>
+  }
+
+  return <div>
+    <SelectedTeamSwitcher 
+      urlMap={team => `/team/${team.id}`} 
+      openedTeam={team}
+    />
+    
+    <p>Team Name: {team.displayName}</p>
+    <p>You are a member of this team</p>
+  </div>;
+}
+```
+
+Now we create a page to show all the teams at `/app/team/page.tsx`
+
+```jsx title="/app/team/page.tsx"
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useUser } from "@stackframe/stack";
+
+export function Page() {
+  const user = useUser({ or: 'redirect' });
+  const teams = user.useTeams();
+  const router = useRouter();
+
+  return <div>
+    {user.selectedTeam && 
+    <button onClick={() => router.push(`/team/${user.selectedTeam.id}`)}>
+      Most recent team
+    </button>}
+
+    <h2>All teams</h2>
+    {teams.map(team => (
+      <button key={team.id} onClick={() => router.push(`/team/${team.id}`)}>
+        Open {team.displayName}
+      </button>
+    ))}
+  </div>
+}
+```
+
+Now if you go to `https://localhost:3000/team`, you should be able to see the team page.
