@@ -88,6 +88,28 @@ docker compose -f dependencies.compose.yaml up
 
 Then:
 
+
+As per given in dependecies.compose.yaml our database requirements are 
+POSTGRES_USER: postgres
+POSTGRES_PASSWORD: password
+POSTGRES_DB: stackframe
+
+Database url becomes from above-  
+```sh 
+  url   = "postgres://postgres:password@localhost:5432/stackframe"
+ ```
+ so replace link from the stack\apps\backend\prisma\schema.prisma   and    stack\apps\dashboard\prisma\schema.prisma
+ # OR
+ 
+ update .env file accordingly.
+ 
+ -then
+ Run command in apps/backend
+```sh 
+npx prisma db seed
+```
+-then
+
 ```sh
 pnpm install
 
