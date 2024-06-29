@@ -7,7 +7,7 @@ import { Form } from "@/components/ui/form";
 import { InputField, SwitchListField } from "@/components/form-fields";
 import { runAsynchronously, runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "@/components/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import { toSharedProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
@@ -26,8 +26,10 @@ export const defaultValues: Partial<ProjectFormValues> = {
   signInMethods: ["credential", "google", "github"],
 };
 
-export default function PageClient () {
+export default function PageClient() {
+  const showError = useRef<HTMLDivElement>(null);
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
+  const projectList = user.useOwnedProjects();
   const [loading, setLoading] = useState(false);
   const form = useForm<ProjectFormValues>({
     resolver: yupResolver<ProjectFormValues>(projectFormSchema),
@@ -50,6 +52,17 @@ export default function PageClient () {
     e?.preventDefault();
     setLoading(true);
     let newProject;
+    if (projectList) {
+      const project_name = projectList.find((v) => v.displayName === values.displayName);
+      if (project_name) {
+        showError.current?.classList.remove('hidden');
+        setLoading(false);
+        return;
+      }
+      else {
+        showError.current?.classList.add('hidden');
+      }
+    }
     try {
       newProject = await user.createProject({
         displayName: values.displayName,
@@ -77,11 +90,14 @@ export default function PageClient () {
           <div className="flex justify-center mb-4">
             <Typography type='h2'>Create a new project</Typography>
           </div>
-            
+
           <Form {...form}>
             <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
               <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
+              <div ref={showError} className={`text-red-500 text-sm mt-1 hidden`}>
+                please enter some outher project name
+              </div>
 
               <SwitchListField
                 control={form.control}
@@ -115,16 +131,16 @@ export default function PageClient () {
                   <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
                     {/* a transparent cover that prevents the card being clicked */}
                     <div className="absolute inset-0 bg-transparent z-10"></div>
-                    <AuthPage 
-                      type="sign-in" 
-                      mockProject={mockProject} 
+                    <AuthPage
+                      type="sign-in"
+                      mockProject={mockProject}
                     />
                   </div>
                 </div>
               </BrowserFrame>
             </div>
           )}
-      </div> 
+      </div>
     </div>
   );
 }
