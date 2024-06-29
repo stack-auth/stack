@@ -31,18 +31,19 @@ navigation:
           - page: Users
             icon: fa-regular fa-address-book
             path: ./docs/pages/getting-started/users.mdx
-          - page: Protecting Pages
-            icon: fa-regular fa-shield-check
-            path: ./docs/pages/getting-started/protecting-pages.mdx
-          - page: Going to production
-            icon: fa-regular fa-conveyor-belt-boxes
+          # - page: Protecting Pages
+          #   icon: fa-regular fa-shield-check
+          #   path: ./docs/pages/getting-started/protecting-pages.mdx
+          - page: Going to Production
+            icon: fa-regular fa-rocket
             path: ./docs/pages/getting-started/production.mdx
       - section: Concepts
         contents:
-          - page: Client vs. Server
-            path: ./docs/pages/getting-started/users.mdx
+          # - page: Client vs. Server
+          #   path: ./docs/pages/getting-started/users.mdx
           - page: OAuth Providers
-            path: ./docs/pages/getting-started/users.mdx
+            icon: fa-regular fa-key
+            path: ./docs/pages/concepts/oauth.mdx
           - page: Teams
             icon: fa-regular fa-users
             path: ./docs/pages/concepts/teams.mdx
@@ -51,9 +52,9 @@ navigation:
             path: ./docs/pages/concepts/team-selection.mdx
           - page: Permissions
             icon: fa-regular fa-user-lock
-            path: ./docs/pages/getting-started/permissions.mdx
-          - page: Local Development
-            path: ./docs/pages/getting-started/users.mdx
+            path: ./docs/pages/concepts/permissions.mdx
+          # - page: Local Development
+          #   path: ./docs/pages/getting-started/users.mdx
       - section: Customization
         contents:
           - page: Dark/Light Mode
@@ -62,9 +63,9 @@ navigation:
           - page: Colors and Styles
             icon: fa-regular fa-paint-brush
             path: ./docs/pages/customization/custom-styles.mdx
-          - page: Customize Emails
-            icon: fa-regular fa-envelope
-            path: ./docs/pages/getting-started/users.mdx
+          # - page: Customize Emails
+          #   icon: fa-regular fa-envelope
+            # path: ./docs/pages/getting-started/users.mdx
           - page: Custom Layouts and Pages
             icon: fa-regular fa-table-layout
             path: ./docs/pages/customization/custom-pages.mdx
