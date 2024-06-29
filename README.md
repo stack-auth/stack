@@ -90,9 +90,19 @@ Then:
 
 ```sh
 pnpm install
+```
+Then : 
+if you are starting locally, go to the `.env` file in the `app/backend` and `app/deshboard`  and uncomment the `DATABASE_CONNECTION_STRING`
 
+```sh
 # Run build to build everything once
 pnpm run build
+
+# to seed backend 
+pnpm run prisma:seed_backend
+
+# to seed dashboard
+pnpm run prisma:seed_dashboard
 
 # Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
