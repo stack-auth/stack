@@ -83,7 +83,7 @@ Pre-populated .env files for the setup below are available and used by default i
 In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
 
 ```sh
-docker compose -f dependencies.compose.yaml up
+docker compose -f dependencies.compose.yaml up -d
 ```
 
 Then:
