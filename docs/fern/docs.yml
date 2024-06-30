@@ -40,7 +40,7 @@ navigation:
       - section: Concepts
         contents:
           # - page: Client vs. Server
-          #   path: ./docs/pages/getting-started/users.mdx
+          #   icon: fa-regular fa-code-branch
           - page: OAuth Providers
             icon: fa-regular fa-key
             path: ./docs/pages/concepts/oauth.mdx
@@ -54,7 +54,7 @@ navigation:
             icon: fa-regular fa-user-lock
             path: ./docs/pages/concepts/permissions.mdx
           # - page: Local Development
-          #   path: ./docs/pages/getting-started/users.mdx
+          #   icon: fa-regular fa-laptop
       - section: Customization
         contents:
           - page: Dark/Light Mode
@@ -65,7 +65,6 @@ navigation:
             path: ./docs/pages/customization/custom-styles.mdx
           # - page: Customize Emails
           #   icon: fa-regular fa-envelope
-            # path: ./docs/pages/getting-started/users.mdx
           - page: Custom Layouts and Pages
             icon: fa-regular fa-table-layout
             path: ./docs/pages/customization/custom-pages.mdx
