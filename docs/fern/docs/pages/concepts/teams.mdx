@@ -9,7 +9,7 @@ To assign users to a default team upon sign-up, activate the corresponding toggl
 
 ## Creating a Team
 
-To create a team, you can call the `createTeam` method on the `stackServerApp`. Here is an example:
+To create a team, use the `createTeam` method on the `stackServerApp`. Here’s an example:
 
 ```tsx title="Create a Team"
 const team = await stackServerApp.createTeam({
@@ -19,7 +19,7 @@ const team = await stackServerApp.createTeam({
 
 ## Adding a User to a Team
 
-To add a user to a team, you can call the `addUser` method on the `Team` object. Here is an example:
+To add a user to a team, use the `addUser` method on the `Team` object. Here’s how:
 
 ```tsx title="Add a User to a Team"
 const team = await stackServerApp.getTeam('teamId');
@@ -28,7 +28,7 @@ await team.addUser(user);
 
 ## List All the Teams of a User
 
-You can list all the teams a user belongs to by using the `listTeams` method or `useTeams` hook on the User object. Here is how you can do it:
+You can list all the teams a user belongs to by using the `listTeams` method or the `useTeams` hook on the User object. Here's how to do it:
 
 <Tabs>
   <Tab title="Client Component">
@@ -42,7 +42,9 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
 
       return (
         <div>
-          {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+          {teams.map(team => (
+            <div key={team.id}>{team.displayName}</div>
+          ))}
         </div>
       );
     }
@@ -59,7 +61,9 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
 
       return (
         <div>
-          {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+          {teams.map(team => (
+            <div key={team.id}>{team.displayName}</div>
+          ))}
         </div>
       );
     }
@@ -67,10 +71,9 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
   </Tab>
 </Tabs>
 
-
 ## Get Specific Team of a User
 
-To obtain details of a specific team that a user belongs to, use the `getTeam` method or `useTeam` hook. Note, this may return `null` if the user is not a member of the team. Here is an example:
+To obtain details of a specific team a user belongs to, use the `getTeam` method or `useTeam` hook. Note: this might return `null` if the user is not a member of that team. Here’s an example:
 
 <Tabs>
   <Tab title="Client Component">
@@ -111,7 +114,7 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
 
 ## List All the Teams
 
-To list all the teams, you can call the `listTeams` method on the `stackServerApp`, this is an example:
+To list all teams, use the `listTeams` method on the `stackServerApp`. Here’s an example:
 
 ```tsx
 const teams = await stackServerApp.listTeams();
@@ -119,7 +122,7 @@ const teams = await stackServerApp.listTeams();
 
 ## Update a Team
 
-To update a team, use the `update` method on a server-side team object. Here is an example:
+To update a team, use the `update` method on a server-side team object. Here’s how to do it:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
@@ -130,22 +133,22 @@ await team.update({
 
 ## Remove a User from a Team
 
-To remove a user from a team, you can call the `removeUser` method on the `team`, this is an example:
+To remove a user from a team, use the `removeUser` method on the `team` object. Here's an example:
 
 ```tsx
-  const team = await stackServerApp.getTeam(teamId);
-  await team?.removeUser(userId);
+const team = await stackServerApp.getTeam(teamId);
+await team?.removeUser(userId);
 ```
 
 ## List All the Members of a Team
 
-To list all the members of a team, you can call the `listMembers` method on a server side team object. Note that the returned result is a list of `TeamMember` objects, from which you can also get the user object. This is an example:
+To list all the members of a team, use the `listMembers` method on a server-side team object. Note that the returned result is a list of `TeamMember` objects, from which you can also get the user object. Here’s an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
 const members = await team.listMembers();
 for (const member of members) {
   const user = member.user;
-  console.log(user.displayName, 'is a member of', team.displayName);
+  console.log(`${user.displayName} is a member of ${team.displayName}`);
 }
 ```
