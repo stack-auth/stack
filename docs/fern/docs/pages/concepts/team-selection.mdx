@@ -16,7 +16,9 @@ While the current team method can be simpler to implement, it has a downside. If
 
 ## Selected Team Switcher
 
-To facilitate team selection, Stack provides a component that looks like this (TODO: Add image/visual representation):
+To facilitate team selection, Stack provides a component that looks like this:
+
+![TeamSwitcher](../imgs/team-switcher.png)
 
 You can import and use the `SelectedTeamSwitcher` component for the "current team" method. It updates the `selectedTeam` when a user selects a team:
 
@@ -32,12 +34,12 @@ export function MyPage() {
 }
 ```
 
-To combine the switcher with the deep link method, you can pass in `urlMap` and `openedTeam`. The `urlMap` is a function to generate a URL based on the team information, and `openedTeam` is the team that the user is currently working on. This lets you implement "deep link" + "most recent team":
+To combine the switcher with the deep link method, you can pass in `urlMap` and `selectedTeam`. The `urlMap` is a function to generate a URL based on the team information, and `selectedTeam` is the team that the user is currently working on. This lets you implement "deep link" + "most recent team". The component will update the `user.selectedTeam` with the `selectedTeam` prop:
 
 ```jsx
 <SelectedTeamSwitcher 
   urlMap={team => `/team/${team.id}`} 
-  openedTeam={team}
+  selectedTeam={team}
 />
 ```
 
@@ -46,7 +48,7 @@ To implement the "deep link" + "default team" method, where you update the `sele
 ```jsx
 <SelectedTeamSwitcher 
   urlMap={team => `/team/${team.id}`} 
-  openedTeam={team} 
+  selectedTeam={team} 
   noUpdateSelectedTeam
 />
 ```
@@ -72,7 +74,7 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
     <div>
       <SelectedTeamSwitcher 
         urlMap={team => `/team/${team.id}`} 
-        openedTeam={team}
+        selectedTeam={team}
       />
       
       <p>Team Name: {team.displayName}</p>
