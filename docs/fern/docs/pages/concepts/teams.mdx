@@ -40,9 +40,11 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
       const user = useUser({ or: 'redirect' });
       const teams = user.useTeams();
 
-      return <div>
-        {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
-      </div>;
+      return (
+        <div>
+          {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+        </div>
+      );
     }
     ```
   </Tab>
@@ -55,9 +57,11 @@ You can list all the teams a user belongs to by using the `listTeams` method or 
       const user = await stackServerApp.getUser({ or: 'redirect' });
       const teams = await user.listTeams();
 
-      return <div>
-        {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
-      </div>;
+      return (
+        <div>
+          {teams.map(team => <div key={team.id}>{team.displayName}</div>)}
+        </div>
+      );
     }
     ```
   </Tab>
@@ -78,9 +82,11 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
       const user = useUser({ or: 'redirect' });
       const team = user.useTeam(props.teamId);
 
-      return <div>
-        {team ? team.displayName : 'Not a member of this team'}
-      </div>;
+      return (
+        <div>
+          {team ? team.displayName : 'Not a member of this team'}
+        </div>
+      );
     }
     ```
   </Tab>
@@ -93,9 +99,11 @@ To obtain details of a specific team that a user belongs to, use the `getTeam` m
       const user = await stackServerApp.getUser({ or: 'redirect' });
       const team = await user.getTeam(props.teamId);
 
-      return <div>
-        {team ? team.displayName : 'Not a member of this team'}
-      </div>;
+      return (
+        <div>
+          {team ? team.displayName : 'Not a member of this team'}
+        </div>
+      );
     }
     ```
   </Tab>
