@@ -36,7 +36,6 @@ export const currentUserCrud = createCrud({
   serverUpdateSchema,
   serverDeleteSchema,
   docs: {
-    tags: ["Users"],
     clientRead: {
       summary: 'Get current user',
       description: 'Gets the currently authenticated user.',

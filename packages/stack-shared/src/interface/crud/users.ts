@@ -43,24 +43,28 @@ export const usersCrud = createCrud({
   serverCreateSchema: usersCrudServerCreateSchema,
   serverDeleteSchema: usersCrudServerDeleteSchema,
   docs: {
-    tags: ["Users"],
     serverCreate: {
+      tags: ["Users"],
       summary: 'Create user',
       description: 'Creates a new user. E-mail authentication is always enabled, and no password is set, meaning the only way to authenticate the newly created user is through magic link.',
     },
     serverRead: {
+      tags: ["Users"],
       summary: 'Get user',
       description: 'Gets a user by user ID.',
     },
     serverUpdate: {
+      tags: ["Users"],
       summary: 'Update user',
       description: 'Updates a user. Only the values provided will be updated.',
     },
     serverDelete: {
+      tags: ["Users"],
       summary: 'Delete user',
       description: 'Deletes a user. Use this with caution.',
     },
     serverList: {
+      tags: ["Users"],
       summary: 'List users',
       description: 'Lists all the users in the project.',
     },
