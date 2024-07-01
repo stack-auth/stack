@@ -91,6 +91,8 @@ navigation:
             path: ./docs/pages/sdk/use-user.mdx
       - section: Components
         contents:
+          - page: StackHandler
+            path: ./docs/pages/sdk/stack-handler.mdx
           - page: SignIn
             path: ./docs/pages/sdk/sign-in.mdx
           - page: SignUp
