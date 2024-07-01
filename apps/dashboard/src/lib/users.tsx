@@ -77,7 +77,7 @@ export async function updateServerUser(
           projectUserId: userId,
         },
         data: {
-          selected: null,
+          isSelected: null,
         },
       });
 
@@ -91,7 +91,7 @@ export async function updateServerUser(
             },
           },
           data: {
-            selected: true,
+            isSelected: 'TRUE',
           },
         });
       }
@@ -166,7 +166,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
-  const rawSelectedTeam = user.teamMembers.filter(m => m.selected)[0]?.team;
+  const rawSelectedTeam = user.teamMembers.filter(m => m.isSelected)[0]?.team;
   return {
     projectId: user.projectId,
     id: user.projectUserId,

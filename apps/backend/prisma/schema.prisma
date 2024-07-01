@@ -101,6 +101,13 @@ model Team {
   @@id([projectId, teamId])
 }
 
+// This is used for fields that are boolean but only the true value is part of a unique constraint.
+// For example if you want to allow only one selected team per user, you can make an optional field with this type and add a unique constraint.
+// Only the true value is considered for the unique constraint, the null value is not.
+enum BooleanTrue {
+  TRUE
+}
+
 model TeamMember {
   projectId     String
   projectUserId String @db.Uuid
@@ -109,14 +116,14 @@ model TeamMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  team        Team        @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
-  selected    Boolean?
+  projectUser ProjectUser  @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  team        Team         @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+  isSelected  BooleanTrue?
 
   directPermissions TeamMemberDirectPermission[]
 
   @@id([projectId, projectUserId, teamId])
-  @@unique([projectId, projectUserId, selected])
+  @@unique([projectId, projectUserId, isSelected])
 }
 
 model TeamMemberDirectPermission {
