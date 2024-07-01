@@ -3,7 +3,6 @@
   "version": "2.4.28",
   "private": true,
   "scripts": {
-    "seed":"npx prisma db seed",
     "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -c development --",
