@@ -179,7 +179,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
                 headers: yup.object().shape({
                   location: yup.array(yup.string().required()).optional(),
                 }),
-                bodyType: yup.string().oneOf(["json"]).required(),
+                bodyType: crudOperation === "Delete" ? yup.string().oneOf(["empty"]).required() : yup.string().oneOf(["json"]).required(),
                 body: accessSchemas.output,
               }),
               handler: async (req, fullReq) => {
@@ -196,7 +196,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
                   headers: {
                     location: crudOperation === "Create" ? [req.url] : undefined,
                   },
-                  bodyType: "json",
+                  bodyType: crudOperation === "Delete" ? "empty" : "json",
                   body: result,
                 };
               },

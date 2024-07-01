@@ -147,6 +147,35 @@ describe("with client access", () => {
     `);
   });
 
+  it("should not be able to delete own user", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "DELETE",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INSUFFICIENT_ACCESS_TYPE",
+          "details": {
+            "actual_access_type": "client",
+            "allowed_access_types": [
+              "server",
+              "admin",
+            ],
+          },
+          "error": "The x-stack-access-type header must be 'server' or 'admin', but was 'client'.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("updating own display name to the empty string should set it to null", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response1 = await niceBackendFetch("/api/v1/users/me", {
@@ -206,35 +235,6 @@ describe("with client access", () => {
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
         "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
-      }
-    `);
-  });
-
-  it("should not be able to delete own user", async ({ expect }) => {
-    await Auth.Otp.signIn();
-    const response = await niceBackendFetch("/api/v1/users/me", {
-      accessType: "client",
-      method: "DELETE",
-    });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 401,
-        "body": {
-          "code": "INSUFFICIENT_ACCESS_TYPE",
-          "details": {
-            "actual_access_type": "client",
-            "allowed_access_types": [
-              "server",
-              "admin",
-            ],
-          },
-          "error": "The x-stack-access-type header must be 'server' or 'admin', but was 'client'.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
@@ -380,8 +380,8 @@ describe("with server access", () => {
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 500,
-        "body": "Internal Server Error. The error message follows, but will be stripped in production. StackAssertionError: Invalid JSON body is not JSON\\n\\nThis is likely an error in Stack. Please report it.",
+        "status": 200,
+        "body": ArrayBuffer {},
         "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,

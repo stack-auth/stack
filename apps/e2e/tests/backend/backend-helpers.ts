@@ -80,9 +80,12 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
       ...Object.fromEntries(new Headers(headers).entries()),
     }),
   });
+  if (res.status >= 500 && res.status < 600) {
+    throw new StackAssertionError(`Unexpected internal server error: ${res.status} ${res.body}`);
+  }
   if (res.headers.has("x-stack-known-error")) {
     expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(600);
+    expect(res.status).toBeLessThan(500);
     expect(res.body).toMatchObject({
       code: res.headers.get("x-stack-known-error"),
     });
