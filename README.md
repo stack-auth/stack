@@ -129,5 +129,5 @@ Thanks to our amazing community who have helped us build Stack!
 Read the [contribution guidelines](CONTRIBUTING.md) and join [our Discord](https://discord.stack-auth.com) if you'd also like to help.
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stack-auth/stack" />
+  <img src="https://api.stack-auth.com/api/v1/contributors" />
 </a>
