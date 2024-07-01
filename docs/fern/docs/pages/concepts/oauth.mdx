@@ -1,0 +1,91 @@
+---
+slug: concepts/oauth
+subtitle: Integrating OAuth Providers for API Access
+---
+
+With Stack, users can connect multiple OAuth accounts, enabling access to provider-specific data and services such as Google Drive, Microsoft Calendar, GitHub repositories, and more.
+
+## Connecting with an OAuth Provider Post Sign-in
+
+Users can connect with an OAuth provider during sign-in or after signing in using other methods. For the latter, use the `user.useConnectedAccount('<provider_name>', { or: 'redirect' })` method. If the account is already connected, the method returns a Connection object; otherwise, it redirects the user to the provider's authorization page. Here’s how to connect with Google:
+
+```jsx
+'use client';
+
+import { useUser } from "@stackframe/stack";
+
+export default function Page() {
+  const user = useUser({ or: 'redirect' });
+  // Redirects to Google authorization if not already connected
+  const account = user.useConnectedAccount('google', { or: 'redirect' });
+  // Account is always defined because of the redirect
+  return <div>Google account connected</div>;
+}
+```
+
+## Connecting with Extra Scopes
+
+You can request extra scopes when connecting with an OAuth provider. For instance, to access Google Drive, pass the `https://www.googleapis.com/auth/drive` scope. Here’s an example:
+
+```jsx
+'use client';
+
+import { useUser } from "@stackframe/stack";
+
+export default function Page() {
+  const user = useUser({ or: 'redirect' });
+  // Redirects to the Google authorization page, requesting access to Google Drive
+  const account = user.useConnectedAccount('google', { or: 'redirect' });
+  // Account is always defined because of the redirect
+  return <div>Google Drive connected</div>;
+}
+```
+
+## Retrieving the Access Token
+
+Once connected with an OAuth provider, obtain the access token using the `account.getAccessToken()` method. Use this token to access the provider’s API endpoints. Here’s an example of using the access token to interact with Google Drive API:
+
+```jsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useUser } from "@stackframe/stack";
+
+export default function Page() {
+  const user = useUser({ or: 'redirect' });
+  const account = user.useConnectedAccount('google', { or: 'redirect' });
+  const tokens = account.getAccessToken();
+  const [response, setResponse] = useState(null);
+
+  useEffect(() => {
+    fetch('https://www.googleapis.com/drive/v3/files', {
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`
+      }
+    })
+    .then(res => res.json())
+    .then(data => setResponse(data));
+  }, [tokens]);
+
+  return <div>{response ? JSON.stringify(response) : 'Loading...'}</div>;
+}
+```
+
+## Requesting Extra Scopes During Sign-in
+
+To avoid showing the authorization page twice, you can request extra scopes during the sign-in process. This approach is optional and depends on your application's design. Some applications may prefer to request extra permissions only when needed, while others might want to obtain all necessary permissions upfront.
+
+Configure the `StackServerApp` with the required scopes:
+
+```jsx title='stack.ts'
+// imports ...
+
+export const stackServerApp = new StackServerApp({
+  // your other settings ...
+  oauthScopesOnSignIn: {
+    google: ['https://www.googleapis.com/auth/drive']
+  }
+});
+```
+
+By setting this up, users will be prompted for all necessary permissions during the initial sign-in, avoiding the need for them to approve additional permissions later. Choose the approach that best fits your application's user experience and workflow.

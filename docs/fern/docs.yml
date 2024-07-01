@@ -6,15 +6,15 @@ title: Stack Auth Documentation
 tabs:
   documentation:
     display-name: Documentation
-    icon: 'fa-solid fa-home'
+    icon: fa-solid fa-home
     slug: docs
   sdk:
     display-name: SDK Reference
-    icon: 'fa-solid fa-hammer'
+    icon: fa-solid fa-hammer
     slug: sdk
   api:
     display-name: API Reference
-    icon: 'fa-solid fa-code'
+    icon: fa-solid fa-code
     slug: rest-api
 
 navigation:
@@ -23,22 +23,53 @@ navigation:
       - section: Get Started
         contents:
           - page: Overview
+            icon: fa-regular fa-globe
             path: ./docs/pages/getting-started/overview.mdx
           - page: Installation & Setup
+            icon: fa-regular fa-download
             path: ./docs/pages/getting-started/setup.mdx
-          - page: Users & Protected Pages
+          - page: Users
+            icon: fa-regular fa-address-book
             path: ./docs/pages/getting-started/users.mdx
-          - page: Teams & Permissions
-            path: ./docs/pages/getting-started/teams.mdx
+          # - page: Protecting Pages
+          #   icon: fa-regular fa-shield-check
+          #   path: ./docs/pages/getting-started/protecting-pages.mdx
+          - page: Going to Production
+            icon: fa-regular fa-rocket
+            path: ./docs/pages/getting-started/production.mdx
+      - section: Concepts
+        contents:
+          # - page: Client vs. Server
+          #   icon: fa-regular fa-code-branch
+          - page: OAuth Providers
+            icon: fa-regular fa-key
+            path: ./docs/pages/concepts/oauth.mdx
+          - page: Teams
+            icon: fa-regular fa-users
+            path: ./docs/pages/concepts/teams.mdx
+          - page: Selecting a Team
+            icon: fa-regular fa-exchange
+            path: ./docs/pages/concepts/team-selection.mdx
+          - page: Permissions
+            icon: fa-regular fa-user-lock
+            path: ./docs/pages/concepts/permissions.mdx
+          # - page: Local Development
+          #   icon: fa-regular fa-laptop
       - section: Customization
         contents:
           - page: Dark/Light Mode
+            icon: fa-regular fa-circle-half-stroke
             path: ./docs/pages/customization/dark-mode.mdx
           - page: Colors and Styles
+            icon: fa-regular fa-paint-brush
             path: ./docs/pages/customization/custom-styles.mdx
+          # - page: Customize Emails
+          #   icon: fa-regular fa-envelope
           - page: Custom Layouts and Pages
+            icon: fa-regular fa-table-layout
             path: ./docs/pages/customization/custom-pages.mdx
           - section: Custom Page Examples
+            icon: fa-regular fa-files
             contents:
               - page: Sign In
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
@@ -84,11 +115,11 @@ colors:
     light: '#FFFFFF'
     dark: '#000000'
   sidebar-background: 
-    light: '#FFFFFF'
-    dark: '#000000'
+    light: '#FCFCFC'
+    dark: '#090909'
   card-background: 
-    light: '#FFFFFF'
-    dark: '#111111'
+    light: '#FCFCFC'
+    dark: '#090909'
 layout:
   page-width: full
   content-width: 40rem

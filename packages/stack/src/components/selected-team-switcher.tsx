@@ -1,5 +1,5 @@
 'use client';
-import { useUser } from "..";
+import { Team, useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { useRouter } from "next/navigation";
 import {
@@ -12,15 +12,17 @@ import {
   SelectValue,
   Typography,
 } from "@stackframe/stack-ui";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 type SelectedTeamSwitcherProps = {
-  projectUrlMap?: (projectId: string) => string,
+  urlMap?: (projectId: string) => string,
+  selectedTeam?: Team,
+  noUpdateSelectedTeam?: boolean,
 };
 
 function TeamIcon(props: { displayName: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.5rem', height: '1.5rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
+    <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
       <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
     </div>
   );
@@ -29,9 +31,15 @@ function TeamIcon(props: { displayName: string }) {
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const user = useUser();
   const router = useRouter();
-  const selectedTeam = user?.selectedTeam;
+  const selectedTeam = user?.selectedTeam || props.selectedTeam;
   const rawTeams = user?.useTeams();
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
+
+  useEffect(() => {
+    if (!props.noUpdateSelectedTeam && teams && selectedTeam && !teams.find(team => team.id === selectedTeam.id)) {
+      runAsynchronouslyWithAlert(user?.setSelectedTeam(selectedTeam));
+    }
+  }, [teams, selectedTeam, props.noUpdateSelectedTeam]);
 
   return (
     <Select>
@@ -45,9 +53,11 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
             key={team.id}
             onClick={() => {
               runAsynchronouslyWithAlert(async () => {
-                await user?.setSelectedTeam(team);
-                if (props.projectUrlMap) {
-                  router.push(props.projectUrlMap(team.id));
+                if (!props.noUpdateSelectedTeam) {
+                  await user?.setSelectedTeam(team);
+                }
+                if (props.urlMap) {
+                  router.push(props.urlMap(team.id));
                 }
               });
             }}
