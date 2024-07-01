@@ -35,5 +35,23 @@ export const currentUserCrud = createCrud({
   clientUpdateSchema,
   serverUpdateSchema,
   serverDeleteSchema,
+  docs: {
+    tags: ["Users"],
+    clientRead: {
+      summary: 'Get current user',
+      description: 'Gets the currently authenticated user.',
+      tags: ['Users'],
+    },
+    clientUpdate: {
+      summary: 'Update current user',
+      description: 'Updates the currently authenticated user. Only the values provided will be updated.',
+      tags: ['Users'],
+    },
+    clientDelete: {
+      summary: 'Delete current user',
+      description: 'Deletes the currently authenticated user. Use this with caution.',
+      tags: ['Users'],
+    },
+  },
 });
 export type CurrentUserCrud = CrudTypeOf<typeof currentUserCrud>;

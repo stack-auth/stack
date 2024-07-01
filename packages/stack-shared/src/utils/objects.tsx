@@ -80,8 +80,8 @@ export function typedValues<T extends {}>(obj: T): T[keyof T][] {
   return Object.values(obj) as any;
 }
 
-export function typedAssign<T extends {}, U extends {}>(target: T, source: U): asserts target is T & U {
-  Object.assign(target, source);
+export function typedAssign<T extends {}, U extends {}>(target: T, source: U): T & U {
+  return Object.assign(target, source);
 }
 
 export type FilterUndefined<T> =

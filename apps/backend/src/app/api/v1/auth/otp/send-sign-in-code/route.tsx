@@ -3,9 +3,9 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { createTeamOnSignUp } from "@/lib/users";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, verificationLinkRedirectUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { usersCrudHandlers } from "../../../users/crud";
 
 export const POST = createSmartRouteHandler({
   request: yup.object({
@@ -26,38 +26,43 @@ export const POST = createSmartRouteHandler({
     if (!project.evaluatedConfig.magicLinkEnabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
-  
-    const users = await prismaClient.projectUser.findMany({
+
+    const usersPrisma = await prismaClient.projectUser.findMany({
       where: {
         projectId: project.id,
         primaryEmail: email,
         authWithEmail: true,
       },
     });
-
-    if (users.length > 1) {
+    if (usersPrisma.length > 1) {
       throw new StackAssertionError(`Multiple users found in the database with the same primary email ${email}, and all with e-mail sign-in allowed. This should never happen (only non-email/OAuth accounts are allowed to share the same primaryEmail).`);
     }
-    let user = users.length > 0 ? users[0] : null;
-    const isNewUser = !user;
-    if (!user) {
-      user ??= await prismaClient.projectUser.create({
+
+    const userPrisma = usersPrisma.length > 0 ? usersPrisma[0] : null;
+    const isNewUser = !userPrisma;
+    let userObj: Pick<NonNullable<typeof userPrisma>, "projectUserId" | "displayName" | "primaryEmail"> | null = userPrisma;
+    if (!userObj) {
+      // TODO this should be in the same transaction as the read above
+      const createdUser = await usersCrudHandlers.adminCreate({
+        project,
         data: {
-          projectId: project.id,
-          primaryEmail: email,
-          primaryEmailVerified: false,
-          authWithEmail: true,
+          auth_with_email: true,
+          primary_email: email,
+          primary_email_verified: false,
         },
       });
-  
-      await createTeamOnSignUp(project.id, user.projectUserId);
+      userObj = {
+        projectUserId: createdUser.id,
+        displayName: createdUser.display_name,
+        primaryEmail: createdUser.primary_email,
+      };
     }
 
     const { link } = await signInVerificationCodeHandler.sendCode({
       project,
       method: { email },
       data: {
-        user_id: user.projectUserId,
+        user_id: userObj.projectUserId,
         is_new_user: isNewUser,
       },
       redirectUrl,
@@ -68,8 +73,8 @@ export const POST = createSmartRouteHandler({
       email,
       templateId: "MAGIC_LINK",
       variables: {
-        userDisplayName: user.displayName,
-        userPrimaryEmail: user.primaryEmail,
+        userDisplayName: userObj.displayName,
+        userPrimaryEmail: userObj.primaryEmail,
         projectDisplayName: project.displayName,
         magicLink: link.toString(),
       },

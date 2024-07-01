@@ -1,4 +1,5 @@
 import { SmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import { EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
@@ -33,13 +34,6 @@ export function parseOpenAPI(options: {
     ),
   };
 }
-
-const endpointMetadataSchema = yup.object({
-  summary: yup.string().required(),
-  description: yup.string().required(),
-  hide: yup.boolean().optional(),
-  tags: yup.array(yup.string()).required(),
-});
 
 function undefinedIfMixed(value: yup.SchemaFieldDescription | undefined): yup.SchemaFieldDescription | undefined {
   if (!value) return undefined;
@@ -108,11 +102,8 @@ function parseRouteHandler(options: {
     }
 
     result = parseOverload({
-      metadata: overload.metadata ?? {
-        summary: `${options.method} ${options.path}`,
-        description: `No documentation available for this endpoint.`,
-        tags: ["Uncategorized"],
-      },
+      metadata: overload.metadata,
+      method: options.method,
       path: options.path,
       pathDesc: undefinedIfMixed(requestDescribe.fields.params),
       parameterDesc: undefinedIfMixed(requestDescribe.fields.query),
@@ -126,13 +117,13 @@ function parseRouteHandler(options: {
 
 function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any } | undefined {
   const meta = "meta" in field ? field.meta : {};
-  if (meta?.openapi?.hide) {
+  if (meta?.openapiField?.hidden) {
     return undefined;
   }
 
   const openapiFieldExtra = {
-    example: meta?.openapi?.exampleValue,
-    description: meta?.openapi?.description,
+    example: meta?.openapiField?.exampleValue,
+    description: meta?.openapiField?.description,
   };
   
   switch (field.type) {
@@ -216,19 +207,25 @@ function toExamples(description: yup.SchemaFieldDescription) {
   return Object.entries(description.fields).reduce((acc, [key, field]) => {
     const schema = getFieldSchema(field);
     if (!schema) return acc;
-    const example = "meta" in field ? field.meta?.openapi?.exampleValue : undefined;
+    const example = "meta" in field ? field.meta?.openapiField?.exampleValue : undefined;
     return { ...acc, [key]: example };
   }, {});
 }
 
 export function parseOverload(options: {
-  metadata: yup.InferType<typeof endpointMetadataSchema>,
+  metadata: EndpointDocumentation | undefined,
+  method: string,
   path: string,
   pathDesc?: yup.SchemaFieldDescription,
   parameterDesc?: yup.SchemaFieldDescription,
   requestBodyDesc?: yup.SchemaFieldDescription,
   responseDesc?: yup.SchemaFieldDescription,
 }) {
+  const endpointDocumentation = options.metadata ?? {
+    summary: `${options.method} ${options.path}`,
+    description: `No documentation available for this endpoint.`,
+  };
+
   const pathParameters = options.pathDesc ? toParameters(options.pathDesc, options.path) : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
   const responseSchema = options.responseDesc ? toSchema(options.responseDesc) : {};
@@ -251,11 +248,11 @@ export function parseOverload(options: {
   }
 
   return {
-    summary: options.metadata.summary,
-    description: options.metadata.description,
+    summary: endpointDocumentation.summary,
+    description: endpointDocumentation.description,
     parameters: queryParameters.concat(pathParameters),
     requestBody,
-    tags: options.metadata.tags,
+    tags: endpointDocumentation.tags ?? ["Uncategorized"],
     responses: {
       200: {
         description: 'Successful response',

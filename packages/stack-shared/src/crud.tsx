@@ -1,18 +1,33 @@
 import * as yup from 'yup';
 import { NullishCoalesce } from './utils/types';
-import { filterUndefined } from './utils/objects';
+import { FilterUndefined, filterUndefined } from './utils/objects';
 
+export type AccessType = "client" | "server" | "admin";
 export type CrudOperation = "create" | "read" | "update" | "delete";
+export type AccessTypeXCrudOperation = `${AccessType}${Capitalize<CrudOperation>}`;
 
 declare module 'yup' {
   export interface CustomSchemaMetadata {
-    openapi?: {
+    openapiField?: {
       description?: string,
       exampleValue?: any,
-      hide?: boolean,
+      hidden?: boolean,
     },
   }
 }
+
+type ShownEndpointDocumentation = {
+  summary: string,
+  description: string,
+  tags?: string[],
+};
+export type EndpointDocumentation = 
+  | (
+    { hidden: true } & Partial<ShownEndpointDocumentation>
+  )
+  | (
+    { hidden?: boolean } & ShownEndpointDocumentation
+  );
 
 
 type InnerCrudSchema<
@@ -22,9 +37,17 @@ type InnerCrudSchema<
   DeleteSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
 > = {
   createSchema: CreateSchema,
+  createDocs: EndpointDocumentation | undefined,
+
   readSchema: ReadSchema,
+  readDocs: EndpointDocumentation | undefined,
+  listDocs: EndpointDocumentation | undefined,
+
   updateSchema: UpdateSchema,
+  updateDocs: EndpointDocumentation | undefined,
+
   deleteSchema: DeleteSchema,
+  deleteDocs: EndpointDocumentation | undefined,
 };
 
 export type CrudSchema<
@@ -43,20 +66,7 @@ export type CrudSchema<
 };
 
 export type CrudSchemaCreationOptions = {
-  clientCreateSchema?: yup.Schema<any>,
-  clientReadSchema?: yup.Schema<any>,
-  clientUpdateSchema?: yup.Schema<any>,
-  clientDeleteSchema?: yup.Schema<any>,
-  
-  serverCreateSchema?: yup.Schema<any>,
-  serverReadSchema?: yup.Schema<any>,
-  serverUpdateSchema?: yup.Schema<any>,
-  serverDeleteSchema?: yup.Schema<any>,
-
-  adminCreateSchema?: yup.Schema<any>,
-  adminReadSchema?: yup.Schema<any>,
-  adminUpdateSchema?: yup.Schema<any>,
-  adminDeleteSchema?: yup.Schema<any>,
+  [K in AccessTypeXCrudOperation as `${K}Schema`]?: yup.Schema<any>
 };
 
 type FillInOptionalsPrepareStep<O extends CrudSchemaCreationOptions> =
@@ -101,19 +111,40 @@ export type CrudTypeOf<S extends CrudSchema> = {
   Admin: InnerCrudTypeOf<S['admin']>,
 }
 
-export function createCrud<O extends CrudSchemaCreationOptions>(options: O): CrudSchemaFromOptions<O> {
+type CrudDocsCreationOptions<SO extends CrudSchemaCreationOptions> = {
+  [X in AccessTypeXCrudOperation as (X extends `${infer A}Read` ? X | `${A}List` : X)]?: EndpointDocumentation
+};
+
+export function createCrud<SO extends CrudSchemaCreationOptions>(options: SO & { docs?: CrudDocsCreationOptions<SO> }): CrudSchemaFromOptions<SO> {
+  const docs = options.docs ?? {};
   const client = {
     createSchema: options.clientCreateSchema,
+    createDocs: docs.clientCreate,
+
     readSchema: options.clientReadSchema,
+    readDocs: docs.clientRead,
+    listDocs: docs.clientList,
+
     updateSchema: options.clientUpdateSchema,
+    updateDocs: docs.clientUpdate,
+
     deleteSchema: options.clientDeleteSchema,
+    deleteDocs: docs.clientDelete,
   };
 
   const serverOverrides = filterUndefined({
     createSchema: options.serverCreateSchema,
+    createDocs: docs.serverCreate,
+
     readSchema: options.serverReadSchema,
+    readDocs: docs.serverRead,
+    listDocs: docs.serverList,
+
     updateSchema: options.serverUpdateSchema,
+    updateDocs: docs.serverUpdate,
+
     deleteSchema: options.serverDeleteSchema,
+    deleteDocs: docs.serverDelete,
   });
   const server = {
     ...client,
@@ -122,9 +153,17 @@ export function createCrud<O extends CrudSchemaCreationOptions>(options: O): Cru
 
   const adminOverrides = filterUndefined({
     createSchema: options.adminCreateSchema,
+    createDocs: docs.adminCreate,
+
     readSchema: options.adminReadSchema,
+    readDocs: docs.adminRead,
+    listDocs: docs.adminList,
+
     updateSchema: options.adminUpdateSchema,
+    updateDocs: docs.adminUpdate,
+
     deleteSchema: options.adminDeleteSchema,
+    deleteDocs: docs.adminDelete,
   });
   const admin = {
     ...server,

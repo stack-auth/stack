@@ -83,14 +83,111 @@ describe("with client access", () => {
 
   it("should be able to update own user", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const response = await niceBackendFetch("/api/v1/users/me", {
+    const response1 = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
-      method: "PUT",
+      method: "PATCH",
       body: {
-        displayName: "John Doe",
+        display_name: "John Doe",
       },
     });
-    expect(response).toMatchInlineSnapshot(`
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": <stripped field 'id'>,
+          "oauth_providers": [],
+          "primary_email": <stripped auto-generated e-mail>,
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "project_id": "internal",
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    const response2 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        client_metadata: { key: "value" },
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": { "key": "value" },
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": <stripped field 'id'>,
+          "oauth_providers": [],
+          "primary_email": <stripped auto-generated e-mail>,
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "project_id": "internal",
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("updating own display name to the empty string should set it to null", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response1 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        display_name: "John Doe",
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": <stripped field 'id'>,
+          "oauth_providers": [],
+          "primary_email": <stripped auto-generated e-mail>,
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "project_id": "internal",
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    const response2 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        display_name: "",
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -226,6 +323,7 @@ describe("with server access", () => {
           "project_id": "internal",
           "selected_team": null,
           "selected_team_id": null,
+          "server_metadata": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
         "headers": Headers {
@@ -240,9 +338,9 @@ describe("with server access", () => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
-      method: "PUT",
+      method: "PATCH",
       body: {
-        displayName: "John Doe",
+        display_name: "John Doe",
       },
     });
     expect(response).toMatchInlineSnapshot(`
@@ -251,7 +349,7 @@ describe("with server access", () => {
         "body": {
           "auth_with_email": true,
           "client_metadata": null,
-          "display_name": null,
+          "display_name": "John Doe",
           "has_password": false,
           "id": <stripped field 'id'>,
           "oauth_providers": [],
@@ -261,6 +359,7 @@ describe("with server access", () => {
           "project_id": "internal",
           "selected_team": null,
           "selected_team_id": null,
+          "server_metadata": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
         "headers": Headers {

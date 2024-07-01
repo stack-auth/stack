@@ -8,6 +8,7 @@ import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
+import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
@@ -108,11 +109,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
   };
 };
 
-export type SmartRouteHandlerOverloadMetadata = {
-  summary: string,
-  description: string,
-  tags: string[],
-};
+export type SmartRouteHandlerOverloadMetadata = EndpointDocumentation;
 
 export type SmartRouteHandlerOverload<
   Req extends DeepPartialSmartRequestWithSentinel,

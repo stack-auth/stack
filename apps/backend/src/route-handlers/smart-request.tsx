@@ -5,10 +5,9 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import * as yup from "yup";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
+import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
-import { updateServerUser } from "@/lib/users";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";

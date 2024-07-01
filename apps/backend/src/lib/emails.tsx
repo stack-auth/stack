@@ -4,11 +4,11 @@ import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
 import { UserJson, ProjectJson } from '@stackframe/stack-shared';
-import { getClientUser } from '@/lib/users';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { EmailTemplateType } from '@prisma/client';
-import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import { usersCrudHandlers } from '@/app/api/v1/users/crud';
+import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 
 
 function getPortConfig(port: number | string) {
@@ -113,7 +113,7 @@ async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
 async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   emailConfig: EmailConfig,
   project: ProjectJson,
-  projectUser: UserJson,
+  projectUser: UsersCrud["Admin"]["Read"],
 }> {
   const project = await getProject(projectId);
 
@@ -121,17 +121,15 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
     throw new Error('Project not found');
   }
 
-
-  const projectUser = await getClientUser(projectId, projectUserId);
-
-  if (!projectUser) {
-    throw Error('User does not exist');
-  }
+  const user = await usersCrudHandlers.adminRead({
+    project,
+    userId: projectUserId,
+  });
 
   return {
     emailConfig: await getEmailConfig(project),
     project,
-    projectUser,
+    projectUser: user,
   };
 }
 
@@ -142,11 +140,11 @@ export async function sendVerificationEmail(
 ) {
   const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
 
-  if (!projectUser.primaryEmail) {
+  if (!projectUser.primary_email) {
     throw Error('The user does not have a primary email');
   }
 
-  if (projectUser.primaryEmailVerified) {
+  if (projectUser.primary_email_verified) {
     throw Error('Email already verified');
   }
 
@@ -165,8 +163,8 @@ export async function sendVerificationEmail(
 
   const template = await getEmailTemplateWithDefault(projectId, 'EMAIL_VERIFICATION');
   const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.displayName,
-    userPrimaryEmail: projectUser.primaryEmail,
+    userDisplayName: projectUser.display_name,
+    userPrimaryEmail: projectUser.primary_email,
     projectDisplayName: project.displayName,
     emailVerificationLink: verificationUrl.toString(),
   };
@@ -174,7 +172,7 @@ export async function sendVerificationEmail(
   
   await sendEmail({
     emailConfig,
-    to: projectUser.primaryEmail,
+    to: projectUser.primary_email,
     subject,
     html,
     text,
@@ -188,7 +186,7 @@ export async function sendPasswordResetEmail(
 ) {
   const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
 
-  if (!projectUser.primaryEmail) {
+  if (!projectUser.primary_email) {
     throw Error('The user does not have a primary email');
   }
 
@@ -207,8 +205,8 @@ export async function sendPasswordResetEmail(
 
   const template = await getEmailTemplateWithDefault(projectId, 'PASSWORD_RESET');
   const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.displayName,
-    userPrimaryEmail: projectUser.primaryEmail,
+    userDisplayName: projectUser.display_name,
+    userPrimaryEmail: projectUser.primary_email,
     projectDisplayName: project.displayName,
     passwordResetLink: passwordResetUrl.toString(),
   };
@@ -216,7 +214,7 @@ export async function sendPasswordResetEmail(
 
   await sendEmail({
     emailConfig,
-    to: projectUser.primaryEmail,
+    to: projectUser.primary_email,
     subject,
     html,
     text,
