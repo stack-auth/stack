@@ -39,3 +39,7 @@ it('should refuse to send a sign-in code if the redirect URL is invalid', async 
   `);
 });
 
+it.todo("should create a team for newly created users if configured as such");
+
+it.todo("should not create a team for newly created users if not configured as such");
+

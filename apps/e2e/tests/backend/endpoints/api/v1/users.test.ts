@@ -299,6 +299,8 @@ describe("with client access", () => {
       }
     `);
   });
+
+  it.todo("should be able to set selected team id, updating the selected team object");
 });
 
 describe("with server access", () => {
