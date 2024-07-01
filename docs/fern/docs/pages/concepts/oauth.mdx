@@ -7,7 +7,13 @@ With Stack, users can connect multiple OAuth accounts, enabling access to provid
 
 ## Connecting with an OAuth Provider Post Sign-in
 
-Users can connect with an OAuth provider during sign-in or after signing in using other methods. For the latter, use the `user.useConnectedAccount('<provider_name>', { or: 'redirect' })` method. If the account is already connected, the method returns a Connection object; otherwise, it redirects the user to the provider's authorization page. Here’s how to connect with Google:
+Users can connect with an OAuth provider during sign-in or after signing in using other methods. For the latter, use the `user.useConnectedAccount('<provider_name>', { or: 'redirect' })` method. If the account is already connected, the method returns a Connection object; otherwise, it redirects the user to the provider's authorization page. 
+
+<Note>
+  In order to connect accounts after sign-in, you need to set up your own OAuth client ID and client secret with the provider. See more details in the section [Going to Production](../getting-started/production#oauth-providers)
+</Note>
+
+Here's how to connect with Google:
 
 ```jsx
 'use client';
@@ -25,7 +31,7 @@ export default function Page() {
 
 ## Connecting with Extra Scopes
 
-You can request extra scopes when connecting with an OAuth provider. For instance, to access Google Drive, pass the `https://www.googleapis.com/auth/drive` scope. Here’s an example:
+You can request extra scopes when connecting with an OAuth provider. For instance, to access Google Drive, pass the `https://www.googleapis.com/auth/drive.readonly` scope. Here's an example:
 
 ```jsx
 'use client';
@@ -35,7 +41,7 @@ import { useUser } from "@stackframe/stack";
 export default function Page() {
   const user = useUser({ or: 'redirect' });
   // Redirects to the Google authorization page, requesting access to Google Drive
-  const account = user.useConnectedAccount('google', { or: 'redirect' });
+  const account = user.useConnectedAccount('google', { or: 'redirect', scopes: ['https://www.googleapis.com/authdrive.readonly'] });
   // Account is always defined because of the redirect
   return <div>Google Drive connected</div>;
 }
@@ -43,7 +49,7 @@ export default function Page() {
 
 ## Retrieving the Access Token
 
-Once connected with an OAuth provider, obtain the access token using the `account.getAccessToken()` method. Use this token to access the provider’s API endpoints. Here’s an example of using the access token to interact with Google Drive API:
+Once connected with an OAuth provider, obtain the access token using the `account.getAccessToken()` method. Use this token to access the provider's API endpoints. Here's an example of using the access token to interact with Google Drive API:
 
 ```jsx
 'use client';
@@ -53,18 +59,17 @@ import { useUser } from "@stackframe/stack";
 
 export default function Page() {
   const user = useUser({ or: 'redirect' });
-  const account = user.useConnectedAccount('google', { or: 'redirect' });
-  const tokens = account.getAccessToken();
-  const [response, setResponse] = useState(null);
+  const account = user.useConnectedAccount('google', { or: 'redirect', scopes: ['https://www.googleapis.com/auth/drive.readonly'] });
+  const tokens = account.useAccessToken();
+  const [response, setResponse] = useState<any>();
 
   useEffect(() => {
     fetch('https://www.googleapis.com/drive/v3/files', {
-      headers: {
-        Authorization: `Bearer ${tokens.access_token}`
-      }
+      headers: { Authorization: `Bearer ${tokens.accessToken}` }
     })
-    .then(res => res.json())
-    .then(data => setResponse(data));
+      .then((res) => res.json())
+      .then((data) => setResponse(data))
+      .catch((err) => console.error(err));
   }, [tokens]);
 
   return <div>{response ? JSON.stringify(response) : 'Loading...'}</div>;
@@ -83,7 +88,7 @@ Configure the `StackServerApp` with the required scopes:
 export const stackServerApp = new StackServerApp({
   // your other settings ...
   oauthScopesOnSignIn: {
-    google: ['https://www.googleapis.com/auth/drive']
+    google: ['https://www.googleapis.com/authdrive.readonly']
   }
 });
 ```

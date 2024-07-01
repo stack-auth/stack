@@ -23,7 +23,6 @@ import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/c
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
-import { useTrigger } from "@stackframe/stack-shared/dist/hooks/use-trigger";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 
@@ -990,14 +989,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const router = NextNavigation.useRouter();
     const session = this._useSession(options?.tokenStore);
     const userJson = useAsyncCache(this._currentUserCache, [session], "useUser()");
-    const triggerRedirectToSignIn = useTrigger(() => router.replace(this.urls.signIn));
 
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
           // Updating the router is not allowed during the component render function, so we do it in a different async tick
           // The error would be: "Cannot update a component (`Router`) while rendering a different component."
-          triggerRedirectToSignIn();
+          setTimeout(() => router.replace(this.urls.signIn), 0);
           suspend();
           throw new StackAssertionError("suspend should never return");
         }
@@ -1535,14 +1533,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const router = NextNavigation.useRouter();
     const session = this._getSession(options?.tokenStore);
     const userJson = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
-    const triggerRedirectToSignIn = useTrigger(() => router.replace(this.urls.signIn));
 
     if (userJson === null) {
       switch (options?.or) {
         case 'redirect': {
           // Updating the router is not allowed during the component render function, so we do it in a different async tick
           // The error would be: "Cannot update a component (`Router`) while rendering a different component."
-          triggerRedirectToSignIn();
+          setTimeout(() => router.replace(this.urls.signIn), 0);
           suspend();
           throw new StackAssertionError("suspend should never return");
         }
