@@ -2,8 +2,12 @@
   Warnings:
 
   - You are about to drop the column `selectedTeamId` on the `ProjectUser` table. All the data in the column will be lost.
+  - A unique constraint covering the columns `[projectId,projectUserId,isSelected]` on the table `TeamMember` will be added. If there are existing duplicate values, this will fail.
 
 */
+-- CreateEnum
+CREATE TYPE "BooleanTrue" AS ENUM ('TRUE');
+
 -- DropForeignKey
 ALTER TABLE "ApiKeySet" DROP CONSTRAINT "ApiKeySet_projectId_fkey";
 
@@ -24,6 +28,12 @@ ALTER TABLE "Team" DROP CONSTRAINT "Team_projectId_fkey";
 
 -- AlterTable
 ALTER TABLE "ProjectUser" DROP COLUMN "selectedTeamId";
+
+-- AlterTable
+ALTER TABLE "TeamMember" ADD COLUMN     "isSelected" "BooleanTrue";
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TeamMember_projectId_projectUserId_isSelected_key" ON "TeamMember"("projectId", "projectUserId", "isSelected");
 
 -- AddForeignKey
 ALTER TABLE "Team" ADD CONSTRAINT "Team_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
