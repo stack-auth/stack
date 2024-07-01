@@ -61,7 +61,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
     };
   },
   prismaToCrud: async (prisma, { auth }) => {    
-    const rawSelectedTeam = prisma.teamMembers.filter(m => m.selected)[0]?.team;
+    const rawSelectedTeam = prisma.teamMembers.filter(m => m.isSelected)[0]?.team;
     return {
       projectId: prisma.projectId,
       id: prisma.projectUserId,
