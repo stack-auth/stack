@@ -77,16 +77,29 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
   - tab: sdk
     layout: 
-      - section: Next.js SDK
+      - section: Classes
         contents:
-          - page: User
-            path: ./docs/pages/sdk/user.mdx
-          - page: useUser
-            path: ./docs/pages/sdk/use-user.mdx
-          - page: App
-            path: ./docs/pages/sdk/app.mdx
+          - page: CurrentUser
+            path: ./docs/pages/sdk/current-user.mdx
+          - page: StackApp
+            path: ./docs/pages/sdk/stack-app.mdx
+      - section: Hooks
+        contents:
           - page: useStackApp
             path: ./docs/pages/sdk/use-stack-app.mdx
+          - page: useUser
+            path: ./docs/pages/sdk/use-user.mdx
+      - section: Components
+        contents:
+          - page: StackHandler
+            path: ./docs/pages/sdk/stack-handler.mdx
+          - page: SignIn
+            path: ./docs/pages/sdk/sign-in.mdx
+          - page: SignUp
+            path: ./docs/pages/sdk/sign-up.mdx
+          - page: SignOut
+            path: ./docs/pages/sdk/sign-out.mdx
+
   - tab: api
     layout: 
       - api: Client API Reference
