@@ -18,11 +18,15 @@ import { RouterProvider } from '@/components/router';
 import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
+  metadataBase:new URL(process.env.DASHBOARD_BASE_URL),
   title: {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
   },
   description: 'Stack Auth is the fastest way to add authentication to your web app.',
+  opengraph:{
+     images:[`${process.env.DASHBOARD_BASE_URL}/logo.png`]
+  }
 };
 
 const fontSans = FontSans({
