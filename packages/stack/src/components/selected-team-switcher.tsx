@@ -15,7 +15,7 @@ import {
 import { useEffect, useMemo } from "react";
 
 type SelectedTeamSwitcherProps = {
-  urlMap?: (projectId: string) => string,
+  urlMap?: (team: Team) => string,
   selectedTeam?: Team,
   noUpdateSelectedTeam?: boolean,
 };
@@ -36,8 +36,8 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 
   useEffect(() => {
-    if (!props.noUpdateSelectedTeam && teams && selectedTeam && !teams.find(team => team.id === selectedTeam.id)) {
-      runAsynchronouslyWithAlert(user?.setSelectedTeam(selectedTeam));
+    if (!props.noUpdateSelectedTeam && teams && teams[0]) {
+      runAsynchronouslyWithAlert(user?.setSelectedTeam(teams[0]));
     }
   }, [teams, selectedTeam, props.noUpdateSelectedTeam]);
 
@@ -57,7 +57,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                   await user?.setSelectedTeam(team);
                 }
                 if (props.urlMap) {
-                  router.push(props.urlMap(team.id));
+                  router.push(props.urlMap(team));
                 }
               });
             }}
