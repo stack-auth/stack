@@ -82,7 +82,7 @@ navigation:
           - page: CurrentUser
             path: ./docs/pages/sdk/current-user.mdx
           - page: StackApp
-            path: ./docs/pages/sdk/app.mdx
+            path: ./docs/pages/sdk/stack-app.mdx
       - section: Hooks
         contents:
           - page: useStackApp
