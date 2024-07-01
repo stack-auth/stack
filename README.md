@@ -1,10 +1,10 @@
 ![Stack Logo](/assets/logo.png)
 
 <h3 align="center">
-    <a href="https://docs.stack-auth.com">📘 Documentation</a>
-    | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
-    | <a href="https://demo.stack-auth.com/">✨ Demo</a>
-    | <a href="https://discord.stack-auth.com">Discord</a>
+  <a href="https://docs.stack-auth.com">📘 Documentation</a>
+  | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
+  | <a href="https://demo.stack-auth.com/">✨ Demo</a>
+  | <a href="https://discord.stack-auth.com">Discord</a>
 </h4>
 
 ## 💬 What is Stack?
@@ -78,7 +78,7 @@ Please read the [contribution guidelines](CONTRIBUTING.md) before contributing.
 
 ### Setup
 
-Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages, but you can choose to create your own `.env.local` files instead.
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
 
 In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
 
@@ -86,7 +86,7 @@ In a terminal, start the dependencies (Postgres and Inbucket) as Docker containe
 docker compose -f dependencies.compose.yaml up
 ```
 
-Then:
+Then open a new terminal:
 
 ```sh
 pnpm install
@@ -94,11 +94,11 @@ pnpm install
 # Run build to build everything once
 pnpm run build
 
+# initialize the database and seed it with some data
+pnpm prisma seed
+
 # Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
-
-# Push the most recent Prisma schema to the database
-pnpm run prisma db push
 
 # Start the dev server
 pnpm run dev
