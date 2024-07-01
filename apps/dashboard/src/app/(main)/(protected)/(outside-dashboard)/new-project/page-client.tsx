@@ -15,7 +15,7 @@ import { BrowserFrame } from "@/components/browser-frame";
 import { useForm } from "react-hook-form";
 
 export const projectFormSchema = yup.object({
-  displayName: yup.string().min(1, "Project name is required").required(),
+  displayName: yup.string().min(1, "Display name is required").required(),
   signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink"]).required()).required(),
 });
 
@@ -81,7 +81,7 @@ export default function PageClient () {
           <Form {...form}>
             <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
-              <InputField required control={form.control} name="displayName" label="Project Name" placeholder="My Project" />
+              <InputField required control={form.control} name="displayName" label="Display Name" placeholder="My Project" />
 
               <SwitchListField
                 control={form.control}
