@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": [
         "^build"
@@ -13,15 +13,17 @@
         "*.d.ts",
         "*.d.ts.map"
       ],
-      "outputMode": "new-only"
+      "outputLogs": "new-only"
     },
     "clean": {
       "cache": false
     },
     "dev": {
+      "persistent": true,
       "cache": false
     },
     "start": {
+      "persistent": true,
       "cache": false
     },
     "lint": {
@@ -37,6 +39,7 @@
       "cache": false
     },
     "test": {
+      "persistent": true,
       "cache": false
     },
     "test:watch": {
