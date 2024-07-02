@@ -2,6 +2,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import * as yup from "yup";
 import sharp from "sharp";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 let pngImagePromise: Promise<Uint8Array> | undefined; 
 
@@ -18,7 +19,7 @@ export const GET = createSmartRouteHandler({
     }).required(),
   }),
   handler: async () => {
-    if (process.env.NODE_ENV === "development" || !pngImagePromise) {
+    if (getNodeEnvironment() === "development" || !pngImagePromise) {
       pngImagePromise = (async () => {
         const ghPage = await fetch("https://github.com/stack-auth/stack");
         const ghPageText = await ghPage.text();
@@ -77,9 +78,6 @@ export const GET = createSmartRouteHandler({
       })();
       pngImagePromise.catch((error) => {
         captureError("contributors-image", error);
-        if (process.env.NODE_ENV === "development") {
-          pngImagePromise = undefined;
-        }
       });
     }
 

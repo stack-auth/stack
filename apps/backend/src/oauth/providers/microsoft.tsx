@@ -1,6 +1,7 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   constructor(options: {
@@ -11,7 +12,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/microsoft",
       baseScope: "User.Read",
       ...options,
     });

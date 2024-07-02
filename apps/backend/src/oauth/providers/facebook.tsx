@@ -1,6 +1,7 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class FacebookProvider extends OAuthBaseProvider {
   constructor(options: {
@@ -11,7 +12,7 @@ export class FacebookProvider extends OAuthBaseProvider {
       issuer: "https://www.facebook.com",
       authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/facebook",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/facebook",
       baseScope: "public_profile email",
       ...options
     });

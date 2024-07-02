@@ -4,6 +4,7 @@ import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt'
 import { KnownErrors } from '@stackframe/stack-shared';
 import { prismaClient } from '@/prisma-client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 
 export const authorizationHeaderSchema = yup.string().matches(/^StackSession [^ ]+$/);
 
@@ -56,7 +57,7 @@ export async function encodeAccessToken({
   projectId: string,
   userId: string,
 }) {
-  return await encryptJWT({ projectId, userId }, process.env.STACK_ACCESS_TOKEN_EXPIRATION_TIME || '1h');
+  return await encryptJWT({ projectId, userId }, getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "1h"));
 }
 
 export async function createAuthTokens({

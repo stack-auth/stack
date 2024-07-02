@@ -1,6 +1,7 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class SpotifyProvider extends OAuthBaseProvider {
   constructor(options: {
@@ -11,7 +12,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
       issuer: "https://accounts.spotify.com",
       authorizationEndpoint: "https://accounts.spotify.com/authorize",
       tokenEndpoint: "https://accounts.spotify.com/api/token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/spotify",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/spotify",
       baseScope: "user-read-email user-read-private",
       ...options,
     });

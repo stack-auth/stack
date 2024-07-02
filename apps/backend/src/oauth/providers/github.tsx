@@ -1,6 +1,7 @@
 import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class GithubProvider extends OAuthBaseProvider {
   constructor(options: {
@@ -12,7 +13,7 @@ export class GithubProvider extends OAuthBaseProvider {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
       userinfoEndpoint: "https://api.github.com/user",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/github",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/github",
       baseScope: "user:email",
       ...options,
     });
