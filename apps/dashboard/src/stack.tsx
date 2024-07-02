@@ -10,7 +10,7 @@ export const stackServerApp = new StackServerApp<"nextjs-cookie", true, 'interna
   tokenStore: "nextjs-cookie",
   urls: {
     afterSignIn: "/projects",
-    afterSignUp: "/projects",
+    afterSignUp: "/new-project",
     afterSignOut: "/",
   }
 });
