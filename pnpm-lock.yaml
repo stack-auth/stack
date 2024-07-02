@@ -566,7 +566,7 @@ importers:
         specifier: ^5
         version: 5.3.3
 
-  examples/custom-pages-example:
+  examples/demo:
     dependencies:
       '@emotion/react':
         specifier: ^11.11.3
@@ -621,7 +621,7 @@ importers:
         specifier: ^3.4.1
         version: 3.4.4
 
-  examples/demo:
+  examples/docs-examples:
     dependencies:
       '@emotion/react':
         specifier: ^11.11.3
