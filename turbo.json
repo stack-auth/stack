@@ -2,7 +2,12 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
     "STACK_*",
-    "NEXT_PUBLIC_*"
+    "NEXT_PUBLIC_*",
+    "NEXT_PUBLIC_SENTRY_*",
+    "SENTRY_*",
+    "VERCEL_GIT_COMMIT_SHA",
+    "NEXT_PUBLIC_POSTHOG_*",
+    "POSTHOG_*"
   ],
   "tasks": {
     "build": {
