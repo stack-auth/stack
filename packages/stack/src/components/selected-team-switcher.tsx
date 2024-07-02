@@ -15,7 +15,7 @@ import {
 import { useEffect, useMemo } from "react";
 
 type SelectedTeamSwitcherProps = {
-  urlMap?: (projectId: string) => string,
+  urlMap?: (team: Team) => string,
   selectedTeam?: Team,
   noUpdateSelectedTeam?: boolean,
 };
@@ -36,32 +36,36 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 
   useEffect(() => {
-    if (!props.noUpdateSelectedTeam && teams && selectedTeam && !teams.find(team => team.id === selectedTeam.id)) {
-      runAsynchronouslyWithAlert(user?.setSelectedTeam(selectedTeam));
+    if (!props.noUpdateSelectedTeam && props.selectedTeam) {
+      runAsynchronouslyWithAlert(user?.setSelectedTeam(props.selectedTeam));
     }
-  }, [teams, selectedTeam, props.noUpdateSelectedTeam]);
+  }, [props.noUpdateSelectedTeam, props.selectedTeam]);
 
   return (
-    <Select>
+    <Select 
+      value={selectedTeam?.id}
+      onValueChange={(value) => {
+        runAsynchronouslyWithAlert(async () => {
+          const team = teams?.find(team => team.id === value);
+          if (!team) {
+            throw new Error('Team not found, this should not happen');
+          }
+
+          if (!props.noUpdateSelectedTeam) {
+            await user?.setSelectedTeam(team);
+          }
+          if (props.urlMap) {
+            router.push(props.urlMap(team));
+          }
+        });
+      }}
+    >
       <SelectTrigger className="stack-scope">
         <SelectValue placeholder="Select team"/>
       </SelectTrigger>
       <SelectContent className="stack-scope">
         {teams && teams.map(team => (
-          <SelectItem
-            value={team.id}
-            key={team.id}
-            onClick={() => {
-              runAsynchronouslyWithAlert(async () => {
-                if (!props.noUpdateSelectedTeam) {
-                  await user?.setSelectedTeam(team);
-                }
-                if (props.urlMap) {
-                  router.push(props.urlMap(team.id));
-                }
-              });
-            }}
-          >
+          <SelectItem value={team.id} key={team.id}>
             <div className="flex items-center">
               <TeamIcon displayName={team.displayName} />
               <Typography>{team.displayName}</Typography>

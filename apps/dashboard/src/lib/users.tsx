@@ -111,7 +111,6 @@ export async function updateServerUser(
         primaryEmailVerified: update.primaryEmailVerified,
         clientMetadata: update.clientMetadata as any,
         serverMetadata: update.serverMetadata as any,
-        selectedTeamId: update.selectedTeamId,
       }),
     });
   } catch (e) {
