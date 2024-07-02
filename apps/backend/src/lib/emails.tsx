@@ -87,7 +87,7 @@ async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
 
   if (projectEmailConfig.type === 'shared') {
     return {
-      host: getEnvVariable('EMAIL_HOST'),
+      host: getEnvVariable('STACK_EMAIL_HOST'),
       port: parseInt(getEnvVariable('EMAIL_PORT')),
       username: getEnvVariable('EMAIL_USERNAME'),
       password: getEnvVariable('EMAIL_PASSWORD'),
