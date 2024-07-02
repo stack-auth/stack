@@ -9,12 +9,13 @@ import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/pro
 import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...process.env.NODE_ENV === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+      ...getNodeEnvironment() === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
     );
   }
 }
