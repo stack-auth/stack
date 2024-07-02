@@ -1,5 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDotEnv": [
+    ".env",
+    ".env.local",
+    ".env.development",
+    ".env.development.local",
+    ".env.production",
+    ".env.production.local"
+  ],
   "tasks": {
     "build": {
       "inputs": [
