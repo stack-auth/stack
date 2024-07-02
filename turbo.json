@@ -1,12 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDotEnv": [
-    ".env",
-    ".env.local",
-    ".env.development",
-    ".env.development.local",
-    ".env.production",
-    ".env.production.local"
+  "globalEnv": [
+    "STACK_*",
+    "NEXT_PUBLIC_*"
   ],
   "tasks": {
     "build": {

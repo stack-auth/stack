@@ -19,16 +19,16 @@ jobs:
       NEXT_PUBLIC_STACK_PROJECT_ID: internal
       NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: internal-project-publishable-client-key
       STACK_SECRET_SERVER_KEY: internal-project-secret-server-key
-      SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+      STACK_SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
 
-      EMAIL_HOST: 0.0.0.0
-      EMAIL_PORT: 2500
-      EMAIL_USERNAME: test
-      EMAIL_PASSWORD: none
-      EMAIL_SENDER: noreply@test.com
+      STACK_EMAIL_HOST: 0.0.0.0
+      STACK_EMAIL_PORT: 2500
+      STACK_EMAIL_USERNAME: test
+      STACK_EMAIL_PASSWORD: none
+      STACK_EMAIL_SENDER: noreply@test.com
 
-      DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
-      DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+      STACK_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
+      STACK_DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/stackframe
 
     strategy:
       matrix:

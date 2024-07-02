@@ -12,7 +12,7 @@
     "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
     "start": "next start --port 8102",
     "codegen": "npm run prisma -- generate && npm run generate-docs",
-    "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
+    "psql": "npm run with-env -- bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
     "prisma": "npm run with-env -- prisma",
     "lint": "next lint",
     "watch-docs": "npm run with-env -- chokidar --silent '../../**/*' -i '../../docs/**' -i '../../**/node_modules/**' -i '../../**/.next/**' -i '../../**/dist/**' -c 'tsx scripts/generate-docs.ts'",

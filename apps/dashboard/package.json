@@ -12,7 +12,7 @@
     "analyze-bundle": "ANALYZE_BUNDLE=1 npm run build",
     "start": "next start --port 8101",
     "codegen": "npm run prisma -- generate",
-    "psql": "npm run with-env -- bash -c 'psql $DATABASE_CONNECTION_STRING'",
+    "psql": "npm run with-env -- bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
     "prisma": "npm run with-env -- prisma",
     "lint": "next lint",
     "generate-keys": "npm run with-env -- tsx scripts/generate-keys.ts"

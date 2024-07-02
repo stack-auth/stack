@@ -35,7 +35,7 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
   return new NiceResponse(fetchRes.status, fetchRes.headers, body);
 }
 
-export const DASHBOARD_BASE_URL = getEnvVar("DASHBOARD_BASE_URL");
-export const BACKEND_BASE_URL = getEnvVar("BACKEND_BASE_URL");
-export const INTERNAL_PROJECT_ID = getEnvVar("INTERNAL_PROJECT_ID");
-export const INTERNAL_PROJECT_CLIENT_KEY = getEnvVar("INTERNAL_PROJECT_CLIENT_KEY");
+export const STACK_DASHBOARD_BASE_URL = getEnvVar("STACK_DASHBOARD_BASE_URL");
+export const STACK_BACKEND_BASE_URL = getEnvVar("STACK_BACKEND_BASE_URL");
+export const STACK_INTERNAL_PROJECT_ID = getEnvVar("STACK_INTERNAL_PROJECT_ID");
+export const STACK_INTERNAL_PROJECT_CLIENT_KEY = getEnvVar("STACK_INTERNAL_PROJECT_CLIENT_KEY");

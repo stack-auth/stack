@@ -77,13 +77,13 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
   let emailConfig: EmailConfig;
   if (projectEmailConfig.type === 'shared') {
     emailConfig = {
-      host: getEnvVariable('EMAIL_HOST'),
-      port: parseInt(getEnvVariable('EMAIL_PORT')),
-      username: getEnvVariable('EMAIL_USERNAME'),
-      password: getEnvVariable('EMAIL_PASSWORD'),
-      senderEmail: getEnvVariable('EMAIL_SENDER'),
+      host: getEnvVariable('STACK_EMAIL_HOST'),
+      port: parseInt(getEnvVariable('STACK_EMAIL_PORT')),
+      username: getEnvVariable('STACK_EMAIL_USERNAME'),
+      password: getEnvVariable('STACK_EMAIL_PASSWORD'),
+      senderEmail: getEnvVariable('STACK_EMAIL_SENDER'),
       senderName: project.displayName,
-      secure: getPortConfig(getEnvVariable('EMAIL_PORT')).secure,
+      secure: getPortConfig(getEnvVariable('STACK_EMAIL_PORT')).secure,
       type: 'shared',
     };
   } else {
