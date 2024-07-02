@@ -1,9 +1,13 @@
+-- CreateEnum
+CREATE TYPE "VerificationCodeType" AS ENUM ('ONE_TIME_PASSWORD');
+
 -- CreateTable
 CREATE TABLE "VerificationCode" (
     "projectId" TEXT NOT NULL,
     "id" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "type" "VerificationCodeType" NOT NULL,
     "code" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "usedAt" TIMESTAMP(3),

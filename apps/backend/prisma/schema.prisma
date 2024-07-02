@@ -322,6 +322,7 @@ model VerificationCode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  type          VerificationCodeType
   code          String
   expiresAt     DateTime
   usedAt        DateTime?
@@ -333,6 +334,10 @@ model VerificationCode {
 
   @@id([projectId, id])
   @@unique([projectId, code])
+}
+
+enum VerificationCodeType {
+  ONE_TIME_PASSWORD
 }
 
 // @deprecated

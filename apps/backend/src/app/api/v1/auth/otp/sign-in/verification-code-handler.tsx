@@ -3,8 +3,10 @@ import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { signInResponseSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { VerificationCodeType } from "@prisma/client";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
+  type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yup.object({
     user_id: yup.string().required(),
     is_new_user: yup.boolean().required(),

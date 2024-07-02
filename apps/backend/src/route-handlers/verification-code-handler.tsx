@@ -7,6 +7,7 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { adaptSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { VerificationCodeType } from "@prisma/client";
 
 type Method = {
   email?: string,
@@ -31,6 +32,7 @@ type VerificationCodeHandler<Data> = {
  * Make sure to always check that the method is the same as the one in the data.
  */
 export function createVerificationCodeHandler<Data, Response extends SmartResponse>(options: {
+  type: VerificationCodeType,
   data: yup.Schema<Data>,
   response: yup.Schema<Response>,
   handler(project: ProjectJson, method: Method, data: Data): Promise<Response>,
@@ -56,6 +58,7 @@ export function createVerificationCodeHandler<Data, Response extends SmartRespon
       const verificationCode = await prismaClient.verificationCode.create({
         data: {
           projectId: project.id,
+          type: options.type,
           code: generateSecureRandomString(),
           redirectUrl: redirectUrl?.toString() ?? undefined,
           expiresAt: new Date(Date.now() + (expiresInMs ?? 1000 * 60 * 60 * 24 * 7)),  // default: expire after 7 days
