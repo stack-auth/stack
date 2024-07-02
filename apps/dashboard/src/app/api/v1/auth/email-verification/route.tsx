@@ -21,15 +21,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!codeRecord) {
-    throw new KnownErrors.EmailVerificationCodeNotFound();
+    throw new KnownErrors.VerificationCodeNotFound();
   }
 
   if (codeRecord.expiresAt < new Date()) {
-    throw new KnownErrors.EmailVerificationCodeExpired();
+    throw new KnownErrors.VerificationCodeExpired();
   }
 
   if (codeRecord.usedAt) {
-    throw new KnownErrors.EmailVerificationCodeAlreadyUsed();
+    throw new KnownErrors.VerificationCodeAlreadyUsed();
   }
   
   await prismaClient.projectUser.update({

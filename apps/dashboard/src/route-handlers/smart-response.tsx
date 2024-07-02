@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import * as yup from "yup";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainSnakeCaseToCamelCase } from "@stackframe/stack-shared/dist/utils/objects";
 
 export type SmartResponse = {
   statusCode: number,
@@ -60,7 +61,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
     switch (bodyType) {
       case "json": {
         headers.set("content-type", ["application/json; charset=utf-8"]);
-        arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+        arrayBufferBody = new TextEncoder().encode(JSON.stringify(deepPlainSnakeCaseToCamelCase(validated.body)));
         break;
       }
       case "text": {

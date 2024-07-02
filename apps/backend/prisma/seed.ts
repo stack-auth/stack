@@ -31,6 +31,7 @@ async function seed() {
           description: "Internal API key set",
           publishableClientKey: "this-publishable-client-key-is-for-local-development-only",
           secretServerKey: "this-secret-server-key-is-for-local-development-only",
+          superSecretAdminKey: "this-super-secret-admin-key-is-for-local-development-only",
           expiresAt: new Date('2099-12-31T23:59:59Z'),
         }],
       },

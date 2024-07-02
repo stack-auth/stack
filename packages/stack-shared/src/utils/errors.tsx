@@ -143,7 +143,7 @@ export class StatusError extends Error {
 
   public toHttpJson(): Json {
     return {
-      statusCode: this.statusCode,
+      status_code: this.statusCode,
       body: this.message,
       headers: this.getHeaders(),
     };

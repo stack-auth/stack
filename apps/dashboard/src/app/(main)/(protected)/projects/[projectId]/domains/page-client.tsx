@@ -13,6 +13,7 @@ import { SmartFormDialog } from "@/components/form-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import Typography from "@/components/ui/typography";
+import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 function EditDialog(props: { 
   open?: boolean,
@@ -40,7 +41,7 @@ function EditDialog(props: {
         </Alert>
       ),
     }),
-    domain: yup.string()
+    domain: urlSchema
       .matches(/^https?:\/\//, "Origin must start with http:// or https://")
       .url("Domain must be a valid URL")
       .notOneOf(props.domains

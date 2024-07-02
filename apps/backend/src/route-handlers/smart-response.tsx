@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import * as yup from "yup";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 
 export type SmartResponse = {
   statusCode: number,
@@ -11,30 +12,38 @@ export type SmartResponse = {
 } & (
   | {
     bodyType?: undefined,
-    body?: ArrayBuffer | Json,
+    body?: ArrayBuffer | Json | undefined,
+  }
+  | {
+    bodyType: "empty",
+    body: undefined,
   }
   | {
     bodyType: "text",
-    body?: string,
+    body: string,
   }
   | {
     bodyType: "json",
-    body?: Json,
+    body: Json,
   }
   | {
     bodyType: "binary",
-    body?: ArrayBuffer,
+    body: ArrayBuffer,
+  }
+  | {
+    bodyType: "success",
+    body?: undefined,
   }
 );
 
-async function validate<T>(req: NextRequest, obj: unknown, schema: yup.Schema<T>): Promise<T> {
+async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
       stripUnknown: true,
     });
   } catch (error) {
-    throw new StackAssertionError(`Error occured during ${req.url} response validation: ${error}`, { obj, schema, error }, { cause: error });
+    throw new StackAssertionError(`Error occured during ${req ? `${req.method} ${req.url}` : "a custom endpoint invokation's"} response validation: ${error}`, { obj, schema, error }, { cause: error });
   }
 }
 
@@ -46,37 +55,48 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;
   const headers = new Map<string, string[]>;
 
   let arrayBufferBody;
-  if (obj.body === undefined) {
-    arrayBufferBody = new ArrayBuffer(0);
-  } else {
-    const bodyType = validated.bodyType ?? (isBinaryBody(validated.body) ? "binary" : "json");
-    switch (bodyType) {
-      case "json": {
-        headers.set("content-type", ["application/json; charset=utf-8"]);
-        arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
-        break;
+
+  const bodyType = validated.bodyType ?? (validated.body === undefined ? "empty" : isBinaryBody(validated.body) ? "binary" : "json");
+  switch (bodyType) {
+    case "empty": {
+      arrayBufferBody = new ArrayBuffer(0);
+      break;
+    }
+    case "json": {
+      if (validated.body === undefined || !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)))) {
+        throw new StackAssertionError("Invalid JSON body is not JSON", { body: validated.body });
       }
-      case "text": {
-        headers.set("content-type", ["text/plain; charset=utf-8"]);
-        if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
-        arrayBufferBody = new TextEncoder().encode(validated.body);
-        break;
-      }
-      case "binary": {
-        if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
-        arrayBufferBody = validated.body;
-        break;
-      }
-      default: {
-        throw new Error(`Invalid body type: ${bodyType}`);
-      }
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+      break;
+    }
+    case "text": {
+      headers.set("content-type", ["text/plain; charset=utf-8"]);
+      if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
+      arrayBufferBody = new TextEncoder().encode(validated.body);
+      break;
+    }
+    case "binary": {
+      if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
+      arrayBufferBody = validated.body;
+      break;
+    }
+    case "success": {
+      headers.set("content-type", ["application/json; charset=utf-8"]);
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify({
+        success: true,
+      }));
+      break;
+    }
+    default: {
+      throw new Error(`Invalid body type: ${bodyType}`);
     }
   }
 
@@ -90,7 +110,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest, 
 
 
   // If the x-stack-override-error-status header is given, override error statuses to 200
-  if (req.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
+  if (req?.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
     status = 200;
     headers.set("x-stack-actual-status", [validated.statusCode.toString()]);
   }

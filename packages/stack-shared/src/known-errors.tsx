@@ -16,8 +16,8 @@ export type AbstractKnownErrorConstructor<Args extends any[]> =
     constructorArgsFromJson: (json: KnownErrorJson) => Args,
   };
 
-export type KnownErrorConstructor<Instance extends KnownError, Args extends any[]> = {
-  new (...args: Args): Instance,
+export type KnownErrorConstructor<SuperInstance extends KnownError, Args extends any[]> = {
+  new (...args: Args): SuperInstance & { constructorArgs: Args },
   errorCode: string,
   constructorArgsFromJson: (json: KnownErrorJson) => Args,
 };
@@ -39,9 +39,8 @@ export abstract class KnownError extends StatusError {
   public override getBody(): Uint8Array {
     return new TextEncoder().encode(JSON.stringify({
       code: this.errorCode,
-      message: this.humanReadableMessage,
       details: this.details,
-      error: true,
+      error: this.humanReadableMessage,
     }, undefined, 2));
   }
 
@@ -118,10 +117,12 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   class KnownErrorImpl extends SuperClass {
     public static readonly errorCode = errorCode;
     public name = `KnownError<${errorCode}>`;
+    public readonly constructorArgs: Args;
 
     constructor(...args: Args) {
       // @ts-expect-error
       super(...createFn(...args));
+      this.constructorArgs = args;
     }
 
     static constructorArgsFromJson(json: KnownErrorJson): Args {
@@ -181,11 +182,11 @@ const AllOverloadsFailed = createKnownErrorConstructor(
         `).join("\n\n")}
     `,
     {
-      overloadErrors,
+      overload_errors: overloadErrors,
     },
   ] as const,
   (json) => [
-    (json.details as any)?.overloadErrors ?? throwErr("overloadErrors not found in AllOverloadsFailed details"),
+    (json.details as any)?.overload_errors ?? throwErr("overload_errors not found in AllOverloadsFailed details"),
   ] as const,
 );
 
@@ -196,15 +197,18 @@ const ProjectAuthenticationError = createKnownErrorConstructor(
   "inherit",
 );
 
-const InvalidProjectAuthentication = createKnownErrorConstructor(
+const InvalidProjectAccess = createKnownErrorConstructor(
   ProjectAuthenticationError,
   "INVALID_PROJECT_AUTHENTICATION",
   "inherit",
   "inherit",
 );
 
+/**
+ * @deprecated Use ProjectKeyWithoutAccessType instead
+ */
 const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
   () => [
     400,
@@ -213,8 +217,11 @@ const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InvalidAccessType instead
+ */
 const InvalidRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_REQUEST_TYPE",
   (requestType: string) => [
     400,
@@ -225,60 +232,125 @@ const InvalidRequestType = createKnownErrorConstructor(
   ] as const,
 );
 
+/**
+ * @deprecated Use AccessTypeWithoutProjectId instead
+ */
 const RequestTypeWithoutProjectId = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "REQUEST_TYPE_WITHOUT_PROJECT_ID",
   (requestType: "client" | "server" | "admin") => [
     400,
     `The x-stack-request-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
     {
-      requestType,
+      request_type: requestType,
     },
   ] as const,
-  (json: any) => [json.requestType] as const,
+  (json: any) => [json.request_type] as const,
+);
+
+const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "PROJECT_KEY_WITHOUT_ACCESS_TYPE",
+  () => [
+    400,
+    "Either an API key or an admin access token was provided, but the x-stack-access-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
+  ] as const,
+  () => [] as const,
+);
+
+const InvalidAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "INVALID_ACCESS_TYPE",
+  (requestType: string) => [
+    400,
+    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
+  ] as const,
+  (json) => [
+    (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
+  ] as const,
+);
+
+const AccessTypeWithoutProjectId = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "ACCESS_TYPE_WITHOUT_PROJECT_ID",
+  (requestType: "client" | "server" | "admin") => [
+    400,
+    `The x-stack-access-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
+    {
+      request_type: requestType,
+    },
+  ] as const,
+  (json: any) => [json.request_type] as const,
+);
+
+const AccessTypeRequired = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "ACCESS_TYPE_REQUIRED",
+  () => [
+    400,
+    `You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.`,
+  ] as const,
+  () => [] as const,
+);
+
+const InsufficientAccessType = createKnownErrorConstructor(
+  InvalidProjectAccess,
+  "INSUFFICIENT_ACCESS_TYPE",
+  (actualAccessType: "client" | "server" | "admin", allowedAccessTypes: ("client" | "server" | "admin")[]) => [
+    401,
+    `The x-stack-access-type header must be ${allowedAccessTypes.map(s => `'${s}'`).join(" or ")}, but was '${actualAccessType}'.`,
+    {
+      actual_access_type: actualAccessType,
+      allowed_access_types: allowedAccessTypes,
+    },
+  ] as const,
+  (json: any) => [
+    json.details.actual_access_type,
+    json.details.allowed_access_types,
+  ] as const,
 );
 
 const InvalidPublishableClientKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_PUBLISHABLE_CLIENT_KEY",
   (projectId: string) => [
     401,
     `The publishable key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
     {
-      projectId,
+      project_id: projectId,
     },
   ] as const,
-  (json: any) => [json.projectId] as const,
+  (json: any) => [json.project_id] as const,
 );
 
 const InvalidSecretServerKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_SECRET_SERVER_KEY",
   (projectId: string) => [
     401,
     `The secret server key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
     {
-      projectId,
+      project_id: projectId,
     },
   ] as const,
-  (json: any) => [json.projectId] as const,
+  (json: any) => [json.project_id] as const,
 );
 
 const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_SUPER_SECRET_ADMIN_KEY",
   (projectId: string) => [
     401,
     `The super secret admin key is not valid for the project ${JSON.stringify(projectId)}. Does the project and/or the key exist?`,
     {
-      projectId,
+      project_id: projectId,
     },
   ] as const,
-  (json: any) => [json.projectId] as const,
+  (json: any) => [json.project_id] as const,
 );
 
 const InvalidAdminAccessToken = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
+  InvalidProjectAccess,
   "INVALID_ADMIN_ACCESS_TOKEN",
   "inherit",
   "inherit",
@@ -324,6 +396,9 @@ const AdminAccessTokenIsNotAdmin = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ProjectAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationError,
   "PROJECT_AUTHENTICATION_REQUIRED",
@@ -331,6 +406,10 @@ const ProjectAuthenticationRequired = createKnownErrorConstructor(
   "inherit",
 );
 
+
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_AUTHENTICATION_REQUIRED",
@@ -341,6 +420,9 @@ const ClientAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ServerAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "SERVER_AUTHENTICATION_REQUIRED",
@@ -351,6 +433,9 @@ const ServerAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrServerAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_SERVER_AUTHENTICATION_REQUIRED",
@@ -361,6 +446,9 @@ const ClientOrServerAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrAdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_ADMIN_AUTHENTICATION_REQUIRED",
@@ -371,6 +459,9 @@ const ClientOrAdminAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const ClientOrServerOrAdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "CLIENT_OR_SERVER_OR_ADMIN_AUTHENTICATION_REQUIRED",
@@ -381,6 +472,9 @@ const ClientOrServerOrAdminAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+/**
+ * @deprecated Use InsufficientAccessType instead
+ */
 const AdminAuthenticationRequired = createKnownErrorConstructor(
   ProjectAuthenticationRequired,
   "ADMIN_AUTHENTICATION_REQUIRED",
@@ -509,6 +603,16 @@ const UserEmailAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const CannotGetOwnUserWithoutUser = createKnownErrorConstructor(
+  KnownError,
+  "CANNOT_GET_OWN_USER_WITHOUT_USER",
+  () => [
+    400,
+    "You have specified 'me' as a userId, but did not provide authentication for a user.",
+  ] as const,
+  () => [] as const,
+);
+
 const UserNotFound = createKnownErrorConstructor(
   KnownError,
   "USER_NOT_FOUND",
@@ -596,90 +700,39 @@ const PasswordTooLong = createKnownErrorConstructor(
   ] as const,
 );
 
-const EmailVerificationError = createKnownErrorConstructor(
+const VerificationCodeError = createKnownErrorConstructor(
   KnownError,
-  "EMAIL_VERIFICATION_ERROR",
+  "VERIFICATION_ERROR",
   "inherit",
   "inherit",
 );
 
-const EmailVerificationCodeError = createKnownErrorConstructor(
-  EmailVerificationError,
-  "EMAIL_VERIFICATION_CODE_ERROR",
-  "inherit",
-  "inherit",
-);
-
-const EmailVerificationCodeNotFound = createKnownErrorConstructor(
-  EmailVerificationCodeError,
-  "EMAIL_VERIFICATION_CODE_NOT_FOUND",
+const VerificationCodeNotFound = createKnownErrorConstructor(
+  VerificationCodeError,
+  "VERIFICATION_CODE_NOT_FOUND",
   () => [
     404,
-    "The e-mail verification code does not exist for this project.",
+    "The verification code does not exist for this project.",
   ] as const,
   () => [] as const,
 );
 
-const EmailVerificationCodeExpired = createKnownErrorConstructor(
-  EmailVerificationCodeError,
-  "EMAIL_VERIFICATION_CODE_EXPIRED",
+const VerificationCodeExpired = createKnownErrorConstructor(
+  VerificationCodeError,
+  "VERIFICATION_CODE_EXPIRED",
   () => [
     400,
-    "The e-mail verification code has expired.",
+    "The verification code has expired.",
   ] as const,
   () => [] as const,
 );
 
-const EmailVerificationCodeAlreadyUsed = createKnownErrorConstructor(
-  EmailVerificationCodeError,
-  "EMAIL_VERIFICATION_CODE_ALREADY_USED",
+const VerificationCodeAlreadyUsed = createKnownErrorConstructor(
+  VerificationCodeError,
+  "VERIFICATION_CODE_ALREADY_USED",
   () => [
     400,
-    "The e-mail verification link has already been used.",
-  ] as const,
-  () => [] as const,
-);
-
-const MagicLinkError = createKnownErrorConstructor(
-  KnownError,
-  "MAGIC_LINK_ERROR",
-  "inherit",
-  "inherit",
-);
-
-const MagicLinkCodeError = createKnownErrorConstructor(
-  MagicLinkError,
-  "MAGIC_LINK_CODE_ERROR",
-  "inherit",
-  "inherit",
-);
-
-const MagicLinkCodeNotFound = createKnownErrorConstructor(
-  MagicLinkCodeError,
-  "MAGIC_LINK_CODE_NOT_FOUND",
-  () => [
-    404,
-    "The e-mail verification code does not exist for this project.",
-  ] as const,
-  () => [] as const,
-);
-
-const MagicLinkCodeExpired = createKnownErrorConstructor(
-  MagicLinkCodeError,
-  "MAGIC_LINK_CODE_EXPIRED",
-  () => [
-    400,
-    "The e-mail verification code has expired.",
-  ] as const,
-  () => [] as const,
-);
-
-const MagicLinkCodeAlreadyUsed = createKnownErrorConstructor(
-  MagicLinkCodeError,
-  "MAGIC_LINK_CODE_ALREADY_USED",
-  () => [
-    400,
-    "The e-mail verification link has already been used.",
+    "The verification link has already been used.",
   ] as const,
   () => [] as const,
 );
@@ -690,50 +743,6 @@ const PasswordMismatch = createKnownErrorConstructor(
   () => [
     400,
     "Passwords do not match.",
-  ] as const,
-  () => [] as const,
-);
-
-const PasswordResetError = createKnownErrorConstructor(
-  KnownError,
-  "PASSWORD_RESET_ERROR",
-  "inherit",
-  "inherit",
-);
-
-const PasswordResetCodeError = createKnownErrorConstructor(
-  PasswordResetError,
-  "PASSWORD_RESET_CODE_ERROR",
-  "inherit",
-  "inherit",
-);
-
-const PasswordResetCodeNotFound = createKnownErrorConstructor(
-  PasswordResetCodeError,
-  "PASSWORD_RESET_CODE_NOT_FOUND",
-  () => [
-    404,
-    "The password reset code does not exist for this project.",
-  ] as const,
-  () => [] as const,
-);
-
-const PasswordResetCodeExpired = createKnownErrorConstructor(
-  PasswordResetCodeError,
-  "PASSWORD_RESET_CODE_EXPIRED",
-  () => [
-    400,
-    "The password reset code has expired.",
-  ] as const,
-  () => [] as const,
-);
-
-const PasswordResetCodeAlreadyUsed = createKnownErrorConstructor(
-  PasswordResetCodeError,
-  "PASSWORD_RESET_CODE_ALREADY_USED",
-  () => [
-    400,
-    "The password reset code has already been used.",
   ] as const,
   () => [] as const,
 );
@@ -755,10 +764,10 @@ const PermissionNotFound = createKnownErrorConstructor(
     404,
     `Permission ${permissionId} not found. Make sure you created it on the dashboard.`,
     {
-      permissionId,
+      permission_id: permissionId,
     },
   ] as const,
-  (json: any) => [json.details.permissionId] as const,
+  (json: any) => [json.details.permission_id] as const,
 );
 
 const PermissionScopeMismatch = createKnownErrorConstructor(
@@ -773,13 +782,27 @@ const PermissionScopeMismatch = createKnownErrorConstructor(
         "specific-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
       }[permissionScope.type]}`,
       {
-        permissionId,
-        permissionScope,
-        testScope,
+        permission_id: permissionId,
+        permission_scope: permissionScope,
+        test_scope: testScope,
       },
     ] as const;
   },
-  (json: any) => [json.details.permissionId, json.details.permissionScope, json.details.testScope] as const,
+  (json: any) => [json.details.permission_id, json.details.permission_scope, json.details.test_scope] as const,
+);
+
+const UserNotInTeam = createKnownErrorConstructor(
+  KnownError,
+  "USER_NOT_IN_TEAM",
+  (userId: string, teamId: string) => [
+    400,
+    `User ${userId} is not in team ${teamId}.`,
+    {
+      user_id: userId,
+      team_id: teamId,
+    },
+  ] as const,
+  (json: any) => [json.details.user_id, json.details.team_id] as const,
 );
 
 const TeamNotFound = createKnownErrorConstructor(
@@ -789,10 +812,10 @@ const TeamNotFound = createKnownErrorConstructor(
     404,
     `Team ${teamId} not found.`,
     {
-      teamId,
+      team_id: teamId,
     },
   ] as const,
-  (json: any) => [json.details.teamId] as const,
+  (json: any) => [json.details.team_id] as const,
 );
 
 const EmailTemplateAlreadyExists = createKnownErrorConstructor(
@@ -885,10 +908,16 @@ export const KnownErrors = {
   SchemaError,
   AllOverloadsFailed,
   ProjectAuthenticationError,
-  InvalidProjectAuthentication,
+  InvalidProjectAuthentication: InvalidProjectAccess,
   ProjectKeyWithoutRequestType,
   InvalidRequestType,
   RequestTypeWithoutProjectId,
+  ProjectKeyWithoutAccessType,
+  InvalidAccessType,
+  AccessTypeWithoutProjectId,
+  AccessTypeRequired,
+  CannotGetOwnUserWithoutUser,
+  InsufficientAccessType,
   InvalidPublishableClientKey,
   InvalidSecretServerKey,
   InvalidSuperSecretAdminKey,
@@ -925,21 +954,10 @@ export const KnownErrors = {
   PasswordRequirementsNotMet,
   PasswordTooShort,
   PasswordTooLong,
-  EmailVerificationError,
-  EmailVerificationCodeError,
-  EmailVerificationCodeNotFound,
-  EmailVerificationCodeExpired,
-  EmailVerificationCodeAlreadyUsed,
-  MagicLinkError,
-  MagicLinkCodeError,
-  MagicLinkCodeNotFound,
-  MagicLinkCodeExpired,
-  MagicLinkCodeAlreadyUsed,
-  PasswordResetError,
-  PasswordResetCodeError,
-  PasswordResetCodeNotFound,
-  PasswordResetCodeExpired,
-  PasswordResetCodeAlreadyUsed,
+  VerificationCodeError,
+  VerificationCodeNotFound,
+  VerificationCodeExpired,
+  VerificationCodeAlreadyUsed,
   PasswordMismatch,
   EmailAlreadyVerified,
   PermissionNotFound,

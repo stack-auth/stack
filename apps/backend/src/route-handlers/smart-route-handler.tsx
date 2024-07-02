@@ -3,16 +3,20 @@ import "../polyfills";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
+import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
+import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 class InternalServerError extends StatusError {
-  constructor() {
-    super(StatusError.InternalServerError);
+  constructor(error: unknown) {
+    super(
+      StatusError.InternalServerError,
+      ...getNodeEnvironment() === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+    );
   }
 }
 
@@ -41,14 +45,14 @@ function catchError(error: unknown): StatusError {
 
   if (error instanceof StatusError) return error;
   captureError(`route-handler`, error);
-  return new InternalServerError();
+  return new InternalServerError(error);
 }
 
 /**
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
     let hasRequestFinished = false;
@@ -106,58 +110,57 @@ export function deprecatedSmartRouteHandler(handler: (req: NextRequest, options:
   };
 };
 
-export type SmartRouteHandlerOverloadMetadata = {
-  summary: string,
-  description: string,
-  tags: string[],
-};
+export type SmartRouteHandlerOverloadMetadata = EndpointDocumentation;
 
 export type SmartRouteHandlerOverload<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 > = {
   metadata?: SmartRouteHandlerOverloadMetadata,
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+  handler: (req: MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 };
 
 export type SmartRouteHandlerOverloadGenerator<
   OverloadParam,
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 > = (param: OverloadParam) => SmartRouteHandlerOverload<Req, Res>;
 
 export type SmartRouteHandler<
   OverloadParam = unknown,
-  Req extends DeepPartial<SmartRequest> = DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel = DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse = SmartResponse,
 > = ((req: NextRequest, options: any) => Promise<Response>) & {
   overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
+  invoke: (smartRequest: SmartRequest) => Promise<Response>,
 }
 
-const smartRouteHandlerSymbol = Symbol("smartRouteHandler");
+function getSmartRouteHandlerSymbol() {
+  return Symbol.for("stack-smartRouteHandler");
+}
 
 export function isSmartRouteHandler(handler: any): handler is SmartRouteHandler {
-  return handler?.[smartRouteHandlerSymbol] === true;
+  return handler?.[getSmartRouteHandlerSymbol()] === true;
 }
 
 export function createSmartRouteHandler<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   handler: SmartRouteHandlerOverload<Req, Res>,
 ): SmartRouteHandler<void, Req, Res>
 export function createSmartRouteHandler<
   OverloadParam,
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   overloadParams: readonly OverloadParam[],
   overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>
 ): SmartRouteHandler<OverloadParam, Req, Res>
 export function createSmartRouteHandler<
-  Req extends DeepPartial<SmartRequest>,
+  Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
 >(
   ...args: [readonly unknown[], SmartRouteHandlerOverloadGenerator<unknown, Req, Res>] | [SmartRouteHandlerOverload<Req, Res>]
@@ -173,15 +176,13 @@ export function createSmartRouteHandler<
     throw new StackAssertionError("Duplicate overload parameters");
   }
 
-  return Object.assign(deprecatedSmartRouteHandler(async (req, options, requestId) => {
+  const invoke = async (nextRequest: NextRequest | null, requestId: string, smartRequest: SmartRequest) => {
     const reqsParsed: [[Req, SmartRequest], SmartRouteHandlerOverload<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
-    const bodyBuffer = await req.arrayBuffer();
-    for (const [overloadParam, handler] of overloads.entries()) {
-      const requestParser = await createLazyRequestParser(req, bodyBuffer, handler.request, options);
+    for (const [overloadParam, overload] of overloads.entries()) {
       try {
-        const parserRes = await requestParser();
-        reqsParsed.push([parserRes, handler]);
+        const parsedReq = await validateSmartRequest(nextRequest, smartRequest, overload.request);
+        reqsParsed.push([[parsedReq, smartRequest], overload]);
       } catch (e) {
         reqsErrors.push(e);
       }
@@ -191,7 +192,7 @@ export function createSmartRouteHandler<
         throw reqsErrors[0];
       } else {
         const caughtErrors = reqsErrors.map(e => catchError(e));
-        throw new KnownErrors.AllOverloadsFailed(caughtErrors.map(e => e.toHttpJson()));
+        throw createOverloadsError(caughtErrors);
       }
     }
 
@@ -201,11 +202,65 @@ export function createSmartRouteHandler<
 
     let smartRes = await handler.handler(smartReq as any, fullReq);
 
-    return await createResponse(req, requestId, smartRes, handler.response);
+    return await createResponse(nextRequest, requestId, smartRes, handler.response);
+  };
+
+  return Object.assign(handleApiRequest(async (req, options, requestId) => {
+    const bodyBuffer = await req.arrayBuffer();
+    const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+    return await invoke(req, requestId, smartRequest);
   }), {
-    [smartRouteHandlerSymbol]: true,
+    [getSmartRouteHandlerSymbol()]: true,
+    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invokation", smartRequest),
     overloads,
   });
+}
+
+function createOverloadsError(errors: StatusError[]) {
+  return tryMergingOverloadErrors(errors) ?? new KnownErrors.AllOverloadsFailed(errors.map(e => e.toHttpJson()));
+}
+
+function tryMergingOverloadErrors(errors: StatusError[]): StatusError | null {
+  if (errors.length > 6) {
+    // TODO fix this
+    throw new StackAssertionError("Too many overloads failed, refusing to trying to merge them as it would be computationally expensive and could be used for a DoS attack. Fix this if we ever have an endpoint with > 8 overloads");
+  } else if (errors.length === 0) {
+    throw new StackAssertionError("No errors to merge");
+  } else if (errors.length === 1) {
+    return errors[0];
+  } else if (errors.length === 2) {
+    const [a, b] = errors;
+
+    // Merge errors with the same JSON
+    if (JSON.stringify(a.toHttpJson()) === JSON.stringify(b.toHttpJson())) {
+      return a;
+    }
+
+    // Merge "InsufficientAccessType" errors
+    if (
+      a instanceof KnownErrors.InsufficientAccessType
+      && b instanceof KnownErrors.InsufficientAccessType
+      && a.constructorArgs[0] === b.constructorArgs[0]
+    ) {
+      return new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])]);
+    }
+
+    return null;
+  } else {
+    // brute-force all combinations recursively
+    for (let i = 0; i < errors.length; i++) {
+      const errorsWithoutCurrent = [...errors];
+      errorsWithoutCurrent.splice(i, 1);
+      const mergedWithoutCurrent = tryMergingOverloadErrors(errorsWithoutCurrent);
+      if (mergedWithoutCurrent !== null) {
+        const merged = tryMergingOverloadErrors([errors[i], mergedWithoutCurrent]);
+        if (merged !== null) {
+          return merged;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /**
@@ -213,7 +268,7 @@ export function createSmartRouteHandler<
  *
  * if you can remove this wherever it's used without causing type errors, it's safe to remove
  */
-export function routeHandlerTypeHelper<Req extends DeepPartial<SmartRequest>, Res extends SmartResponse>(handler: {
+export function routeHandlerTypeHelper<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(handler: {
   request: yup.Schema<Req>,
   response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,

@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { sendMagicLink } from "@/email";
+import { sendMagicLink } from "@/lib/emails";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/lib/utils";

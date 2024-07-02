@@ -35,11 +35,11 @@ export function EmailVerification({
 
   const error = use(stackApp.verifyEmail(code));
 
-  if (error instanceof KnownErrors.EmailVerificationCodeNotFound) {
+  if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
-  } else if (error instanceof KnownErrors.EmailVerificationCodeExpired) {
+  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
     return expiredJsx;
-  } else if (error instanceof KnownErrors.EmailVerificationCodeAlreadyUsed) {
+  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
     // everything fine, continue
   } else if (error) {
     throw error;

@@ -5,16 +5,12 @@ import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterfac
 import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
-import { getServerUserFromDbType } from "./users";
-import { serverUserInclude } from "./users";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 
 // TODO technically we can split this; listUserTeams only needs `team`, and listServerTeams only needs `projectUser`; listTeams needs neither
 // note: this is a function to prevent circular dependencies between the teams and users file
 export const createFullTeamMemberInclude = () => ({
   team: true,
-  projectUser: {
-    include: serverUserInclude,
-  },
 } as const satisfies Prisma.TeamMemberInclude);
 
 export type ServerTeamMemberDB = Prisma.TeamMemberGetPayload<{ include: ReturnType<typeof createFullTeamMemberInclude> }>;
@@ -55,18 +51,6 @@ export async function listTeams(projectId: string): Promise<TeamJson[]> {
 
 export async function listServerTeams(projectId: string): Promise<ServerTeamJson[]> {
   return await listTeams(projectId);  // currently ServerTeam and ClientTeam are the same
-}
-
-export async function listServerTeamMembers(projectId: string, teamId: string): Promise<ServerTeamMemberJson[]> {
-  const members = await prismaClient.teamMember.findMany({
-    where: {
-      projectId,
-      teamId,
-    },
-    include: createFullTeamMemberInclude(),
-  });
-
-  return members.map((member) => getServerTeamMemberFromDbType(member));
 }
 
 export async function getTeam(projectId: string, teamId: string): Promise<TeamJson | null> {
@@ -151,14 +135,5 @@ export function getServerTeamFromDbType(team: Prisma.TeamGetPayload<{}>): Server
     id: team.teamId,
     displayName: team.displayName,
     createdAtMillis: team.createdAt.getTime(),
-  };
-}
-
-export function getServerTeamMemberFromDbType(member: ServerTeamMemberDB): ServerTeamMemberJson {
-  return {
-    userId: member.projectUserId,
-    user: getServerUserFromDbType(member.projectUser),
-    teamId: member.teamId,
-    displayName: member.projectUser.displayName,
   };
 }

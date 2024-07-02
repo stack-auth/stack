@@ -32,7 +32,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Typography from "@/components/ui/typography";
 import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
-import { EMAIL_TEMPLATES_METADATA } from "@/email/utils";
+import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
 import { Link } from "@/components/link";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }

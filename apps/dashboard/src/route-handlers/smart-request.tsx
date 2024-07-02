@@ -3,7 +3,7 @@ import "../polyfills";
 import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { DeepPartial, deepPlainCamelCaseToSnakeCase } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { KnownError, KnownErrors, ProjectJson, ServerUserJson, UserJson } from "@stackframe/stack-shared";
 import { IsAny } from "@stackframe/stack-shared/dist/utils/types";

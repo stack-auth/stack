@@ -55,6 +55,11 @@ module.exports = {
         selector: 'SwitchCase > *.consequent[type!="BlockStatement"]',
         message: "Switch cases without blocks are disallowed.",
       },
+      "error",
+      {
+        selector: "MemberExpression:has(Identifier[name='yup']) Identifier[name='url']",
+        message: "Use urlSchema from schema-fields.tsx instead of yup.string().url().",
+      },
     ],
     "@typescript-eslint/no-misused-promises": [
       "error",

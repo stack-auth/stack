@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "path";
 
 export default function globalSetup() {
   dotenv.config({
@@ -7,7 +8,7 @@ export default function globalSetup() {
       ".env.local",
       ".env.development",
       ".env",
-    ],
+    ].map((file) => path.resolve(__dirname, "..", file)),
   });
   
   return () => {};

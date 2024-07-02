@@ -57,13 +57,6 @@
     "typecheck": {
       "cache": false
     },
-    "test": {
-      "persistent": true,
-      "cache": false
-    },
-    "test:watch": {
-      "cache": false
-    },
     "generate-docs": {
       "cache": false
     },

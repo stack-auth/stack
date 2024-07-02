@@ -3,12 +3,14 @@ import { KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } fro
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./tokens";
-import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { CrudHandlerInvokationError } from "@/route-handlers/crud-handler";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
@@ -118,12 +120,21 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     return "wrong-project-id";
   }
 
-  const projectUser = await getServerUser("internal", userId);
-  if (!projectUser) {
-    return "not-admin";
+  let user;
+  try {
+    user = await usersCrudHandlers.adminRead({
+      project: await getProject("internal") ?? throwErr("Can't find internal project??"),
+      userId,
+    });
+  } catch (e) {
+    if (e instanceof CrudHandlerInvokationError && e.cause instanceof KnownErrors.UserNotFound) {
+      // this may happen eg. if the user has a valid access token but has since been deleted
+      return "not-admin";
+    }
+    throw e;
   }
 
-  const allProjects = listProjectIds(projectUser);
+  const allProjects = listProjectIds(user);
   if (!allProjects.includes(projectId)) {
     return "not-admin";
   }
@@ -135,8 +146,8 @@ export async function isProjectAdmin(projectId: string, adminAccessToken: string
   return !await whyNotProjectAdmin(projectId, adminAccessToken);
 }
 
-function listProjectIds(projectUser: ServerUserJson) {
-  const serverMetadata = projectUser.serverMetadata;
+function listProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
+  const serverMetadata = projectUser.server_metadata;
   if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
     throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
   }
@@ -148,7 +159,7 @@ function listProjectIds(projectUser: ServerUserJson) {
   return managedProjectIds;
 }
 
-export async function listProjects(projectUser: ServerUserJson): Promise<ProjectJson[]> {
+export async function listProjects(projectUser: UsersCrud["Admin"]["Read"]): Promise<ProjectJson[]> {
   const managedProjectIds = listProjectIds(projectUser);
 
   const projects = await prismaClient.project.findMany({

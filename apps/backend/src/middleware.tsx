@@ -5,7 +5,6 @@ import type { NextRequest } from 'next/server';
 
 const corsAllowedRequestHeaders = [
   // General
-  'authorization',
   'content-type',
   'x-stack-project-id',
   'x-stack-override-error-status',
@@ -13,7 +12,7 @@ const corsAllowedRequestHeaders = [
   'x-stack-client-version',
   
   // Project auth
-  'x-stack-request-type',
+  'x-stack-access-type',
   'x-stack-publishable-client-key',
   'x-stack-secret-server-key',
   'x-stack-super-secret-admin-key',
