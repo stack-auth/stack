@@ -16,7 +16,7 @@
   "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "rimraf dist && npm run css && tsup-node",
+    "build": "rimraf dist && npm run codegen && tsup-node",
     "codegen": "npm run css",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "rimraf dist && concurrently \"tsup-node --watch\" \"npm run css:tw:watch\" \"npm run css:sc:watch\"",

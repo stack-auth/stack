@@ -23,8 +23,7 @@
     "release": "only-allow pnpm && release",
     "peek": "only-allow pnpm && pnpm release --peek",
     "changeset": "only-allow pnpm && changeset",
-    "test:watch": "only-allow pnpm && turbo run test:watch",
-    "test": "only-allow pnpm && turbo run test",
+    "test": "vitest",
     "generate-docs": "only-allow pnpm && turbo run generate-docs --no-cache",
     "generate-keys": "only-allow pnpm && turbo run generate-keys --no-cache"
   },

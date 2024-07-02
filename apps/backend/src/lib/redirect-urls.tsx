@@ -1,11 +1,12 @@
 import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
-export function validateRedirectUrl(url: string, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
-  if (allowLocalhost && (new URL(url).hostname === "localhost" || new URL(url).hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
+export function validateRedirectUrl(urlOrString: string | URL, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
+  const url = new URL(urlOrString);
+  if (allowLocalhost && (url.hostname === "localhost" || url.hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
     return true;
   }
   return domains.some((domain) => {
-    const testUrl = new URL(url);
+    const testUrl = url;
     const baseUrl = new URL(domain.handlerPath, domain.domain);
 
     const sameOrigin = baseUrl.protocol === testUrl.protocol && baseUrl.hostname === testUrl.hostname;

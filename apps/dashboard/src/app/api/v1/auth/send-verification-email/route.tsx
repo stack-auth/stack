@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { decodeAccessToken, authorizationHeaderSchema } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/email";
+import { sendVerificationEmail } from "@/lib/emails";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { prismaClient } from "@/prisma-client";
 

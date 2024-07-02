@@ -6,7 +6,7 @@ import { prismaClient } from "@/prisma-client";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { createAuthTokens } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/email";
+import { sendVerificationEmail } from "@/lib/emails";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/lib/utils";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";

@@ -14,8 +14,8 @@ const withConfiguredSentryConfig = (nextConfig) =>
 
       // Suppresses source map uploading logs during build
       silent: true,
-      org: "stackframe-pw",
-      project: "stack-api",
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
     },
     {
       // For all available options, see:

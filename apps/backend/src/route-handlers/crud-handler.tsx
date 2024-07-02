@@ -8,6 +8,8 @@ import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
+import { ProjectJson } from "@stackframe/stack-shared";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -22,71 +24,91 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
         ? void
         : (
           Multi extends true
-            ? GetAdminKey<T, "Read">[]
+            ? {
+              items: GetAdminKey<T, "Read">[],
+              is_paginated: false,
+            }
             : GetAdminKey<T, "Read">
         )
     >
     : void;
 
 type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> = {
-  onCreate: CrudSingleRouteHandler<T, "Create", Params>,
-  onRead: CrudSingleRouteHandler<T, "Read", Params>,
-  onList: keyof Params extends never ? void : CrudSingleRouteHandler<T, "Read", Partial<Params>, true>,
-  onUpdate: CrudSingleRouteHandler<T, "Update", Params>,
-  onDelete: CrudSingleRouteHandler<T, "Delete", Params>,
+  onCreate?: CrudSingleRouteHandler<T, "Create", Params>,
+  onRead?: CrudSingleRouteHandler<T, "Read", Params>,
+  onList?: keyof Params extends never ? void : CrudSingleRouteHandler<T, "Read", Partial<Params>, true>,
+  onUpdate?: CrudSingleRouteHandler<T, "Update", Params>,
+  onDelete?: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
-export type RouteHandlerMetadataMap = {
-  create?: SmartRouteHandlerOverloadMetadata,
-  read?: SmartRouteHandlerOverloadMetadata,
-  list?: SmartRouteHandlerOverloadMetadata,
-  update?: SmartRouteHandlerOverloadMetadata,
-  delete?: SmartRouteHandlerOverloadMetadata,
-};
+export type ParamsSchema = yup.ObjectSchema<{}>;
 
-type CrudHandlerOptions<T extends CrudTypeOf<any>, ParamNames extends string> =
-  & FilterUndefined<CrudRouteHandlersUnfiltered<T, Record<ParamNames, string>>>
+type CrudHandlerOptions<T extends CrudTypeOf<any>, PS extends ParamsSchema> =
+  & FilterUndefined<CrudRouteHandlersUnfiltered<T, yup.InferType<PS>>>
   & {
-    paramNames: ParamNames[],
-    metadataMap?: RouteHandlerMetadataMap,
+    paramsSchema: PS,
   };
 
-type CrudHandlersFromOptions<O extends CrudHandlerOptions<CrudTypeOf<any>, any>> = CrudHandlers<
-  | ("onCreate" extends keyof O ? "Create" : never)
+type CrudHandlersFromOptions<T extends CrudTypeOf<any>, PS extends ParamsSchema, O extends CrudHandlerOptions<CrudTypeOf<any>, ParamsSchema>> = CrudHandlers<
+  T,
+  PS,
+  ("onCreate" extends keyof O ? "Create" : never)
   | ("onRead" extends keyof O ? "Read" : never)
   | ("onList" extends keyof O ? "List" : never)
   | ("onUpdate" extends keyof O ? "Update" : never)
   | ("onDelete" extends keyof O ? "Delete" : never)
 >
 
-export type CrudHandlers<
-  T extends "Create" | "Read" | "List" | "Update" | "Delete",
+type CrudHandlerDirectByAccess<
+  A extends "Client" | "Server" | "Admin",
+  T extends CrudTypeOf<any>,
+  PS extends ParamsSchema,
+  L extends "Create" | "Read" | "List" | "Update" | "Delete"
 > = {
-  [K in `${Lowercase<T>}Handler`]: SmartRouteHandler
+  [K in (keyof T[A]) & L as `${Uncapitalize<A>}${K}`]: (options:
+    & {
+      project: ProjectJson,
+      user?: UsersCrud["Admin"]["Read"],
+    }
+    & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
+    & (K extends "Read" ? {} : {
+      data: K extends "Read" ? void : T[A][K],
+    })
+  ) => Promise<"Read" extends keyof T[A] ? (K extends "Delete" ? void : T[A]["Read"]) : void>
 };
 
-export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
+export type CrudHandlers<
+  T extends CrudTypeOf<any>,
+  PS extends ParamsSchema,
+  L extends "Create" | "Read" | "List" | "Update" | "Delete",
+> =
+& {
+  [K in `${Uncapitalize<L>}Handler`]: SmartRouteHandler
+}
+& CrudHandlerDirectByAccess<"Client", T, PS, L>
+& CrudHandlerDirectByAccess<"Server", T, PS, L>
+& CrudHandlerDirectByAccess<"Admin", T, PS, L>;
+
+export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, PS>>(
   crud: S, 
   options: O,
-): CrudHandlersFromOptions<O> {
+): CrudHandlersFromOptions<CrudTypeOf<S>, PS, O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
 
   const operations = [
     ["GET", "Read"],
     ["GET", "List"],
     ["POST", "Create"],
-    ["PUT", "Update"],
+    ["PATCH", "Update"],
     ["DELETE", "Delete"],
   ] as const;
   const accessTypes = ["client", "server", "admin"] as const;
 
-  const paramsSchema = yup.object(Object.fromEntries(
-    options.paramNames.map((paramName) => [paramName, yup.string().required()])
-  ));
+  const paramsSchema = options.paramsSchema;
 
   return Object.fromEntries(
     operations.filter(([_, crudOperation]) => optionsAsPartial[`on${crudOperation}`] !== undefined)
-      .map(([httpMethod, crudOperation]) => {
+      .flatMap(([httpMethod, crudOperation]) => {
         const getSchemas = (accessType: "admin" | "server" | "client") => {
           const input =
             typedIncludes(["Read", "List"] as const, crudOperation)
@@ -95,7 +117,10 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           const read = crud[accessType].readSchema ?? yup.mixed().oneOf([undefined]);
           const output =
             crudOperation === "List"
-              ? yup.array(read).required()
+              ? yup.object({
+                items: yup.array(read).required(),
+                is_paginated: yup.boolean().oneOf([false]).required(),
+              }).required()
               : crudOperation === "Delete"
                 ? yup.mixed().oneOf([undefined])
                 : read;
@@ -107,12 +132,38 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
           return crud[accessType][`${typedToLowercase(crudOperationWithoutList)}Schema`] !== undefined;
         });
 
-        const routeHandler = createSmartRouteHandler(
-          availableAccessTypes,
-          (accessType) => {
-            const adminSchemas = getSchemas("admin");
-            const accessSchemas = getSchemas(accessType);
+        const aat = new Map(availableAccessTypes.map((accessType) => {
+          const adminSchemas = getSchemas("admin");
+          const accessSchemas = getSchemas(accessType);
+          return [
+            accessType,
+            {
+              accessSchemas,
+              adminSchemas,
+              invoke: async (options: { params: yup.InferType<PS> | Partial<yup.InferType<PS>>, data: any, auth: SmartRequestAuth }) => {
+                const actualParamsSchema = typedIncludes(["List", "Create"], crudOperation) ? paramsSchema.partial() : paramsSchema;
+                const paramsValidated = await validate(options.params, actualParamsSchema, "Params validation");
 
+                const adminData = await validate(options.data, adminSchemas.input, "Input validation");
+
+                const result = await optionsAsPartial[`on${crudOperation}`]?.({
+                  params: paramsValidated,
+                  data: adminData,
+                  auth: options.auth,
+                });
+
+                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
+                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
+
+                return resultAccessValidated;
+              },
+            },
+          ];
+        }));
+
+        const routeHandler = createSmartRouteHandler(
+          [...aat],
+          ([accessType, { invoke, accessSchemas, adminSchemas }]) => {
             const frw = routeHandlerTypeHelper({
               request: yup.object({
                 auth: yup.object({
@@ -121,48 +172,77 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 url: yup.string().required(),
                 method: yup.string().oneOf([httpMethod]).required(),
                 body: accessSchemas.input,
-                params: crudOperation === "List" ? paramsSchema.partial() : paramsSchema,
+                params: typedIncludes(["List", "Create"], crudOperation) ? paramsSchema.partial() : paramsSchema,
               }),
               response: yup.object({
                 statusCode: yup.number().oneOf([200, 201]).required(),
                 headers: yup.object().shape({
                   location: yup.array(yup.string().required()).optional(),
                 }),
-                bodyType: yup.string().oneOf(["json"]).required(),
+                bodyType: crudOperation === "Delete" ? yup.string().oneOf(["empty"]).required() : yup.string().oneOf(["json"]).required(),
                 body: accessSchemas.output,
               }),
               handler: async (req, fullReq) => {
                 const data = req.body;
-                const adminData = await validate(data, adminSchemas.input, "Input validation");
-
-                const result = await optionsAsPartial[`on${crudOperation}`]?.({
-                  params: req.params,
-                  data: adminData,
+                
+                const result = await invoke({
+                  params: req.params as any,
+                  data,
                   auth: fullReq.auth ?? throwErr("Auth not found in CRUD handler; this should never happen! (all clients are at least client to access CRUD handler)"),
                 });
-
-                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
-                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
 
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
                   headers: {
                     location: crudOperation === "Create" ? [req.url] : undefined,
                   },
-                  bodyType: "json",
-                  body: resultAccessValidated,
+                  bodyType: crudOperation === "Delete" ? "empty" : "json",
+                  body: result,
                 };
               },
             });
             return {
               ...frw,
-              metadata: options.metadataMap?.[typedToLowercase(crudOperation)],
+              metadata: crud[accessType][`${typedToLowercase(crudOperation)}Docs`],
             };
           }
         );
-        return [`${typedToLowercase(crudOperation)}Handler`, routeHandler];
+        return [
+          [`${typedToLowercase(crudOperation)}Handler`, routeHandler],
+          ...[...aat].map(([accessType, { invoke }]) => (
+            [
+              `${accessType}${crudOperation}`,
+              async ({ user, project, data, ...params }: {
+                params: yup.InferType<PS>,
+                project: ProjectJson,
+                user?: UsersCrud["Admin"]["Read"],
+                data: any,
+              }) => {
+                try {
+                  return await invoke({
+                    params,
+                    data,
+                    auth: {
+                      user,
+                      project,
+                      type: accessType,
+                    },
+                  });
+                } catch (error) {
+                  throw new CrudHandlerInvokationError(error);
+                }
+              },
+            ]
+          )),
+        ];
       })
   ) as any;
+}
+
+export class CrudHandlerInvokationError extends Error {
+  constructor(public readonly cause: unknown) {
+    super("Error while invoking CRUD handler programmatically. This is a wrapper error to prevent caught errors (eg. StatusError) from being caught by outer catch blocks. Check the `cause` property.\n\nOriginal error: " + cause, { cause });
+  }
 }
 
 async function validate<T>(obj: unknown, schema: yup.ISchema<T>, name: string): Promise<T> {

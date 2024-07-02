@@ -1,5 +1,5 @@
 import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmailTemplate } from "@/lib/email-templates";
-import { validateEmailTemplateContent } from "@/email/utils";
+import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { emailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/serverInterface";

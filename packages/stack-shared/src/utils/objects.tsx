@@ -1,3 +1,6 @@
+import { StackAssertionError } from "./errors";
+import { camelCaseToSnakeCase, snakeCaseToCamelCase } from "./strings";
+
 export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
 
 /**
@@ -39,6 +42,28 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {
   }
 }
 
+export function deepPlainClone<T>(obj: T): T {
+  if (typeof obj === 'function') throw new StackAssertionError("deepPlainClone does not support functions");
+  if (typeof obj === 'symbol') throw new StackAssertionError("deepPlainClone does not support symbols");
+  if (typeof obj !== 'object' || !obj) return obj;
+  if (Array.isArray(obj)) return obj.map(deepPlainClone) as any;
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, deepPlainClone(v)])) as any;
+}
+
+export function deepPlainSnakeCaseToCamelCase(snakeCaseObj: any): any {
+  if (typeof snakeCaseObj === 'function') throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
+  if (typeof snakeCaseObj !== 'object' || !snakeCaseObj) return snakeCaseObj;
+  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(deepPlainSnakeCaseToCamelCase);
+  return Object.fromEntries(Object.entries(snakeCaseObj).map(([k, v]) => [snakeCaseToCamelCase(k), deepPlainSnakeCaseToCamelCase(v)]));
+}
+
+export function deepPlainCamelCaseToSnakeCase(camelCaseObj: any): any {
+  if (typeof camelCaseObj === 'function') throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
+  if (typeof camelCaseObj !== 'object' || !camelCaseObj) return camelCaseObj;
+  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(deepPlainCamelCaseToSnakeCase);
+  return Object.fromEntries(Object.entries(camelCaseObj).map(([k, v]) => [camelCaseToSnakeCase(k), deepPlainCamelCaseToSnakeCase(v)]));
+}
+
 export function typedEntries<T extends {}>(obj: T): [keyof T, T[keyof T]][] {
   return Object.entries(obj) as any;
 }
@@ -55,8 +80,8 @@ export function typedValues<T extends {}>(obj: T): T[keyof T][] {
   return Object.values(obj) as any;
 }
 
-export function typedAssign<T extends {}, U extends {}>(target: T, source: U): asserts target is T & U {
-  Object.assign(target, source);
+export function typedAssign<T extends {}, U extends {}>(target: T, source: U): T & U {
+  return Object.assign(target, source);
 }
 
 export type FilterUndefined<T> =

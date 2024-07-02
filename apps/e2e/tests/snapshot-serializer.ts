@@ -1,8 +1,7 @@
 import { SnapshotSerializer } from "vitest";
-import { Nicifiable, nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-
-const stackSnapshotSerializerSymbol = Symbol("stackSnapshotSerializer");
+import { emailSuffix } from "./helpers";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -22,9 +21,26 @@ const hideHeaders = [
   "vary",
   "x-content-type-options",
   "x-frame-options",
+  "content-encoding",
+  "etag",
 ];
 
 const stripHeaders = ["x-stack-request-id"];
+
+const stripFields = [
+  "access_token",
+  "refresh_token",
+  "id",
+  "date",
+  "signed_up_at_millis",
+  "user_id",
+];
+
+function addAll<T>(set: Set<T>, values: T[]) {
+  for (const value of values) {
+    set.add(value);
+  }
+}
 
 const snapshotSerializer: SnapshotSerializer = {
   serialize(val, config, indentation, depth, refs, printer) {
@@ -36,28 +52,56 @@ const snapshotSerializer: SnapshotSerializer = {
       multiline: true,
       path: "snapshot",
       overrides: (value, options) => {
-        const stackSnapshotSerializer: null | {
-          headersHidden?: true,
-        } = (value as any)[stackSnapshotSerializerSymbol];
+        const parentValue = options?.parent?.value;
 
-        // Hide headers
-        if (value instanceof Headers && !stackSnapshotSerializer?.headersHidden) {
-          const originalHeaders = [...value.entries()];
-          const filteredHeaders = originalHeaders.filter(([key]) => !typedIncludes(hideHeaders, key.toLowerCase()));
-          return ["replace", Object.assign(new Headers(filteredHeaders), {
-            [stackSnapshotSerializerSymbol]: {
-              headersHidden: true,
-            },
-            getNicifiedObjectExtraLines: () => [`<several headers hidden>`],
-          })];
+        // Strip auto-generated e-mails
+        if (typeof value === "string" && value.endsWith(emailSuffix)) {
+          return `<stripped auto-generated e-mail>`;
         }
 
         // Strip headers
         if (options?.parent?.value instanceof Headers) {
           const headerName = options.keyInParent?.toString().toLowerCase();
           if (typedIncludes(stripHeaders, headerName)) {
-            return ["result", `<stripped header '${headerName}'>`];
+            return `<stripped header '${headerName}'>`;
           }
+        }
+
+        // Hide fields
+        const oldHideFields = options?.hideFields ?? [];
+        let newHideFields = new Set<PropertyKey>(oldHideFields);
+        if (
+          (typeof value === "object" || typeof value === "function")
+          && value
+          && "getSnapshotSerializerOptions" in value
+        ) {
+          const snapshotSerializerOptions = (value.getSnapshotSerializerOptions as any)();
+          addAll(newHideFields, snapshotSerializerOptions?.hideFields ?? []);
+        }
+        if (value instanceof Headers) {
+          addAll(newHideFields, hideHeaders);
+        }
+        if (newHideFields.size !== oldHideFields.length) {
+          return nicify(value, {
+            ...options,
+            hideFields: [...newHideFields],
+          });
+        }
+
+        // Strip fields
+        if (
+          (typeof parentValue === "object" || typeof parentValue === "function")
+          && parentValue
+          && options.keyInParent
+          && "getSnapshotSerializerOptions" in parentValue
+        ) {
+          const parentSnapshotSerializerOptions = (parentValue.getSnapshotSerializerOptions as any)();
+          if (parentSnapshotSerializerOptions?.stripFields?.includes(options.keyInParent)) {
+            return `<stripped field '${options.keyInParent.toString()}'>`;
+          }
+        }
+        if (typedIncludes(stripFields, options?.keyInParent)) {
+          return `<stripped field '${options.keyInParent}'>`;
         }
 
         // Otherwise, use default serialization

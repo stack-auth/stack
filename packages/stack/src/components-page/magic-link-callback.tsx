@@ -47,11 +47,11 @@ export function MagicLinkCallback({
 
   const error = use(stackApp.signInWithMagicLink(code));
 
-  if (error instanceof KnownErrors.MagicLinkCodeNotFound) {
+  if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
-  } else if (error instanceof KnownErrors.MagicLinkCodeExpired) {
+  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
     return expiredJsx;
-  } else if (error instanceof KnownErrors.MagicLinkCodeAlreadyUsed) {
+  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
     return alreadyUsedJsx;
   } else if (error) {
     throw error;

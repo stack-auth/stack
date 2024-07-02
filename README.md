@@ -108,9 +108,12 @@ pnpm run codegen
 
 # Start the dev server
 pnpm run dev
+
+# In a different terminal, run tests in watch mode
+pnpm run test
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, and docs on port 8104. You can also run the tests with `pnpm run test:watch`.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 

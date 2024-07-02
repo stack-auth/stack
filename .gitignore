@@ -17,6 +17,8 @@ ui-debug.log
 .husky
 tmp
 
+vitest.config.ts.timestamp-*
+
 # Dependencies
 node_modules
 
