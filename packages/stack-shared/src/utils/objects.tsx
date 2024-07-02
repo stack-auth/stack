@@ -103,3 +103,7 @@ export function pick<T extends {}, K extends keyof T>(obj: T, keys: K[]): Pick<T
 export function omit<T extends {}, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   return Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k as K))) as any;
 }
+
+export function split<T extends {}, K extends keyof T>(obj: T, keys: K[]): [Pick<T, K>, Omit<T, K>] {
+  return [pick(obj, keys), omit(obj, keys)];
+}

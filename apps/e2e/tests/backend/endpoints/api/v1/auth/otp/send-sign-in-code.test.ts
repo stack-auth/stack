@@ -20,7 +20,7 @@ it('should refuse to send a sign-in code if the redirect URL is invalid', async 
     accessType: "client",
     body: {
       email: mailbox.emailAddress,
-      redirectUrl: "http://evil-website.example.com",
+      callback_url: "http://evil-website.example.com",
     },
   });
   expect(response).toMatchInlineSnapshot(`

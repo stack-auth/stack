@@ -18,7 +18,6 @@ export const oauthCookieSchema = yup.object({
   projectId: yup.string().required(),
   publishableClientKey: yup.string().required(),
   innerCodeVerifier: yup.string().required(),
-  innerState: yup.string().required(),
   redirectUri: yup.string().required(),
   scope: yup.string().required(),
   state: yup.string().required(),

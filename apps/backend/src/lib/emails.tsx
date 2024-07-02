@@ -9,6 +9,7 @@ import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { EmailTemplateType } from '@prisma/client';
 import { usersCrudHandlers } from '@/app/api/v1/users/crud';
 import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
+import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
 
 
 function getPortConfig(port: number | string) {
@@ -62,13 +63,20 @@ export async function sendEmail({
 
 export async function sendEmailFromTemplate(options: {
   project: ProjectJson,
+  user?: UsersCrud["Admin"]["Read"],
   email: string,
   templateId: EmailTemplateType,
-  variables: Record<string, string | null>,
+  extraVariables: Record<string, string | null>,
 }) {
   const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
 
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, options.variables);
+  const variables = filterUndefined({
+    projectDisplayName: options.project.displayName,
+    userDisplayName: options.user?.display_name || undefined,
+    userPrimaryEmail: options.user?.primary_email || undefined,
+    ...filterUndefined(options.extraVariables),
+  });
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
   
   await sendEmail({
     emailConfig: await getEmailConfig(options.project),
@@ -131,52 +139,6 @@ async function getDBInfo(projectId: string, projectUserId: string): Promise<{
     project,
     projectUser: user,
   };
-}
-
-export async function sendVerificationEmail(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primary_email) {
-    throw Error('The user does not have a primary email');
-  }
-
-  if (projectUser.primary_email_verified) {
-    throw Error('Email already verified');
-  }
-
-  const verificationCode = await prismaClient.projectUserEmailVerificationCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // expires in 3 hours
-    }
-  });
-
-  const verificationUrl = new URL(redirectUrl);
-  verificationUrl.searchParams.append('code', verificationCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'EMAIL_VERIFICATION');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.display_name,
-    userPrimaryEmail: projectUser.primary_email,
-    projectDisplayName: project.displayName,
-    emailVerificationLink: verificationUrl.toString(),
-  };
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primary_email,
-    subject,
-    html,
-    text,
-  });
 }
 
 export async function sendPasswordResetEmail(

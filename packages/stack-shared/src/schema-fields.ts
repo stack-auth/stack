@@ -59,7 +59,8 @@ export const userServerMetadataSchema = yupJson.meta({ openapiField: { descripti
 
 // Auth
 export const signInEmailSchema = yup.string().email().meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
-export const verificationLinkRedirectUrlSchema = urlSchema.meta({ openapiField: { description: 'The URL to redirect to after the user has verified their email. A query argument `code` with the verification code will be appended to it.', exampleValue: 'https://example.com/handler' } });
+export const emailOtpSignInCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct the magic link from. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/auth/otp/sign-in` endpoint.', exampleValue: 'https://example.com/handler/magic-link-callback' } });
+export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
 export const accessTokenResponseSchema = yup.string().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJBMTO...diI4QT' } });
 export const refreshTokenResponseSchema = yup.string().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8nsoaq2...14y' } });
 export const signInResponseSchema = yup.object({

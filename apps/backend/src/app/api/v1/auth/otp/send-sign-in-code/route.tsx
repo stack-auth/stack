@@ -4,7 +4,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, verificationLinkRedirectUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpSignInCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const POST = createSmartRouteHandler({
@@ -15,14 +15,14 @@ export const POST = createSmartRouteHandler({
     }).required(),
     body: yup.object({
       email: signInEmailSchema.required(),
-      redirectUrl: verificationLinkRedirectUrlSchema,
+      callback_url: emailOtpSignInCallbackUrlSchema.required(),
     }).required(),
   }),
   response: yup.object({
     statusCode: yup.number().oneOf([200]).required(),
     bodyType: yup.string().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project }, body: { email, redirectUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
     if (!project.evaluatedConfig.magicLinkEnabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
@@ -46,7 +46,7 @@ export const POST = createSmartRouteHandler({
       const createdUser = await usersCrudHandlers.adminCreate({
         project,
         data: {
-          auth_with_email: true,
+          primary_email_auth_enabled: true,
           primary_email: email,
           primary_email_verified: false,
         },
@@ -58,24 +58,24 @@ export const POST = createSmartRouteHandler({
       };
     }
 
-    const { link } = await signInVerificationCodeHandler.sendCode({
+    const { link } = await signInVerificationCodeHandler.createCode({
       project,
       method: { email },
       data: {
         user_id: userObj.projectUserId,
         is_new_user: isNewUser,
       },
-      redirectUrl,
+      callbackUrl,
     });
 
     await sendEmailFromTemplate({
+      // TODO instead of passing in userDisplayName, userPrimaryEmail, etc. independently, pass in the user object
       project,
       email,
       templateId: "MAGIC_LINK",
-      variables: {
+      extraVariables: {
         userDisplayName: userObj.displayName,
         userPrimaryEmail: userObj.primaryEmail,
-        projectDisplayName: project.displayName,
         magicLink: link.toString(),
       },
     });

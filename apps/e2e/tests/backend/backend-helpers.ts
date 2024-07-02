@@ -60,6 +60,9 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
   headers?: Record<string, string>,
 }): Promise<NiceResponse> {
   const { body, headers, accessType, ...otherOptions } = options ?? {};
+  if (typeof body === "object") {
+    expectSnakeCase(body, "req.body");
+  }
   const { projectKeys, userAuth } = backendContext.value;
   const res = await niceFetch(new URL(url, STACK_BACKEND_BASE_URL), {
     ...otherOptions,
@@ -91,7 +94,7 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
     });
   }
   if (typeof res.body === "object" && res.body) {
-    expectSnakeCase(res.body, "body");
+    expectSnakeCase(res.body, "res.body");
   }
   return res;
 }
@@ -109,7 +112,7 @@ export namespace Auth {
         accessType: "client",
         body: {
           email: mailbox.emailAddress,
-          redirectUrl: "http://localhost:12345",
+          callback_url: "http://localhost:12345",
         },
       });
       expect(response).toMatchInlineSnapshot(`

@@ -757,6 +757,20 @@ const EmailAlreadyVerified = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const EmailIsNotPrimaryEmail = createKnownErrorConstructor(
+  KnownError,
+  "EMAIL_IS_NOT_PRIMARY_EMAIL",
+  (email: string, primaryEmail: string | null) => [
+    400,
+    `The given e-mail (${email}) must equal the user's primary e-mail (${primaryEmail}).`,
+    {
+      email,
+      primary_email: primaryEmail,
+    },
+  ] as const,
+  (json: any) => [json.details.email, json.details.primary_email] as const,
+);
+
 const PermissionNotFound = createKnownErrorConstructor(
   KnownError,
   "PERMISSION_NOT_FOUND",
@@ -898,6 +912,16 @@ const OuterOAuthTimeout = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthProviderNotFoundOrNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_PROVIDER_NOT_FOUND_OR_NOT_ENABLED",
+  () => [
+    400,
+    "The OAuth provider is not found or not enabled.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -960,6 +984,7 @@ export const KnownErrors = {
   VerificationCodeAlreadyUsed,
   PasswordMismatch,
   EmailAlreadyVerified,
+  EmailIsNotPrimaryEmail,
   PermissionNotFound,
   PermissionScopeMismatch,
   TeamNotFound,
@@ -971,6 +996,7 @@ export const KnownErrors = {
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
+  OAuthProviderNotFoundOrNotEnabled
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

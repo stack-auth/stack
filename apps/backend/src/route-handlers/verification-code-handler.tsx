@@ -10,35 +10,49 @@ import { adaptSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { VerificationCodeType } from "@prisma/client";
 
 type Method = {
-  email?: string,
+  email: string,
 };
 
-type VerificationCodeHandler<Data> = {
-  sendCode<RedirectUrl extends string | URL | undefined>(options: {
-    project: ProjectJson,
-    method: Method,
-    data: Data,
-    redirectUrl?: RedirectUrl,
-    expiresInMs?: number,
-  }): Promise<{ code: string } & (
-    RedirectUrl extends undefined ? {}
-    : RedirectUrl extends string | URL ? { link: URL }
-    : { link?: URL }
-  )>,
+type CreateCodeOptions<Data, CallbackUrl extends string | URL = string | URL> = {
+  project: ProjectJson,
+  method: Method,
+  expiresInMs?: number,
+  data: Data,
+  callbackUrl: CallbackUrl,
+};
+
+type CodeObject = {
+  code: string,
+  link: URL,
+  expiresAt: Date,
+};
+
+type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}> = {
+  createCode<CallbackUrl extends string | URL>(options: CreateCodeOptions<Data, CallbackUrl>): Promise<CodeObject>,
+  sendCode(options: CreateCodeOptions<Data>, sendOptions: SendCodeExtraOptions): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
 };
 
 /**
  * Make sure to always check that the method is the same as the one in the data.
  */
-export function createVerificationCodeHandler<Data, Response extends SmartResponse>(options: {
+export function createVerificationCodeHandler<
+  Data,
+  Response extends SmartResponse,
+  SendCodeExtraOptions extends {},
+>(options: {
   type: VerificationCodeType,
   data: yup.Schema<Data>,
   response: yup.Schema<Response>,
+  send: (
+    codeObject: CodeObject,
+    createOptions: CreateCodeOptions<Data>,
+    sendOptions: SendCodeExtraOptions,
+  ) => Promise<void>,
   handler(project: ProjectJson, method: Method, data: Data): Promise<Response>,
-}): VerificationCodeHandler<Data> {
+}): VerificationCodeHandler<Data, SendCodeExtraOptions> {
   return {
-    async sendCode({ project, method, data, redirectUrl, expiresInMs }) {
+    async createCode({ project, method, data, callbackUrl, expiresInMs }) {
       if (!method.email) {
         throw new StackAssertionError("No method specified");
       }
@@ -47,36 +61,37 @@ export function createVerificationCodeHandler<Data, Response extends SmartRespon
         strict: true,
       });
       
-      if (redirectUrl !== undefined && !validateRedirectUrl(
-        redirectUrl, 
+      if (!validateRedirectUrl(
+        callbackUrl, 
         project.evaluatedConfig.domains,
         project.evaluatedConfig.allowLocalhost 
       )) {
         throw new KnownErrors.RedirectUrlNotWhitelisted();
       }
 
-      const verificationCode = await prismaClient.verificationCode.create({
+      const verificationCodePrisma = await prismaClient.verificationCode.create({
         data: {
           projectId: project.id,
           type: options.type,
           code: generateSecureRandomString(),
-          redirectUrl: redirectUrl?.toString() ?? undefined,
+          redirectUrl: callbackUrl.toString(),
           expiresAt: new Date(Date.now() + (expiresInMs ?? 1000 * 60 * 60 * 24 * 7)),  // default: expire after 7 days
           data: validatedData as any,
           email: method.email,
         }
       });
 
-      let link;
-      if (redirectUrl !== undefined) {
-        link = new URL(redirectUrl);
-        link.searchParams.set('code', verificationCode.code);
-      }
+      const link = new URL(callbackUrl);
+      link.searchParams.set('code', verificationCodePrisma.code);
 
       return {
-        code: verificationCode.code,
-        ...(link ? { link: link } : {}),
+        code: verificationCodePrisma.code,
+        link,
       } as any;
+    },
+    async sendCode(createOptions, sendOptions) {
+      const codeObj = await this.createCode(createOptions);
+      await options.send(codeObj, createOptions, sendOptions);
     },
     postHandler: createSmartRouteHandler({
       request: yup.object({

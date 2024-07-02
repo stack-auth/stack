@@ -71,9 +71,7 @@ type CrudHandlerDirectByAccess<
       user?: UsersCrud["Admin"]["Read"],
     }
     & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
-    & (K extends "Read" ? {} : {
-      data: K extends "Read" ? void : T[A][K],
-    })
+    & (K extends "Read" | "List" | "Delete" ? {} : { data: T[A][K] })
   ) => Promise<"Read" extends keyof T[A] ? (K extends "Delete" ? void : T[A]["Read"]) : void>
 };
 

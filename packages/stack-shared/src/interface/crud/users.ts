@@ -4,10 +4,13 @@ import * as fieldSchema from "../../schema-fields";
 
 export const usersCrudServerUpdateSchema = yup.object({
   display_name: fieldSchema.userDisplayNameSchema.optional(),
+  profile_image_url: fieldSchema.profileImageUrlSchema.optional(),
   client_metadata: fieldSchema.userClientMetadataSchema.optional(),
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
+  primary_email_auth_enabled: yup.boolean().optional().meta({ openapiField: { description: "Whether the primary email can be used to sign into this user's account", exampleValue: true } }),
+  password: yup.string().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists).', exampleValue: 'password' } }),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
@@ -24,15 +27,21 @@ export const usersCrudServerReadSchema = yup.object({
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
   has_password: yup.boolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
   auth_with_email: yup.boolean().required().meta({ openapiField: { description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
-  oauth_providers: yup.array(yup.string().required()).required().meta({ openapiField: { description: 'All the OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
+  oauth_providers: yup.array(yup.object({
+    provider_id: yup.string().required(),
+    account_id: yup.string().required(),
+    email: yup.string().optional(),
+  }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();
 
 export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(yup.object({
-  primary_email: fieldSchema.primaryEmailSchema.required(),
-  primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.required(),
-  auth_with_email: yup.boolean().oneOf([true]).required().meta({ openapiField: { description: 'Must always be set to true.', exampleValue: true } }),
+  oauth_providers: yup.array(yup.object({
+    provider_id: yup.string().required(),
+    account_id: yup.string().required(),
+    email: yup.string().optional(),
+  }).required()).optional(),
 }).required());
 
 export const usersCrudServerDeleteSchema = yup.mixed();
