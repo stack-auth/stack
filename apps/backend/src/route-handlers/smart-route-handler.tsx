@@ -10,6 +10,7 @@ import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, c
 import { SmartResponse, createResponse } from "./smart-response";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
@@ -102,7 +103,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
         headers: {
           ...statusError.getHeaders(),
         },
-      }, yup.mixed());
+      }, yupMixed<any>());
       return res;
     } finally {
       hasRequestFinished = true;
