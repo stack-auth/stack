@@ -101,7 +101,7 @@ pnpm install
 pnpm run build
 
 # initialize the database and seed it with some data
-pnpm prisma seed
+pnpm prisma db seed
 
 # Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
