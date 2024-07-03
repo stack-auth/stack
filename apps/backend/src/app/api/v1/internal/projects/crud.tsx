@@ -1,19 +1,16 @@
-import { addUserToTeam, createServerTeam, getServerTeamFromDbType } from "@/lib/teams";
-import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
-import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import * as yup from "yup";
-import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { prismaClient } from "@/prisma-client";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
-import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "@/lib/permissions";
+import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import {
+  serverPermissionDefinitionJsonFromDbType,
+  serverPermissionDefinitionJsonFromTeamSystemDbType,
+} from "@/lib/permissions";
 
 
 export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
@@ -290,7 +287,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
               client_secret: provider.standardOAuthConfig.clientSecret,
             }];
           } else {
-            throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma })
+            throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
           }
         }),
         email_config: (() => {
