@@ -270,6 +270,58 @@ export async function createProject(
   return updatedProject;
 }
 
+export async function deleteProject(
+  projectUser: ServerUserJson,
+  projectId: string
+): Promise<void> {
+  if (projectUser.projectId !== "internal") {
+    throw new Error("Only internal project users can delete projects");
+  }
+
+  await prismaClient.$transaction(async (tx) => {
+    // Check if the project exists
+    const project = await tx.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      throw new Error(`Project with id ${projectId} not found`);
+    }
+
+    // Delete the project
+    await tx.project.delete({
+      where: { id: projectId },
+    });
+
+    // Update the internal user's managedProjectIds
+    const internalUser = await tx.projectUser.findUniqueOrThrow({
+      where: {
+        projectId_projectUserId: {
+          projectId: "internal",
+          projectUserId: projectUser.id,
+        },
+      },
+    });
+
+    const serverMetadata: any = internalUser.serverMetadata ?? {};
+    const managedProjectIds = serverMetadata.managedProjectIds ?? [];
+
+    await tx.projectUser.update({
+      where: {
+        projectId_projectUserId: {
+          projectId: "internal",
+          projectUserId: internalUser.projectUserId,
+        },
+      },
+      data: {
+        serverMetadata: {
+          ...serverMetadata,
+          managedProjectIds: managedProjectIds.filter((id: string) => id !== projectId),
+        },
+      },
+    });
+  });
+}
 export async function getProject(projectId: string): Promise<ProjectJson | null> {
   return await updateProject(projectId, {});
 }
