@@ -10,7 +10,7 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 
@@ -42,11 +42,15 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : (T & MSQ)
   );
 
-async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
+export function smartRequestSchema<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yupObject<A, B>>) {
+  return yupObject(...args).noUnknown(false).required();
+}
+
+async function validate<T>(obj: SmartRequest, schema: yup.AnySchema<T>, req: NextRequest | null): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
-      stripUnknown: true,
+      strict: true,
     });
   } catch (error) {
     if (error instanceof ReplaceFieldWithOwnUserId) {
@@ -278,6 +282,6 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
   } satisfies SmartRequest;
 }
 
-export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.Schema<T>): Promise<T> {
+export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.AnySchema<T>): Promise<T> {
   return await validate(smartReq, schema, nextReq);
 }

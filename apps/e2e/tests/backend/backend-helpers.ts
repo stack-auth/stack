@@ -2,6 +2,7 @@ import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch } from "../helpers";
 import { expect } from "vitest";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 type BackendContext = {
   projectKeys: ProjectKeys,
@@ -135,10 +136,6 @@ export namespace Auth {
 
     type SignInResult = SendSignInCodeResult & {
       signInResponse: NiceResponse,
-      userAuth: {
-        accessToken: string,
-        refreshToken: string,
-      },
     };
     export async function signIn(): Promise<SignInResult> {
       const mailbox = backendContext.value.mailbox;
@@ -164,18 +161,61 @@ export namespace Auth {
         headers: expect.anything(),
       });
 
-      const userAuth = {
-        accessToken: response.body.access_token,
-        refreshToken: response.body.refresh_token,
-      };
       backendContext.set({
-        userAuth,
+        userAuth: {
+          accessToken: response.body.access_token,
+          refreshToken: response.body.refresh_token,
+        },
       });
 
       return {
         ...sendSignInCodeRes,
         signInResponse: response,
-        userAuth,
+      };
+    }
+  }
+
+  export namespace Password {
+    type SignUpResult = {
+      signUpResponse: NiceResponse,
+      email: string,
+      password: string,
+    };
+    export async function signUpWithEmail(): Promise<SignUpResult> {
+      const mailbox = backendContext.value.mailbox;
+      const email = mailbox.emailAddress;
+      const password = generateSecureRandomString();
+      const response = await niceBackendFetch("/api/v1/auth/password/sign-up", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          email,
+          password,
+          verification_callback_url: "http://localhost:12345",
+        },
+      });
+      expect(response).toMatchObject({
+        status: 200,
+        body: {
+          access_token: expect.any(String),
+          refresh_token: expect.any(String),
+          is_new_user: expect.any(Boolean),
+          user_id: expect.any(String),
+        },
+        headers: expect.anything(),
+      });
+
+      backendContext.set({
+        userAuth: {
+          accessToken: response.body.access_token,
+          refreshToken: response.body.refresh_token,
+        },
+      });
+
+      return {
+        signUpResponse: response,
+        email,
+        password,
       };
     }
   }

@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
+import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type SmartResponse = {
   statusCode: number,
@@ -36,7 +37,11 @@ export type SmartResponse = {
   }
 );
 
-async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
+export function smartResponseSchema<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yupObject<A, B>>) {
+  return yupObject(...args).noUnknown(false).required();
+}
+
+async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.AnySchema<T>): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -55,7 +60,7 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.AnySchema<T>): Promise<Response> {
   const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;

@@ -63,7 +63,7 @@ export async function sendEmail({
 
 export async function sendEmailFromTemplate(options: {
   project: ProjectJson,
-  user?: UsersCrud["Admin"]["Read"],
+  user: UsersCrud["Admin"]["Read"] | null,
   email: string,
   templateId: EmailTemplateType,
   extraVariables: Record<string, string | null>,

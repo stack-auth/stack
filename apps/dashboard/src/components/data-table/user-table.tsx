@@ -15,7 +15,7 @@ import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
 import { SimpleTooltip } from "../simple-tooltip";
-import { yupJsonValidator } from "@stackframe/stack-shared/dist/utils/yup";
+import { jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -51,8 +51,8 @@ const userEditFormSchema = yup.object({
   primaryEmail: yup.string().email("Primary Email must be a valid email address"),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
-  clientMetadata: yupJsonValidator,
-  serverMetadata: yupJsonValidator,
+  clientMetadata: jsonStringSchema,
+  serverMetadata: jsonStringSchema,
 });
 
 function EditUserDialog(props: { 

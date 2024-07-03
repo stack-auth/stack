@@ -1,10 +1,12 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
-import { adaptSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
+import { smartRequestSchema } from "@/route-handlers/smart-request";
+import { smartResponseSchema } from "@/route-handlers/smart-response";
 
 export const GET = createSmartRouteHandler({
-  request: yup.object({
+  request: smartRequestSchema({
     auth: yup.object({
       type: adaptSchema,
       user: adaptSchema,
@@ -12,7 +14,7 @@ export const GET = createSmartRouteHandler({
     }).nullable(),
     method: yup.string().oneOf(["GET"]).required(),
   }),
-  response: yup.object({
+  response: smartResponseSchema({
     statusCode: yup.number().oneOf([200]).required(),
     bodyType: yup.string().oneOf(["text"]).required(),
     body: yup.string().required(),

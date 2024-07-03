@@ -42,8 +42,8 @@ export function createVerificationCodeHandler<
   SendCodeExtraOptions extends {},
 >(options: {
   type: VerificationCodeType,
-  data: yup.Schema<Data>,
-  response: yup.Schema<Response>,
+  data: yup.AnySchema<Data>,
+  response: yup.AnySchema<Response>,
   send: (
     codeObject: CodeObject,
     createOptions: CreateCodeOptions<Data>,

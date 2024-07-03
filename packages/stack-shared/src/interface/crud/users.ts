@@ -30,7 +30,7 @@ export const usersCrudServerReadSchema = yup.object({
   oauth_providers: yup.array(yup.object({
     provider_id: yup.string().required(),
     account_id: yup.string().required(),
-    email: yup.string().optional(),
+    email: yup.string().nullable(),
   }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
@@ -40,7 +40,7 @@ export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(yu
   oauth_providers: yup.array(yup.object({
     provider_id: yup.string().required(),
     account_id: yup.string().required(),
-    email: yup.string().optional(),
+    email: yup.string().nullable().defined().default(null),
   }).required()).optional(),
 }).required());
 

@@ -31,10 +31,10 @@ export type EndpointDocumentation =
 
 
 type InnerCrudSchema<
-  CreateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
-  ReadSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
-  UpdateSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
-  DeleteSchema extends yup.Schema<any> | undefined = yup.Schema<any> | undefined,
+  CreateSchema extends yup.AnySchema | undefined = yup.AnySchema | undefined,
+  ReadSchema extends yup.AnySchema | undefined = yup.AnySchema | undefined,
+  UpdateSchema extends yup.AnySchema | undefined = yup.AnySchema | undefined,
+  DeleteSchema extends yup.AnySchema | undefined = yup.AnySchema | undefined,
 > = {
   createSchema: CreateSchema,
   createDocs: EndpointDocumentation | undefined,
@@ -66,7 +66,7 @@ export type CrudSchema<
 };
 
 export type CrudSchemaCreationOptions = {
-  [K in AccessTypeXCrudOperation as `${K}Schema`]?: yup.Schema<any>
+  [K in AccessTypeXCrudOperation as `${K}Schema`]?: yup.AnySchema
 };
 
 type FillInOptionalsPrepareStep<O extends CrudSchemaCreationOptions> =

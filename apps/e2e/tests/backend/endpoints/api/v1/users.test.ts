@@ -176,6 +176,8 @@ describe("with client access", () => {
     `);
   });
 
+  it.todo("should not be able to create own user");
+
   it("updating own display name to the empty string should set it to null", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response1 = await niceBackendFetch("/api/v1/users/me", {

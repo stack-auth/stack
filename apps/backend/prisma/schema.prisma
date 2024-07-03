@@ -340,7 +340,7 @@ model VerificationCode {
 
 enum VerificationCodeType {
   ONE_TIME_PASSWORD
-  EMAIL_VERIFICATION
+  CONTACT_CHANNEL_VERIFICATION
 }
 
 // @deprecated

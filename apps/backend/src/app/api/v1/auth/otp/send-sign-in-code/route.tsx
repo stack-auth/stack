@@ -68,9 +68,11 @@ export const POST = createSmartRouteHandler({
       callbackUrl,
     });
 
+    // TODO use signInVerificationCodeHandler.sendCode instead of .createCode and then sending the code manually
     await sendEmailFromTemplate({
-      // TODO instead of passing in userDisplayName, userPrimaryEmail, etc. independently, pass in the user object
       project,
+      // TODO fill user object instead of specifying the extra variables below manually (sIVCH.sendCode would do this already)
+      user: null,
       email,
       templateId: "MAGIC_LINK",
       extraVariables: {

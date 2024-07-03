@@ -271,10 +271,11 @@ model OAuthToken {
 
 model OAuthOuterInfo {
   id         String   @id @default(uuid()) @db.Uuid
-  info       Json
-  expiresAt  DateTime
-  innerState String   @unique
 
+  info       Json
+  innerState String   @unique
+  expiresAt  DateTime
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -339,7 +340,7 @@ model VerificationCode {
 
 enum VerificationCodeType {
   ONE_TIME_PASSWORD
-  EMAIL_VERIFICATION
+  CONTACT_CHANNEL_VERIFICATION
 }
 
 // @deprecated

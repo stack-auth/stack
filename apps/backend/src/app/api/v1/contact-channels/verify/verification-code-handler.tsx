@@ -6,7 +6,7 @@ import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
-  type: VerificationCodeType.EMAIL_VERIFICATION,
+  type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,
   data: yup.object({
     user_id: yup.string().required(),
   }),
