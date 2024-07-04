@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../../helpers";
-import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -71,14 +71,10 @@ describe("with internal project ID", async () => {
 
   it("create a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const response = await niceBackendFetch("/api/v1/internal/projects", {
-      accessType: "client",
-      method: "POST",
-      body: {
-        display_name: "New Project"
-      },
+    const result = await Project.createProject({
+      displayName: "Test Project",
     });
-    expect(response).toMatchInlineSnapshot(`
+    expect(result.createProjectResponse).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 201,
         "body": {
@@ -93,13 +89,50 @@ describe("with internal project ID", async () => {
           },
           "created_at_millis": <stripped field 'created_at_millis'>,
           "description": "",
-          "display_name": "New Project",
+          "display_name": "Test Project",
           "id": <stripped field 'id'>,
           "is_production_mode": false,
           "user_count": 0,
         },
         "headers": Headers {
           "location": "http://localhost:8102/api/v1/internal/projects",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("list current projects after creating a new project", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    await Project.createProject();
+    const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [
+            {
+              "config": {
+                "allow_localhost": true,
+                "credential_enabled": true,
+                "domains": [],
+                "email_config": { "type": "shared" },
+                "id": <stripped field 'id'>,
+                "magic_link_enabled": false,
+                "oauth_providers": [],
+              },
+              "created_at_millis": <stripped field 'created_at_millis'>,
+              "description": "",
+              "display_name": "New Project",
+              "id": <stripped field 'id'>,
+              "is_production_mode": false,
+              "user_count": 0,
+            },
+          ],
+        },
+        "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },

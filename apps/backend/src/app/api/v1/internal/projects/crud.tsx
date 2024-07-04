@@ -12,7 +12,20 @@ import {
 } from "@/lib/permissions";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
+function listProjectIds(projectUser: UsersCrud["Server"]["Read"]) {
+  const serverMetadata = projectUser.server_metadata;
+  if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
+    throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
+  }
+  const managedProjectIds = serverMetadata?.managedProjectIds ?? [];
+  if (!Array.isArray(managedProjectIds) || !managedProjectIds.every((id) => typeof id === "string")) {
+    throw new StackAssertionError("Invalid server metadata, did something go wrong? Expected string array", { managedProjectIds });
+  }
+
+  return managedProjectIds;
+}
 
 export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
   paramsSchema: yupObject({
@@ -30,19 +43,19 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
     id: params.projectId,
   }),
   where: async ({ auth }) => {
-    const managedIds = (auth.user?.server_metadata as any)?.managedProjectIds || [];
+    const managedProjectIds = listProjectIds(throwIfUndefined(auth.user, "auth.user"));
     
     return {
-      id: { in: managedIds },
+      id: { in: managedProjectIds },
     };
   },
   whereUnique: async ({ auth, params }) => {
-    const managedIds = (auth.user?.server_metadata as any)?.managedProjectIds || [];
+    const managedProjectIds = listProjectIds(throwIfUndefined(auth.user, "auth.user"));
     
     return {
       id: params.projectId,
       AND: [
-        { id: { in: managedIds } },
+        { id: { in: managedProjectIds } },
       ],
     };
   },
@@ -251,6 +264,27 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
         }
       }
     };
+  },
+  onCreate: async (prisma, { auth }) => {
+    const user = throwIfUndefined(auth.user, 'auth.user');
+    const serverMetadataTx: any = user.server_metadata ?? {};
+    await prismaClient.projectUser.update({
+      where: {
+        projectId_projectUserId: {
+          projectId: auth.project.id,
+          projectUserId: user.id,
+        }
+      },
+      data: {
+        serverMetadata: {
+          ...serverMetadataTx ?? {},
+          managedProjectIds: [
+            ...serverMetadataTx?.managedProjectIds ?? [],
+            prisma.id,
+          ],
+        },
+      },
+    });
   },
   prismaToCrud: async (prisma, { auth }) => {
     return {

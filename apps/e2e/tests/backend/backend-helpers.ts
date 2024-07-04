@@ -221,3 +221,20 @@ export namespace Auth {
   }
 }
 
+export namespace Project{
+  export async function createProject(options?: {
+    displayName?: string,
+  }) {
+    const response = await niceBackendFetch("/api/v1/internal/projects", {
+      accessType: "client",
+      method: "POST",
+      body: {
+        display_name: options?.displayName || 'New Project',
+      },
+    });
+    return {
+      createProjectResponse: response,
+      projectId: response.body.id,
+    };
+  }
+}
