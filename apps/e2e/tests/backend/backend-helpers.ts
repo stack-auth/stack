@@ -103,17 +103,14 @@ export async function niceBackendFetch(url: string, options?: Omit<RequestInit, 
 
 export namespace Auth {
   export namespace Otp {
-    type SendSignInCodeResult = {
-      sendSignInCodeResponse: NiceResponse,
-    };
-    export async function sendSignInCode(): Promise<SendSignInCodeResult> {
+    export async function sendSignInCode() {
       const mailbox = backendContext.value.mailbox;
       const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
         method: "POST",
         accessType: "client",
         body: {
           email: mailbox.emailAddress,
-          callback_url: "http://localhost:12345",
+          callback_url: "http://localhost:12345/some-callback-url",
         },
       });
       expect(response).toMatchInlineSnapshot(`
@@ -134,15 +131,12 @@ export namespace Auth {
       };
     }
 
-    type SignInResult = SendSignInCodeResult & {
-      signInResponse: NiceResponse,
-    };
-    export async function signIn(): Promise<SignInResult> {
+    export async function signIn() {
       const mailbox = backendContext.value.mailbox;
       const sendSignInCodeRes = await sendSignInCode();
       const messages = await mailbox.fetchMessages();
       const message = messages.findLast((message) => message.subject === "Sign in to Stack Dashboard") ?? throwErr("Sign-in code message not found");
-      const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
+      const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
       const response = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
         method: "POST",
         accessType: "client",
@@ -176,12 +170,7 @@ export namespace Auth {
   }
 
   export namespace Password {
-    type SignUpResult = {
-      signUpResponse: NiceResponse,
-      email: string,
-      password: string,
-    };
-    export async function signUpWithEmail(options: { password?: string } = {}): Promise<SignUpResult> {
+    export async function signUpWithEmail(options: { password?: string } = {}) {
       const mailbox = backendContext.value.mailbox;
       const email = mailbox.emailAddress;
       const password = options.password ?? generateSecureRandomString();
@@ -191,7 +180,7 @@ export namespace Auth {
         body: {
           email,
           password,
-          verification_callback_url: "http://localhost:12345",
+          verification_callback_url: "http://localhost:12345/some-callback-url",
         },
       });
       expect(response).toMatchObject({
@@ -220,7 +209,66 @@ export namespace Auth {
   }
 }
 
-export namespace Project{
+export namespace ContactChannels {
+  export async function sendVerificationCode() {
+    const mailbox = backendContext.value.mailbox;
+    const response = await niceBackendFetch("/api/v1/contact-channels/send-verification-code", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: mailbox.emailAddress,
+        callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    const messages = await mailbox.fetchMessages({ subjectOnly: true });
+    const subjects = messages.map((message) => message.subject);
+    expect(subjects).toContain("Verify your email at Stack Dashboard");
+    return {
+      sendSignInCodeResponse: response,
+    };
+  }
+
+  export async function verify() {
+    const mailbox = backendContext.value.mailbox;
+    const sendVerificationCodeRes = await sendVerificationCode();
+    const messages = await mailbox.fetchMessages();
+    const message = messages.findLast((message) => message.subject === "Verify your email at Stack Dashboard") ?? throwErr("Verification code message not found");
+    const verificationCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Verification code not found");
+    const response = await niceBackendFetch("/api/v1/contact-channels/verify", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        code: verificationCode,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    return {
+      ...sendVerificationCodeRes,
+      verifyResponse: response,
+    };
+  }
+}
+
+export namespace Project {
   export async function createProject(options?: {
     displayName?: string,
   }) {

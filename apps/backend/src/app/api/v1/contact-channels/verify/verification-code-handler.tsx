@@ -13,7 +13,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
   }).required(),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
-    body: yupObject({}).required(),
+    bodyType: yupString().oneOf(["success"]).required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({
@@ -42,7 +42,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
 
     return {
       statusCode: 200,
-      body: {},
+      bodyType: "success",
     };
   },
 });

@@ -108,3 +108,7 @@ it("cannot use a password that is too short to sign up", async ({ expect }) => {
     }
   `);
 });
+
+it.todo("should create a team for newly created users if configured as such");
+
+it.todo("should not create a team for newly created users if not configured as such");
