@@ -2,7 +2,7 @@ import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
 import * as fieldSchema from "../../schema-fields";
 
-export const usersCrudServerUpdateSchema = yup.object({
+export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   display_name: fieldSchema.userDisplayNameSchema.optional(),
   profile_image_url: fieldSchema.profileImageUrlSchema.optional(),
   client_metadata: fieldSchema.userClientMetadataSchema.optional(),
@@ -14,7 +14,7 @@ export const usersCrudServerUpdateSchema = yup.object({
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
-export const usersCrudServerReadSchema = yup.object({
+export const usersCrudServerReadSchema = fieldSchema.yupObject({
   project_id: fieldSchema.projectIdSchema.required(),
   id: fieldSchema.userIdResponseSchema.required(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
@@ -36,7 +36,7 @@ export const usersCrudServerReadSchema = yup.object({
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();
 
-export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(yup.object({
+export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(fieldSchema.yupObject({
   oauth_providers: yup.array(yup.object({
     provider_id: yup.string().required(),
     account_id: yup.string().required(),

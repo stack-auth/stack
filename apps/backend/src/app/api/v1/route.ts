@@ -1,23 +1,25 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
-import { adaptSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { smartRequestSchema } from "@/route-handlers/smart-request";
-import { smartResponseSchema } from "@/route-handlers/smart-response";
+import { adaptSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const GET = createSmartRouteHandler({
-  request: smartRequestSchema({
-    auth: yup.object({
+  request: yupObject({
+    auth: yupObject({
       type: adaptSchema,
       user: adaptSchema,
       project: adaptSchema,
     }).nullable(),
-    method: yup.string().oneOf(["GET"]).required(),
+    query: yupObject({
+      // No query parameters
+      // empty object means that it will fail if query parameters are given regardless
+    }),
+    method: yupString().oneOf(["GET"]).required(),
   }),
-  response: smartResponseSchema({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["text"]).required(),
-    body: yup.string().required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["text"]).required(),
+    body: yupString().required(),
   }),
   handler: async (req) => {
     return {

@@ -42,15 +42,13 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : (T & MSQ)
   );
 
-export function smartRequestSchema<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yupObject<A, B>>) {
-  return yupObject(...args).noUnknown(false).required();
-}
-
 async function validate<T>(obj: SmartRequest, schema: yup.AnySchema<T>, req: NextRequest | null): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
-      strict: true,
+      context: {
+        noUnknownPathPrefixes: ["body", "query", "params"],
+      },
     });
   } catch (error) {
     if (error instanceof ReplaceFieldWithOwnUserId) {

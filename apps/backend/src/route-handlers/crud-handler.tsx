@@ -10,6 +10,7 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 import { SmartRequestAuth } from "./smart-request";
 import { ProjectJson } from "@stackframe/stack-shared";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -41,7 +42,7 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
   onDelete?: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
-export type ParamsSchema = yup.ObjectSchema<{}>;
+export type ParamsSchema = yup.ObjectSchema<{}, any, any, any>;
 
 type CrudHandlerOptions<T extends CrudTypeOf<any>, PS extends ParamsSchema> =
   & FilterUndefined<CrudRouteHandlersUnfiltered<T, yup.InferType<PS>>>
@@ -110,17 +111,17 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
         const getSchemas = (accessType: "admin" | "server" | "client") => {
           const input =
             typedIncludes(["Read", "List"] as const, crudOperation)
-              ? yup.mixed().oneOf([undefined])
+              ? yupMixed<any>().oneOf([undefined])
               : crud[accessType][`${typedToLowercase(crudOperation)}Schema`] ?? throwErr(`No input schema for ${crudOperation} with access type ${accessType}; this should never happen`);
-          const read = crud[accessType].readSchema ?? yup.mixed().oneOf([undefined]);
+          const read = crud[accessType].readSchema ?? yupMixed<any>().oneOf([undefined]);
           const output =
             crudOperation === "List"
-              ? yup.object({
-                items: yup.array(read).required(),
-                is_paginated: yup.boolean().oneOf([false]).required(),
+              ? yupObject({
+                items: yupArray(read).required(),
+                is_paginated: yupBoolean().oneOf([false]).required(),
               }).required()
               : crudOperation === "Delete"
-                ? yup.mixed().oneOf([undefined])
+                ? yupMixed<any>().oneOf([undefined])
                 : read;
           return { input, output };
         };
@@ -163,21 +164,21 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
           [...aat],
           ([accessType, { invoke, accessSchemas, adminSchemas }]) => {
             const frw = routeHandlerTypeHelper({
-              request: yup.object({
-                auth: yup.object({
-                  type: yup.string().oneOf([accessType]).required(),
+              request: yupObject({
+                auth: yupObject({
+                  type: yupString().oneOf([accessType]).required(),
                 }).required(),
-                url: yup.string().required(),
-                method: yup.string().oneOf([httpMethod]).required(),
+                url: yupString().required(),
+                method: yupString().oneOf([httpMethod]).required(),
                 body: accessSchemas.input,
                 params: typedIncludes(["List", "Create"], crudOperation) ? paramsSchema.partial() : paramsSchema,
               }),
-              response: yup.object({
-                statusCode: yup.number().oneOf([200, 201]).required(),
-                headers: yup.object().shape({
-                  location: yup.array(yup.string().required()).optional(),
+              response: yupObject({
+                statusCode: yupNumber().oneOf([200, 201]).required(),
+                headers: yupObject({
+                  location: yupArray(yupString().required()).default([]),
                 }),
-                bodyType: crudOperation === "Delete" ? yup.string().oneOf(["empty"]).required() : yup.string().oneOf(["json"]).required(),
+                bodyType: yupString().oneOf([crudOperation === "Delete" ? "empty" : "json"]).required(),
                 body: accessSchemas.output,
               }),
               handler: async (req, fullReq) => {
@@ -192,7 +193,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
                   headers: {
-                    location: crudOperation === "Create" ? [req.url] : undefined,
+                    location: crudOperation === "Create" ? [req.url] : [],
                   },
                   bodyType: crudOperation === "Delete" ? "empty" : "json",
                   body: result,

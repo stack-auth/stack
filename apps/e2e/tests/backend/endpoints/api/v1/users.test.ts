@@ -147,6 +147,32 @@ describe("with client access", () => {
     `);
   });
 
+  it("should not be able to set own server_metadata", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        display_name: "Johnny Doe",
+        server_metadata: { "key": "value" },
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: server_metadata",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("should not be able to delete own user", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
