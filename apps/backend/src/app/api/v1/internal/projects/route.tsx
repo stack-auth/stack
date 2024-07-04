@@ -1,4 +1,4 @@
-import { projectsCrudHandlers } from "./crud";
+import { internalProjectsCrudHandlers } from "./crud";
 
-export const POST = projectsCrudHandlers.createHandler;
-export const GET = projectsCrudHandlers.listHandler;
+export const POST = internalProjectsCrudHandlers.createHandler;
+export const GET = internalProjectsCrudHandlers.listHandler;

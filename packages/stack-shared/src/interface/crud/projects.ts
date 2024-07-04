@@ -60,19 +60,7 @@ export const domainSchema = yupObject({
   handler_path: yupString().required(),
 });
 
-// export const projectsCrudClientReadSchema = yupObject({
-//   id: yupString().required(),
-//   evaluated_config: yupObject({
-//     credential_enabled: yupBoolean().required(),
-//     magic_link_enabled: yupBoolean().required(),
-//     oauth_providers: yupArray(yupObject({
-//       id: yupString().required(),
-//       enabled: yupBoolean().required(),
-//     }).required()).required(),
-//   }).required(),
-// }).required();
-
-export const projectsCrudClientReadSchema = yupObject({
+export const internalProjectsCrudClientReadSchema = yupObject({
   id: yupString().required(),
   display_name: yupString().required(),
   description: yupString().optional(),
@@ -92,7 +80,7 @@ export const projectsCrudClientReadSchema = yupObject({
   }).required(),
 }).required();
 
-export const projectsCrudClientUpdateSchema = yupObject({
+export const internalProjectsCrudClientUpdateSchema = yupObject({
   display_name: yupString().optional(),
   description: yupString().optional(),
   is_production_mode: yupBoolean().optional(),
@@ -109,17 +97,17 @@ export const projectsCrudClientUpdateSchema = yupObject({
   }).optional().default(undefined),
 }).required();
 
-export const projectsCrudClientCreateSchema = projectsCrudClientUpdateSchema.concat(yupObject({
+export const internalProjectsCrudClientCreateSchema = internalProjectsCrudClientUpdateSchema.concat(yupObject({
   display_name: yupString().required(),
 }).required());
 
-export const projectsCrudClientDeleteSchema = yupMixed();
+export const internalProjectsCrudClientDeleteSchema = yupMixed();
 
-export const projectsCrud = createCrud({
-  clientReadSchema: projectsCrudClientReadSchema,
-  clientUpdateSchema: projectsCrudClientUpdateSchema,
-  clientCreateSchema: projectsCrudClientCreateSchema,
-  clientDeleteSchema: projectsCrudClientDeleteSchema,
+export const internalProjectsCrud = createCrud({
+  clientReadSchema: internalProjectsCrudClientReadSchema,
+  clientUpdateSchema: internalProjectsCrudClientUpdateSchema,
+  clientCreateSchema: internalProjectsCrudClientCreateSchema,
+  clientDeleteSchema: internalProjectsCrudClientDeleteSchema,
   docs: {
     clientCreate: {
       hidden: true,
@@ -138,4 +126,30 @@ export const projectsCrud = createCrud({
     },
   },
 });
-export type UsersCrud = CrudTypeOf<typeof projectsCrud>;
+export type InternalProjectCrud = CrudTypeOf<typeof internalProjectsCrud>;
+
+
+export const projectsCrudClientReadSchema = yupObject({
+  id: yupString().required(),
+  display_name: yupString().required(),
+  description: yupString().optional(),
+  config: yupObject({
+    credential_enabled: yupBoolean().required(),
+    magic_link_enabled: yupBoolean().required(),
+    oauth_providers: yupArray(yupObject({
+      id: yupString().required(),
+    }).required()).required(),
+  }).required(),
+}).required();
+
+export const projectsCrud = createCrud({
+  clientReadSchema: projectsCrudClientReadSchema,
+  docs: {
+    clientRead: {
+      tags: ["Projects"],
+      summary: 'Get project',
+      description: 'Get the project information, useful for deciding which auth methods to show to the user in the frontend.',
+    },
+  },
+});
+export type projectCrud = CrudTypeOf<typeof projectsCrud>;

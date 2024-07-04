@@ -1,7 +1,7 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { StatusError, throwErr, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
-import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { prismaClient } from "@/prisma-client";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
@@ -27,7 +27,7 @@ function listProjectIds(projectUser: UsersCrud["Server"]["Read"]) {
   return managedProjectIds;
 }
 
-export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
+export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalProjectsCrud, "project", {
   paramsSchema: yupObject({
     projectId: yupString().required(),
   }),
@@ -86,7 +86,6 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
         domains: true,
       },
     },
-    configOverride: true,
     _count: {
       select: {
         users: true,
@@ -405,8 +404,8 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
         domains: prisma.config.domains.map((domain) => ({
           domain: domain.domain,
           handler_path: domain.handlerPath,
-        })),
-        oauth_providers: prisma.config.oauthProviderConfigs.flatMap((provider):  { 
+        })).sort((a, b) => a.domain.localeCompare(b.domain)),
+        oauth_providers: prisma.config.oauthProviderConfigs.flatMap((provider): { 
           id: Lowercase<ProxiedOAuthProviderType>, 
           enabled: boolean, 
           type: 'standard' | 'shared', 
@@ -430,7 +429,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
           } else {
             throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
           }
-        }),
+        }).sort((a, b) => a.id.localeCompare(b.id)),
         email_config: (() => {
           const emailServiceConfig = prisma.config.emailServiceConfig;
           if (!emailServiceConfig) {
@@ -457,10 +456,12 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
         })(),
         teamCreatorDefaultPermissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
           .map(serverPermissionDefinitionJsonFromDbType)
-          .concat(prisma.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
+          .concat(prisma.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType))
+          .sort((a, b) => a.id.localeCompare(b.id)),
         teamMemberDefaultPermissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
           .map(serverPermissionDefinitionJsonFromDbType)
-          .concat(prisma.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),  
+          .concat(prisma.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType))
+          .sort((a, b) => a.id.localeCompare(b.id)),
       }
     };
   },

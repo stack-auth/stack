@@ -28,6 +28,12 @@ describe("without project access", () => {
   });
 });
 
+
+describe("with non internal project ID", async () => {
+  it.todo("list all current projects (not allowed)");
+  it.todo("create a new project (not allowed)");
+});
+
 describe("with internal project ID", async () => {
   backendContext.set({
     projectKeys: InternalProjectKeys,
@@ -174,16 +180,16 @@ describe("with internal project ID", async () => {
             "magic_link_enabled": false,
             "oauth_providers": [
               {
-                "enabled": true,
-                "id": "google",
-                "type": "shared",
-              },
-              {
                 "client_id": "client_id",
                 "client_secret": "client_secret",
                 "enabled": false,
                 "id": "facebook",
                 "type": "standard",
+              },
+              {
+                "enabled": true,
+                "id": "google",
+                "type": "shared",
               },
             ],
           },
@@ -1214,12 +1220,12 @@ describe("with internal project ID", async () => {
             "oauth_providers": [
               {
                 "enabled": true,
-                "id": "google",
+                "id": "facebook",
                 "type": "shared",
               },
               {
                 "enabled": true,
-                "id": "facebook",
+                "id": "google",
                 "type": "shared",
               },
             ],
@@ -1268,13 +1274,13 @@ describe("with internal project ID", async () => {
             "magic_link_enabled": false,
             "oauth_providers": [
               {
-                "enabled": false,
-                "id": "google",
+                "enabled": true,
+                "id": "facebook",
                 "type": "shared",
               },
               {
-                "enabled": true,
-                "id": "facebook",
+                "enabled": false,
+                "id": "google",
                 "type": "shared",
               },
             ],
