@@ -50,8 +50,7 @@ module.exports = {
     ],
     "@typescript-eslint/no-unnecessary-condition": ["error", { allowConstantLoopConditions: true }],
     "no-restricted-syntax": [
-      // TODO set to 'error' instead of 'warn'
-      "warn",
+      "error",
       {
         selector: 'SwitchCase > *.consequent[type!="BlockStatement"]',
         message: "Switch cases without blocks are disallowed.",
