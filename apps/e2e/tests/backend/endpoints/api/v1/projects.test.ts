@@ -49,7 +49,6 @@ describe("with internal project keys", () => {
               { "id": "microsoft" },
             ],
           },
-          "description": "Stack's admin dashboard",
           "display_name": "Stack Dashboard",
           "id": "internal",
         },

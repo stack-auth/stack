@@ -31,7 +31,6 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
     return {
       id: prisma.id,
       display_name: prisma.displayName,
-      description: prisma.description || undefined,
       config: {
         credential_enabled: prisma.config.credentialEnabled,
         magic_link_enabled: prisma.config.magicLinkEnabled,

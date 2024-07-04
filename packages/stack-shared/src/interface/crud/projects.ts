@@ -132,7 +132,6 @@ export type InternalProjectCrud = CrudTypeOf<typeof internalProjectsCrud>;
 export const projectsCrudClientReadSchema = yupObject({
   id: yupString().required(),
   display_name: yupString().required(),
-  description: yupString().optional(),
   config: yupObject({
     credential_enabled: yupBoolean().required(),
     magic_link_enabled: yupBoolean().required(),
