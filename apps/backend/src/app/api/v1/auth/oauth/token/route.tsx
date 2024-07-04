@@ -16,22 +16,23 @@ import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { oauthServer } from "@/oauth";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const POST = createSmartRouteHandler({
-  request: yup.object({
-    body: yup.object({
-      grant_type: yup.string().oneOf(["refresh_token", "authorization_code"]).required(),
-      code: yup.string(),
-      code_verifier: yup.string(),
-      redirect_uri: yup.string(),
-      refresh_token: yup.string(),
+  request: yupObject({
+    body: yupObject({
+      grant_type: yupString().oneOf(["refresh_token", "authorization_code"]).required(),
+      code: yupString(),
+      code_verifier: yupString(),
+      redirect_uri: yupString(),
+      refresh_token: yupString(),
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().required(),
-    bodyType: yup.string().oneOf(["json"]).required(),
-    body: yup.mixed().required(),
-    headers: yup.mixed().required(),
+  response: yupObject({
+    statusCode: yupNumber().required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupMixed().required(),
+    headers: yupMixed().required(),
   }),
   async handler({ body }, fullReq) {
     if (body.redirect_uri) {

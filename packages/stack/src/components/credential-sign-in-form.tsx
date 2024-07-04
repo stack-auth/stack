@@ -8,10 +8,11 @@ import { useStackApp } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
 import { useState } from "react";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
-const schema = yup.object().shape({
-  email: yup.string().email('Please enter a valid email').required('Please enter your email'),
-  password: yup.string().required('Please enter your password')
+const schema = yupObject({
+  email: yupString().email('Please enter a valid email').required('Please enter your email'),
+  password: yupString().required('Please enter your password')
 });
 
 export function CredentialSignInForm() {

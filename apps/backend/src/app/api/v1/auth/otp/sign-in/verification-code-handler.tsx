@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
@@ -9,12 +10,12 @@ import { sendEmailFromTemplate } from "@/lib/emails";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   type: VerificationCodeType.ONE_TIME_PASSWORD,
-  data: yup.object({
-    user_id: yup.string().required(),
-    is_new_user: yup.boolean().required(),
+  data: yupObject({
+    user_id: yupString().required(),
+    is_new_user: yupBoolean().required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
     body: signInResponseSchema.required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {

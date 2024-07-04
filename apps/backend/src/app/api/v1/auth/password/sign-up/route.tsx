@@ -1,4 +1,5 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextResponse } from "next/server";
 import * as yup from "yup";
@@ -11,23 +12,23 @@ import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
-  request: yup.object({
-    auth: yup.object({
+  request: yupObject({
+    auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
     }).required(),
-    body: yup.object({
+    body: yupObject({
       email: signInEmailSchema.required(),
-      password: yup.string().required(),
+      password: yupString().required(),
       verification_callback_url: emailVerificationCallbackUrlSchema.required(),
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["json"]).required(),
-    body: yup.object({
-      access_token: yup.string().required(),
-      refresh_token: yup.string().required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupObject({
+      access_token: yupString().required(),
+      refresh_token: yupString().required(),
     }).required(),
   }),
   async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) { 

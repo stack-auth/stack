@@ -27,10 +27,10 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   const object = yup.object(...args).test(
     'no-unknown-object-properties',
     ({ path }) => `${path} contains unknown properties`,
-    async (value, context) => {
+    async (value: any, context) => {
       if (context.options.context?.noUnknownPathPrefixes?.some((prefix: string) => context.path.startsWith(prefix))) {
         const availableKeys = new Set(Object.keys(context.schema.fields));
-        const unknownKeys = Object.keys(value).filter(key => !availableKeys.has(key));
+        const unknownKeys = Object.keys(value ?? {}).filter(key => !availableKeys.has(key));
         if (unknownKeys.length > 0) {
           // TODO "did you mean XYZ"
           return context.createError({

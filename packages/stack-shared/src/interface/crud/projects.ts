@@ -1,5 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "../../schema-fields";
 
 function requiredWhen<S extends yup.AnyObject>(
   schema: S, 
@@ -21,7 +22,7 @@ const teamSystemPermissions = [
   '$invite_members',
 ] as const;
 
-export const teamPermissionIdSchema = yup.string()
+export const teamPermissionIdSchema = yupString()
   .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
   .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
     if (!value) return true;
@@ -31,87 +32,87 @@ export const teamPermissionIdSchema = yup.string()
     return true;
   });
 
-export const permissionSchema = yup.object({
-  id: yup.string().required(),
-  scope: yup.string().required(),
+export const permissionSchema = yupObject({
+  id: yupString().required(),
+  scope: yupString().required(),
 }).required();
 
-export const oauthProviderSchema = yup.object({
-  id: yup.string().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).required(),
-  enabled: yup.boolean().required(),
-  type: yup.string().oneOf(['shared', 'standard']).required(),
-  client_id: requiredWhen(yup.string(), 'type', 'standard'),
-  client_secret: requiredWhen(yup.string(), 'type', 'standard'),
+export const oauthProviderSchema = yupObject({
+  id: yupString().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).required(),
+  enabled: yupBoolean().required(),
+  type: yupString().oneOf(['shared', 'standard']).required(),
+  client_id: requiredWhen(yupString(), 'type', 'standard'),
+  client_secret: requiredWhen(yupString(), 'type', 'standard'),
 });
 
-export const emailConfigSchema = yup.object({
-  type: yup.string().oneOf(['shared', 'standard']).required(),
-  sender_name: requiredWhen(yup.string(), 'type', 'standard'),
-  host: requiredWhen(yup.string(), 'type', 'standard'),
-  port: requiredWhen(yup.number(), 'type', 'standard'),
-  username: requiredWhen(yup.string(), 'type', 'standard'),
-  password: requiredWhen(yup.string(), 'type', 'standard'),
-  sender_email: requiredWhen(yup.string().email(), 'type', 'standard'),
+export const emailConfigSchema = yupObject({
+  type: yupString().oneOf(['shared', 'standard']).required(),
+  sender_name: requiredWhen(yupString(), 'type', 'standard'),
+  host: requiredWhen(yupString(), 'type', 'standard'),
+  port: requiredWhen(yupNumber(), 'type', 'standard'),
+  username: requiredWhen(yupString(), 'type', 'standard'),
+  password: requiredWhen(yupString(), 'type', 'standard'),
+  sender_email: requiredWhen(yupString().email(), 'type', 'standard'),
 });
 
-export const domainSchema = yup.object({
-  domain: yup.string().required(),
-  handler_path: yup.string().required(),
+export const domainSchema = yupObject({
+  domain: yupString().required(),
+  handler_path: yupString().required(),
 });
 
-// export const projectsCrudClientReadSchema = yup.object({
-//   id: yup.string().required(),
-//   evaluated_config: yup.object({
-//     credential_enabled: yup.boolean().required(),
-//     magic_link_enabled: yup.boolean().required(),
-//     oauth_providers: yup.array(yup.object({
-//       id: yup.string().required(),
-//       enabled: yup.boolean().required(),
+// export const projectsCrudClientReadSchema = yupObject({
+//   id: yupString().required(),
+//   evaluated_config: yupObject({
+//     credential_enabled: yupBoolean().required(),
+//     magic_link_enabled: yupBoolean().required(),
+//     oauth_providers: yupArray(yupObject({
+//       id: yupString().required(),
+//       enabled: yupBoolean().required(),
 //     }).required()).required(),
 //   }).required(),
 // }).required();
 
-export const projectsCrudClientReadSchema = yup.object({
-  id: yup.string().required(),
-  display_name: yup.string().required(),
-  description: yup.string().optional(),
-  created_at_millis: yup.number().required(),
-  user_count: yup.number().required(),
-  is_production_mode: yup.boolean().required(),
-  config: yup.object({
-    id: yup.string().required(),
-    allow_localhost: yup.boolean().required(),
-    credential_enabled: yup.boolean().required(),
-    magic_link_enabled: yup.boolean().required(),
-    oauth_providers: yup.array(oauthProviderSchema.required()).required(),
-    domains: yup.array(domainSchema.required()).required(),
+export const projectsCrudClientReadSchema = yupObject({
+  id: yupString().required(),
+  display_name: yupString().required(),
+  description: yupString().optional(),
+  created_at_millis: yupNumber().required(),
+  user_count: yupNumber().required(),
+  is_production_mode: yupBoolean().required(),
+  config: yupObject({
+    id: yupString().required(),
+    allow_localhost: yupBoolean().required(),
+    credential_enabled: yupBoolean().required(),
+    magic_link_enabled: yupBoolean().required(),
+    oauth_providers: yupArray(oauthProviderSchema.required()).required(),
+    domains: yupArray(domainSchema.required()).required(),
     email_config: emailConfigSchema.required(),
-    team_creator_default_permissions: yup.array(permissionSchema.required()).optional(),
-    team_member_default_permissions: yup.array(permissionSchema.required()).optional(),
+    team_creator_default_permissions: yupArray(permissionSchema.required()).optional(),
+    team_member_default_permissions: yupArray(permissionSchema.required()).optional(),
   }).required(),
 }).required();
 
-export const projectsCrudClientUpdateSchema = yup.object({
-  description: yup.string().optional(),
-  is_production_mode: yup.boolean().optional(),
-  config: yup.object({
-    credential_enabled: yup.boolean().optional(),
-    magic_link_enabled: yup.boolean().optional(),
-    allow_localhost: yup.boolean().optional(),
-    create_team_on_sign_up: yup.boolean().optional(),
+export const projectsCrudClientUpdateSchema = yupObject({
+  description: yupString().optional(),
+  is_production_mode: yupBoolean().optional(),
+  config: yupObject({
+    credential_enabled: yupBoolean().optional(),
+    magic_link_enabled: yupBoolean().optional(),
+    allow_localhost: yupBoolean().optional(),
+    create_team_on_sign_up: yupBoolean().optional(),
     email_config: emailConfigSchema.optional().default(undefined),
-    domains: yup.array(domainSchema.required()).optional().default(undefined),
-    oauth_providers: yup.array(oauthProviderSchema.required()).optional().default(undefined),
-    team_creator_default_permission_ids: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
-    team_member_default_permission_ids: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
+    domains: yupArray(domainSchema.required()).optional().default(undefined),
+    oauth_providers: yupArray(oauthProviderSchema.required()).optional().default(undefined),
+    team_creator_default_permission_ids: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
+    team_member_default_permission_ids: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
   }).optional().default(undefined),
 }).required();
 
-export const projectsCrudClientCreateSchema = projectsCrudClientUpdateSchema.concat(yup.object({
-  display_name: yup.string().required(),
+export const projectsCrudClientCreateSchema = projectsCrudClientUpdateSchema.concat(yupObject({
+  display_name: yupString().required(),
 }).required());
 
-export const projectsCrudClientDeleteSchema = yup.mixed();
+export const projectsCrudClientDeleteSchema = yupMixed();
 
 export const projectsCrud = createCrud({
   clientReadSchema: projectsCrudClientReadSchema,

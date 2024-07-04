@@ -9,10 +9,11 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
-const schema = yup.object().shape({
-  email: yup.string().email('Please enter a valid email').required('Please enter your email'),
-  password: yup.string().required('Please enter your password').test({
+const schema = yupObject({
+  email: yupString().email('Please enter a valid email').required('Please enter your email'),
+  password: yupString().required('Please enter your password').test({
     name: 'is-valid-password',
     test: (value, ctx) => {
       const error = getPasswordError(value);
@@ -23,7 +24,7 @@ const schema = yup.object().shape({
       }
     }
   }),
-  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
 });
 
 export function CredentialSignUpForm() {

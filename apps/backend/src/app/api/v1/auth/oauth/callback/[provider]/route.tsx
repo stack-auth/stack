@@ -5,7 +5,7 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpSignInCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { generators } from "openid-client";
 import { getProvider, oauthServer } from "@/oauth";
@@ -26,20 +26,20 @@ const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedi
 };
 
 export const GET = createSmartRouteHandler({
-  request: yup.object({
-    params: yup.object({
-      provider: yup.string().required(),
+  request: yupObject({
+    params: yupObject({
+      provider: yupString().required(),
     }).required(),
-    query: yup.object({
-      code: yup.string().required(),
-      state: yup.string().required(),  
+    query: yupObject({
+      code: yupString().required(),
+      state: yupString().required(),  
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().required(),
-    bodyType: yup.string().oneOf(["json"]).required(),
-    body: yup.mixed().required(),
-    headers: yup.mixed().required(),
+  response: yupObject({
+    statusCode: yupNumber().required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupMixed().required(),
+    headers: yupMixed().required(),
   }),
   async handler({ params, query }, fullReq) {
     const cookieInfo = cookies().get("stack-oauth-" + query.state);

@@ -3,11 +3,12 @@ import { Prisma, TeamSystemPermission as DBTeamSystemPermission } from "@prisma/
 import { KnownErrors } from "@stackframe/stack-shared";
 import { PermissionDefinitionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
 
-export const teamPermissionIdSchema = yup.string()
+export const teamPermissionIdSchema = yupString()
   .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
   .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
     if (!value) return true;

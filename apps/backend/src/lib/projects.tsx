@@ -3,6 +3,7 @@ import { KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } fro
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./tokens";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -696,47 +697,47 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S): S {
 }
 
 const nonRequiredSchemas = {
-  description: yup.string().optional(),
-  isProductionMode: yup.boolean().optional(),
-  config: yup.object({
-    domains: yup.array(yup.object({
-      domain: yup.string().required(),
-      handlerPath: yup.string().required(),
+  description: yupString().optional(),
+  isProductionMode: yupBoolean().optional(),
+  config: yupObject({
+    domains: yupArray(yupObject({
+      domain: yupString().required(),
+      handlerPath: yupString().required(),
     })).optional().default(undefined),
-    oauthProviders: yup.array(
-      yup.object({
-        id: yup.string().required(),
-        enabled: yup.boolean().required(),
-        type: yup.string().required(),
-        clientId: yup.string().optional(),
-        clientSecret: yup.string().optional(),
+    oauthProviders: yupArray(
+      yupObject({
+        id: yupString().required(),
+        enabled: yupBoolean().required(),
+        type: yupString().required(),
+        clientId: yupString().optional(),
+        clientSecret: yupString().optional(),
       })
     ).optional().default(undefined),
-    credentialEnabled: yup.boolean().optional(),
-    magicLinkEnabled: yup.boolean().optional(),
-    allowLocalhost: yup.boolean().optional(),
-    createTeamOnSignUp: yup.boolean().optional(),
-    emailConfig: yup.object({
-      type: yup.string().oneOf(["shared", "standard"]).required(),
-      senderName: requiredWhenShared(yup.string()),
-      host: requiredWhenShared(yup.string()),
-      port: requiredWhenShared(yup.number()),
-      username: requiredWhenShared(yup.string()),
-      password: requiredWhenShared(yup.string()),
-      senderEmail: requiredWhenShared(yup.string().email()),
+    credentialEnabled: yupBoolean().optional(),
+    magicLinkEnabled: yupBoolean().optional(),
+    allowLocalhost: yupBoolean().optional(),
+    createTeamOnSignUp: yupBoolean().optional(),
+    emailConfig: yupObject({
+      type: yupString().oneOf(["shared", "standard"]).required(),
+      senderName: requiredWhenShared(yupString()),
+      host: requiredWhenShared(yupString()),
+      port: requiredWhenShared(yupNumber()),
+      username: requiredWhenShared(yupString()),
+      password: requiredWhenShared(yupString()),
+      senderEmail: requiredWhenShared(yupString().email()),
     }).optional().default(undefined),
-    teamCreatorDefaultPermissionIds: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
-    teamMemberDefaultPermissionIds: yup.array(teamPermissionIdSchema.required()).optional().default(undefined),
+    teamCreatorDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
+    teamMemberDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
   }).optional().default(undefined),
 };
 
-export const getProjectUpdateSchema = () => yup.object({
-  displayName: yup.string().optional(),
+export const getProjectUpdateSchema = () => yupObject({
+  displayName: yupString().optional(),
   ...nonRequiredSchemas,
 });
 
-export const getProjectCreateSchema = () => yup.object({
-  displayName: yup.string().required(),
+export const getProjectCreateSchema = () => yupObject({
+  displayName: yupString().required(),
   ...nonRequiredSchemas,
 });
 

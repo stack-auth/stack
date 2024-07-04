@@ -2,34 +2,35 @@ import * as yup from 'yup';
 import { JWTExpired, JOSEError } from 'jose/errors';
 import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { KnownErrors } from '@stackframe/stack-shared';
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { prismaClient } from '@/prisma-client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 
-export const authorizationHeaderSchema = yup.string().matches(/^StackSession [^ ]+$/);
+export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
-const accessTokenSchema = yup.object({
-  projectId: yup.string().required(),
-  userId: yup.string().required(),
-  exp: yup.number().required(),
+const accessTokenSchema = yupObject({
+  projectId: yupString().required(),
+  userId: yupString().required(),
+  exp: yupNumber().required(),
 });
 
-export const oauthCookieSchema = yup.object({
-  projectId: yup.string().required(),
-  publishableClientKey: yup.string().required(),
-  innerCodeVerifier: yup.string().required(),
-  redirectUri: yup.string().required(),
-  scope: yup.string().required(),
-  state: yup.string().required(),
-  grantType: yup.string().required(),
-  codeChallenge: yup.string().required(),
-  codeChallengeMethod: yup.string().required(),
-  responseType: yup.string().required(),
-  type: yup.string().oneOf(['authenticate', 'link']).required(),
-  projectUserId: yup.string().optional(),
-  providerScope: yup.string().optional(),
-  errorRedirectUrl: yup.string().optional(),
-  afterCallbackRedirectUrl: yup.string().optional(),
+export const oauthCookieSchema = yupObject({
+  projectId: yupString().required(),
+  publishableClientKey: yupString().required(),
+  innerCodeVerifier: yupString().required(),
+  redirectUri: yupString().required(),
+  scope: yupString().required(),
+  state: yupString().required(),
+  grantType: yupString().required(),
+  codeChallenge: yupString().required(),
+  codeChallengeMethod: yupString().required(),
+  responseType: yupString().required(),
+  type: yupString().oneOf(['authenticate', 'link']).required(),
+  projectUserId: yupString().optional(),
+  providerScope: yupString().optional(),
+  errorRedirectUrl: yupString().optional(),
+  afterCallbackRedirectUrl: yupString().optional(),
 });
 
 

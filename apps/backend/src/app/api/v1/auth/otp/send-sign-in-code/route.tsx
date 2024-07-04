@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { sendEmailFromTemplate } from "@/lib/emails";
@@ -8,19 +9,19 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpS
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const POST = createSmartRouteHandler({
-  request: yup.object({
-    auth: yup.object({
+  request: yupObject({
+    auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
     }).required(),
-    body: yup.object({
+    body: yupObject({
       email: signInEmailSchema.required(),
       callback_url: emailOtpSignInCallbackUrlSchema.required(),
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["success"]).required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
     if (!project.evaluatedConfig.magicLinkEnabled) {
