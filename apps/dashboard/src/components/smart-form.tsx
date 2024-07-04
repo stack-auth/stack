@@ -17,7 +17,7 @@ declare module 'yup' {
   }
 }
 
-export function SmartForm<S extends yup.ObjectSchema<any, any, any, any>>(props: {
+export function SmartForm<S extends yup.ObjectSchema<any>>(props: {
   formSchema: S,
   onSubmit: (values: yup.InferType<S>) => Promise<void>,
   formId?: string,

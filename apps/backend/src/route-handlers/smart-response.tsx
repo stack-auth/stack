@@ -37,7 +37,7 @@ export type SmartResponse = {
   }
 );
 
-async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T, any, any, any>): Promise<T> {
+async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -58,7 +58,7 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T, any, any, any>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
   const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;

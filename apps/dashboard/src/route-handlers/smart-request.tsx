@@ -38,7 +38,7 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : T
   );
 
-async function validate<T>(obj: unknown, schema: yup.AnySchema<T>, req: NextRequest): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.Schema<T>, req: NextRequest): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,

@@ -43,7 +43,7 @@ type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> =
   onDelete?: CrudSingleRouteHandler<T, "Delete", Params>,
 };
 
-export type ParamsSchema = yup.ObjectSchema<{}, any, any, any>;
+export type ParamsSchema = yup.ObjectSchema<{}>;
 
 type CrudHandlerOptions<T extends CrudTypeOf<any>, PS extends ParamsSchema> =
   & FilterUndefined<CrudRouteHandlersUnfiltered<T, yup.InferType<PS>>>

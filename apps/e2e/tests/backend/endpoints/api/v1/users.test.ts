@@ -50,7 +50,27 @@ describe("without project access", () => {
 });
 
 describe("with client access", () => {
-  it("should be able to read own user", async ({ expect }) => {
+  it("should not be able to read own user if not signed in", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+          "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should be able to read own user if signed in", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",

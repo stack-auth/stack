@@ -24,7 +24,7 @@ export function yupArray<A extends yup.Maybe<yup.AnyObject> = yup.AnyObject, B =
   return yup.array(...args);
 }
 export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) {
-  return yup.object(...args).test(
+  const object = yup.object(...args).test(
     'no-unknown-object-properties',
     ({ path }) => `${path} contains unknown properties`,
     async (value, context) => {
@@ -42,7 +42,10 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
       }
       return true;
     },
-  ).default(undefined);
+  );
+  
+  // we don't want to update the type of `object` to have a default flag
+  return object.default(undefined) as any as typeof object;
 }
 /* eslint-enable no-restricted-syntax */
 
