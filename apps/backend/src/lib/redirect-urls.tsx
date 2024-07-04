@@ -2,7 +2,7 @@ import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/client
 
 export function validateRedirectUrl(urlOrString: string | URL, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
   const url = new URL(urlOrString);
-  if (allowLocalhost && (url.hostname === "localhost" || url.hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
+  if (allowLocalhost && (url.hostname === "localhost" || url.hostname.endsWith(".localhost") || url.hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
     return true;
   }
   return domains.some((domain) => {

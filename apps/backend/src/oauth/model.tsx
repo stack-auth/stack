@@ -8,7 +8,7 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
-const enabledScopes = ["openid"];
+const enabledScopes = ["legacy"];
 
 function checkScope(scope: string | string[] | undefined) {
   if (typeof scope === "string") {
