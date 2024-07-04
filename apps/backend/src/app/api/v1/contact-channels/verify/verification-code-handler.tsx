@@ -4,15 +4,16 @@ import { createVerificationCodeHandler } from "@/route-handlers/verification-cod
 import { VerificationCodeType } from "@prisma/client";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
   type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,
-  data: yup.object({
-    user_id: yup.string().required(),
-  }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    body: yup.object({}).required(),
+  data: yupObject({
+    user_id: yupString().required(),
+  }).required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    body: yupObject({}).required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({

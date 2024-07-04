@@ -5,13 +5,45 @@ export type StackAdaptSentinel = typeof StackAdaptSentinel;
 
 // Built-in replacements
 /* eslint-disable no-restricted-syntax */
-export const yupString = yup.string.bind(yup);
-export const yupNumber = yup.number.bind(yup);
-export const yupBoolean = yup.boolean.bind(yup);
-export const yupArray = yup.array.bind(yup);
-export const yupObject = <A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) => yup.object(...args).noUnknown(true).default(undefined);
-export const yupDate = yup.date.bind(yup);
-export const yupMixed = yup.mixed.bind(yup);
+export function yupString<A extends string, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.string<A, B>>) {
+  return yup.string(...args);
+}
+export function yupNumber<A extends number, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.number<A, B>>) {
+  return yup.number(...args);
+}
+export function yupBoolean<A extends boolean, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.boolean<A, B>>) {
+  return yup.boolean(...args);
+}
+export function yupDate<A extends Date, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.date<A, B>>) {
+  return yup.date(...args);
+}
+export function yupMixed<A extends {}>(...args: Parameters<typeof yup.mixed<A>>) {
+  return yup.mixed(...args);
+}
+export function yupArray<A extends yup.Maybe<yup.AnyObject> = yup.AnyObject, B = any>(...args: Parameters<typeof yup.array<A, B>>) {
+  return yup.array(...args);
+}
+export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) {
+  return yup.object(...args).test(
+    'no-unknown-object-properties',
+    ({ path }) => `${path} contains unknown properties`,
+    async (value, context) => {
+      if (context.options.context?.noUnknownPathPrefixes?.some((prefix: string) => context.path.startsWith(prefix))) {
+        const availableKeys = new Set(Object.keys(context.schema.fields));
+        const unknownKeys = Object.keys(value).filter(key => !availableKeys.has(key));
+        if (unknownKeys.length > 0) {
+          // TODO "did you mean XYZ"
+          return context.createError({
+            message: `${context.path} contains unknown properties: ${unknownKeys.join(', ')}`,
+            path: context.path,
+            params: { unknownKeys },
+          });
+        }
+      }
+      return true;
+    },
+  ).default(undefined);
+}
 /* eslint-enable no-restricted-syntax */
 
 // Common

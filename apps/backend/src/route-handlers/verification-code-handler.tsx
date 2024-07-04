@@ -6,7 +6,7 @@ import { prismaClient } from "@/prisma-client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { adaptSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { VerificationCodeType } from "@prisma/client";
 
 type Method = {
@@ -43,7 +43,7 @@ export function createVerificationCodeHandler<
 >(options: {
   type: VerificationCodeType,
   data: yup.AnySchema<Data>,
-  response: yup.AnySchema<Response>,
+  response: yup.Schema<Response, any, any, any>,
   send: (
     codeObject: CodeObject,
     createOptions: CreateCodeOptions<Data>,
@@ -94,12 +94,12 @@ export function createVerificationCodeHandler<
       await options.send(codeObj, createOptions, sendOptions);
     },
     postHandler: createSmartRouteHandler({
-      request: yup.object({
-        auth: yup.object({
+      request: yupObject({
+        auth: yupObject({
           project: adaptSchema.required(),
         }).required(),
-        body: yup.object({
-          code: yup.string().required(),
+        body: yupObject({
+          code: yupString().required(),
         }).required(),
       }),
       response: options.response,

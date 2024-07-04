@@ -37,17 +37,21 @@ export abstract class KnownError extends StatusError {
   }
 
   public override getBody(): Uint8Array {
-    return new TextEncoder().encode(JSON.stringify({
-      code: this.errorCode,
-      details: this.details,
-      error: this.humanReadableMessage,
-    }, undefined, 2));
+    return new TextEncoder().encode(JSON.stringify(this.toDescriptiveJson(), undefined, 2));
   }
 
   public override getHeaders(): Record<string, string[]> {
     return {
       "Content-Type": ["application/json; charset=utf-8"],
       "X-Stack-Known-Error": [this.errorCode],
+    };
+  }
+
+  public override toDescriptiveJson(): Json {
+    return {
+      code: this.errorCode,
+      ...this.details ? { details: this.details } : {},
+      error: this.humanReadableMessage,
     };
   }
 

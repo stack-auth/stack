@@ -148,6 +148,17 @@ export class StatusError extends Error {
     };
   }
 
+  public toDescriptiveJson(): Json {
+    return {
+      status_code: this.getStatusCode(),
+      message: this.message,
+      headers: this.getHeaders(),
+    };
+  }
+
+  /**
+   * @deprecated this is not a good way to make status errors human-readable, use toDescriptiveJson instead
+   */
   public toHttpJson(): Json {
     return {
       status_code: this.statusCode,

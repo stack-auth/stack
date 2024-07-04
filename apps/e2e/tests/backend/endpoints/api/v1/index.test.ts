@@ -21,6 +21,24 @@ describe("without project ID", () => {
     `);
   });
 
+  it("should fail when given extra query parameters", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1?extra=param");
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "error": "Request validation failed on GET /api/v1:\\n  - query contains unknown properties: extra",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("should not have client access", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1", {
       accessType: "client",

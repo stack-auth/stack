@@ -12,11 +12,12 @@ import {
   serverPermissionDefinitionJsonFromTeamSystemDbType,
 } from "@/lib/permissions";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 
-export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(projectsCrud, "project", {
-  paramsSchema: yup.object({
-    projectId: yup.string().required(),
+export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
+  paramsSchema: yupObject({
+    projectId: yupString().required(),
   }),
   baseFields: async ({ params }) => ({
     id: params.projectId,

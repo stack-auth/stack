@@ -1,10 +1,9 @@
 import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { sendEmailFromTemplate } from "@/lib/emails";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpSignInCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { generators } from "openid-client";
 import { getProvider } from "@/oauth";
@@ -18,33 +17,33 @@ import { checkApiKeySet } from "@/lib/api-keys";
 const outerOAuthFlowExpirationInMinutes = 10;
 
 export const GET = createSmartRouteHandler({
-  request: yup.object({
-    params: yup.object({
-      provider: yup.string().required(),
+  request: yupObject({
+    params: yupObject({
+      provider: yupString().required(),
     }).required(),
-    query: yup.object({
+    query: yupObject({
       // custom parameters
-      type: yup.string().oneOf(["authenticate", "link"]).default("authenticate"),
-      token: yup.string().default(""),
-      provider_scope: yup.string().optional(),
-      error_redirect_url: yup.string().optional(),
-      after_callback_redirect_url: yup.string().optional(),
+      type: yupString().oneOf(["authenticate", "link"]).default("authenticate"),
+      token: yupString().default(""),
+      provider_scope: yupString().optional(),
+      error_redirect_url: yupString().optional(),
+      after_callback_redirect_url: yupString().optional(),
 
       // oauth parameters
-      client_id: yup.string().required(),
-      client_secret: yup.string().required(),
-      redirect_uri: yup.string().required(),
-      scope: yup.string().required(),
-      state: yup.string().required(),
-      grant_type: yup.string().oneOf(["authorization_code"]).required(),
-      code_challenge: yup.string().required(),
-      code_challenge_method: yup.string().required(),
-      response_type: yup.string().required(),
+      client_id: yupString().required(),
+      client_secret: yupString().required(),
+      redirect_uri: yupString().required(),
+      scope: yupString().required(),
+      state: yupString().required(),
+      grant_type: yupString().oneOf(["authorization_code"]).required(),
+      code_challenge: yupString().required(),
+      code_challenge_method: yupString().required(),
+      response_type: yupString().required(),
     }).required(),
   }),
-  response: yup.object({
+  response: yupObject({
     // we never return as we always redirect
-    statusCode: yup.number().oneOf([302]).required(),
+    statusCode: yupNumber().oneOf([302]).required(),
   }),
   async handler({ params, query }, fullReq) {
     const project = await getProject(query.client_id);
