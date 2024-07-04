@@ -29,6 +29,7 @@ export const POST = createSmartRouteHandler({
     body: yupObject({
       access_token: yupString().required(),
       refresh_token: yupString().required(),
+      user_id: yupString().required(),
     }).required(),
   }),
   async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) { 
@@ -88,6 +89,7 @@ export const POST = createSmartRouteHandler({
       body: {
         access_token: accessToken,
         refresh_token: refreshToken,
+        user_id: createdUser.id,
       },
     };
   },
