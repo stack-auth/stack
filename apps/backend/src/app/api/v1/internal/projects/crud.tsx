@@ -325,4 +325,4 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       }
     };
   },
-}));
+});
