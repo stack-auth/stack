@@ -269,19 +269,29 @@ export namespace ContactChannels {
 }
 
 export namespace Project {
-  export async function createProject(options?: {
-    displayName?: string,
-  }) {
+  export async function createProject(body?: any) {
     const response = await niceBackendFetch("/api/v1/internal/projects", {
       accessType: "client",
       method: "POST",
       body: {
-        display_name: options?.displayName || 'New Project',
+        display_name: body?.display_name || 'New Project',
+        ...body,
       },
     });
     return {
       createProjectResponse: response,
       projectId: response.body.id,
+    };
+  }
+
+  export async function updateProject(projectId: string, body: any) {
+    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body,
+    });
+    return {
+      updateProjectResponse: response,
     };
   }
 }

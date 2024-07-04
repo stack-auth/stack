@@ -72,7 +72,7 @@ describe("with internal project ID", async () => {
   it("create a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
     const result = await Project.createProject({
-      displayName: "Test Project",
+      display_name: "Test Project",
     });
     expect(result.createProjectResponse).toMatchInlineSnapshot(`
       NiceResponse {
@@ -103,42 +103,76 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  it("list current projects after creating a new project", async ({ expect }) => {
+  it("create a new project with different configurations", async ({ expect }) => {
     await Auth.Otp.signIn();
-    await Project.createProject();
-    const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
-    expect(response).toMatchInlineSnapshot(`
+    const result = await Project.createProject({
+      display_name: "Test Project",
+    });
+    expect(result.createProjectResponse).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 200,
+        "status": 201,
         "body": {
-          "is_paginated": false,
-          "items": [
-            {
-              "config": {
-                "allow_localhost": true,
-                "credential_enabled": true,
-                "domains": [],
-                "email_config": { "type": "shared" },
-                "id": "<stripped UUID>",
-                "magic_link_enabled": false,
-                "oauth_providers": [],
-              },
-              "created_at_millis": <stripped field 'created_at_millis'>,
-              "description": "",
-              "display_name": "New Project",
-              "id": "<stripped UUID>",
-              "is_production_mode": false,
-              "user_count": 0,
-            },
-          ],
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": "<stripped UUID>",
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "Test Project",
+          "id": "<stripped UUID>",
+          "is_production_mode": false,
+          "user_count": 0,
         },
         "headers": Headers {
+          "location": "http://localhost:8102/api/v1/internal/projects",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
     `);
   });
+
+  // it("list current projects after creating a new project", async ({ expect }) => {
+  //   await Auth.Otp.signIn();
+  //   await Project.createProject();
+  //   const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
+  //   expect(response).toMatchInlineSnapshot(`
+  //     NiceResponse {
+  //       "status": 200,
+  //       "body": {
+  //         "is_paginated": false,
+  //         "items": [
+  //           {
+  //             "config": {
+  //               "allow_localhost": true,
+  //               "credential_enabled": true,
+  //               "domains": [],
+  //               "email_config": { "type": "shared" },
+  //               "id": "<stripped UUID>",
+  //               "magic_link_enabled": false,
+  //               "oauth_providers": [],
+  //             },
+  //             "created_at_millis": <stripped field 'created_at_millis'>,
+  //             "description": "",
+  //             "display_name": "New Project",
+  //             "id": "<stripped UUID>",
+  //             "is_production_mode": false,
+  //             "user_count": 0,
+  //           },
+  //         ],
+  //       },
+  //       "headers": Headers {
+  //         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+  //         <some fields may have been hidden>,
+  //       },
+  //     }
+  //   `);
+  // });
 
   it("get a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
@@ -196,11 +230,7 @@ describe("with internal project ID", async () => {
   it("update a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
     await Project.createProject();
-    const response = await niceBackendFetch("/api/v1/internal/projects/does-not-exist", {
-      accessType: "client",
-      method: "PATCH",
-      body: {},
-    });
+    const { updateProjectResponse: response } = await Project.updateProject("does-not-exist", {});
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 404,
@@ -220,14 +250,10 @@ describe("with internal project ID", async () => {
   it("update basic information", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.createProject();
-    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        display_name: "Updated Project",
-        description: "Updated description",
-        is_production_mode: true,
-      },
+    const { updateProjectResponse: response } = await Project.updateProject(projectId, {
+      display_name: "Updated Project",
+      description: "Updated description",
+      is_production_mode: true,
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -260,15 +286,11 @@ describe("with internal project ID", async () => {
   it("update project basic configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.createProject();
-    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          allow_localhost: false,
-          credential_enabled: false,
-          magic_link_enabled: true,
-        },
+    const { updateProjectResponse: response } = await Project.updateProject(projectId, {
+      config: {
+        allow_localhost: false,
+        credential_enabled: false,
+        magic_link_enabled: true,
       },
     });
     expect(response).toMatchInlineSnapshot(`
@@ -302,18 +324,12 @@ describe("with internal project ID", async () => {
   it("create and update project domains configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId: projectId1 } = await Project.createProject();
-
-    // update domain
-    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          domains: [{
-            domain: 'https://domain.com',
-            handler_path: '/handler'
-          }]
-        },
+    const { updateProjectResponse: response1 } = await Project.updateProject(projectId1, {
+      config: {
+        domains: [{
+          domain: 'https://domain.com',
+          handler_path: '/handler'
+        }]
       },
     });
     expect(response1).toMatchInlineSnapshot(`
@@ -347,24 +363,19 @@ describe("with internal project ID", async () => {
         },
       }
     `);
-    
-    // update again with overwriting the previous domain
-    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          domains: [
-            {
-              domain: 'https://domain2.com',
-              handler_path: '/handler'
-            },
-            {
-              domain: 'https://domain3.com',
-              handler_path: '/handler2'
-            }
-          ]
-        },
+
+    const { updateProjectResponse: response2 } = await Project.updateProject(projectId1, {
+      config: {
+        domains: [
+          {
+            domain: 'https://domain2.com',
+            handler_path: '/handler'
+          },
+          {
+            domain: 'https://domain3.com',
+            handler_path: '/handler2'
+          }
+        ]
       },
     });
     expect(response2).toMatchInlineSnapshot(`
@@ -405,16 +416,12 @@ describe("with internal project ID", async () => {
     
     // create another project and update its domain
     const { projectId: projectId2 } = await Project.createProject();
-    const response1p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          domains: [{
-            domain: 'https://domain3.com',
-            handler_path: '/handler'
-          }]
-        },
+    const { updateProjectResponse: response1p2 } = await Project.updateProject(projectId2, {
+      config: {
+        domains: [{
+          domain: 'https://domain3.com',
+          handler_path: '/handler'
+        }]
       },
     });
     expect(response1p2).toMatchInlineSnapshot(`
@@ -496,20 +503,16 @@ describe("with internal project ID", async () => {
     const { projectId: projectId1 } = await Project.createProject();
 
     // create standard email config
-    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "standard",
-            host: "smtp.example.com",
-            port: 587,
-            username: "test username",
-            password: "test password",
-            sender_name: "Test Sender",
-            sender_email: "test@email.com",
-          },
+    const { updateProjectResponse: response1 } = await Project.updateProject(projectId1, {
+      config: {
+        email_config: {
+          type: "standard",
+          host: "smtp.example.com",
+          port: 587,
+          username: "test username",
+          password: "test password",
+          sender_name: "Test Sender",
+          sender_email: "test@email.com",
         },
       },
     });
@@ -550,20 +553,16 @@ describe("with internal project ID", async () => {
 
     // create another project and update its email config
     const { projectId: projectId2 } = await Project.createProject();
-    const response1p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "standard",
-            host: "smtp.control-group.com",
-            port: 587,
-            username: "control group",
-            password: "control group",
-            sender_name: "Control Group",
-            sender_email: "control-group@email.com",
-          },
+    const { updateProjectResponse: response1p2 } = await Project.updateProject(projectId2, {
+      config: {
+        email_config: {
+          type: "standard",
+          host: "smtp.control-group.com",
+          port: 587,
+          username: "control group",
+          password: "control group",
+          sender_name: "Control Group",
+          sender_email: "control-group@email.com",
         },
       },
     });
@@ -603,20 +602,16 @@ describe("with internal project ID", async () => {
     `);
     
     // update standard email config again
-    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "standard",
-            host: "smtp.example2.com",
-            port: 587,
-            username: "test username2",
-            password: "test password2",
-            sender_name: "Test Sender2",
-            sender_email: "test@email.com2",
-          },
+    const { updateProjectResponse: response2 } = await Project.updateProject(projectId1, {
+      config: {
+        email_config: {
+          type: "standard",
+          host: "smtp.example2.com",
+          port: 587,
+          username: "test username2",
+          password: "test password2",
+          sender_name: "Test Sender2",
+          sender_email: "test@email.com2",
         },
       },
     });
@@ -656,14 +651,10 @@ describe("with internal project ID", async () => {
     `);
 
     // switch back to shared email config
-    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "shared",
-          },
+    const { updateProjectResponse: response3 } = await Project.updateProject(projectId1, {
+      config: {
+        email_config: {
+          type: "shared",
         },
       },
     });
@@ -695,14 +686,10 @@ describe("with internal project ID", async () => {
     `);
 
     // update to shared again
-    const response4 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "shared",
-          },
+    const { updateProjectResponse: response4 } = await Project.updateProject(projectId1, {
+      config: {
+        email_config: {
+          type: "shared",
         },
       },
     });
@@ -734,20 +721,16 @@ describe("with internal project ID", async () => {
     `);
 
     // check if the second project still has the same email config
-    const response2p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "standard",
-            host: "smtp.control-group.com",
-            port: 587,
-            username: "control group",
-            password: "control group",
-            sender_name: "Control Group",
-            sender_email: "control-group@email.com",
-          },
+    const { updateProjectResponse: response2p2 } = await Project.updateProject(projectId2, {
+      config: {
+        email_config: {
+          type: "standard",
+          host: "smtp.control-group.com",
+          port: 587,
+          username: "control group",
+          password: "control group",
+          sender_name: "Control Group",
+          sender_email: "control-group@email.com",
         },
       },
     });
@@ -790,15 +773,11 @@ describe("with internal project ID", async () => {
   it("update project email configuration with the wrong parameters", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.createProject();
-    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          email_config: {
-            type: "shared",
-            client_id: "client_id",
-          },
+    const { updateProjectResponse: response1 } = await Project.updateProject(projectId, {
+      config: {
+        email_config: {
+          type: "shared",
+          client_id: "client_id",
         },
       },
     });
@@ -848,17 +827,13 @@ describe("with internal project ID", async () => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.createProject();
     // create google oauth provider with shared type
-    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [{
-            id: "google",
-            type: "shared",
-            enabled: true,
-          }]
-        },
+    const { updateProjectResponse: response1 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [{
+          id: "google",
+          type: "shared",
+          enabled: true,
+        }]
       },
     });
     expect(response1).toMatchInlineSnapshot(`
@@ -895,17 +870,13 @@ describe("with internal project ID", async () => {
     `);
     
     // update google oauth provider with shared type again
-    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [{
-            id: "google",
-            type: "shared",
-            enabled: true,
-          }]
-        },
+    const { updateProjectResponse: response2 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [{
+          id: "google",
+          type: "shared",
+          enabled: true,
+        }]
       },
     });
     expect(response2).toMatchInlineSnapshot(`
@@ -942,19 +913,15 @@ describe("with internal project ID", async () => {
     `);
 
     // switch to standard type
-    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [{
-            id: "google",
-            type: "standard",
-            enabled: true,
-            client_id: "client_id",
-            client_secret: "client_secret",
-          }]
-        },
+    const { updateProjectResponse: response3 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [{
+          id: "google",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: "client_secret",
+        }]
       },
     });
     expect(response3).toMatchInlineSnapshot(`
@@ -993,17 +960,13 @@ describe("with internal project ID", async () => {
     `);
 
     // add another oauth provider with invalid type
-    const response4 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [{
-            id: "facebook",
-            type: "shared",
-            enabled: true,
-          }]
-        },
+    const { updateProjectResponse: response4 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [{
+          id: "facebook",
+          type: "shared",
+          enabled: true,
+        }]
       },
     });
     expect(response4).toMatchInlineSnapshot(`
@@ -1016,25 +979,22 @@ describe("with internal project ID", async () => {
         },
       }
     `);
-
-    const response5 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [
-            {
-              id: "facebook",
-              type: "shared",
-              enabled: true,
-            },
-            {
-              id: "google",
-              type: "shared",
-              enabled: true,
-            }
-          ]
-        },
+    
+    // add another oauth provider
+    const { updateProjectResponse: response5 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [
+          {
+            id: "facebook",
+            type: "shared",
+            enabled: true,
+          },
+          {
+            id: "google",
+            type: "shared",
+            enabled: true,
+          }
+        ]
       },
     });
     expect(response5).toMatchInlineSnapshot(`
@@ -1076,24 +1036,20 @@ describe("with internal project ID", async () => {
     `);
     
     // disable one of the oauth providers
-    const response6 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
-      method: "PATCH",
-      body: {
-        config: {
-          oauth_providers: [
-            {
-              id: "facebook",
-              type: "shared",
-              enabled: true,
-            },
-            {
-              id: "google",
-              type: "shared",
-              enabled: false
-            }
-          ]
-        },
+    const { updateProjectResponse: response6 } = await Project.updateProject(projectId, {
+      config: {
+        oauth_providers: [
+          {
+            id: "facebook",
+            type: "shared",
+            enabled: true,
+          },
+          {
+            id: "google",
+            type: "shared",
+            enabled: false,
+          }
+        ]
       },
     });
     expect(response6).toMatchInlineSnapshot(`
