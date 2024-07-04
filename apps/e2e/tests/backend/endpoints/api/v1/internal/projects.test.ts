@@ -787,33 +787,60 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  // it("update project email configuration with the wrong parameters", async ({ expect }) => {
-  //   await Auth.Otp.signIn();
-  //   const { projectId } = await Project.createProject();
-  //   const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-  //     accessType: "client",
-  //     method: "PATCH",
-  //     body: {
-  //       config: {
-  //         email_config: {
-  //           type: "shared",
-  //         },
-  //       },
-  //     },
-  //   });
-  //   expect(response1).toMatchInlineSnapshot(`
-  //     NiceResponse {
-  //       "status": 404,
-  //       "body": {
-  //         "code": "PROJECT_NOT_FOUND",
-  //         "error": "Project not found or is not accessible with the current user.",
-  //       },
-  //       "headers": Headers {
-  //         "x-stack-known-error": "PROJECT_NOT_FOUND",
-  //         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-  //         <some fields may have been hidden>,
-  //       },
-  //     }
-  //   `);
-  // });
+  it("update project email configuration with the wrong parameters", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const { projectId } = await Project.createProject();
+    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "shared",
+            client_id: "client_id",
+          },
+        },
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "error": "Request validation failed on PATCH /api/v1/internal/projects/<stripped UUID>:\\n  - body.config.email_config contains unknown properties: client_id",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "standard",
+          },
+        },
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "error": "Request validation failed on PATCH /api/v1/internal/projects/<stripped UUID>:\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_email is a required field",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 });

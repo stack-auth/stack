@@ -105,6 +105,18 @@ const snapshotSerializer: SnapshotSerializer = {
           return `<stripped field '${options.keyInParent}'>`;
         }
 
+        // match all UUIDs except all-zero UUID
+        if (typeof value === "string") {
+          const newValue = value.replace(
+            /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
+            "<stripped UUID>"
+          );
+
+          if (newValue !== value) {
+            return nicify(newValue, options);
+          }
+        }
+
         // Otherwise, use default serialization
         return null;
       },
