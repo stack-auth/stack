@@ -1,8 +1,7 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
@@ -11,7 +10,6 @@ import {
   serverPermissionDefinitionJsonFromDbType,
   serverPermissionDefinitionJsonFromTeamSystemDbType,
 } from "@/lib/permissions";
-import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
@@ -20,24 +18,26 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
   paramsSchema: yupObject({
     projectId: yupString().required(),
   }),
+  onPrepare: async ({ auth }) => {
+    if (!auth.user) {
+      throw new KnownErrors.UserAuthenticationRequired();
+    }
+    if (auth.user.project_id !== 'internal') {
+      throw new KnownErrors.ExpectedInternalProject();
+    }
+  },
   baseFields: async ({ params }) => ({
     id: params.projectId,
   }),
   where: async ({ auth }) => {
-    let managedIds: string[] = [];
-    if (auth.user?.project_id === 'internal') {
-      managedIds = (auth.user.server_metadata as any)?.managedProjectIds || [];
-    }
+    const managedIds = (auth.user?.server_metadata as any)?.managedProjectIds || [];
     
     return {
       id: { in: managedIds },
     };
   },
   whereUnique: async ({ auth, params }) => {
-    let managedIds: string[] = [];
-    if (auth.user?.project_id === 'internal') {
-      managedIds = (auth.user.server_metadata as any)?.managedProjectIds || [];
-    }
+    const managedIds = (auth.user?.server_metadata as any)?.managedProjectIds || [];
     
     return {
       id: params.projectId,

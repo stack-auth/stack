@@ -46,7 +46,7 @@ async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Sc
       },
     });
   } catch (error) {
-    throw new StackAssertionError(`Error occured during ${req ? `${req.method} ${req.url}` : "a custom endpoint invokation's"} response validation: ${error}`, { obj, schema, error }, { cause: error });
+    throw new StackAssertionError(`Error occurred during ${req ? `${req.method} ${req.url}` : "a custom endpoint invocation's"} response validation: ${error}`, { obj, schema, error }, { cause: error });
   }
 }
 

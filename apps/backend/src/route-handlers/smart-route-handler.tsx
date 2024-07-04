@@ -212,7 +212,7 @@ export function createSmartRouteHandler<
     return await invoke(req, requestId, smartRequest);
   }), {
     [getSmartRouteHandlerSymbol()]: true,
-    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invokation", smartRequest),
+    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),
     overloads,
   });
 }

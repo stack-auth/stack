@@ -1,6 +1,5 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { afterEach } from "node:test";

@@ -9,7 +9,7 @@ import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/st
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
-import { CrudHandlerInvokationError } from "@/route-handlers/crud-handler";
+import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 
@@ -127,7 +127,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
       userId,
     });
   } catch (e) {
-    if (e instanceof CrudHandlerInvokationError && e.cause instanceof KnownErrors.UserNotFound) {
+    if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
       // this may happen eg. if the user has a valid access token but has since been deleted
       return "not-admin";
     }

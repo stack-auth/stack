@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../../helpers";
-import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -33,7 +33,26 @@ describe("with internal project ID", async () => {
     projectKeys: InternalProjectKeys,
   });
 
+  it("list all current projects without signing in (not allowed)", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "USER_AUTHENTICATION_REQUIRED",
+          "error": "User authentication required for this endpoint.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_AUTHENTICATION_REQUIRED",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("list all current projects (empty list)", async ({ expect }) => {
+    await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -51,6 +70,7 @@ describe("with internal project ID", async () => {
   });
 
   it("create a new project", async ({ expect }) => {
+    await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/internal/projects", {
       accessType: "client",
       method: "POST",

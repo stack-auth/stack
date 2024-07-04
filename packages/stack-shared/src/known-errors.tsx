@@ -550,25 +550,6 @@ const InvalidProjectForAccessToken = createKnownErrorConstructor(
   () => [] as const,
 );
 
-const SessionUserEmailNotVerified = createKnownErrorConstructor(
-  InvalidSessionAuthentication,
-  "SESSION_USER_EMAIL_NOT_VERIFIED",
-  () => [
-    401,
-    "User e-mail not verified, but is required by the project.",
-  ] as const,
-  () => [] as const,
-);
-
-const SessionAuthenticationRequired = createKnownErrorConstructor(
-  SessionAuthenticationError,
-  "SESSION_AUTHENTICATION_REQUIRED",
-  () => [
-    401,
-    "Session required for this request.",
-  ] as const,
-  () => [] as const,
-);
 
 const RefreshTokenError = createKnownErrorConstructor(
   KnownError,
@@ -926,6 +907,16 @@ const OAuthProviderNotFoundOrNotEnabled = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const UserAuthenticationRequired = createKnownErrorConstructor(
+  KnownError,
+  "USER_AUTHENTICATION_REQUIRED",
+  () => [
+    401,
+    "User authentication required for this endpoint.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -968,8 +959,6 @@ export const KnownErrors = {
   UnparsableAccessToken,
   AccessTokenExpired,
   InvalidProjectForAccessToken,
-  SessionUserEmailNotVerified,
-  SessionAuthenticationRequired,
   RefreshTokenError,
   ProviderRejected,
   InvalidRefreshToken,
@@ -1000,7 +989,8 @@ export const KnownErrors = {
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
-  OAuthProviderNotFoundOrNotEnabled
+  OAuthProviderNotFoundOrNotEnabled,
+  UserAuthenticationRequired,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

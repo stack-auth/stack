@@ -7,7 +7,6 @@ import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/error
 import { prismaClient } from "@/prisma-client";
 import * as yup from "yup";
 import { typedAssign } from "@stackframe/stack-shared/dist/utils/objects";
-import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 type AllPrismaModelNames = Prisma.TypeMap["meta"]["modelProps"];
 type WhereUnique<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findUniqueOrThrow"]["args"]["where"];
@@ -66,6 +65,7 @@ export function createPrismaCrudHandlers<
   prismaModelName: PrismaModelName,
   options: & {
       paramsSchema: PS,
+      onPrepare?: (context: Context<false, PS>) => Promise<void>,
       baseFields: (context: Context<false, PS>) => Promise<B>,
       where?: (context: Context<false, PS>) => Promise<W>,
       whereUnique?: (context: Context<true, PS>) => Promise<WhereUnique<PrismaModelName>>,
@@ -113,6 +113,7 @@ export function createPrismaCrudHandlers<
   
   return typedAssign(createCrudHandlers<any, PS, any>(crudSchema, {
     paramsSchema: options.paramsSchema,
+    onPrepare: options.onPrepare,
     onRead: wrapper(true, async (data, context) => {
       const prisma = await (prismaClient[prismaModelName].findUniqueOrThrow as any)({
         include: await options.include(context),

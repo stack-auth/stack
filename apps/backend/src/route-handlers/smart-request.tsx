@@ -82,7 +82,7 @@ async function validate<T>(obj: SmartRequest, schema: yup.AnySchema<T>, req: Nex
       return await validate(newObj, schema, req);
     } else if (error instanceof yup.ValidationError) {
       if (req === null) {
-        // we weren't called by a HTTP request, so it must be a logical error in a manual invokation
+        // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
         throw new StackAssertionError("Request validation failed", {}, { cause: error });
       } else {
         const inners = error.inner.length ? error.inner : [error];

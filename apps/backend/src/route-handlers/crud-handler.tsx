@@ -1,7 +1,7 @@
 import "../polyfills";
 
 import * as yup from "yup";
-import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
+import { SmartRouteHandler, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
@@ -35,6 +35,7 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
     : void;
 
 type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> = {
+  onPrepare?: (options: { params: Params, auth: SmartRequestAuth }) => Promise<void>,
   onCreate?: CrudSingleRouteHandler<T, "Create", Params>,
   onRead?: CrudSingleRouteHandler<T, "Read", Params>,
   onList?: keyof Params extends never ? void : CrudSingleRouteHandler<T, "Read", Partial<Params>, true>,
@@ -144,7 +145,12 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
                 const paramsValidated = await validate(options.params, actualParamsSchema, "Params validation");
 
                 const adminData = await validate(options.data, adminSchemas.input, "Input validation");
-
+                
+                await optionsAsPartial.onPrepare?.({
+                  params: paramsValidated,
+                  auth: options.auth,
+                });
+                
                 const result = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: paramsValidated,
                   data: adminData,
@@ -228,7 +234,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
                     },
                   });
                 } catch (error) {
-                  throw new CrudHandlerInvokationError(error);
+                  throw new CrudHandlerInvocationError(error);
                 }
               },
             ]
@@ -238,7 +244,7 @@ export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema
   ) as any;
 }
 
-export class CrudHandlerInvokationError extends Error {
+export class CrudHandlerInvocationError extends Error {
   constructor(public readonly cause: unknown) {
     super("Error while invoking CRUD handler programmatically. This is a wrapper error to prevent caught errors (eg. StatusError) from being caught by outer catch blocks. Check the `cause` property.\n\nOriginal error: " + cause, { cause });
   }
