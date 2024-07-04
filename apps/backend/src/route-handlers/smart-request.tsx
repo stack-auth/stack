@@ -42,7 +42,7 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
     : (T & MSQ)
   );
 
-async function validate<T>(obj: SmartRequest, schema: yup.AnySchema<T>, req: NextRequest | null): Promise<T> {
+async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -280,6 +280,6 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
   } satisfies SmartRequest;
 }
 
-export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.AnySchema<T>): Promise<T> {
+export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.Schema<T>): Promise<T> {
   return await validate(smartReq, schema, nextReq);
 }

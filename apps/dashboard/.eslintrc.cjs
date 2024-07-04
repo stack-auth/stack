@@ -1,3 +1,5 @@
+const defaults = require("../../eslint-configs/defaults.js");
+
 module.exports = {
   extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
   ignorePatterns: ["/*", "!/src", "!/prisma"],
@@ -21,6 +23,9 @@ module.exports = {
           },
         ],
       },
+    ],
+    "no-restricted-syntax": [
+      ...defaults.rules["no-restricted-syntax"].filter(e => !e.message.includes("yupXyz")),
     ],
   },
 };

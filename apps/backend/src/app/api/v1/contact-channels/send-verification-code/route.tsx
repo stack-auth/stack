@@ -1,25 +1,24 @@
 import * as yup from "yup";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailVerificationCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailVerificationCallbackUrlSchema, yupObject, yupNumber, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { contactChannelVerificationCodeHandler } from "../verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
-  request: yup.object({
-    auth: yup.object({
+  request: yupObject({
+    auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema.required(),
       user: adaptSchema.required(),
     }).required(),
-    body: yup.object({
+    body: yupObject({
       email: signInEmailSchema.required(),
       callback_url: emailVerificationCallbackUrlSchema.required(),
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["success"]).required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project, user }, body: { email, callback_url: callbackUrl } }, fullReq) {
     if (user.primary_email !== email) {

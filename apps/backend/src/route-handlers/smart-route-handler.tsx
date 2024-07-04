@@ -118,8 +118,8 @@ export type SmartRouteHandlerOverload<
   Res extends SmartResponse,
 > = {
   metadata?: SmartRouteHandlerOverloadMetadata,
-  request: yup.AnySchema<Req>,
-  response: yup.Schema<Res, any, any, any>,
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
   handler: (req: MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 };
 
@@ -288,12 +288,12 @@ function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
  * if you can remove this wherever it's used without causing type errors, it's safe to remove
  */
 export function routeHandlerTypeHelper<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(handler: {
-  request: yup.AnySchema<Req>,
-  response: yup.Schema<Res, any, any, any>,
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 }): {
-  request: yup.AnySchema<Req>,
-  response: yup.Schema<Res, any, any, any>,
+  request: yup.Schema<Req>,
+  response: yup.Schema<Res>,
   handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
 } {
   return handler;
