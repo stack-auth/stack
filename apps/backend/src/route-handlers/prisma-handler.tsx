@@ -7,6 +7,7 @@ import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/error
 import { prismaClient } from "@/prisma-client";
 import * as yup from "yup";
 import { typedAssign } from "@stackframe/stack-shared/dist/utils/objects";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 type AllPrismaModelNames = Prisma.TypeMap["meta"]["modelProps"];
 type WhereUnique<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findUniqueOrThrow"]["args"]["where"];
@@ -108,7 +109,7 @@ export function createPrismaCrudHandlers<
 
   const prismaToCrud = options.prismaToCrud ?? throwErr("missing prismaToCrud is not yet implemented");
   const crudToPrisma = options.crudToPrisma ?? throwErr("missing crudToPrisma is not yet implemented");
-
+  
   return typedAssign(createCrudHandlers<any, PS, any>(crudSchema, {
     paramsSchema: options.paramsSchema,
     onRead: wrapper(true, async (data, context) => {

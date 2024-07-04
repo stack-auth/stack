@@ -9,8 +9,9 @@ import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fi
 import * as yup from "yup";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
+export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(usersCrud, "projectUser", {
   paramsSchema: yup.object({
     userId: userIdOrMeRequestSchema.required(),
   }),
@@ -114,9 +115,9 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       await addUserToTeam(project.id, team.id, prisma.projectUserId);
     }
   },
-});
+}));
 
-export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
+export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(currentUserCrud, {
   paramsSchema: yup.object({} as const),
   async onRead({ auth }) {
     return await usersCrudHandlers.adminRead({
@@ -137,4 +138,4 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
       userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
     });
   },
-});
+}));

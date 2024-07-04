@@ -11,9 +11,10 @@ import {
   serverPermissionDefinitionJsonFromDbType,
   serverPermissionDefinitionJsonFromTeamSystemDbType,
 } from "@/lib/permissions";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 
-export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
+export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(projectsCrud, "project", {
   paramsSchema: yup.object({
     projectId: yup.string().required(),
   }),
@@ -323,4 +324,4 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       }
     };
   },
-});
+}));

@@ -165,7 +165,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   let requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
-  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
+  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
