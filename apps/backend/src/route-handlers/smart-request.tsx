@@ -7,7 +7,7 @@ import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
+import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
@@ -234,10 +234,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     }
   }
 
-  let project = await updateProject(
-    projectId,
-    {},
-  );
+  const project = await getProject(projectId);
   if (!project) {
     throw new KnownErrors.ProjectNotFound();
   }

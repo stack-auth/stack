@@ -1,6 +1,6 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { prismaClient } from "@/prisma-client";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
@@ -95,81 +95,147 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
   }),
   notFoundError: () => new KnownErrors.ProjectNotFound(),
   crudToPrisma: async (crud, { auth, params, type }) => {
-    const oldProject = type === 'update' ? await prismaClient.project.findUnique({
+    // ======================= create =======================
+
+    if (type === 'create') {
+      return {
+        id: generateUuid(),
+        displayName: throwIfUndefined(crud.display_name, "display_name"),
+        description: crud.description,
+        isProductionMode: crud.is_production_mode || false,
+        config: {
+          create: {
+            credentialEnabled: crud.config?.credential_enabled || true,
+            magicLinkEnabled: crud.config?.magic_link_enabled || false,
+            allowLocalhost: crud.config?.allow_localhost || true,
+            createTeamOnSignUp: crud.config?.create_team_on_sign_up || false,
+            domains: crud.config?.domains ? {
+              create: crud.config.domains.map(item => ({
+                domain: item.domain,
+                handlerPath: item.handler_path,
+              }))
+            } : undefined,
+            oauthProviderConfigs: crud.config?.oauth_providers ? {
+              createMany: {
+                data: crud.config.oauth_providers.map(item => ({
+                  id: item.id,
+                  proxiedOAuthConfig: item.type === "shared" ? {
+                    create: {
+                      type: typedToUppercase(item.id),
+                    }
+                  } : undefined,
+                  standardOAuthConfig: item.type === "standard" ? {
+                    create: {
+                      type: typedToUppercase(item.id),
+                      clientId: throwIfUndefined(item.client_id, "client_id"),
+                      clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
+                    }
+                  } : undefined,
+                }))
+              }
+            } : undefined,
+            emailServiceConfig: crud.config?.email_config ? {
+              create: {
+                proxiedEmailServiceConfig: crud.config.email_config.type === "shared" ? {
+                  create: {}
+                } : undefined,
+                standardEmailServiceConfig: crud.config.email_config.type === "standard" ? {
+                  create: {
+                    host: throwIfUndefined(crud.config.email_config.host, "host"),
+                    port: throwIfUndefined(crud.config.email_config.port, "port"),
+                    username: throwIfUndefined(crud.config.email_config.username, "username"),
+                    password: throwIfUndefined(crud.config.email_config.password, "password"),
+                    senderEmail: throwIfUndefined(crud.config.email_config.sender_email, "sender_email"),
+                    senderName: throwIfUndefined(crud.config.email_config.sender_name, "sender_name"),
+                  }
+                } : undefined,
+              }
+            } : {
+              create: {
+                proxiedEmailServiceConfig: {
+                  create: {}
+                },
+              },
+            },
+          },
+        }
+      } satisfies Prisma.ProjectCreateInput;
+    }
+
+    // ======================= get the old project =======================
+    const oldProject = await prismaClient.project.findUnique({
       where: {
         id: params.projectId,
       },
       include: {
-        config: true,
+        config: {
+          include: {
+            emailServiceConfig: {
+              include: {
+                proxiedEmailServiceConfig: true,
+                standardEmailServiceConfig: true,
+              },
+            },
+            domains: true,
+            oauthProviderConfigs: {
+              include: {
+                proxiedOAuthConfig: true,
+                standardOAuthConfig: true,
+              },
+            },
+          }
+        }
       },
-    }) : undefined;
+    });
 
-    // ======================= email config =======================
+    // the project does not exist, the update operation is invalid
+    if (!oldProject) {
+      return {};
+    }
+
+    // ======================= update email config =======================
     // update the corresponding config type if it is already defined
     // delete the other config type
     // create the config type if it is not defined
 
-    let emailConfigCreate: Prisma.EmailServiceConfigCreateWithoutProjectConfigInput;
-    let emailConfigUpdate: Prisma.EmailServiceConfigUpdateWithoutProjectConfigInput;
+    const emailConfig = crud.config?.email_config;
+    if (emailConfig) {
+      let updateData = {};
 
-    if (crud.config?.email_config?.type === "standard") {
-      const createParams = {
-        senderEmail: throwIfUndefined(crud.config.email_config.sender_email, "sender_email"),
-        senderName: throwIfUndefined(crud.config.email_config.sender_name, "sender_name"),
-        host: throwIfUndefined(crud.config.email_config.host, "host"),
-        port: throwIfUndefined(crud.config.email_config.port, "port"),
-        username: throwIfUndefined(crud.config.email_config.username, "username"),
-        password: throwIfUndefined(crud.config.email_config.password, "password"),
-      } as const;
+      await prismaClient.standardEmailServiceConfig.deleteMany({
+        where: { projectConfigId: oldProject.config.id },
+      });
+      await prismaClient.proxiedEmailServiceConfig.deleteMany({
+        where: { projectConfigId: oldProject.config.id },
+      });
 
-      emailConfigCreate = {
-        standardEmailServiceConfig: {
-          create: createParams,
-        },
-      };
 
-      emailConfigUpdate = {
-        standardEmailServiceConfig: {
-          create: createParams,
-          update: type === 'update' ? createParams : undefined,
-        },
-        proxiedEmailServiceConfig: {
-          delete: true,
-        }
-      };
-    } else {
-      emailConfigCreate = {
-        proxiedEmailServiceConfig: {
-          create: {}
-        },
-      };
+      if (emailConfig.type === 'standard') {
+        updateData = {
+          standardEmailServiceConfig: {
+            create: {
+              host: throwIfUndefined(emailConfig.host, "host"),
+              port: throwIfUndefined(emailConfig.port, "port"),
+              username: throwIfUndefined(emailConfig.username, "username"),
+              password: throwIfUndefined(emailConfig.password, "password"),
+              senderEmail: throwIfUndefined(emailConfig.sender_email, "sender_email"),
+              senderName: throwIfUndefined(emailConfig.sender_name, "sender_name"),
+            },
+          },
+        };
+      } else {
+        updateData = {
+          proxiedEmailServiceConfig: {
+            create: {},
+          },
+        };
+      }
 
-      emailConfigUpdate = {
-        proxiedEmailServiceConfig: {
-          create: {},
-          update: type === 'update' ? {} : undefined,
-        },
-        standardEmailServiceConfig: {
-          delete: true,
-        }
-      };
+      await prismaClient.emailServiceConfig.update({
+        where: { projectConfigId: oldProject.config.id },
+        data: updateData,
+      });
     }
-    
-    const emailServiceConfig = crud.config?.email_config ? {
-      create: type === 'create' ? emailConfigCreate : undefined,
-      update: type === 'update' ? emailConfigUpdate : undefined,
-    } : undefined;
-
-    // ======================= domain config =======================
-    // delete all domains and re-create based on crud.config.domains
-
-    const domains = crud.config?.domains ? {
-      deleteMany: {},
-      create: crud.config.domains.map(item => ({
-        domain: item.domain,
-        handlerPath: item.handler_path,
-      })),
-    } : undefined;
     
     // ======================= oauth config =======================
     // loop though all the items from crud.config.oauth_providers
@@ -177,93 +243,83 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
     // update the config if it is already in the DB
     // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
 
-    let oauthProviderConfigs: Prisma.OAuthProviderConfigUpdateManyWithoutProjectConfigNestedInput | undefined = undefined;
+    // let oauthProviderConfigs: Prisma.OAuthProviderConfigUpdateManyWithoutProjectConfigNestedInput | undefined = undefined;
 
-    if (crud.config?.oauth_providers) {
-      const createOAuthConfig = (item: typeof crud.config.oauth_providers[number]) => {
-        if (item.type === "standard") {
-          return {
-            standardOAuthConfig: {
-              create: {
-                type: typedToUppercase(item.id),
-                clientId: throwIfUndefined(item.client_id, "client_id"),
-                clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
-              }
-            },
-            proxiedOAuthConfig: {
-              delete: true,
-            }
-          };
-        } else {
-          return {
-            proxiedOAuthConfig: {
-              create: {
-                type: typedToUppercase(item.id)
-              }
-            },
-            standardOAuthConfig: {
-              delete: true,
-            }
-          };
+    // if (crud.config?.oauth_providers) {
+    //   const createOAuthConfig = (item: typeof crud.config.oauth_providers[number]) => {
+    //     if (item.type === "standard") {
+    //       return {
+    //         standardOAuthConfig: {
+    //           create: {
+    //             type: typedToUppercase(item.id),
+    //             clientId: throwIfUndefined(item.client_id, "client_id"),
+    //             clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
+    //           }
+    //         },
+    //         proxiedOAuthConfig: {
+    //           delete: true,
+    //         }
+    //       };
+    //     } else {
+    //       return {
+    //         proxiedOAuthConfig: {
+    //           create: {
+    //             type: typedToUppercase(item.id)
+    //           }
+    //         },
+    //         standardOAuthConfig: {
+    //           delete: true,
+    //         }
+    //       };
         
-        }
-      };
+    //     }
+    //   };
 
-      oauthProviderConfigs = {
-        create: crud.config.oauth_providers.map(item => ({
-          id: item.id,
-          enabled: true,
-          ...createOAuthConfig(item),
-        })),
-        update: crud.config.oauth_providers.map(item => ({
-          where: {
-            projectConfigId_id: {
-              projectConfigId: throwIfUndefined(oldProject?.config.id, "oldProject.config.id"),
-              id: item.id,
-            }
-          },
-          data: {
-            enabled: true,
-            ...createOAuthConfig(item),
-          }
-        })),
-      };
-    }
+    //   oauthProviderConfigs = {
+    //     create: crud.config.oauth_providers.map(item => ({
+    //       id: item.id,
+    //       enabled: true,
+    //       ...createOAuthConfig(item),
+    //     })),
+    //     update: crud.config.oauth_providers.map(item => ({
+    //       where: {
+    //         projectConfigId_id: {
+    //           projectConfigId: throwIfUndefined(oldProject?.config.id, "oldProject.config.id"),
+    //           id: item.id,
+    //         }
+    //       },
+    //       data: {
+    //         enabled: true,
+    //         ...createOAuthConfig(item),
+    //       }
+    //     })),
+    //   };
+    // }
 
-    // ======================= full update =======================
+    // ======================= execute the transactions =======================
+
+    // ======================= update the rest =======================
 
     return {
-      id: type === 'update' ? params.projectId : generateUuid(),
       displayName: crud.display_name,
       description: crud.description,
-      isProductionMode: crud.is_production_mode || (type === 'create' ? false : undefined),
+      isProductionMode: crud.is_production_mode,
       config: {
-        update: type === 'update' ? {
+        update: {
           credentialEnabled: crud.config?.credential_enabled,
           magicLinkEnabled: crud.config?.magic_link_enabled,
           allowLocalhost: crud.config?.allow_localhost,
           createTeamOnSignUp: crud.config?.create_team_on_sign_up,
-          domains,
-          oauthProviderConfigs,
-          emailServiceConfig,
-        } : undefined,
-        create: type === 'create' ? {
-          credentialEnabled: crud.config?.credential_enabled || true,
-          magicLinkEnabled: crud.config?.magic_link_enabled || false,
-          allowLocalhost: crud.config?.allow_localhost || true,
-          createTeamOnSignUp: crud.config?.create_team_on_sign_up || false,
-          domains,
-          oauthProviderConfigs,
-          emailServiceConfig: crud.config?.email_config ? emailServiceConfig : {
-            create: {
-              proxiedEmailServiceConfig: {
-                create: {}
-              },
-            },
-          },
-        } : undefined,
-      }
-    };
+          domains: crud.config?.domains ? {
+            deleteMany: {},
+            create: crud.config.domains.map(item => ({
+              domain: item.domain,
+              handlerPath: item.handler_path,
+            })),
+          } : undefined
+        },
+      },
+    } satisfies Prisma.ProjectUpdateInput;
   },
   onCreate: async (prisma, { auth }) => {
     const user = throwIfUndefined(auth.user, 'auth.user');
@@ -277,9 +333,9 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       },
       data: {
         serverMetadata: {
-          ...serverMetadataTx ?? {},
+          ...(serverMetadataTx ?? {}),
           managedProjectIds: [
-            ...serverMetadataTx?.managedProjectIds ?? [],
+            ...(serverMetadataTx?.managedProjectIds ?? []),
             prisma.id,
           ],
         },

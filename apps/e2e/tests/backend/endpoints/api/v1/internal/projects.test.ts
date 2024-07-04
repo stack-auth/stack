@@ -348,7 +348,6 @@ describe("with internal project ID", async () => {
       }
     `);
     
-
     // update again with overwriting the previous domain
     const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
       accessType: "client",
@@ -406,7 +405,7 @@ describe("with internal project ID", async () => {
     
     // create another project and update its domain
     const { projectId: projectId2 } = await Project.createProject();
-    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
+    const response1p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
       accessType: "client",
       method: "PATCH",
       body: {
@@ -418,7 +417,7 @@ describe("with internal project ID", async () => {
         },
       },
     });
-    expect(response3).toMatchInlineSnapshot(`
+    expect(response1p2).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -451,11 +450,11 @@ describe("with internal project ID", async () => {
     `);
     
     // check if the first project still has the same domains
-    const response4 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
+    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
       accessType: "client",
       method: "GET",
     });
-    expect(response4).toMatchInlineSnapshot(`
+    expect(response3).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -492,10 +491,12 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  it("update project email configuration", async ({ expect }) => {
+  it("create and update project email configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
-    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+    const { projectId: projectId1 } = await Project.createProject();
+
+    // create standard email config
+    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
       accessType: "client",
       method: "PATCH",
       body: {
@@ -512,7 +513,7 @@ describe("with internal project ID", async () => {
         },
       },
     });
-    expect(response).toMatchInlineSnapshot(`
+    expect(response1).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -546,5 +547,273 @@ describe("with internal project ID", async () => {
         },
       }
     `);
+
+    // create another project and update its email config
+    const { projectId: projectId2 } = await Project.createProject();
+    const response1p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "standard",
+            host: "smtp.control-group.com",
+            port: 587,
+            username: "control group",
+            password: "control group",
+            sender_name: "Control Group",
+            sender_email: "control-group@email.com",
+          },
+        },
+      },
+    });
+    expect(response1p2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": {
+              "host": "smtp.control-group.com",
+              "password": "control group",
+              "port": 587,
+              "sender_email": "control-group@email.com",
+              "sender_name": "Control Group",
+              "type": "standard",
+              "username": "control group",
+            },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    
+    // update standard email config again
+    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "standard",
+            host: "smtp.example2.com",
+            port: 587,
+            username: "test username2",
+            password: "test password2",
+            sender_name: "Test Sender2",
+            sender_email: "test@email.com2",
+          },
+        },
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": {
+              "host": "smtp.example2.com",
+              "password": "test password2",
+              "port": 587,
+              "sender_email": "test@email.com2",
+              "sender_name": "Test Sender2",
+              "type": "standard",
+              "username": "test username2",
+            },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // switch back to shared email config
+    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "shared",
+          },
+        },
+      },
+    });
+    expect(response3).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // update to shared again
+    const response4 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "shared",
+          },
+        },
+      },
+    });
+    expect(response4).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // check if the second project still has the same email config
+    const response2p2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId2}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          email_config: {
+            type: "standard",
+            host: "smtp.control-group.com",
+            port: 587,
+            username: "control group",
+            password: "control group",
+            sender_name: "Control Group",
+            sender_email: "control-group@email.com",
+          },
+        },
+      },
+    });
+    expect(response2p2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": {
+              "host": "smtp.control-group.com",
+              "password": "control group",
+              "port": 587,
+              "sender_email": "control-group@email.com",
+              "sender_name": "Control Group",
+              "type": "standard",
+              "username": "control group",
+            },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
   });
+
+  // it("update project email configuration with the wrong parameters", async ({ expect }) => {
+  //   await Auth.Otp.signIn();
+  //   const { projectId } = await Project.createProject();
+  //   const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+  //     accessType: "client",
+  //     method: "PATCH",
+  //     body: {
+  //       config: {
+  //         email_config: {
+  //           type: "shared",
+  //         },
+  //       },
+  //     },
+  //   });
+  //   expect(response1).toMatchInlineSnapshot(`
+  //     NiceResponse {
+  //       "status": 404,
+  //       "body": {
+  //         "code": "PROJECT_NOT_FOUND",
+  //         "error": "Project not found or is not accessible with the current user.",
+  //       },
+  //       "headers": Headers {
+  //         "x-stack-known-error": "PROJECT_NOT_FOUND",
+  //         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+  //         <some fields may have been hidden>,
+  //       },
+  //     }
+  //   `);
+  // });
 });

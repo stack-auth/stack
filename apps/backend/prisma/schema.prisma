@@ -419,7 +419,7 @@ model ApiKeySet {
 
 model EmailServiceConfig {
   projectConfigId String        @id @db.Uuid
-  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id])
+  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -438,7 +438,7 @@ enum EmailTemplateType {
 
 model EmailTemplate {
   projectConfigId    String             @db.Uuid
-  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -452,14 +452,14 @@ model EmailTemplate {
 
 model ProxiedEmailServiceConfig {
   projectConfigId    String             @id @db.Uuid
-  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId], onDelete: Cascade)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 }
 
 model StandardEmailServiceConfig {
   projectConfigId    String             @id @db.Uuid
-  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId])
+  emailServiceConfig EmailServiceConfig @relation(fields: [projectConfigId], references: [projectConfigId], onDelete: Cascade)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 

@@ -175,115 +175,17 @@ export async function listProjects(projectUser: UsersCrud["Admin"]["Read"]): Pro
   return projects.map(p => projectJsonFromDbType(p));
 }
 
-export async function createProject(
-  projectUser: ServerUserJson,
-  projectOptions: ProjectUpdateOptions & { displayName: string },
-): Promise<ProjectJson> {
-  if (projectUser.projectId !== "internal") {
-    throw new Error("Only internal project users can create projects");
-  }
-
-  const project = await prismaClient.$transaction(async (tx) => {
-    const project = await tx.project.create({
-      data: {
-        id: generateUuid(),
-        isProductionMode: false,
-        displayName: projectOptions.displayName,
-        description: projectOptions.description,
-        config: {
-          create: {
-            allowLocalhost: projectOptions.config?.allowLocalhost ?? true,
-            credentialEnabled: !!projectOptions.config?.credentialEnabled,
-            magicLinkEnabled: !!projectOptions.config?.magicLinkEnabled,
-            createTeamOnSignUp: !!projectOptions.config?.createTeamOnSignUp,
-            emailServiceConfig: {
-              create: {
-                proxiedEmailServiceConfig: {
-                  create: {}
-                }
-              }
-            },
-          },
-        },
-      },
-      include: fullProjectInclude,
-    });
-
-    await tx.permission.create({
-      data: {
-        projectId: project.id,
-        projectConfigId: project.config.id,
-        queryableId: "member",
-        description: "Default permission for team members",
-        scope: 'TEAM',
-        parentEdges: {
-          createMany: {
-            data: (['READ_MEMBERS', 'INVITE_MEMBERS'] as const).map(p => ({ parentTeamSystemPermission: p })),
-          },
-        },
-        isDefaultTeamMemberPermission: true,
-      },
-    });
-    
-    await tx.permission.create({
-      data: {
-        projectId: project.id,
-        projectConfigId: project.config.id,
-        queryableId: "admin",
-        description: "Default permission for team creators",
-        scope: 'TEAM',
-        parentEdges: {
-          createMany: {
-            data: (['UPDATE_TEAM', 'DELETE_TEAM', 'READ_MEMBERS', 'REMOVE_MEMBERS', 'INVITE_MEMBERS'] as const).map(p =>({ parentTeamSystemPermission: p }))
-          },
-        },
-        isDefaultTeamCreatorPermission: true,
-      },
-    });
-
-    const projectUserTx = await tx.projectUser.findUniqueOrThrow({
-      where: {
-        projectId_projectUserId: {
-          projectId: "internal",
-          projectUserId: projectUser.id,
-        },
-      },
-    });
-
-    const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
-
-    await tx.projectUser.update({
-      where: {
-        projectId_projectUserId: {
-          projectId: "internal",
-          projectUserId: projectUserTx.projectUserId,
-        },
-      },
-      data: {
-        serverMetadata: {
-          ...serverMetadataTx ?? {},
-          managedProjectIds: [
-            ...serverMetadataTx?.managedProjectIds ?? [],
-            project.id,
-          ],
-        },
-      },
-    });
-
-    return project;
+export async function getProject(projectId: string): Promise<ProjectJson | null> {
+  const rawProject = await prismaClient.project.findUnique({
+    where: { id: projectId },
+    include: fullProjectInclude,
   });
 
-  const updatedProject = await updateProject(project.id, projectOptions);
-
-  if (!updatedProject) {
-    throw new Error("Failed to update project after creation");
+  if (!rawProject) {
+    return null;
   }
 
-  return updatedProject;
-}
-
-export async function getProject(projectId: string): Promise<ProjectJson | null> {
-  return await updateProject(projectId, {});
+  return projectJsonFromDbType(rawProject);
 }
 
 async function _createOAuthConfigUpdateTransactions(
@@ -539,79 +441,6 @@ async function _createDefaultPermissionsUpdateTransactions(
   }
 
   return transactions;
-}
-
-export async function updateProject(
-  projectId: string,
-  options: ProjectUpdateOptions,
-): Promise<ProjectJson | null> {
-  // TODO: Validate production mode consistency
-  const transaction = [];
-
-  const project = await prismaClient.project.findUnique({
-    where: { id: projectId },
-    include: fullProjectInclude,
-  });
-
-  if (!project) {
-    return null;
-  }
-
-  if (options.config?.domains) {
-    const newDomains = options.config.domains;
-
-    // delete existing domains
-    transaction.push(prismaClient.projectDomain.deleteMany({
-      where: { projectConfigId: project.config.id },
-    }));
-
-    // create new domains
-    newDomains.forEach(domainConfig => {
-      transaction.push(prismaClient.projectDomain.create({
-        data: {
-          projectConfigId: project.config.id,
-          domain: domainConfig.domain,
-          handlerPath: domainConfig.handlerPath,
-        },
-      }));
-    });
-  }
-
-  transaction.push(...(await _createOAuthConfigUpdateTransactions(projectId, options)));
-  transaction.push(...(await _createEmailConfigUpdateTransactions(projectId, options)));
-  transaction.push(...(await _createDefaultPermissionsUpdateTransactions(projectId, options)));
-
-  transaction.push(prismaClient.projectConfig.update({
-    where: { id: project.config.id },
-    data: { 
-      credentialEnabled: options.config?.credentialEnabled,
-      magicLinkEnabled: options.config?.magicLinkEnabled,
-      allowLocalhost: options.config?.allowLocalhost,
-      createTeamOnSignUp: options.config?.createTeamOnSignUp,
-    },
-  }));
-  
-  transaction.push(prismaClient.project.update({
-    where: { id: projectId },
-    data: { 
-      displayName: options.displayName,
-      description: options.description,
-      isProductionMode: options.isProductionMode 
-    },
-  }));
-
-  await prismaClient.$transaction(transaction);
-  
-  const updatedProject = await prismaClient.project.findUnique({
-    where: { id: projectId },
-    include: fullProjectInclude, // Ensure you have defined this include object correctly elsewhere
-  });
-
-  if (!updatedProject) {
-    return null;
-  }
-
-  return projectJsonFromDbType(updatedProject);
 }
 
 export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
