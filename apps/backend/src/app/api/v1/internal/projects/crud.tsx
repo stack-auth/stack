@@ -156,7 +156,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
     }
     
     const emailServiceConfig = crud.config?.email_config ? {
-      create: emailConfigCreate,
+      create: type === 'create' ? emailConfigCreate : undefined,
       update: type === 'update' ? emailConfigUpdate : undefined,
     } : undefined;
 
