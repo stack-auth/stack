@@ -93,6 +93,7 @@ export const projectsCrudClientReadSchema = yupObject({
 }).required();
 
 export const projectsCrudClientUpdateSchema = yupObject({
+  display_name: yupString().optional(),
   description: yupString().optional(),
   is_production_mode: yupBoolean().optional(),
   config: yupObject({

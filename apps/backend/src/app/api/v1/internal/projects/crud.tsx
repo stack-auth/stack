@@ -131,7 +131,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       emailConfigUpdate = {
         standardEmailServiceConfig: {
           create: createParams,
-          update: createParams,
+          update: type === 'update' ? createParams : undefined,
         },
         proxiedEmailServiceConfig: {
           delete: true,
@@ -147,24 +147,24 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       emailConfigUpdate = {
         proxiedEmailServiceConfig: {
           create: {},
-          update: {},
+          update: type === 'update' ? {} : undefined,
         },
         standardEmailServiceConfig: {
           delete: true,
         }
       };
     }
-
+    
     const emailServiceConfig = crud.config?.email_config ? {
       create: emailConfigCreate,
-      update: emailConfigUpdate,
+      update: type === 'update' ? emailConfigUpdate : undefined,
     } : undefined;
 
     // ======================= domain config =======================
     // delete all domains and re-create based on crud.config.domains
 
     const domains = crud.config?.domains ? {
-      set: [],
+      deleteMany: {},
       create: crud.config.domains.map(item => ({
         domain: item.domain,
         handlerPath: item.handler_path,
@@ -247,7 +247,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
           oauthProviderConfigs,
           emailServiceConfig,
         } : undefined,
-        create: {
+        create: type === 'create' ? {
           credentialEnabled: crud.config?.credential_enabled || true,
           magicLinkEnabled: crud.config?.magic_link_enabled || false,
           allowLocalhost: crud.config?.allow_localhost || true,
@@ -261,7 +261,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
               },
             },
           },
-        }
+        } : undefined,
       }
     };
   },

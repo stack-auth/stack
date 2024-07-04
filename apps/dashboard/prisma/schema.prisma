@@ -270,12 +270,12 @@ model OAuthToken {
 }
 
 model OAuthOuterInfo {
-  id         String   @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
   info       Json
   innerState String   @unique
   expiresAt  DateTime
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -318,21 +318,21 @@ model ProjectUserAuthorizationCode {
 }
 
 model VerificationCode {
-  projectId     String
-  id            String @default(uuid()) @db.Uuid
+  projectId String
+  id        String @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  type          VerificationCodeType
-  code          String
-  expiresAt     DateTime
-  usedAt        DateTime?
-  redirectUrl   String?
+  type        VerificationCodeType
+  code        String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  redirectUrl String?
 
-  email         String
+  email String
 
-  data          Json
+  data Json
 
   @@id([projectId, id])
   @@unique([projectId, code])
