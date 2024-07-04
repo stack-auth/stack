@@ -116,24 +116,22 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
               }))
             } : undefined,
             oauthProviderConfigs: crud.config?.oauth_providers ? {
-              createMany: {
-                data: crud.config.oauth_providers.map(item => ({
-                  id: item.id,
-                  enabled: item.enabled,
-                  proxiedOAuthConfig: item.type === "shared" ? {
-                    create: {
-                      type: typedToUppercase(item.id),
-                    }
-                  } : undefined,
-                  standardOAuthConfig: item.type === "standard" ? {
-                    create: {
-                      type: typedToUppercase(item.id),
-                      clientId: throwIfUndefined(item.client_id, "client_id"),
-                      clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
-                    }
-                  } : undefined,
-                }))
-              }
+              create: crud.config.oauth_providers.map(item => ({
+                id: item.id,
+                enabled: item.enabled,
+                proxiedOAuthConfig: item.type === "shared" ? {
+                  create: {
+                    type: typedToUppercase(item.id),
+                  }
+                } : undefined,
+                standardOAuthConfig: item.type === "standard" ? {
+                  create: {
+                    type: typedToUppercase(item.id),
+                    clientId: throwIfUndefined(item.client_id, "client_id"),
+                    clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
+                  }
+                } : undefined,
+              }))
             } : undefined,
             emailServiceConfig: crud.config?.email_config ? {
               create: {

@@ -23,6 +23,7 @@ const hideHeaders = [
   "x-frame-options",
   "content-encoding",
   "etag",
+  "location",
 ];
 
 const stripHeaders = ["x-stack-request-id"];

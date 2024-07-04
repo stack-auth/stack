@@ -95,7 +95,6 @@ describe("with internal project ID", async () => {
           "user_count": 0,
         },
         "headers": Headers {
-          "location": "http://localhost:8102/api/v1/internal/projects",
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
@@ -105,10 +104,113 @@ describe("with internal project ID", async () => {
 
   it("create a new project with different configurations", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const result = await Project.createProject({
+    const { createProjectResponse: response1 } = await Project.createProject({
       display_name: "Test Project",
+      description: "Test description",
+      is_production_mode: true,
+      config: {
+        allow_localhost: false,
+        credential_enabled: false,
+        magic_link_enabled: true,
+      },
     });
-    expect(result.createProjectResponse).toMatchInlineSnapshot(`
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": "<stripped UUID>",
+            "magic_link_enabled": true,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "Test description",
+          "display_name": "Test Project",
+          "id": "<stripped UUID>",
+          "is_production_mode": true,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // create with oauth providers
+    const { createProjectResponse: response2 } = await Project.createProject({
+      display_name: "Test Project",
+      config: {
+        oauth_providers: [
+          {
+            id: "google",
+            type: "shared",
+            enabled: true,
+          },
+          {
+            id: "facebook",
+            type: "standard",
+            enabled: false,
+            client_id: "client_id",
+            client_secret: "client_secret",
+          }
+        ]
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": "<stripped UUID>",
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "enabled": true,
+                "id": "google",
+                "type": "shared",
+              },
+              {
+                "client_id": "client_id",
+                "client_secret": "client_secret",
+                "enabled": false,
+                "id": "facebook",
+                "type": "standard",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "Test Project",
+          "id": "<stripped UUID>",
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // create with shared email config
+    const { createProjectResponse: response3 } = await Project.createProject({
+      display_name: "Test Project",
+      config: {
+        email_config: {
+          type: "shared",
+        },
+      },
+    });
+    expect(response3).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 201,
         "body": {
@@ -129,7 +231,108 @@ describe("with internal project ID", async () => {
           "user_count": 0,
         },
         "headers": Headers {
-          "location": "http://localhost:8102/api/v1/internal/projects",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // create with standard email config
+    const { createProjectResponse: response4 } = await Project.createProject({
+      display_name: "Test Project",
+      config: {
+        email_config: {
+          type: "standard",
+          host: "smtp.example.com",
+          port: 587,
+          username: "test username",
+          password: "test password",
+          sender_name: "Test Sender",
+          sender_email: "test@email.com",
+        },
+      },
+    });
+    expect(response4).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": {
+              "host": "smtp.example.com",
+              "password": "test password",
+              "port": 587,
+              "sender_email": "test@email.com",
+              "sender_name": "Test Sender",
+              "type": "standard",
+              "username": "test username",
+            },
+            "id": "<stripped UUID>",
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "Test Project",
+          "id": "<stripped UUID>",
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // create with domains
+    const { createProjectResponse: response5 } = await Project.createProject({
+      display_name: "Test Project",
+      config: {
+        domains: [
+          {
+            domain: 'https://domain1.com',
+            handler_path: '/handler1'
+          },
+          {
+            domain: 'https://domain2.com',
+            handler_path: '/handler2'
+          }
+        ]
+      },
+    });
+    expect(response5).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [
+              {
+                "domain": "https://domain1.com",
+                "handler_path": "/handler1",
+              },
+              {
+                "domain": "https://domain2.com",
+                "handler_path": "/handler2",
+              },
+            ],
+            "email_config": { "type": "shared" },
+            "id": "<stripped UUID>",
+            "magic_link_enabled": false,
+            "oauth_providers": [],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "Test Project",
+          "id": "<stripped UUID>",
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
@@ -137,42 +340,42 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  // it("list current projects after creating a new project", async ({ expect }) => {
-  //   await Auth.Otp.signIn();
-  //   await Project.createProject();
-  //   const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
-  //   expect(response).toMatchInlineSnapshot(`
-  //     NiceResponse {
-  //       "status": 200,
-  //       "body": {
-  //         "is_paginated": false,
-  //         "items": [
-  //           {
-  //             "config": {
-  //               "allow_localhost": true,
-  //               "credential_enabled": true,
-  //               "domains": [],
-  //               "email_config": { "type": "shared" },
-  //               "id": "<stripped UUID>",
-  //               "magic_link_enabled": false,
-  //               "oauth_providers": [],
-  //             },
-  //             "created_at_millis": <stripped field 'created_at_millis'>,
-  //             "description": "",
-  //             "display_name": "New Project",
-  //             "id": "<stripped UUID>",
-  //             "is_production_mode": false,
-  //             "user_count": 0,
-  //           },
-  //         ],
-  //       },
-  //       "headers": Headers {
-  //         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-  //         <some fields may have been hidden>,
-  //       },
-  //     }
-  //   `);
-  // });
+  it("list current projects after creating a new project", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    await Project.createProject();
+    const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [
+            {
+              "config": {
+                "allow_localhost": true,
+                "credential_enabled": true,
+                "domains": [],
+                "email_config": { "type": "shared" },
+                "id": "<stripped UUID>",
+                "magic_link_enabled": false,
+                "oauth_providers": [],
+              },
+              "created_at_millis": <stripped field 'created_at_millis'>,
+              "description": "",
+              "display_name": "New Project",
+              "id": "<stripped UUID>",
+              "is_production_mode": false,
+              "user_count": 0,
+            },
+          ],
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 
   it("get a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
@@ -321,7 +524,7 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  it("create and update project domains configuration", async ({ expect }) => {
+  it("update project domains configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId: projectId1 } = await Project.createProject();
     const { updateProjectResponse: response1 } = await Project.updateProject(projectId1, {
@@ -498,7 +701,7 @@ describe("with internal project ID", async () => {
     `);
   });
 
-  it("create and update project email configuration", async ({ expect }) => {
+  it("update project email configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId: projectId1 } = await Project.createProject();
 
