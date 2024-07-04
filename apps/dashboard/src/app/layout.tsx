@@ -23,8 +23,14 @@ export const metadata: Metadata = {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
   },
-  description: 'Stack Auth is the fastest way to add authentication to your web app.',
   openGraph:{
+    title : 'Stack Auth Dashboard',
+    description: 'Stack Auth is the fastest way to add authentication to your web app.',
+    images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
+  },
+  twitter:{
+    title : 'Stack Auth Dashboard',
+    description: 'Stack Auth is the fastest way to add authentication to your web app.',
     images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
   }
 };
