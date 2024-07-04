@@ -34,6 +34,7 @@ const stripFields = [
   "date",
   "signed_up_at_millis",
   "user_id",
+  "created_at_millis",
 ];
 
 function addAll<T>(set: Set<T>, values: T[]) {

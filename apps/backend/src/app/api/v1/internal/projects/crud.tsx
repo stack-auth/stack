@@ -12,6 +12,7 @@ import {
   serverPermissionDefinitionJsonFromTeamSystemDbType,
 } from "@/lib/permissions";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
 
 export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(projectsCrud, "project", {
@@ -79,15 +80,15 @@ export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandle
     },
   }),
   notFoundError: () => new KnownErrors.ProjectNotFound(),
-  crudToPrisma: async (crud, { auth, params }) => {
-    const oldProject = await prismaClient.project.findUnique({
+  crudToPrisma: async (crud, { auth, params, type }) => {
+    const oldProject = type === 'update' ? await prismaClient.project.findUnique({
       where: {
         id: params.projectId,
       },
       include: {
         config: true,
       },
-    });
+    }) : undefined;
 
     // ======================= email config =======================
     // update the corresponding config type if it is already defined
@@ -218,11 +219,12 @@ export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandle
     // ======================= full update =======================
 
     return {
+      id: type === 'update' ? params.projectId : generateUuid(),
       displayName: crud.display_name,
       description: crud.description,
-      isProductionMode: crud.is_production_mode,
+      isProductionMode: crud.is_production_mode || (type === 'create' ? false : undefined),
       config: {
-        update: {
+        update: type === 'update' ? {
           credentialEnabled: crud.config?.credential_enabled,
           magicLinkEnabled: crud.config?.magic_link_enabled,
           allowLocalhost: crud.config?.allow_localhost,
@@ -230,20 +232,21 @@ export const projectsCrudHandlers = createLazyProxy(() => createPrismaCrudHandle
           domains,
           oauthProviderConfigs,
           emailServiceConfig,
-        },
+        } : undefined,
         create: {
-          credentialEnabled: crud.config?.credential_enabled || false,
+          credentialEnabled: crud.config?.credential_enabled || true,
           magicLinkEnabled: crud.config?.magic_link_enabled || false,
           allowLocalhost: crud.config?.allow_localhost || true,
           createTeamOnSignUp: crud.config?.create_team_on_sign_up || false,
           domains,
+          oauthProviderConfigs,
           emailServiceConfig: crud.config?.email_config ? emailServiceConfig : {
             create: {
               proxiedEmailServiceConfig: {
                 create: {}
               },
             },
-          }
+          },
         }
       }
     };

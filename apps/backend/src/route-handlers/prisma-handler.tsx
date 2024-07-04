@@ -25,6 +25,8 @@ type Context<AllParams extends boolean, PS extends ParamsSchema> = {
   auth: SmartRequestAuth,
 };
 
+type CrudToPrismaContext<AllParams extends boolean, PS extends ParamsSchema> = Context<AllParams, PS> & { type: 'update' | 'create' };
+
 type CRead<T extends CrudTypeOf<any>> = T extends { Admin: { Read: infer R } } ? R : never;
 type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R } } ? R : never;
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
@@ -68,8 +70,7 @@ export function createPrismaCrudHandlers<
       where?: (context: Context<false, PS>) => Promise<W>,
       whereUnique?: (context: Context<true, PS>) => Promise<WhereUnique<PrismaModelName>>,
       include: (context: Context<false, PS>) => Promise<I>,
-      crudToPrisma?:
-        & ((crud: CEitherWrite<CrudTypeOf<S>>, context: Context<false, PS>) => Promise<PEitherWrite<PrismaModelName>>),
+      crudToPrisma?: (crud: CEitherWrite<CrudTypeOf<S>>, context: CrudToPrismaContext<false, PS>) => Promise<PEitherWrite<PrismaModelName>>,
       prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<CRead<CrudTypeOf<S>>>,
       onCreate?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<void>,
       fieldMapping?: any,
@@ -142,7 +143,7 @@ export function createPrismaCrudHandlers<
         include: await options.include(context),
         data: {
           ...await options.baseFields(context),
-          ...await crudToPrisma(data, context),
+          ...await crudToPrisma(data, { ...context, type: 'create' }),
         },
       });
       // TODO pass the same transaction to onCreate as the one that creates the user row
@@ -158,7 +159,7 @@ export function createPrismaCrudHandlers<
           ...await options.where?.(context),
           ...await options.whereUnique?.(context),
         },
-        data: await crudToPrisma(data, context),
+        data: await crudToPrisma(data, { ...context, type: 'update' }),
       });
       return await prismaToCrud(prisma, context);
     }),

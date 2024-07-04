@@ -45,6 +45,38 @@ describe("without project ID", () => {
   it.todo("should not be able to authenticate as user");
 });
 
+describe("with the wrong project keys", async () => {
+  backendContext.set({
+    projectKeys: {
+      projectId: "project-id",
+      publishableClientKey: "publish-key",
+      secretServerKey: "secret-key",
+      superSecretAdminKey: "admin-key",
+    }
+  });
+
+  it("should not have client access", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INVALID_PUBLISHABLE_CLIENT_KEY",
+          "details": { "project_id": "project-id" },
+          "error": "The publishable key is not valid for the project \\"project-id\\". Does the project and/or the key exist?",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INVALID_PUBLISHABLE_CLIENT_KEY",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+});
+
 describe("with internal project ID", async () => {
   backendContext.set({
     projectKeys: InternalProjectKeys,

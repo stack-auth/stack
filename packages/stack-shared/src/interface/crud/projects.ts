@@ -59,19 +59,19 @@ export const domainSchema = yup.object({
   handler_path: yup.string().required(),
 });
 
-export const projectsCrudClientReadSchema = yup.object({
-  id: yup.string().required(),
-  evaluated_config: yup.object({
-    credential_enabled: yup.boolean().required(),
-    magic_link_enabled: yup.boolean().required(),
-    oauth_providers: yup.array(yup.object({
-      id: yup.string().required(),
-      enabled: yup.boolean().required(),
-    }).required()).required(),
-  }).required(),
-}).required();
+// export const projectsCrudClientReadSchema = yup.object({
+//   id: yup.string().required(),
+//   evaluated_config: yup.object({
+//     credential_enabled: yup.boolean().required(),
+//     magic_link_enabled: yup.boolean().required(),
+//     oauth_providers: yup.array(yup.object({
+//       id: yup.string().required(),
+//       enabled: yup.boolean().required(),
+//     }).required()).required(),
+//   }).required(),
+// }).required();
 
-export const projectsCrudAdminReadSchema = yup.object({
+export const projectsCrudClientReadSchema = yup.object({
   id: yup.string().required(),
   display_name: yup.string().required(),
   description: yup.string().optional(),
@@ -91,7 +91,7 @@ export const projectsCrudAdminReadSchema = yup.object({
   }).required(),
 }).required();
 
-export const projectsCrudAdminUpdateSchema = yup.object({
+export const projectsCrudClientUpdateSchema = yup.object({
   description: yup.string().optional(),
   is_production_mode: yup.boolean().optional(),
   config: yup.object({
@@ -107,31 +107,31 @@ export const projectsCrudAdminUpdateSchema = yup.object({
   }).optional().default(undefined),
 }).required();
 
-export const projectsCrudAdminCreateSchema = projectsCrudAdminUpdateSchema.concat(yup.object({
+export const projectsCrudClientCreateSchema = projectsCrudClientUpdateSchema.concat(yup.object({
   display_name: yup.string().required(),
 }).required());
 
-export const projectsCrudAdminDeleteSchema = yup.mixed();
+export const projectsCrudClientDeleteSchema = yup.mixed();
 
 export const projectsCrud = createCrud({
-  adminReadSchema: projectsCrudAdminReadSchema,
-  adminUpdateSchema: projectsCrudAdminUpdateSchema,
-  adminCreateSchema: projectsCrudAdminCreateSchema,
-  adminDeleteSchema: projectsCrudAdminDeleteSchema,
+  clientReadSchema: projectsCrudClientReadSchema,
+  clientUpdateSchema: projectsCrudClientUpdateSchema,
+  clientCreateSchema: projectsCrudClientCreateSchema,
+  clientDeleteSchema: projectsCrudClientDeleteSchema,
   docs: {
-    adminCreate: {
+    clientCreate: {
       hidden: true,
     },
-    adminRead: {
+    clientRead: {
       hidden: true,
     },
-    adminUpdate: {
+    clientUpdate: {
       hidden: true,
     },
-    adminDelete: {
+    clientDelete: {
       hidden: true,
     },
-    adminList: {
+    clientList: {
       hidden: true,
     },
   },
