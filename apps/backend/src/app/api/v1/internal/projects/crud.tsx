@@ -1,6 +1,6 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { prismaClient } from "@/prisma-client";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
@@ -119,6 +119,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
               createMany: {
                 data: crud.config.oauth_providers.map(item => ({
                   id: item.id,
+                  enabled: item.enabled,
                   proxiedOAuthConfig: item.type === "shared" ? {
                     create: {
                       type: typedToUppercase(item.id),
@@ -237,66 +238,113 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       });
     }
     
-    // ======================= oauth config =======================
+    // ======================= update oauth config =======================
     // loop though all the items from crud.config.oauth_providers
     // create the config if it is not already in the DB
     // update the config if it is already in the DB
     // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
 
-    // let oauthProviderConfigs: Prisma.OAuthProviderConfigUpdateManyWithoutProjectConfigNestedInput | undefined = undefined;
+    const oldProviders = oldProject.config.oauthProviderConfigs;
+    const oauthProviderUpdates = crud.config?.oauth_providers;
+    if (oauthProviderUpdates) {
+      const providerMap = new Map(oldProviders.map((provider) => [
+        provider.id, 
+        {
+          providerUpdate: (() => {
+            const update = oauthProviderUpdates.find((p) => p.id === provider.id);
+            if (!update) {
+              throw new StatusError(StatusError.BadRequest, `Provider with id '${provider.id}' not found in the update`);
+            }
+            return update;
+          })(),
+          oldProvider: provider,
+        }
+      ]));
 
-    // if (crud.config?.oauth_providers) {
-    //   const createOAuthConfig = (item: typeof crud.config.oauth_providers[number]) => {
-    //     if (item.type === "standard") {
-    //       return {
-    //         standardOAuthConfig: {
-    //           create: {
-    //             type: typedToUppercase(item.id),
-    //             clientId: throwIfUndefined(item.client_id, "client_id"),
-    //             clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
-    //           }
-    //         },
-    //         proxiedOAuthConfig: {
-    //           delete: true,
-    //         }
-    //       };
-    //     } else {
-    //       return {
-    //         proxiedOAuthConfig: {
-    //           create: {
-    //             type: typedToUppercase(item.id)
-    //           }
-    //         },
-    //         standardOAuthConfig: {
-    //           delete: true,
-    //         }
-    //       };
-        
-    //     }
-    //   };
+      const newProviders =  oauthProviderUpdates.map((providerUpdate) => ({
+        id: providerUpdate.id, 
+        update: providerUpdate
+      })).filter(({ id }) => !providerMap.has(id));
 
-    //   oauthProviderConfigs = {
-    //     create: crud.config.oauth_providers.map(item => ({
-    //       id: item.id,
-    //       enabled: true,
-    //       ...createOAuthConfig(item),
-    //     })),
-    //     update: crud.config.oauth_providers.map(item => ({
-    //       where: {
-    //         projectConfigId_id: {
-    //           projectConfigId: throwIfUndefined(oldProject?.config.id, "oldProject.config.id"),
-    //           id: item.id,
-    //         }
-    //       },
-    //       data: {
-    //         enabled: true,
-    //         ...createOAuthConfig(item),
-    //       }
-    //     })),
-    //   };
-    // }
+      // Update existing proxied/standard providers
+      for (const [id, { providerUpdate, oldProvider }] of providerMap) {
+        // remove existing provider configs
+        if (oldProvider.proxiedOAuthConfig) {
+          await prismaClient.proxiedOAuthProviderConfig.deleteMany({
+            where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+          });
+        }
+        if (oldProvider.standardOAuthConfig) {
+          await prismaClient.standardOAuthProviderConfig.deleteMany({
+            where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+          });
+        }
+    
+        // update provider configs with newly created proxied/standard provider configs
+        let providerConfigUpdate;
+        if (providerUpdate.type === 'shared') {
+          providerConfigUpdate = {
+            proxiedOAuthConfig: {
+              create: {
+                type: typedToUppercase(providerUpdate.id),
+              },
+            },
+          };
+    
+        } else {
+          providerConfigUpdate = {
+            standardOAuthConfig: {
+              create: {
+                type: typedToUppercase(providerUpdate.id),
+                clientId: throwIfUndefined(providerUpdate.client_id, "client_id"),
+                clientSecret: throwIfUndefined(providerUpdate.client_secret, "client_secret"),
+              },
+            },
+          };
+        }
+    
+        await prismaClient.oAuthProviderConfig.update({
+          where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
+          data: {
+            enabled: providerUpdate.enabled,
+            ...providerConfigUpdate,
+          },
+        });
+      }
 
-    // ======================= execute the transactions =======================
+      // Create new providers
+      for (const provider of newProviders) {
+        let providerConfigData;
+        if (provider.update.type === 'shared') {
+          providerConfigData = {
+            proxiedOAuthConfig: {
+              create: {
+                type: typedToUppercase(provider.update.id),
+              },
+            },
+          };
+        } else {
+          providerConfigData = {
+            standardOAuthConfig: {
+              create: {
+                type: typedToUppercase(provider.update.id),
+                clientId: throwIfUndefined(provider.update.client_id, "client_id"),
+                clientSecret: throwIfUndefined(provider.update.client_secret, "client_secret"),
+              },
+            },
+          };
+        }
+
+        await prismaClient.oAuthProviderConfig.create({
+          data: {
+            id: provider.id,
+            projectConfigId: oldProject.config.id,
+            enabled: provider.update.enabled,
+            ...providerConfigData,
+          },
+        });
+      }
+    }
 
     // ======================= update the rest =======================
 

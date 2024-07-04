@@ -843,4 +843,295 @@ describe("with internal project ID", async () => {
       }
     `);
   });
+
+  it("update project oauth configuration", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const { projectId } = await Project.createProject();
+    // create google oauth provider with shared type
+    const response1 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [{
+            id: "google",
+            type: "shared",
+            enabled: true,
+          }]
+        },
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    
+    // update google oauth provider with shared type again
+    const response2 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [{
+            id: "google",
+            type: "shared",
+            enabled: true,
+          }]
+        },
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // switch to standard type
+    const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [{
+            id: "google",
+            type: "standard",
+            enabled: true,
+            client_id: "client_id",
+            client_secret: "client_secret",
+          }]
+        },
+      },
+    });
+    expect(response3).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "client_id": "client_id",
+                "client_secret": "client_secret",
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "standard",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    // add another oauth provider with invalid type
+    const response4 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [{
+            id: "facebook",
+            type: "shared",
+            enabled: true,
+          }]
+        },
+      },
+    });
+    expect(response4).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Provider with id 'google' not found in the update",
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+
+    const response5 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [
+            {
+              id: "facebook",
+              type: "shared",
+              enabled: true,
+            },
+            {
+              id: "google",
+              type: "shared",
+              enabled: true,
+            }
+          ]
+        },
+      },
+    });
+    expect(response5).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+              {
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    
+    // disable one of the oauth providers
+    const response6 = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        config: {
+          oauth_providers: [
+            {
+              id: "facebook",
+              type: "shared",
+              enabled: true,
+            },
+            {
+              id: "google",
+              type: "shared",
+              enabled: false
+            }
+          ]
+        },
+      },
+    });
+    expect(response6).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "config": {
+            "allow_localhost": true,
+            "credential_enabled": true,
+            "domains": [],
+            "email_config": { "type": "shared" },
+            "id": <stripped field 'id'>,
+            "magic_link_enabled": false,
+            "oauth_providers": [
+              {
+                "enabled": false,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+              {
+                "enabled": true,
+                "id": <stripped field 'id'>,
+                "type": "shared",
+              },
+            ],
+          },
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "",
+          "display_name": "New Project",
+          "id": <stripped field 'id'>,
+          "is_production_mode": false,
+          "user_count": 0,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 });
