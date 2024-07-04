@@ -114,13 +114,9 @@ describe("with internal project ID", async () => {
       });
       expect(response).toMatchInlineSnapshot(`
         NiceResponse {
-          "status": 401,
-          "body": {
-            "code": "ADMIN_AUTHENTICATION_REQUIRED",
-            "error": "The super secret admin key must be provided.",
-          },
+          "status": 200,
+          "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Admin\\n         Project: internal\\n         User: None",
           "headers": Headers {
-            "x-stack-known-error": "ADMIN_AUTHENTICATION_REQUIRED",
             "x-stack-request-id": <stripped header 'x-stack-request-id'>,
             <some fields may have been hidden>,
           },
