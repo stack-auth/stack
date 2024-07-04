@@ -181,10 +181,10 @@ export namespace Auth {
       email: string,
       password: string,
     };
-    export async function signUpWithEmail(): Promise<SignUpResult> {
+    export async function signUpWithEmail(options: { password?: string } = {}): Promise<SignUpResult> {
       const mailbox = backendContext.value.mailbox;
       const email = mailbox.emailAddress;
-      const password = generateSecureRandomString();
+      const password = options.password ?? generateSecureRandomString();
       const response = await niceBackendFetch("/api/v1/auth/password/sign-up", {
         method: "POST",
         accessType: "client",
@@ -199,7 +199,6 @@ export namespace Auth {
         body: {
           access_token: expect.any(String),
           refresh_token: expect.any(String),
-          is_new_user: expect.any(Boolean),
           user_id: expect.any(String),
         },
         headers: expect.anything(),

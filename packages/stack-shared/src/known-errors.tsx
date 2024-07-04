@@ -662,11 +662,11 @@ const PasswordTooShort = createKnownErrorConstructor(
     400,
     `Password too short. Minimum length is ${minLength}.`,
     {
-      minLength,
+      min_length: minLength,
     },
   ] as const,
   (json) => [
-    (json.details as any)?.minLength ?? throwErr("minLength not found in PasswordTooShort details"),
+    (json.details as any)?.min_length ?? throwErr("min_length not found in PasswordTooShort details"),
   ] as const,
 );
 
