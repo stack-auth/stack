@@ -7,11 +7,9 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
-  paramsSchema: yupObject({
-    projectId: yupString().required(),
-  }),
-  baseFields: async ({ params }) => ({
-    id: params.projectId,
+  paramsSchema: yupObject({}),
+  baseFields: async ({ auth }) => ({
+    id: auth.project.id,
   }),
   include: async () => ({
     config: {
