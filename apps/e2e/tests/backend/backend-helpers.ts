@@ -1,5 +1,5 @@
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch } from "../helpers";
+import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch, NiceRequestInit } from "../helpers";
 import { expect } from "vitest";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -55,7 +55,7 @@ function expectSnakeCase(obj: unknown, path: string): void {
   }
 }
 
-export async function niceBackendFetch(url: string, options?: Omit<RequestInit, "body"> & {
+export async function niceBackendFetch(url: string, options?: Omit<NiceRequestInit, "body"> & {
   accessType?: null | "client" | "server" | "admin",
   body?: unknown,
   headers?: Record<string, string>,

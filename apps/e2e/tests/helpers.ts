@@ -107,7 +107,17 @@ export class NiceResponse implements Nicifiable {
   }
 };
 
-export async function niceFetch(url: string | URL, options?: RequestInit): Promise<NiceResponse> {
+export type NiceRequestInit = RequestInit & {
+  query?: Record<string, string>,
+};
+
+export async function niceFetch(url: string | URL, options?: NiceRequestInit): Promise<NiceResponse> {
+  if (options?.query) {
+    url = new URL(url);
+    for (const [key, value] of Object.entries(options.query)) {
+      url.searchParams.append(key, value);
+    }
+  }
   const fetchRes = await fetch(url, options);
   let body;
   if (fetchRes.headers.get("content-type")?.includes("application/json")) {
@@ -119,6 +129,8 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
   }
   return new NiceResponse(fetchRes.status, fetchRes.headers, body);
 }
+
+export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";
 
 const generatedEmailSuffix = "@stack-generated.example.com";
 export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
