@@ -134,6 +134,7 @@ export function createPrismaCrudHandlers<
       const items = await Promise.all(prisma.map((p) => prismaToCrud(p, context)));
       return {
         items,
+        is_paginated: false,
       };
     }),
     onCreate: wrapper(false, async (data, context) => {

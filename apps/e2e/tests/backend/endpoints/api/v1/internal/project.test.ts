@@ -8,32 +8,15 @@ describe("without project access", () => {
     projectKeys: 'no-project'
   });
 
-  it("should not have have client and server access", async ({ expect }) => {
-    const response1 = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
+  it("should not have have access to the project", async ({ expect }) => {
+    const response1 = await niceBackendFetch("/api/v1/internal/projects", { accessType: "admin" });
     expect(response1).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
         "body": {
           "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "details": { "request_type": "client" },
-          "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
-      }
-    `);
-
-    const response2 = await niceBackendFetch("/api/v1/internal/projects", { accessType: "server" });
-    expect(response2).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 400,
-        "body": {
-          "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "details": { "request_type": "server" },
-          "error": "The x-stack-request-type header was 'server', but the x-stack-project-id header was not provided.",
+          "details": { "request_type": "admin" },
+          "error": "The x-stack-request-type header was 'admin', but the x-stack-project-id header was not provided.",
         },
         "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
@@ -50,8 +33,20 @@ describe("with internal project ID", async () => {
     projectKeys: InternalProjectKeys,
   });
 
-  it("should not have have access", async ({ expect }) => {
+  it("List all current projects", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "admin" });
-    expect(response).toMatchInlineSnapshot();
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [],
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
   });
 });
