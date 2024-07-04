@@ -25,7 +25,7 @@ module.exports = {
       },
     ],
     "no-restricted-syntax": [
-      ...defaults.rules["no-restricted-syntax"].filter(e => !e.message.includes("yupXyz")),
+      ...defaults.rules["no-restricted-syntax"].filter(e => typeof e === "object" && !e.message.includes("yupXyz")),
     ],
   },
 };
