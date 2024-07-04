@@ -1,7 +1,7 @@
 import { SnapshotSerializer } from "vitest";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { emailSuffix } from "./helpers";
+import { generatedEmailRegex } from "./helpers";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -30,10 +30,8 @@ const stripHeaders = ["x-stack-request-id"];
 const stripFields = [
   "access_token",
   "refresh_token",
-  "id",
   "date",
   "signed_up_at_millis",
-  "user_id",
   "created_at_millis",
 ];
 
@@ -55,9 +53,13 @@ const snapshotSerializer: SnapshotSerializer = {
       overrides: (value, options) => {
         const parentValue = options?.parent?.value;
 
-        // Strip auto-generated e-mails
-        if (typeof value === "string" && value.endsWith(emailSuffix)) {
-          return `<stripped auto-generated e-mail>`;
+        // Strip all UUIDs except all-zero UUID
+        if (typeof value === "string") {
+          const newValue = value.replace(
+            /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
+            "<stripped UUID>"
+          );
+          if (newValue !== value) return nicify(newValue, options);
         }
 
         // Strip headers
@@ -103,18 +105,6 @@ const snapshotSerializer: SnapshotSerializer = {
         }
         if (typedIncludes(stripFields, options?.keyInParent)) {
           return `<stripped field '${options.keyInParent}'>`;
-        }
-
-        // match all UUIDs except all-zero UUID
-        if (typeof value === "string") {
-          const newValue = value.replace(
-            /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
-            "<stripped UUID>"
-          );
-
-          if (newValue !== value) {
-            return nicify(newValue, options);
-          }
         }
 
         // Otherwise, use default serialization

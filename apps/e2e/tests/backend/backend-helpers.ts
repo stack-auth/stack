@@ -123,7 +123,7 @@ export namespace Auth {
           },
         }
       `);
-      const messages = await mailbox.fetchMessages({ subjectOnly: true });
+      const messages = await mailbox.fetchMessages({ noBody: true });
       const subjects = messages.map((message) => message.subject);
       expect(subjects).toContain("Sign in to Stack Dashboard");
       return {
@@ -230,7 +230,7 @@ export namespace ContactChannels {
         },
       }
     `);
-    const messages = await mailbox.fetchMessages({ subjectOnly: true });
+    const messages = await mailbox.fetchMessages({ noBody: true });
     const subjects = messages.map((message) => message.subject);
     expect(subjects).toContain("Verify your email at Stack Dashboard");
     return {

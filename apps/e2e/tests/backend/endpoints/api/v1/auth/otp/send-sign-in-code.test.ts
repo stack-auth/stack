@@ -3,10 +3,12 @@ import { backendContext, Auth, niceBackendFetch } from "../../../../../backend-h
 
 it("should send a sign-in code per e-mail", async ({ expect }) => {
   await Auth.Otp.sendSignInCode();
-  expect(await backendContext.value.mailbox.fetchMessages({ subjectOnly: true })).toMatchInlineSnapshot(`
+  expect(await backendContext.value.mailbox.fetchMessages({ noBody: true })).toMatchInlineSnapshot(`
     [
       MailboxMessage {
+        "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Sign in to Stack Dashboard",
+        "to": ["<<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
     ]

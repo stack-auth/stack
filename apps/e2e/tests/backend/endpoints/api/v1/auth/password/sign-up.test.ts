@@ -10,7 +10,7 @@ it("should sign up new users", async ({ expect }) => {
       "body": {
         "access_token": <stripped field 'access_token'>,
         "refresh_token": <stripped field 'refresh_token'>,
-        "user_id": <stripped field 'user_id'>,
+        "user_id": "<stripped UUID>",
       },
       "headers": Headers {
         "x-stack-request-id": <stripped header 'x-stack-request-id'>,
@@ -18,11 +18,13 @@ it("should sign up new users", async ({ expect }) => {
       },
     }
   `);
-  const messages = await backendContext.value.mailbox.fetchMessages({ subjectOnly: true });
+  const messages = await backendContext.value.mailbox.fetchMessages({ noBody: true });
   expect(messages).toMatchInlineSnapshot(`
     [
       MailboxMessage {
+        "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Verify your email at Stack Dashboard",
+        "to": ["<<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
     ]

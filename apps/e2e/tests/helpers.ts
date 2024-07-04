@@ -1,8 +1,9 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { afterEach } from "node:test";
+import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
 import { beforeEach, onTestFinished, test as vitestTest } from "vitest";
 
@@ -119,10 +120,10 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
   return new NiceResponse(fetchRes.status, fetchRes.headers, body);
 }
 
+const generatedEmailSuffix = "@stack-generated.example.com";
+export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
 
-export const emailSuffix = "@generated.stack-test.example.com";
-
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> };
+export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
 export class MailboxMessage {
   declare public readonly subject: string;
   declare public readonly from: string;
@@ -147,8 +148,6 @@ export class MailboxMessage {
         "posix-millis",
         "header",
         "date",
-        "from",
-        "to",
         "mailbox",
         "id",
         "size",
@@ -159,11 +158,11 @@ export class MailboxMessage {
 }
 
 export function createMailbox(): Mailbox {
-  const mailboxName = generateSecureRandomString();
+  const mailboxName = randomUUID();
   const fullMessageCache = new Map<string, any>();
   return {
-    emailAddress: `${mailboxName}${emailSuffix}`,
-    async fetchMessages({ subjectOnly } = {}) {
+    emailAddress: `${mailboxName}${generatedEmailSuffix}`,
+    async fetchMessages({ noBody } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
       return await Promise.all((res.body as any[]).map(async (message) => {
         let fullMessage: any;
@@ -174,7 +173,7 @@ export function createMailbox(): Mailbox {
           fullMessage = fullMessageRes.body;
           fullMessageCache.set(message.id, fullMessage);
         }
-        const messagePart = subjectOnly ? { subject: fullMessage.subject } : fullMessage;
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
         return new MailboxMessage(messagePart);
       }));
     },

@@ -33,14 +33,18 @@ it("can't send a verification code while logged out", async ({ expect }) => {
 it("should send a verification code per e-mail", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
   await ContactChannels.sendVerificationCode();
-  expect(await backendContext.value.mailbox.fetchMessages({ subjectOnly: true })).toMatchInlineSnapshot(`
+  expect(await backendContext.value.mailbox.fetchMessages({ noBody: true })).toMatchInlineSnapshot(`
     [
       MailboxMessage {
+        "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Verify your email at Stack Dashboard",
+        "to": ["<<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
       MailboxMessage {
+        "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Verify your email at Stack Dashboard",
+        "to": ["<<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
     ]

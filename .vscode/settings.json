@@ -8,7 +8,10 @@
   "editor.tabSize": 2,
   "cSpell.words": [
     "hookform",
+    "INBUCKET",
     "Millis",
+    "Nicifiable",
+    "nicify",
     "openapi",
     "stackframe"
   ],
