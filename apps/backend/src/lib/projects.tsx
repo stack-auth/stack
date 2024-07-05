@@ -241,7 +241,7 @@ function isStringArray(value: any): value is string[] {
   return Array.isArray(value) && value.every((id) => typeof id === "string");
 }
 
-function requiredWhenShared<S extends yup.AnyObject>(schema: S): S {
+function yupRequiredWhenShared<S extends yup.AnyObject>(schema: S): S {
   return schema.when('shared', {
     is: 'false',
     then: (schema: S) => schema.required(),
@@ -272,12 +272,12 @@ const nonRequiredSchemas = {
     createTeamOnSignUp: yupBoolean().optional(),
     emailConfig: yupObject({
       type: yupString().oneOf(["shared", "standard"]).required(),
-      senderName: requiredWhenShared(yupString()),
-      host: requiredWhenShared(yupString()),
-      port: requiredWhenShared(yupNumber()),
-      username: requiredWhenShared(yupString()),
-      password: requiredWhenShared(yupString()),
-      senderEmail: requiredWhenShared(yupString().email()),
+      senderName: yupRequiredWhenShared(yupString()),
+      host: yupRequiredWhenShared(yupString()),
+      port: yupRequiredWhenShared(yupNumber()),
+      username: yupRequiredWhenShared(yupString()),
+      password: yupRequiredWhenShared(yupString()),
+      senderEmail: yupRequiredWhenShared(yupString().email()),
     }).optional().default(undefined),
     teamCreatorDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
     teamMemberDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),

@@ -247,6 +247,10 @@ export function parseOverload(options: {
     };
   }
 
+  if (endpointDocumentation.hidden) {
+    return undefined;
+  }
+
   return {
     summary: endpointDocumentation.summary,
     description: endpointDocumentation.description,

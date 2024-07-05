@@ -123,3 +123,35 @@ export const signInResponseSchema = yupObject({
   is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).required(),
   user_id: userIdResponseSchema.required(),
 });
+
+// Teams
+export const teamSystemPermissions = [
+  '$update_team',
+  '$delete_team',
+  '$read_members',
+  '$remove_members',
+  '$invite_members',
+] as const;
+export const teamPermissionIdSchema = yupString()
+  .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
+  .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
+    if (!value) return true;
+    if (value.startsWith('$') && !teamSystemPermissions.includes(value as any)) {
+      return ctx.createError({ message: 'Invalid system permission' });
+    }
+    return true;
+  })
+  .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission', exampleValue: 'read_secret_info' } });
+
+// Utils
+export function yupRequiredWhen<S extends yup.AnyObject>(
+  schema: S, 
+  triggerName: string,
+  isValue: any
+): S {
+  return schema.when(triggerName, {
+    is: isValue,
+    then: (schema: S) => schema.required(),
+    otherwise: (schema: S) => schema.optional()
+  });
+}

@@ -1,36 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import * as yup from "yup";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "../../schema-fields";
-
-function requiredWhen<S extends yup.AnyObject>(
-  schema: S, 
-  triggerName: string,
-  isValue: any
-): S {
-  return schema.when(triggerName, {
-    is: isValue,
-    then: (schema: S) => schema.required(),
-    otherwise: (schema: S) => schema.optional()
-  });
-}
-
-const teamSystemPermissions = [
-  '$update_team',
-  '$delete_team',
-  '$read_members',
-  '$remove_members',
-  '$invite_members',
-] as const;
-
-export const teamPermissionIdSchema = yupString()
-  .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
-  .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
-    if (!value) return true;
-    if (value.startsWith('$') && !teamSystemPermissions.includes(value as any)) {
-      return ctx.createError({ message: 'Invalid system permission' });
-    }
-    return true;
-  });
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed, yupRequiredWhen, teamPermissionIdSchema } from "../../schema-fields";
 
 export const permissionSchema = yupObject({
   id: yupString().required(),
@@ -41,18 +10,18 @@ export const oauthProviderSchema = yupObject({
   id: yupString().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).required(),
   enabled: yupBoolean().required(),
   type: yupString().oneOf(['shared', 'standard']).required(),
-  client_id: requiredWhen(yupString(), 'type', 'standard'),
-  client_secret: requiredWhen(yupString(), 'type', 'standard'),
+  client_id: yupRequiredWhen(yupString(), 'type', 'standard'),
+  client_secret: yupRequiredWhen(yupString(), 'type', 'standard'),
 });
 
 export const emailConfigSchema = yupObject({
   type: yupString().oneOf(['shared', 'standard']).required(),
-  sender_name: requiredWhen(yupString(), 'type', 'standard'),
-  host: requiredWhen(yupString(), 'type', 'standard'),
-  port: requiredWhen(yupNumber(), 'type', 'standard'),
-  username: requiredWhen(yupString(), 'type', 'standard'),
-  password: requiredWhen(yupString(), 'type', 'standard'),
-  sender_email: requiredWhen(yupString().email(), 'type', 'standard'),
+  sender_name: yupRequiredWhen(yupString(), 'type', 'standard'),
+  host: yupRequiredWhen(yupString(), 'type', 'standard'),
+  port: yupRequiredWhen(yupNumber(), 'type', 'standard'),
+  username: yupRequiredWhen(yupString(), 'type', 'standard'),
+  password: yupRequiredWhen(yupString(), 'type', 'standard'),
+  sender_email: yupRequiredWhen(yupString().email(), 'type', 'standard'),
 });
 
 export const domainSchema = yupObject({
