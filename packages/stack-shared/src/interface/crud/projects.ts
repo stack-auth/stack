@@ -106,7 +106,7 @@ export const projectsCrudClientReadSchema = yupObject({
     magic_link_enabled: fieldSchema.magicLinkEnabledConfigSchema.required(),
     oauth_providers: yupArray(yupObject({
       id: yupString().required(),
-    }).required()).required(),
+    }).required()).required().meta({ openapiField: { description: 'A list of enabled OAuth providers connected to this account', exampleValue: [{ id: 'google' }, { id: 'github' }] } }),
   }).required()
 }).required();
 
@@ -115,8 +115,8 @@ export const projectsCrud = createCrud({
   docs: {
     clientRead: {
       tags: ["Projects"],
-      summary: 'Get project',
-      description: 'Get the project information, useful for deciding which auth methods to show to the user in the frontend.',
+      summary: 'Get current project',
+      description: 'Get the project information. This is useful for deciding which auth methods to show to the user in the frontend.',
     },
   },
 });

@@ -34,15 +34,21 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       config: {
         credential_enabled: prisma.config.credentialEnabled,
         magic_link_enabled: prisma.config.magicLinkEnabled,
-        oauth_providers: prisma.config.oauthProviderConfigs.flatMap((provider): { id: Lowercase<ProxiedOAuthProviderType> }[] => {
-          if (provider.proxiedOAuthConfig) {
-            return [{ id: typedToLowercase(provider.proxiedOAuthConfig.type) }];
-          } else if (provider.standardOAuthConfig) {
-            return [{ id: typedToLowercase(provider.standardOAuthConfig.type) }];
-          } else {
-            throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
-          }
-        }).sort((a, b) => a.id.localeCompare(b.id)),
+        oauth_providers: prisma.config.oauthProviderConfigs
+          .flatMap((provider): { id: Lowercase<ProxiedOAuthProviderType> }[] => {
+            if (!provider.enabled) {
+              return [];
+            }
+            
+            if (provider.proxiedOAuthConfig) {
+              return [{ id: typedToLowercase(provider.proxiedOAuthConfig.type) }];
+            } else if (provider.standardOAuthConfig) {
+              return [{ id: typedToLowercase(provider.standardOAuthConfig.type) }];
+            } else {
+              throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
+            }
+          })
+          .sort((a, b) => a.id.localeCompare(b.id)),
       }
     };
   },
