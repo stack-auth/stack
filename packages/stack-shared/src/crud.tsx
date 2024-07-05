@@ -110,7 +110,7 @@ export type CrudTypeOf<S extends CrudSchema> = {
 }
 
 type CrudDocsCreationOptions<SO extends CrudSchemaCreationOptions> = {
-  [X in AccessTypeXCrudlOperation as (X extends `${infer A}Read` ? X | `${A}List` : X)]?: EndpointDocumentation
+  [X in AccessTypeXCrudlOperation]?: EndpointDocumentation
 };
 
 export function createCrud<SO extends CrudSchemaCreationOptions>(options: SO & { docs?: CrudDocsCreationOptions<SO> }): CrudSchemaFromOptions<SO> {
