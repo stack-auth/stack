@@ -85,6 +85,9 @@ export const adminAuthTypeSchema = yupString().oneOf(['admin']);
 
 // Projects
 export const projectIdSchema = yupString().meta({ openapiField: { description: 'Project ID as retrieved on Stack\'s dashboard', exampleValue: 'project-id' } });
+export const projectDisplayNameSchema = yupString().meta({ openapiField: { description: 'Project display name, used in places like email templates or frontend UI. This is not a unique identifier.', exampleValue: 'Stack Dashboard' } });
+export const projectCredentialEnabledConfigSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
+export const magicLinkEnabledConfigSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
 
 // Users
 export const userIdRequestSchema = yupString().uuid().meta({ openapiField: { description: 'The ID of the user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });

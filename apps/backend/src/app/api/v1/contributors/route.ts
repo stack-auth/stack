@@ -8,6 +8,9 @@ import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 let pngImagePromise: Promise<Uint8Array> | undefined; 
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({}),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),

@@ -1,5 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed, yupRequiredWhen, teamPermissionIdSchema } from "../../schema-fields";
+import * as fieldSchema from "../../schema-fields";
 
 export const permissionSchema = yupObject({
   id: yupString().required(),
@@ -97,17 +98,16 @@ export const internalProjectsCrud = createCrud({
 });
 export type InternalProjectCrud = CrudTypeOf<typeof internalProjectsCrud>;
 
-
 export const projectsCrudClientReadSchema = yupObject({
-  id: yupString().required(),
-  display_name: yupString().required(),
+  id: fieldSchema.projectIdSchema.required(),
+  display_name: fieldSchema.projectDisplayNameSchema.required(),
   config: yupObject({
-    credential_enabled: yupBoolean().required(),
-    magic_link_enabled: yupBoolean().required(),
+    credential_enabled: fieldSchema.projectCredentialEnabledConfigSchema.required(),
+    magic_link_enabled: fieldSchema.magicLinkEnabledConfigSchema.required(),
     oauth_providers: yupArray(yupObject({
       id: yupString().required(),
     }).required()).required(),
-  }).required(),
+  }).required()
 }).required();
 
 export const projectsCrud = createCrud({
