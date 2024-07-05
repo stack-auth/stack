@@ -4,7 +4,9 @@ import { FilterUndefined, filterUndefined } from './utils/objects';
 
 export type AccessType = "client" | "server" | "admin";
 export type CrudOperation = "create" | "read" | "update" | "delete";
+export type CrudlOperation = "create" | "read" | "update" | "delete" | "list";
 export type AccessTypeXCrudOperation = `${AccessType}${Capitalize<CrudOperation>}`;
+export type AccessTypeXCrudlOperation = `${AccessType}${Capitalize<CrudlOperation>}`;
 
 declare module 'yup' {
   export interface CustomSchemaMetadata {
@@ -22,12 +24,8 @@ type ShownEndpointDocumentation = {
   tags?: string[],
 };
 export type EndpointDocumentation = 
-  | (
-    { hidden: true } & Partial<ShownEndpointDocumentation>
-  )
-  | (
-    { hidden?: boolean } & ShownEndpointDocumentation
-  );
+  | ({ hidden: true } & Partial<ShownEndpointDocumentation>)
+  | ({ hidden?: boolean } & ShownEndpointDocumentation);
 
 
 type InnerCrudSchema<
@@ -112,7 +110,7 @@ export type CrudTypeOf<S extends CrudSchema> = {
 }
 
 type CrudDocsCreationOptions<SO extends CrudSchemaCreationOptions> = {
-  [X in AccessTypeXCrudOperation as (X extends `${infer A}Read` ? X | `${A}List` : X)]?: EndpointDocumentation
+  [X in AccessTypeXCrudlOperation as (X extends `${infer A}Read` ? X | `${A}List` : X)]?: EndpointDocumentation
 };
 
 export function createCrud<SO extends CrudSchemaCreationOptions>(options: SO & { docs?: CrudDocsCreationOptions<SO> }): CrudSchemaFromOptions<SO> {
