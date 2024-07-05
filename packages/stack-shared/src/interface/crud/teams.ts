@@ -1,5 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed, yupRequiredWhen, teamPermissionIdSchema } from "../../schema-fields";
+import { yupObject, yupString, yupNumber, yupMixed } from "../../schema-fields";
 
 // Read
 export const teamsCrudClientReadSchema = yupObject({

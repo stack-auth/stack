@@ -1,7 +1,8 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import * as yup from "yup";
-import { emailTemplateTypes } from "../serverInterface";
-import { jsonSchema, yupArray, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
+import { jsonSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
+
+export type EmailTemplateType = typeof emailTemplateTypes[number];
+export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
 
 export const emailTemplateServerReadSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
@@ -14,28 +15,18 @@ export const emailTemplateCrudServerUpdateSchema = yupObject({
   subject: yupString().required(),
 }).required();
 
-const serverDeleteSchema = yupMixed();
-
-export const emailTemplateCrud = createCrud({
-  serverReadSchema: emailTemplateServerReadSchema,
-  serverUpdateSchema: emailTemplateCrudServerUpdateSchema,
-  serverDeleteSchema,
-});
-export type EmailTemplateCrud = CrudTypeOf<typeof emailTemplateCrud>;
-
-export const listEmailTemplatesReadSchema = yupArray(
-  emailTemplateServerReadSchema.concat(yupObject({
-    default: yupBoolean().required(),
-  }))
-).required();
+export const emailTemplateCrudServerDeleteSchema = yupMixed();
 
 export const emailTemplateCrudServerCreateSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
   content: jsonSchema.required(),
+  subject: yupString().required(),
 }).required();
 
-export const listEmailTemplatesCrud = createCrud({
-  serverReadSchema: listEmailTemplatesReadSchema,
+export const emailTemplateCrud = createCrud({
+  serverReadSchema: emailTemplateServerReadSchema,
+  serverUpdateSchema: emailTemplateCrudServerUpdateSchema,
+  serverCreateSchema: emailTemplateCrudServerCreateSchema,
+  serverDeleteSchema: emailTemplateCrudServerDeleteSchema,
 });
-
-export type ListEmailTemplatesCrud = CrudTypeOf<typeof listEmailTemplatesCrud>;
+export type EmailTemplateCrud = CrudTypeOf<typeof emailTemplateCrud>;

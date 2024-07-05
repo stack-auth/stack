@@ -91,7 +91,10 @@ export type CrudHandlers<
 
 export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, PS>>(
   crud: S, 
-  options: O,
+  options: O & {
+    // TypeScript isn't smart enough to infer PS from the inner type within O, so we specify this here explicitly
+    paramsSchema: PS,
+  },
 ): CrudHandlersFromOptions<CrudTypeOf<S>, PS, O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
 

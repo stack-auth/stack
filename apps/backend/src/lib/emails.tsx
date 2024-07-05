@@ -3,14 +3,47 @@ import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { UserJson, ProjectJson } from '@stackframe/stack-shared';
-import { getEmailTemplateWithDefault } from '@/lib/email-templates';
-import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
+import { ProjectJson } from '@stackframe/stack-shared';
+import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { EmailTemplateType } from '@prisma/client';
 import { usersCrudHandlers } from '@/app/api/v1/users/crud';
 import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 
+export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  const template = await prismaClient.emailTemplate.findUnique({
+    where: {
+      projectConfigId_type: {
+        projectConfigId: project.evaluatedConfig.id,
+        type,
+      },
+    },
+  });
+
+  return template ? {
+    ...template,
+    content: template.content as TEditorConfiguration,
+  } : null;
+}
+
+export async function getEmailTemplateWithDefault(projectId: string, type: EmailTemplateType) {
+  const template = await getEmailTemplate(projectId, type);
+  if (template) {
+    return template;
+  }
+  return {
+    type,
+    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
+    subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
+    default: true,
+  };
+}
 
 function getPortConfig(port: number | string) {
   let parsedPort = parseInt(port.toString());

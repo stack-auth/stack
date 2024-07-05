@@ -93,7 +93,7 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     },
   }),
   notFoundError: () => new KnownErrors.ProjectNotFound(),
-  crudToPrisma: async (crud, { auth, params, type }) => {
+  crudToPrisma: async (crud, { params, type }) => {
     // ======================= create =======================
 
     if (type === 'create') {
