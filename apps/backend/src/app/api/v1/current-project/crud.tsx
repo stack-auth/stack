@@ -1,10 +1,9 @@
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { ProxiedOAuthProviderType } from "@prisma/client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "project", {
   paramsSchema: yupObject({}),
@@ -23,7 +22,9 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
       },
     },
   }),
-  notFoundError: () => new KnownErrors.ProjectNotFound(),
+  notFoundToCrud: (context) => {
+    throw new StackAssertionError("Why was the current project not found?");
+  },
   crudToPrisma: async () => {
     throw new StackAssertionError("This handler only supports read operations, this should never be called");
   },

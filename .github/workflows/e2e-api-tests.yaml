@@ -63,3 +63,12 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 1)
+        run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 2)
+        run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 3)
+        run: pnpm test

@@ -18,7 +18,9 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
   },
   include: async () => ({
   }),
-  notFoundError: () => new KnownErrors.ProjectNotFound(),
+  notFoundToCrud: (context) => {
+    throw new KnownErrors.TeamNotFound(context.params.teamId ?? "<null>");
+  },
   crudToPrisma: async (crud, { auth, params, type }) => {
     return {
       displayName: crud.display_name,

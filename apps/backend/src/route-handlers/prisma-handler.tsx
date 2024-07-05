@@ -50,7 +50,7 @@ type ExtraDataFromCrudType<
   B extends BaseFields<PrismaModelName>,
 > = {
   getInclude(params: yup.InferType<PS>, context: Pick<Context<false, PS>, "auth">): Promise<I>,
-  transformPrismaToCrudObject(prisma: PRead<PrismaModelName, W & B, I>, params: yup.InferType<PS>, context: Pick<Context<false, PS>, "auth">): Promise<CRead<CrudTypeOf<S>>>,
+  transformPrismaToCrudObject(prismaOrNull: PRead<PrismaModelName, W & B, I> | null, params: yup.InferType<PS>, context: Pick<Context<false, PS>, "auth">): Promise<CRead<CrudTypeOf<S>>>,
 };
 
 export function createPrismaCrudHandlers<
@@ -70,52 +70,36 @@ export function createPrismaCrudHandlers<
       where?: (context: Context<false, PS>) => Promise<W>,
       whereUnique?: (context: Context<true, PS>) => Promise<WhereUnique<PrismaModelName>>,
       include: (context: Context<false, PS>) => Promise<I>,
-      crudToPrisma?: (crud: CEitherWrite<CrudTypeOf<S>>, context: CrudToPrismaContext<false, PS>) => Promise<PEitherWrite<PrismaModelName>>,
-      prismaToCrud?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<CRead<CrudTypeOf<S>>>,
+      crudToPrisma: (crud: CEitherWrite<CrudTypeOf<S>>, context: CrudToPrismaContext<false, PS>) => Promise<PEitherWrite<PrismaModelName>>,
+      prismaToCrud: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<CRead<CrudTypeOf<S>>>,
+      notFoundToCrud: (context: Context<false, PS>) => Promise<CRead<CrudTypeOf<S>> | never>,
       onCreate?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<void>,
-      fieldMapping?: any,
-      notFoundError?: (context: Context<false, PS>) => Error,
-    }
-    & (
-      | {
-        crudToPrisma: {},
-        prismaToCrud: {},
-        fieldMapping?: void,
-      }
-      | {
-        crudToPrisma: void,
-        prismaToCrud: void,
-        fieldMapping: {},
-      }
-    ),
+    },
 ): CrudHandlersFromCrudType<CrudTypeOf<S>, PS> & ExtraDataFromCrudType<S, PrismaModelName, PS, W, I, B> {
-  const wrapper = <AllParams extends boolean, T>(allParams: AllParams, func: (data: any, context: Context<AllParams, PS>, queryBase: any) => Promise<T>): (opts: Context<AllParams, PS> & { data?: unknown }) => Promise<T> => {
+  const wrapper = <AllParams extends boolean, T>(allParams: AllParams, func: (data: any, context: Context<AllParams, PS>) => Promise<T>): (opts: Context<AllParams, PS> & { data?: unknown }) => Promise<T> => {
     return async (req) => {
       const context: Context<AllParams, PS> = {
         params: req.params,
         auth: req.auth,
       };
-      const whereBase = await options.where?.(context);
-      const includeBase = await options.include(context);
-      try {
-        return await func(req.data, context, { where: whereBase, include: includeBase });
-      } catch (e) {
-        if ((e as any)?.code === 'P2025') {
-          throw (options.notFoundError ?? (() => new StatusError(StatusError.NotFound)))(context);
-        }
-        throw e;
-      }
+      return await func(req.data, context);
     };
   };
 
-  const prismaToCrud = options.prismaToCrud ?? throwErr("missing prismaToCrud is not yet implemented");
-  const crudToPrisma = options.crudToPrisma ?? throwErr("missing crudToPrisma is not yet implemented");
+  const prismaOrNullToCrud = (prismaOrNull: PRead<PrismaModelName, W & B, I> | null, context: Context<false, PS>) => {
+    if (prismaOrNull === null) {
+      return options.notFoundToCrud(context);
+    } else {
+      return options.prismaToCrud(prismaOrNull, context);
+    }
+  };
+  const crudToPrisma = options.crudToPrisma;
   
   return typedAssign(createCrudHandlers<any, PS, any>(crudSchema, {
     paramsSchema: options.paramsSchema,
     onPrepare: options.onPrepare,
     onRead: wrapper(true, async (data, context) => {
-      const prisma = await (prismaClient[prismaModelName].findUniqueOrThrow as any)({
+      const prisma = await (prismaClient[prismaModelName].findUnique as any)({
         include: await options.include(context),
         where: {
           ...await options.baseFields(context),
@@ -123,7 +107,7 @@ export function createPrismaCrudHandlers<
           ...await options.whereUnique?.(context),
         },
       });
-      return await prismaToCrud(prisma, context);
+      return await prismaOrNullToCrud(prisma, context);
     }),
     onList: wrapper(false, async (data, context) => {
       const prisma: any[] = await (prismaClient[prismaModelName].findMany as any)({
@@ -133,7 +117,7 @@ export function createPrismaCrudHandlers<
           ...await options.where?.(context),
         },
       });
-      const items = await Promise.all(prisma.map((p) => prismaToCrud(p, context)));
+      const items = await Promise.all(prisma.map((p) => prismaOrNullToCrud(p, context)));
       return {
         items,
         is_paginated: false,
@@ -150,29 +134,49 @@ export function createPrismaCrudHandlers<
       // TODO pass the same transaction to onCreate as the one that creates the user row
       // we should probably do this with all functions and pass a transaction around in the context
       await options.onCreate?.(prisma, context);
-      return await prismaToCrud(prisma, context);
+      return await prismaOrNullToCrud(prisma, context);
     }),
     onUpdate: wrapper(true, async (data, context) => {
-      const prisma = await (prismaClient[prismaModelName].update as any)({
+      const baseQuery: any = {
         include: await options.include(context),
         where: {
           ...await options.baseFields(context),
           ...await options.where?.(context),
           ...await options.whereUnique?.(context),
         },
-        data: await crudToPrisma(data, { ...context, type: 'update' }),
+      };
+      // TODO transaction here for the read and write
+      const prismaRead = await (prismaClient[prismaModelName].findUnique as any)({
+        ...baseQuery,
       });
-      return await prismaToCrud(prisma, context);
+      if (prismaRead === null) {
+        return await prismaOrNullToCrud(null, context);
+      } else {
+        const prisma = await (prismaClient[prismaModelName].update as any)({
+          ...baseQuery,
+          data: await crudToPrisma(data, { ...context, type: 'update' }),
+        });
+        return await prismaOrNullToCrud(prisma, context);
+      }
     }),
     onDelete: wrapper(true, async (data, context) => {
-      await (prismaClient[prismaModelName].delete as any)({
+      const baseQuery: any = {
         include: await options.include(context),
         where: {
           ...await options.baseFields(context),
           ...await options.where?.(context),
           ...await options.whereUnique?.(context),
         },
+      };
+      // TODO transaction here for the read and write
+      const prismaRead = await (prismaClient[prismaModelName].findUnique as any)({
+        ...baseQuery,
       });
+      if (prismaRead !== null) {
+        await (prismaClient[prismaModelName].delete as any)({
+          ...baseQuery
+        });
+      }
     }),
   }), {
     getInclude(params, context) {
@@ -181,8 +185,8 @@ export function createPrismaCrudHandlers<
         params,
       });
     },
-    transformPrismaToCrudObject(prisma, params, context) {
-      return prismaToCrud(prisma, {
+    transformPrismaToCrudObject(prismaOrNull, params, context) {
+      return prismaOrNullToCrud(prismaOrNull, {
         ...context,
         params,
       });

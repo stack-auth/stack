@@ -28,7 +28,9 @@ export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateC
     },
   }),
   include: async () => ({}),
-  notFoundError: () => new KnownErrors.ProjectNotFound(),
+  notFoundToCrud: (context) => {
+    throw new KnownErrors.ProjectNotFound();
+  },
   crudToPrisma: async (crud, { type }) => {
     if (!validateEmailTemplateContent(crud.content)) {
       throw new StatusError(StatusError.BadRequest, 'Invalid email template content format');

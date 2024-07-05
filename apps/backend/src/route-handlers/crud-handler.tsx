@@ -90,7 +90,7 @@ export type CrudHandlers<
 & CrudHandlerDirectByAccess<"Admin", T, PS, L>;
 
 export function createCrudHandlers<S extends CrudSchema, PS extends ParamsSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, PS>>(
-  crud: S, 
+  crud: S,
   options: O & {
     // TypeScript isn't smart enough to infer PS from the inner type within O, so we specify this here explicitly
     paramsSchema: PS,

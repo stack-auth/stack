@@ -45,7 +45,9 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       },
     },
   }),
-  notFoundError: () => new KnownErrors.UserNotFound(),
+  notFoundToCrud: (context) => {
+    throw new KnownErrors.UserNotFound();
+  },
   crudToPrisma: async (crud, { auth }) => {
     const projectId = auth.project.id;
     return {
