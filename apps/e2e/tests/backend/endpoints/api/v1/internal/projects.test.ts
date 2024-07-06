@@ -29,12 +29,12 @@ describe("without project access", () => {
 });
 
 
-describe("with non internal project ID", async () => {
+describe("with non internal project", async () => {
   it.todo("list all current projects (not allowed)");
   it.todo("create a new project (not allowed)");
 });
 
-describe("with internal project ID", async () => {
+describe("with internal project", async () => {
   backendContext.set({
     projectKeys: InternalProjectKeys,
   });

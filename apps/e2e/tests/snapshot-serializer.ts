@@ -33,7 +33,11 @@ const stripFields = [
   "refresh_token",
   "date",
   "signed_up_at_millis",
+  "expires_at_millis",
   "created_at_millis",
+  "publishable_client_key",
+  "secret_server_key",
+  "super_secret_admin_key",
 ];
 
 function addAll<T>(set: Set<T>, values: T[]) {

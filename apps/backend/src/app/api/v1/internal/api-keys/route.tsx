@@ -6,9 +6,12 @@ import { prismaClient } from "@/prisma-client";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { apiKeyCrudHandlers } from "./crud";
 
-export const GET = apiKeyCrudHandlers.readHandler;
+export const GET = apiKeyCrudHandlers.listHandler;
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
@@ -16,7 +19,7 @@ export const POST = createSmartRouteHandler({
       project: adaptSchema.required(),
     }).required(),
     body: apiKeysCreateInputSchema.required(),
-    method: yupString().oneOf(["GET"]).required(),
+    method: yupString().oneOf(["POST"]).required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),

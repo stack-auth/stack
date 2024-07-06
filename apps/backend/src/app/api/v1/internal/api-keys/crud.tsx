@@ -10,6 +10,11 @@ export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeyS
     apiKeyId: yupString().required(),
   }),
   baseFields: async () => ({}),
+  onPrepare: async ({ auth }) => {
+    if (!auth.user) {
+      throw new KnownErrors.UserAuthenticationRequired();
+    }
+  },
   where: async ({ auth }) => {
     const managedProjectIds = listManagedProjectIds(throwIfUndefined(auth.user, "auth.user"));
     return {
@@ -40,7 +45,7 @@ export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeyS
       description: crud.description,
     };
   },
-  prismaToCrud: async (prisma, { auth }) => {
+  prismaToCrud: async (prisma) => {
     return {
       id: prisma.id,
       description: prisma.description,
