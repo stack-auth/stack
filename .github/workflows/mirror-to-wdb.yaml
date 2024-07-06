@@ -1,0 +1,24 @@
+name: Mirror main branch to main-mirror-for-wdb
+
+on:
+  push:
+    branches:
+      - with-dev-backend
+
+jobs:
+  lint_and_build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Mirror branch
+        run: |
+          git checkout main
+          git fetch origin main
+          git checkout -b main-mirror-for-wdb
+          git reset --hard main
+          git push origin main-mirror-for-wdb --force
