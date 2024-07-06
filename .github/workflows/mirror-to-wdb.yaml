@@ -3,7 +3,7 @@ name: Mirror main branch to main-mirror-for-wdb
 on:
   push:
     branches:
-      - with-dev-backend
+      - main
 
 jobs:
   lint_and_build:
