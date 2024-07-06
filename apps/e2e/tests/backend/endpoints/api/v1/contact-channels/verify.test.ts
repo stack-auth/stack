@@ -34,10 +34,7 @@ it("each verification code that was already requested can be used exactly once",
       NiceResponse {
         "status": 200,
         "body": { "success": true },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     const response2 = await niceBackendFetch("/api/v1/contact-channels/verify", {
@@ -56,7 +53,6 @@ it("each verification code that was already requested can be used exactly once",
         },
         "headers": Headers {
           "x-stack-known-error": "VERIFICATION_CODE_ALREADY_USED",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }

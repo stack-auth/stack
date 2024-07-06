@@ -34,7 +34,6 @@ it('should refuse to send a sign-in code if the redirect URL is invalid', async 
       },
       "headers": Headers {
         "x-stack-known-error": "REDIRECT_URL_NOT_WHITELISTED",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

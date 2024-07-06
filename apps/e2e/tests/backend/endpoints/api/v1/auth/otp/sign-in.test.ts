@@ -12,10 +12,7 @@ it("should sign up new users and sign in existing users", async ({ expect }) => 
         "refresh_token": <stripped field 'refresh_token'>,
         "user_id": "<stripped UUID>",
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   const res2 = await Auth.Otp.signIn();
@@ -28,10 +25,7 @@ it("should sign up new users and sign in existing users", async ({ expect }) => 
         "refresh_token": <stripped field 'refresh_token'>,
         "user_id": "<stripped UUID>",
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });

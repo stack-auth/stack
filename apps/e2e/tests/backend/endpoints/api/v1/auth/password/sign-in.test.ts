@@ -14,7 +14,6 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -28,10 +27,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
         "refresh_token": <stripped field 'refresh_token'>,
         "user_id": "<stripped UUID>",
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   const currentUserResponse2 = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
@@ -53,10 +49,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
         "selected_team_id": null,
         "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
@@ -79,7 +72,6 @@ it("should not allow signing in with an e-mail that never signed up", async ({ e
       },
       "headers": Headers {
         "x-stack-known-error": "EMAIL_PASSWORD_MISMATCH",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -105,7 +97,6 @@ it("should not allow signing in with an incorrect password", async ({ expect }) 
       },
       "headers": Headers {
         "x-stack-known-error": "EMAIL_PASSWORD_MISMATCH",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

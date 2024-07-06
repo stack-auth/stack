@@ -23,7 +23,6 @@ describe("without project access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -41,7 +40,6 @@ describe("without project access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -63,7 +61,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -93,10 +90,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -125,10 +119,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -148,7 +139,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -170,7 +160,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -204,10 +193,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     const response2 = await niceBackendFetch("/api/v1/users/me", {
@@ -235,10 +221,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -270,7 +253,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -299,7 +281,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -335,10 +316,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     const response2 = await niceBackendFetch("/api/v1/users/me", {
@@ -366,10 +344,7 @@ describe("with client access", () => {
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -394,7 +369,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -425,7 +399,6 @@ describe("with client access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -460,10 +433,7 @@ describe("with server access", () => {
           "server_metadata": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -496,10 +466,7 @@ describe("with server access", () => {
           "server_metadata": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -513,10 +480,7 @@ describe("with server access", () => {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });

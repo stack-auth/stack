@@ -20,7 +20,6 @@ describe("without project access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -52,10 +51,7 @@ describe("with internal project keys", () => {
           "display_name": "Stack Dashboard",
           "id": "internal",
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });

@@ -17,10 +17,7 @@ it("should allow updating existing passwords", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": { "success": true },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   await Auth.signOut();
@@ -44,10 +41,7 @@ it("should allow updating existing passwords", async ({ expect }) => {
         "selected_team_id": null,
         "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
@@ -71,7 +65,6 @@ it("should not allow updating passwords without old password", async ({ expect }
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -98,7 +91,6 @@ it("should not allow updating passwords if the provided old password is wrong", 
       },
       "headers": Headers {
         "x-stack-known-error": "PASSWORD_CONFIRMATION_MISMATCH",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -125,7 +117,6 @@ it("should not allow updating passwords if the user does not have password authe
       },
       "headers": Headers {
         "x-stack-known-error": "USER_DOES_NOT_HAVE_PASSWORD",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -150,7 +141,6 @@ it("should not allow updating password when not logged in", async ({ expect }) =
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

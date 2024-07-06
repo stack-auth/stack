@@ -20,7 +20,6 @@ describe("without project access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -50,7 +49,6 @@ describe("with internal project", async () => {
         },
         "headers": Headers {
           "x-stack-known-error": "USER_AUTHENTICATION_REQUIRED",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -67,10 +65,7 @@ describe("with internal project", async () => {
           "is_paginated": false,
           "items": [],
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -100,10 +95,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -140,10 +132,7 @@ describe("with internal project", async () => {
           "is_production_mode": true,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -200,10 +189,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -236,10 +222,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -286,10 +269,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -338,10 +318,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -375,10 +352,7 @@ describe("with internal project", async () => {
             },
           ],
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -396,7 +370,6 @@ describe("with internal project", async () => {
         },
         "headers": Headers {
           "x-stack-known-error": "PROJECT_NOT_FOUND",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -428,10 +401,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -449,7 +419,6 @@ describe("with internal project", async () => {
         },
         "headers": Headers {
           "x-stack-known-error": "PROJECT_NOT_FOUND",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -484,10 +453,7 @@ describe("with internal project", async () => {
           "is_production_mode": true,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -522,10 +488,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -566,10 +529,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -616,10 +576,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -658,10 +615,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -699,10 +653,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -753,10 +704,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -803,10 +751,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -852,10 +797,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -887,10 +829,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -922,10 +861,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -971,10 +907,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -999,7 +932,6 @@ describe("with internal project", async () => {
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -1025,7 +957,6 @@ describe("with internal project", async () => {
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -1071,10 +1002,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -1114,10 +1042,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -1161,10 +1086,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
 
@@ -1182,10 +1104,7 @@ describe("with internal project", async () => {
       NiceResponse {
         "status": 400,
         "body": "Provider with id 'google' not found in the update",
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -1237,10 +1156,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     
@@ -1292,10 +1208,7 @@ describe("with internal project", async () => {
           "is_production_mode": false,
           "user_count": 0,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });

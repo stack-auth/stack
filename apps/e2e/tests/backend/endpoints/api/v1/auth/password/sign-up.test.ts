@@ -12,10 +12,7 @@ it("should sign up new users", async ({ expect }) => {
         "refresh_token": <stripped field 'refresh_token'>,
         "user_id": "<stripped UUID>",
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   const messages = await backendContext.value.mailbox.fetchMessages({ noBody: true });
@@ -48,10 +45,7 @@ it("should sign up new users", async ({ expect }) => {
         "selected_team_id": null,
         "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
@@ -76,7 +70,6 @@ it("should not allow signing up with an e-mail that already exists", async ({ ex
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -102,7 +95,6 @@ it("cannot use empty password to sign up", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -129,7 +121,6 @@ it("cannot use a password that is too short to sign up", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "PASSWORD_TOO_SHORT",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

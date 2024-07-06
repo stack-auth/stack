@@ -47,7 +47,6 @@ it("should fail if an invalid client_id is provided", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "PROJECT_NOT_FOUND",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -71,7 +70,6 @@ it("should fail if an invalid client_secret is provided", async ({ expect }) => 
       },
       "headers": Headers {
         "x-stack-known-error": "API_KEY_NOT_FOUND",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

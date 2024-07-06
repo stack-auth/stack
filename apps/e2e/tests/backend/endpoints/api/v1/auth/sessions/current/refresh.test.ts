@@ -14,7 +14,6 @@ it("should refresh sessions", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -27,10 +26,7 @@ it("should refresh sessions", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": { "access_token": <stripped field 'access_token'> },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   backendContext.value.userAuth!.accessToken = refreshSessionResponse.body.access_token;
@@ -53,10 +49,7 @@ it("should refresh sessions", async ({ expect }) => {
         "selected_team_id": null,
         "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
@@ -79,7 +72,6 @@ it("should not refresh sessions given invalid refresh tokens", async ({ expect }
       },
       "headers": Headers {
         "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

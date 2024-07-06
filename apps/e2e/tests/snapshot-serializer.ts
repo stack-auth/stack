@@ -1,7 +1,6 @@
 import { SnapshotSerializer } from "vitest";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { generatedEmailRegex } from "./helpers";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -24,9 +23,10 @@ const hideHeaders = [
   "content-encoding",
   "etag",
   "location",
+  "x-stack-request-id",
 ];
 
-const stripHeaders = ["x-stack-request-id"];
+const stripHeaders: string[] = [];
 
 const stripFields = [
   "access_token",

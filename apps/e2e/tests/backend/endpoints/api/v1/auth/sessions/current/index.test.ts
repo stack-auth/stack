@@ -22,20 +22,14 @@ it("should sign out users", async ({ expect }) => {
         "selected_team_id": null,
         "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
       },
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   const res = await Auth.signOut();
   expect(res.signOutResponse).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
-      "headers": Headers {
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-        <some fields may have been hidden>,
-      },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   const currentUserResponse2 = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
@@ -48,7 +42,6 @@ it("should sign out users", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -66,7 +59,6 @@ it("should sign out users", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -91,7 +83,6 @@ it("should not sign out users given invalid refresh token", async ({ expect }) =
       },
       "headers": Headers {
         "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

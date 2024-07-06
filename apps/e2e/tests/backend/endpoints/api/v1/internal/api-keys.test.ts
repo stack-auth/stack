@@ -20,7 +20,6 @@ describe("without project access", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -44,7 +43,6 @@ describe("with internal project", () => {
         },
         "headers": Headers {
           "x-stack-known-error": "USER_AUTHENTICATION_REQUIRED",
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,
         },
       }
@@ -61,10 +59,7 @@ describe("with internal project", () => {
           "is_paginated": false,
           "items": [],
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -94,10 +89,7 @@ describe("with internal project", () => {
           "secret_server_key": <stripped field 'secret_server_key'>,
           "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
         },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });

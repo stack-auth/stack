@@ -22,7 +22,6 @@ it("can't send a verification code while logged out", async ({ expect }) => {
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }
@@ -71,7 +70,6 @@ it("can't verify an e-mail that has already been verified", async ({ expect }) =
       },
       "headers": Headers {
         "x-stack-known-error": "EMAIL_ALREADY_VERIFIED",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

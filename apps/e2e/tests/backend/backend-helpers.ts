@@ -108,10 +108,7 @@ export namespace Auth {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
     if (backendContext.value.userAuth) backendContext.value.userAuth.accessToken = undefined;
@@ -135,10 +132,7 @@ export namespace Auth {
         NiceResponse {
           "status": 200,
           "body": { "success": true },
-          "headers": Headers {
-            "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-            <some fields may have been hidden>,
-          },
+          "headers": Headers { <some fields may have been hidden> },
         }
       `);
       const messages = await mailbox.fetchMessages({ noBody: true });
@@ -272,15 +266,12 @@ export namespace ContactChannels {
       },
     });
     expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 200,
-        "body": { "success": true },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
-      }
-    `);
+            NiceResponse {
+              "status": 200,
+              "body": { "success": true },
+              "headers": Headers { <some fields may have been hidden> },
+            }
+          `);
     const messages = await mailbox.fetchMessages({ noBody: true });
     const subjects = messages.map((message) => message.subject);
     expect(subjects).toContain("Verify your email at Stack Dashboard");
@@ -303,15 +294,12 @@ export namespace ContactChannels {
       },
     });
     expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 200,
-        "body": { "success": true },
-        "headers": Headers {
-          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
-          <some fields may have been hidden>,
-        },
-      }
-    `);
+          NiceResponse {
+            "status": 200,
+            "body": { "success": true },
+            "headers": Headers { <some fields may have been hidden> },
+          }
+        `);
     return {
       ...sendVerificationCodeRes,
       verifyResponse: response,
