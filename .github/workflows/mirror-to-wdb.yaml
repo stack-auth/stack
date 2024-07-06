@@ -29,4 +29,4 @@ jobs:
 
       - name: Push branch
         run: |
-          git push origin main-mirror-for-wdb
+          git push -f origin main-mirror-for-wdb
