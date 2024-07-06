@@ -877,6 +877,16 @@ const OAuthAccessTokenNotAvailableWithSharedOAuthKeys = createKnownErrorConstruc
   () => [] as const,
 );
 
+const InvalidScope = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_SCOPE",
+  (scope: string) => [
+    400,
+    `The scope "${scope}" is not a valid OAuth scope for Stack.`,
+  ] as const,
+  (json: any) => [json.details.scope] as const,
+);
+
 const UserAlreadyConnectedToAnotherOAuthConnection = createKnownErrorConstructor(
   KnownError,
   "USER_ALREADY_CONNECTED_TO_ANOTHER_OAUTH_CONNECTION",
@@ -987,6 +997,7 @@ export const KnownErrors = {
   OAuthConnectionDoesNotHaveRequiredScope,
   OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
+  InvalidScope,
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
   OAuthProviderNotFoundOrNotEnabled,

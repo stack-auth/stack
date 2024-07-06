@@ -7,8 +7,17 @@ import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const enabledScopes = ["legacy"];
+
+function assertScopeIsValid(scope: string[]) {
+  for (const s of scope) {
+    if (!checkScope(s)) {
+      throw new KnownErrors.InvalidScope(s);
+    }
+  }
+}
 
 function checkScope(scope: string | string[] | undefined) {
   if (typeof scope === "string") {
@@ -62,13 +71,16 @@ export class OAuthModel implements AuthorizationCodeModel {
   }
 
   async generateAccessToken(client: Client, user: User, scope: string[]): Promise<string> {
+    assertScopeIsValid(scope);
     return await encodeAccessToken({
       projectId: client.id,
       userId: user.id,
+      // TODO: pass the scope and some other information down to the token
     });
   }
 
   async generateRefreshToken(client: Client, user: User, scope: string[]): Promise<string> {
+    assertScopeIsValid(scope);
     return generateSecureRandomString();
   }
 
@@ -161,6 +173,10 @@ export class OAuthModel implements AuthorizationCodeModel {
     client: Client,
     user: User
   ): Promise<AuthorizationCode | Falsey> {
+    if (!code.scope) {
+      throw new KnownErrors.InvalidScope("<empty string>");
+    }
+    assertScopeIsValid(code.scope);
     await prismaClient.projectUserAuthorizationCode.create({
       data: {
         authorizationCode: code.authorizationCode,
