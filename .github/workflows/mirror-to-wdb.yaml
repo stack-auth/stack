@@ -16,5 +16,5 @@ jobs:
         run: |
           git pull --all
           git checkout -b main-mirror-for-wdb
-          git reset --hard main
+          git reset --hard origin/main
           git push origin main-mirror-for-wdb --force
