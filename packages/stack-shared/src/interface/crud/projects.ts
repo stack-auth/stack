@@ -96,7 +96,7 @@ export const internalProjectsCrud = createCrud({
     },
   },
 });
-export type InternalProjectCrud = CrudTypeOf<typeof internalProjectsCrud>;
+export type InternalProjectsCrud = CrudTypeOf<typeof internalProjectsCrud>;
 
 export const projectsCrudClientReadSchema = yupObject({
   id: fieldSchema.projectIdSchema.required(),

@@ -14,6 +14,9 @@ export function yupNumber<A extends number, B extends yup.Maybe<yup.AnyObject> =
 export function yupBoolean<A extends boolean, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.boolean<A, B>>) {
   return yup.boolean(...args);
 }
+/**
+ * @deprecated, use number of milliseconds since epoch instead
+ */
 export function yupDate<A extends Date, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.date<A, B>>) {
   return yup.date(...args);
 }

@@ -1,31 +1,14 @@
-import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
-import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType } from "@/lib/permissions";
+import { listManagedProjectIds } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
-import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import {
-  serverPermissionDefinitionJsonFromDbType,
-  serverPermissionDefinitionJsonFromTeamSystemDbType,
-} from "@/lib/permissions";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-
-function listProjectIds(projectUser: UsersCrud["Server"]["Read"]) {
-  const serverMetadata = projectUser.server_metadata;
-  if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
-    throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
-  }
-  const managedProjectIds = serverMetadata?.managedProjectIds ?? [];
-  if (!Array.isArray(managedProjectIds) || !managedProjectIds.every((id) => typeof id === "string")) {
-    throw new StackAssertionError("Invalid server metadata, did something go wrong? Expected string array", { managedProjectIds });
-  }
-
-  return managedProjectIds;
-}
+import { StackAssertionError, StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
 export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalProjectsCrud, "project", {
   paramsSchema: yupObject({
@@ -43,15 +26,13 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     id: params.projectId,
   }),
   where: async ({ auth }) => {
-    const managedProjectIds = listProjectIds(throwIfUndefined(auth.user, "auth.user"));
-    
+    const managedProjectIds = listManagedProjectIds(throwIfUndefined(auth.user, "auth.user"));
     return {
       id: { in: managedProjectIds },
     };
   },
   whereUnique: async ({ auth, params }) => {
-    const managedProjectIds = listProjectIds(throwIfUndefined(auth.user, "auth.user"));
-    
+    const managedProjectIds = listManagedProjectIds(throwIfUndefined(auth.user, "auth.user"));
     return {
       id: params.projectId,
       AND: [

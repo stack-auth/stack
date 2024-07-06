@@ -3,7 +3,6 @@ import { CrudHandlers, ParamsSchema, QuerySchema, createCrudHandlers } from "./c
 import { SmartRequestAuth } from "./smart-request";
 import { Prisma } from "@prisma/client";
 import { GetResult } from "@prisma/client/runtime/library";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { prismaClient } from "@/prisma-client";
 import * as yup from "yup";
 import { typedAssign } from "@stackframe/stack-shared/dist/utils/objects";
@@ -29,7 +28,7 @@ type CrudToPrismaContext<AllParams extends boolean, PS extends ParamsSchema> = C
 type CRead<T extends CrudTypeOf<any>> = T extends { Admin: { Read: infer R } } ? R : never;
 type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R } } ? R : never;
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
-type CEitherWrite<T extends CrudTypeOf<any>> = (CCreate<T> | CUpdate<T>) & Partial<CCreate<T> & CUpdate<T>>;
+type CEitherWrite<T extends CrudTypeOf<any>> = (CCreate<T> | CUpdate<T>) & Partial<(CCreate<T> | {}) & (CUpdate<T> | {})>;
 
 type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>, PS extends ParamsSchema, QS extends QuerySchema> = CrudHandlers<
   T,

@@ -1,17 +1,16 @@
-import * as yup from "yup";
-import { KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
-import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken } from "./tokens";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
+import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { KnownErrors, OAuthProviderConfigJson, ProjectJson } from "@stackframe/stack-shared";
+import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import * as yup from "yup";
+import { fullPermissionInclude, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema } from "./permissions";
+import { decodeAccessToken } from "./tokens";
 
 function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
   return ({
@@ -114,7 +113,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     throw e;
   }
 
-  const allProjects = listProjectIds(user);
+  const allProjects = listManagedProjectIds(user);
   if (!allProjects.includes(projectId)) {
     return "not-admin";
   }
@@ -126,7 +125,7 @@ export async function isProjectAdmin(projectId: string, adminAccessToken: string
   return !await whyNotProjectAdmin(projectId, adminAccessToken);
 }
 
-function listProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
+export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   const serverMetadata = projectUser.server_metadata;
   if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
     throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
@@ -140,7 +139,7 @@ function listProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
 }
 
 export async function listProjects(projectUser: UsersCrud["Admin"]["Read"]): Promise<ProjectJson[]> {
-  const managedProjectIds = listProjectIds(projectUser);
+  const managedProjectIds = listManagedProjectIds(projectUser);
 
   const projects = await prismaClient.project.findMany({
     where: {
