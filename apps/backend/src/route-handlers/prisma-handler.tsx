@@ -17,7 +17,7 @@ type BaseFields<T extends AllPrismaModelNames> = Where<T> & Partial<PCreate<T>>;
 type PRead<T extends AllPrismaModelNames, W extends Where<T>, I extends Include<T>> = GetResult<Prisma.TypeMap["model"][Capitalize<T>]["payload"], { where: W, include: I }, "findUniqueOrThrow">;
 type PUpdate<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["update"]["args"]["data"];
 type PCreate<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["create"]["args"]["data"];
-type PEitherWrite<T extends AllPrismaModelNames> = (PCreate<T> | PUpdate<T>) & Partial<PCreate<T> & PUpdate<T>>;
+type PEitherWrite<T extends AllPrismaModelNames> = (PCreate<T> | PUpdate<T>) & Partial<(PCreate<T> | {}) & (PUpdate<T> | {})>;
 
 type Context<AllParams extends boolean, PS extends ParamsSchema> = {
   params: [AllParams] extends [true] ? yup.InferType<PS> : Partial<yup.InferType<PS>>,
