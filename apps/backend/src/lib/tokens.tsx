@@ -57,6 +57,7 @@ export async function encodeAccessToken({
   projectId: string,
   userId: string,
 }) {
+  // TODO: pass the scope and some other information down to the token
   return await encryptJWT({ projectId, userId }, getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "1h"));
 }
 

@@ -17,7 +17,7 @@ export type SmartResponse = {
   }
   | {
     bodyType: "empty",
-    body: undefined,
+    body?: undefined,
   }
   | {
     bodyType: "text",

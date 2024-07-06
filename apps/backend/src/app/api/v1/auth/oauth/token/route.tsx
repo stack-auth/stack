@@ -60,7 +60,7 @@ export const POST = createSmartRouteHandler({
     );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
-        throw new KnownErrors.InvalidRefreshToken();
+        throw new KnownErrors.RefreshTokenExpired();
       }
       if (e instanceof InvalidClientError) {
         throw new KnownErrors.ProjectNotFound();

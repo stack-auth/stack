@@ -26,6 +26,9 @@ export function yupMixed<A extends {}>(...args: Parameters<typeof yup.mixed<A>>)
 export function yupArray<A extends yup.Maybe<yup.AnyObject> = yup.AnyObject, B = any>(...args: Parameters<typeof yup.array<A, B>>) {
   return yup.array(...args);
 }
+export function yupTuple<T extends [unknown, ...unknown[]]>(...args: Parameters<typeof yup.tuple<T>>) {
+  return yup.tuple<T>(...args);
+}
 export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) {
   const object = yup.object(...args).test(
     'no-unknown-object-properties',

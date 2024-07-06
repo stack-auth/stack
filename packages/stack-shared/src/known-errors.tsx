@@ -143,7 +143,7 @@ const UnsupportedError = createKnownErrorConstructor(
   "UNSUPPORTED_ERROR",
   (originalErrorCode: string) => [
     500,
-    `An error occured that is not currently supported (possibly because it was added in a version of Stack that is newer than this client). The original unsupported error code was: ${originalErrorCode}`,
+    `An error occurred that is not currently supported (possibly because it was added in a version of Stack that is newer than this client). The original unsupported error code was: ${originalErrorCode}`,
     {
       originalErrorCode,
     },
@@ -201,7 +201,7 @@ const ProjectAuthenticationError = createKnownErrorConstructor(
   "inherit",
 );
 
-const InvalidProjectAccess = createKnownErrorConstructor(
+const InvalidProjectAuthentication = createKnownErrorConstructor(
   ProjectAuthenticationError,
   "INVALID_PROJECT_AUTHENTICATION",
   "inherit",
@@ -212,7 +212,7 @@ const InvalidProjectAccess = createKnownErrorConstructor(
  * @deprecated Use ProjectKeyWithoutAccessType instead
  */
 const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
   () => [
     400,
@@ -225,7 +225,7 @@ const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
  * @deprecated Use InvalidAccessType instead
  */
 const InvalidRequestType = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_REQUEST_TYPE",
   (requestType: string) => [
     400,
@@ -240,7 +240,7 @@ const InvalidRequestType = createKnownErrorConstructor(
  * @deprecated Use AccessTypeWithoutProjectId instead
  */
 const RequestTypeWithoutProjectId = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "REQUEST_TYPE_WITHOUT_PROJECT_ID",
   (requestType: "client" | "server" | "admin") => [
     400,
@@ -253,7 +253,7 @@ const RequestTypeWithoutProjectId = createKnownErrorConstructor(
 );
 
 const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "PROJECT_KEY_WITHOUT_ACCESS_TYPE",
   () => [
     400,
@@ -263,7 +263,7 @@ const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
 );
 
 const InvalidAccessType = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_ACCESS_TYPE",
   (requestType: string) => [
     400,
@@ -275,7 +275,7 @@ const InvalidAccessType = createKnownErrorConstructor(
 );
 
 const AccessTypeWithoutProjectId = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "ACCESS_TYPE_WITHOUT_PROJECT_ID",
   (requestType: "client" | "server" | "admin") => [
     400,
@@ -288,7 +288,7 @@ const AccessTypeWithoutProjectId = createKnownErrorConstructor(
 );
 
 const AccessTypeRequired = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "ACCESS_TYPE_REQUIRED",
   () => [
     400,
@@ -298,7 +298,7 @@ const AccessTypeRequired = createKnownErrorConstructor(
 );
 
 const InsufficientAccessType = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INSUFFICIENT_ACCESS_TYPE",
   (actualAccessType: "client" | "server" | "admin", allowedAccessTypes: ("client" | "server" | "admin")[]) => [
     401,
@@ -315,7 +315,7 @@ const InsufficientAccessType = createKnownErrorConstructor(
 );
 
 const InvalidPublishableClientKey = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_PUBLISHABLE_CLIENT_KEY",
   (projectId: string) => [
     401,
@@ -328,7 +328,7 @@ const InvalidPublishableClientKey = createKnownErrorConstructor(
 );
 
 const InvalidSecretServerKey = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_SECRET_SERVER_KEY",
   (projectId: string) => [
     401,
@@ -341,7 +341,7 @@ const InvalidSecretServerKey = createKnownErrorConstructor(
 );
 
 const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_SUPER_SECRET_ADMIN_KEY",
   (projectId: string) => [
     401,
@@ -354,7 +354,7 @@ const InvalidSuperSecretAdminKey = createKnownErrorConstructor(
 );
 
 const InvalidAdminAccessToken = createKnownErrorConstructor(
-  InvalidProjectAccess,
+  InvalidProjectAuthentication,
   "INVALID_ADMIN_ACCESS_TOKEN",
   "inherit",
   "inherit",
@@ -553,9 +553,19 @@ const InvalidProjectForAccessToken = createKnownErrorConstructor(
 
 const RefreshTokenError = createKnownErrorConstructor(
   KnownError,
-  "INVALID_REFRESH_TOKEN",
+  "REFRESH_TOKEN_ERROR",
   "inherit",
   "inherit",
+);
+
+const RefreshTokenNotFound = createKnownErrorConstructor(
+  RefreshTokenError,
+  "REFRESH_TOKEN_NOT_FOUND",
+  () => [
+    401,
+    "Refresh token not found for this project.",
+  ] as const,
+  () => [] as const,
 );
 
 const ProviderRejected = createKnownErrorConstructor(
@@ -563,17 +573,17 @@ const ProviderRejected = createKnownErrorConstructor(
   "PROVIDER_REJECTED",
   () => [
     401,
-    "The provider refused to refresh their token.",
+    "The provider refused to refresh their token. This usually means that the provider used to authenticate the user no longer regards this session as valid, and the user must re-authenticate.",
   ] as const,
   () => [] as const,
 );
 
-const InvalidRefreshToken = createKnownErrorConstructor(
+const RefreshTokenExpired = createKnownErrorConstructor(
   RefreshTokenError,
   "REFRESH_TOKEN_EXPIRED",
   () => [
     401,
-    "Refresh token has expired. A new refresh token requires reauthentication.",
+    "Refresh token has expired. A new refresh token requires re-authentication.",
   ] as const,
   () => [] as const,
 );
@@ -937,7 +947,7 @@ export const KnownErrors = {
   SchemaError,
   AllOverloadsFailed,
   ProjectAuthenticationError,
-  InvalidProjectAuthentication: InvalidProjectAccess,
+  InvalidProjectAuthentication,
   ProjectKeyWithoutRequestType,
   InvalidRequestType,
   RequestTypeWithoutProjectId,
@@ -970,8 +980,9 @@ export const KnownErrors = {
   AccessTokenExpired,
   InvalidProjectForAccessToken,
   RefreshTokenError,
+  RefreshTokenNotFound,
   ProviderRejected,
-  InvalidRefreshToken,
+  RefreshTokenExpired,
   UserEmailAlreadyExists,
   UserNotFound,
   ApiKeyNotFound,

@@ -101,6 +101,82 @@ describe("with client access", () => {
     `);
   });
 
+  it("should be able to read own user if signed in even without refresh token", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    backendContext.value.userAuth!.refreshToken = undefined;
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "project_id": "internal",
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should return access token invalid error when reading own user with no access token", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    backendContext.value.userAuth!.accessToken = "12342134";
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "UNPARSABLE_ACCESS_TOKEN",
+          "error": "Access token is not parsable.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should return access token invalid error when reading own user with invalid access token", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    backendContext.value.userAuth!.accessToken = "12342134";
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "UNPARSABLE_ACCESS_TOKEN",
+          "error": "Access token is not parsable.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("should be able to update own user", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response1 = await niceBackendFetch("/api/v1/users/me", {
@@ -429,7 +505,6 @@ describe("with server access", () => {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
-        "body": ArrayBuffer {},
         "headers": Headers {
           "x-stack-request-id": <stripped header 'x-stack-request-id'>,
           <some fields may have been hidden>,

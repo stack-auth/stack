@@ -103,7 +103,11 @@ export class NiceResponse implements Nicifiable {
 
   getNicifiableKeys(): string[] {
     // reorder the keys for nicer printing
-    return ["status", "body", "headers"];
+    return [
+      "status",
+      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] :  ["body"],
+      "headers",
+    ];
   }
 };
 

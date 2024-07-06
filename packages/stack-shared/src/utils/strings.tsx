@@ -298,7 +298,7 @@ function nicifyPropertyString(str: string) {
 }
 
 function getNicifiableKeys(value: Nicifiable | object) {
-  return ("getNicifiableKeys" in value ? value.getNicifiableKeys : null)?.() ?? Object.keys(value).sort();
+  return ("getNicifiableKeys" in value ? value.getNicifiableKeys?.bind(value) : null)?.() ?? Object.keys(value).sort();
 }
 
 function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {

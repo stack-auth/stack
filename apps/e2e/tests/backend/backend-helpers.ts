@@ -8,7 +8,7 @@ type BackendContext = {
   projectKeys: ProjectKeys,
   mailbox: Mailbox,
   userAuth: {
-    refreshToken: string,
+    refreshToken?: string,
     accessToken?: string,
   } | null,
 };
@@ -77,10 +77,8 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
         "x-stack-secret-server-key": projectKeys.secretServerKey,
         "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
       } : {},
-      ...!userAuth ? {} : {
-        "x-stack-access-token": userAuth.accessToken,
-        "x-stack-refresh-token": userAuth.refreshToken,
-      }, 
+      "x-stack-access-token": userAuth?.accessToken,
+      "x-stack-refresh-token": userAuth?.refreshToken,
       ...Object.fromEntries(new Headers(headers).entries()),
     }),
   });
@@ -102,6 +100,26 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
 
 
 export namespace Auth {
+  export async function signOut() {
+    const response = await niceBackendFetch("/api/v1/auth/sessions/current", {
+      method: "DELETE",
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "headers": Headers {
+          "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+    if (backendContext.value.userAuth) backendContext.value.userAuth.accessToken = undefined;
+    return {
+      signOutResponse: response,
+    };
+  }
+
   export namespace Otp {
     export async function sendSignInCode() {
       const mailbox = backendContext.value.mailbox;

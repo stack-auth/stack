@@ -75,7 +75,6 @@ export class OAuthModel implements AuthorizationCodeModel {
     return await encodeAccessToken({
       projectId: client.id,
       userId: user.id,
-      // TODO: pass the scope and some other information down to the token
     });
   }
 

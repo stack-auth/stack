@@ -42,7 +42,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     );
   } catch (e) {
     if (e instanceof InvalidGrantError) {
-      throw new KnownErrors.InvalidRefreshToken();
+      throw new KnownErrors.RefreshTokenExpired();
     }
     if (e instanceof InvalidClientError) {
       throw new KnownErrors.ProjectNotFound();
