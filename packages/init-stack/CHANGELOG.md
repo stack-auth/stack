@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.5.1
+
+### Patch Changes
+
+- New backend endpoints
+
 ## 2.5.0
 
 ## 2.4.28

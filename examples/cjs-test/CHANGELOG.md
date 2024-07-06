@@ -1,5 +1,13 @@
 # cjs-test
 
+## 2.5.1
+
+### Patch Changes
+
+- New backend endpoints
+- Updated dependencies
+  - @stackframe/stack@2.5.1
+
 ## 2.5.0
 
 ### Patch Changes
