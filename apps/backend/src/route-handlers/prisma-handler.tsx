@@ -1,5 +1,5 @@
 import { CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { CrudHandlers, ParamsSchema, createCrudHandlers } from "./crud-handler";
+import { CrudHandlers, ParamsSchema, QuerySchema, createCrudHandlers } from "./crud-handler";
 import { SmartRequestAuth } from "./smart-request";
 import { Prisma } from "@prisma/client";
 import { GetResult } from "@prisma/client/runtime/library";
@@ -31,9 +31,10 @@ type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R }
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
 type CEitherWrite<T extends CrudTypeOf<any>> = (CCreate<T> | CUpdate<T>) & Partial<CCreate<T> & CUpdate<T>>;
 
-type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>, PS extends ParamsSchema> = CrudHandlers<
+type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>, PS extends ParamsSchema, QS extends QuerySchema> = CrudHandlers<
   T,
   PS,
+  QS,
   | ("Create" extends keyof T["Admin"] ? "Create" : never)
   | ("Read" extends keyof T["Admin"] ? "Read" : never)
   | ("Read" extends keyof T["Admin"] ? "List" : never)
@@ -57,6 +58,7 @@ export function createPrismaCrudHandlers<
   S extends CrudSchema,
   PrismaModelName extends AllPrismaModelNames,
   PS extends ParamsSchema,
+  QS extends QuerySchema,
   W extends Where<PrismaModelName>,
   I extends Include<PrismaModelName>,
   B extends BaseFields<PrismaModelName>,
@@ -65,6 +67,7 @@ export function createPrismaCrudHandlers<
   prismaModelName: PrismaModelName,
   options: & {
       paramsSchema: PS,
+      querySchema?: QS,
       onPrepare?: (context: Context<false, PS>) => Promise<void>,
       baseFields: (context: Context<false, PS>) => Promise<B>,
       where?: (context: Context<false, PS>) => Promise<W>,
@@ -75,7 +78,7 @@ export function createPrismaCrudHandlers<
       notFoundToCrud: (context: Context<false, PS>) => Promise<CRead<CrudTypeOf<S>> | never>,
       onCreate?: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS>) => Promise<void>,
     },
-): CrudHandlersFromCrudType<CrudTypeOf<S>, PS> & ExtraDataFromCrudType<S, PrismaModelName, PS, W, I, B> {
+): CrudHandlersFromCrudType<CrudTypeOf<S>, PS, QS> & ExtraDataFromCrudType<S, PrismaModelName, PS, W, I, B> {
   const wrapper = <AllParams extends boolean, T>(allParams: AllParams, func: (data: any, context: Context<AllParams, PS>) => Promise<T>): (opts: Context<AllParams, PS> & { data?: unknown }) => Promise<T> => {
     return async (req) => {
       const context: Context<AllParams, PS> = {
@@ -95,8 +98,9 @@ export function createPrismaCrudHandlers<
   };
   const crudToPrisma = options.crudToPrisma;
   
-  return typedAssign(createCrudHandlers<any, PS, any>(crudSchema, {
+  return typedAssign(createCrudHandlers<any, PS, QS, any>(crudSchema, {
     paramsSchema: options.paramsSchema,
+    querySchema: options.querySchema,
     onPrepare: options.onPrepare,
     onRead: wrapper(true, async (data, context) => {
       const prisma = await (prismaClient[prismaModelName].findUnique as any)({
