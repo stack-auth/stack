@@ -22,6 +22,11 @@ jobs:
           git pull --all
           git switch -c main-mirror-for-wdb
           git reset --hard origin/main
+          
+      - name: Trigger rebuild
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           git commit --allow-empty -m "Trigger rebuild"
 
       - name: Push branch
