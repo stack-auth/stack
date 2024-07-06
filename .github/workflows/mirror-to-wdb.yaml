@@ -8,9 +8,6 @@ on:
 jobs:
   lint_and_build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
 
     steps:
       - uses: actions/checkout@v3
