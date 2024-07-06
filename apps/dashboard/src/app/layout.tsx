@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: '%s | Stack Auth',
   },
   description: 'Stack Auth is the fastest way to add authentication to your web app.',
-  openGraph:{
+  openGraph: {
     images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
   }
 };
