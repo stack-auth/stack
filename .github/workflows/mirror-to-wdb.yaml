@@ -22,6 +22,7 @@ jobs:
           git pull --all
           git switch -c main-mirror-for-wdb
           git reset --hard origin/main
+          git commit --allow-empty -m "Trigger rebuild"
 
       - name: Push branch
         run: |
