@@ -7,6 +7,8 @@ on:
 
 jobs:
   lint_and_build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
 
     steps:
@@ -17,4 +19,7 @@ jobs:
           git pull --all
           git switch -c main-mirror-for-wdb
           git reset --hard origin/main
-          git push origin main-mirror-for-wdb --force
+
+      - name: Push branch
+        run: |
+          git push origin main-mirror-for-wdb
