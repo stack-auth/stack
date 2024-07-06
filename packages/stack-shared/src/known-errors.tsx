@@ -695,6 +695,16 @@ const PasswordTooLong = createKnownErrorConstructor(
   ] as const,
 );
 
+const UserDoesNotHavePassword = createKnownErrorConstructor(
+  KnownError,
+  "USER_DOES_NOT_HAVE_PASSWORD",
+  () => [
+    400,
+    "This user does not have password authentication enabled.",
+  ] as const,
+  () => [] as const,
+);
+
 const VerificationCodeError = createKnownErrorConstructor(
   KnownError,
   "VERIFICATION_ERROR",
@@ -732,9 +742,9 @@ const VerificationCodeAlreadyUsed = createKnownErrorConstructor(
   () => [] as const,
 );
 
-const PasswordMismatch = createKnownErrorConstructor(
+const PasswordConfirmationMismatch = createKnownErrorConstructor(
   KnownError,
-  "PASSWORD_MISMATCH",
+  "PASSWORD_CONFIRMATION_MISMATCH",
   () => [
     400,
     "Passwords do not match.",
@@ -992,11 +1002,12 @@ export const KnownErrors = {
   PasswordRequirementsNotMet,
   PasswordTooShort,
   PasswordTooLong,
+  UserDoesNotHavePassword,
   VerificationCodeError,
   VerificationCodeNotFound,
   VerificationCodeExpired,
   VerificationCodeAlreadyUsed,
-  PasswordMismatch,
+  PasswordConfirmationMismatch,
   EmailAlreadyVerified,
   EmailIsNotPrimaryEmail,
   PermissionNotFound,

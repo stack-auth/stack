@@ -1113,7 +1113,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _updatePassword(
     options: { oldPassword: string, newPassword: string }, 
     session: InternalSession
-  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
+  ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
     return await this._interface.updatePassword(options, session);
   }
 
@@ -1912,7 +1912,7 @@ export type User =
      */
     readonly hasPassword: boolean,
     readonly oauthProviders: readonly string[],
-    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     /**
      * A shorthand method to update multiple fields of the user at once.
@@ -1977,7 +1977,7 @@ export type ServerUser =
     readonly serverMetadata: ReadonlyJson,
     setServerMetadata(metadata: ReadonlyJson): Promise<void>,
 
-    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     update(user: Partial<ServerUserUpdateJson>): Promise<void>,
     delete(): Promise<void>,

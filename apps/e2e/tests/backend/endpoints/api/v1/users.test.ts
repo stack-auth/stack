@@ -242,6 +242,14 @@ describe("with client access", () => {
       }
     `);
   });
+  
+  it.todo("should be able to set own profile image URL with an image HTTP URL, and the new profile image URL should be a different HTTP URL on our storage service");
+
+  it.todo("should be able to set own profile image URL with a base64 data URL, and the new profile image URL should be a different HTTP URL on our storage service");
+
+  it.todo("should not be able to set own profile image URL with a file: protocol URL");
+
+  it.todo("should not be able to set own profile image URL to a localhost/non-public URL");
 
   it("should not be able to set own server_metadata", async ({ expect }) => {
     await Auth.Otp.signIn();
