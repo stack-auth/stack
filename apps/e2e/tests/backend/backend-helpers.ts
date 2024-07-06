@@ -206,6 +206,39 @@ export namespace Auth {
         password,
       };
     }
+  
+    export async function signInWithEmail(options: { password: string }) {
+      const mailbox = backendContext.value.mailbox;
+      const email = mailbox.emailAddress;
+      const response = await niceBackendFetch("/api/v1/auth/password/sign-in", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          email,
+          password: options.password,
+        },
+      });
+      expect(response).toMatchObject({
+        status: 200,
+        body: {
+          access_token: expect.any(String),
+          refresh_token: expect.any(String),
+          user_id: expect.any(String),
+        },
+        headers: expect.anything(),
+      });
+
+      backendContext.set({
+        userAuth: {
+          accessToken: response.body.access_token,
+          refreshToken: response.body.refresh_token,
+        },
+      });
+
+      return {
+        signInResponse: response,
+      };
+    }
   }
 }
 

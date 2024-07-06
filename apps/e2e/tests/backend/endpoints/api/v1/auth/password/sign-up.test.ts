@@ -29,6 +29,31 @@ it("should sign up new users", async ({ expect }) => {
       },
     ]
   `);
+  const currentUserResponse = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+  expect(currentUserResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "auth_with_email": true,
+        "client_metadata": null,
+        "display_name": null,
+        "has_password": true,
+        "id": "<stripped UUID>",
+        "oauth_providers": [],
+        "primary_email": "<stripped UUID>@stack-generated.example.com",
+        "primary_email_verified": false,
+        "profile_image_url": null,
+        "project_id": "internal",
+        "selected_team": null,
+        "selected_team_id": null,
+        "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+      },
+      "headers": Headers {
+        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
+        <some fields may have been hidden>,
+      },
+    }
+  `);
 });
 
 it("should not allow signing up with an e-mail that already exists", async ({ expect }) => {

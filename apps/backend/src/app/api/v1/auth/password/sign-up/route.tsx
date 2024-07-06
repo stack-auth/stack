@@ -1,8 +1,6 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { NextResponse } from "next/server";
-import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";

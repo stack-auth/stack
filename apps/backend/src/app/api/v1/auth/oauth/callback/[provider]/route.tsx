@@ -268,7 +268,7 @@ export const GET = createSmartRouteHandler({
       if (error instanceof InvalidClientError) {
         if (error.message.includes("redirect_uri")) {
           throw new StatusError(
-            StatusError.BadRequest, 
+            StatusError.BadRequest,
             'Invalid redirect URL. This is probably caused by not setting up domains/handlers correctly in the Stack dashboard'
           );
         }
