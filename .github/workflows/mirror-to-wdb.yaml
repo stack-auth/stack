@@ -14,7 +14,6 @@ jobs:
 
       - name: Mirror branch
         run: |
-          git checkout main
           git fetch origin main
           git checkout -b main-mirror-for-wdb
           git reset --hard main
