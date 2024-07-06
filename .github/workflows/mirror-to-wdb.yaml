@@ -9,6 +9,7 @@ jobs:
   lint_and_build:
     permissions:
       contents: write
+
     runs-on: ubuntu-latest
 
     steps:
