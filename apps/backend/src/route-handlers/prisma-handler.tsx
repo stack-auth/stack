@@ -30,6 +30,7 @@ type Context<AllParams extends boolean, PS extends ParamsSchema, QS extends Quer
   query: yup.InferType<QS>,
 };
 type CrudToPrismaContext<AllParams extends boolean, PS extends ParamsSchema, QS extends QuerySchema> = Context<AllParams, PS, QS> & { type: 'update' | 'create' };
+type OnPrepareContext<AllParams extends boolean, PS extends ParamsSchema, QS extends QuerySchema> = Context<AllParams, PS, QS> & { type: 'list' | 'read' | 'create' | 'update' | 'delete' };
 
 type CrudHandlersFromCrudType<T extends CrudTypeOf<CrudSchema>, PS extends ParamsSchema, QS extends QuerySchema> = CrudHandlers<
   T,
@@ -69,7 +70,7 @@ export function createPrismaCrudHandlers<
   options: & {
       paramsSchema: PS,
       querySchema?: QS,
-      onPrepare?: (context: Context<false, PS, QS>) => Promise<void>,
+      onPrepare?: (context: OnPrepareContext<false, PS, QS>) => Promise<void>,
       baseFields: (context: Context<false, PS, QS>) => Promise<B>,
       where?: (context: Context<false, PS, QS>) => Promise<W>,
       whereUnique?: (context: Context<true, PS, QS>) => Promise<WhereUnique<PrismaModelName>>,

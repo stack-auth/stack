@@ -208,6 +208,7 @@ export namespace Auth {
 
       return {
         ...sendSignInCodeRes,
+        userId: response.body.user_id,
         signInResponse: response,
       };
     }

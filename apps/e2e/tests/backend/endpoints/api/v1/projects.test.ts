@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -9,7 +9,7 @@ describe("without project access", () => {
   });
 
   it("should not have have access to the project", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/current-project", { accessType: "client" });
+    const response = await niceBackendFetch("/api/v1/projects/current", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
@@ -33,7 +33,7 @@ describe("with internal project keys", () => {
   });
 
   it("Get project", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/current-project", { accessType: "client" });
+    const response = await niceBackendFetch("/api/v1/projects/current", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,

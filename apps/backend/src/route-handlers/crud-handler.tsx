@@ -19,12 +19,13 @@ type ListResult<El> = {
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
-type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Multi extends boolean = false> =
+type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Query extends {}, Multi extends boolean = false> =
   K extends keyof T["Admin"]
     ? (options: {
       params: Params,
       data: (K extends "Read" ? void : GetAdminKey<T, K>),
       auth: SmartRequestAuth,
+      query: Query,
     }) => Promise<
       K extends "Delete"
         ? void
@@ -36,16 +37,16 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
     >
     : void;
 
-type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}> = {
-  onPrepare?: (options: { params: Params, auth: SmartRequestAuth }) => Promise<void>,
-  onCreate?: CrudSingleRouteHandler<T, "Create", Params>,
-  onRead?: CrudSingleRouteHandler<T, "Read", Params>,
-  onList?: keyof Params extends never ? void : CrudSingleRouteHandler<T, "Read", Partial<Params>, true>,
-  onUpdate?: CrudSingleRouteHandler<T, "Update", Params>,
-  onDelete?: CrudSingleRouteHandler<T, "Delete", Params>,
+type CrudRouteHandlersUnfiltered<T extends CrudTypeOf<any>, Params extends {}, Query extends {}> = {
+  onPrepare?: (options: { params: Params, auth: SmartRequestAuth, query: Query, type: 'create' | 'read' | 'list' | 'update' | 'delete' }) => Promise<void>,
+  onCreate?: CrudSingleRouteHandler<T, "Create", Params, Query>,
+  onRead?: CrudSingleRouteHandler<T, "Read", Params, Query>,
+  onList?: keyof Params extends never ? void : CrudSingleRouteHandler<T, "Read", Partial<Params>, Query, true>,
+  onUpdate?: CrudSingleRouteHandler<T, "Update", Params, Query>,
+  onDelete?: CrudSingleRouteHandler<T, "Delete", Params, Query>,
 };
 
-type CrudRouteHandlers<T extends CrudTypeOf<any>, Params extends {}> = FilterUndefined<CrudRouteHandlersUnfiltered<T, Params>>;
+type CrudRouteHandlers<T extends CrudTypeOf<any>, Params extends {}, Query extends {}> = FilterUndefined<CrudRouteHandlersUnfiltered<T, Params, Query>>;
 
 export type ParamsSchema = yup.ObjectSchema<{}>;
 export type QuerySchema = yup.ObjectSchema<{}>;
@@ -54,7 +55,7 @@ type CrudHandlersFromOptions<
   T extends CrudTypeOf<any>,
   PS extends ParamsSchema,
   QS extends QuerySchema,
-  O extends CrudRouteHandlers<CrudTypeOf<any>, ParamsSchema>,
+  O extends CrudRouteHandlers<CrudTypeOf<any>, ParamsSchema, QuerySchema>,
 > = CrudHandlers<
   T,
   PS,
@@ -101,7 +102,7 @@ export function createCrudHandlers<
   S extends CrudSchema,
   PS extends ParamsSchema,
   QS extends QuerySchema,
-  RH extends CrudRouteHandlers<CrudTypeOf<S>, yup.InferType<PS>>
+  RH extends CrudRouteHandlers<CrudTypeOf<S>, yup.InferType<PS>, yup.InferType<QS>>,
 >(
   crud: S,
   options: RH & {
@@ -109,7 +110,7 @@ export function createCrudHandlers<
     querySchema?: QS,
   },
 ): CrudHandlersFromOptions<CrudTypeOf<S>, PS, QS, RH> {
-  const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
+  const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any, any>>;
 
   const operations = [
     ["GET", "Read"],
@@ -165,12 +166,14 @@ export function createCrudHandlers<
                 await optionsAsPartial.onPrepare?.({
                   params: paramsValidated,
                   auth: options.auth,
+                  query: options.query,
+                  type: typedToLowercase(crudOperation)
                 });
-                
                 const result = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: paramsValidated,
                   data: adminData,
                   auth: options.auth,
+                  query: options.query,
                 });
 
                 const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");

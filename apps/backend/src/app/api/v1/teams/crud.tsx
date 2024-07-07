@@ -12,9 +12,9 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
   paramsSchema: yupObject({
     teamId: yupString().required(),
   }),
-  onPrepare: async ({ params, query, auth }) => {
+  onPrepare: async ({ query, auth, type }) => {
     if (auth.type === 'client') {
-      if (query.user_id !== 'me' && query.user_id !== auth.user?.id) {
+      if (type === 'list' && query.user_id !== 'me' && query.user_id !== auth.user?.id) {
         throw new StatusError(StatusError.Forbidden, "You are only allowed to access your own teams with the client access token.");
       }
     }
