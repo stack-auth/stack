@@ -12,6 +12,11 @@ import { ProjectJson } from "@stackframe/stack-shared";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
+type ListResult<El> = {
+  items: El[],
+  is_paginated: false,
+};
+
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
 type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Multi extends boolean = false> =
@@ -25,10 +30,7 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
         ? void
         : (
           Multi extends true
-            ? {
-              items: GetAdminKey<T, "Read">[],
-              is_paginated: false,
-            }
+            ? ListResult<GetAdminKey<T, "Read">>
             : GetAdminKey<T, "Read">
         )
     >
@@ -71,15 +73,15 @@ type CrudHandlerDirectByAccess<
   QS extends QuerySchema,
   L extends "Create" | "Read" | "List" | "Update" | "Delete"
 > = {
-  [K in (keyof T[A]) & L as `${Uncapitalize<A>}${K}`]: (options:
+  [K in L as `${Uncapitalize<A>}${K}`]: (options:
     & {
       project: ProjectJson,
       user?: UsersCrud["Admin"]["Read"],
     }
     & ({} extends yup.InferType<QS> ? {} : { query: yup.InferType<QS> })
     & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
-    & (K extends "Read" | "List" | "Delete" ? {} : { data: T[A][K] })
-  ) => Promise<"Read" extends keyof T[A] ? (K extends "Delete" ? void : T[A]["Read"]) : void>
+    & (K extends "Read" | "List" | "Delete" ? {} : (K extends keyof T[A] ? { data: T[A][K] } : "TYPE ERROR: something went wrong here"))
+  ) => Promise<"Read" extends keyof T[A] ? (K extends "List" ? ListResult<T[A]["Read"]> : (K extends "Delete" ? void : T[A]["Read"])) : void>
 };
 
 export type CrudHandlers<

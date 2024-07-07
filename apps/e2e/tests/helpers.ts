@@ -135,6 +135,7 @@ export async function niceFetch(url: string | URL, options?: NiceRequestInit): P
 }
 
 export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";
+export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callback-url([?#][A-Za-z0-9\-._~:\/?#\[\]@!$&\'()*+,;=]*)?/g;
 
 const generatedEmailSuffix = "@stack-generated.example.com";
 export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;

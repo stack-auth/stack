@@ -638,6 +638,16 @@ const ProjectNotFound = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "PASSWORD_AUTHENTICATION_NOT_ENABLED",
+  () => [
+    400,
+    "Password authentication is not enabled for this project.",
+  ] as const,
+  () => [] as const,
+);
+
 const EmailPasswordMismatch = createKnownErrorConstructor(
   KnownError,
   "EMAIL_PASSWORD_MISMATCH",
@@ -758,6 +768,16 @@ const EmailAlreadyVerified = createKnownErrorConstructor(
   () => [
     400,
     "The e-mail is already verified.",
+  ] as const,
+  () => [] as const,
+);
+
+const EmailNotAssociatedWithUser = createKnownErrorConstructor(
+  KnownError,
+  "EMAIL_NOT_ASSOCIATED_WITH_USER",
+  () => [
+    400,
+    "The e-mail is not associated with a user that could log in with that e-mail.",
   ] as const,
   () => [] as const,
 );
@@ -997,6 +1017,7 @@ export const KnownErrors = {
   UserNotFound,
   ApiKeyNotFound,
   ProjectNotFound,
+  PasswordAuthenticationNotEnabled,
   EmailPasswordMismatch,
   RedirectUrlNotWhitelisted,
   PasswordRequirementsNotMet,
@@ -1009,6 +1030,7 @@ export const KnownErrors = {
   VerificationCodeAlreadyUsed,
   PasswordConfirmationMismatch,
   EmailAlreadyVerified,
+  EmailNotAssociatedWithUser,
   EmailIsNotPrimaryEmail,
   PermissionNotFound,
   PermissionScopeMismatch,

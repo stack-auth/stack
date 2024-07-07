@@ -90,6 +90,7 @@ export const jsonStringSchema = yupString().test("json", "Invalid JSON format", 
     return false;
   }
 });
+export const emailSchema = yupString().email();
 
 // Request auth
 export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);
@@ -118,7 +119,7 @@ export const userIdOrMeRequestSchema = yupString().uuid().transform(v => {
   return true;
 }).meta({ openapiField: { description: 'The ID of the user, or the special value `me` to signify the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const userIdResponseSchema = yupString().uuid().meta({ openapiField: { description: 'The immutable user ID used to uniquely identify this user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
-export const primaryEmailSchema = yupString().email().meta({ openapiField: { description: 'Primary email', exampleValue: 'johndoe@example.com' } });
+export const primaryEmailSchema = emailSchema.meta({ openapiField: { description: 'Primary email', exampleValue: 'johndoe@example.com' } });
 export const primaryEmailVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the primary email has been verified to belong to this user', exampleValue: true } });
 export const userDisplayNameSchema = yupString().nullable().meta({ openapiField: { description: _displayNameDescription('user'), exampleValue: 'John Doe' } });
 export const selectedTeamIdSchema = yupString().meta({ openapiField: { description: 'ID of the team currently selected by the user', exampleValue: 'team-id' } });
@@ -128,7 +129,7 @@ export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { descri
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 
 // Auth
-export const signInEmailSchema = yupString().email().meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
+export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
 export const emailOtpSignInCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct the magic link from. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/auth/otp/sign-in` endpoint.', exampleValue: 'https://example.com/handler/magic-link-callback' } });
 export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
 export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJBMTO...diI4QT' } });

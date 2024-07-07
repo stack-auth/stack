@@ -18,6 +18,7 @@
     "openapi",
     "Proxied",
     "stackframe",
+    "typehack",
     "Uncapitalize"
   ],
 }

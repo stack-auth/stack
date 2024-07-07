@@ -28,7 +28,7 @@ export const POST = createSmartRouteHandler({
   }),
   async handler({ auth: { project }, body: { email, password } }, fullReq) {
     if (!project.evaluatedConfig.credentialEnabled) {
-      throw new StatusError(StatusError.Forbidden, "Password authentication is not enabled");
+      throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
   
     const users = await prismaClient.projectUser.findMany({

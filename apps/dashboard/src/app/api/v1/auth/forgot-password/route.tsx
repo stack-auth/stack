@@ -30,7 +30,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     body: { 
       email,
       redirectUrl
-    } 
+    },
   } = await deprecatedParseRequest(req, postSchema);
   
   if (!await getApiKeySet(projectId, { publishableClientKey })) {

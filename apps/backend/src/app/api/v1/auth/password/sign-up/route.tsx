@@ -30,9 +30,9 @@ export const POST = createSmartRouteHandler({
       user_id: yupString().required(),
     }).required(),
   }),
-  async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) { 
+  async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) {
     if (!project.evaluatedConfig.credentialEnabled) {
-      throw new StatusError(StatusError.Forbidden, "Credential authentication is not enabled");
+      throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
     const passwordError = getPasswordError(password);
