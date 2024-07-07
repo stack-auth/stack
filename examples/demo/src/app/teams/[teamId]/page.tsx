@@ -17,6 +17,7 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
   return <div>
     <h2>Team Name: {team.displayName}</h2>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={team.profileImageUrl} alt={'team profile image'} /> 
     <p>
       {userTeams.some(t => t.id === team.id) ? 
