@@ -657,6 +657,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       id: json.id,
       displayName: json.displayName,
+      profileImageUrl: json.profileImageUrl,
       createdAt: new Date(json.createdAtMillis),
       toJson() {
         return json;
@@ -1449,6 +1450,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       id: json.id,
       displayName: json.displayName,
+      profileImageUrl: json.profileImageUrl,
       createdAt: new Date(json.createdAtMillis),
       async listMembers() {
         return (await app._interface.listServerTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
@@ -2037,6 +2039,7 @@ export type Project = {
 export type Team = {
   id: string,
   displayName: string,
+  profileImageUrl?: string,
   createdAt: Date,
 
   toJson(): TeamJson,

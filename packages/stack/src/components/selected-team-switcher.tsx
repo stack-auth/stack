@@ -1,7 +1,5 @@
 'use client';
-import { Team, useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -10,9 +8,11 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-  Typography,
+  Typography
 } from "@stackframe/stack-ui";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { Team, useUser } from "..";
 
 type SelectedTeamSwitcherProps = {
   urlMap?: (team: Team) => string,
@@ -20,12 +20,20 @@ type SelectedTeamSwitcherProps = {
   noUpdateSelectedTeam?: boolean,
 };
 
-function TeamIcon(props: { displayName: string }) {
-  return (
-    <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
-      <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
-    </div>
-  );
+function TeamIcon(props: { team: Team }) {
+  if (props.team.profileImageUrl) {
+    return (
+      <div className="w-6 h-6 mr-2 rounded bg-gray-200 overflow-hidden">
+        <img src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
+        <Typography>{props.team.displayName.slice(0, 1).toUpperCase()}</Typography>
+      </div>
+    );
+  }
 }
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
@@ -67,7 +75,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         {teams && teams.map(team => (
           <SelectItem value={team.id} key={team.id}>
             <div className="flex items-center">
-              <TeamIcon displayName={team.displayName} />
+              <TeamIcon team={team} />
               <Typography>{team.displayName}</Typography>
             </div>
           </SelectItem>
