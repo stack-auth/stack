@@ -15,7 +15,6 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      user: adaptSchema.required(),
       project: adaptSchema.required(),
     }).required(),
     body: apiKeysCreateInputSchema.required(),

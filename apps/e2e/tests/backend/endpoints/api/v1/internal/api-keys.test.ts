@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../../helpers";
-import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -27,47 +27,17 @@ describe("without project access", () => {
   });
 });
 
-describe("with internal project", () => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
-
-  it("list api keys without a user (not allowed)", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/internal/api-keys", { accessType: "client" });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 401,
-        "body": {
-          "code": "USER_AUTHENTICATION_REQUIRED",
-          "error": "User authentication required for this endpoint.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "USER_AUTHENTICATION_REQUIRED",
-          <some fields may have been hidden>,
-        },
-      }
-    `);
-  });
-
-  it("list api keys with a user", async ({ expect }) => {
+describe("with admin access to the internal project", () => {
+  it("list api keys", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const response = await niceBackendFetch("/api/v1/internal/api-keys", { accessType: "client" });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 200,
-        "body": {
-          "is_paginated": false,
-          "items": [],
-        },
-        "headers": Headers { <some fields may have been hidden> },
-      }
-    `);
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", { accessType: "admin" });
+    expect(response.status).toBe(200); // not doing snapshot as it contains all the test api keys
   });
 
-  it("create api keys", async ({ expect }) => {
+  it("creates api keys for internal project", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response1 = await niceBackendFetch("/api/v1/internal/api-keys", {
-      accessType: "client",
+      accessType: "admin",
       method: "POST",
       body: {
         description: "test api key",
@@ -93,10 +63,228 @@ describe("with internal project", () => {
       }
     `);
   });
-
-  it.todo("update, delete, create and use api keys");
 });
 
-describe("with non internal project", () => {
-  it.todo("create api keys");
+describe("with admin access to a non-internal project", () => {
+  async function setupProjectAdmin() {
+    backendContext.set({
+      projectKeys: InternalProjectKeys,
+    });
+    await Auth.Otp.signIn();
+    const { projectId } = await Project.create();
+    const adminAccessToken = backendContext.value.userAuth?.accessToken;
+
+    backendContext.set({
+      projectKeys: {
+        projectId,
+      },
+      userAuth: null,
+    });
+
+    return adminAccessToken;
+  }
+
+  it("creates api keys without admin access token", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "test api key",
+        has_publishable_client_key: true,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: true,
+        expires_at_millis: 123,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "test api key",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "publishable_client_key": <stripped field 'publishable_client_key'>,
+          "secret_server_key": <stripped field 'secret_server_key'>,
+          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("creates api keys with invalid admin access token", async ({ expect }) => {
+    const response1 = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "test api key",
+        has_publishable_client_key: true,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: true,
+        expires_at_millis: 123,
+      },
+      headers: {
+        'x-stack-admin-access-token': 'invalid-key',
+      }
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "UNPARSABLE_ADMIN_ACCESS_TOKEN",
+          "error": "Admin access token is not parsable.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "UNPARSABLE_ADMIN_ACCESS_TOKEN",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("creates, list, updates, revokes api keys", async ({ expect }) => {
+    const adminAccessToken = await setupProjectAdmin();
+    
+    const response1 = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "test api key",
+        has_publishable_client_key: true,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: true,
+        expires_at_millis: 123,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "test api key",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "publishable_client_key": <stripped field 'publishable_client_key'>,
+          "secret_server_key": <stripped field 'secret_server_key'>,
+          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    // update api key description
+    const response2 = await niceBackendFetch(`/api/v1/internal/api-keys/${response1.body.id}`, {
+      accessType: "admin",
+      method: "PATCH",
+      body: {
+        description: "new description",
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "new description",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "publishable_client_key": <stripped field 'publishable_client_key'>,
+          "secret_server_key": <stripped field 'secret_server_key'>,
+          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    
+    // create another api key
+    await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "key2",
+        has_publishable_client_key: false,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: false,
+        expires_at_millis: 123,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+
+    // list api keys
+    const response3 = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(response3).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [
+            {
+              "created_at_millis": <stripped field 'created_at_millis'>,
+              "description": "key2",
+              "expires_at_millis": <stripped field 'expires_at_millis'>,
+              "id": "<stripped UUID>",
+              "secret_server_key": <stripped field 'secret_server_key'>,
+            },
+            {
+              "created_at_millis": <stripped field 'created_at_millis'>,
+              "description": "new description",
+              "expires_at_millis": <stripped field 'expires_at_millis'>,
+              "id": "<stripped UUID>",
+              "publishable_client_key": <stripped field 'publishable_client_key'>,
+              "secret_server_key": <stripped field 'secret_server_key'>,
+              "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+            },
+          ],
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    // revoke api key
+    const response4 = await niceBackendFetch(`/api/v1/internal/api-keys/${response1.body.id}`, {
+      accessType: "admin",
+      method: "PATCH",
+      body: {
+        revoked: true,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(response4).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "new description",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "manually_revoked_at_millis": <stripped field 'manually_revoked_at_millis'>,
+          "publishable_client_key": <stripped field 'publishable_client_key'>,
+          "secret_server_key": <stripped field 'secret_server_key'>,
+          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+});
+
+describe("manage a project with a non-internal project user", () => {
+  it.todo("list api keys (not allowed)");
 });

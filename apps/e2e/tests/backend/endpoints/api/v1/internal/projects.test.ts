@@ -72,7 +72,7 @@ describe("with internal project", async () => {
 
   it("create a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const result = await Project.createProject({
+    const result = await Project.create({
       display_name: "Test Project",
     });
     expect(result.createProjectResponse).toMatchInlineSnapshot(`
@@ -102,7 +102,7 @@ describe("with internal project", async () => {
 
   it("create a new project with different configurations", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { createProjectResponse: response1 } = await Project.createProject({
+    const { createProjectResponse: response1 } = await Project.create({
       display_name: "Test Project",
       description: "Test description",
       is_production_mode: true,
@@ -137,7 +137,7 @@ describe("with internal project", async () => {
     `);
 
     // create with oauth providers
-    const { createProjectResponse: response2 } = await Project.createProject({
+    const { createProjectResponse: response2 } = await Project.create({
       display_name: "Test Project",
       config: {
         oauth_providers: [
@@ -194,7 +194,7 @@ describe("with internal project", async () => {
     `);
 
     // create with shared email config
-    const { createProjectResponse: response3 } = await Project.createProject({
+    const { createProjectResponse: response3 } = await Project.create({
       display_name: "Test Project",
       config: {
         email_config: {
@@ -227,7 +227,7 @@ describe("with internal project", async () => {
     `);
 
     // create with standard email config
-    const { createProjectResponse: response4 } = await Project.createProject({
+    const { createProjectResponse: response4 } = await Project.create({
       display_name: "Test Project",
       config: {
         email_config: {
@@ -274,7 +274,7 @@ describe("with internal project", async () => {
     `);
 
     // create with domains
-    const { createProjectResponse: response5 } = await Project.createProject({
+    const { createProjectResponse: response5 } = await Project.create({
       display_name: "Test Project",
       config: {
         domains: [
@@ -325,7 +325,7 @@ describe("with internal project", async () => {
 
   it("list current projects after creating a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
-    await Project.createProject();
+    await Project.create();
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -359,7 +359,7 @@ describe("with internal project", async () => {
 
   it("get a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
-    await Project.createProject();
+    await Project.create();
     const response = await niceBackendFetch("/api/v1/internal/projects/does-not-exist", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -378,7 +378,7 @@ describe("with internal project", async () => {
 
   it("get a project that exists", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
+    const { projectId } = await Project.create();
     const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, { accessType: "client" });
     expect(response.body.id).toBe(projectId);
     expect(response).toMatchInlineSnapshot(`
@@ -408,8 +408,8 @@ describe("with internal project", async () => {
 
   it("update a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
-    await Project.createProject();
-    const { updateProjectResponse: response } = await Project.updateProject("does-not-exist", {});
+    await Project.create();
+    const { updateProjectResponse: response } = await Project.update("does-not-exist", {});
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 404,
@@ -427,8 +427,8 @@ describe("with internal project", async () => {
 
   it("update basic information", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
-    const { updateProjectResponse: response } = await Project.updateProject(projectId, {
+    const { projectId } = await Project.create();
+    const { updateProjectResponse: response } = await Project.update(projectId, {
       display_name: "Updated Project",
       description: "Updated description",
       is_production_mode: true,
@@ -460,8 +460,8 @@ describe("with internal project", async () => {
 
   it("update project basic configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
-    const { updateProjectResponse: response } = await Project.updateProject(projectId, {
+    const { projectId } = await Project.create();
+    const { updateProjectResponse: response } = await Project.update(projectId, {
       config: {
         allow_localhost: false,
         credential_enabled: false,
@@ -495,8 +495,8 @@ describe("with internal project", async () => {
 
   it("update project domains configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId: projectId1 } = await Project.createProject();
-    const { updateProjectResponse: response1 } = await Project.updateProject(projectId1, {
+    const { projectId: projectId1 } = await Project.create();
+    const { updateProjectResponse: response1 } = await Project.update(projectId1, {
       config: {
         domains: [{
           domain: 'https://domain.com',
@@ -533,7 +533,7 @@ describe("with internal project", async () => {
       }
     `);
 
-    const { updateProjectResponse: response2 } = await Project.updateProject(projectId1, {
+    const { updateProjectResponse: response2 } = await Project.update(projectId1, {
       config: {
         domains: [
           {
@@ -581,8 +581,8 @@ describe("with internal project", async () => {
     `);
     
     // create another project and update its domain
-    const { projectId: projectId2 } = await Project.createProject();
-    const { updateProjectResponse: response1p2 } = await Project.updateProject(projectId2, {
+    const { projectId: projectId2 } = await Project.create();
+    const { updateProjectResponse: response1p2 } = await Project.update(projectId2, {
       config: {
         domains: [{
           domain: 'https://domain3.com',
@@ -660,10 +660,10 @@ describe("with internal project", async () => {
 
   it("update project email configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId: projectId1 } = await Project.createProject();
+    const { projectId: projectId1 } = await Project.create();
 
     // create standard email config
-    const { updateProjectResponse: response1 } = await Project.updateProject(projectId1, {
+    const { updateProjectResponse: response1 } = await Project.update(projectId1, {
       config: {
         email_config: {
           type: "standard",
@@ -709,8 +709,8 @@ describe("with internal project", async () => {
     `);
 
     // create another project and update its email config
-    const { projectId: projectId2 } = await Project.createProject();
-    const { updateProjectResponse: response1p2 } = await Project.updateProject(projectId2, {
+    const { projectId: projectId2 } = await Project.create();
+    const { updateProjectResponse: response1p2 } = await Project.update(projectId2, {
       config: {
         email_config: {
           type: "standard",
@@ -756,7 +756,7 @@ describe("with internal project", async () => {
     `);
     
     // update standard email config again
-    const { updateProjectResponse: response2 } = await Project.updateProject(projectId1, {
+    const { updateProjectResponse: response2 } = await Project.update(projectId1, {
       config: {
         email_config: {
           type: "standard",
@@ -802,7 +802,7 @@ describe("with internal project", async () => {
     `);
 
     // switch back to shared email config
-    const { updateProjectResponse: response3 } = await Project.updateProject(projectId1, {
+    const { updateProjectResponse: response3 } = await Project.update(projectId1, {
       config: {
         email_config: {
           type: "shared",
@@ -834,7 +834,7 @@ describe("with internal project", async () => {
     `);
 
     // update to shared again
-    const { updateProjectResponse: response4 } = await Project.updateProject(projectId1, {
+    const { updateProjectResponse: response4 } = await Project.update(projectId1, {
       config: {
         email_config: {
           type: "shared",
@@ -866,7 +866,7 @@ describe("with internal project", async () => {
     `);
 
     // check if the second project still has the same email config
-    const { updateProjectResponse: response2p2 } = await Project.updateProject(projectId2, {
+    const { updateProjectResponse: response2p2 } = await Project.update(projectId2, {
       config: {
         email_config: {
           type: "standard",
@@ -914,8 +914,8 @@ describe("with internal project", async () => {
 
   it("update project email configuration with the wrong parameters", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
-    const { updateProjectResponse: response1 } = await Project.updateProject(projectId, {
+    const { projectId } = await Project.create();
+    const { updateProjectResponse: response1 } = await Project.update(projectId, {
       config: {
         email_config: {
           type: "shared",
@@ -965,9 +965,9 @@ describe("with internal project", async () => {
 
   it("update project oauth configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const { projectId } = await Project.createProject();
+    const { projectId } = await Project.create();
     // create google oauth provider with shared type
-    const { updateProjectResponse: response1 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response1 } = await Project.update(projectId, {
       config: {
         oauth_providers: [{
           id: "google",
@@ -1007,7 +1007,7 @@ describe("with internal project", async () => {
     `);
     
     // update google oauth provider with shared type again
-    const { updateProjectResponse: response2 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response2 } = await Project.update(projectId, {
       config: {
         oauth_providers: [{
           id: "google",
@@ -1047,7 +1047,7 @@ describe("with internal project", async () => {
     `);
 
     // switch to standard type
-    const { updateProjectResponse: response3 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response3 } = await Project.update(projectId, {
       config: {
         oauth_providers: [{
           id: "google",
@@ -1091,7 +1091,7 @@ describe("with internal project", async () => {
     `);
 
     // add another oauth provider with invalid type
-    const { updateProjectResponse: response4 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response4 } = await Project.update(projectId, {
       config: {
         oauth_providers: [{
           id: "facebook",
@@ -1109,7 +1109,7 @@ describe("with internal project", async () => {
     `);
     
     // add another oauth provider
-    const { updateProjectResponse: response5 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response5 } = await Project.update(projectId, {
       config: {
         oauth_providers: [
           {
@@ -1161,7 +1161,7 @@ describe("with internal project", async () => {
     `);
     
     // disable one of the oauth providers
-    const { updateProjectResponse: response6 } = await Project.updateProject(projectId, {
+    const { updateProjectResponse: response6 } = await Project.update(projectId, {
       config: {
         oauth_providers: [
           {

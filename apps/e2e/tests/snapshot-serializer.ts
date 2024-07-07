@@ -35,6 +35,7 @@ const stripFields = [
   "signed_up_at_millis",
   "expires_at_millis",
   "created_at_millis",
+  "manually_revoked_at_millis",
   "publishable_client_key",
   "secret_server_key",
   "super_secret_admin_key",

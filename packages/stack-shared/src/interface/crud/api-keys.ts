@@ -24,8 +24,8 @@ export const apiKeysCreateOutputSchema = baseApiKeysReadSchema.concat(yupObject(
   super_secret_admin_key: yupString().optional(),
 }).required());
 
-// Used for all other endpoints after the initial creation
-export const apiKeysCrudClientObfuscatedReadSchema = baseApiKeysReadSchema.concat(yupObject({
+// Used for list, read and update endpoints after the initial creation
+export const apiKeysCrudAdminObfuscatedReadSchema = baseApiKeysReadSchema.concat(yupObject({
   publishable_client_key: yupObject({
     last_four: yupString().required(),
   }).optional(),
@@ -37,24 +37,25 @@ export const apiKeysCrudClientObfuscatedReadSchema = baseApiKeysReadSchema.conca
   }).optional(),
 }));
 
-export const apiKeysCrudClientUpdateSchema = yupObject({
+export const apiKeysCrudAdminUpdateSchema = yupObject({
   description: yupString().optional(),
+  revoked: yupBoolean().oneOf([true]).optional(),
 }).required();
 
-export const apiKeysCrudClientDeleteSchema = yupMixed();
+export const apiKeysCrudAdminDeleteSchema = yupMixed();
 
 export const apiKeysCrud = createCrud({
-  clientReadSchema: apiKeysCrudClientObfuscatedReadSchema,
-  clientUpdateSchema: apiKeysCrudClientUpdateSchema,
-  clientDeleteSchema: apiKeysCrudClientDeleteSchema,
+  adminReadSchema: apiKeysCrudAdminObfuscatedReadSchema,
+  adminUpdateSchema: apiKeysCrudAdminUpdateSchema,
+  adminDeleteSchema: apiKeysCrudAdminDeleteSchema,
   docs: {
-    clientCreate: {
+    adminCreate: {
       hidden: true,
     },
-    clientUpdate: {
+    adminUpdate: {
       hidden: true,
     },
-    clientDelete: {
+    adminDelete: {
       hidden: true,
     },
   },

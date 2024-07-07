@@ -27,9 +27,9 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
-  publishableClientKey: string,
-  secretServerKey: string,
-  superSecretAdminKey: string,
+  publishableClientKey?: string,
+  secretServerKey?: string,
+  superSecretAdminKey?: string,
 };
 
 export const InternalProjectKeys = {
@@ -55,10 +55,10 @@ function expectSnakeCase(obj: unknown, path: string): void {
   }
 }
 
-export async function niceBackendFetch(url: string, options?: Omit<NiceRequestInit, "body"> & {
+export async function niceBackendFetch(url: string, options?: Omit<NiceRequestInit, "body" | "headers"> & {
   accessType?: null | "client" | "server" | "admin",
   body?: unknown,
-  headers?: Record<string, string>,
+  headers?: Record<string, string | undefined>,
 }): Promise<NiceResponse> {
   const { body, headers, accessType, ...otherOptions } = options ?? {};
   if (typeof body === "object") {
@@ -79,7 +79,7 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
-      ...Object.fromEntries(new Headers(headers).entries()),
+      ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
   if (res.status >= 500 && res.status < 600) {
@@ -308,7 +308,7 @@ export namespace ContactChannels {
 }
 
 export namespace Project {
-  export async function createProject(body?: any) {
+  export async function create(body?: any) {
     const response = await niceBackendFetch("/api/v1/internal/projects", {
       accessType: "client",
       method: "POST",
@@ -323,7 +323,7 @@ export namespace Project {
     };
   }
 
-  export async function updateProject(projectId: string, body: any) {
+  export async function update(projectId: string, body: any) {
     const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
       accessType: "client",
       method: "PATCH",

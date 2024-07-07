@@ -16,13 +16,6 @@ export function throwErr(...args: any[]): never {
   }
 }
 
-export function throwIfUndefined<T>(value: T | undefined, varName: string): T {
-  if (value === undefined) {
-    throwErr(`${varName} is undefined`);
-  }
-  return value;
-}
-
 
 export class StackAssertionError extends Error {
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {

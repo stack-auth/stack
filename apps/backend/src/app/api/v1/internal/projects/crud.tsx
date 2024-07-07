@@ -6,7 +6,7 @@ import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, throwIfUndefined } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
@@ -26,13 +26,13 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     id: params.projectId,
   }),
   where: async ({ auth }) => {
-    const managedProjectIds = listManagedProjectIds(throwIfUndefined(auth.user, "auth.user"));
+    const managedProjectIds = listManagedProjectIds(auth.user ?? throwErr('auth.user is required'));
     return {
       id: { in: managedProjectIds },
     };
   },
   whereUnique: async ({ auth, params }) => {
-    const managedProjectIds = listManagedProjectIds(throwIfUndefined(auth.user, "auth.user"));
+    const managedProjectIds = listManagedProjectIds(auth.user ?? throwErr('auth.user is required'));
     return {
       id: params.projectId,
       AND: [
@@ -40,6 +40,9 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
       ],
     };
   },
+  orderBy: async () => ({
+    createdAt: 'desc',
+  }),
   include: async () => ({
     config: {
       include: {
@@ -82,7 +85,7 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     if (type === 'create') {
       return {
         id: generateUuid(),
-        displayName: throwIfUndefined(crud.display_name, "display_name"),
+        displayName: crud.display_name ?? throwErr('display_name is required'),
         description: crud.description,
         isProductionMode: crud.is_production_mode || false,
         config: {
@@ -109,8 +112,8 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
                 standardOAuthConfig: item.type === "standard" ? {
                   create: {
                     type: typedToUppercase(item.id),
-                    clientId: throwIfUndefined(item.client_id, "client_id"),
-                    clientSecret: throwIfUndefined(item.client_secret, "client_secret"),
+                    clientId: item.client_id ?? throwErr('client_id is required'),
+                    clientSecret: item.client_secret ?? throwErr('client_secret is required'),
                   }
                 } : undefined,
               }))
@@ -122,12 +125,12 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
                 } : undefined,
                 standardEmailServiceConfig: crud.config.email_config.type === "standard" ? {
                   create: {
-                    host: throwIfUndefined(crud.config.email_config.host, "host"),
-                    port: throwIfUndefined(crud.config.email_config.port, "port"),
-                    username: throwIfUndefined(crud.config.email_config.username, "username"),
-                    password: throwIfUndefined(crud.config.email_config.password, "password"),
-                    senderEmail: throwIfUndefined(crud.config.email_config.sender_email, "sender_email"),
-                    senderName: throwIfUndefined(crud.config.email_config.sender_name, "sender_name"),
+                    host: crud.config.email_config.host ?? throwErr('host is required'),
+                    port: crud.config.email_config.port ?? throwErr('port is required'),
+                    username: crud.config.email_config.username ?? throwErr('username is required'),
+                    password: crud.config.email_config.password ?? throwErr('password is required'),
+                    senderEmail: crud.config.email_config.sender_email ?? throwErr('sender_email is required'),
+                    senderName: crud.config.email_config.sender_name ?? throwErr('sender_name is required'),
                   }
                 } : undefined,
               }
@@ -195,12 +198,12 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
         updateData = {
           standardEmailServiceConfig: {
             create: {
-              host: throwIfUndefined(emailConfig.host, "host"),
-              port: throwIfUndefined(emailConfig.port, "port"),
-              username: throwIfUndefined(emailConfig.username, "username"),
-              password: throwIfUndefined(emailConfig.password, "password"),
-              senderEmail: throwIfUndefined(emailConfig.sender_email, "sender_email"),
-              senderName: throwIfUndefined(emailConfig.sender_name, "sender_name"),
+              host: emailConfig.host ?? throwErr('host is required'),
+              port: emailConfig.port ?? throwErr('port is required'),
+              username: emailConfig.username ?? throwErr('username is required'),
+              password: emailConfig.password ?? throwErr('password is required'),
+              senderEmail: emailConfig.sender_email ?? throwErr('sender_email is required'),
+              senderName: emailConfig.sender_name ?? throwErr('sender_name is required'),
             },
           },
         };
@@ -276,8 +279,8 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
             standardOAuthConfig: {
               create: {
                 type: typedToUppercase(providerUpdate.id),
-                clientId: throwIfUndefined(providerUpdate.client_id, "client_id"),
-                clientSecret: throwIfUndefined(providerUpdate.client_secret, "client_secret"),
+                clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
+                clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
               },
             },
           };
@@ -308,8 +311,8 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
             standardOAuthConfig: {
               create: {
                 type: typedToUppercase(provider.update.id),
-                clientId: throwIfUndefined(provider.update.client_id, "client_id"),
-                clientSecret: throwIfUndefined(provider.update.client_secret, "client_secret"),
+                clientId: provider.update.client_id ?? throwErr('client_id is required'),
+                clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
               },
             },
           };
@@ -350,7 +353,7 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     } satisfies Prisma.ProjectUpdateInput;
   },
   onCreate: async (prisma, { auth }) => {
-    const user = throwIfUndefined(auth.user, 'auth.user');
+    const user = auth.user ?? throwErr('auth.user is required');
     const serverMetadataTx: any = user.server_metadata ?? {};
     await prismaClient.projectUser.update({
       where: {

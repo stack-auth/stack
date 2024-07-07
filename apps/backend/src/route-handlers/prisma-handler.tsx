@@ -73,6 +73,7 @@ export function createPrismaCrudHandlers<
       baseFields: (context: Context<false, PS, QS>) => Promise<B>,
       where?: (context: Context<false, PS, QS>) => Promise<W>,
       whereUnique?: (context: Context<true, PS, QS>) => Promise<WhereUnique<PrismaModelName>>,
+      orderBy?: (context: Context<false, PS, QS>) => Promise<Prisma.TypeMap["model"][Capitalize<PrismaModelName>]["operations"]["findMany"]["args"]["orderBy"]>,
       include: (context: Context<false, PS, QS>) => Promise<I>,
       crudToPrisma: (crud: CEitherWrite<CrudTypeOf<S>>, context: CrudToPrismaContext<false, PS, QS>) => Promise<PEitherWrite<PrismaModelName>>,
       prismaToCrud: (prisma: PRead<PrismaModelName, W & B, I>, context: Context<false, PS, QS>) => Promise<CRead<CrudTypeOf<S>>>,
@@ -122,6 +123,7 @@ export function createPrismaCrudHandlers<
           ...await options.baseFields(context),
           ...await options.where?.(context),
         },
+        orderBy: await options.orderBy?.(context)
       });
       const items = await Promise.all(prisma.map((p) => prismaOrNullToCrud(p, context)));
       return {
