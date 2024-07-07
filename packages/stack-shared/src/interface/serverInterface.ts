@@ -23,7 +23,7 @@ export type ServerUserUpdateJson = UserUpdateJson & {
   primaryEmailVerified?: boolean,
 }
 
-export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName">;
+export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
 export type ServerOrglikeJson = OrglikeJson & {};
 
 export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;

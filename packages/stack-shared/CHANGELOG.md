@@ -1,5 +1,19 @@
 # @stackframe/stack-shared
 
+## 2.5.2
+
+### Patch Changes
+
+- Team profile pictures
+  - @stackframe/stack-sc@2.5.2
+
+## 2.5.1
+
+### Patch Changes
+
+- New backend endpoints
+  - @stackframe/stack-sc@2.5.1
+
 ## 2.5.0
 
 ### Minor Changes

@@ -2,7 +2,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import * as yup from "yup";
 import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import sharp from "sharp";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 let pngImagePromise: Promise<Uint8Array> | undefined; 
@@ -29,6 +29,9 @@ export const GET = createSmartRouteHandler({
         const ghPageText = await ghPage.text();
         const regex = /\<a\s+href="https:\/\/github\.com\/([^"]+)"\s+class=""\s+data-hovercard-type="user"/gm;
         const matches = [...ghPageText.matchAll(regex)];
+        if (matches.length === 0) {
+          throw new StackAssertionError("Could not find any contributors. This is unexpected.", { ghPageText });
+        }
         const contributors = matches.map((match) => match[1]);
         console.log("Creating contributor image", { contributors });
 
@@ -82,6 +85,7 @@ export const GET = createSmartRouteHandler({
       })();
       pngImagePromise.catch((error) => {
         captureError("contributors-image", error);
+        throw error;
       });
     }
 

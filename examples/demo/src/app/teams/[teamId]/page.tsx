@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
+import { ProfileImageUpload } from "./profile-image-upload";
 
 export default async function Page({ params }: { params: { teamId: string } }) {
   const team = await stackServerApp.getTeam(params.teamId);
@@ -16,7 +17,16 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
   return <div>
     <h2>Team Name: {team.displayName}</h2>
-    <p>{userTeams.some(t => t.id === team.id) ? '(You are a member)' : '(You are not a member)'}</p>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={team.profileImageUrl} alt={'team profile image'} style={{ width: '100px', height: '100px' }} />
+    <p>
+      {userTeams.some(t => t.id === team.id) ? 
+        <>
+          (You are a member)
+          <ProfileImageUpload teamId={team.id} />
+        </> : 
+        '(You are not a member)'}
+    </p>
 
     <div className="mb-5"></div>
 
