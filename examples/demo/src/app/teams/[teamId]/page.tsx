@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
 import { ProfileImageUpload } from "./profile-image-upload";
@@ -18,7 +17,8 @@ export default async function Page({ params }: { params: { teamId: string } }) {
 
   return <div>
     <h2>Team Name: {team.displayName}</h2>
-    <Image src={team.profileImageUrl} alt={'team profile image'} width={100} height={100} />
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={team.profileImageUrl} alt={'team profile image'} style={{ width: '100px', height: '100px' }} />
     <p>
       {userTeams.some(t => t.id === team.id) ? 
         <>
