@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.5.2
+
+### Patch Changes
+
+- Team profile pictures
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.2
+  - @stackframe/stack-ui@2.5.2
+  - @stackframe/stack-sc@2.5.2
+
 ## 2.5.1
 
 ### Patch Changes
