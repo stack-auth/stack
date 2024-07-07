@@ -1,28 +1,29 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { yupObject, yupString, yupNumber, yupMixed } from "../../schema-fields";
+import * as fieldSchema from "../../schema-fields";
 
 // Read
 export const teamsCrudClientReadSchema = yupObject({
-  id: yupString().required(),
-  display_name: yupString().required(),
+  id: fieldSchema.teamIdSchema.required(),
+  display_name: fieldSchema.teamDisplayNameSchema.required(),
 }).required();
 export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
-  created_at_millis: yupNumber().required(),
+  created_at_millis: fieldSchema.createdAtMillisSchema.required(),
 }).required());
 
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
-  display_name: yupString().optional(),
+  display_name: fieldSchema.teamDisplayNameSchema.optional(),
 }).required();
 export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
 }).required());
 
 // Create
 export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-  display_name: yupString().required(),
+  display_name: fieldSchema.teamDisplayNameSchema.required(),
 }).required());
 export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yupObject({
-  display_name: yupString().required(),
+  display_name: fieldSchema.teamDisplayNameSchema.required(),
 }).required());
 
 // Delete
@@ -31,24 +32,53 @@ export const teamsCrudServerDeleteSchema = teamsCrudClientDeleteSchema;
 
 export const teamsCrud = createCrud({
   clientReadSchema: teamsCrudClientReadSchema,
-  clientUpdateSchema: teamsCrudClientUpdateSchema,
+  // clientUpdateSchema: teamsCrudClientUpdateSchema,
   clientCreateSchema: teamsCrudClientCreateSchema,
-  clientDeleteSchema: teamsCrudClientDeleteSchema,
+  // clientDeleteSchema: teamsCrudClientDeleteSchema,
+  serverReadSchema: teamsCrudServerReadSchema,
+  serverUpdateSchema: teamsCrudServerUpdateSchema,
+  serverCreateSchema: teamsCrudServerCreateSchema,
+  serverDeleteSchema: teamsCrudServerDeleteSchema,
   docs: {
+    clientList: {
+      summary: "List teams",
+      description: "List all the teams that the current user is a member of.",
+      tags: ["Teams"],
+    },
     clientCreate: {
-      hidden: true,
+      summary: "Create a team",
+      description: "Create a new team and add the current user as a member.",
+      tags: ["Teams"],
     },
     clientRead: {
-      hidden: true,
+      summary: "Get a team",
+      description: "Get a team that the current user is a member of.",
+      tags: ["Teams"],
     },
-    clientUpdate: {
-      hidden: true,
+    serverCreate: {
+      summary: "Create a team",
+      description: "Create a new team and add the current user as a member.",
+      tags: ["Teams"],
     },
-    clientDelete: {
-      hidden: true,
+    serverList: {
+      summary: "List teams",
+      description: "List all the teams in the project.",
+      tags: ["Teams"],
     },
-    clientList: {
-      hidden: true,
+    serverRead: {
+      summary: "Get a team",
+      description: "Get a team by ID.",
+      tags: ["Teams"],
+    },
+    serverUpdate: {
+      summary: "Update a team",
+      description: "Update a team by ID.",
+      tags: ["Teams"],
+    },
+    serverDelete: {
+      summary: "Delete a team",
+      description: "Delete a team by ID.",
+      tags: ["Teams"],
     },
   },
 });
