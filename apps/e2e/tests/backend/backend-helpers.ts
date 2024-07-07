@@ -105,6 +105,32 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
 
 
 export namespace Auth {
+  export async function expectToBeSignedIn() {
+    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+    expect(response).toEqual({
+      status: 200,
+      headers: expect.anything(),
+      body: expect.anything(),
+    });
+  }
+
+  export async function expectToBeSignedOut() {
+    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+          "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  }
+
   export async function signOut() {
     const response = await niceBackendFetch("/api/v1/auth/sessions/current", {
       method: "DELETE",
@@ -117,6 +143,7 @@ export namespace Auth {
       }
     `);
     if (backendContext.value.userAuth) backendContext.value.userAuth.accessToken = undefined;
+    await Auth.expectToBeSignedOut();
     return {
       signOutResponse: response,
     };

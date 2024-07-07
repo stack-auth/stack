@@ -22,7 +22,11 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password } }, fullReq) {    
+  async handler({ auth: { project, user }, body: { old_password, new_password } }, fullReq) {
+    if (!project.evaluatedConfig.credentialEnabled) {
+      throw new KnownErrors.PasswordAuthenticationNotEnabled();
+    }
+  
     const passwordError = getPasswordError(new_password);
     if (passwordError) {
       throw passwordError;

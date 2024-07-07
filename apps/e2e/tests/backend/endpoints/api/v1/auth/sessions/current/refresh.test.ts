@@ -4,20 +4,7 @@ import { Auth, backendContext, niceBackendFetch } from "../../../../../../backen
 it("should refresh sessions", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
   backendContext.value.userAuth!.accessToken = undefined;
-  const currentUserResponse1 = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
-  expect(currentUserResponse1).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 400,
-      "body": {
-        "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-        "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
-      },
-      "headers": Headers {
-        "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-        <some fields may have been hidden>,
-      },
-    }
-  `);
+  await Auth.expectToBeSignedOut();
   const refreshSessionResponse = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
     method: "POST",
     accessType: "client",
@@ -30,28 +17,7 @@ it("should refresh sessions", async ({ expect }) => {
     }
   `);
   backendContext.value.userAuth!.accessToken = refreshSessionResponse.body.access_token;
-  const currentUserResponse2 = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
-  expect(currentUserResponse2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "auth_with_email": true,
-        "client_metadata": null,
-        "display_name": null,
-        "has_password": true,
-        "id": "<stripped UUID>",
-        "oauth_providers": [],
-        "primary_email": "<stripped UUID>@stack-generated.example.com",
-        "primary_email_verified": false,
-        "profile_image_url": null,
-        "project_id": "internal",
-        "selected_team": null,
-        "selected_team_id": null,
-        "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
+  await Auth.expectToBeSignedIn();
 });
 
 it("should not refresh sessions given invalid refresh tokens", async ({ expect }) => {

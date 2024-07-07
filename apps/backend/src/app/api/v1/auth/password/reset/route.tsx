@@ -1,3 +1,3 @@
-import { NextResponse } from "next/server";
+import { resetPasswordVerificationCodeHandler } from "./verification-code-handler";
 
-export const GET = () => NextResponse.json("TODO");
+export const POST = resetPasswordVerificationCodeHandler.postHandler;

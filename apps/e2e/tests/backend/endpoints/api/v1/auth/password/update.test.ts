@@ -22,26 +22,33 @@ it("should allow updating existing passwords", async ({ expect }) => {
   `);
   await Auth.signOut();
   await Auth.Password.signInWithEmail({ password: newPassword });
-  const userResponse = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
-  expect(userResponse).toMatchInlineSnapshot(`
+  await Auth.expectToBeSignedIn();
+});
+
+it("should not allow updating passwords to weak passwords", async ({ expect }) => {
+  const signUpRes = await Auth.Password.signUpWithEmail();
+  const oldPassword = signUpRes.password;
+  const newPassword = "short";
+  const response = await niceBackendFetch("/api/v1/auth/password/update", {
+    method: "POST",
+    accessType: "admin",
+    body: {
+      old_password: oldPassword,
+      new_password: newPassword,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 200,
+      "status": 400,
       "body": {
-        "auth_with_email": true,
-        "client_metadata": null,
-        "display_name": null,
-        "has_password": true,
-        "id": "<stripped UUID>",
-        "oauth_providers": [],
-        "primary_email": "<stripped UUID>@stack-generated.example.com",
-        "primary_email_verified": false,
-        "profile_image_url": null,
-        "project_id": "internal",
-        "selected_team": null,
-        "selected_team_id": null,
-        "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        "code": "PASSWORD_TOO_SHORT",
+        "details": { "min_length": 8 },
+        "error": "Password too short. Minimum length is 8.",
       },
-      "headers": Headers { <some fields may have been hidden> },
+      "headers": Headers {
+        "x-stack-known-error": "PASSWORD_TOO_SHORT",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
