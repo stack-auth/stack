@@ -92,7 +92,8 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  displayName String
+  displayName     String
+  profileImageUrl String?
 
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   permissions Permission[]

@@ -146,6 +146,7 @@ export type ProductionModeError = {
 export type OrglikeJson = {
   id: string,
   displayName: string,
+  profileImageUrl?: string,
   createdAtMillis: number,
 };
 
@@ -153,7 +154,7 @@ export type TeamJson = OrglikeJson;
 
 export type OrganizationJson = OrglikeJson;
 
-export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName">;
+export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName" | "profileImageUrl">;
 export type TeamCustomizableJson = OrglikeCustomizableJson;
 
 export type TeamMemberJson = {

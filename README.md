@@ -101,7 +101,8 @@ pnpm install
 pnpm run build
 
 # initialize the database and seed it with some data
-pnpm prisma seed
+pnpm prisma db push
+pnpm prisma db seed
 
 # Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
 pnpm run codegen
@@ -138,5 +139,5 @@ pnpm run prisma migrate dev
 Thanks to our amazing community who have helped us build Stack:
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
-  <img src="https://api.stack-auth.com/api/v1/contributors" />
+  <img src="https://api.dev.stack-auth.com/api/v1/contributors" />
 </a>

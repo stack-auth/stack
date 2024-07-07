@@ -8,7 +8,8 @@ module.exports = {
     tsconfigRootDir: process.cwd(),
   },
   rules: {
-    "indent": ["warn", 2, {
+    "key-spacing": "error",
+    "indent": ["error", 2, {
       SwitchCase: 1,
       ignoredNodes: [
         "TSIntersectionType",
