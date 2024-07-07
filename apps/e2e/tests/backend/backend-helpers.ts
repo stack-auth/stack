@@ -39,6 +39,11 @@ export const InternalProjectKeys = {
   superSecretAdminKey: STACK_INTERNAL_PROJECT_ADMIN_KEY,
 };
 
+export const InternalProjectClientKeys = {
+  projectId: STACK_INTERNAL_PROJECT_ID,
+  publishableClientKey: STACK_INTERNAL_PROJECT_CLIENT_KEY,
+};
+
 function expectSnakeCase(obj: unknown, path: string): void {
   if (typeof obj !== "object" || obj === null) return;
   if (Array.isArray(obj)) {

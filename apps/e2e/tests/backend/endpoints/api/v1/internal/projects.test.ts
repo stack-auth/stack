@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, InternalProjectClientKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -28,17 +28,17 @@ describe("without project access", () => {
 });
 
 
-describe("with non internal project", async () => {
+describe("with a non-internal project", async () => {
   it.todo("list all current projects (not allowed)");
   it.todo("create a new project (not allowed)");
 });
 
-describe("with internal project", async () => {
+describe("with the internal project access", async () => {
   backendContext.set({
-    projectKeys: InternalProjectKeys,
+    projectKeys: InternalProjectClientKeys,
   });
 
-  it("list all current projects without signing in (not allowed)", async ({ expect }) => {
+  it("lists all current projects without signing in (not allowed)", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -55,7 +55,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("list all current projects (empty list)", async ({ expect }) => {
+  it("lists all current projects (empty list)", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
@@ -70,7 +70,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("create a new project", async ({ expect }) => {
+  it("creates a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
     const result = await Project.create({
       display_name: "Test Project",
@@ -100,7 +100,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("create a new project with different configurations", async ({ expect }) => {
+  it("creates a new project with different configurations", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { createProjectResponse: response1 } = await Project.create({
       display_name: "Test Project",
@@ -323,7 +323,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("list current projects after creating a new project", async ({ expect }) => {
+  it("lists the current projects after creating a new project", async ({ expect }) => {
     await Auth.Otp.signIn();
     await Project.create();
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
@@ -357,7 +357,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("get a project that does not exist", async ({ expect }) => {
+  it("gets a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
     await Project.create();
     const response = await niceBackendFetch("/api/v1/internal/projects/does-not-exist", { accessType: "client" });
@@ -376,7 +376,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("get a project that exists", async ({ expect }) => {
+  it("gets a project that exists", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.create();
     const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, { accessType: "client" });
@@ -406,7 +406,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update a project that does not exist", async ({ expect }) => {
+  it("updates a project that does not exist", async ({ expect }) => {
     await Auth.Otp.signIn();
     await Project.create();
     const { updateProjectResponse: response } = await Project.update("does-not-exist", {});
@@ -425,7 +425,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update basic information", async ({ expect }) => {
+  it("updates the basic project information", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.create();
     const { updateProjectResponse: response } = await Project.update(projectId, {
@@ -458,7 +458,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update project basic configuration", async ({ expect }) => {
+  it("updates the basic project configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.create();
     const { updateProjectResponse: response } = await Project.update(projectId, {
@@ -493,7 +493,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update project domains configuration", async ({ expect }) => {
+  it("updates the project domains configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId: projectId1 } = await Project.create();
     const { updateProjectResponse: response1 } = await Project.update(projectId1, {
@@ -658,7 +658,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update project email configuration", async ({ expect }) => {
+  it("updates the project email configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId: projectId1 } = await Project.create();
 
@@ -912,7 +912,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update project email configuration with the wrong parameters", async ({ expect }) => {
+  it("updates the project email configuration with the wrong parameters", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.create();
     const { updateProjectResponse: response1 } = await Project.update(projectId, {
@@ -963,7 +963,7 @@ describe("with internal project", async () => {
     `);
   });
 
-  it("update project oauth configuration", async ({ expect }) => {
+  it("updates the project oauth configuration", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { projectId } = await Project.create();
     // create google oauth provider with shared type

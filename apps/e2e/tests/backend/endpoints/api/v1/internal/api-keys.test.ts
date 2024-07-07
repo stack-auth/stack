@@ -285,6 +285,6 @@ describe("with admin access to a non-internal project", () => {
   });
 });
 
-describe("manage a project with a non-internal project user", () => {
+describe("without admin access to a non-internal project", () => {
   it.todo("list api keys (not allowed)");
 });
