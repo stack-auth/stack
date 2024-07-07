@@ -81,6 +81,7 @@ export const GET = createSmartRouteHandler({
       })();
       pngImagePromise.catch((error) => {
         captureError("contributors-image", error);
+        throw error;
       });
     }
 
