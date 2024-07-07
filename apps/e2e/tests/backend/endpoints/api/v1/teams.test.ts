@@ -27,7 +27,7 @@ it("lists all the teams in a project with server access", async ({ expect }) => 
   });
 });
 
-it("lists all the teams the current user has", async ({ expect }) => {
+it("lists all the teams the current user has on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const response1 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "client" });
   expect(response1).toMatchInlineSnapshot(`
@@ -54,8 +54,36 @@ it("lists all the teams the current user has", async ({ expect }) => {
   `);
 });
 
-it("creates a team", async ({ expect }) => {
+it("lists all the teams the current user has on the server", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
+  const response1 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch(`/api/v1/teams?user_id=${userId}`, { accessType: "server" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+
+it("creates a team on the client", async ({ expect }) => {
+  await Auth.Otp.signIn();
   const response = await niceBackendFetch("/api/v1/teams", {
     accessType: "client",
     method: "POST",
@@ -69,6 +97,115 @@ it("creates a team", async ({ expect }) => {
       "body": {
         "display_name": "My Team",
         "id": "<stripped UUID>",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("creates a team on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch("/api/v1/teams", {
+    accessType: "server",
+    method: "POST",
+    body: {
+      display_name: "My Team",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "My Team",
+        "id": "<stripped UUID>",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it.todo("updates a team on the client");
+
+it("updates a team on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const createResponse = await niceBackendFetch("/api/v1/teams", {
+    accessType: "server",
+    method: "POST",
+    body: {
+      display_name: "My Team",
+    },
+  });
+
+  const response1 = await niceBackendFetch(`/api/v1/teams/${createResponse.body.id}`, {
+    accessType: "server",
+    method: "PATCH",
+    body: {
+      display_name: "My Updated Team",
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "My Updated Team",
+        "id": "<stripped UUID>",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "My Updated Team",
+            "id": "<stripped UUID>",
+          },
+        ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it.todo("delete a team on the client");
+
+it("deletes a team on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const createResponse = await niceBackendFetch("/api/v1/teams", {
+    accessType: "server",
+    method: "POST",
+    body: {
+      display_name: "My Team",
+    },
+  });
+
+  const response1 = await niceBackendFetch(`/api/v1/teams/${createResponse.body.id}`, {
+    accessType: "server",
+    method: "DELETE",
+    body: {},
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [],
       },
       "headers": Headers { <some fields may have been hidden> },
     }
