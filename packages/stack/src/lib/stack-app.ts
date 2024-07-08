@@ -25,7 +25,7 @@ import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
-// TODO HACK: some remainders from the backend migration, please remove when client is ported
+// TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
 type EmailTemplateType = any;
 type ListEmailTemplatesCrud = any;
 
