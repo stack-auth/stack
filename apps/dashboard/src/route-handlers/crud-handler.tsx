@@ -143,9 +143,8 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 });
                 const result = deepPlainCamelCaseToSnakeCase(resultCamelCase);
 
-                // TODO remove because new backend and stuff
-                // const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
-                // const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
+                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
+                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
 
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
@@ -153,7 +152,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                     location: crudOperation === "Create" ? [req.url] : undefined,
                   },
                   bodyType: "json",
-                  body: result,
+                  body: resultAccessValidated,
                 };
               },
             });
