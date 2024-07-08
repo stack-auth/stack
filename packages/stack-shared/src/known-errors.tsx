@@ -857,6 +857,21 @@ const TeamNotFound = createKnownErrorConstructor(
   (json: any) => [json.details.team_id] as const,
 );
 
+const TeamMembershipNotFound = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_MEMBERSHIP_NOT_FOUND",
+  (teamId: string, userId: string) => [
+    404,
+    `User ${userId} is not found in team ${teamId}.`,
+    {
+      team_id: teamId,
+      user_id: userId,
+    },
+  ] as const,
+  (json: any) => [json.details.team_id, json.details.user_id] as const,
+);
+
+
 const EmailTemplateAlreadyExists = createKnownErrorConstructor(
   KnownError,
   "EMAIL_TEMPLATE_ALREADY_EXISTS",
@@ -1035,6 +1050,7 @@ export const KnownErrors = {
   PermissionNotFound,
   PermissionScopeMismatch,
   TeamNotFound,
+  TeamMembershipNotFound,
   EmailTemplateAlreadyExists,
   OAuthConnectionNotConnectedToUser,
   OAuthConnectionAlreadyConnectedToAnotherUser,

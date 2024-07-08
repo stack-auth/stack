@@ -29,8 +29,8 @@ describe("without project access", () => {
 
 
 describe("with a non-internal project", async () => {
-  it.todo("list all current projects (not allowed)");
-  it.todo("create a new project (not allowed)");
+  it.todo("is not allowed to list all current projects");
+  it.todo("is not allowed to create a new project");
 });
 
 describe("with the internal project access", async () => {
@@ -38,7 +38,7 @@ describe("with the internal project access", async () => {
     projectKeys: InternalProjectClientKeys,
   });
 
-  it("lists all current projects without signing in (not allowed)", async ({ expect }) => {
+  it("is not allowed to list all current projects without signing in", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {

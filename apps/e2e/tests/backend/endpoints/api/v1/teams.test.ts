@@ -1,8 +1,8 @@
 import { it } from "../../../../helpers";
-import { Auth, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, Team, niceBackendFetch } from "../../../backend-helpers";
 
 
-it("lists all the teams in a project with client access (not allowed)", async ({ expect }) => {
+it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
   const response = await niceBackendFetch("/api/v1/teams", { accessType: "client" });
   expect(response).toMatchInlineSnapshot(`
@@ -84,18 +84,12 @@ it("lists all the teams the current user has on the server", async ({ expect }) 
 
 it("creates a team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
+  const { createTeamResponse: response } = await Team.create();
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
-        "display_name": "My Team",
+        "display_name": "New Team",
         "id": "<stripped UUID>",
       },
       "headers": Headers { <some fields may have been hidden> },
@@ -105,19 +99,13 @@ it("creates a team on the client", async ({ expect }) => {
 
 it("creates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "server",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
+  const { createTeamResponse: response } = await Team.create({ accessType: "server" });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "created_at_millis": <stripped field 'created_at_millis'>,
-        "display_name": "My Team",
+        "display_name": "New Team",
         "id": "<stripped UUID>",
       },
       "headers": Headers { <some fields may have been hidden> },
@@ -129,15 +117,9 @@ it.todo("updates a team on the client");
 
 it("updates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const createResponse = await niceBackendFetch("/api/v1/teams", {
-    accessType: "server",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
+  const { teamId } = await Team.create({ accessType: "server" });
 
-  const response1 = await niceBackendFetch(`/api/v1/teams/${createResponse.body.id}`, {
+  const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "server",
     method: "PATCH",
     body: {
@@ -179,15 +161,9 @@ it.todo("delete a team on the client");
 
 it("deletes a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const createResponse = await niceBackendFetch("/api/v1/teams", {
-    accessType: "server",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
+  const { teamId } = await Team.create({ accessType: "server" });
 
-  const response1 = await niceBackendFetch(`/api/v1/teams/${createResponse.body.id}`, {
+  const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "server",
     method: "DELETE",
     body: {},

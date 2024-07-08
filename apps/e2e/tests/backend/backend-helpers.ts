@@ -367,3 +367,20 @@ export namespace Project {
     };
   }
 }
+
+export namespace Team {
+  export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
+    const response = await niceBackendFetch("/api/v1/teams", {
+      accessType: options.accessType ?? "client",
+      method: "POST",
+      body: {
+        display_name: body?.display_name || 'New Team',
+        ...body,
+      },
+    });
+    return {
+      createTeamResponse: response,
+      teamId: response.body.id,
+    };
+  }
+}

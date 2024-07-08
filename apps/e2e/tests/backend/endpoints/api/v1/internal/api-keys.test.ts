@@ -286,5 +286,5 @@ describe("with admin access to a non-internal project", () => {
 });
 
 describe("without admin access to a non-internal project", () => {
-  it.todo("list api keys (not allowed)");
+  it.todo("is not allowed to list api keys");
 });
