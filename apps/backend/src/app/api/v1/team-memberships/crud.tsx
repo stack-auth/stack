@@ -1,8 +1,9 @@
+import { prismaClient } from "@/prisma-client";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const teamMembershipsCrudHandlers = createPrismaCrudHandlers(teamMembershipsCrud, "teamMember", {
   paramsSchema: yupObject({
