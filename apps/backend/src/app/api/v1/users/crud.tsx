@@ -7,12 +7,14 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import * as yup from "yup";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(usersCrud, "projectUser", {
+  querySchema: yupObject({
+    team_id: yupString().optional(),
+  }),
   paramsSchema: yupObject({
     userId: userIdOrMeRequestSchema.required(),
   }),
@@ -24,6 +26,18 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       projectUserId: userId,
     };
   },
+  where: async ({ query }) => {
+    if (query.team_id) {
+      return {
+        teamMembers: {
+          some: {
+            teamId: query.team_id,
+          },
+        },
+      };
+    }
+    return {};
+  },
   whereUnique: async ({ auth, params }) => {
     const projectId = auth.project.id;
     const userId = params.userId;
@@ -34,6 +48,9 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       },
     };
   },
+  orderBy: async () => ({
+    createdAt: 'desc',
+  }),
   include: async () => ({
     projectUserOAuthAccounts: true,
     teamMembers: {

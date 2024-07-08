@@ -4,7 +4,6 @@ import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-h
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  const { userId: userId2 } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
   const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, { 
@@ -34,15 +33,13 @@ it("is not allowed to add user to team on client", async ({ expect }) => {
   `);
 });
 
-it("creates a team and add a user to it on the server", async ({ expect }) => {
+it("creates a team and manage users in it", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
   backendContext.set({
     mailbox: createMailbox(),
   });
   const { userId: userId2 } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
-
-  console.log(userId1, userId2, teamId);
 
   const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, { 
     accessType: "server",
@@ -53,6 +50,99 @@ it("creates a team and add a user to it on the server", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {},
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch(`/api/v1/users?team_id=${teamId}`, { 
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "oauth_providers": [],
+            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "project_id": "internal",
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "oauth_providers": [],
+            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "project_id": "internal",
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+        ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // remove user from team
+  const response3 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId2}`, { 
+    accessType: "server",
+    method: "DELETE",
+    body: {},
+  });
+  expect(response3).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response4 = await niceBackendFetch(`/api/v1/users?team_id=${teamId}`, { 
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response4).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "oauth_providers": [],
+            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "project_id": "internal",
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+        ],
+      },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
