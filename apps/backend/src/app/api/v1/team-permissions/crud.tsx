@@ -10,27 +10,27 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
   querySchema: yupObject({
     team_id: yupString().optional(),
     user_id: yupString().optional(),
-    perm_id: yupString().optional(),
+    permission_id: yupString().optional(),
     direct: yupString().oneOf(['true', 'false']).optional(),
   }),
   paramsSchema: yupObject({
     teamId: yupString().required(),
     userId: yupString().required(),
-    permId: yupString().required(),
+    permissionId: yupString().required(),
   }),
   async onCreate({ auth, params }) {
-    if (isTeamSystemPermission(params.permId)) {
+    if (isTeamSystemPermission(params.permissionId)) {
       const result = await prismaClient.teamMemberDirectPermission.upsert({
         where: {
           projectId_projectUserId_teamId_systemPermission: {
             projectId: auth.project.id,
             projectUserId: params.userId,
             teamId: params.teamId,
-            systemPermission: teamSystemPermissionStringToDBType(params.permId),
+            systemPermission: teamSystemPermissionStringToDBType(params.permissionId),
           },
         },
         create: {
-          systemPermission: teamSystemPermissionStringToDBType(params.permId),
+          systemPermission: teamSystemPermissionStringToDBType(params.permissionId),
           teamMember: {
             connect: {
               projectId_projectUserId_teamId: {
@@ -45,7 +45,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       });
       return {
         __database_id: result.id,
-        id: params.permId,
+        id: params.permissionId,
       };
     } else {
 
@@ -54,7 +54,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
           projectId_teamId_queryableId: {
             projectId: auth.project.id,
             teamId: params.teamId,
-            queryableId: params.permId,
+            queryableId: params.permissionId,
           },
         }
       });
@@ -62,13 +62,13 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
         where: {
           projectConfigId_queryableId: {
             projectConfigId: auth.project.evaluatedConfig.id,
-            queryableId: params.permId,
+            queryableId: params.permissionId,
           },
         }
       });
     
       const permission = teamSpecificPermission || anyTeamPermission;
-      if (!permission) throw new KnownErrors.PermissionNotFound(params.permId);
+      if (!permission) throw new KnownErrors.PermissionNotFound(params.permissionId);
 
       const result = await prismaClient.teamMemberDirectPermission.upsert({
         where: {
@@ -100,19 +100,19 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
 
       return {
         __database_id: result.id,
-        id: params.permId,
+        id: params.permissionId,
       };
     }
   },
   async onDelete({ auth, params }) {
-    if (isTeamSystemPermission(params.permId)) {
+    if (isTeamSystemPermission(params.permissionId)) {
       await prismaClient.teamMemberDirectPermission.delete({
         where: {
           projectId_projectUserId_teamId_systemPermission: {
             projectId: auth.project.id,
             projectUserId: params.userId,
             teamId: params.teamId,
-            systemPermission: teamSystemPermissionStringToDBType(params.permId),
+            systemPermission: teamSystemPermissionStringToDBType(params.permissionId),
           },
         },
       });
@@ -124,7 +124,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
           projectId_teamId_queryableId: {
             projectId: auth.project.id,
             teamId: params.teamId,
-            queryableId: params.permId,
+            queryableId: params.permissionId,
           },
         }
       });
@@ -132,13 +132,13 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
         where: {
           projectConfigId_queryableId: {
             projectConfigId: auth.project.evaluatedConfig.id,
-            queryableId: params.permId,
+            queryableId: params.permissionId,
           },
         }
       });
     
       const permission = teamSpecificPermission || anyTeamPermission;
-      if (!permission) throw new KnownErrors.PermissionNotFound(params.permId);
+      if (!permission) throw new KnownErrors.PermissionNotFound(params.permissionId);
 
       await prismaClient.teamMemberDirectPermission.delete({
         where: {
@@ -168,11 +168,16 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       }
     }
 
+    // TODO: support recursive permissions
+    // TODO: support team permissions
     const results = await prismaClient.teamMemberDirectPermission.findMany({
       where: {
         projectId: auth.project.id,
         projectUserId: userId,
         teamId: query.team_id,
+        permission: {
+          queryableId: query.permission_id,
+        },
       },
       include: {
         permission: true,
