@@ -53,14 +53,14 @@ export function deepPlainClone<T>(obj: T): T {
 export function deepPlainSnakeCaseToCamelCase(snakeCaseObj: any): any {
   if (typeof snakeCaseObj === 'function') throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
   if (typeof snakeCaseObj !== 'object' || !snakeCaseObj) return snakeCaseObj;
-  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(deepPlainSnakeCaseToCamelCase);
+  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(o => deepPlainSnakeCaseToCamelCase(o));
   return Object.fromEntries(Object.entries(snakeCaseObj).map(([k, v]) => [snakeCaseToCamelCase(k), deepPlainSnakeCaseToCamelCase(v)]));
 }
 
 export function deepPlainCamelCaseToSnakeCase(camelCaseObj: any): any {
   if (typeof camelCaseObj === 'function') throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
   if (typeof camelCaseObj !== 'object' || !camelCaseObj) return camelCaseObj;
-  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(deepPlainCamelCaseToSnakeCase);
+  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(o => deepPlainCamelCaseToSnakeCase(o));
   return Object.fromEntries(Object.entries(camelCaseObj).map(([k, v]) => [camelCaseToSnakeCase(k), deepPlainCamelCaseToSnakeCase(v)]));
 }
 
