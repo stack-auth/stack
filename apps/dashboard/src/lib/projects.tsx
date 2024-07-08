@@ -10,47 +10,6 @@ import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/st
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 
-prismaClient.project.update({
-  where: {
-    id: "internal",
-  },
-  data: {
-    displayName: "My Project",
-    config: {
-      update: {
-        oauthProviderConfigs: {
-          create: [{
-            id: generateUuid(),
-            enabled: true,
-            proxiedOAuthConfig: {
-              create: {
-                type: "GITHUB",
-              },
-            },
-          }],
-          update: [{
-            where: {
-              projectConfigId_id: {
-                projectConfigId: "internal",
-                id: "1",
-              },
-            },
-            data: {
-              proxiedOAuthConfig: {
-                create: {
-                  type: "GITHUB",
-                },
-              },
-            }
-          }]
-        }
-      }
-    }
-  }
-}).catch((error) => {
-  console.error("Failed to create project", error);
-});
-
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({
     "shared-github": "GITHUB",
