@@ -75,7 +75,11 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       authMethod: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
       hasPassword: !!prisma.passwordHash,
       authWithEmail: prisma.authWithEmail,
-      oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
+      oauthProviders: prisma.projectUserOAuthAccounts.map((a) => ({
+        providerId: a.oauthProviderConfigId,
+        email: "some-sentinel-email@test.example.com",
+        accountId: "some-account-id-that-is-not-actually-real",
+      })),
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       selectedTeamId: rawSelectedTeam?.teamId ?? null,
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
