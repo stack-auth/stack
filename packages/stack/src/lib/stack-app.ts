@@ -17,13 +17,17 @@ import { ReactPromise, neverResolve, resolved, runAsynchronously, wait } from "@
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+
+// TODO HACK: some remainders from the backend migration, please remove when client is ported
+type EmailTemplateType = any;
+type ListEmailTemplatesCrud = any;
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
