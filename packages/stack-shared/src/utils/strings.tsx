@@ -1,3 +1,4 @@
+import { findLastIndex } from "./arrays";
 import { StackAssertionError } from "./errors";
 import { filterUndefined } from "./objects";
 
@@ -49,7 +50,7 @@ export function trimEmptyLinesStart(s: string): string {
  */
 export function trimEmptyLinesEnd(s: string): string {
   const lines = s.split("\n");
-  const lastNonEmptyLineIndex = lines.findLastIndex((line) => line.trim() !== "");
+  const lastNonEmptyLineIndex = findLastIndex(lines, (line) => line.trim() !== "");
   return lines.slice(0, lastNonEmptyLineIndex + 1).join("\n");
 }
 
