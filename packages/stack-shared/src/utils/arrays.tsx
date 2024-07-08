@@ -16,6 +16,16 @@ export function isShallowEqual(a: readonly any[], b: readonly any[]): boolean {
   return true;
 }
 
+/**
+ * Ponyfill for ES2023's findLastIndex.
+ */
+export function findLastIndex<T>(arr: readonly T[], predicate: (item: T) => boolean): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i])) return i;
+  }
+  return -1;
+}
+
 export function groupBy<T extends any, K>(
   arr: Iterable<T>,
   key: (item: T) => K,

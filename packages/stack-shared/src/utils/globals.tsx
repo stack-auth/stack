@@ -8,6 +8,10 @@ export {
   globalVar,
 };
 
+if (typeof globalThis === 'undefined') {
+  (globalVar as any).globalThis = globalVar;
+}
+
 const stackGlobalsSymbol = Symbol.for('__stack-globals');
 globalVar[stackGlobalsSymbol] ??= {};
 

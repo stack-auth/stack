@@ -34,6 +34,12 @@ export abstract class OAuthBaseProvider {
 
     // facebook always return an id_token even in the OAuth2 flow, which is not supported by openid-client
     const oldGrant = this.oauthClient.grant;
+    if (!(oldGrant as any)) {
+      // it seems that on Sentry, this was undefined in one scenario, so let's log some data to help debug if it happens again
+      // not sure if that is actually what was going on? the error log has very few details
+      // https://stackframe-pw.sentry.io/issues/5515577938
+      throw new StackAssertionError("oldGrant is undefined for some reason — that should never happen!", { options, oauthClient: this.oauthClient });
+    }
     this.oauthClient.grant = async function (params) {
       const grant = await oldGrant.call(this, params);
       delete grant.id_token;
