@@ -801,7 +801,7 @@ const PermissionNotFound = createKnownErrorConstructor(
   "PERMISSION_NOT_FOUND",
   (permissionId: string) => [
     404,
-    `Permission ${permissionId} not found. Make sure you created it on the dashboard.`,
+    `Permission "${permissionId}" not found. Make sure you created it on the dashboard.`,
     {
       permission_id: permissionId,
     },
