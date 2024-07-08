@@ -124,10 +124,12 @@ export function mergeScopeStrings(...scopes: string[]): string {
 
 
 export function snakeCaseToCamelCase(snakeCase: string): string {
+  if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO: this is a hack for fixing the email templates, remove this after v2 migration
   return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
 export function camelCaseToSnakeCase(camelCase: string): string {
+  if (camelCase.match(/_/)) return camelCase; // TODO: this is a hack for fixing the email templates, remove this after v2 migration
   return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
