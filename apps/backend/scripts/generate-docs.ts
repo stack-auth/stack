@@ -7,7 +7,7 @@ import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
 
 async function main() {
   for (const audience of ['client', 'server'] as const) {
-    const filePathPrefix = "src/app/api/v1";
+    const filePathPrefix = "apps/src/app/api/v1";
     const importPathPrefix = "@/app/api/v1";
     const filePaths = await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}");
     const openAPISchema = yaml.stringify(parseOpenAPI({
