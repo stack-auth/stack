@@ -1,3 +1,4 @@
+import { findLastIndex } from "./arrays";
 import { StackAssertionError } from "./errors";
 import { filterUndefined } from "./objects";
 
@@ -49,7 +50,7 @@ export function trimEmptyLinesStart(s: string): string {
  */
 export function trimEmptyLinesEnd(s: string): string {
   const lines = s.split("\n");
-  const lastNonEmptyLineIndex = lines.findLastIndex((line) => line.trim() !== "");
+  const lastNonEmptyLineIndex = findLastIndex(lines, (line) => line.trim() !== "");
   return lines.slice(0, lastNonEmptyLineIndex + 1).join("\n");
 }
 
@@ -123,10 +124,12 @@ export function mergeScopeStrings(...scopes: string[]): string {
 
 
 export function snakeCaseToCamelCase(snakeCase: string): string {
+  if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO: this is a hack for fixing the email templates, remove this after v2 migration
   return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
 export function camelCaseToSnakeCase(camelCase: string): string {
+  if (camelCase.match(/_/)) return camelCase; // TODO: this is a hack for fixing the email templates, remove this after v2 migration
   return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 

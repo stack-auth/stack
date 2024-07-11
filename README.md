@@ -139,5 +139,5 @@ pnpm run prisma migrate dev
 Thanks to our amazing community who have helped us build Stack:
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
-  <img src="https://api.stack-auth.com/api/v1/contributors" />
+  <img src="https://api.dev.stack-auth.com/api/v1/contributors" />
 </a>

@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-emails",
-  "version": "2.4.28",
+  "version": "2.5.2",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "private": true,
@@ -50,7 +50,6 @@
     "zod": "^3.23.8",
     "@hookform/resolvers": "^3.3.4",
     "react-hook-form": "^7.52.0",
-    
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.3.0",
     "class-variance-authority": "^0.7.0",

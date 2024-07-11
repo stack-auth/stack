@@ -32,6 +32,7 @@ export async function listUserTeams(projectId: string, userId: string): Promise<
   return members.map((member) => ({
     id: member.teamId,
     displayName: member.team.displayName,
+    profileImageUrl: member.team.profileImageUrl || undefined,
     createdAtMillis: member.team.createdAt.getTime(),
   }));
 }
@@ -50,6 +51,7 @@ export async function listTeams(projectId: string): Promise<TeamJson[]> {
   return result.map(team => ({
     id: team.teamId,
     displayName: team.displayName,
+    profileImageUrl: team.profileImageUrl || undefined,
     createdAtMillis: team.createdAt.getTime(),
   }));
 }
@@ -104,6 +106,7 @@ export async function createTeam(projectId: string, team: TeamCustomizableJson):
   return {
     id: result.teamId,
     displayName: result.displayName,
+    profileImageUrl: result.profileImageUrl || undefined,
     createdAtMillis: result.createdAt.getTime(),
   };
 }
