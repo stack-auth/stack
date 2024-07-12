@@ -1,11 +1,11 @@
 import { isTeamSystemPermission, listPotentialParentPermissions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { Prisma, TeamSystemPermission as DBTeamSystemPermission } from "@prisma/client";
+import { TeamSystemPermission as DBTeamSystemPermission, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamPermissionDefinitionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 const descriptionMap: Record<DBTeamSystemPermission, string> = {
@@ -82,7 +82,7 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
   }),
   async onCreate({ auth, data }) {
     const parentDbIds = await getParentDbIds(
-      auth.project.evaluatedConfig.id, 
+      auth.project.id,
       data.contained_permission_ids || []
     );
 
@@ -117,7 +117,7 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
   },
   async onUpdate({ auth, data, params }) {
     const parentDbIds = await getParentDbIds(
-      auth.project.evaluatedConfig.id, 
+      auth.project.id,
       data.contained_permission_ids || []
     );
 

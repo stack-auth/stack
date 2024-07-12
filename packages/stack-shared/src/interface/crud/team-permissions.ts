@@ -1,5 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupArray, yupMixed, yupObject, yupString } from "../../schema-fields";
+import { customTeamPermissionIdSchema, teamPermissionIdSchema, yupArray, yupMixed, yupObject, yupString } from "../../schema-fields";
 
 export const teamPermissionsCrudServerReadSchema = yupObject({
   id: yupString().required(),
@@ -20,22 +20,22 @@ export const teamPermissionsCrud = createCrud({
 export type teamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 
 export const teamPermissionDefinitionsCrudServerReadSchema = yupObject({
-  id: yupString().required(),
+  id: teamPermissionIdSchema.required(),
   __database_id: yupString().required(),
   description: yupString().optional(),
-  contained_permission_ids: yupArray(yupString().required()).required(),
+  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).required()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerCreateSchema = yupObject({
-  id: yupString().required(),
+  id: customTeamPermissionIdSchema.required(),
   description: yupString().optional(),
-  contained_permission_ids: yupArray(yupString().required()).optional()
+  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).optional()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerUpdateSchema = yupObject({
-  id: yupString().optional(),
+  id: customTeamPermissionIdSchema.required(),
   description: yupString().optional(),
-  contained_permission_ids: yupArray(yupString().required()).optional(),
+  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).optional()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerDeleteSchema = yupMixed();

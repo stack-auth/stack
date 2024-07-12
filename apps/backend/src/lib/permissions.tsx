@@ -274,9 +274,7 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
       ],
     ];
 
-    const permissions = (await Promise.all(scopes.map(s => listServerPermissionDefinitions(projectId, s))).then(res => res.flat(1)));
-    const systemPermissions = Object.values(DBTeamSystemPermission).map(serverPermissionDefinitionJsonFromTeamSystemDbType);
-    return [...permissions, ...systemPermissions];
+    return await Promise.all(scopes.map(s => listServerPermissionDefinitions(projectId, s))).then(res => res.flat(1));
   }
 }
 

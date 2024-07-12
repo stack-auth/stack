@@ -159,6 +159,9 @@ export const teamPermissionIdSchema = yupString()
     return true;
   })
   .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission', exampleValue: 'read_secret_info' } });
+export const customTeamPermissionIdSchema = yupString()
+  .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed');
+
 
 // Teams
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: 'The ID of the team', exampleValue: 'team-id' } });

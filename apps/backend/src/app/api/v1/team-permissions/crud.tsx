@@ -48,7 +48,6 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
         id: params.permissionId,
       };
     } else {
-
       const teamSpecificPermission = await prismaClient.permission.findUnique({
         where: {
           projectId_teamId_queryableId: {
