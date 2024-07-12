@@ -1,6 +1,6 @@
 import { describe } from "vitest";
 import { it } from "../../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { ApiKey, Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 
 describe("without project access", () => {
@@ -66,24 +66,6 @@ describe("with admin access to the internal project", () => {
 });
 
 describe("with admin access to a non-internal project", () => {
-  async function setupProjectAdmin() {
-    backendContext.set({
-      projectKeys: InternalProjectKeys,
-    });
-    await Auth.Otp.signIn();
-    const { projectId } = await Project.create();
-    const adminAccessToken = backendContext.value.userAuth?.accessToken;
-
-    backendContext.set({
-      projectKeys: {
-        projectId,
-      },
-      userAuth: null,
-    });
-
-    return adminAccessToken;
-  }
-
   it("creates api keys without admin access token", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/internal/api-keys", {
       accessType: "admin",
@@ -144,22 +126,8 @@ describe("with admin access to a non-internal project", () => {
   });
 
   it("creates, list, updates, revokes api keys", async ({ expect }) => {
-    const adminAccessToken = await setupProjectAdmin();
-    
-    const response1 = await niceBackendFetch("/api/v1/internal/api-keys", {
-      accessType: "admin",
-      method: "POST",
-      body: {
-        description: "test api key",
-        has_publishable_client_key: true,
-        has_secret_server_key: true,
-        has_super_secret_admin_key: true,
-        expires_at_millis: 123,
-      },
-      headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
-    });
+    const { adminAccessToken } = await Project.createAndSetAdmin();
+    const { createApiKeyResponse: response1 } = await ApiKey.create(adminAccessToken);
     expect(response1).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
@@ -205,19 +173,11 @@ describe("with admin access to a non-internal project", () => {
     `);
     
     // create another api key
-    await niceBackendFetch("/api/v1/internal/api-keys", {
-      accessType: "admin",
-      method: "POST",
-      body: {
-        description: "key2",
-        has_publishable_client_key: false,
-        has_secret_server_key: true,
-        has_super_secret_admin_key: false,
-        expires_at_millis: 123,
-      },
-      headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
+    await ApiKey.create(adminAccessToken, { 
+      description: 'key2', 
+      has_publishable_client_key: false, 
+      has_secret_server_key: true, 
+      has_super_secret_admin_key: false 
     });
 
     // list api keys

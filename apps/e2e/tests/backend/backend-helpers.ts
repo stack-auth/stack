@@ -340,6 +340,48 @@ export namespace ContactChannels {
   }
 }
 
+export namespace ApiKey {
+  export async function create(adminAccessToken: string, body?: any) {
+    const oldProjectKeys = backendContext.value.projectKeys;
+    if (oldProjectKeys === 'no-project') {
+      throw new Error("Cannot set API key context without a project");
+    }
+
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "test api key",
+        has_publishable_client_key: true,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: true,
+        expires_at_millis: new Date().getTime() + 1000 * 60 * 60 * 24,
+        ...body,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(response.status).equals(200);
+
+    return {
+      createApiKeyResponse: response,
+      projectKeys: {
+        projectId: oldProjectKeys.projectId,
+        publishableClientKey: response.body.publishable_client_key,
+        secretServerKey: response.body.secret_server_key,
+        superSecretAdminKey: response.body.super_secret_admin_key,
+      },
+    };
+  }
+
+  export async function createAndSetProjectKeys(adminAccessToken: string, body?: any) {
+    const res = await ApiKey.create(adminAccessToken, body);
+    backendContext.set({ projectKeys: res.projectKeys });
+    return res;
+  }
+}
+
 export namespace Project {
   export async function create(body?: any) {
     const response = await niceBackendFetch("/api/v1/internal/projects", {
@@ -362,8 +404,31 @@ export namespace Project {
       method: "PATCH",
       body,
     });
+
     return {
       updateProjectResponse: response,
+    };
+  }
+
+  export async function createAndSetAdmin() {
+    backendContext.set({
+      projectKeys: InternalProjectKeys,
+    });
+    await Auth.Otp.signIn();
+    const { projectId } = await Project.create();
+    const adminAccessToken = backendContext.value.userAuth?.accessToken;
+
+    expect(adminAccessToken).toBeDefined();
+
+    backendContext.set({
+      projectKeys: {
+        projectId,
+      },
+      userAuth: null,
+    });
+
+    return {
+      adminAccessToken: adminAccessToken!,
     };
   }
 }
