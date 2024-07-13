@@ -66,7 +66,7 @@ export type CrudHandlers<
 };
 
 export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
-  crud: S, 
+  crud: S,
   options: O,
 ): CrudHandlersFromOptions<O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
