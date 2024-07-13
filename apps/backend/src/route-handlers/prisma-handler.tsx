@@ -7,8 +7,9 @@ import { prismaClient } from "@/prisma-client";
 import * as yup from "yup";
 import { typedAssign } from "@stackframe/stack-shared/dist/utils/objects";
 import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 
-type ReplaceNever<T, R> = T extends never ? R : T;
+type ReplaceNever<T, R> = [T] extends [never] ? R : T;
 
 type AllPrismaModelNames = Prisma.TypeMap["meta"]["modelProps"];
 type WhereUnique<T extends AllPrismaModelNames> = Prisma.TypeMap["model"][Capitalize<T>]["operations"]["findUniqueOrThrow"]["args"]["where"];
@@ -25,7 +26,6 @@ type CRead<T extends CrudTypeOf<any>> = T extends { Admin: { Read: infer R } } ?
 type CCreate<T extends CrudTypeOf<any>> = T extends { Admin: { Create: infer R } } ? R : never;
 type CUpdate<T extends CrudTypeOf<any>> = T extends { Admin: { Update: infer R } } ? R : never;
 type CEitherWrite<T extends CrudTypeOf<any>> = (CCreate<T> | CUpdate<T>) & Partial<ReplaceNever<CCreate<T> & CUpdate<T>, unknown>>;
-type T = CEitherWrite<EmailTemplateCrud>;
 
 type Context<AllParams extends boolean, PS extends ParamsSchema, QS extends QuerySchema> = {
   params: [AllParams] extends [true] ? yup.InferType<PS> : Partial<yup.InferType<PS>>,
