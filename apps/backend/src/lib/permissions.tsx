@@ -65,9 +65,11 @@ export function permissionDefinitionJsonFromDbType(
         throw new StackAssertionError(`Permission edge should have either parentPermission or parentSystemPermission`, { edge });
       }
     }),
-    scope: db.scope === "GLOBAL" ? { type: "global" } : 
-      db.teamId ? { type: "specific-team", teamId: db.teamId } : 
-        { type: "any-team" },
+    scope: (
+      db.scope === "GLOBAL" ? { type: "global" } : 
+        db.teamId ? { type: "specific-team", teamId: db.teamId } : 
+          { type: "any-team" }
+    ) as PermissionDefinitionScopeJson,
   } as const;
 }
 
@@ -79,7 +81,7 @@ export function permissionDefinitionJsonFromTeamSystemDbType(
     id: '$' + typedToLowercase(db),
     scope: { type: "any-team" },
     description: descriptionMap[db],
-    contained_permission_ids: [],
+    contained_permission_ids: [] as string[],
   } as const;
 }
 
