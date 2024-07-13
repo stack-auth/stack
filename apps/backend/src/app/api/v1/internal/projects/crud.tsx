@@ -1,4 +1,4 @@
-import { serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType } from "@/lib/permissions";
+import { permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "@/lib/permissions";
 import { listManagedProjectIds } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
@@ -441,12 +441,12 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
           }
         })(),
         teamCreatorDefaultPermissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-          .map(serverPermissionDefinitionJsonFromDbType)
-          .concat(prisma.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType))
+          .map(permissionDefinitionJsonFromDbType)
+          .concat(prisma.config.teamCreateDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType))
           .sort((a, b) => a.id.localeCompare(b.id)),
         teamMemberDefaultPermissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-          .map(serverPermissionDefinitionJsonFromDbType)
-          .concat(prisma.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType))
+          .map(permissionDefinitionJsonFromDbType)
+          .concat(prisma.config.teamMemberDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType))
           .sort((a, b) => a.id.localeCompare(b.id)),
       }
     };

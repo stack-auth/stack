@@ -11,7 +11,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
     team_id: yupString().optional(),
     user_id: yupString().optional(),
     permission_id: yupString().optional(),
-    direct: yupString().oneOf(['true', 'false']).optional(),
+    recursive: yupString().oneOf(['true', 'false']).optional(),
   }),
   paramsSchema: yupObject({
     teamId: yupString().required(),
@@ -161,10 +161,8 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       }
       userId = auth.user.id;
     }
-    if (auth.type === 'client') {
-      if (!userId || userId !== auth.user?.id) {
-        throw new StatusError(StatusError.BadRequest, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
-      }
+    if (auth.type === 'client' && userId !== auth.user?.id) {
+      throw new StatusError(StatusError.BadRequest, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
     }
 
     // TODO: support recursive permissions

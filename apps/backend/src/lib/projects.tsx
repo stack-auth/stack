@@ -9,7 +9,7 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { fullPermissionInclude, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema } from "./permissions";
+import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
 function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
@@ -227,11 +227,11 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
       }),
       emailConfig,
       teamCreatorDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(serverPermissionDefinitionJsonFromDbType)
-        .concat(project.config.teamCreateDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
+        .map(permissionDefinitionJsonFromDbType)
+        .concat(project.config.teamCreateDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType)),
       teamMemberDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(serverPermissionDefinitionJsonFromDbType)
-        .concat(project.config.teamMemberDefaultSystemPermissions.map(serverPermissionDefinitionJsonFromTeamSystemDbType)),
+        .map(permissionDefinitionJsonFromDbType)
+        .concat(project.config.teamMemberDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType)),
     },
   };
 }

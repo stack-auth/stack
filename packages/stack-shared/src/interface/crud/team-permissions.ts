@@ -1,7 +1,9 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { customTeamPermissionIdSchema, teamPermissionIdSchema, yupArray, yupMixed, yupObject, yupString } from "../../schema-fields";
 
-export const teamPermissionsCrudServerReadSchema = yupObject({
+// Team permissions
+
+export const teamPermissionsCrudClientReadSchema = yupObject({
   id: yupString().required(),
 }).required();
 
@@ -11,13 +13,15 @@ export const teamPermissionsCrudServerCreateSchema = yupObject({
 export const teamPermissionsCrudServerDeleteSchema = yupMixed();
 
 export const teamPermissionsCrud = createCrud({
-  serverReadSchema: teamPermissionsCrudServerReadSchema,
+  clientReadSchema: teamPermissionsCrudClientReadSchema,
   serverCreateSchema: teamPermissionsCrudServerCreateSchema,
   serverDeleteSchema: teamPermissionsCrudServerDeleteSchema,
   docs: {
   },
 });
 export type teamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
+
+// Team permission definitions
 
 export const teamPermissionDefinitionsCrudServerReadSchema = yupObject({
   id: teamPermissionIdSchema.required(),

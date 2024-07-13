@@ -1,12 +1,10 @@
-import * as yup from "yup";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpSignInCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../../users/crud";
+import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   request: yupObject({

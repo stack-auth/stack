@@ -247,6 +247,7 @@ export namespace Auth {
 
       return {
         signUpResponse: response,
+        userId: response.body.user_id,
         email,
         password,
       };
@@ -282,6 +283,7 @@ export namespace Auth {
 
       return {
         signInResponse: response,
+        userId: response.body.user_id,
       };
     }
   }
@@ -410,12 +412,12 @@ export namespace Project {
     };
   }
 
-  export async function createAndSetAdmin() {
+  export async function createAndSetAdmin(body?: any) {
     backendContext.set({
       projectKeys: InternalProjectKeys,
     });
     await Auth.Otp.signIn();
-    const { projectId } = await Project.create();
+    const { projectId } = await Project.create(body);
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
 
     expect(adminAccessToken).toBeDefined();

@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("lists all the team permissions", async ({ expect }) => {
@@ -57,9 +57,7 @@ it("lists all the team permissions", async ({ expect }) => {
 });
 
 it("creates, updates, and delete a new team permission", async ({ expect }) => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
+  backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndSetAdmin();
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
