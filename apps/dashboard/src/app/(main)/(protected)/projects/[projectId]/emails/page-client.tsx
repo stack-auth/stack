@@ -18,7 +18,7 @@ import { useRouter } from "@/components/router";
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
 import { useMemo, useState } from "react";
 import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
-import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { ActionDialog } from "@/components/action-dialog";
 
 export default function PageClient() {

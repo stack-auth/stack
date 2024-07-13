@@ -2,16 +2,19 @@ import { createEmailTemplate, deleteEmailTemplate, getEmailTemplate, updateEmail
 import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { emailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 
 const typeSchema = yup.string().oneOf(emailTemplateTypes).required();
 
 const crudHandlers = createCrudHandlers(emailTemplateCrud, {
   paramNames: ['type'],
+  async onCreate() {
+    throw new Error();
+  },
   async onRead() {
-    throw Error('Not implemented');
+    throw new StackAssertionError('Not implemented');
   },
   async onUpdate({ auth, data, params }) {
     if (!validateEmailTemplateContent(data.content)) {

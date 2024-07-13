@@ -27,7 +27,7 @@ import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 // TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
 type EmailTemplateType = any;
-type ListEmailTemplatesCrud = any;
+type ListEmailTemplatesCrud = Record<any, Record<any, any[]>>;
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.

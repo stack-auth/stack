@@ -1,6 +1,6 @@
 'use client';
 import EmailEditor from "@stackframe/stack-emails/dist/editor/editor";
-import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { useAdminApp } from "../../../use-admin-app";
 import { confirmAlertMessage, useRouter, useRouterConfirm } from "@/components/router";
 import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
