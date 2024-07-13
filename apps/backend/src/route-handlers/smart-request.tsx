@@ -31,9 +31,9 @@ export type SmartRequest = {
   url: string,
   method: typeof allowedMethods[number],
   body: unknown,
-  headers: Record<string, string[]>,
-  query: Record<string, string>,
-  params: Record<string, string>,
+  headers: Record<string, string[] | undefined>,
+  query: Record<string, string | undefined>,
+  params: Record<string, string | undefined>,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
