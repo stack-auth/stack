@@ -1,5 +1,12 @@
 # @stackframe/docs
 
+## 2.5.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-backend@2.5.3
+
 ## 2.5.2
 
 ### Patch Changes
