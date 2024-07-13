@@ -5,7 +5,7 @@ import { getProject } from "./projects";
 import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
 import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
-import { ListEmailTemplatesCrud } from "@/app/api/v1/email-templates/route";
+import { ListEmailTemplatesCrud } from "@/app/api/v1/email-templates/cruds-deprecated";
 
 export async function listEmailTemplatesWithDefault(projectId: string) {
   const project = await getProject(projectId);
