@@ -77,7 +77,7 @@ export default function PageClient () {
           <div className="flex justify-center mb-4">
             <Typography type='h2'>Create a new project</Typography>
           </div>
-            
+
           <Form {...form}>
             <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4">
 
@@ -115,16 +115,16 @@ export default function PageClient () {
                   <div className='w-full sm:max-w-xs m-auto scale-90' inert=''>
                     {/* a transparent cover that prevents the card being clicked */}
                     <div className="absolute inset-0 bg-transparent z-10"></div>
-                    <AuthPage 
-                      type="sign-in" 
-                      mockProject={mockProject} 
+                    <AuthPage
+                      type="sign-in"
+                      mockProject={mockProject}
                     />
                   </div>
                 </div>
               </BrowserFrame>
             </div>
           )}
-      </div> 
+      </div>
     </div>
   );
 }

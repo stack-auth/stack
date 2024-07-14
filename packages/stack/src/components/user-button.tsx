@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
-    <DropdownMenuItem 
+    <DropdownMenuItem
       onClick={() => runAsynchronouslyWithAlert(props.onClick)}
       className="flex gap-2 items-center"
     >
@@ -58,7 +58,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const user = props.user;
   const app = useStackApp();
   const router = useRouter();
-  
+
   const iconProps = { size: 20, className: 'h-4 w-4' };
   const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
 
@@ -67,7 +67,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
       <DropdownMenuTrigger className="outline-none stack-scope">
         <div className="flex gap-2 items-center">
           <UserAvatar user={user} />
-          {user && props.showUserInfo && 
+          {user && props.showUserInfo &&
             <div className="flex flex-col justify-center">
               <Typography className={textClasses}>{user.displayName}</Typography>
               <Typography className={textClasses} variant="secondary" type='label'>{user.primaryEmail}</Typography>
@@ -87,8 +87,8 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {user && <Item 
-          text="Account settings" 
+        {user && <Item
+          text="Account settings"
           onClick={() => router.push(app.urls.accountSettings)}
           icon={<CircleUser {...iconProps} />}
         />}
@@ -106,15 +106,15 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <Item key={index} {...item} />
         ))}
         {props.colorModeToggle && (
-          <Item 
-            text="Toggle theme" 
-            onClick={props.colorModeToggle} 
+          <Item
+            text="Toggle theme"
+            onClick={props.colorModeToggle}
             icon={<SunMoon {...iconProps} />}
           />
         )}
-        {user && <Item 
-          text="Sign out" 
-          onClick={() => user.signOut()} 
+        {user && <Item
+          text="Sign out"
+          onClick={() => user.signOut()}
           icon={<LogOut {...iconProps} />}
         />}
       </DropdownMenuContent>

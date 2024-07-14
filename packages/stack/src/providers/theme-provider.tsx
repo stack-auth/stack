@@ -47,7 +47,7 @@ function convertColorToCSSVars(obj: Record<string, string>) {
     return [
       // Convert camelCase key to dash-case
       key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`),
-      // Convert color to CSS HSL string 
+      // Convert color to CSS HSL string
       `${color[0]} ${color[1]}% ${color[2]}%`
     ];
   }));
@@ -61,11 +61,11 @@ function convertColorsToCSS(theme: Theme) {
   };
 
   function colorsToCSSVars(colors: Record<string, string>) {
-    return Object.entries(colors).map((params) => { 
+    return Object.entries(colors).map((params) => {
       return `--${params[0]}: ${params[1]};\n`;
     }).join('');
   }
-  
+
   return deindent`
   .stack-scope {
   ${colorsToCSSVars(colors.light)}
@@ -74,7 +74,7 @@ function convertColorsToCSS(theme: Theme) {
   ${colorsToCSSVars(colors.dark)}
   }`;
 }
-  
+
 
 export function StackTheme({
   theme,
@@ -83,10 +83,10 @@ export function StackTheme({
   theme?: ThemeConfig,
   children?: React.ReactNode,
 }) {
-  const themeValue: Theme = { 
+  const themeValue: Theme = {
     ...DEFAULT_THEME,
     ...theme,
-    dark: { ...DEFAULT_THEME.dark, ...theme?.dark }, 
+    dark: { ...DEFAULT_THEME.dark, ...theme?.dark },
     light: { ...DEFAULT_THEME.light, ...theme?.light },
   };
 

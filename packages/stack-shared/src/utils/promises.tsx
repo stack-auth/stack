@@ -224,7 +224,7 @@ export function rateLimited<T>(
       }
     }
     const nextFuncs = options.batchCalls ? queue.splice(0, queue.length) : [queue.shift()!];
-    
+
     const start = performance.now();
     const value = await Result.fromPromise(func());
     const end = performance.now();
@@ -236,7 +236,11 @@ export function rateLimited<T>(
     );
 
     for (const nextFunc of nextFuncs) {
-      value.status === "ok" ? nextFunc[0](value.data) : nextFunc[1](value.error);
+      if (value.status === "ok") {
+        nextFunc[0](value.data);
+      } else {
+        nextFunc[1](value.error);
+      }
     }
   };
 

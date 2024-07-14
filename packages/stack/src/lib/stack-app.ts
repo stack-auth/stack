@@ -278,7 +278,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listProjects(session);
   });
   private readonly _currentUserPermissionsCache = createCacheBySession<
-    [string, 'team' | 'global', boolean], 
+    [string, 'team' | 'global', boolean],
     PermissionDefinitionJson[]
   >(async (session, [teamId, type, direct]) => {
     return await this._interface.listClientUserTeamPermissions({ teamId, type, direct }, session);
@@ -313,11 +313,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
       if (!hasConnection && redirect) {
         await addNewOAuthProviderOrScope(
-          this._interface, 
-          { 
-            provider: connectionId, 
+          this._interface,
+          {
+            provider: connectionId,
             redirectUrl: this.urls.oauthCallback,
-            errorRedirectUrl: this.urls.error, 
+            errorRedirectUrl: this.urls.error,
             providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
           },
           session,
@@ -446,7 +446,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     if (this._storedCookieTokenStore === null) {
-      const getCurrentValue = (old: TokenObject | null) => {          
+      const getCurrentValue = (old: TokenObject | null) => {
         const tokens = this._getTokensFromCookies({
           refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
           accessTokenCookie: getCookie(this._accessTokenCookieName),
@@ -555,7 +555,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
             accessToken: tokenStoreInit.accessToken,
           });
         }
-    
+
         throw new Error(`Invalid token store ${tokenStoreInit}`);
       }
     }
@@ -563,9 +563,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   /**
    * A map from token stores and session keys to sessions.
-   * 
+   *
    * This isn't just a map from session keys to sessions for two reasons:
-   * 
+   *
    * - So we can garbage-collect Session objects when the token store is garbage-collected
    * - So different token stores are separated and don't leak information between each other, eg. if the same user sends two requests to the same server they should get a different session object
    */
@@ -642,7 +642,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _permissionFromJson(json: PermissionDefinitionJson): Permission {
     const type = permissionDefinitionScopeToType(json.scope);
-  
+
     if (type === 'team') {
       return {
         id: json.id,
@@ -1028,9 +1028,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithOAuth(provider: StandardProvider) {
     this._ensurePersistentTokenStore();
     await signInWithOAuth(
-      this._interface, { 
-        provider, 
-        redirectUrl: this.urls.oauthCallback, 
+      this._interface, {
+        provider,
+        redirectUrl: this.urls.oauthCallback,
         errorRedirectUrl: this.urls.error,
         providerScope: this._oauthScopesOnSignIn[provider]?.join(" "),
       }
@@ -1059,9 +1059,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const session = this._getSession();
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
     const result = await this._interface.signUpWithCredential(
-      options.email, 
-      options.password, 
-      emailVerificationRedirectUrl, 
+      options.email,
+      options.password,
+      emailVerificationRedirectUrl,
       session
     );
     if (!(result instanceof KnownError)) {
@@ -1116,7 +1116,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _updatePassword(
-    options: { oldPassword: string, newPassword: string }, 
+    options: { oldPassword: string, newPassword: string },
     session: InternalSession
   ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
     return await this._interface.updatePassword(options, session);
@@ -1181,7 +1181,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _refreshUsers() {
     // nothing yet
   }
-  
+
   protected async _refreshProject() {
     await this._currentProjectCache.refresh([]);
   }
@@ -1264,7 +1264,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listPermissionDefinitions();
   });
   private readonly _serverTeamUserPermissionsCache = createCache<
-    [string, string, 'team' | 'global', boolean], 
+    [string, string, 'team' | 'global', boolean],
     ServerPermissionDefinitionJson[]
   >(async ([teamId, userId, type, direct]) => {
     return await this._interface.listServerTeamMemberPermissions({ teamId, userId, type, direct });
@@ -1273,7 +1273,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listEmailTemplates();
   });
 
-  constructor(options: 
+  constructor(options:
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
     | {
       interface: StackServerInterface,
@@ -1682,7 +1682,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
 {
   declare protected _interface: StackAdminInterface;
-  
+
   private readonly _adminProjectCache = createCache(async () => {
     return await this._interface.getProject();
   });
@@ -1819,24 +1819,24 @@ type Auth = {
   /**
    * Returns headers for sending authenticated HTTP requests to external servers. Most commonly used in cross-origin
    * requests. Similar to `getAuthJson`, but specifically for HTTP requests.
-   * 
+   *
    * If you are using `tokenStore: "cookie"`, you don't need this for same-origin requests. However, most
    * browsers now disable third-party cookies by default, so we must pass authentication tokens by header instead
    * if the client and server are on different hostnames.
    *
    * This function returns a header object that can be used with `fetch` or other HTTP request libraries to send
    * authenticated requests.
-   * 
+   *
    * On the server, you can then pass in the `Request` object to the `tokenStore` option
    * of your Stack app. Please note that CORS does not allow most headers by default, so you
    * must include `x-stack-auth` in the [`Access-Control-Allow-Headers` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers)
    * of the CORS preflight response.
-   * 
+   *
    * If you are not using HTTP (and hence cannot set headers), you will need to use the `getAuthJson()` function
    * instead.
-   * 
+   *
    * Example:
-   * 
+   *
    * ```ts
    * // client
    * const res = await fetch("https://api.example.com", {
@@ -1845,7 +1845,7 @@ type Auth = {
    *     // you can also add your own headers here
    *   },
    * });
-   * 
+   *
    * // server
    * function handleRequest(req: Request) {
    *   const user = await stackServerApp.getUser({ tokenStore: req });
@@ -1859,14 +1859,14 @@ type Auth = {
    * Creates a JSON-serializable object containing the information to authenticate a user on an external server.
    * Similar to `getAuthHeaders`, but returns an object that can be sent over any protocol instead of just
    * HTTP headers.
-   * 
+   *
    * While `getAuthHeaders` is the recommended way to send authentication tokens over HTTP, your app may use
    * a different protocol, for example WebSockets or gRPC. This function returns a token object that can be JSON-serialized and sent to the server in any way you like.
-   * 
+   *
    * On the server, you can pass in this token object into the `tokenStore` option to fetch user details.
-   * 
+   *
    * Example:
-   * 
+   *
    * ```ts
    * // client
    * const res = await rpcCall(rpcEndpoint, {
@@ -1874,7 +1874,7 @@ type Auth = {
    *     auth: await stackApp.getAuthJson(),
    *   },
    * });
-   * 
+   *
    * // server
    * function handleRequest(data) {
    *   const user = await stackServerApp.getUser({ tokenStore: data.auth });

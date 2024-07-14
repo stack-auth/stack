@@ -28,7 +28,7 @@ export function useRouter() {
     back: () => {
       if (context.needConfirm && !window.confirm(confirmAlertMessage)) return;
       router.back();
-    },  
+    },
   };
 }
 

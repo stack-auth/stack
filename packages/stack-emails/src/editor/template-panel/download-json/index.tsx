@@ -9,7 +9,7 @@ export default function DownloadJson() {
     return `data:text/plain,${encodeURIComponent(JSON.stringify(doc, null, '  '))}`;
   }, [doc]);
   return (
-    <Button 
+    <Button
       onClick={() => {
         const blob = new Blob([JSON.stringify(doc, null, '  ')], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -19,7 +19,7 @@ export default function DownloadJson() {
         a.click();
         URL.revokeObjectURL(url);
       }}
-      variant='secondary' 
+      variant='secondary'
       className='gap-2'
     >
       <Download className='w-4 h-4' />

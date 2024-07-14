@@ -21,7 +21,7 @@ export default function PageClient() {
   const [returnedApiKey, setReturnedApiKey] = useState<ApiKeySetFirstView | null>(null);
 
   return (
-    <PageLayout 
+    <PageLayout
       title="API Keys"
       actions={
         <Button onClick={() => setIsNewApiKeyDialogOpen(true)}>

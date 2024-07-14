@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 export default function GlobalError({ error }: any) {
   const isProdLike = process.env.NODE_ENV.includes("production");
-  
+
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);

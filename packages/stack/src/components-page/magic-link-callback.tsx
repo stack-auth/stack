@@ -7,12 +7,12 @@ import { PredefinedMessageCard } from "../components/message-cards/predefined-me
 import { KnownErrors } from "@stackframe/stack-shared";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
-export function MagicLinkCallback({ 
+export function MagicLinkCallback({
   searchParams: {
     code = "",
   } = {},
   fullPage = false,
-}: { 
+}: {
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {

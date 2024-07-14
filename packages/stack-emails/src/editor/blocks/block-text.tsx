@@ -112,11 +112,11 @@ const parseText = (text: string) => {
     if (match[1] && match[2]) {
       // Hyperlink
       parts.push(
-        <a 
+        <a
           key={match.index}
-          href={match[2]} 
-          target="_blank" 
-          rel="noopener noreferrer" 
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
           style={{ color: 'blue', textDecoration: 'underline' }}
         >
           {match[1]}

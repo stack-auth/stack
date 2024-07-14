@@ -37,7 +37,6 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
     if (!project.evaluatedConfig.credentialEnabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
-  
     const passwordError = getPasswordError(password);
     if (passwordError) {
       throw passwordError;

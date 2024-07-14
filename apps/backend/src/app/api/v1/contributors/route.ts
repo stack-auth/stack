@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
-let pngImagePromise: Promise<Uint8Array> | undefined; 
+let pngImagePromise: Promise<Uint8Array> | undefined;
 
 export const GET = createSmartRouteHandler({
   metadata: {

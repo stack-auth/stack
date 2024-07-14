@@ -15,7 +15,7 @@ import { ActionCell } from "@/components/data-table/elements/cells";
 import Typography from "@/components/ui/typography";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
-function EditDialog(props: { 
+function EditDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
@@ -23,12 +23,12 @@ function EditDialog(props: {
   project: Project,
   type: 'update' | 'create',
 } & (
-  { 
-    type: 'create', 
-  } | 
-  { 
-    type: 'update', 
-    editIndex: number, 
+  {
+    type: 'create',
+  } |
+  {
+    type: 'update',
+    editIndex: number,
     defaultDomain: string,
     defaultHandlerPath: string,
   }
@@ -138,7 +138,7 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Domains and Handler">
-      <SettingCard 
+      <SettingCard
         title="Trusted domains"
         description="Features that will redirect to your app, such as SSO and e-mail verification, will refuse to redirect to domains other than the ones listed here. Please make sure that you trust all domains listed here, as they can be used to access user data."
         actions={
@@ -182,7 +182,7 @@ export default function PageClient() {
                         domain={domain}
                         project={project}
                       />
-                      <ActionCell 
+                      <ActionCell
                         items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
                         dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
                       />
@@ -210,7 +210,7 @@ export default function PageClient() {
           label="Allow all localhost callbacks for development"
         />
 
-        
+
         <Typography variant="secondary" type="footnote">
           When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
         </Typography>

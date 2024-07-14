@@ -39,8 +39,8 @@ export default function PageClient() {
       >
         <SettingText label="Server">
           <div className="flex items-center gap-2">
-            { emailConfig?.type === 'standard' ? 
-              'Custom SMTP server' : 
+            { emailConfig?.type === 'standard' ?
+              'Custom SMTP server' :
               <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" type='info' /></>
             }
           </div>
@@ -80,9 +80,9 @@ export default function PageClient() {
         ))}
       </SettingCard>
 
-      <ResetEmailTemplateDialog 
-        templateType={resetTemplateType} 
-        open={resetTemplateDialogOpen} 
+      <ResetEmailTemplateDialog
+        templateType={resetTemplateType}
+        open={resetTemplateDialogOpen}
         onClose={() => setResetTemplateDialogOpen(false)}
       />
     </PageLayout>
@@ -142,9 +142,9 @@ const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Pro
   } else if (emailConfig.type === 'shared') {
     return { type: 'shared' } as const;
   } else {
-    return { 
-      type: 'standard', 
-      senderName: emailConfig.senderName, 
+    return {
+      type: 'standard',
+      senderName: emailConfig.senderName,
       host: emailConfig.host,
       port: emailConfig.port,
       username: emailConfig.username,
@@ -178,31 +178,31 @@ function EditEmailServerDialog(props: {
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       if (values.type === 'shared') {
-        await project.update({ 
+        await project.update({
           config: {
-            emailConfig: { type: 'shared' } 
-          } 
+            emailConfig: { type: 'shared' }
+          }
         });
       } else {
-        await project.update({ 
-          config: { 
-            emailConfig: { 
-              type: 'standard', 
-              senderName: values.senderName!, 
+        await project.update({
+          config: {
+            emailConfig: {
+              type: 'standard',
+              senderName: values.senderName!,
               host: values.host!,
               port: values.port!,
               username: values.username!,
               password: values.password!,
               senderEmail: values.senderEmail!,
-            } 
-          } 
+            }
+          }
         });
       }
     }}
     cancelButton
     render={(form) => (
       <>
-        <SelectField 
+        <SelectField
           label="Email server"
           name="type"
           control={form.control}
@@ -220,7 +220,7 @@ function EditEmailServerDialog(props: {
             { label: "Sender Email", name: "senderEmail", type: 'email' },
             { label: "Sender Name", name: "senderName", type: 'text' },
           ] as const).map((field) => (
-            <InputField 
+            <InputField
               key={field.name}
               label={field.label}
               name={field.name}
@@ -246,8 +246,8 @@ function ResetEmailTemplateDialog(props: {
     open={props.open}
     onClose={props.onClose}
     title="Reset Email Template"
-    okButton={{ 
-      label: "Reset", 
+    okButton={{
+      label: "Reset",
       onClick: async () => { await stackAdminApp.resetEmailTemplate(props.templateType); }
     }}
     confirmText="I understand this cannot be undone"

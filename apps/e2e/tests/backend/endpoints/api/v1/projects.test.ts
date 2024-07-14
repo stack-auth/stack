@@ -1,4 +1,3 @@
-import { describe } from "vitest";
 import { it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
@@ -264,7 +263,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  
+
   // update standard email config again
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
@@ -523,7 +522,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  
+
   // update google oauth provider with shared type again
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
@@ -629,7 +628,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  
+
   // add another oauth provider
   const { updateProjectResponse: response5 } = await Project.updateCurrent(adminAccessToken, {
     config: {
@@ -683,7 +682,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  
+
   // disable one of the oauth providers
   const { updateProjectResponse: response6 } = await Project.updateCurrent(adminAccessToken, {
     config: {

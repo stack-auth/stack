@@ -56,7 +56,6 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
       return true;
     },
   );
-  
   // we don't want to update the type of `object` to have a default flag
   return object.default(undefined) as any as typeof object;
 }
@@ -172,7 +171,7 @@ export const createdAtMillisSchema = yupNumber().meta({ openapiField: { descript
 
 // Utils
 export function yupRequiredWhen<S extends yup.AnyObject>(
-  schema: S, 
+  schema: S,
   triggerName: string,
   isValue: any
 ): S {

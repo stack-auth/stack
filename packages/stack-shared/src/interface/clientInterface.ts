@@ -238,8 +238,8 @@ export class StackClientInterface {
   }
 
   protected async sendClientRequest(
-    path: string, 
-    requestOptions: RequestInit, 
+    path: string,
+    requestOptions: RequestInit,
     session: InternalSession | null,
     requestType: "client" | "server" | "admin" = "client",
   ) {
@@ -266,8 +266,8 @@ export class StackClientInterface {
   }
 
   protected async sendClientRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
-    path: string, 
-    requestOptions: RequestInit, 
+    path: string,
+    requestOptions: RequestInit,
     tokenStoreOrNull: InternalSession | null,
     errorsToCatch: readonly E[],
   ): Promise<Result<
@@ -318,10 +318,10 @@ export class StackClientInterface {
       /**
        * This fetch may be cross-origin, in which case we don't want to send cookies of the
        * original origin (this is the default behaviour of `credentials`).
-       * 
+       *
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
        * implement reliance on cookies anywhere.
-       * 
+       *
        * However, Cloudflare Workers don't actually support `credentials`, so we only set it
        * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
@@ -349,9 +349,9 @@ export class StackClientInterface {
         } : {}),
         /**
          * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
-         * 
+         *
          * This header is used to change the cache key and hence always disable it, because we do our own caching.
-         * 
+         *
          * When we drop support for Next.js <15, we may be able to remove this header, but please make sure that this is
          * the case (I haven't actually tested.)
          */
@@ -480,7 +480,7 @@ export class StackClientInterface {
   }
 
   async sendVerificationEmail(
-    emailVerificationRedirectUrl: string, 
+    emailVerificationRedirectUrl: string,
     session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
@@ -504,7 +504,7 @@ export class StackClientInterface {
   }
 
   async sendMagicLinkEmail(
-    email: string, 
+    email: string,
     redirectUrl: string,
   ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
@@ -550,7 +550,7 @@ export class StackClientInterface {
   }
 
   async updatePassword(
-    options: { oldPassword: string, newPassword: string }, 
+    options: { oldPassword: string, newPassword: string },
     session: InternalSession
   ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
@@ -601,8 +601,8 @@ export class StackClientInterface {
   }
 
   async signInWithCredential(
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     session: InternalSession
   ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
@@ -696,11 +696,11 @@ export class StackClientInterface {
 
   async getOAuthUrl(
     options: {
-      provider: string, 
-      redirectUrl: string, 
+      provider: string,
+      redirectUrl: string,
       errorRedirectUrl: string,
       afterCallbackRedirectUrl?: string,
-      codeChallenge: string, 
+      codeChallenge: string,
       state: string,
       type: "authenticate" | "link",
       providerScope?: string,
@@ -730,11 +730,11 @@ export class StackClientInterface {
     url.searchParams.set("response_type", "code");
     url.searchParams.set("type", options.type);
     url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
-    
+
     if (options.afterCallbackRedirectUrl) {
       url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
     }
-    
+
     if (options.type === "link") {
       const tokens = await options.session.getPotentiallyExpiredTokens();
       url.searchParams.set("token", tokens?.accessToken.token || "");
@@ -748,9 +748,9 @@ export class StackClientInterface {
   }
 
   async callOAuthCallback(options: {
-    oauthParams: URLSearchParams, 
+    oauthParams: URLSearchParams,
     redirectUri: string,
-    codeVerifier: string, 
+    codeVerifier: string,
     state: string,
   }): Promise<{ newUser: boolean, afterCallbackRedirectUrl?: string, accessToken: string, refreshToken: string }> {
     if (!('publishableClientKey' in this.options)) {
@@ -833,8 +833,8 @@ export class StackClientInterface {
   async listClientUserTeamPermissions(
     options: {
       teamId: string,
-      type: 'global' | 'team', 
-      direct: boolean, 
+      type: 'global' | 'team',
+      direct: boolean,
     },
     session: InternalSession
   ): Promise<PermissionDefinitionJson[]> {

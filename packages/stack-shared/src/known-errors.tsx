@@ -88,7 +88,7 @@ const knownErrorConstructorErrorCodeSentinel = Symbol("knownErrorConstructorErro
 type KnownErrorBrand<ErrorCode extends string> = {
   /**
    * Does not exist at runtime
-   * 
+   *
    * Must be an object because it may be true for multiple error codes (it's true for all parents)
    */
   [knownErrorConstructorErrorCodeSentinel]: {

@@ -7,7 +7,7 @@ import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
-  options: { 
+  options: {
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
@@ -30,7 +30,7 @@ export async function signInWithOAuth(
 
 export async function addNewOAuthProviderOrScope(
   iface: StackClientInterface,
-  options: { 
+  options: {
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
@@ -56,7 +56,7 @@ export async function addNewOAuthProviderOrScope(
 
 /**
  * Checks if the current URL has the query parameters for an OAuth callback, and if so, removes them.
- * 
+ *
  * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
 function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
@@ -88,7 +88,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   // prevent an unnecessary reload
   window.history.replaceState({}, "", newUrl.toString());
 
-  return originalUrl; 
+  return originalUrl;
 }
 
 export async function callOAuthCallback(

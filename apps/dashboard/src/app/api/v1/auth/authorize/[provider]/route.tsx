@@ -47,8 +47,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       client_id: projectId,
       client_secret: publishableClientKey,
       redirect_uri: redirectUri,
-      scope, 
-      state, 
+      scope,
+      state,
       grant_type: grantType,
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
@@ -130,7 +130,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   cookies().set(
     "stack-oauth-" + innerState.slice(0, 8),
-    outerInfo.id, 
+    outerInfo.id,
     {
       httpOnly: true,
       maxAge: 60 * expireMinutes,

@@ -64,7 +64,7 @@ function EditPermissionDialog(props: {
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
-          permissions={permissions} 
+          permissions={permissions}
           type="edit-user"
           team={props.team}
           user={props.user}
@@ -96,7 +96,7 @@ function EditPermissionDialog(props: {
 
 
 function Actions(
-  { row, team, setUpdateCounter }: 
+  { row, team, setUpdateCounter }:
   { row: Row<ExtendedServerUserForTeam>, team: ServerTeam, setUpdateCounter: (c: (v: number) => number) => void }
 ) {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
@@ -104,18 +104,18 @@ function Actions(
 
   return (
     <>
-      <RemoveUserDialog 
-        user={row.original} 
-        team={team} 
-        open={isRemoveModalOpen} 
-        onOpenChange={setIsRemoveModalOpen} 
+      <RemoveUserDialog
+        user={row.original}
+        team={team}
+        open={isRemoveModalOpen}
+        onOpenChange={setIsRemoveModalOpen}
       />
-      <EditPermissionDialog 
-        user={row.original} 
-        team={team} 
-        open={isEditModalOpen} 
+      <EditPermissionDialog
+        user={row.original}
+        team={team}
+        open={isEditModalOpen}
         onOpenChange={(v) => setIsEditModalOpen(v)}
-        onSubmit={() => setUpdateCounter(c => c + 1)} 
+        onSubmit={() => setUpdateCounter(c => c + 1)}
       />
       <ActionCell
         items={[{
@@ -162,7 +162,7 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
       permissions: userPermissions.get(user.id) ?? [],
     }));
   }, [users, userPermissions]);
-  
+
   useEffect(() => {
     async function load() {
       const promises = props.members.map(async member => {
@@ -175,7 +175,7 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
       });
       return await Promise.all(promises);
     }
-    
+
     load().then((data) => {
       setUserPermissions(new Map(
         props.members.map((member, index) => [member.userId, data[index].permissions.map(p => p.id)])
@@ -185,10 +185,10 @@ export function TeamMemberTable(props: { members: ServerTeamMember[], team: Serv
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.members, props.team, updateCounter]);
 
-  return <DataTable 
+  return <DataTable
     data={extendedUsers}
-    columns={teamMemberColumns} 
-    toolbarRender={teamMemberToolbarRender} 
-    defaultVisibility={{ emailVerified: false }} 
+    columns={teamMemberColumns}
+    toolbarRender={teamMemberToolbarRender}
+    defaultVisibility={{ emailVerified: false }}
   />;
 }

@@ -43,7 +43,7 @@ export function ActionDialog(props: ActionDialogProps) {
   const [confirmed, setConfirmed] = React.useState(false);
   const confirmId = useId();
   const [invalidationCount, setInvalidationCount] = React.useState(0);
-  
+
   const onOpenChange = (open: boolean) => {
     if (!open) {
       props.onClose?.();
@@ -54,7 +54,7 @@ export function ActionDialog(props: ActionDialogProps) {
     setOpenState(open);
     props.onOpenChange?.(open);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange} key={invalidationCount}>
       {props.trigger && <DialogTrigger asChild>
@@ -76,7 +76,7 @@ export function ActionDialog(props: ActionDialogProps) {
           <div>
             {props.children}
           </div>
-        
+
           {props.confirmText && <Alert>
             <Label className="flex gap-4 items-center">
               <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>

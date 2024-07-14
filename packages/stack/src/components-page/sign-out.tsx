@@ -6,10 +6,10 @@ import { PredefinedMessageCard } from "../components/message-cards/predefined-me
 
 export function SignOut(props: { fullPage?: boolean }) {
   const user = useUser();
-  
+
   if (user) {
     use(user.signOut());
   }
-  
+
   return <PredefinedMessageCard type='signedOut' fullPage={props.fullPage} />;
 }

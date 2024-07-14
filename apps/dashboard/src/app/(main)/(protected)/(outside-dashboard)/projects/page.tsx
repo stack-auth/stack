@@ -16,7 +16,7 @@ export default async function Page() {
   if (projects.length === 0) {
     redirect("/new-project");
   }
-  
+
   return (
     <>
       <PageClient />

@@ -20,11 +20,11 @@ export default async function Page({ params }: { params: { teamId: string } }) {
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={team.profileImageUrl} alt={'team profile image'} style={{ width: '100px', height: '100px' }} />
     <p>
-      {userTeams.some(t => t.id === team.id) ? 
+      {userTeams.some(t => t.id === team.id) ?
         <>
           (You are a member)
           <ProfileImageUpload teamId={team.id} />
-        </> : 
+        </> :
         '(You are not a member)'}
     </p>
 

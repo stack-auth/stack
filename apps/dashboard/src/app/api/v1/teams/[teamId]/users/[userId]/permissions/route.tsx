@@ -58,15 +58,15 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
     if (direct === 'true') {
       return NextResponse.json(await listUserDirectPermissions({
-        projectId, 
-        teamId: options.params.teamId, 
+        projectId,
+        teamId: options.params.teamId,
         userId: options.params.userId,
         type
       }));
     } else {
       return NextResponse.json(await listUserPermissionDefinitionsRecursive({
-        projectId, 
-        teamId: options.params.teamId, 
+        projectId,
+        teamId: options.params.teamId,
         userId: options.params.userId,
         type
       }));

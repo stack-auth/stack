@@ -36,32 +36,32 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           dbSystemName: 'teamMemberDefaultSystemPermissions',
         },
       ] as const;
-    
+
       const permissions = await listPermissionDefinitions(oldProject, { type: 'any-team' });
 
 
       for (const param of dbParams) {
         const defaultPerms = data.config?.[param.optionName]?.map((p) => p.id);
-        
+
         if (!defaultPerms) {
           continue;
         }
-        
+
         if (!defaultPerms.every((id) => permissions.some((perm) => perm.id === id))) {
           throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
         }
-        
+
         const systemPerms = defaultPerms
           .filter(p => isTeamSystemPermission(p))
           .map(p => teamSystemPermissionStringToDBType(p as any));
-    
+
         await tx.projectConfig.update({
           where: { id: oldProject.evaluatedConfig.id },
           data: {
             [param.dbSystemName]: systemPerms,
           },
         });
-        
+
         // Remove existing default permissions
         await tx.permission.updateMany({
           where: {
@@ -73,7 +73,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
             isDefaultTeamMemberPermission: param.type === 'member' ? false : undefined,
           },
         });
-  
+
         // Add new default permissions
         await tx.permission.updateMany({
           where: {
@@ -133,7 +133,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           data: updateData,
         });
       }
-    
+
       // ======================= update oauth config =======================
       // loop though all the items from crud.config.oauth_providers
       // create the config if it is not already in the DB
@@ -144,7 +144,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
       const oauthProviderUpdates = data.config?.oauth_providers;
       if (oauthProviderUpdates) {
         const providerMap = new Map(oldProviders.map((provider) => [
-          provider.id, 
+          provider.id,
           {
             providerUpdate: (() => {
               const update = oauthProviderUpdates.find((p) => p.id === provider.id);
@@ -158,7 +158,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         ]));
 
         const newProviders =  oauthProviderUpdates.map((providerUpdate) => ({
-          id: providerUpdate.id, 
+          id: providerUpdate.id,
           update: providerUpdate
         })).filter(({ id }) => !providerMap.has(id));
 
@@ -175,7 +175,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
               where: { projectConfigId: oldProject.evaluatedConfig.id, id: providerUpdate.id },
             });
           }
-    
+
           // update provider configs with newly created proxied/standard provider configs
           let providerConfigUpdate;
           if (providerUpdate.type === 'shared') {
@@ -186,7 +186,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
                 },
               },
             };
-    
+
           } else {
             providerConfigUpdate = {
               standardOAuthConfig: {
@@ -198,7 +198,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
               },
             };
           }
-    
+
           await tx.oAuthProviderConfig.update({
             where: { projectConfigId_id: { projectConfigId: oldProject.evaluatedConfig.id, id } },
             data: {

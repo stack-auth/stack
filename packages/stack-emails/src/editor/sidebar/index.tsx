@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 
 export default function InspectorDrawer(props: {
   edited: boolean,
-  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>, 
+  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>,
   onCancel?: () => void | Promise<void>,
 }){
   const inspectorDrawerOpen = useInspectorDrawerOpen();

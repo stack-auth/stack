@@ -17,7 +17,7 @@ export default function PageClient() {
   const teams = stackAdminApp.useTeams();
 
   const [createTeamsOpen, setCreateTeamsOpen] = React.useState(false);
- 
+
   return (
     <PageLayout
       title="Teams"
@@ -37,7 +37,7 @@ export default function PageClient() {
 
 function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const stackAdminApp = useAdminApp();
- 
+
 
   const formSchema = yup.object({
     displayName: yup.string().required().label("Display Name"),

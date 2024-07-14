@@ -8,7 +8,7 @@ export function UserAvatar(props: { size?: number, user: User | null }) {
     <Avatar style={{ height: props.size || '34px', width: props.size || '34px' }}>
       <AvatarImage src={user?.profileImageUrl || ''} />
       <AvatarFallback>
-        {user ? 
+        {user ?
           <div className='font-medium'>
             {(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}
           </div> :

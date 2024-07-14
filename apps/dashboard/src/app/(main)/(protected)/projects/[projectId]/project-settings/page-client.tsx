@@ -47,7 +47,7 @@ export default function PageClient() {
         )}
       </SettingCard>
 
-      <FormSettingCard 
+      <FormSettingCard
         title="Project Information"
         defaultValues={project}
         formSchema={projectInformationSchema}

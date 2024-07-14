@@ -37,7 +37,7 @@ export function SettingCard(props: {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
-        {props.accordion ? 
+        {props.accordion ?
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>{props.accordion}</AccordionTrigger>

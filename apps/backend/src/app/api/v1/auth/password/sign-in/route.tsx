@@ -30,7 +30,6 @@ export const POST = createSmartRouteHandler({
     if (!project.evaluatedConfig.credentialEnabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
-  
     const users = await prismaClient.projectUser.findMany({
       where: {
         projectId: project.id,
@@ -42,11 +41,11 @@ export const POST = createSmartRouteHandler({
       throw new StackAssertionError("Multiple users found with the same email", { users });
     }
     const user = users.length > 0 ? users[0] : null;
-  
+
     if (!await comparePassword(password, user?.passwordHash || "")) {
       throw new KnownErrors.EmailPasswordMismatch();
     }
-  
+
     if (!user) {
       throw new StackAssertionError("This should never happen (the comparePassword call should've already caused this to fail)");
     }

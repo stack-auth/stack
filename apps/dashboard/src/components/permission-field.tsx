@@ -26,7 +26,7 @@ export class PermissionGraph {
     const result: Map<string, ServerPermissionDefinitionJson> = new Map();
     [...permissions].forEach(permission => {
       result.set(permission.id, {
-        ...permission, 
+        ...permission,
         containPermissionIds: [...permission.containPermissionIds]
       });
     });
@@ -83,7 +83,7 @@ export class PermissionGraph {
   recursiveContains(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
-    
+
     const result = new Map<string, ServerPermissionDefinitionJson>();
     const idsToProcess = [...permission.containPermissionIds];
     while (idsToProcess.length > 0) {
@@ -106,7 +106,7 @@ export class PermissionGraph {
   recursiveAncestors(permissionId: string): ServerPermissionDefinitionJson[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
-    
+
     const ancestors = [];
     for (const [key, permission] of this.permissions.entries()) {
       if (this.hasPermission(permission.id, permissionId)) {
@@ -174,7 +174,7 @@ export function PermissionListField<F extends FieldValues>(props: {
 
   const currentPermission = graph.permissions.get(CURRENTLY_EDITED_PERMISSION_SENTINEL);
   if (!currentPermission) throw new Error('Placeholder permission not found');
-  
+
   return (
     <FormField
       control={props.control}

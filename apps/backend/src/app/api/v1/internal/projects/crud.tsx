@@ -104,7 +104,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           isDefaultTeamMemberPermission: true,
         },
       });
-      
+
       await tx.permission.create({
         data: {
           projectId: project.id,
@@ -120,7 +120,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           isDefaultTeamCreatorPermission: true,
         },
       });
-  
+
       const projectUserTx = await tx.projectUser.findUniqueOrThrow({
         where: {
           projectId_projectUserId: {
@@ -129,9 +129,9 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           },
         },
       });
-  
+
       const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
-  
+
       await tx.projectUser.update({
         where: {
           projectId_projectUserId: {

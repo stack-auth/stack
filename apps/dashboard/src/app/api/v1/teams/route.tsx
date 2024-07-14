@@ -42,7 +42,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new KnownErrors.ApiKeyNotFound();
     }
     teams = await listServerTeams(projectId);
-  } 
+  }
   return NextResponse.json(teams);
 });
 

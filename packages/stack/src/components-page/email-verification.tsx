@@ -6,12 +6,12 @@ import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
 
-export function EmailVerification({ 
+export function EmailVerification({
   searchParams: {
     code = "",
   } = {},
   fullPage = false,
-}: { 
+}: {
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {

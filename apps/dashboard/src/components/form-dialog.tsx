@@ -10,7 +10,7 @@ import React from "react";
 import { SmartForm } from "./smart-form";
 
 export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
-  props: Omit<ActionDialogProps, 'children'> & { 
+  props: Omit<ActionDialogProps, 'children'> & {
     formSchema: S,
     onSubmit: (values: yup.InferType<S>) => Promise<void | 'prevent-close'> | void | 'prevent-close',
   },
@@ -38,7 +38,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
       okButton={{
         onClick: async () => "prevent-close",
         ...(typeof props.okButton === "boolean" ? {} : props.okButton),
-        props: { 
+        props: {
           form: formId,
           type: "submit",
           loading: submitting,
@@ -52,7 +52,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
 }
 
 export function FormDialog<F extends FieldValues>(
-  props: Omit<ActionDialogProps, 'children'> & { 
+  props: Omit<ActionDialogProps, 'children'> & {
     defaultValues?: Partial<F>,
     onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
     render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
@@ -105,10 +105,10 @@ export function FormDialog<F extends FieldValues>(
         onClick: async () => "prevent-close",
         ...(typeof props.okButton == "boolean" ? {} : props.okButton),
         props: {
-          form: formId, 
-          type: "submit", 
-          loading: submitting, 
-          ...((typeof props.okButton == "boolean") ? {} : props.okButton?.props) 
+          form: formId,
+          type: "submit",
+          loading: submitting,
+          ...((typeof props.okButton == "boolean") ? {} : props.okButton?.props)
         },
       }}
     >

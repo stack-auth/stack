@@ -148,7 +148,7 @@ export async function sendVerificationEmail(
     emailVerificationLink: verificationUrl.toString(),
   };
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
+
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
@@ -235,7 +235,7 @@ export async function sendMagicLink(
   };
 
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
+
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,

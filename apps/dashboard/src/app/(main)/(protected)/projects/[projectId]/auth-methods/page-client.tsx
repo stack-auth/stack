@@ -40,9 +40,9 @@ export default function PageClient() {
       <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
         {availableProviders.map((id) => {
           const provider = oauthProviders.find((provider) => provider.id === id);
-          return <ProviderSettingSwitch 
-            key={id} 
-            id={id} 
+          return <ProviderSettingSwitch
+            key={id}
+            id={id}
             provider={provider}
             updateProvider={async (provider: OAuthProviderConfigJson) => {
               const alreadyExist = oauthProviders.some((p) => p.id === id);
@@ -55,7 +55,7 @@ export default function PageClient() {
               });
             }}
           />;
-        })}      
+        })}
       </SettingCard>
     </PageLayout>
   );

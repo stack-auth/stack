@@ -62,9 +62,9 @@ export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
 
 export function ProviderSettingDialog(props: Props) {
   const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
-  const defaultValues = { 
-    shared: isShared, 
-    clientId: (props.provider as any)?.clientId ?? "", 
+  const defaultValues = {
+    shared: isShared,
+    clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
   };
 
@@ -99,7 +99,7 @@ export function ProviderSettingDialog(props: Props) {
             label="Shared keys"
           />
 
-          {form.watch("shared") ? 
+          {form.watch("shared") ?
             <Typography variant="secondary" type="footnote">
             Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
             </Typography> :
@@ -136,8 +136,8 @@ export function ProviderSettingDialog(props: Props) {
   );
 }
 
-export function TurnOffProviderDialog(props: { 
-  open: boolean, 
+export function TurnOffProviderDialog(props: {
+  open: boolean,
   onClose: () => void,
   onConfirm: () => void,
   providerId: ProviderType,
@@ -174,7 +174,7 @@ export function ProviderSettingSwitch(props: Props) {
       id: props.id,
       type: toSharedProvider(props.id),
       ...props.provider,
-      enabled: checked 
+      enabled: checked
     });
   };
 
@@ -184,7 +184,7 @@ export function ProviderSettingSwitch(props: Props) {
         label={
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
-            {isShared && enabled && 
+            {isShared && enabled &&
               <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
@@ -205,8 +205,8 @@ export function ProviderSettingSwitch(props: Props) {
         }
         onlyShowActionsWhenChecked
       />
-      
-      <TurnOffProviderDialog 
+
+      <TurnOffProviderDialog
         open={TurnOffProviderDialogOpen}
         onClose={() => setTurnOffProviderDialogOpen(false)}
         providerId={props.id}

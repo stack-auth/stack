@@ -31,7 +31,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   if (codeRecord.usedAt) {
     throw new KnownErrors.VerificationCodeAlreadyUsed();
   }
-  
+
   await prismaClient.projectUser.update({
     where: {
       projectId_projectUserId: {

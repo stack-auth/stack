@@ -211,7 +211,7 @@ export async function createProject(
         isDefaultTeamMemberPermission: true,
       },
     });
-    
+
     await tx.permission.create({
       data: {
         projectId: project.id,
@@ -293,7 +293,7 @@ async function _createOAuthConfigUpdateTransactions(
   }
   const oldProviders = project.config.oauthProviderConfigs;
   const providerMap = new Map(oldProviders.map((provider) => [
-    provider.id, 
+    provider.id,
     {
       providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwErr(`Missing provider update for provider '${provider.id}'`),
       oldProvider: provider,
@@ -301,7 +301,7 @@ async function _createOAuthConfigUpdateTransactions(
   ]));
 
   const newProviders = oauthProvidersUpdate.map((providerUpdate) => ({
-    id: providerUpdate.id, 
+    id: providerUpdate.id,
     update: providerUpdate
   })).filter(({ id }) => !providerMap.has(id));
 
@@ -354,7 +354,7 @@ async function _createOAuthConfigUpdateTransactions(
       },
     }));
   }
-    
+
   // Create new providers
   for (const provider of newProviders) {
     let providerConfigData;
@@ -503,7 +503,7 @@ async function _createDefaultPermissionsUpdateTransactions(
       if (!creatorPerms.every((id) => permissions.some((perm) => perm.id === id))) {
         throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
       }
-    
+
       const systemPerms = creatorPerms
         .filter(isTeamSystemPermission)
         .map(teamSystemPermissionStringToDBType);
@@ -514,7 +514,7 @@ async function _createDefaultPermissionsUpdateTransactions(
           [param.dbSystemName]: systemPerms,
         },
       }));
-      
+
       // Remove existing default permissions
       transactions.push(prismaClient.permission.updateMany({
         where: {
@@ -589,25 +589,25 @@ export async function updateProject(
 
   transaction.push(prismaClient.projectConfig.update({
     where: { id: project.config.id },
-    data: { 
+    data: {
       credentialEnabled: options.config?.credentialEnabled,
       magicLinkEnabled: options.config?.magicLinkEnabled,
       allowLocalhost: options.config?.allowLocalhost,
       createTeamOnSignUp: options.config?.createTeamOnSignUp,
     },
   }));
-  
+
   transaction.push(prismaClient.project.update({
     where: { id: projectId },
-    data: { 
+    data: {
       displayName: options.displayName,
       description: options.description,
-      isProductionMode: options.isProductionMode 
+      isProductionMode: options.isProductionMode
     },
   }));
 
   await prismaClient.$transaction(transaction);
-  
+
   const updatedProject = await prismaClient.project.findUnique({
     where: { id: projectId },
     include: fullProjectInclude, // Ensure you have defined this include object correctly elsewhere
@@ -774,7 +774,7 @@ export const projectSchemaToUpdateOptions = (
           if (!provider.clientSecret) {
             throw new StatusError(StatusError.BadRequest, "Missing clientSecret");
           }
-            
+
           return {
             id: provider.id,
             enabled: provider.enabled,

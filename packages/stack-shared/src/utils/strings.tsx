@@ -16,7 +16,7 @@ export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
 
 /**
  * Returns all whitespace character at the start of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespacePrefix(s: string): string {
@@ -25,7 +25,7 @@ export function getWhitespacePrefix(s: string): string {
 
 /**
  * Returns all whitespace character at the end of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespaceSuffix(s: string): string {
@@ -34,7 +34,7 @@ export function getWhitespaceSuffix(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the start removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesStart(s: string): string {
@@ -45,7 +45,7 @@ export function trimEmptyLinesStart(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the end removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesEnd(s: string): string {
@@ -56,7 +56,7 @@ export function trimEmptyLinesEnd(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines trimmed at the start and end.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimLines(s: string): string {
@@ -65,7 +65,7 @@ export function trimLines(s: string): string {
 
 /**
  * A template literal tag that returns the same string as the template literal without a tag.
- * 
+ *
  * Useful for implementing your own template literal tags.
  */
 export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: any[]): string {
@@ -319,4 +319,4 @@ function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown
 
 function getNicifiedObjectExtraLines(value: Nicifiable | object) {
   return ("getNicifiedObjectExtraLines" in value ? value.getNicifiedObjectExtraLines : null)?.() ?? [];
-} 
+}

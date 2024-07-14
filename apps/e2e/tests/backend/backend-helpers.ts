@@ -1,8 +1,8 @@
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch, NiceRequestInit } from "../helpers";
-import { expect } from "vitest";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { expect } from "vitest";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, niceFetch } from "../helpers";
 
 type BackendContext = {
   projectKeys: ProjectKeys,
@@ -252,7 +252,7 @@ export namespace Auth {
         password,
       };
     }
-  
+
     export async function signInWithEmail(options: { password: string }) {
       const mailbox = backendContext.value.mailbox;
       const email = mailbox.emailAddress;

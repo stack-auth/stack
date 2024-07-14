@@ -1,4 +1,3 @@
-import { describe } from "vitest";
 import { it } from "../../../../../helpers";
 import { Auth, InternalProjectClientKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 

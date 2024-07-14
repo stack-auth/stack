@@ -30,7 +30,7 @@ export class GithubProvider extends OAuthBaseProvider {
       }).then((res) => res.json());
       rawUserInfo.email = emails.find((e: any) => e.primary).email;
     }
-    
+
     return validateUserInfo({
       accountId: rawUserInfo.id?.toString(),
       displayName: rawUserInfo.name,

@@ -7,11 +7,13 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "cSpell.words": [
+    "codegen",
     "Crudl",
     "deindent",
     "Falsey",
     "frontends",
     "hookform",
+    "hostable",
     "INBUCKET",
     "Millis",
     "nextjs",
@@ -21,6 +23,12 @@
     "Proxied",
     "stackframe",
     "typehack",
-    "Uncapitalize"
+    "Uncapitalize",
+    "wolfgunblood"
   ],
+  "[typescript]": {
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+      }
+  }
 }

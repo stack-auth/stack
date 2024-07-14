@@ -83,7 +83,6 @@ export const GET = createSmartRouteHandler({
       state: innerState,
       extraScope: query.provider_scope,
     });
-    
     const outerInfo = await prismaClient.oAuthOuterInfo.create({
       data: {
         innerState,

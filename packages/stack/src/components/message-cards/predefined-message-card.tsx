@@ -4,12 +4,12 @@ import { Typography } from "@stackframe/stack-ui";
 import { useStackApp } from "../..";
 import { MessageCard } from "./message-card";
 
-export function PredefinedMessageCard({ 
+export function PredefinedMessageCard({
   type,
   fullPage=false,
-}: { 
+}: {
   type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError',
-  fullPage?: boolean, 
+  fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
 
@@ -67,11 +67,11 @@ export function PredefinedMessageCard({
 
   return (
     <MessageCard
-      title={title} 
-      fullPage={fullPage} 
-      primaryButtonText={primaryButton} 
-      primaryAction={primaryAction} 
-      secondaryButtonText={secondaryButton || undefined} 
+      title={title}
+      fullPage={fullPage}
+      primaryButtonText={primaryButton}
+      primaryAction={primaryAction}
+      secondaryButtonText={secondaryButton || undefined}
       secondaryAction={secondaryAction || undefined}
     >
       {message && <Typography>{message}</Typography>}

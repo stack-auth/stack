@@ -49,7 +49,7 @@
 //       setError(errorCode.message);
 //     }
 //   };
-  
+
 //   return (
 //     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
 //       {error}
@@ -82,14 +82,14 @@ export default function CustomCredentialSignIn() {
       setMessage('Magic link sent! Please check your email.');
     }
   };
-  
+
   return (
     <form onSubmit={(e) => {
       e.preventDefault();
       onSubmit();
     }}>
       {error}
-      {message ? 
+      {message ?
         <div>{message}</div> :
         <>
           <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />

@@ -3,10 +3,12 @@ import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors, OAuthProviderConfigJson, ProjectJson } from "@stackframe/stack-shared";
-import { EmailConfigJson, SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { teamPermissionIdSchema, yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import * as yup from "yup";
 import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
@@ -101,11 +103,11 @@ export function projectPrismaToCrud(
         }))
         .sort((a, b) => a.domain.localeCompare(b.domain)),
       oauth_providers: prisma.config.oauthProviderConfigs
-        .flatMap((provider): { 
-          id: Lowercase<ProxiedOAuthProviderType>, 
-          enabled: boolean, 
-          type: 'standard' | 'shared', 
-          client_id?: string | undefined, 
+        .flatMap((provider): {
+          id: Lowercase<ProxiedOAuthProviderType>,
+          enabled: boolean,
+          type: 'standard' | 'shared',
+          client_id?: string | undefined,
           client_secret?: string ,
         }[] => {
           if (provider.proxiedOAuthConfig) {

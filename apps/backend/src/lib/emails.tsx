@@ -110,14 +110,13 @@ export async function sendEmailFromTemplate(options: {
     ...filterUndefined(options.extraVariables),
   });
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
   await sendEmail({
     emailConfig: await getEmailConfig(options.project),
     to: options.email,
     subject,
     html,
     text,
-  });   
+  });
 }
 
 async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {

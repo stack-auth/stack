@@ -75,8 +75,8 @@ export default function PasswordResetForm(
         <Typography type='h2'>Reset Your Password</Typography>
       </div>
 
-      <form 
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} 
+      <form
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
@@ -107,5 +107,5 @@ export default function PasswordResetForm(
         </Button>
       </form>
     </MaybeFullPage>
-  ); 
+  );
 }

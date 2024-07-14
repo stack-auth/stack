@@ -19,9 +19,9 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   searchParams = {},
   // TODO set default to false like on the other components (may break old code)
   fullPage = "deprecated-unset",
-}: { 
+}: {
   app: StackServerApp<HasTokenStore>,
-  params?: { stack?: string[] }, 
+  params?: { stack?: string[] },
   searchParams?: Record<string, string>,
   fullPage?: boolean | "deprecated-unset",
 }) {

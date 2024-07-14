@@ -10,6 +10,6 @@ export default function globalSetup() {
       ".env",
     ].map((file) => path.resolve(__dirname, "..", file)),
   });
-  
+
   return () => {};
 }

@@ -25,7 +25,7 @@ export function DataTablePagination<TData>({
   return (
     <div className="flex items-center justify-between px-2 flex-col sm:flex-row gap-y-4 sm:gap-y-0">
       <div className="flex-1 text-sm text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length === 0 ? 
+        {table.getFilteredSelectedRowModel().rows.length === 0 ?
           `${table.getFilteredRowModel().rows.length} row(s) found` :
           `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected`
         }

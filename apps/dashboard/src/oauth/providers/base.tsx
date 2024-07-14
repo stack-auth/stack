@@ -60,7 +60,7 @@ export abstract class OAuthBaseProvider {
   }
 
   async getCallback(options: {
-    callbackParams: CallbackParamsType, 
+    callbackParams: CallbackParamsType,
     codeVerifier: string,
     state: string,
   }): Promise<OAuthUserInfo> {

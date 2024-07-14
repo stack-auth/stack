@@ -15,8 +15,8 @@ export default function PageClient() {
   const [createPermissionModalOpen, setCreatePermissionModalOpen] = React.useState(false);
 
   return (
-    <PageLayout 
-      title="Team Permissions" 
+    <PageLayout
+      title="Team Permissions"
       actions={
         <Button onClick={() => setCreatePermissionModalOpen(true)}>
           Create Permission

@@ -1,7 +1,7 @@
 import Typography from "@/components/ui/typography";
 
-export function PageLayout(props: { 
-  children: React.ReactNode, 
+export function PageLayout(props: {
+  children: React.ReactNode,
   title: string,
   description?: string,
   actions?: React.ReactNode,

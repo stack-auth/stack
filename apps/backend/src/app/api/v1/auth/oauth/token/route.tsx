@@ -45,13 +45,12 @@ export const POST = createSmartRouteHandler({
       method: "POST",
       body: body,
     });
-  
 
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.token(
-      oauthRequest, 
-      oauthResponse, 
+      oauthRequest,
+      oauthResponse,
       {
         // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
         refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year

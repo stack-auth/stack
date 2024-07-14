@@ -15,9 +15,9 @@ const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClient
 export function PasswordReset({
   searchParams,
   fullPage = false,
-}: { 
+}: {
   searchParams?: Record<string, string>,
-  fullPage?: boolean, 
+  fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
 
@@ -45,7 +45,7 @@ export function PasswordReset({
   }
 
   const error = use(cachedVerifyPasswordResetCode(stackApp, code));
-  
+
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
   } else if (error instanceof KnownErrors.VerificationCodeExpired) {

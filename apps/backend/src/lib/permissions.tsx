@@ -52,8 +52,8 @@ export function permissionDefinitionJsonFromDbType(db: Prisma.PermissionGetPaylo
       }
     }).sort(),
     scope: (
-      db.scope === "GLOBAL" ? { type: "global" } : 
-        db.teamId ? { type: "specific-team", teamId: db.teamId } : 
+      db.scope === "GLOBAL" ? { type: "global" } :
+        db.teamId ? { type: "specific-team", teamId: db.teamId } :
           { type: "any-team" }
     ) as PermissionDefinitionScopeJson,
   } as const;
@@ -155,7 +155,6 @@ export async function listUserTeamPermissions(options: {
       user_id: userId,
     })));
   }
-  
   return finalResults.sort((a, b) => {
     if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
     if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
@@ -211,7 +210,6 @@ export async function grantTeamPermission(options: {
         },
       }
     });
-  
     const permission = teamSpecificPermission || anyTeamPermission;
     if (!permission) throw new KnownErrors.PermissionNotFound(options.permissionId);
 
@@ -288,7 +286,6 @@ export async function revokeTeamPermission(options: {
         },
       }
     });
-  
     const permission = teamSpecificPermission || anyTeamPermission;
     if (!permission) throw new KnownErrors.PermissionNotFound(options.permissionId);
 
@@ -374,7 +371,7 @@ export async function listPermissionDefinitions(project: ProjectJson, scope?: Pe
 
 export async function createPermissionDefinition(options: {
   project: ProjectJson,
-  scope: PermissionDefinitionScopeJson, 
+  scope: PermissionDefinitionScopeJson,
   data: {
     id: string,
     description?: string,
@@ -419,7 +416,7 @@ export async function createPermissionDefinition(options: {
 export async function updatePermissionDefinitions(options: {
   project: ProjectJson,
   scope: PermissionDefinitionScopeJson,
-  permissionId: string, 
+  permissionId: string,
   data: {
     id?: string,
     description?: string,
@@ -472,8 +469,8 @@ export async function updatePermissionDefinitions(options: {
 }
 
 export async function deletePermissionDefinition(options: {
-  project: ProjectJson, 
-  scope: PermissionDefinitionScopeJson, 
+  project: ProjectJson,
+  scope: PermissionDefinitionScopeJson,
   permissionId: string,
 }) {
   switch (options.scope.type) {

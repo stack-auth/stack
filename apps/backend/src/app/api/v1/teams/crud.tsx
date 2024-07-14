@@ -27,7 +27,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
   where: async ({ query, auth }) => {
     return {
       projectId: auth.project.id,
-      ...query.user_id ? { 
+      ...query.user_id ? {
         teamMembers: {
           some: {
             projectUserId: query.user_id === 'me' ? auth.user?.id : query.user_id,
