@@ -48,6 +48,13 @@ jobs:
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
+
+      - name: Wait on Postgres
+        run: npx wait-on tcp:localhost:5432
+
+      - name: Wait on Inbucket
+        run: npx wait-on tcp:localhost:2500
+
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
   
