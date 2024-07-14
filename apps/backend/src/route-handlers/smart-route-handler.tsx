@@ -16,7 +16,7 @@ class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...getNodeEnvironment() === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+      ...["development", "test"].includes(getNodeEnvironment()) ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
     );
   }
 }
