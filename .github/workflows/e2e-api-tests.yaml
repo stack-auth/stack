@@ -52,18 +52,23 @@ jobs:
         run: pnpm run prisma -- migrate reset --force
   
       - name: Start stack-backend in background
-        run: pnpm run start:backend &
-        env:
-          NODE_ENV: test
-      - name: Wait for stack-backend to start
-        run: npx wait-on@7.2.0 http://localhost:8102
-
+        uses: JarvusInnovations/background-action@v1
+        with:
+          run: pnpm run start:backend
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 30s
+          log-output-if: true
       - name: Start stack-dashboard in background
-        run: pnpm run start:dashboard &
-        env:
-          NODE_ENV: test
-      - name: Wait for stack-dashboard to start
-        run: npx wait-on@7.2.0 http://localhost:8101
+        uses: JarvusInnovations/background-action@v1
+        with:
+          run: pnpm run start:dashboard
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 30s
+          log-output-if: true
 
       - name: Run tests
         run: pnpm test
