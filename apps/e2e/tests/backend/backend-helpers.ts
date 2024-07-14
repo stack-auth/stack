@@ -430,6 +430,7 @@ export namespace Project {
     });
 
     return {
+      projectId,
       adminAccessToken: adminAccessToken!,
     };
   }

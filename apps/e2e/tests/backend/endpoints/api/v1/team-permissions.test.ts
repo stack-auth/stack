@@ -180,3 +180,63 @@ it("create a new permission and grant it to a user on the server", async ({ expe
     }
   `);
 });
+
+it("customize default team permissions", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken, projectId } = await Project.createAndSetAdmin();
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
+
+  const response1 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
+    accessType: "server",
+    method: "POST",
+    body: {
+      id: 'test'
+    }
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "__database_id": "<stripped UUID>",
+        "contained_permission_ids": [],
+        "id": "test",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+  
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  await Auth.Otp.signIn();
+
+  const { updateProjectResponse: response2 } = await Project.update(projectId, {
+    config: {
+      team_member_default_permission_ids: ['test'],
+    },
+  });
+
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "config": {
+          "allow_localhost": true,
+          "credential_enabled": true,
+          "domains": [],
+          "email_config": { "type": "shared" },
+          "id": "<stripped UUID>",
+          "magic_link_enabled": false,
+          "oauth_providers": [],
+          "team_creator_default_permissions": [{ "id": "admin" }],
+          "team_member_default_permissions": [{ "id": "test" }],
+        },
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "description": "",
+        "display_name": "New Project",
+        "id": "<stripped UUID>",
+        "is_production_mode": false,
+        "user_count": 0,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
