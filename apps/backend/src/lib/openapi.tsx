@@ -126,7 +126,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
     example: meta?.openapiField?.exampleValue,
     description: meta?.openapiField?.description,
   };
-  
+
   switch (field.type) {
     case 'string':
     case 'number':
@@ -137,8 +137,8 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       return { type: 'object', ...openapiFieldExtra };
     }
     case 'object': {
-      return { 
-        type: 'object', 
+      return {
+        type: 'object',
         properties: typedFromEntries(typedEntries((field as any).fields)
           .map(([key, field]) => [key, getFieldSchema(field)])),
         required: typedEntries((field as any).fields)

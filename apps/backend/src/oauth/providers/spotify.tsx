@@ -24,7 +24,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
         Authorization: `Bearer ${tokenSet.access_token}`,
       },
     }).then((res) => res.json());
-    
+
     return validateUserInfo({
       accountId: info.id,
       displayName: info.display_name,

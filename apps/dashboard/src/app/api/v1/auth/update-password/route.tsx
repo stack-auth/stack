@@ -29,7 +29,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
     },
-    body: { 
+    body: {
       oldPassword,
       newPassword,
     },

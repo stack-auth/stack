@@ -56,11 +56,11 @@ export function serverPermissionDefinitionJsonFromDbType(
   return {
     __databaseUniqueId: db.dbId,
     id: db.queryableId,
-    scope: 
+    scope:
       db.scope === "GLOBAL" ? { type: "global" } :
         db.teamId ? { type: "specific-team", teamId: db.teamId } :
           db.projectConfigId ? { type: "any-team" } :
-            throwErr(new StackAssertionError(`Unexpected permission scope`, { db })), 
+            throwErr(new StackAssertionError(`Unexpected permission scope`, { db })),
     description: db.description || undefined,
     containPermissionIds: db.parentEdges.map((edge) => {
       if (edge.parentPermission) {
@@ -159,8 +159,8 @@ export async function grantTeamUserPermission({
   permissionId,
 }: {
   projectId: string,
-  teamId: string, 
-  projectUserId: string, 
+  teamId: string,
+  projectUserId: string,
   type: "team" | "global",
   permissionId: string,
 }) {
@@ -251,7 +251,7 @@ export async function grantTeamUserPermission({
           },
         }
       });
-      
+
       const permission = teamSpecificPermission || anyTeamPermission;
       if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
 
@@ -296,8 +296,8 @@ export async function revokeTeamUserPermission({
   permissionId,
 }: {
   projectId: string,
-  teamId: string, 
-  projectUserId: string, 
+  teamId: string,
+  projectUserId: string,
   type: "team" | "global",
   permissionId: string,
 }) {
@@ -358,7 +358,7 @@ export async function revokeTeamUserPermission({
           },
         }
       });
-      
+
       const permission = teamSpecificPermission || anyTeamPermission;
       if (!permission) throw new KnownErrors.PermissionNotFound(permissionId);
 
@@ -379,14 +379,14 @@ export async function revokeTeamUserPermission({
 }
 
 export async function listUserPermissionDefinitionsRecursive({
-  projectId, 
-  teamId, 
-  userId, 
+  projectId,
+  teamId,
+  userId,
   type,
 }: {
-  projectId: string, 
+  projectId: string,
   teamId: string,
-  userId: string, 
+  userId: string,
   type: 'team' | 'global',
 }): Promise<ServerPermissionDefinitionJson[]> {
   const allPermissions = [];
@@ -413,13 +413,13 @@ export async function listUserPermissionDefinitionsRecursive({
         }
       }
     },
-  });  
+  });
 
   if (!user) throw new KnownErrors.UserNotFound();
-  
+
   const result = new Map<string, ServerPermissionDefinitionJson>();
-  const idsToProcess = [...user.directPermissions.map(p => 
-    p.permission?.queryableId || 
+  const idsToProcess = [...user.directPermissions.map(p =>
+    p.permission?.queryableId ||
     (p.systemPermission ? teamDBTypeToSystemPermissionString(p.systemPermission) : null) ||
     throwErr(new StackAssertionError(`Permission should have either queryableId or systemPermission`, { p }))
   )];
@@ -435,14 +435,14 @@ export async function listUserPermissionDefinitionsRecursive({
 }
 
 export async function listUserDirectPermissions({
-  projectId, 
-  teamId, 
-  userId, 
+  projectId,
+  teamId,
+  userId,
   type,
 }: {
-  projectId: string, 
+  projectId: string,
   teamId: string,
-  userId: string, 
+  userId: string,
   type: 'team' | 'global',
 }): Promise<ServerPermissionDefinitionJson[]> {
   const user = await prismaClient.teamMember.findUnique({
@@ -507,8 +507,8 @@ export async function listPotentialParentPermissions(projectId: string, scope: P
 }
 
 export async function createPermissionDefinition(
-  projectId: string, 
-  scope: PermissionDefinitionScopeJson, 
+  projectId: string,
+  scope: PermissionDefinitionScopeJson,
   permission: ServerPermissionDefinitionCustomizableJson
 ): Promise<ServerPermissionDefinitionJson> {
   const project = await prismaClient.project.findUnique({
@@ -560,9 +560,9 @@ export async function createPermissionDefinition(
 }
 
 export async function updatePermissionDefinitions(
-  projectId: string, 
-  scope: PermissionDefinitionScopeJson, 
-  permissionId: string, 
+  projectId: string,
+  scope: PermissionDefinitionScopeJson,
+  permissionId: string,
   permission: Partial<ServerPermissionDefinitionCustomizableJson>
 ): Promise<ServerPermissionDefinitionJson> {
   const project = await prismaClient.project.findUnique({

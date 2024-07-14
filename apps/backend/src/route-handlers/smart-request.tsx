@@ -87,7 +87,7 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
       } else {
         const inners = error.inner.length ? error.inner : [error];
         const description = schema.describe();
-        
+
         for (const inner of inners) {
           if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
             throw new KnownErrors.AccessTypeRequired();
@@ -262,7 +262,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 }
 
 export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
-  const urlObject = new URL(req.url);  
+  const urlObject = new URL(req.url);
   return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),

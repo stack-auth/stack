@@ -23,7 +23,7 @@ type ShownEndpointDocumentation = {
   description: string,
   tags?: string[],
 };
-export type EndpointDocumentation = 
+export type EndpointDocumentation =
   | ({ hidden: true } & Partial<ShownEndpointDocumentation>)
   | ({ hidden?: boolean } & ShownEndpointDocumentation);
 
@@ -75,12 +75,12 @@ type FillInOptionalsStep<O extends FillInOptionalsPrepareStep<CrudSchemaCreation
   clientReadSchema: NullishCoalesce<O['clientReadSchema'], undefined>,
   clientUpdateSchema: NullishCoalesce<O['clientUpdateSchema'], undefined>,
   clientDeleteSchema: NullishCoalesce<O['clientDeleteSchema'], undefined>,
-  
+
   serverCreateSchema: NullishCoalesce<O['serverCreateSchema'], O['clientCreateSchema']>,
   serverReadSchema: NullishCoalesce<O['serverReadSchema'], O['clientReadSchema']>,
   serverUpdateSchema: NullishCoalesce<O['serverUpdateSchema'], O['clientUpdateSchema']>,
   serverDeleteSchema: NullishCoalesce<O['serverDeleteSchema'], O['clientDeleteSchema']>,
-  
+
   adminCreateSchema: NullishCoalesce<O['adminCreateSchema'], O['serverCreateSchema']>,
   adminReadSchema: NullishCoalesce<O['adminReadSchema'], O['serverReadSchema']>,
   adminUpdateSchema: NullishCoalesce<O['adminUpdateSchema'], O['serverUpdateSchema']>,

@@ -80,7 +80,7 @@ export const POST = createSmartRouteHandler({
         magicLink: link.toString(),
       },
     });
-    
+
     return {
       statusCode: 200,
       bodyType: "success",

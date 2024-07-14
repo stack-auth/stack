@@ -189,8 +189,8 @@ export function getServerUserFromDbType(
 
 export async function createTeamOnSignUp(projectId: string, userId: string): Promise<void> {
   const project = await getProject(projectId);
-  if (!project) { 
-    throw new Error('Project not found'); 
+  if (!project) {
+    throw new Error('Project not found');
   }
   if (!project.evaluatedConfig.createTeamOnSignUp) {
     return;

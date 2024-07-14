@@ -63,11 +63,11 @@ function prismaToCrud(prisma: Prisma.ProjectGetPayload<{ include: typeof fullPro
         domain: domain.domain,
         handler_path: domain.handlerPath,
       })).sort((a, b) => a.domain.localeCompare(b.domain)),
-      oauth_providers: prisma.config.oauthProviderConfigs.flatMap((provider): { 
-        id: Lowercase<ProxiedOAuthProviderType>, 
-        enabled: boolean, 
-        type: 'standard' | 'shared', 
-        client_id?: string | undefined, 
+      oauth_providers: prisma.config.oauthProviderConfigs.flatMap((provider): {
+        id: Lowercase<ProxiedOAuthProviderType>,
+        enabled: boolean,
+        type: 'standard' | 'shared',
+        client_id?: string | undefined,
         client_secret?: string ,
       }[] => {
         if (provider.proxiedOAuthConfig) {
@@ -222,7 +222,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           isDefaultTeamMemberPermission: true,
         },
       });
-      
+
       await tx.permission.create({
         data: {
           projectId: project.id,
@@ -238,7 +238,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           isDefaultTeamCreatorPermission: true,
         },
       });
-  
+
       const projectUserTx = await tx.projectUser.findUniqueOrThrow({
         where: {
           projectId_projectUserId: {
@@ -247,9 +247,9 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
           },
         },
       });
-  
+
       const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
-  
+
       await tx.projectUser.update({
         where: {
           projectId_projectUserId: {
@@ -328,32 +328,32 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
         dbSystemName: 'teamMemberDefaultSystemPermissions',
       },
     ] as const;
-    
+
     const transactions = [];
     const permissions = await listPermissionDefinitions(auth.project, { type: 'any-team' });
 
     for (const param of dbParams) {
       const defaultPerms = data.config?.[param.optionName];
-      
+
       if (!defaultPerms) {
         continue;
       }
-      
+
       if (!defaultPerms.every((id) => permissions.some((perm) => perm.id === id))) {
         throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
       }
-      
+
       const systemPerms = defaultPerms
         .filter(p => isTeamSystemPermission(p))
         .map(p => teamSystemPermissionStringToDBType(p as any));
-  
+
         transactions.push(prismaClient.projectConfig.update({
           where: { id: auth.project.evaluatedConfig.id },
           data: {
             [param.dbSystemName]: systemPerms,
           },
         }));
-        
+
         // Remove existing default permissions
         transactions.push(prismaClient.permission.updateMany({
           where: {
@@ -365,7 +365,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
             isDefaultTeamMemberPermission: param.type === 'member' ? false : undefined,
           },
         }));
-  
+
         // Add new default permissions
         transactions.push(prismaClient.permission.updateMany({
           where: {
@@ -427,7 +427,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
         data: updateData,
       });
     }
-    
+
     // ======================= update oauth config =======================
     // loop though all the items from crud.config.oauth_providers
     // create the config if it is not already in the DB
@@ -438,7 +438,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
     const oauthProviderUpdates = data.config?.oauth_providers;
     if (oauthProviderUpdates) {
       const providerMap = new Map(oldProviders.map((provider) => [
-        provider.id, 
+        provider.id,
         {
           providerUpdate: (() => {
             const update = oauthProviderUpdates.find((p) => p.id === provider.id);
@@ -452,7 +452,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
       ]));
 
       const newProviders =  oauthProviderUpdates.map((providerUpdate) => ({
-        id: providerUpdate.id, 
+        id: providerUpdate.id,
         update: providerUpdate
       })).filter(({ id }) => !providerMap.has(id));
 
@@ -469,7 +469,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
             where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
           });
         }
-    
+
         // update provider configs with newly created proxied/standard provider configs
         let providerConfigUpdate;
         if (providerUpdate.type === 'shared') {
@@ -480,7 +480,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
               },
             },
           };
-    
+
         } else {
           providerConfigUpdate = {
             standardOAuthConfig: {
@@ -492,7 +492,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
             },
           };
         }
-    
+
         await prismaClient.oAuthProviderConfig.update({
           where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
           data: {

@@ -70,7 +70,7 @@ export class DependenciesMap<K extends any[], V> {
     }
   }
 
-  
+
   private _unwrapFromInner(dependencies: any[], inner: DependenciesMapInner<V>): Result<V, void> {
     if ((dependencies.length === 0)) {
       return this._valueToResult(inner);
@@ -83,7 +83,7 @@ export class DependenciesMap<K extends any[], V> {
       return this._unwrapFromInner(rest, newInner);
     }
   }
-  
+
   private _setInInner(dependencies: any[], value: Result<V, void>, inner: DependenciesMapInner<V>): Result<V, void> {
     if (dependencies.length === 0) {
       const res = this._valueToResult(inner);

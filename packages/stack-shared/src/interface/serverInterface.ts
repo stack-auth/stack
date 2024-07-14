@@ -1,6 +1,6 @@
-import { 
-  ClientInterfaceOptions, 
-  UserJson, 
+import {
+  ClientInterfaceOptions,
+  UserJson,
   StackClientInterface,
   OrglikeJson,
   UserUpdateJson,
@@ -102,8 +102,8 @@ export class StackServerInterface extends StackClientInterface {
   async listServerUserTeamPermissions(
     options: {
       teamId: string,
-      type: 'global' | 'team', 
-      direct: boolean, 
+      type: 'global' | 'team',
+      direct: boolean,
     },
     session: InternalSession
   ): Promise<ServerPermissionDefinitionJson[]> {
@@ -203,7 +203,7 @@ export class StackServerInterface extends StackClientInterface {
     );
     return await response.json();
   }
-  
+
   async updateServerTeam(teamId: string, data: Partial<ServerTeamCustomizableJson>): Promise<void> {
     await this.sendServerRequest(
       `/teams/${teamId}?server=true`,
@@ -227,7 +227,7 @@ export class StackServerInterface extends StackClientInterface {
   }
 
   async addServerUserToTeam(options: {
-    userId: string, 
+    userId: string,
     teamId: string,
   }) {
     await this.sendServerRequest(
@@ -244,7 +244,7 @@ export class StackServerInterface extends StackClientInterface {
   }
 
   async removeServerUserFromTeam(options: {
-    userId: string, 
+    userId: string,
     teamId: string,
   }) {
     await this.sendServerRequest(
@@ -276,15 +276,15 @@ export class StackServerInterface extends StackClientInterface {
 
   async listServerTeamMemberPermissions(
     options: {
-      teamId: string, 
-      userId: string, 
-      type: 'global' | 'team', 
+      teamId: string,
+      userId: string,
+      type: 'global' | 'team',
       direct: boolean,
     }
   ): Promise<ServerPermissionDefinitionJson[]> {
     const response = await this.sendServerRequest(
-      `/teams/${options.teamId}/users/${options.userId}/permissions?server=true&type=${options.type}&direct=${options.direct}`, 
-      {}, 
+      `/teams/${options.teamId}/users/${options.userId}/permissions?server=true&type=${options.type}&direct=${options.direct}`,
+      {},
       null
     );
     return await response.json();
@@ -293,7 +293,7 @@ export class StackServerInterface extends StackClientInterface {
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
     await this.sendServerRequest(
       `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
-      { 
+      {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -307,7 +307,7 @@ export class StackServerInterface extends StackClientInterface {
   async revokeServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
     await this.sendServerRequest(
       `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
-      { 
+      {
         method: "DELETE",
         headers: {
           "content-type": "application/json",

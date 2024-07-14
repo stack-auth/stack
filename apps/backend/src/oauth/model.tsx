@@ -37,7 +37,7 @@ export class OAuthModel implements AuthorizationCodeModel {
         return false;
       }
     }
-    
+
     const project = await getProject(clientId);
     if (!project) {
       return false;

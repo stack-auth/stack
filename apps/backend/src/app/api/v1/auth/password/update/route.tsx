@@ -26,7 +26,7 @@ export const POST = createSmartRouteHandler({
     if (!project.evaluatedConfig.credentialEnabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
-  
+
     const passwordError = getPasswordError(new_password);
     if (passwordError) {
       throw passwordError;
@@ -43,7 +43,7 @@ export const POST = createSmartRouteHandler({
       });
       if (!prismaUser) {
         throw new StackAssertionError("User not found in password update; it was probably deleted after the request started. We should put more thoughts into the transactions here");
-      }  
+      }
       if (!prismaUser.passwordHash) {
         throw new KnownErrors.UserDoesNotHavePassword();
       }
@@ -62,7 +62,7 @@ export const POST = createSmartRouteHandler({
         },
       });
     });
-  
+
     return {
       statusCode: 200,
       bodyType: "success",

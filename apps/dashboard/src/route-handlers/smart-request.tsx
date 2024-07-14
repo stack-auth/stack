@@ -212,7 +212,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 }
 
 export async function createLazyRequestParser<T extends DeepPartial<SmartRequest>>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
-  const urlObject = new URL(req.url);  
+  const urlObject = new URL(req.url);
   const toValidate: SmartRequest = {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),

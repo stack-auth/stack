@@ -55,7 +55,7 @@ const userEditFormSchema = yup.object({
   serverMetadata: jsonStringSchema,
 });
 
-function EditUserDialog(props: { 
+function EditUserDialog(props: {
   user: ServerUser,
   open: boolean,
   onOpenChange: (open: boolean) => void,
@@ -80,7 +80,7 @@ function EditUserDialog(props: {
       <>
         <Typography variant='secondary'>ID: {props.user.id}</Typography>
         <InputField control={form.control} label="Display Name" name="displayName" />
-        
+
         <div className="flex gap-4 items-end">
           <div className="flex-1">
             <InputField control={form.control} label="Primary Email" name="primaryEmail" />
@@ -168,8 +168,8 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   {
     accessorKey: "primaryEmail",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Primary Email" />,
-    cell: ({ row }) => <TextCell 
-      size={180} 
+    cell: ({ row }) => <TextCell
+      size={180}
       icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
@@ -211,10 +211,10 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 
 export function UserTable(props: { users: ServerUser[] }) {
   const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable 
-    data={extendedUsers} 
-    columns={columns} 
-    toolbarRender={userToolbarRender} 
-    defaultVisibility={{ emailVerified: false }} 
+  return <DataTable
+    data={extendedUsers}
+    columns={columns}
+    toolbarRender={userToolbarRender}
+    defaultVisibility={{ emailVerified: false }}
   />;
 }

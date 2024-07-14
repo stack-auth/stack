@@ -5,7 +5,7 @@ export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T
 
 /**
  * Assumes both objects are primitives, arrays, or non-function plain objects, and compares them deeply.
- * 
+ *
  * Note that since they are assumed to be plain objects, this function does not compare prototypes.
  */
 export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {

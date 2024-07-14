@@ -40,7 +40,7 @@ export const projectsCrudHandlers = createPrismaCrudHandlers(projectsCrud, "proj
             if (!provider.enabled) {
               return [];
             }
-            
+
             if (provider.proxiedOAuthConfig) {
               return [{ id: typedToLowercase(provider.proxiedOAuthConfig.type) }];
             } else if (provider.standardOAuthConfig) {

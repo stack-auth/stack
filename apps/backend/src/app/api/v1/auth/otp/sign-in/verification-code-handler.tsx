@@ -45,7 +45,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       },
     });
 
-    const { refreshToken, accessToken } = await createAuthTokens({ 
+    const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
       projectUserId: projectUser.projectUserId,
     });

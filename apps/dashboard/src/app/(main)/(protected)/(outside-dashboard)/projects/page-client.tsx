@@ -36,10 +36,10 @@ export default function PageClient() {
   return (
     <div className="flex-grow p-4">
       <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
-        <SearchBar 
+        <SearchBar
           placeholder="Search project name"
-          value={search} 
-          onChange={(e) => setSearch(e.target.value)} 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <div className="flex gap-4">
           <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
@@ -53,7 +53,7 @@ export default function PageClient() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          
+
           <Button
             onClick={async () => {
               router.push('/new-project');

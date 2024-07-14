@@ -23,14 +23,14 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { 
-    body: { 
+  const {
+    body: {
       email,
       password
-    }, 
-    headers: { 
-      "x-stack-project-id": projectId, 
-      "x-stack-publishable-client-key": publishableClientKey 
+    },
+    headers: {
+      "x-stack-project-id": projectId,
+      "x-stack-publishable-client-key": publishableClientKey
     }
   } = await deprecatedParseRequest(req, postSchema);
 

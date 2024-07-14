@@ -14,12 +14,12 @@ import { Textarea } from "./ui/textarea";
 
 
 export function FieldLabel(props: {
-  children?: React.ReactNode, 
-  required?: boolean, 
+  children?: React.ReactNode,
+  required?: boolean,
   className?: string,
 }) {
   return <FormLabel className={cn("flex", props.className)}>
-    {props.children} 
+    {props.children}
     {props.required ? <span className="text-zinc-500">{'*'}</span> : null}
   </FormLabel>;
 }
@@ -57,8 +57,8 @@ export function TextAreaField<F extends FieldValues>(props: {
   );
 }
 
-export function InputField<F extends FieldValues>(props: { 
-  control: Control<F>, 
+export function InputField<F extends FieldValues>(props: {
+  control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
   placeholder?: string,
@@ -76,12 +76,12 @@ export function InputField<F extends FieldValues>(props: {
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
               <Input
-                {...field} 
+                {...field}
                 value={field.value ?? ""}
-                placeholder={props.placeholder} 
-                className="max-w-lg" 
-                disabled={props.disabled} 
-                type={props.type} 
+                placeholder={props.placeholder}
+                className="max-w-lg"
+                disabled={props.disabled}
+                type={props.type}
               />
             </FormControl>
             <FormMessage />
@@ -92,9 +92,9 @@ export function InputField<F extends FieldValues>(props: {
   );
 }
 
-export function SwitchField<F extends FieldValues>(props: { 
-  control: Control<F>, 
-  name: Path<F>, 
+export function SwitchField<F extends FieldValues>(props: {
+  control: Control<F>,
+  name: Path<F>,
   label: React.ReactNode,
   required?: boolean,
   border?: boolean,
@@ -128,12 +128,12 @@ export function SwitchField<F extends FieldValues>(props: {
   );
 }
 
-export function SwitchListField<F extends FieldValues>(props: { 
+export function SwitchListField<F extends FieldValues>(props: {
   variant?: "switch" | "checkbox",
-  control: Control<F>, 
-  name: Path<F>, 
+  control: Control<F>,
+  name: Path<F>,
   label: React.ReactNode,
-  options: { value: string, label: string }[], 
+  options: { value: string, label: string }[],
   required?: boolean,
   disabled?: boolean,
 }) {

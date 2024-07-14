@@ -31,7 +31,7 @@ export default function CustomCredentialSignUp() {
       setError(errorCode.message);
     }
   };
-  
+
   return (
     <form onSubmit={(e) => {
       e.preventDefault();

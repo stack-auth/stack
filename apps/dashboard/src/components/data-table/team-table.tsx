@@ -26,7 +26,7 @@ const teamFormSchema = yup.object({
   displayName: yup.string(),
 });
 
-function EditDialog(props: { 
+function EditDialog(props: {
   team: ServerTeam,
   open: boolean,
   onOpenChange: (open: boolean) => void,

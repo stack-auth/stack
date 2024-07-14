@@ -224,7 +224,7 @@ export function rateLimited<T>(
       }
     }
     const nextFuncs = options.batchCalls ? queue.splice(0, queue.length) : [queue.shift()!];
-    
+
     const start = performance.now();
     const value = await Result.fromPromise(func());
     const end = performance.now();

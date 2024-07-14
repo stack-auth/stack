@@ -248,11 +248,11 @@ function SidebarContent({ projectId, onNavigate }: { projectId: string, onNaviga
   );
 }
 
-function HeaderBreadcrumb({ 
+function HeaderBreadcrumb({
   mobile,
-  projectId 
-}: { 
-  projectId: string, 
+  projectId
+}: {
+  projectId: string,
   mobile?: boolean,
 }) {
   const pathname = usePathname();

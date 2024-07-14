@@ -13,7 +13,7 @@ export default function PageClient(props: { teamId: string }) {
   if (!team) {
     return notFound();
   }
-  
+
   return (
     <PageLayout title="Team Members" description={`Manage team members of "${team.displayName}"`}>
       <TeamMemberTable members={users || []} team={team} />

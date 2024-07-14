@@ -34,7 +34,7 @@ export function Link(props: LinkProps) {
   >
     {props.children}
   </NextLink>;
-    
+
 }
 
 export function StyledLink(props: LinkProps) {

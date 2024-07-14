@@ -24,7 +24,7 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
     router.push("/404");
     return null;
   }
-  
+
   if (!validateEmailTemplateContent(template.content)) {
     return <ErrorPage
       title="Invalid Template"
@@ -47,11 +47,11 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
     <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
       <EmailEditor
         resetSignal={pathname}
-        document={template.content} 
+        document={template.content}
         subject={template.subject}
         metadata={EMAIL_TEMPLATES_METADATA[props.templateType]}
-        onSave={onSave} 
-        onCancel={onCancel} 
+        onSave={onSave}
+        onCancel={onCancel}
         confirmAlertMessage={confirmAlertMessage}
         setNeedConfirm={setNeedConfirm}
         projectDisplayName={project.displayName}

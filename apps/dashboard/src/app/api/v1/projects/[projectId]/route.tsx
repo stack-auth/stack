@@ -27,7 +27,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
       "x-stack-admin-access-token": adminAccessToken,
     },
     body,
-  } = await deprecatedParseRequest(req, putOrGetSchema);  
+  } = await deprecatedParseRequest(req, putOrGetSchema);
 
   const { ...update } = body ?? {};
 
@@ -63,7 +63,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest, options: { 
         }),
       ),
     };
- 
+
     return NextResponse.json(clientProject);
   } else {
     throw new KnownErrors.ApiKeyNotFound();

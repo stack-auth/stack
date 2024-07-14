@@ -177,7 +177,7 @@ async function grantDefaultTeamPermissions(options: { projectId: string, teamId:
     throw new StackAssertionError("Project not found");
   }
 
-  const permissionIds = options.type === 'creator' ? 
+  const permissionIds = options.type === 'creator' ?
     project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
     project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
 

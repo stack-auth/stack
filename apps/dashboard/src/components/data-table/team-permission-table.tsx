@@ -44,9 +44,9 @@ function EditDialog(props: {
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
-          permissions={permissions} 
-          type="edit" 
-          selectedPermissionId={props.selectedPermissionId} 
+          permissions={permissions}
+          type="edit"
+          selectedPermissionId={props.selectedPermissionId}
         />
       ),
     }),
@@ -115,7 +115,7 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
     cell: ({ row }) => <TextCell size={160}>
       <div className="flex items-center gap-1">
         {row.original.id}
-        {row.original.id.startsWith('$') ? 
+        {row.original.id.startsWith('$') ?
           <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but you can contain it in other permissions." type='info'/>
           : null}
       </div>

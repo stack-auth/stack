@@ -127,11 +127,11 @@ export function createVerificationCodeHandler<
       const validatedData = await options.data.validate(data, {
         strict: true,
       });
-      
+
       if (!validateRedirectUrl(
-        callbackUrl, 
+        callbackUrl,
         project.evaluatedConfig.domains,
-        project.evaluatedConfig.allowLocalhost 
+        project.evaluatedConfig.allowLocalhost
       )) {
         throw new KnownErrors.RedirectUrlNotWhitelisted();
       }
