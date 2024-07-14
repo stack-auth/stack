@@ -23,4 +23,9 @@
     "typehack",
     "Uncapitalize"
   ],
+  "[typescript]": {
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+      }
+  }
 }
