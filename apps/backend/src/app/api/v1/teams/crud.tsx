@@ -53,8 +53,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
       } : {}
     };
   },
-  include: async () => ({
-  }),
+  include: async () => ({}),
   notFoundToCrud: (context) => {
     throw new KnownErrors.TeamNotFound(context.params.teamId ?? "<null>");
   },

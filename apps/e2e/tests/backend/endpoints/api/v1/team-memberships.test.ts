@@ -1,5 +1,5 @@
 import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
@@ -142,6 +142,40 @@ it("creates a team and manage users in it", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should give team creator default permissions", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { adminAccessToken } = await Project.createAndSetAdmin();
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
+
+  const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
+  backendContext.set({
+    mailbox: createMailbox(),
+  });
+  const { userId: userId2 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
+  const { teamId } = await Team.create();
+
+  await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, { 
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=${userId1}`, { 
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [],
       },
       "headers": Headers { <some fields may have been hidden> },
     }

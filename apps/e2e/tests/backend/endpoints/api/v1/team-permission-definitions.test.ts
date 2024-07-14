@@ -101,11 +101,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     }
   `);
 
-  const response = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
-    method: "GET",
-  });
-
   // create another permission with contained permissions
   const response2 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "server",
