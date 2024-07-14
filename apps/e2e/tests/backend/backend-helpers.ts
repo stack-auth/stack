@@ -1,8 +1,8 @@
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { STACK_BACKEND_BASE_URL, Context, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, Mailbox, NiceResponse, createMailbox, niceFetch, NiceRequestInit } from "../helpers";
-import { expect } from "vitest";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { expect } from "vitest";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, niceFetch } from "../helpers";
 
 type BackendContext = {
   projectKeys: ProjectKeys,
@@ -400,11 +400,14 @@ export namespace Project {
     };
   }
 
-  export async function update(projectId: string, body: any) {
-    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
+  export async function updateCurrent(adminAccessToken: string, body: any) {
+    const response = await niceBackendFetch(`/api/v1/projects/current`, {
+      accessType: "admin",
       method: "PATCH",
       body,
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
     });
 
     return {
@@ -417,7 +420,7 @@ export namespace Project {
       projectKeys: InternalProjectKeys,
     });
     await Auth.Otp.signIn();
-    const { projectId } = await Project.create(body);
+    const { projectId, createProjectResponse } = await Project.create(body);
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
 
     expect(adminAccessToken).toBeDefined();
@@ -430,7 +433,9 @@ export namespace Project {
     });
 
     return {
+      projectId,
       adminAccessToken: adminAccessToken!,
+      createProjectResponse,
     };
   }
 }

@@ -1,7 +1,7 @@
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { expect } from "vitest";
 import { it, localRedirectUrl, localRedirectUrlRegex } from "../../../../../../helpers";
 import { Auth, backendContext, niceBackendFetch } from "../../../../../backend-helpers";
-import { expect } from "vitest";
 
 async function getResetCode() {
   const mailbox = backendContext.value.mailbox;
