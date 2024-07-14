@@ -61,7 +61,7 @@ jobs:
       - name: Start stack-backend in background
         uses: JarvusInnovations/background-action@v1
         with:
-          run: pnpm run start:backend
+          run: pnpm run start:backend &
           wait-on: |
             http://localhost:8102
           tail: true
@@ -70,7 +70,7 @@ jobs:
       - name: Start stack-dashboard in background
         uses: JarvusInnovations/background-action@v1
         with:
-          run: pnpm run start:dashboard
+          run: pnpm run start:dashboard &
           wait-on: |
             http://localhost:8102
           tail: true
