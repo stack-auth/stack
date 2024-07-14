@@ -20,8 +20,8 @@ const _providers = {
 
 const _getEnvForProvider = (provider: keyof typeof _providers) => {
   return {
-    clientId: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_ID`, ""),
-    clientSecret: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_SECRET`, ""),
+    clientId: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_ID`),
+    clientSecret: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_SECRET`),
   };
 };
 
