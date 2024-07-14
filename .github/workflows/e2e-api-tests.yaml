@@ -53,11 +53,15 @@ jobs:
   
       - name: Start stack-backend in background
         run: pnpm run start:backend &> ./stack-backend.untracked.log &
+        env:
+          NODE_ENV: test
       - name: Wait for stack-backend to start
         run: npx wait-on@7.2.0 http://localhost:8102
 
       - name: Start stack-dashboard in background
         run: pnpm run start:dashboard &> ./stack-dashboard.untracked.log &
+        env:
+          NODE_ENV: test
       - name: Wait for stack-dashboard to start
         run: npx wait-on@7.2.0 http://localhost:8101
 
