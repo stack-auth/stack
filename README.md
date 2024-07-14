@@ -38,21 +38,6 @@ Here is the user/project management dashboard:
 
 We all know how much overhead there is when starting a new project. Developers need to handle so many things that aren't even part of their core business, like user authentication, user profiles, payments, dashboards, hosting, and more. Our vision is to build a full-stack framework that handles all of this out-of-the-box with less than 10 minutes of setup, so developers can focus on what they really want to build. Authentication is the first step towards this vision.
 
-## 🗺️ Roadmap
-
-- [x] Customizable frontend [20. April 2024]
-- [x] Teams [8. May 2024]
-- [x] Permissions [10. May 2024]
-- [x] New dashboard with Shadcn UI [16. May 2024]
-- [x] Email template editor [28. May 2024]
-- [x] OAuth scope authorization and access token [05. June 2024]
-- [ ] Fully API endpoints with OpenAPI schema
-- [ ] Webhooks
-- [ ] Two factor authentication
-- [ ] Backend SDKs for Python
-- [ ] User analytics (retention, DAU/MAU, user segments, etc.)
-- [ ] Integration with Postgres DB
-
 ## 📦 Installation & Setup
 
 To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
