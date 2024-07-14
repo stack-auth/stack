@@ -104,6 +104,7 @@ export function createPrismaCrudHandlers<
     }
   };
   const crudToPrisma = options.crudToPrisma;
+
   return typedAssign(createCrudHandlers<any, PS, QS, any>(crudSchema, {
     paramsSchema: options.paramsSchema,
     querySchema: options.querySchema,

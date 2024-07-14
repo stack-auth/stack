@@ -40,6 +40,7 @@ export const POST = createSmartRouteHandler({
     }, {
       user,
     });
+
     return {
       statusCode: 200,
       bodyType: "success",

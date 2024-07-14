@@ -162,6 +162,7 @@ export function createCrudHandlers<
                 const paramsValidated = await validate(options.params, actualParamsSchema, "Params validation");
 
                 const adminData = await validate(options.data, adminSchemas.input, "Input validation");
+
                 await optionsAsPartial.onPrepare?.({
                   params: paramsValidated,
                   auth: options.auth,

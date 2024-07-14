@@ -37,6 +37,7 @@ export const POST = createSmartRouteHandler({
         superSecretAdminKey: body.has_super_secret_admin_key ? `sak_${generateSecureRandomString()}` : undefined,
       },
     });
+
     return {
       statusCode: 200,
       bodyType: "json",

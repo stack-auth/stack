@@ -155,6 +155,7 @@ export async function listUserTeamPermissions(options: {
       user_id: userId,
     })));
   }
+
   return finalResults.sort((a, b) => {
     if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
     if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
@@ -210,6 +211,7 @@ export async function grantTeamPermission(options: {
         },
       }
     });
+
     const permission = teamSpecificPermission || anyTeamPermission;
     if (!permission) throw new KnownErrors.PermissionNotFound(options.permissionId);
 
@@ -286,6 +288,7 @@ export async function revokeTeamPermission(options: {
         },
       }
     });
+
     const permission = teamSpecificPermission || anyTeamPermission;
     if (!permission) throw new KnownErrors.PermissionNotFound(options.permissionId);
 
