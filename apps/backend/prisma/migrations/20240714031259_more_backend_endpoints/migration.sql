@@ -24,7 +24,12 @@ ALTER TABLE "ProxiedEmailServiceConfig" DROP CONSTRAINT "ProxiedEmailServiceConf
 ALTER TABLE "StandardEmailServiceConfig" DROP CONSTRAINT "StandardEmailServiceConfig_projectConfigId_fkey";
 
 -- AlterTable
-ALTER TABLE "OAuthOuterInfo" ADD COLUMN     "innerState" TEXT NOT NULL;
+ALTER TABLE "OAuthOuterInfo" ADD COLUMN     "innerState" TEXT;
+
+-- BEGIN MANUALLY MODIFIED: Fill in the innerState column with the innerState value from the info json
+UPDATE "OAuthOuterInfo" SET "innerState" = "info"->>'innerState';
+ALTER TABLE "OAuthOuterInfo" ALTER COLUMN "innerState" SET NOT NULL;
+-- END MANUALLY MODIFIED
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OAuthOuterInfo_innerState_key" ON "OAuthOuterInfo"("innerState");
