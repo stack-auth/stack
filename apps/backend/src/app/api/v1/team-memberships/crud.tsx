@@ -11,14 +11,13 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
     userId: yupString().required(),
   }),
   onCreate: async ({ auth, params }) => {
-    auth.project.evaluatedConfig.teamCreatorDefaultPermissions;
     await prismaClient.teamMember.create({
       data: {
         projectUserId: params.userId,
         teamId: params.teamId,
         projectId: auth.project.id,
         directPermissions: {
-          create: auth.project.evaluatedConfig.teamCreatorDefaultPermissions.map((p) => {
+          create: auth.project.evaluatedConfig.teamMemberDefaultPermissions.map((p) => {
             if (isTeamSystemPermission(p.id)) {
               return {
                 systemPermission: teamSystemPermissionStringToDBType(p.id),

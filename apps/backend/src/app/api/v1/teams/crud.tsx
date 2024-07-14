@@ -1,3 +1,4 @@
+import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -58,7 +59,6 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
     throw new KnownErrors.TeamNotFound(context.params.teamId ?? "<null>");
   },
   crudToPrisma: async (crud) => {
-    // TODO: check update permissions
     return {
       displayName: crud.display_name,
     };
@@ -70,9 +70,28 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
           projectId: auth.project.id,
           projectUserId: auth.user.id,
           teamId: prisma.teamId,
+          directPermissions: {
+            create: auth.project.evaluatedConfig.teamCreatorDefaultPermissions.map((p) => {
+              if (isTeamSystemPermission(p.id)) {
+                return {
+                  systemPermission: teamSystemPermissionStringToDBType(p.id),
+                };
+              } else {
+                return {
+                  permission: {
+                    connect: {
+                      projectConfigId_queryableId: {
+                        projectConfigId: auth.project.evaluatedConfig.id,
+                        queryableId: p.id,
+                      },
+                    }
+                  }
+                };
+              }
+            }),
+          },
         }
       });
-      // TODO: add permissions
     }
   },
   prismaToCrud: async (prisma) => {
