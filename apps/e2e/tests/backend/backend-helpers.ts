@@ -400,11 +400,14 @@ export namespace Project {
     };
   }
 
-  export async function update(projectId: string, body: any) {
-    const response = await niceBackendFetch(`/api/v1/internal/projects/${projectId}`, {
-      accessType: "client",
+  export async function updateCurrent(adminAccessToken: string, body: any) {
+    const response = await niceBackendFetch(`/api/v1/projects/current`, {
+      accessType: "admin",
       method: "PATCH",
       body,
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
     });
 
     return {
@@ -417,7 +420,7 @@ export namespace Project {
       projectKeys: InternalProjectKeys,
     });
     await Auth.Otp.signIn();
-    const { projectId } = await Project.create(body);
+    const { projectId, createProjectResponse } = await Project.create(body);
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
 
     expect(adminAccessToken).toBeDefined();
@@ -432,6 +435,7 @@ export namespace Project {
     return {
       projectId,
       adminAccessToken: adminAccessToken!,
+      createProjectResponse,
     };
   }
 }

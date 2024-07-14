@@ -204,13 +204,10 @@ it("customize default team permissions", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  
-  backendContext.set({ projectKeys: InternalProjectKeys });
-  await Auth.Otp.signIn();
 
-  const { updateProjectResponse: response2 } = await Project.update(projectId, {
+  const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      team_member_default_permission_ids: ['test'],
+      team_member_default_permissions: [{ id: 'test' }],
     },
   });
 
