@@ -26,6 +26,7 @@ export const POST = createSmartRouteHandler({
     if (!project.evaluatedConfig.credentialEnabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
+
     const passwordError = getPasswordError(new_password);
     if (passwordError) {
       throw passwordError;
@@ -61,6 +62,7 @@ export const POST = createSmartRouteHandler({
         },
       });
     });
+
     return {
       statusCode: 200,
       bodyType: "success",

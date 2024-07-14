@@ -44,6 +44,7 @@ export const GET = createSmartRouteHandler({
   async handler({ params, query }, fullReq) {
     const cookieInfo = cookies().get("stack-oauth-" + query.state);
     cookies().delete("stack-oauth-" + query.state);
+
     if (cookieInfo?.value !== 'true') {
       throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
     }
@@ -57,6 +58,7 @@ export const GET = createSmartRouteHandler({
     if (!outerInfoDB) {
       throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth cookie value. Please try signing in again.");
     }
+
     let outerInfo: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
     try {
       outerInfo = await oauthCookieSchema.validate(outerInfoDB.info);
@@ -102,6 +104,7 @@ export const GET = createSmartRouteHandler({
       if (!projectUserId) {
         throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
       }
+
       const user = await prismaClient.projectUser.findUnique({
         where: {
           projectId_projectUserId: {
@@ -120,6 +123,7 @@ export const GET = createSmartRouteHandler({
       if (!user) {
         throw new StackAssertionError("User not found");
       }
+
       const account = user.projectUserOAuthAccounts.find((a) => a.providerConfig.id === provider.id);
       if (account && account.providerAccountId !== userInfo.accountId) {
         return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUrl);
@@ -156,6 +160,7 @@ export const GET = createSmartRouteHandler({
         });
       }
     };
+
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.authorize(
@@ -179,6 +184,7 @@ export const GET = createSmartRouteHandler({
                 if (!projectUserId) {
                   throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
                 }
+
                 if (oldAccount) {
                   // ========================== account already connected ==========================
                   if (oldAccount.projectUserId !== projectUserId) {
@@ -210,6 +216,7 @@ export const GET = createSmartRouteHandler({
                     },
                   });
                 }
+
                 await storeRefreshToken();
                 return {
                   id: projectUserId,
@@ -271,6 +278,7 @@ export const GET = createSmartRouteHandler({
       }
       throw error;
     }
+
     return {
       statusCode: oauthResponse.status || 200,
       bodyType: "json",

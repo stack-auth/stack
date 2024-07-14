@@ -46,6 +46,7 @@ export const POST = createSmartRouteHandler({
       body: body,
     });
 
+
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.token(

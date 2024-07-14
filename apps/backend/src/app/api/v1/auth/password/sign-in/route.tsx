@@ -30,6 +30,7 @@ export const POST = createSmartRouteHandler({
     if (!project.evaluatedConfig.credentialEnabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
+
     const users = await prismaClient.projectUser.findMany({
       where: {
         projectId: project.id,
