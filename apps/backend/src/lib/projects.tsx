@@ -3,12 +3,10 @@ import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors, OAuthProviderConfigJson, ProjectJson } from "@stackframe/stack-shared";
-import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { EmailConfigJson, SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { teamPermissionIdSchema, yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
+import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
