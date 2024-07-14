@@ -52,7 +52,7 @@ jobs:
         run: pnpm run prisma -- migrate reset --force
   
       - name: Start stack-backend in background
-        run: pnpm run start:backend &
+        run: pnpm run start:backend 2>&1 > ./stack-backend.untracked.log &
       - name: Wait for stack-backend to start
         run: npx wait-on@7.2.0 http://localhost:8102
 
@@ -72,3 +72,7 @@ jobs:
 
       - name: Run tests again, to make sure they are stable (attempt 3)
         run: pnpm test
+
+      - name: Print stack-backend logs
+        if: always()
+        run: cat ./stack-backend.untracked.log
