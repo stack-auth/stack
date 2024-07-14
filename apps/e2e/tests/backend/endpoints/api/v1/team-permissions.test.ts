@@ -138,7 +138,11 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   expect(response2).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
-      "body": { "id": "parent" },
+      "body": {
+        "id": "parent",
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
+      },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -153,7 +157,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
       "status": 200,
       "body": {
         "is_paginated": false,
-        "items": [{ "id": "parent" }],
+        "items": [],
       },
       "headers": Headers { <some fields may have been hidden> },
     }

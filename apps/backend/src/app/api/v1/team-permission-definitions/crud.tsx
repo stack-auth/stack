@@ -8,13 +8,26 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
     permissionId: yupString().required(),
   }),
   async onCreate({ auth, data }) {
-    return await createPermissionDefinition(auth.project, { type: "any-team" }, data);
+    return await createPermissionDefinition({
+      project: auth.project, 
+      scope: { type: "any-team" }, 
+      data,
+    });
   },
   async onUpdate({ auth, data, params }) {
-    return await updatePermissionDefinitions(auth.project, { type: "any-team" }, params.permissionId, data);
+    return await updatePermissionDefinitions({
+      project: auth.project, 
+      scope: { type: "any-team" }, 
+      permissionId: params.permissionId, 
+      data,
+    });
   },
   async onDelete({ auth, params }) {
-    await deletePermissionDefinition(auth.project, { type: "any-team" }, params.permissionId);
+    await deletePermissionDefinition({
+      project: auth.project, 
+      scope: { type: "any-team" }, 
+      permissionId: params.permissionId
+    });
   },
   async onList({ auth }) {
     return {

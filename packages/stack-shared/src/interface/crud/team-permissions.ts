@@ -5,6 +5,8 @@ import { customTeamPermissionIdSchema, teamPermissionIdSchema, yupArray, yupMixe
 
 export const teamPermissionsCrudClientReadSchema = yupObject({
   id: yupString().required(),
+  user_id: yupString().required(),
+  team_id: yupString().required(),
 }).required();
 
 export const teamPermissionsCrudServerCreateSchema = yupObject({

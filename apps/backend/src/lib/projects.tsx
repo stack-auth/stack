@@ -6,10 +6,10 @@ import { KnownErrors, OAuthProviderConfigJson, ProjectJson } from "@stackframe/s
 import { ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { teamPermissionIdSchema, yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema } from "./permissions";
+import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
 function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
@@ -125,6 +125,10 @@ export async function isProjectAdmin(projectId: string, adminAccessToken: string
   return !await whyNotProjectAdmin(projectId, adminAccessToken);
 }
 
+function isStringArray(value: any): value is string[] {
+  return Array.isArray(value) && value.every((id) => typeof id === "string");
+}
+
 export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   const serverMetadata = projectUser.server_metadata;
   if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
@@ -136,21 +140,6 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   }
 
   return managedProjectIds;
-}
-
-export async function listProjects(projectUser: UsersCrud["Admin"]["Read"]): Promise<ProjectJson[]> {
-  const managedProjectIds = listManagedProjectIds(projectUser);
-
-  const projects = await prismaClient.project.findMany({
-    where: {
-      id: {
-        in: managedProjectIds,
-      },
-    },
-    include: fullProjectInclude,
-  });
-
-  return projects.map(p => projectJsonFromDbType(p));
 }
 
 export async function getProject(projectId: string): Promise<ProjectJson | null> {
@@ -236,126 +225,3 @@ export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
   };
 }
 
-function isStringArray(value: any): value is string[] {
-  return Array.isArray(value) && value.every((id) => typeof id === "string");
-}
-
-function yupRequiredWhenShared<S extends yup.AnyObject>(schema: S): S {
-  return schema.when('shared', {
-    is: 'false',
-    then: (schema: S) => schema.required(),
-    otherwise: (schema: S) => schema.optional()
-  });
-}
-
-const nonRequiredSchemas = {
-  description: yupString().optional(),
-  isProductionMode: yupBoolean().optional(),
-  config: yupObject({
-    domains: yupArray(yupObject({
-      domain: yupString().required(),
-      handlerPath: yupString().required(),
-    })).optional().default(undefined),
-    oauthProviders: yupArray(
-      yupObject({
-        id: yupString().required(),
-        enabled: yupBoolean().required(),
-        type: yupString().required(),
-        clientId: yupString().optional(),
-        clientSecret: yupString().optional(),
-      })
-    ).optional().default(undefined),
-    credentialEnabled: yupBoolean().optional(),
-    magicLinkEnabled: yupBoolean().optional(),
-    allowLocalhost: yupBoolean().optional(),
-    createTeamOnSignUp: yupBoolean().optional(),
-    emailConfig: yupObject({
-      type: yupString().oneOf(["shared", "standard"]).required(),
-      senderName: yupRequiredWhenShared(yupString()),
-      host: yupRequiredWhenShared(yupString()),
-      port: yupRequiredWhenShared(yupNumber()),
-      username: yupRequiredWhenShared(yupString()),
-      password: yupRequiredWhenShared(yupString()),
-      senderEmail: yupRequiredWhenShared(yupString().email()),
-    }).optional().default(undefined),
-    teamCreatorDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
-    teamMemberDefaultPermissionIds: yupArray(teamPermissionIdSchema.required()).optional().default(undefined),
-  }).optional().default(undefined),
-};
-
-export const getProjectUpdateSchema = () => yupObject({
-  displayName: yupString().optional(),
-  ...nonRequiredSchemas,
-});
-
-export const getProjectCreateSchema = () => yupObject({
-  displayName: yupString().required(),
-  ...nonRequiredSchemas,
-});
-
-export const projectSchemaToUpdateOptions = (
-  update: yup.InferType<ReturnType<typeof getProjectUpdateSchema>>
-): ProjectUpdateOptions => {
-  return {
-    displayName: update.displayName,
-    description: update.description,
-    isProductionMode: update.isProductionMode,
-    config: update.config && {
-      domains: update.config.domains,
-      allowLocalhost: update.config.allowLocalhost,
-      credentialEnabled: update.config.credentialEnabled,
-      magicLinkEnabled: update.config.magicLinkEnabled,
-      createTeamOnSignUp: update.config.createTeamOnSignUp,
-      oauthProviders: update.config.oauthProviders && update.config.oauthProviders.map((provider) => {
-        if (sharedProviders.includes(provider.type as SharedProvider)) {
-          return {
-            id: provider.id,
-            enabled: provider.enabled,
-            type: provider.type as SharedProvider,
-          };
-        } else if (standardProviders.includes(provider.type as StandardProvider)) {
-          if (!provider.clientId) {
-            throw new StatusError(StatusError.BadRequest, "Missing clientId");
-          }
-          if (!provider.clientSecret) {
-            throw new StatusError(StatusError.BadRequest, "Missing clientSecret");
-          }
-            
-          return {
-            id: provider.id,
-            enabled: provider.enabled,
-            type: provider.type as StandardProvider,
-            clientId: provider.clientId,
-            clientSecret: provider.clientSecret,
-          };
-        } else {
-          throw new StatusError(StatusError.BadRequest, "Invalid oauth provider type");
-        }
-      }),
-      emailConfig: update.config.emailConfig && (
-        update.config.emailConfig.type === "shared" ? {
-          type: update.config.emailConfig.type,
-        } : {
-          type: update.config.emailConfig.type,
-          senderName: update.config.emailConfig.senderName!,
-          host: update.config.emailConfig.host!,
-          port: update.config.emailConfig.port!,
-          username: update.config.emailConfig.username!,
-          password: update.config.emailConfig.password!,
-          senderEmail: update.config.emailConfig.senderEmail!,
-        }
-      ),
-      teamCreatorDefaultPermissionIds: update.config.teamCreatorDefaultPermissionIds,
-      teamMemberDefaultPermissionIds: update.config.teamMemberDefaultPermissionIds,
-    },
-  };
-};
-
-export const projectSchemaToCreateOptions = (
-  create: yup.InferType<ReturnType<typeof getProjectCreateSchema>>
-): ProjectUpdateOptions & { displayName: string } => {
-  return {
-    ...projectSchemaToUpdateOptions(create),
-    displayName: create.displayName,
-  };
-};
