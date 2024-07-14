@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -24,7 +24,7 @@ const schema = yupObject({
       }
     }
   }),
-  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], 'Passwords do not match').required('Please repeat your password')
 });
 
 export function CredentialSignUpForm() {
@@ -39,11 +39,14 @@ export function CredentialSignUpForm() {
     try {
       const { email, password } = data;
       const error = await app.signUpWithCredential({ email, password });
-    setError('email', { type: 'manual', message: error?.message });
+      setError('email', { type: 'manual', message: error?.message });
     } finally {
       setLoading(false);
     }
   };
+
+  const registerPassword = register('password');
+  const registerPasswordRepeat = register('passwordRepeat');
 
   return (
     <form 
@@ -55,17 +58,18 @@ export function CredentialSignUpForm() {
       <Input
         id="email"
         type="email"
-        {...register('email')}
+        {...(x => (console.log(x), x))(register('email'))}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
       <PasswordInput
         id="password"
-        {...register('password')}
+        {...registerPassword}
         onChange={(e) => {
           clearErrors('password');
           clearErrors('passwordRepeat');
+          runAsynchronously(registerPassword.onChange(e));
         }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
@@ -73,10 +77,11 @@ export function CredentialSignUpForm() {
       <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
       <PasswordInput
         id="repeat-password"
-        {...register('passwordRepeat')}
+        {...registerPasswordRepeat}
         onChange={(e) => {
           clearErrors('password');
           clearErrors('passwordRepeat');
+          runAsynchronously(registerPasswordRepeat.onChange(e));
         }}
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
