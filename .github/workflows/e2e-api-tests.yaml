@@ -76,3 +76,7 @@ jobs:
       - name: Print stack-backend logs
         if: always()
         run: cat ./stack-backend.untracked.log
+
+      - name: Print Docker Compose logs
+        if: always()
+        run: docker-compose -f dependencies.compose.yaml logs
