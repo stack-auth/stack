@@ -85,6 +85,7 @@ export function CredentialSignUpForm() {
         }}
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
+
       <Button type="submit" className="mt-6" loading={loading}>
         Sign Up
       </Button>
