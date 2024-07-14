@@ -22,11 +22,11 @@ it("lists all the team permissions", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$update_team",
               "$delete_team",
+              "$invite_members",
               "$read_members",
               "$remove_members",
-              "$invite_members",
+              "$update_team",
             ],
             "description": "Default permission for team creators",
             "id": "admin",
@@ -34,8 +34,8 @@ it("lists all the team permissions", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$read_members",
               "$invite_members",
+              "$read_members",
             ],
             "description": "Default permission for team members",
             "id": "member",
@@ -164,11 +164,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$update_team",
               "$delete_team",
+              "$invite_members",
               "$read_members",
               "$remove_members",
-              "$invite_members",
+              "$update_team",
             ],
             "description": "Default permission for team creators",
             "id": "admin",
@@ -176,8 +176,8 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$read_members",
               "$invite_members",
+              "$read_members",
             ],
             "description": "Default permission for team members",
             "id": "member",
@@ -257,11 +257,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$update_team",
               "$delete_team",
+              "$invite_members",
               "$read_members",
               "$remove_members",
-              "$invite_members",
+              "$update_team",
             ],
             "description": "Default permission for team creators",
             "id": "admin",
@@ -269,8 +269,8 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
-              "$read_members",
               "$invite_members",
+              "$read_members",
             ],
             "description": "Default permission for team members",
             "id": "member",

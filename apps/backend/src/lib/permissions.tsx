@@ -50,7 +50,7 @@ export function permissionDefinitionJsonFromDbType(db: Prisma.PermissionGetPaylo
       } else {
         throw new StackAssertionError(`Permission edge should have either parentPermission or parentSystemPermission`, { edge });
       }
-    }),
+    }).sort(),
     scope: (
       db.scope === "GLOBAL" ? { type: "global" } : 
         db.teamId ? { type: "specific-team", teamId: db.teamId } : 
@@ -340,6 +340,7 @@ export async function listPermissionDefinitions(project: ProjectJson, scope?: Pe
           },
           scope: scope.type === "global" ? "GLOBAL" : "TEAM",
         },
+        orderBy: { queryableId: 'asc' },
         include: fullPermissionInclude,
       });
       results.push(...res.map(permissionDefinitionJsonFromDbType));
