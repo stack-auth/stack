@@ -17,13 +17,17 @@ import { ReactPromise, neverResolve, resolved, runAsynchronously, wait } from "@
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { EmailTemplateType, ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { EmailTemplateCrud, ListEmailTemplatesCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
 import * as cookie from "cookie";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+
+// TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
+type EmailTemplateType = any;
+type ListEmailTemplatesCrud = Record<any, Record<any, any[]>>;
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
@@ -1114,7 +1118,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _updatePassword(
     options: { oldPassword: string, newPassword: string }, 
     session: InternalSession
-  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
+  ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
     return await this._interface.updatePassword(options, session);
   }
 
@@ -1914,7 +1918,7 @@ export type User =
      */
     readonly hasPassword: boolean,
     readonly oauthProviders: readonly string[],
-    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     /**
      * A shorthand method to update multiple fields of the user at once.
@@ -1979,7 +1983,7 @@ export type ServerUser =
     readonly serverMetadata: ReadonlyJson,
     setServerMetadata(metadata: ReadonlyJson): Promise<void>,
 
-    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     update(user: Partial<ServerUserUpdateJson>): Promise<void>,
     delete(): Promise<void>,

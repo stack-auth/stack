@@ -69,7 +69,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   if (! await comparePassword(oldPassword, user.passwordHash)) {
-    throw new KnownErrors.PasswordMismatch();
+    throw new KnownErrors.PasswordConfirmationMismatch();
   }
 
   await prismaClient.projectUser.update({

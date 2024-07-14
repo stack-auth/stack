@@ -1,28 +1,27 @@
-import * as yup from "yup";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, verificationLinkRedirectUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../../users/crud";
+import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
-  request: yup.object({
-    auth: yup.object({
+  request: yupObject({
+    auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
     }).required(),
-    body: yup.object({
+    body: yupObject({
       email: signInEmailSchema.required(),
-      redirectUrl: verificationLinkRedirectUrlSchema,
+      callback_url: emailOtpSignInCallbackUrlSchema.required(),
     }).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["success"]).required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project }, body: { email, redirectUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
     if (!project.evaluatedConfig.magicLinkEnabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
@@ -46,7 +45,7 @@ export const POST = createSmartRouteHandler({
       const createdUser = await usersCrudHandlers.adminCreate({
         project,
         data: {
-          auth_with_email: true,
+          primary_email_auth_enabled: true,
           primary_email: email,
           primary_email_verified: false,
         },
@@ -58,24 +57,26 @@ export const POST = createSmartRouteHandler({
       };
     }
 
-    const { link } = await signInVerificationCodeHandler.sendCode({
+    const { link } = await signInVerificationCodeHandler.createCode({
       project,
       method: { email },
       data: {
         user_id: userObj.projectUserId,
         is_new_user: isNewUser,
       },
-      redirectUrl,
+      callbackUrl,
     });
 
+    // TODO use signInVerificationCodeHandler.sendCode instead of .createCode and then sending the code manually
     await sendEmailFromTemplate({
       project,
+      // TODO fill user object instead of specifying the extra variables below manually (sIVCH.sendCode would do this already)
+      user: null,
       email,
       templateId: "MAGIC_LINK",
-      variables: {
+      extraVariables: {
         userDisplayName: userObj.displayName,
         userPrimaryEmail: userObj.primaryEmail,
-        projectDisplayName: project.displayName,
         magicLink: link.toString(),
       },
     });

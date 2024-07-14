@@ -1,12 +1,13 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as yup from "yup";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "../../schema-fields";
 
-export const accessTokenReadSchema = yup.object({
-  access_token: yup.string().required(),
+export const accessTokenReadSchema = yupObject({
+  access_token: yupString().required(),
 }).required();
 
-export const accessTokenCreateSchema = yup.object({
-  scope: yup.string().optional(),
+export const accessTokenCreateSchema = yupObject({
+  scope: yupString().optional(),
 }).required();
 
 export const accessTokenCrud = createCrud({

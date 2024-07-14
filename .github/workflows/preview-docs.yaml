@@ -12,7 +12,7 @@ jobs:
       STACK_SECRET_SERVER_KEY: internal-project-secret-server-key
       STACK_SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
 
-      STACK_EMAIL_HOST: 0.0.0.0
+      STACK_EMAIL_HOST: 127.0.0.1
       STACK_EMAIL_PORT: 2500
       STACK_EMAIL_USERNAME: test
       STACK_EMAIL_PASSWORD: none

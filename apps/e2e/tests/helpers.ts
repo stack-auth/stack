@@ -1,9 +1,9 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { afterEach } from "node:test";
+import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
 import { beforeEach, onTestFinished, test as vitestTest } from "vitest";
 
@@ -103,11 +103,25 @@ export class NiceResponse implements Nicifiable {
 
   getNicifiableKeys(): string[] {
     // reorder the keys for nicer printing
-    return ["status", "body", "headers"];
+    return [
+      "status",
+      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] :  ["body"],
+      "headers",
+    ];
   }
 };
 
-export async function niceFetch(url: string | URL, options?: RequestInit): Promise<NiceResponse> {
+export type NiceRequestInit = RequestInit & {
+  query?: Record<string, string>,
+};
+
+export async function niceFetch(url: string | URL, options?: NiceRequestInit): Promise<NiceResponse> {
+  if (options?.query) {
+    url = new URL(url);
+    for (const [key, value] of Object.entries(options.query)) {
+      url.searchParams.append(key, value);
+    }
+  }
   const fetchRes = await fetch(url, options);
   let body;
   if (fetchRes.headers.get("content-type")?.includes("application/json")) {
@@ -120,10 +134,13 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
   return new NiceResponse(fetchRes.status, fetchRes.headers, body);
 }
 
+export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";
+export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callback-url([?#][A-Za-z0-9\-._~:\/?#\[\]@!$&\'()*+,;=]*)?/g;
 
-export const emailSuffix = "@generated.stack-test.example.com";
+const generatedEmailSuffix = "@stack-generated.example.com";
+export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
 
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> };
+export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
 export class MailboxMessage {
   declare public readonly subject: string;
   declare public readonly from: string;
@@ -148,8 +165,6 @@ export class MailboxMessage {
         "posix-millis",
         "header",
         "date",
-        "from",
-        "to",
         "mailbox",
         "id",
         "size",
@@ -160,11 +175,11 @@ export class MailboxMessage {
 }
 
 export function createMailbox(): Mailbox {
-  const mailboxName = generateSecureRandomString();
+  const mailboxName = randomUUID();
   const fullMessageCache = new Map<string, any>();
   return {
-    emailAddress: `${mailboxName}${emailSuffix}`,
-    async fetchMessages({ subjectOnly } = {}) {
+    emailAddress: `${mailboxName}${generatedEmailSuffix}`,
+    async fetchMessages({ noBody } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
       return await Promise.all((res.body as any[]).map(async (message) => {
         let fullMessage: any;
@@ -175,7 +190,7 @@ export function createMailbox(): Mailbox {
           fullMessage = fullMessageRes.body;
           fullMessageCache.set(message.id, fullMessage);
         }
-        const messagePart = subjectOnly ? { subject: fullMessage.subject } : fullMessage;
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
         return new MailboxMessage(messagePart);
       }));
     },

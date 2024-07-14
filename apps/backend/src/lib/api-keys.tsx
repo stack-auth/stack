@@ -6,8 +6,9 @@ import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
+import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 
-export const publishableClientKeyHeaderSchema = yup.string().matches(/^[a-zA-Z0-9_-]*$/);
+export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
 export const superSecretAdminKeyHeaderSchema = secretServerKeyHeaderSchema;
 

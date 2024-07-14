@@ -1,14 +1,15 @@
 import * as yup from 'yup';
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type OAuthUserInfo = yup.InferType<typeof OAuthUserInfoSchema>;
 
-const OAuthUserInfoSchema = yup.object().shape({
-  accountId: yup.string().required(),
-  displayName: yup.string().nullable().default(null),
-  email: yup.string().required(),
-  profileImageUrl: yup.string().nullable().default(null),
-  accessToken: yup.string().nullable().default(null),
-  refreshToken: yup.string().nullable().default(null),
+const OAuthUserInfoSchema = yupObject({
+  accountId: yupString().required(),
+  displayName: yupString().nullable().default(null),
+  email: yupString().required(),
+  profileImageUrl: yupString().nullable().default(null),
+  accessToken: yupString().nullable().default(null),
+  refreshToken: yupString().nullable().default(null),
 });
 
 export function validateUserInfo(userInfo: any): OAuthUserInfo {

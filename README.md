@@ -52,8 +52,8 @@ For further configuration and usage, refer to [our documentation](https://docs.s
 
 ## 🌱 Some community projects built with Stack
 
-- [Next SaaSkit](https://github.com/wolfgunblood/nextjs-saaskit)
-- [Stack Exmaple](https://github.com/career-tokens/StackYCAuth)
+- [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
+- [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
 
 ## 🏗️ Development & Contribution
 

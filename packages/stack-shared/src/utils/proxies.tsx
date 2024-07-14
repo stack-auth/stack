@@ -57,3 +57,71 @@ export function logged<T extends object>(name: string, toLog: T, options: {} = {
   });
   return proxy;
 }
+
+export function createLazyProxy<FactoryResult>(factory: () => FactoryResult): FactoryResult {
+  let cache: FactoryResult | undefined = undefined;
+  let initialized: boolean = false;
+
+  function initializeIfNeeded() {
+    if (!initialized) {
+      cache = factory();
+      initialized = true;
+    }
+    return cache!;
+  }
+
+  return new Proxy({}, {
+    get(target, prop, receiver) {
+      const instance = initializeIfNeeded();
+      return Reflect.get(instance, prop, receiver);
+    },
+    set(target, prop, value, receiver) {
+      const instance = initializeIfNeeded();
+      return Reflect.set(instance, prop, value, receiver);
+    },
+    has(target, prop) {
+      const instance = initializeIfNeeded();
+      return Reflect.has(instance, prop);
+    },
+    deleteProperty(target, prop) {
+      const instance = initializeIfNeeded();
+      return Reflect.deleteProperty(instance, prop);
+    },
+    ownKeys(target) {
+      const instance = initializeIfNeeded();
+      return Reflect.ownKeys(instance);
+    },
+    getOwnPropertyDescriptor(target, prop) {
+      const instance = initializeIfNeeded();
+      return Reflect.getOwnPropertyDescriptor(instance, prop);
+    },
+    defineProperty(target, prop, descriptor) {
+      const instance = initializeIfNeeded();
+      return Reflect.defineProperty(instance, prop, descriptor);
+    },
+    getPrototypeOf(target) {
+      const instance = initializeIfNeeded();
+      return Reflect.getPrototypeOf(instance);
+    },
+    setPrototypeOf(target, proto) {
+      const instance = initializeIfNeeded();
+      return Reflect.setPrototypeOf(instance, proto);
+    },
+    isExtensible(target) {
+      const instance = initializeIfNeeded();
+      return Reflect.isExtensible(instance);
+    },
+    preventExtensions(target) {
+      const instance = initializeIfNeeded();
+      return Reflect.preventExtensions(instance);
+    },
+    apply(target, thisArg, argumentsList) {
+      const instance = initializeIfNeeded();
+      return Reflect.apply(instance as any, thisArg, argumentsList);
+    },
+    construct(target, argumentsList, newTarget) {
+      const instance = initializeIfNeeded();
+      return Reflect.construct(instance as any, argumentsList, newTarget);
+    }
+  }) as FactoryResult;
+}

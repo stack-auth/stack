@@ -3,13 +3,47 @@ import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { UserJson, ProjectJson } from '@stackframe/stack-shared';
-import { getEmailTemplateWithDefault } from '@/lib/email-templates';
-import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
+import { ProjectJson } from '@stackframe/stack-shared';
+import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { EmailTemplateType } from '@prisma/client';
 import { usersCrudHandlers } from '@/app/api/v1/users/crud';
 import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
+import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 
+export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  const template = await prismaClient.emailTemplate.findUnique({
+    where: {
+      projectConfigId_type: {
+        projectConfigId: project.evaluatedConfig.id,
+        type,
+      },
+    },
+  });
+
+  return template ? {
+    ...template,
+    content: template.content as TEditorConfiguration,
+  } : null;
+}
+
+export async function getEmailTemplateWithDefault(projectId: string, type: EmailTemplateType) {
+  const template = await getEmailTemplate(projectId, type);
+  if (template) {
+    return template;
+  }
+  return {
+    type,
+    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
+    subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
+    default: true,
+  };
+}
 
 function getPortConfig(port: number | string) {
   let parsedPort = parseInt(port.toString());
@@ -62,13 +96,20 @@ export async function sendEmail({
 
 export async function sendEmailFromTemplate(options: {
   project: ProjectJson,
+  user: UsersCrud["Admin"]["Read"] | null,
   email: string,
   templateId: EmailTemplateType,
-  variables: Record<string, string | null>,
+  extraVariables: Record<string, string | null>,
 }) {
   const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
 
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, options.variables);
+  const variables = filterUndefined({
+    projectDisplayName: options.project.displayName,
+    userDisplayName: options.user?.display_name || undefined,
+    userPrimaryEmail: options.user?.primary_email || undefined,
+    ...filterUndefined(options.extraVariables),
+  });
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
   
   await sendEmail({
     emailConfig: await getEmailConfig(options.project),
@@ -108,115 +149,4 @@ async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
       type: 'standard',
     };
   }
-}
-
-async function getDBInfo(projectId: string, projectUserId: string): Promise<{
-  emailConfig: EmailConfig,
-  project: ProjectJson,
-  projectUser: UsersCrud["Admin"]["Read"],
-}> {
-  const project = await getProject(projectId);
-
-  if (!project) {
-    throw new Error('Project not found');
-  }
-
-  const user = await usersCrudHandlers.adminRead({
-    project,
-    userId: projectUserId,
-  });
-
-  return {
-    emailConfig: await getEmailConfig(project),
-    project,
-    projectUser: user,
-  };
-}
-
-export async function sendVerificationEmail(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primary_email) {
-    throw Error('The user does not have a primary email');
-  }
-
-  if (projectUser.primary_email_verified) {
-    throw Error('Email already verified');
-  }
-
-  const verificationCode = await prismaClient.projectUserEmailVerificationCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // expires in 3 hours
-    }
-  });
-
-  const verificationUrl = new URL(redirectUrl);
-  verificationUrl.searchParams.append('code', verificationCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'EMAIL_VERIFICATION');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.display_name,
-    userPrimaryEmail: projectUser.primary_email,
-    projectDisplayName: project.displayName,
-    emailVerificationLink: verificationUrl.toString(),
-  };
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primary_email,
-    subject,
-    html,
-    text,
-  });
-}
-
-export async function sendPasswordResetEmail(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primary_email) {
-    throw Error('The user does not have a primary email');
-  }
-
-  const resetCode = await prismaClient.projectUserPasswordResetCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // expires in 3 hours
-    }
-  });
-
-  const passwordResetUrl = new URL(redirectUrl);
-  passwordResetUrl.searchParams.append('code', resetCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'PASSWORD_RESET');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.display_name,
-    userPrimaryEmail: projectUser.primary_email,
-    projectDisplayName: project.displayName,
-    passwordResetLink: passwordResetUrl.toString(),
-  };
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primary_email,
-    subject,
-    html,
-    text,
-  });
 }

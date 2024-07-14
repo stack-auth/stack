@@ -1,5 +1,6 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import * as yup from "yup";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import sharp from "sharp";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
@@ -7,14 +8,17 @@ import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 let pngImagePromise: Promise<Uint8Array> | undefined; 
 
 export const GET = createSmartRouteHandler({
-  request: yup.object({}),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["binary"]).required(),
-    body: yup.mixed<any>().required(),
-    headers: yup.object({
+  metadata: {
+    hidden: true,
+  },
+  request: yupObject({}),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["binary"]).required(),
+    body: yupMixed<any>().required(),
+    headers: yupObject({
       "Content-Type": yup.tuple([
-        yup.string().oneOf(["image/png"]).required(),
+        yupString().oneOf(["image/png"]).required(),
       ]).required(),
     }).required(),
   }),

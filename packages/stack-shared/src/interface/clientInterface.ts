@@ -552,7 +552,7 @@ export class StackClientInterface {
   async updatePassword(
     options: { oldPassword: string, newPassword: string }, 
     session: InternalSession
-  ): Promise<KnownErrors["PasswordMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+  ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/update-password",
       {
@@ -563,7 +563,7 @@ export class StackClientInterface {
         body: JSON.stringify(options),
       },
       session,
-      [KnownErrors.PasswordMismatch, KnownErrors.PasswordRequirementsNotMet]
+      [KnownErrors.PasswordConfirmationMismatch, KnownErrors.PasswordRequirementsNotMet]
     );
 
     if (res.status === "error") {

@@ -119,6 +119,9 @@ function PasswordSection() {
   const [oldPasswordError, setOldPasswordError] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [newPasswordError, setNewPasswordError] = useState<string>('');
+  const [repeatNewPassword, setRepeatNewPassword] = useState<string>('');
+  const [repeatNewPasswordError, setRepeatNewPasswordError] = useState<string>('');
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   if (!user?.hasPassword) {
     return null;
@@ -128,26 +131,40 @@ function PasswordSection() {
     <SettingSection
       title='Password'
       desc='Change your password here.'
-      buttonDisabled={!oldPassword || !newPassword}
-      buttonText='Save'
+      buttonDisabled={passwordChanged}
+      buttonText={passwordChanged ? "Password changed!" : 'Update Password'}
       onButtonClick={async () => {
-        if (oldPassword && newPassword) {
+        setOldPasswordError('');
+        setNewPasswordError('');
+        setRepeatNewPasswordError('');
+        if (!oldPassword) {
+          setOldPasswordError('Please enter your old password');
+          return;
+        } else if (!newPassword) {
+          setNewPasswordError('Please enter a new password');
+          return;
+        } else if (!repeatNewPassword) {
+            setRepeatNewPasswordError('Please repeat your new password');
+            return;
+        } else {
           const errorMessage = getPasswordError(newPassword);
           if (errorMessage) {
             setNewPasswordError(errorMessage.message);
           } else {
+            if (newPassword !== repeatNewPassword) {
+              setRepeatNewPasswordError('Passwords do not match');
+              return;
+            }
             const errorCode = await user.updatePassword({ oldPassword, newPassword });
             if (errorCode) {
               setOldPasswordError('Incorrect password');
             } else {
               setOldPassword('');
               setNewPassword('');
+              setRepeatNewPassword('');
+              setPasswordChanged(true);
             }
           }
-        } else if (oldPassword && !newPassword) {
-          setNewPasswordError('Please enter a new password');
-        } else if (newPassword && !oldPassword) {
-          setOldPasswordError('Please enter your old password');
         }
       }}
     >
@@ -159,6 +176,7 @@ function PasswordSection() {
           onChange={(e) => {
             setOldPassword(e.target.value);
             setOldPasswordError('');
+            setPasswordChanged(false);
           }}
         />
         <FormWarningText text={oldPasswordError} />
@@ -171,9 +189,23 @@ function PasswordSection() {
           onChange={(e) => {
             setNewPassword(e.target.value);
             setNewPasswordError('');
+            setPasswordChanged(false);
           }}
         />
         <FormWarningText text={newPasswordError} />
+      </div>
+      <div className='flex flex-col'>
+        <Label htmlFor='repeat-new-password' className='mb-1'>Repeat New Password</Label>
+        <PasswordInput
+          id='repeat-new-password' 
+          value={repeatNewPassword} 
+          onChange={(e) => {
+            setRepeatNewPassword(e.target.value);
+            setRepeatNewPasswordError('');
+            setPasswordChanged(false);
+          }}
+        />
+        <FormWarningText text={repeatNewPasswordError} />
       </div>
     </SettingSection>
   );

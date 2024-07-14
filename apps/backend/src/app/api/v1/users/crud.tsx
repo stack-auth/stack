@@ -1,16 +1,21 @@
 import { addUserToTeam, createServerTeam, getServerTeamFromDbType } from "@/lib/teams";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import * as yup from "yup";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
-  paramsSchema: yup.object({
+export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(usersCrud, "projectUser", {
+  querySchema: yupObject({
+    team_id: yupString().optional(),
+  }),
+  paramsSchema: yupObject({
     userId: userIdOrMeRequestSchema.required(),
   }),
   baseFields: async ({ auth, params }) => {
@@ -20,6 +25,18 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       projectId,
       projectUserId: userId,
     };
+  },
+  where: async ({ query }) => {
+    if (query.team_id) {
+      return {
+        teamMembers: {
+          some: {
+            teamId: query.team_id,
+          },
+        },
+      };
+    }
+    return {};
   },
   whereUnique: async ({ auth, params }) => {
     const projectId = auth.project.id;
@@ -31,6 +48,9 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       },
     };
   },
+  orderBy: async () => ({
+    createdAt: 'desc',
+  }),
   include: async () => ({
     projectUserOAuthAccounts: true,
     teamMembers: {
@@ -42,7 +62,9 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       },
     },
   }),
-  notFoundError: () => new KnownErrors.UserNotFound(),
+  notFoundToCrud: (context) => {
+    throw new KnownErrors.UserNotFound();
+  },
   crudToPrisma: async (crud, { auth }) => {
     const projectId = auth.project.id;
     return {
@@ -52,7 +74,24 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       projectId,
       primaryEmail: crud.primary_email,
       primaryEmailVerified: crud.primary_email_verified ?? (crud.primary_email !== undefined ? false : undefined),
-      authWithEmail: crud.auth_with_email,
+      authWithEmail: crud.primary_email_auth_enabled,
+      passwordHash: crud.password == null ? crud.password : await hashPassword(crud.password),
+      profileImageUrl: crud.profile_image_url,
+      projectUserOAuthAccounts: {
+        create: crud.oauth_providers?.map((provider) => ({
+          projectId,
+          providerConfig: {
+            connect: {
+              projectConfigId_id: {
+                projectConfigId: auth.project.evaluatedConfig.id,
+                id: provider.provider_id,
+                email: provider.email,
+              }
+            }
+          },
+          providerAccountId: provider.account_id,
+        })),
+      }
     };
   },
   prismaToCrud: async (prisma, { auth }) => {
@@ -73,14 +112,18 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       auth_method: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
       has_password: !!prisma.passwordHash,
       auth_with_email: prisma.authWithEmail,
-      oauth_providers: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
+      oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
+        provider_id: a.oauthProviderConfigId,
+        account_id: a.providerAccountId,
+        email: a.email,
+      })),
       selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
       selected_team: selectedTeamMembers[0] ? getServerTeamFromDbType(selectedTeamMembers[0]?.team) : null,
     };
   },
   onCreate: async (prisma, context) => {
     // TODO use the same transaction as the one that creates the user row
-  
+
     const project = context.auth.project;
     if (project.evaluatedConfig.createTeamOnSignUp) {
       const team = await createServerTeam(
@@ -92,10 +135,10 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       await addUserToTeam(project.id, team.id, prisma.projectUserId);
     }
   },
-});
+}));
 
-export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
-  paramsSchema: yup.object({} as const),
+export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(currentUserCrud, {
+  paramsSchema: yupObject({} as const),
   async onRead({ auth }) {
     return await usersCrudHandlers.adminRead({
       project: auth.project,
@@ -109,11 +152,10 @@ export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
       data,
     });
   },
-  async onDelete({ auth, data }) {
+  async onDelete({ auth }) {
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
       userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
-      data,
     });
   },
-});
+}));

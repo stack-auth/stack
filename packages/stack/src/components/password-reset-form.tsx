@@ -12,9 +12,10 @@ import { MessageCard } from "./message-cards/message-card";
 import { MaybeFullPage } from "./elements/maybe-full-page";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Label, PasswordInput, Typography } from "@stackframe/stack-ui";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
-const schema = yup.object().shape({
-  password: yup.string().required('Please enter your password').test({
+const schema = yupObject({
+  password: yupString().required('Please enter your password').test({
     name: 'is-valid-password',
     test: (value, ctx) => {
       const error = getPasswordError(value);
@@ -25,7 +26,7 @@ const schema = yup.object().shape({
       }
     }
   }),
-  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
 });
 
 export default function PasswordResetForm(

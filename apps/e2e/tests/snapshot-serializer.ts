@@ -1,7 +1,6 @@
 import { SnapshotSerializer } from "vitest";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { emailSuffix } from "./helpers";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -23,17 +22,23 @@ const hideHeaders = [
   "x-frame-options",
   "content-encoding",
   "etag",
+  "location",
+  "x-stack-request-id",
 ];
 
-const stripHeaders = ["x-stack-request-id"];
+const stripHeaders: string[] = [];
 
 const stripFields = [
   "access_token",
   "refresh_token",
-  "id",
   "date",
   "signed_up_at_millis",
-  "user_id",
+  "expires_at_millis",
+  "created_at_millis",
+  "manually_revoked_at_millis",
+  "publishable_client_key",
+  "secret_server_key",
+  "super_secret_admin_key",
 ];
 
 function addAll<T>(set: Set<T>, values: T[]) {
@@ -54,9 +59,13 @@ const snapshotSerializer: SnapshotSerializer = {
       overrides: (value, options) => {
         const parentValue = options?.parent?.value;
 
-        // Strip auto-generated e-mails
-        if (typeof value === "string" && value.endsWith(emailSuffix)) {
-          return `<stripped auto-generated e-mail>`;
+        // Strip all UUIDs except all-zero UUID
+        if (typeof value === "string") {
+          const newValue = value.replace(
+            /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
+            "<stripped UUID>"
+          );
+          if (newValue !== value) return nicify(newValue, options);
         }
 
         // Strip headers

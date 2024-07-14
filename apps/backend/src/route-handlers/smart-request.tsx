@@ -7,10 +7,10 @@ import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
+import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 
@@ -31,9 +31,9 @@ export type SmartRequest = {
   url: string,
   method: typeof allowedMethods[number],
   body: unknown,
-  headers: Record<string, string[]>,
-  query: Record<string, string>,
-  params: Record<string, string>,
+  headers: Record<string, string[] | undefined>,
+  query: Record<string, string | undefined>,
+  params: Record<string, string | undefined>,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
@@ -46,7 +46,9 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
   try {
     return await schema.validate(obj, {
       abortEarly: false,
-      stripUnknown: true,
+      context: {
+        noUnknownPathPrefixes: ["body", "query", "params"],
+      },
     });
   } catch (error) {
     if (error instanceof ReplaceFieldWithOwnUserId) {
@@ -80,7 +82,7 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
       return await validate(newObj, schema, req);
     } else if (error instanceof yup.ValidationError) {
       if (req === null) {
-        // we weren't called by a HTTP request, so it must be a logical error in a manual invokation
+        // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
         throw new StackAssertionError("Request validation failed", {}, { cause: error });
       } else {
         const inners = error.inner.length ? error.inner : [error];
@@ -161,7 +163,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   let requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
-  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
+  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
@@ -232,10 +234,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     }
   }
 
-  let project = await updateProject(
-    projectId,
-    {},
-  );
+  const project = await getProject(projectId);
   if (!project) {
     throw new KnownErrors.ProjectNotFound();
   }

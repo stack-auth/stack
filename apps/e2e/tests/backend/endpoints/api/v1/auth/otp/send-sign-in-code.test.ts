@@ -3,10 +3,12 @@ import { backendContext, Auth, niceBackendFetch } from "../../../../../backend-h
 
 it("should send a sign-in code per e-mail", async ({ expect }) => {
   await Auth.Otp.sendSignInCode();
-  expect(await backendContext.value.mailbox.fetchMessages({ subjectOnly: true })).toMatchInlineSnapshot(`
+  expect(await backendContext.value.mailbox.fetchMessages({ noBody: true })).toMatchInlineSnapshot(`
     [
       MailboxMessage {
+        "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Sign in to Stack Dashboard",
+        "to": ["<<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
     ]
@@ -20,7 +22,7 @@ it('should refuse to send a sign-in code if the redirect URL is invalid', async 
     accessType: "client",
     body: {
       email: mailbox.emailAddress,
-      redirectUrl: "http://evil-website.example.com",
+      callback_url: "http://evil-website.example.com",
     },
   });
   expect(response).toMatchInlineSnapshot(`
@@ -32,7 +34,6 @@ it('should refuse to send a sign-in code if the redirect URL is invalid', async 
       },
       "headers": Headers {
         "x-stack-known-error": "REDIRECT_URL_NOT_WHITELISTED",
-        "x-stack-request-id": <stripped header 'x-stack-request-id'>,
         <some fields may have been hidden>,
       },
     }

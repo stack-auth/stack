@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
 
     strategy:
       matrix:
@@ -35,10 +37,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Create .env.production.local file for stack-backend
-        run: cp apps/backend/.env.development apps/backend/.env.production.local
+        run: cp apps/backend/.env.development apps/backend/.env.test.local
 
       - name: Create .env.production.local file for stack-dashboard
-        run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
+        run: cp apps/dashboard/.env.development apps/dashboard/.env.test.local
 
       - name: Build stack-backend
         run: pnpm build:backend
@@ -48,18 +50,47 @@ jobs:
 
       - name: Start Docker Compose
         run: docker-compose -f dependencies.compose.yaml up -d
+
+      - name: Wait on Postgres
+        run: npx wait-on tcp:localhost:5432
+
+      - name: Wait on Inbucket
+        run: npx wait-on tcp:localhost:2500
+
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
   
       - name: Start stack-backend in background
-        run: pnpm run start:backend &
-      - name: Wait for stack-backend to start
-        run: npx wait-on@7.2.0 http://localhost:8102
-
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: pnpm run start:backend --log-order=stream &
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 30s
+          log-output-if: true
       - name: Start stack-dashboard in background
-        run: pnpm run start:dashboard &
-      - name: Wait for stack-dashboard to start
-        run: npx wait-on@7.2.0 http://localhost:8101
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: pnpm run start:dashboard --log-order=stream &
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 30s
+          log-output-if: true
 
       - name: Run tests
         run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 1)
+        run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 2)
+        run: pnpm test
+
+      - name: Run tests again, to make sure they are stable (attempt 3)
+        run: pnpm test
+
+      - name: Print Docker Compose logs
+        if: always()
+        run: docker-compose -f dependencies.compose.yaml logs

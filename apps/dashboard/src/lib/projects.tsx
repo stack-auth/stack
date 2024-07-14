@@ -10,7 +10,6 @@ import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/st
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 
-
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({
     "shared-github": "GITHUB",

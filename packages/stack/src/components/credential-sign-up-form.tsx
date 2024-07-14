@@ -5,14 +5,15 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { FormWarningText } from "./elements/form-warning";
 import { useStackApp } from "..";
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
+import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
-const schema = yup.object().shape({
-  email: yup.string().email('Please enter a valid email').required('Please enter your email'),
-  password: yup.string().required('Please enter your password').test({
+const schema = yupObject({
+  email: yupString().email('Please enter a valid email').required('Please enter your email'),
+  password: yupString().required('Please enter your password').test({
     name: 'is-valid-password',
     test: (value, ctx) => {
       const error = getPasswordError(value);
@@ -23,7 +24,7 @@ const schema = yup.object().shape({
       }
     }
   }),
-  passwordRepeat: yup.string().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], 'Passwords do not match').required('Please repeat your password')
 });
 
 export function CredentialSignUpForm() {
@@ -38,11 +39,14 @@ export function CredentialSignUpForm() {
     try {
       const { email, password } = data;
       const error = await app.signUpWithCredential({ email, password });
-    setError('email', { type: 'manual', message: error?.message });
+      setError('email', { type: 'manual', message: error?.message });
     } finally {
       setLoading(false);
     }
   };
+
+  const registerPassword = register('password');
+  const registerPasswordRepeat = register('passwordRepeat');
 
   return (
     <form 
@@ -54,17 +58,18 @@ export function CredentialSignUpForm() {
       <Input
         id="email"
         type="email"
-        {...register('email')}
+        {...(x => (console.log(x), x))(register('email'))}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
       <PasswordInput
         id="password"
-        {...register('password')}
+        {...registerPassword}
         onChange={(e) => {
           clearErrors('password');
           clearErrors('passwordRepeat');
+          runAsynchronously(registerPassword.onChange(e));
         }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
@@ -72,15 +77,16 @@ export function CredentialSignUpForm() {
       <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
       <PasswordInput
         id="repeat-password"
-        {...register('passwordRepeat')}
+        {...registerPasswordRepeat}
         onChange={(e) => {
           clearErrors('password');
           clearErrors('passwordRepeat');
+          runAsynchronously(registerPasswordRepeat.onChange(e));
         }}
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
       
-      <Button type="submit" className="mt-6">
+      <Button type="submit" className="mt-6" loading={loading}>
         Sign Up
       </Button>
     </form>

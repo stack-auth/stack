@@ -10,7 +10,7 @@ import {
 } from "./clientInterface";
 import { Result } from "../utils/results";
 import { ReadonlyJson } from "../utils/json";
-import { EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
+import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
 import { InternalSession } from "../sessions";
 
 export type ServerUserJson = UserJson & {
@@ -56,9 +56,6 @@ export type ServerAuthApplicationOptions = (
     }
   )
 );
-
-export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
-export type EmailTemplateType = typeof emailTemplateTypes[number];
 
 export class StackServerInterface extends StackClientInterface {
   constructor(public override options: ServerAuthApplicationOptions) {
@@ -335,7 +332,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
+  async listEmailTemplates(): Promise<EmailTemplateCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/email-templates?server=true`, {}, null);
     return await response.json();
   }

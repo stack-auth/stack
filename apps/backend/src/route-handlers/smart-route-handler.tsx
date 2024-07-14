@@ -10,12 +10,13 @@ import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, c
 import { SmartResponse, createResponse } from "./smart-response";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...getNodeEnvironment() === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+      ...["development", "test"].includes(getNodeEnvironment()) ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
     );
   }
 }
@@ -102,7 +103,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
         headers: {
           ...statusError.getHeaders(),
         },
-      }, yup.mixed());
+      }, yupMixed<any>());
       return res;
     } finally {
       hasRequestFinished = true;
@@ -211,29 +212,39 @@ export function createSmartRouteHandler<
     return await invoke(req, requestId, smartRequest);
   }), {
     [getSmartRouteHandlerSymbol()]: true,
-    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invokation", smartRequest),
+    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),
     overloads,
   });
 }
 
 function createOverloadsError(errors: StatusError[]) {
-  return tryMergingOverloadErrors(errors) ?? new KnownErrors.AllOverloadsFailed(errors.map(e => e.toHttpJson()));
+  const merged = mergeOverloadErrors(errors);
+  if (merged.length === 1) {
+    return merged[0];
+  }
+  return new KnownErrors.AllOverloadsFailed(merged.map(e => e.toDescriptiveJson()));
 }
 
-function tryMergingOverloadErrors(errors: StatusError[]): StatusError | null {
+const mergeErrorPriority = [
+  // any other error is first, then errors get priority in the following order
+  // if an error has priority over another, the latter will be hidden when listing failed overloads
+  KnownErrors.InsufficientAccessType,
+];
+
+function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
   if (errors.length > 6) {
     // TODO fix this
     throw new StackAssertionError("Too many overloads failed, refusing to trying to merge them as it would be computationally expensive and could be used for a DoS attack. Fix this if we ever have an endpoint with > 8 overloads");
   } else if (errors.length === 0) {
     throw new StackAssertionError("No errors to merge");
   } else if (errors.length === 1) {
-    return errors[0];
+    return [errors[0]];
   } else if (errors.length === 2) {
     const [a, b] = errors;
 
     // Merge errors with the same JSON
-    if (JSON.stringify(a.toHttpJson()) === JSON.stringify(b.toHttpJson())) {
-      return a;
+    if (JSON.stringify(a.toDescriptiveJson()) === JSON.stringify(b.toDescriptiveJson())) {
+      return [a];
     }
 
     // Merge "InsufficientAccessType" errors
@@ -242,24 +253,32 @@ function tryMergingOverloadErrors(errors: StatusError[]): StatusError | null {
       && b instanceof KnownErrors.InsufficientAccessType
       && a.constructorArgs[0] === b.constructorArgs[0]
     ) {
-      return new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])]);
+      return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
     }
 
-    return null;
+    // Merge priority
+    const aPriority = mergeErrorPriority.indexOf(a.constructor as any);
+    const bPriority = mergeErrorPriority.indexOf(b.constructor as any);
+    if (aPriority < bPriority) {
+      return [a];
+    }
+
+    return [a, b];
   } else {
     // brute-force all combinations recursively
+    let fewestErrors: StatusError[] = errors;
     for (let i = 0; i < errors.length; i++) {
       const errorsWithoutCurrent = [...errors];
       errorsWithoutCurrent.splice(i, 1);
-      const mergedWithoutCurrent = tryMergingOverloadErrors(errorsWithoutCurrent);
-      if (mergedWithoutCurrent !== null) {
-        const merged = tryMergingOverloadErrors([errors[i], mergedWithoutCurrent]);
-        if (merged !== null) {
-          return merged;
+      const mergedWithoutCurrent = mergeOverloadErrors(errorsWithoutCurrent);
+      if (mergedWithoutCurrent.length < errorsWithoutCurrent.length) {
+        const merged = mergeOverloadErrors([errors[i], ...mergedWithoutCurrent]);
+        if (merged.length < fewestErrors.length) {
+          fewestErrors = merged;
         }
       }
     }
-    return null;
+    return fewestErrors;
   }
 }
 

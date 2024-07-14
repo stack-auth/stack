@@ -105,6 +105,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const outerInfo = await prismaClient.oAuthOuterInfo.create({
     data: {
+      innerState,
       info: {
         projectId,
         publishableClientKey,
