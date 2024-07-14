@@ -20,6 +20,27 @@ it("lists all the team permissions", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$update_team",
+              "$delete_team",
+              "$read_members",
+              "$remove_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team creators",
+            "id": "admin",
+          },
+          {
+            "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$read_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team members",
+            "id": "member",
+          },
+          {
             "__database_id": "$update_team",
             "contained_permission_ids": [],
             "description": "Update the team information",
@@ -147,6 +168,27 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
         "items": [
           {
             "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$update_team",
+              "$delete_team",
+              "$read_members",
+              "$remove_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team creators",
+            "id": "admin",
+          },
+          {
+            "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$read_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team members",
+            "id": "member",
+          },
+          {
+            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [],
             "id": "p1",
           },
@@ -217,6 +259,27 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
       "body": {
         "is_paginated": false,
         "items": [
+          {
+            "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$update_team",
+              "$delete_team",
+              "$read_members",
+              "$remove_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team creators",
+            "id": "admin",
+          },
+          {
+            "__database_id": "<stripped UUID>",
+            "contained_permission_ids": [
+              "$read_members",
+              "$invite_members",
+            ],
+            "description": "Default permission for team members",
+            "id": "member",
+          },
           {
             "__database_id": "<stripped UUID>",
             "contained_permission_ids": ["$update_team"],

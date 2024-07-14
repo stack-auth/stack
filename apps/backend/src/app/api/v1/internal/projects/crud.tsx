@@ -1,4 +1,4 @@
-import { permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "@/lib/permissions";
+import { isTeamSystemPermission, listPermissionDefinitions, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { listManagedProjectIds } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
@@ -79,7 +79,7 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
   notFoundToCrud: (context) => {
     throw new KnownErrors.ProjectNotFound();
   },
-  crudToPrisma: async (crud, { params, type }) => {
+  crudToPrisma: async (crud, { auth, params, type }) => {
     // ======================= create =======================
 
     if (type === 'create') {
@@ -176,6 +176,78 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
     if (!oldProject) {
       return {};
     }
+
+    // ======================= update default team permissions =======================
+
+    const dbParams = [
+      {
+        type: 'creator',
+        optionName: 'team_creator_default_permission_ids',
+        dbName: 'teamCreatorDefaultPermissions',
+        dbSystemName: 'teamCreateDefaultSystemPermissions',
+      },
+      {
+        type: 'member',
+        optionName: 'team_member_default_permission_ids',
+        dbName: 'teamMemberDefaultPermissions',
+        dbSystemName: 'teamMemberDefaultSystemPermissions',
+      },
+    ] as const;
+    
+    const transactions = [];
+    const permissions = await listPermissionDefinitions(auth.project, { type: 'any-team' });
+
+    for (const param of dbParams) {
+      const defaultPerms = crud.config?.[param.optionName];
+      
+      if (!defaultPerms) {
+        continue;
+      }
+      
+      if (!defaultPerms.every((id) => permissions.some((perm) => perm.id === id))) {
+        throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
+      }
+      
+      const systemPerms = defaultPerms
+        .filter(p => isTeamSystemPermission(p))
+        .map(p => teamSystemPermissionStringToDBType(p as any));
+  
+        transactions.push(prismaClient.projectConfig.update({
+          where: { id: auth.project.evaluatedConfig.id },
+          data: {
+            [param.dbSystemName]: systemPerms,
+          },
+        }));
+        
+        // Remove existing default permissions
+        transactions.push(prismaClient.permission.updateMany({
+          where: {
+            projectConfigId: auth.project.evaluatedConfig.id,
+            scope: 'TEAM',
+          },
+          data: {
+            isDefaultTeamCreatorPermission: param.type === 'creator' ? false : undefined,
+            isDefaultTeamMemberPermission: param.type === 'member' ? false : undefined,
+          },
+        }));
+  
+        // Add new default permissions
+        transactions.push(prismaClient.permission.updateMany({
+          where: {
+            projectConfigId: auth.project.evaluatedConfig.id,
+            queryableId: {
+              in: defaultPerms.filter(x => !isTeamSystemPermission(x)),
+            },
+            scope: 'TEAM',
+          },
+          data: {
+            isDefaultTeamCreatorPermission: param.type === 'creator',
+            isDefaultTeamMemberPermission: param.type === 'member',
+          },
+        }));
+    }
+
+    await prismaClient.$transaction(transactions);
 
     // ======================= update email config =======================
     // update the corresponding config type if it is already defined
@@ -354,26 +426,71 @@ export const internalProjectsCrudHandlers = createPrismaCrudHandlers(internalPro
   },
   onCreate: async (prisma, { auth }) => {
     const user = auth.user ?? throwErr('auth.user is required');
-    const serverMetadataTx: any = user.server_metadata ?? {};
-    await prismaClient.projectUser.update({
-      where: {
-        projectId_projectUserId: {
-          projectId: auth.project.id,
-          projectUserId: user.id,
-        }
-      },
-      data: {
-        serverMetadata: {
-          ...(serverMetadataTx ?? {}),
-          managedProjectIds: [
-            ...(serverMetadataTx?.managedProjectIds ?? []),
-            prisma.id,
-          ],
+
+    await prismaClient.$transaction(async (tx) => {
+      await tx.permission.create({
+        data: {
+          projectId: prisma.id,
+          projectConfigId: prisma.config.id,
+          queryableId: "member",
+          description: "Default permission for team members",
+          scope: 'TEAM',
+          parentEdges: {
+            createMany: {
+              data: (['READ_MEMBERS', 'INVITE_MEMBERS'] as const).map(p => ({ parentTeamSystemPermission: p })),
+            },
+          },
+          isDefaultTeamMemberPermission: true,
         },
-      },
+      });
+      
+      await tx.permission.create({
+        data: {
+          projectId: prisma.id,
+          projectConfigId: prisma.config.id,
+          queryableId: "admin",
+          description: "Default permission for team creators",
+          scope: 'TEAM',
+          parentEdges: {
+            createMany: {
+              data: (['UPDATE_TEAM', 'DELETE_TEAM', 'READ_MEMBERS', 'REMOVE_MEMBERS', 'INVITE_MEMBERS'] as const).map(p =>({ parentTeamSystemPermission: p }))
+            },
+          },
+          isDefaultTeamCreatorPermission: true,
+        },
+      });
+  
+      const projectUserTx = await tx.projectUser.findUniqueOrThrow({
+        where: {
+          projectId_projectUserId: {
+            projectId: "internal",
+            projectUserId: user.id,
+          },
+        },
+      });
+  
+      const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
+  
+      await tx.projectUser.update({
+        where: {
+          projectId_projectUserId: {
+            projectId: "internal",
+            projectUserId: projectUserTx.projectUserId,
+          },
+        },
+        data: {
+          serverMetadata: {
+            ...serverMetadataTx ?? {},
+            managedProjectIds: [
+              ...serverMetadataTx?.managedProjectIds ?? [],
+              prisma.id,
+            ],
+          },
+        },
+      });
     });
   },
-  prismaToCrud: async (prisma, { auth }) => {
+  prismaToCrud: async (prisma) => {
     return {
       id: prisma.id,
       display_name: prisma.displayName,
