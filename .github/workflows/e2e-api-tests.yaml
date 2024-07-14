@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
 
     strategy:
       matrix:
@@ -61,7 +63,7 @@ jobs:
       - name: Start stack-backend in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: NODE_ENV=test pnpm run start:backend --log-order=stream &
+          run: pnpm run start:backend --log-order=stream &
           wait-on: |
             http://localhost:8102
           tail: true
@@ -70,7 +72,7 @@ jobs:
       - name: Start stack-dashboard in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: NODE_ENV=test pnpm run start:dashboard --log-order=stream &
+          run: pnpm run start:dashboard --log-order=stream &
           wait-on: |
             http://localhost:8102
           tail: true
