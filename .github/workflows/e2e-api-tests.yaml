@@ -59,7 +59,7 @@ jobs:
         run: pnpm run prisma -- migrate reset --force
   
       - name: Start stack-backend in background
-        uses: JarvusInnovations/background-action@v1
+        uses: JarvusInnovations/background-action@v1.0.7
         with:
           run: pnpm run start:backend &
           wait-on: |
@@ -68,7 +68,7 @@ jobs:
           wait-for: 30s
           log-output-if: true
       - name: Start stack-dashboard in background
-        uses: JarvusInnovations/background-action@v1
+        uses: JarvusInnovations/background-action@v1.0.7
         with:
           run: pnpm run start:dashboard &
           wait-on: |
