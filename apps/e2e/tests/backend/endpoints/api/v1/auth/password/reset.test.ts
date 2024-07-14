@@ -168,7 +168,7 @@ it("should be able to check the password reset code without using it", async ({ 
         <some fields may have been hidden>,
       },
     }
-  `);  
+  `);
 });
 
 it.todo("should not be able to reset password if password authentication is disabled on the project after the verification code was sent");

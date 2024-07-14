@@ -252,7 +252,7 @@ export namespace Auth {
         password,
       };
     }
-  
+
     export async function signInWithEmail(options: { password: string }) {
       const mailbox = backendContext.value.mailbox;
       const email = mailbox.emailAddress;

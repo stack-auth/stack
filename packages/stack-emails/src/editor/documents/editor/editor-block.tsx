@@ -21,7 +21,7 @@ type EditorBlockProps = {
 export default function EditorBlock({ id }: EditorBlockProps) {
   const document = useDocument();
   const metadata = useMetadata();
-  
+
   const mergedDocument = useMemo(() => {
     return convertEmailTemplateVariables(document, metadata.variables);
   }, [document, metadata]);

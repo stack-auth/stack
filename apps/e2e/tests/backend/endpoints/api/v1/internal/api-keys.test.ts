@@ -171,13 +171,13 @@ describe("with admin access to a non-internal project", () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // create another api key
-    await ApiKey.create(adminAccessToken, { 
-      description: 'key2', 
-      has_publishable_client_key: false, 
-      has_secret_server_key: true, 
-      has_super_secret_admin_key: false 
+    await ApiKey.create(adminAccessToken, {
+      description: 'key2',
+      has_publishable_client_key: false,
+      has_secret_server_key: true,
+      has_super_secret_admin_key: false
     });
 
     // list api keys

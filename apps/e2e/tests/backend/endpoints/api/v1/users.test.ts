@@ -225,7 +225,7 @@ describe("with client access", () => {
       }
     `);
   });
-  
+
   it.todo("should be able to set own profile image URL with an image HTTP URL, and the new profile image URL should be a different HTTP URL on our storage service");
 
   it.todo("should be able to set own profile image URL with a base64 data URL, and the new profile image URL should be a different HTTP URL on our storage service");

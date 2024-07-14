@@ -8,6 +8,7 @@ module.exports = {
     tsconfigRootDir: process.cwd(),
   },
   rules: {
+    "no-trailing-spaces": "warn",
     "key-spacing": "error",
     "indent": ["error", 2, {
       SwitchCase: 1,

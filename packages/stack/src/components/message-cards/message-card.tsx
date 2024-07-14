@@ -5,10 +5,10 @@ import { MaybeFullPage } from "../elements/maybe-full-page";
 import { Button, Typography } from "@stackframe/stack-ui";
 
 export function MessageCard(
-  { fullPage=false, ...props }: 
-  { 
-    children?: React.ReactNode, 
-    title: string, 
+  { fullPage=false, ...props }:
+  {
+    children?: React.ReactNode,
+    title: string,
     fullPage?: boolean,
     primaryButtonText?: string,
     primaryAction?: () => Promise<void> | void,

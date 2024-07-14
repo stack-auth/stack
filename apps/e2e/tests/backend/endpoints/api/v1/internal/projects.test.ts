@@ -603,7 +603,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // create another project and update its domain
     const { projectId: projectId2 } = await Project.create();
     const { updateProjectResponse: response1p2 } = await Project.update(projectId2, {
@@ -644,7 +644,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // check if the first project still has the same domains
     const response3 = await niceBackendFetch(`/api/v1/internal/projects/${projectId1}`, {
       accessType: "client",
@@ -786,7 +786,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // update standard email config again
     const { updateProjectResponse: response2 } = await Project.update(projectId1, {
       config: {
@@ -1047,7 +1047,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // update google oauth provider with shared type again
     const { updateProjectResponse: response2 } = await Project.update(projectId, {
       config: {
@@ -1153,7 +1153,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // add another oauth provider
     const { updateProjectResponse: response5 } = await Project.update(projectId, {
       config: {
@@ -1207,7 +1207,7 @@ describe("with the internal project access", async () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    
+
     // disable one of the oauth providers
     const { updateProjectResponse: response6 } = await Project.update(projectId, {
       config: {

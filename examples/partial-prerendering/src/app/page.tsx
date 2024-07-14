@@ -58,7 +58,7 @@ async function UserInfo() {
 
 async function UserInfo() {
   const user = await stackServerApp.getUser();
-  
+
   return (
     <div>
       {user && <>

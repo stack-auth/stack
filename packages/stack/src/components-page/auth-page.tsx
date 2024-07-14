@@ -11,12 +11,12 @@ import { ClientProjectJson } from "@stackframe/stack-shared";
 import { CredentialSignUpForm } from '../components/credential-sign-up-form';
 import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
 
-export function AuthPage({ 
+export function AuthPage({
   fullPage=false,
   type,
   mockProject,
-}: { 
-  fullPage?: boolean, 
+}: {
+  fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   mockProject?: ClientProjectJson,
 }) {

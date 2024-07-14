@@ -10,7 +10,7 @@ export default function TeamActions(props: { teamId: string }) {
 
   return (
     <div>
-      {team ? 
+      {team ?
         <div className="flex gap-5">
           <Button
             onClick={async () => {
@@ -20,8 +20,8 @@ export default function TeamActions(props: { teamId: string }) {
           >
             {'Get the "read:content" permission'}
           </Button>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={async () => {
               await leaveTeam(team.id);
               window.location.reload();
@@ -29,8 +29,8 @@ export default function TeamActions(props: { teamId: string }) {
           >
             Leave Team
           </Button>
-        </div> : 
-        <Button 
+        </div> :
+        <Button
           onClick={async () => {
             await joinTeam(props.teamId);
             window.location.reload();

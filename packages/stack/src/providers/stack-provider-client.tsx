@@ -21,7 +21,7 @@ export function StackProviderClient(props: {
   if (process.env.NODE_ENV === "development") {
     globalVar.stackApp = app;
   }
-  
+
   return (
     <StackContext.Provider value={{ app }}>
       {props.children}

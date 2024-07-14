@@ -6,8 +6,8 @@ import { TEditorConfiguration } from './documents/editor/core';
 import _ from 'lodash';
 import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '@stackframe/stack-emails/dist/utils';
 
-export default function EmailEditor(props: { 
-  document: TEditorConfiguration, 
+export default function EmailEditor(props: {
+  document: TEditorConfiguration,
   subject: string,
   metadata: EmailTemplateMetadata,
   onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>,

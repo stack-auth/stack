@@ -34,7 +34,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
 
   return (
     <form
-      className="flex flex-col items-stretch stack-scope" 
+      className="flex flex-col items-stretch stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >

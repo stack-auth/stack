@@ -59,7 +59,7 @@ export default function ImageSidebarPanel({ data, setData }: ImageSidebarPanelPr
           onChange={(height) => updateData({ ...data, props: { ...data.props, height } })}
         />
       </div>
-      
+
       <MultiStylePropertyPanel
         names={['backgroundColor', 'textAlign', 'padding']}
         value={data.style}

@@ -32,7 +32,7 @@ export class Context<R, T> {
       if (this._yetToReduce.size > 0) {
         throw new StackAssertionError("Something went wrong; _yetToReduce should be empty here.");
       }
-     
+
       // we use onTestFinished instead of afterEach so that afterEach calls can still use the context
       onTestFinished(async () => {
         if (this._withStorage.getStore()) {

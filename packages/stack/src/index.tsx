@@ -4,13 +4,13 @@ export { StackClientApp, StackServerApp, StackAdminApp } from "./lib/stack-app";
 export { default as StackHandler } from "./components-page/stack-handler";
 export { StackTheme } from './providers/theme-provider';
 export type {
-  CurrentUser, 
-  Project, 
-  ServerUser as ServerUser, 
-  ApiKeySetFirstView, 
-  ApiKeySet, 
-  ServerTeam, 
-  Team, 
+  CurrentUser,
+  Project,
+  ServerUser as ServerUser,
+  ApiKeySetFirstView,
+  ApiKeySet,
+  ServerTeam,
+  Team,
   TeamMember,
   ServerTeamMember,
   ServerPermission as Permission,
@@ -32,7 +32,7 @@ export { MagicLinkSignInForm as MagicLinkSignIn } from "./components/magic-link-
 export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
 
-export { 
+export {
   SelectedTeamSwitcher,
   /**
    * @deprecated This was renamed to `SelectedTeamSwitcher`.

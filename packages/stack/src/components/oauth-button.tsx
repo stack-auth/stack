@@ -143,7 +143,7 @@ export function OAuthButton({
       };
     }
   }
-  
+
   return (
     <StyledButton
       onClick={() => stackApp.signInWithOAuth(provider)}

@@ -49,7 +49,7 @@ export function CredentialSignUpForm() {
   const registerPasswordRepeat = register('passwordRepeat');
 
   return (
-    <form 
+    <form
       className="flex flex-col items-stretch stack-scope"
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
@@ -73,7 +73,7 @@ export function CredentialSignUpForm() {
         }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
-        
+
       <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
       <PasswordInput
         id="repeat-password"
@@ -85,7 +85,7 @@ export function CredentialSignUpForm() {
         }}
       />
       <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
-      
+
       <Button type="submit" className="mt-6" loading={loading}>
         Sign Up
       </Button>

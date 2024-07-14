@@ -6,7 +6,7 @@ it("lists all the permissions the current user have in a team on the server", as
   await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, { 
+  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, {
     accessType: "server",
     method: "GET",
   });
@@ -26,7 +26,7 @@ it("lists all the permissions the current user have in a team on the client", as
   await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, { 
+  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, {
     accessType: "client",
     method: "GET",
   });
@@ -46,7 +46,7 @@ it("is not allowed to list permissions from the other users on the client", asyn
   await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, { 
+  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, {
     accessType: "client",
     method: "GET",
   });
@@ -63,7 +63,7 @@ it("grant non-existing permission to a user on the server", async ({ expect }) =
   const { userId } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/not-exist`, { 
+  const response = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/not-exist`, {
     accessType: "server",
     method: "POST",
     body: {},
@@ -90,7 +90,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   // create a permission child
-  await niceBackendFetch(`/api/v1/team-permission-definitions`, { 
+  await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "server",
     method: "POST",
     body: {
@@ -100,7 +100,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   });
 
   // create a permission parent
-  await niceBackendFetch(`/api/v1/team-permission-definitions`, { 
+  await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "server",
     method: "POST",
     body: {
@@ -114,7 +114,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   const { teamId } = await Team.create();
 
   // list current permissions
-  const response1 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, { 
+  const response1 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, {
     accessType: "client",
     method: "GET",
   });
@@ -136,7 +136,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   `);
 
   // grant new permission
-  const response2 = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/parent`, { 
+  const response2 = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/parent`, {
     accessType: "server",
     method: "POST",
     body: {},
@@ -154,7 +154,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   `);
 
   // list current permissions (should have the new permission)
-  const response3 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, { 
+  const response3 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, {
     accessType: "client",
     method: "GET",
   });

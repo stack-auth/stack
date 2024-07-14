@@ -50,7 +50,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   }, [props.noUpdateSelectedTeam, props.selectedTeam]);
 
   return (
-    <Select 
+    <Select
       value={selectedTeam?.id}
       onValueChange={(value) => {
         runAsynchronouslyWithAlert(async () => {
