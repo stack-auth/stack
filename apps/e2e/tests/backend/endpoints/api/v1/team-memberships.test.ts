@@ -166,7 +166,7 @@ it("should give team creator default permissions", async ({ expect }) => {
     body: {},
   });
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=${userId1}`, { 
+  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=${userId2}`, { 
     accessType: "server",
     method: "GET",
   });
@@ -175,7 +175,13 @@ it("should give team creator default permissions", async ({ expect }) => {
       "status": 200,
       "body": {
         "is_paginated": false,
-        "items": [],
+        "items": [
+          {
+            "id": "admin",
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+        ],
       },
       "headers": Headers { <some fields may have been hidden> },
     }

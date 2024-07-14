@@ -48,6 +48,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       items: await listUserTeamPermissions({
         project: auth.project,
         teamId: query.team_id,
+        permissionId: query.permission_id,
         userId,
         recursive: query.recursive === 'true',
       }),

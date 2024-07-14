@@ -108,15 +108,14 @@ export async function listUserTeamPermissions(options: {
 }) {
   const allPermissions = await listPermissionDefinitions(options.project, { type: "any-team" });
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
-
   const results = await prismaClient.teamMemberDirectPermission.findMany({
     where: {
       projectId: options.project.id,
       projectUserId: options.userId,
       teamId: options.teamId,
-      permission: {
+      permission: options.permissionId ? {
         queryableId: options.permissionId,
-      },
+      } : undefined
     },
     include: {
       permission: true,
@@ -131,7 +130,7 @@ export async function listUserTeamPermissions(options: {
     groupedResults.get(result.projectUserId)!.push(result);
   }
 
-  const finalResults: { __database_id: string, id: string, team_id: string, user_id: string }[] = [];
+  const finalResults: { id: string, team_id: string, user_id: string }[] = [];
   for (const [userId, userResults] of groupedResults) {
     const idsToProcess = [...userResults.map(p =>
       p.permission?.queryableId ||
@@ -150,16 +149,18 @@ export async function listUserTeamPermissions(options: {
         idsToProcess.push(...current.contained_permission_ids);
       }
     }
-
-    finalResults.concat([...result.values()].map(p => ({
-      __database_id: p.id,
+    finalResults.push(...[...result.values()].map(p => ({
       id: p.id,
       team_id: userResults[0].teamId,
       user_id: userId,
     })));
   }
-
-  return finalResults;
+  
+  return finalResults.sort((a, b) => {
+    if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
+    if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
+    return a.id.localeCompare(b.id);
+  });
 }
 
 export async function grantTeamPermission(options: {
@@ -169,7 +170,7 @@ export async function grantTeamPermission(options: {
   permissionId: string,
 }) {
   if (isTeamSystemPermission(options.permissionId)) {
-    const result = await prismaClient.teamMemberDirectPermission.upsert({
+    await prismaClient.teamMemberDirectPermission.upsert({
       where: {
         projectId_projectUserId_teamId_systemPermission: {
           projectId: options.project.id,
@@ -192,12 +193,6 @@ export async function grantTeamPermission(options: {
       },
       update: {},
     });
-    return {
-      __database_id: result.id,
-      id: options.permissionId,
-      user_id: options.userId,
-      team_id: options.teamId,
-    };
   } else {
     const teamSpecificPermission = await prismaClient.permission.findUnique({
       where: {
@@ -247,14 +242,13 @@ export async function grantTeamPermission(options: {
       },
       update: {},
     });
-
-    return {
-      __database_id: result.id,
-      id: options.permissionId,
-      user_id: options.userId,
-      team_id: options.teamId,
-    };
   }
+
+  return {
+    id: options.permissionId,
+    user_id: options.userId,
+    team_id: options.teamId,
+  };
 }
 
 export async function revokeTeamPermission(options: {

@@ -583,6 +583,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
         id: { in: listManagedProjectIds(auth.user ?? throwErr('auth.user is required')) },
       },
       include: fullProjectInclude,
+      orderBy: { createdAt: 'desc' },
     });
 
     return {

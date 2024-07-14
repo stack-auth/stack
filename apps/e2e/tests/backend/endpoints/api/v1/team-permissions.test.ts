@@ -113,7 +113,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   const { userId } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
   const { teamId } = await Team.create();
 
-  // list current permissions (should be empty)
+  // list current permissions
   const response1 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, { 
     accessType: "client",
     method: "GET",
@@ -123,7 +123,13 @@ it("create a new permission and grant it to a user on the server", async ({ expe
       "status": 200,
       "body": {
         "is_paginated": false,
-        "items": [],
+        "items": [
+          {
+            "id": "admin",
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+        ],
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -157,10 +163,20 @@ it("create a new permission and grant it to a user on the server", async ({ expe
       "status": 200,
       "body": {
         "is_paginated": false,
-        "items": [],
+        "items": [
+          {
+            "id": "admin",
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          {
+            "id": "parent",
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+        ],
       },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
-

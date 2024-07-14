@@ -21,7 +21,7 @@ export const teamPermissionsCrud = createCrud({
   docs: {
   },
 });
-export type teamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
+export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 
 // Team permission definitions
 
@@ -54,3 +54,5 @@ export const teamPermissionDefinitionsCrud = createCrud({
   docs: {
   },
 });
+
+export type TeamPermissionDefinitionsCrud = CrudTypeOf<typeof teamPermissionDefinitionsCrud>;
