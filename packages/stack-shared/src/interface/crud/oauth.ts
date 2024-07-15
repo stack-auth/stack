@@ -1,6 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import * as yup from "yup";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "../../schema-fields";
+import { yupObject, yupString } from "../../schema-fields";
 
 export const accessTokenReadSchema = yupObject({
   access_token: yupString().required(),

@@ -17,6 +17,11 @@ import { checkApiKeySet } from "@/lib/api-keys";
 const outerOAuthFlowExpirationInMinutes = 10;
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    summary: "OAuth authorize endpoint",
+    description: "This endpoint is used to initiate the OAuth authorization flow. there are two purposes for this endpoint: 1. Authenticate a user with an OAuth provider. 2. Link an existing user with an OAuth provider.",
+    tags: ["Oauth"],
+  },
   request: yupObject({
     params: yupObject({
       provider: yupString().required(),

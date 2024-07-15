@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import { SmartRouteHandler, createSmartRouteHandler } from "./smart-route-handler";
+import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteHandler } from "./smart-route-handler";
 import { SmartResponse } from "./smart-response";
 import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
 import { prismaClient } from "@/prisma-client";
@@ -45,6 +45,10 @@ export function createVerificationCodeHandler<
   Response extends SmartResponse,
   SendCodeExtraOptions extends {},
 >(options: {
+  metadata?: {
+    post?: SmartRouteHandlerOverloadMetadata,
+    check?: SmartRouteHandlerOverloadMetadata,
+  },
   type: VerificationCodeType,
   data: yup.Schema<Data>,
   requestBody?: yup.ObjectSchema<RequestBody>,
@@ -57,6 +61,7 @@ export function createVerificationCodeHandler<
   handler(project: ProjectJson, method: Method, data: Data, body: RequestBody): Promise<Response>,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions> {
   const createHandler = (verifyOnly: boolean) => createSmartRouteHandler({
+    metadata: verifyOnly ? options.metadata?.check : options.metadata?.post,
     request: yupObject({
       auth: yupObject({
         project: adaptSchema.required(),

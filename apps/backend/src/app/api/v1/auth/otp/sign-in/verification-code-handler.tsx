@@ -9,6 +9,18 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { sendEmailFromTemplate } from "@/lib/emails";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
+  metadata: {
+    post: {
+      summary: "Sign in with a code",
+      description: "Sign in with a magic link",
+      tags: ["OTP"],
+    },
+    check: {
+      summary: "Check sign in code",
+      description: "Check if a sign in code is valid without using it",
+      tags: ["OTP"],
+    }
+  },
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({
     user_id: yupString().required(),

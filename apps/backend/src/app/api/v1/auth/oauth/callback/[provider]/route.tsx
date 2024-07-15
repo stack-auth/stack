@@ -26,6 +26,9 @@ const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedi
 };
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     params: yupObject({
       provider: yupString().required(),
