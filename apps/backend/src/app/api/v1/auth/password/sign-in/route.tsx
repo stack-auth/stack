@@ -7,6 +7,11 @@ import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Sign in with email and password",
+    description: "Sign in to an account with email and password",
+    tags: ["Password"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

@@ -1,12 +1,12 @@
 import { parseOpenAPI } from '@/lib/openapi';
-import yaml from 'yaml';
+import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
 import fs from 'fs';
 import { glob } from 'glob';
-import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
-import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import yaml from 'yaml';
 
 async function main() {
-  for (const audience of ['client', 'server'] as const) {
+  for (const audience of ['client', 'server', 'admin'] as const) {
     const filePathPrefix = "src/app/api/v1";
     const importPathPrefix = "@/app/api/v1";
     const filePaths = await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}");

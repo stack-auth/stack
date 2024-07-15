@@ -108,6 +108,9 @@ navigation:
       - api: Server API Reference
         slug: server
         api-name: server
+      - api: Admin API Reference
+        slug: admin
+        api-name: admin
 
 navbar-links:
   - type: secondary

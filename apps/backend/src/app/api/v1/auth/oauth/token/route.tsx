@@ -1,24 +1,15 @@
-import * as yup from "yup";
-import { prismaClient } from "@/prisma-client";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { sendEmailFromTemplate } from "@/lib/emails";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse, InvalidClientError } from "@node-oauth/oauth2-server";
-import { adaptSchema, clientOrHigherAuthTypeSchema, signInEmailSchema, emailOtpSignInCallbackUrlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { generators } from "openid-client";
-import { getProvider } from "@/oauth";
-import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { getProject } from "@/lib/projects";
-import { checkApiKeySet } from "@/lib/api-keys";
 import { oauthServer } from "@/oauth";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { InvalidClientError, InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "OAuth token endpoints",
+    description: "This endpoint is used to exchange an authorization code or refresh token for an access token.",
+    tags: ["Oauth"]
+  },
   request: yupObject({
     body: yupObject({
       grant_type: yupString().oneOf(["refresh_token", "authorization_code"]).required(),

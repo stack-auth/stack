@@ -467,7 +467,7 @@ it("updates the project email configuration with the wrong parameters", async ({
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_email is a required field",
+          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",

@@ -6,7 +6,7 @@ import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
-import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
@@ -16,11 +16,11 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
     team_id: yupString().optional(),
   }),
   paramsSchema: yupObject({
-    userId: userIdOrMeRequestSchema.required(),
+    user_id: userIdOrMeSchema.required(),
   }),
   baseFields: async ({ auth, params }) => {
     const projectId = auth.project.id;
-    const userId = params.userId;
+    const userId = params.user_id;
     return {
       projectId,
       projectUserId: userId,
@@ -40,7 +40,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
   },
   whereUnique: async ({ auth, params }) => {
     const projectId = auth.project.id;
-    const userId = params.userId;
+    const userId = params.user_id;
     return {
       projectId_projectUserId: {
         projectId,
@@ -142,20 +142,20 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
   async onRead({ auth }) {
     return await usersCrudHandlers.adminRead({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
     });
   },
   async onUpdate({ auth, data }) {
     return await usersCrudHandlers.adminUpdate({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
     });
   },
   async onDelete({ auth }) {
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
     });
   },
 }));

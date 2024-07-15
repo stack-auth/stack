@@ -8,6 +8,11 @@ import { prismaClient } from "@/prisma-client";
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Send reset password code",
+    description: "Send a code to the user's email address for resetting the password.",
+    tags: ["Password"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

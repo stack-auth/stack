@@ -1,5 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupObject, yupMixed, yupString, yupBoolean, yupNumber } from "../../schema-fields";
+import { yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "../../schema-fields";
 
 const baseApiKeysReadSchema = yupObject({
   id: yupString().required(),
@@ -49,6 +49,12 @@ export const apiKeysCrud = createCrud({
   adminUpdateSchema: apiKeysCrudAdminUpdateSchema,
   adminDeleteSchema: apiKeysCrudAdminDeleteSchema,
   docs: {
+    adminList: {
+      hidden: true,
+    },
+    adminRead: {
+      hidden: true,
+    },
     adminCreate: {
       hidden: true,
     },

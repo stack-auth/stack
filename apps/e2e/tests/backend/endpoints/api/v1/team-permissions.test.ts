@@ -197,7 +197,6 @@ it("customize default team permissions", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
-        "__database_id": "<stripped UUID>",
         "contained_permission_ids": [],
         "id": "test",
       },

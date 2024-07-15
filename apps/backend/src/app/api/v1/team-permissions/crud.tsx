@@ -12,24 +12,24 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
     recursive: yupString().oneOf(['true', 'false']).optional(),
   }),
   paramsSchema: yupObject({
-    teamId: yupString().required(),
-    userId: yupString().required(),
-    permissionId: yupString().required(),
+    team_id: yupString().required(),
+    user_id: yupString().required(),
+    permission_id: yupString().required(),
   }),
   async onCreate({ auth, params }) {
     return await grantTeamPermission({
       project: auth.project,
-      teamId: params.teamId,
-      userId: params.userId,
-      permissionId: params.permissionId
+      teamId: params.team_id,
+      userId: params.user_id,
+      permissionId: params.permission_id
     });
   },
   async onDelete({ auth, params }) {
     return await revokeTeamPermission({
       project: auth.project,
-      teamId: params.teamId,
-      userId: params.userId,
-      permissionId: params.permissionId
+      teamId: params.team_id,
+      userId: params.user_id,
+      permissionId: params.permission_id
     });
   },
   async onList({ auth, query }) {

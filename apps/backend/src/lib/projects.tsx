@@ -190,7 +190,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
   try {
     user = await usersCrudHandlers.adminRead({
       project: await getProject("internal") ?? throwErr("Can't find internal project??"),
-      userId,
+      user_id: userId,
     });
   } catch (e) {
     if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {

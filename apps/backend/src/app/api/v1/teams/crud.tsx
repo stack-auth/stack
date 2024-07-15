@@ -11,7 +11,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
     user_id: yupString().optional(),
   }),
   paramsSchema: yupObject({
-    teamId: yupString().required(),
+    team_id: yupString().required(),
   }),
   onPrepare: async ({ query, auth, type }) => {
     if (auth.type === 'client') {
@@ -21,7 +21,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
     }
   },
   baseFields: async ({ params, auth }) => ({
-    teamId: params.teamId,
+    teamId: params.team_id,
     projectId: auth.project.id,
   }),
   where: async ({ query, auth }) => {
@@ -40,7 +40,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
     return {
       projectId_teamId: {
         projectId: auth.project.id,
-        teamId: params.teamId,
+        teamId: params.team_id,
       },
       ...auth.type === 'client' ? {
         AND: {
@@ -55,7 +55,7 @@ export const teamsCrudHandlers = createPrismaCrudHandlers(teamsCrud, "team", {
   },
   include: async () => ({}),
   notFoundToCrud: (context) => {
-    throw new KnownErrors.TeamNotFound(context.params.teamId ?? "<null>");
+    throw new KnownErrors.TeamNotFound(context.params.team_id ?? "<null>");
   },
   crudToPrisma: async (crud) => {
     return {

@@ -20,7 +20,6 @@ it("lists all the team permissions", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -32,7 +31,6 @@ it("lists all the team permissions", async ({ expect }) => {
             "id": "admin",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$invite_members",
               "$read_members",
@@ -41,31 +39,26 @@ it("lists all the team permissions", async ({ expect }) => {
             "id": "member",
           },
           {
-            "__database_id": "$update_team",
             "contained_permission_ids": [],
             "description": "Update the team information",
             "id": "$update_team",
           },
           {
-            "__database_id": "$delete_team",
             "contained_permission_ids": [],
             "description": "Delete the team",
             "id": "$delete_team",
           },
           {
-            "__database_id": "$read_members",
             "contained_permission_ids": [],
             "description": "Read and list the other members of the team",
             "id": "$read_members",
           },
           {
-            "__database_id": "$remove_members",
             "contained_permission_ids": [],
             "description": "Remove other members from the team",
             "id": "$remove_members",
           },
           {
-            "__database_id": "$invite_members",
             "contained_permission_ids": [],
             "description": "Invite other users to the team",
             "id": "$invite_members",
@@ -93,7 +86,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
-        "__database_id": "<stripped UUID>",
         "contained_permission_ids": [],
         "id": "p1",
       },
@@ -114,7 +106,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
-        "__database_id": "<stripped UUID>",
         "contained_permission_ids": [
           "$read_members",
           "p1",
@@ -139,7 +130,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "__database_id": "<stripped UUID>",
         "contained_permission_ids": [
           "$update_team",
           "p1",
@@ -162,7 +152,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -174,7 +163,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
             "id": "admin",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$invite_members",
               "$read_members",
@@ -183,12 +171,10 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
             "id": "member",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [],
             "id": "p1",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$update_team",
               "p1",
@@ -196,31 +182,26 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
             "id": "p3",
           },
           {
-            "__database_id": "$update_team",
             "contained_permission_ids": [],
             "description": "Update the team information",
             "id": "$update_team",
           },
           {
-            "__database_id": "$delete_team",
             "contained_permission_ids": [],
             "description": "Delete the team",
             "id": "$delete_team",
           },
           {
-            "__database_id": "$read_members",
             "contained_permission_ids": [],
             "description": "Read and list the other members of the team",
             "id": "$read_members",
           },
           {
-            "__database_id": "$remove_members",
             "contained_permission_ids": [],
             "description": "Remove other members from the team",
             "id": "$remove_members",
           },
           {
-            "__database_id": "$invite_members",
             "contained_permission_ids": [],
             "description": "Invite other users to the team",
             "id": "$invite_members",
@@ -255,7 +236,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -267,7 +247,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
             "id": "admin",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": [
               "$invite_members",
               "$read_members",
@@ -276,36 +255,30 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
             "id": "member",
           },
           {
-            "__database_id": "<stripped UUID>",
             "contained_permission_ids": ["$update_team"],
             "id": "p3",
           },
           {
-            "__database_id": "$update_team",
             "contained_permission_ids": [],
             "description": "Update the team information",
             "id": "$update_team",
           },
           {
-            "__database_id": "$delete_team",
             "contained_permission_ids": [],
             "description": "Delete the team",
             "id": "$delete_team",
           },
           {
-            "__database_id": "$read_members",
             "contained_permission_ids": [],
             "description": "Read and list the other members of the team",
             "id": "$read_members",
           },
           {
-            "__database_id": "$remove_members",
             "contained_permission_ids": [],
             "description": "Remove other members from the team",
             "id": "$remove_members",
           },
           {
-            "__database_id": "$invite_members",
             "contained_permission_ids": [],
             "description": "Invite other users to the team",
             "id": "$invite_members",

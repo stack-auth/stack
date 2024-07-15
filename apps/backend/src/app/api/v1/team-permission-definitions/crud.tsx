@@ -5,7 +5,7 @@ import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-field
 
 export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPermissionDefinitionsCrud, {
   paramsSchema: yupObject({
-    permissionId: yupString().required(),
+    permission_id: yupString().required(),
   }),
   async onCreate({ auth, data }) {
     return await createPermissionDefinition({
@@ -18,7 +18,7 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
     return await updatePermissionDefinitions({
       project: auth.project,
       scope: { type: "any-team" },
-      permissionId: params.permissionId,
+      permissionId: params.permission_id,
       data,
     });
   },
@@ -26,7 +26,7 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
     await deletePermissionDefinition({
       project: auth.project,
       scope: { type: "any-team" },
-      permissionId: params.permissionId
+      permissionId: params.permission_id
     });
   },
   async onList({ auth }) {

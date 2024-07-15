@@ -7,6 +7,11 @@ import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Send sign-in code",
+    description: "Send a code to the user's email address for sign-in.",
+    tags: ["OTP"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

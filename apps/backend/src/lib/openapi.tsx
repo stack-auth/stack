@@ -265,7 +265,7 @@ export function parseOverload(options: {
     description: endpointDocumentation.description,
     parameters: queryParameters.concat(pathParameters),
     requestBody,
-    tags: endpointDocumentation.tags ?? ["Uncategorized"],
+    tags: endpointDocumentation.tags ?? ["Others"],
     responses: {
       200: {
         description: 'Successful response',

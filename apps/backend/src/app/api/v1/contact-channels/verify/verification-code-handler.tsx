@@ -7,6 +7,18 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
+  metadata: {
+    post: {
+      summary: "Verify an email",
+      description: "Verify an email address of a user",
+      tags: ["Emails"],
+    },
+    check: {
+      summary: "Check email verification code",
+      description: "Check if an email verification code is valid without using it",
+      tags: ["Emails"],
+    },
+  },
   type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,
   data: yupObject({
     user_id: yupString().required(),

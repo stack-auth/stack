@@ -5,6 +5,11 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { contactChannelVerificationCodeHandler } from "../verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Send email verification code",
+    description: "Send a code to the user's email address for verifying the email.",
+    tags: ["Emails"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
