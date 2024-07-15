@@ -1,6 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupObject, yupString, yupNumber, yupMixed } from "../../schema-fields";
 import * as fieldSchema from "../../schema-fields";
+import { yupMixed, yupObject } from "../../schema-fields";
 
 // Read
 export const teamsCrudClientReadSchema = yupObject({
@@ -8,7 +8,7 @@ export const teamsCrudClientReadSchema = yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.required(),
 }).required();
 export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
-  created_at_millis: fieldSchema.createdAtMillisSchema.required(),
+  created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
 }).required());
 
 // Update

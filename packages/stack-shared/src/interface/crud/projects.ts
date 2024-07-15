@@ -1,45 +1,46 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupArray, yupBoolean, yupNumber, yupObject, yupRequiredWhen, yupString } from "../../schema-fields";
+import * as schemaFields from "../../schema-fields";
+import { yupArray, yupObject, yupRequiredWhen, yupString } from "../../schema-fields";
 
 const teamPermissionSchema = yupObject({
   id: yupString().required(),
 }).required();
 
 const oauthProviderSchema = yupObject({
-  id: yupString().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).required(),
-  enabled: yupBoolean().required(),
-  type: yupString().oneOf(['shared', 'standard']).required(),
-  client_id: yupRequiredWhen(yupString(), 'type', 'standard'),
-  client_secret: yupRequiredWhen(yupString(), 'type', 'standard'),
+  id: schemaFields.oauthIdSchema.required(),
+  enabled: schemaFields.oauthEnabledSchema.required(),
+  type: schemaFields.oauthTypeSchema.required(),
+  client_id: yupRequiredWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
+  client_secret: yupRequiredWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
 });
 
 const emailConfigSchema = yupObject({
-  type: yupString().oneOf(['shared', 'standard']).required(),
-  sender_name: yupRequiredWhen(yupString(), 'type', 'standard'),
-  host: yupRequiredWhen(yupString(), 'type', 'standard'),
-  port: yupRequiredWhen(yupNumber(), 'type', 'standard'),
-  username: yupRequiredWhen(yupString(), 'type', 'standard'),
-  password: yupRequiredWhen(yupString(), 'type', 'standard'),
-  sender_email: yupRequiredWhen(yupString().email(), 'type', 'standard'),
+  type: schemaFields.emailTypeSchema.required(),
+  host: yupRequiredWhen(schemaFields.emailHostSchema, 'type', 'standard'),
+  port: yupRequiredWhen(schemaFields.emailPortSchema, 'type', 'standard'),
+  username: yupRequiredWhen(schemaFields.emailUsernameSchema, 'type', 'standard'),
+  password: yupRequiredWhen(schemaFields.emailPasswordSchema, 'type', 'standard'),
+  sender_name: yupRequiredWhen(schemaFields.emailSenderNameSchema, 'type', 'standard'),
+  sender_email: yupRequiredWhen(schemaFields.emailSenderEmailSchema, 'type', 'standard'),
 });
 
 const domainSchema = yupObject({
-  domain: yupString().required(),
-  handler_path: yupString().required(),
+  domain: schemaFields.domainSchema.required(),
+  handler_path: schemaFields.handlerPathSchema.required(),
 });
 
 export const projectsCrudAdminReadSchema = yupObject({
-  id: yupString().required(),
-  display_name: yupString().required(),
-  description: yupString().optional(),
-  created_at_millis: yupNumber().required(),
-  user_count: yupNumber().required(),
-  is_production_mode: yupBoolean().required(),
+  id: schemaFields.projectIdSchema.required(),
+  display_name: schemaFields.projectDisplayNameSchema.required(),
+  description: schemaFields.projectDescriptionSchema.optional(),
+  created_at_millis: schemaFields.projectCreatedAtMillisSchema.required(),
+  user_count: schemaFields.projectUserCountSchema.required(),
+  is_production_mode: schemaFields.projectIsProductionModeSchema.required(),
   config: yupObject({
-    id: yupString().required(),
-    allow_localhost: yupBoolean().required(),
-    credential_enabled: yupBoolean().required(),
-    magic_link_enabled: yupBoolean().required(),
+    id: schemaFields.projectConfigIdSchema.required(),
+    allow_localhost: schemaFields.projectAllowLocalhostSchema.required(),
+    credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
+    magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
     domains: yupArray(domainSchema.required()).required(),
     email_config: emailConfigSchema.required(),
@@ -49,27 +50,27 @@ export const projectsCrudAdminReadSchema = yupObject({
 }).required();
 
 export const projectsCrudClientReadSchema = yupObject({
-  id: yupString().required(),
-  display_name: yupString().required(),
+  id: schemaFields.projectIdSchema.required(),
+  display_name: schemaFields.projectDisplayNameSchema.required(),
   config: yupObject({
-    credential_enabled: yupBoolean().required(),
-    magic_link_enabled: yupBoolean().required(),
+    credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
+    magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     oauth_providers: yupArray(yupObject({
-      id: yupString().required(),
+      id: schemaFields.oauthIdSchema.required(),
     }).required()).required(),
   }).required(),
 }).required();
 
 
 export const projectsCrudAdminUpdateSchema = yupObject({
-  display_name: yupString().optional(),
-  description: yupString().optional(),
-  is_production_mode: yupBoolean().optional(),
+  display_name: schemaFields.projectDisplayNameSchema.optional(),
+  description: schemaFields.projectDescriptionSchema.optional(),
+  is_production_mode: schemaFields.projectIsProductionModeSchema.optional(),
   config: yupObject({
-    credential_enabled: yupBoolean().optional(),
-    magic_link_enabled: yupBoolean().optional(),
-    allow_localhost: yupBoolean().optional(),
-    create_team_on_sign_up: yupBoolean().optional(),
+    credential_enabled: schemaFields.projectCredentialEnabledSchema.optional(),
+    magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.optional(),
+    allow_localhost: schemaFields.projectAllowLocalhostSchema.optional(),
+    create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.optional(),
     email_config: emailConfigSchema.optional().default(undefined),
     domains: yupArray(domainSchema.required()).optional().default(undefined),
     oauth_providers: yupArray(oauthProviderSchema.required()).optional().default(undefined),
@@ -79,7 +80,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
 }).required();
 
 export const projectsCrudAdminCreateSchema = projectsCrudAdminUpdateSchema.concat(yupObject({
-  display_name: yupString().required(),
+  display_name: schemaFields.projectDisplayNameSchema.required(),
 }).required());
 
 export const projectsCrud = createCrud({
@@ -87,11 +88,20 @@ export const projectsCrud = createCrud({
   adminReadSchema: projectsCrudAdminReadSchema,
   adminUpdateSchema: projectsCrudAdminUpdateSchema,
   docs: {
+    clientRead: {
+      summary: 'Get the current project',
+      description: 'Get the current project information including display name, oauth providers and authentication methods. Useful for display the available login options to the user.',
+      tags: ['Projects'],
+    },
     adminRead: {
-      hidden: true,
+      summary: 'Get the current project',
+      description: 'Get the current project information and configuration including display name, oauth providers, email configuration, etc.',
+      tags: ['Projects'],
     },
     adminUpdate: {
-      hidden: true,
+      summary: 'Update the current project',
+      description: 'Update the current project information and configuration including display name, oauth providers, email configuration, etc.',
+      tags: ['Projects'],
     },
   },
 });
@@ -101,7 +111,7 @@ export const internalProjectsCrud = createCrud({
   clientReadSchema: projectsCrudAdminReadSchema,
   clientCreateSchema: projectsCrudAdminCreateSchema,
   docs: {
-    clientRead: {
+    clientList: {
       hidden: true,
     },
     clientCreate: {

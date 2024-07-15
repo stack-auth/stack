@@ -98,10 +98,35 @@ export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin'
 export const adminAuthTypeSchema = yupString().oneOf(['admin']);
 
 // Projects
-export const projectIdSchema = yupString().meta({ openapiField: { description: 'Project ID as retrieved on Stack\'s dashboard', exampleValue: 'project-id' } });
-export const projectDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('project'), exampleValue: 'Stack Dashboard' } });
-export const projectCredentialEnabledConfigSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
-export const magicLinkEnabledConfigSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
+export const projectIdSchema = yupString().meta({ openapiField: { description: 'Project ID, unique identifier of a project created on the dashboard', exampleValue: 'project-id' } });
+export const projectDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('project'), exampleValue: 'MyMusic' } });
+export const projectDescriptionSchema = yupString().nullable().meta({ openapiField: { description: 'A human readable description of the project', exampleValue: 'A music streaming service' } });
+export const projectCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('project'), exampleValue: 1630000000000 } });
+export const projectUserCountSchema = yupNumber().meta({ openapiField: { description: 'The number of users in this project', exampleValue: 10 } });
+export const projectIsProductionModeSchema = yupBoolean().meta({ openapiField: { description: 'Whether the project is in production mode', exampleValue: true } });
+// Project config
+export const projectConfigIdSchema = yupString().meta({ openapiField: { description: 'The ID of the project config', exampleValue: 'project-config-id' } });
+export const projectAllowLocalhostSchema = yupBoolean().meta({ openapiField: { description: 'Whether localhost is allowed as a domain for this project. Should only be allowed in development mode', exampleValue: true } });
+export const projectCreateTeamOnSignUpSchema = yupBoolean().meta({ openapiField: { description: 'Whether a team should be created for each user that signs up', exampleValue: true } });
+export const projectMagicLinkEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
+export const projectCredentialEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
+// Project OAuth config
+export const oauthIdSchema = yupString().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).meta({ openapiField: { description: 'OAuth provider ID, one of google, github, facebook, microsoft, spotify', exampleValue: 'google' } });
+export const oauthEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether the OAuth provider is enabled. If an provider is first enabled, then disabled, it will be shown in the list but with enabled=false', exampleValue: true } });
+export const oauthTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'OAuth provider type, one of shared, standard. "shared" uses Stack shared OAuth keys and it is only meant for development. "standard" uses your own OAuth keys and will show your logo and company name when signing in with the provider.', exampleValue: 'standard' } });
+export const oauthClientIdSchema = yupString().meta({ openapiField: { description: 'OAuth client ID. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-id' } });
+export const oauthClientSecretSchema = yupString().meta({ openapiField: { description: 'OAuth client secret. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-secret' } });
+// Project email config
+export const emailTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'Email provider type, one of shared, standard. "shared" uses Stack shared email provider and it is only meant for development. "standard" uses your own email server and will have your email address as the sender.', exampleValue: 'standard' } });
+export const emailSenderNameSchema = yupString().meta({ openapiField: { description: 'Email sender name. Needs to be specified when using type="standard"', exampleValue: 'Stack' } });
+export const emailHostSchema = yupString().meta({ openapiField: { description: 'Email host. Needs to be specified when using type="standard"', exampleValue: 'smtp.your-domain.com' } });
+export const emailPortSchema = yupNumber().meta({ openapiField: { description: 'Email port. Needs to be specified when using type="standard"', exampleValue: 587 } });
+export const emailUsernameSchema = yupString().meta({ openapiField: { description: 'Email username. Needs to be specified when using type="standard"', exampleValue: 'smtp-email' } });
+export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
+export const emailPasswordSchema = yupString().meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
+// Project domain config
+export const domainSchema = yupString().test('is-https', 'Domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'example.com' } });
+export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
 
 // Users
 export const userIdRequestSchema = yupString().uuid().meta({ openapiField: { description: 'The ID of the user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
@@ -168,7 +193,7 @@ export const teamIdSchema = yupString().uuid().meta({ openapiField: { descriptio
 export const teamDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team'), exampleValue: 'My Team' } });
 export const teamClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('team'), exampleValue: { key: 'value' } } });
 export const teamServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('team'), exampleValue: { key: 'value' } } });
-export const createdAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('team'), exampleValue: 1630000000000 } });
+export const teamCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('team'), exampleValue: 1630000000000 } });
 
 // Utils
 export function yupRequiredWhen<S extends yup.AnyObject>(
