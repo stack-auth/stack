@@ -25,6 +25,11 @@ export const teamPermissionsCrud = createCrud({
       description: "user_id=me needs to be set",
       tags: ["Permissions"],
     },
+    serverList: {
+      summary: "List team permissions of a user",
+      description: "Query and filter the permission with team_id, user_id, and permission_id",
+      tags: ["Permissions"],
+    },
     serverCreate: {
       summary: "Grant a team permission to a user",
       description: "Grant a team permission to a user (the team permission must be created first on the Stack dashboard)",
@@ -67,6 +72,26 @@ export const teamPermissionDefinitionsCrud = createCrud({
   serverUpdateSchema: teamPermissionDefinitionsCrudServerUpdateSchema,
   serverDeleteSchema: teamPermissionDefinitionsCrudServerDeleteSchema,
   docs: {
+    serverList: {
+      summary: "List team permission definitions",
+      description: "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
+      tags: ["Permissions"],
+    },
+    serverCreate: {
+      summary: "Create a new team permission definition",
+      description: "Create a new permission definition (the equivalent of creating a new permission on the Stack dashboard)",
+      tags: ["Permissions"],
+    },
+    serverUpdate: {
+      summary: "Update a team permission definition",
+      description: "Update a permission definition (the equivalent of updating a permission on the Stack dashboard)",
+      tags: ["Permissions"],
+    },
+    serverDelete: {
+      summary: "Delete a team permission definition",
+      description: "Delete a permission definition (the equivalent of deleting a permission on the Stack dashboard)",
+      tags: ["Permissions"],
+    },
   },
 });
 
