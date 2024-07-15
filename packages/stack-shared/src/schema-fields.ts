@@ -1,5 +1,6 @@
 import * as yup from "yup";
 
+const _idDescription = (identify: string) => `The immutable ID used to uniquely identify this ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name, used in places like frontend UI. This is not a unique identifier.`;
 const _clientMetaDataDescription = (identify: string) => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
 const _serverMetaDataDescription = (identify: string) => `Server metadata. Used as a data store, only accessible from the server side. You can store secret information related to the ${identify} here.`;
@@ -98,14 +99,14 @@ export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin'
 export const adminAuthTypeSchema = yupString().oneOf(['admin']);
 
 // Projects
-export const projectIdSchema = yupString().meta({ openapiField: { description: 'Project ID, unique identifier of a project created on the dashboard', exampleValue: 'project-id' } });
+export const projectIdSchema = yupString().meta({ openapiField: { description: _idDescription('project'), exampleValue: 'e0b52f4d-dece-408c-af49-d23061bb0f8d' } });
 export const projectDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('project'), exampleValue: 'MyMusic' } });
 export const projectDescriptionSchema = yupString().nullable().meta({ openapiField: { description: 'A human readable description of the project', exampleValue: 'A music streaming service' } });
 export const projectCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('project'), exampleValue: 1630000000000 } });
 export const projectUserCountSchema = yupNumber().meta({ openapiField: { description: 'The number of users in this project', exampleValue: 10 } });
 export const projectIsProductionModeSchema = yupBoolean().meta({ openapiField: { description: 'Whether the project is in production mode', exampleValue: true } });
 // Project config
-export const projectConfigIdSchema = yupString().meta({ openapiField: { description: 'The ID of the project config', exampleValue: 'project-config-id' } });
+export const projectConfigIdSchema = yupString().meta({ openapiField: { description: _idDescription('project config'), exampleValue: 'd09201f0-54f5-40bd-89ff-6d1815ddad24' } });
 export const projectAllowLocalhostSchema = yupBoolean().meta({ openapiField: { description: 'Whether localhost is allowed as a domain for this project. Should only be allowed in development mode', exampleValue: true } });
 export const projectCreateTeamOnSignUpSchema = yupBoolean().meta({ openapiField: { description: 'Whether a team should be created for each user that signs up', exampleValue: true } });
 export const projectMagicLinkEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
@@ -129,21 +130,20 @@ export const domainSchema = yupString().test('is-https', 'Domain must start with
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
 
 // Users
-export const userIdRequestSchema = yupString().uuid().meta({ openapiField: { description: 'The ID of the user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export class ReplaceFieldWithOwnUserId extends Error {
   constructor(public readonly path: string) {
     super(`This error should be caught by whoever validated the schema, and the field in the path '${path}' should be replaced with the current user's id. This is a workaround to yup not providing access to the context inside the transform function.`);
   }
 }
 const userIdMeSentinelUuid = "cad564fd-f81b-43f4-b390-98abf3fcc17e";
-export const userIdOrMeRequestSchema = yupString().uuid().transform(v => {
+export const userIdOrMeSchema = yupString().uuid().transform(v => {
   if (v === "me") return userIdMeSentinelUuid;
   else return v;
 }).test((v, context) => {
   if (v === userIdMeSentinelUuid) throw new ReplaceFieldWithOwnUserId(context.path);
   return true;
 }).meta({ openapiField: { description: 'The ID of the user, or the special value `me` to signify the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
-export const userIdResponseSchema = yupString().uuid().meta({ openapiField: { description: 'The immutable user ID used to uniquely identify this user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
+export const userIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('user'), exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const primaryEmailSchema = emailSchema.meta({ openapiField: { description: 'Primary email', exampleValue: 'johndoe@example.com' } });
 export const primaryEmailVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the primary email has been verified to belong to this user', exampleValue: true } });
 export const userDisplayNameSchema = yupString().nullable().meta({ openapiField: { description: _displayNameDescription('user'), exampleValue: 'John Doe' } });
@@ -163,7 +163,7 @@ export const signInResponseSchema = yupObject({
   refresh_token: refreshTokenResponseSchema.required(),
   access_token: accessTokenResponseSchema.required(),
   is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).required(),
-  user_id: userIdResponseSchema.required(),
+  user_id: userIdSchema.required(),
 });
 
 // Permissions
@@ -183,13 +183,15 @@ export const teamPermissionIdSchema = yupString()
     }
     return true;
   })
-  .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission', exampleValue: 'read_secret_info' } });
+  .meta({ openapiField: { description: `The permission ID used to uniquely identify a permission. Can either be a custom permission with lowercase letters, numbers, ":", and "_" characters, or one of the system permissions: ${teamSystemPermissions.join(', ')}`, exampleValue: '$read_secret_info' } });
 export const customTeamPermissionIdSchema = yupString()
-  .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed');
-
+  .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed')
+  .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission. Can only contain lowercase letters, numbers, ":", and "_" characters', exampleValue: 'read_secret_info' } });
+export const teamPermissionDescriptionSchema = yupString().meta({ openapiField: { description: 'A human-readable description of the permission', exampleValue: 'Read secret information' } });
+export const containedPermissionIdsSchema = yupArray(teamPermissionIdSchema.required()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
 
 // Teams
-export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: 'The ID of the team', exampleValue: 'team-id' } });
+export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });
 export const teamDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team'), exampleValue: 'My Team' } });
 export const teamClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('team'), exampleValue: { key: 'value' } } });
 export const teamServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('team'), exampleValue: { key: 'value' } } });

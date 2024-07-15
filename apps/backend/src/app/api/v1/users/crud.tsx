@@ -6,7 +6,7 @@ import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
-import { userIdOrMeRequestSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
@@ -16,7 +16,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
     team_id: yupString().optional(),
   }),
   paramsSchema: yupObject({
-    userId: userIdOrMeRequestSchema.required(),
+    userId: userIdOrMeSchema.required(),
   }),
   baseFields: async ({ auth, params }) => {
     const projectId = auth.project.id;

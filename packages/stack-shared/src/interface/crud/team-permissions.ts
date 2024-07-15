@@ -1,12 +1,13 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { customTeamPermissionIdSchema, teamPermissionIdSchema, yupArray, yupMixed, yupObject, yupString } from "../../schema-fields";
+import * as schemaFields from "../../schema-fields";
+import { yupMixed, yupObject } from "../../schema-fields";
 
 // Team permissions
 
 export const teamPermissionsCrudClientReadSchema = yupObject({
-  id: yupString().required(),
-  user_id: yupString().required(),
-  team_id: yupString().required(),
+  id: schemaFields.teamPermissionIdSchema.required(),
+  user_id: schemaFields.userIdSchema.required(),
+  team_id: schemaFields.teamIdSchema.required(),
 }).required();
 
 export const teamPermissionsCrudServerCreateSchema = yupObject({
@@ -19,6 +20,21 @@ export const teamPermissionsCrud = createCrud({
   serverCreateSchema: teamPermissionsCrudServerCreateSchema,
   serverDeleteSchema: teamPermissionsCrudServerDeleteSchema,
   docs: {
+    clientList: {
+      summary: "List team permissions of the current user",
+      description: "user_id=me needs to be set",
+      tags: ["Permissions"],
+    },
+    serverCreate: {
+      summary: "Grant a team permission to a user",
+      description: "Grant a team permission to a user (the team permission must be created first on the Stack dashboard)",
+      tags: ["Permissions"],
+    },
+    serverDelete: {
+      summary: "Revoke a team permission from a user",
+      description: "Revoke a team permission from a user",
+      tags: ["Permissions"],
+    },
   },
 });
 export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
@@ -26,22 +42,21 @@ export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 // Team permission definitions
 
 export const teamPermissionDefinitionsCrudServerReadSchema = yupObject({
-  id: teamPermissionIdSchema.required(),
-  __database_id: yupString().required(),
-  description: yupString().optional(),
-  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).required()
+  id: schemaFields.teamPermissionIdSchema.required(),
+  description: schemaFields.teamPermissionDescriptionSchema.optional(),
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerCreateSchema = yupObject({
-  id: customTeamPermissionIdSchema.required(),
-  description: yupString().optional(),
-  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).optional()
+  id: schemaFields.customTeamPermissionIdSchema.required(),
+  description: schemaFields.teamPermissionDescriptionSchema.optional(),
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerUpdateSchema = yupObject({
-  id: customTeamPermissionIdSchema.required(),
-  description: yupString().optional(),
-  contained_permission_ids: yupArray(teamPermissionIdSchema.required()).optional()
+  id: schemaFields.customTeamPermissionIdSchema.required(),
+  description: schemaFields.teamPermissionDescriptionSchema.optional(),
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
 }).required();
 
 export const teamPermissionDefinitionsCrudServerDeleteSchema = yupMixed();
