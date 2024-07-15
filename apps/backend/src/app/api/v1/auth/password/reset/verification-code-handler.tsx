@@ -11,6 +11,18 @@ import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
 export const resetPasswordVerificationCodeHandler = createVerificationCodeHandler({
+  metadata: {
+    post: {
+      summary: "Reset password with a code",
+      description: "Reset password with a code",
+      tags: ["Password"],
+    },
+    check: {
+      summary: "Check reset password code",
+      description: "Check if a reset password code is valid without using it",
+      tags: ["Password"],
+    },
+  },
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({
     user_id: yupString().required(),

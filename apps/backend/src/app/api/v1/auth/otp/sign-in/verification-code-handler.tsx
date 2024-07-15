@@ -12,7 +12,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
     post: {
       summary: "Sign in with a code",
-      description: "Sign in with a magic link",
+      description: "Sign in with a code",
       tags: ["OTP"],
     },
     check: {

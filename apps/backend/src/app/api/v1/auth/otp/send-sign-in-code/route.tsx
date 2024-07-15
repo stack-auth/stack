@@ -9,7 +9,7 @@ import { signInVerificationCodeHandler } from "../sign-in/verification-code-hand
 export const POST = createSmartRouteHandler({
   metadata: {
     summary: "Send sign-in code",
-    description: "Send a magic link to the user's email address for sign-in.",
+    description: "Send a code to the user's email address for sign-in.",
     tags: ["OTP"],
   },
   request: yupObject({

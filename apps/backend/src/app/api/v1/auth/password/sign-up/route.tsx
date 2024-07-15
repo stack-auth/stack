@@ -10,6 +10,11 @@ import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Sign up with email and password",
+    description: "Create a new account with email and password",
+    tags: ["Password"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

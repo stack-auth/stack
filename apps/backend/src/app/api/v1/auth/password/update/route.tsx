@@ -7,6 +7,11 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    summary: "Update password",
+    description: "Update the password of the current user, requires the old password",
+    tags: ["Password"],
+  },
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
