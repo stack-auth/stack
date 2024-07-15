@@ -250,7 +250,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
     user = await usersCrudHandlers.adminRead({
       project,
-      userId,
+      user_id: userId,
     });
   }
 

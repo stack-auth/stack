@@ -7,14 +7,14 @@ import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-field
 
 export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCrud, {
   paramsSchema: yupObject({
-    teamId: yupString().required(),
-    userId: yupString().required(),
+    team_id: yupString().required(),
+    user_id: yupString().required(),
   }),
   onCreate: async ({ auth, params }) => {
     await prismaClient.teamMember.create({
       data: {
-        projectUserId: params.userId,
-        teamId: params.teamId,
+        projectUserId: params.user_id,
+        teamId: params.team_id,
         projectId: auth.project.id,
         directPermissions: {
           create: auth.project.evaluatedConfig.teamMemberDefaultPermissions.map((p) => {
@@ -45,8 +45,8 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
       where: {
         projectId_projectUserId_teamId: {
           projectId: auth.project.id,
-          projectUserId: params.userId,
-          teamId: params.teamId,
+          projectUserId: params.user_id,
+          teamId: params.team_id,
         },
       },
     });

@@ -16,11 +16,11 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
     team_id: yupString().optional(),
   }),
   paramsSchema: yupObject({
-    userId: userIdOrMeSchema.required(),
+    user_id: userIdOrMeSchema.required(),
   }),
   baseFields: async ({ auth, params }) => {
     const projectId = auth.project.id;
-    const userId = params.userId;
+    const userId = params.user_id;
     return {
       projectId,
       projectUserId: userId,
@@ -40,7 +40,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
   },
   whereUnique: async ({ auth, params }) => {
     const projectId = auth.project.id;
-    const userId = params.userId;
+    const userId = params.user_id;
     return {
       projectId_projectUserId: {
         projectId,
@@ -142,20 +142,20 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
   async onRead({ auth }) {
     return await usersCrudHandlers.adminRead({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
     });
   },
   async onUpdate({ auth, data }) {
     return await usersCrudHandlers.adminUpdate({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
     });
   },
   async onDelete({ auth }) {
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
-      userId: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
     });
   },
 }));

@@ -7,7 +7,7 @@ import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeySet", {
   paramsSchema: yupObject({
-    apiKeyId: yupString().required(),
+    api_key_id: yupString().required(),
   }),
   baseFields: async () => ({}),
   where: async ({ auth }) => {
@@ -19,7 +19,7 @@ export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeyS
     return {
       projectId_id: {
         projectId: auth.project.id,
-        id: params.apiKeyId
+        id: params.api_key_id,
       },
     };
   },
@@ -39,7 +39,7 @@ export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeyS
         where: {
           projectId_id: {
             projectId: auth.project.id,
-            id: params.apiKeyId ?? throwErr('params.apiKeyId is required for update')
+            id: params.api_key_id ?? throwErr('params.apiKeyId is required for update')
           },
         },
       });
