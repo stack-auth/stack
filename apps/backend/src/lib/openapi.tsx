@@ -17,7 +17,7 @@ export function parseOpenAPI(options: {
       version: '1.0.0',
     },
     servers: [{
-      url: 'https://app.stack-auth.com/api/v1',
+      url: 'https://api.stack-auth.com/api/v1',
       description: 'Stack REST API',
     }],
     paths: Object.fromEntries(
