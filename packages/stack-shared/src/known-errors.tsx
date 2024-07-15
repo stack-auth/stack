@@ -208,6 +208,7 @@ const InvalidProjectAuthentication = createKnownErrorConstructor(
   "inherit",
 );
 
+// TODO next-release: delete deprecated error type
 /**
  * @deprecated Use ProjectKeyWithoutAccessType instead
  */
@@ -216,11 +217,12 @@ const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
   "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
   () => [
     400,
-    "Either an API key or an admin access token was provided, but the x-stack-request-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
+    "Either an API key or an admin access token was provided, but the x-stack-access-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
   ] as const,
   () => [] as const,
 );
 
+// TODO next-release: delete deprecated error type
 /**
  * @deprecated Use InvalidAccessType instead
  */
@@ -229,13 +231,14 @@ const InvalidRequestType = createKnownErrorConstructor(
   "INVALID_REQUEST_TYPE",
   (requestType: string) => [
     400,
-    `The x-stack-request-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
+    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
   ] as const,
   (json) => [
     (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
   ] as const,
 );
 
+// TODO next-release: delete deprecated error type
 /**
  * @deprecated Use AccessTypeWithoutProjectId instead
  */
@@ -244,7 +247,7 @@ const RequestTypeWithoutProjectId = createKnownErrorConstructor(
   "REQUEST_TYPE_WITHOUT_PROJECT_ID",
   (requestType: "client" | "server" | "admin") => [
     400,
-    `The x-stack-request-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
+    `The x-stack-access-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
     {
       request_type: requestType,
     },
@@ -265,23 +268,23 @@ const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
 const InvalidAccessType = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "INVALID_ACCESS_TYPE",
-  (requestType: string) => [
+  (accessType: string) => [
     400,
-    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
+    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${accessType}'.`,
   ] as const,
   (json) => [
-    (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
+    (json.details as any)?.accessType ?? throwErr("accessType not found in InvalidAccessType details"),
   ] as const,
 );
 
 const AccessTypeWithoutProjectId = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "ACCESS_TYPE_WITHOUT_PROJECT_ID",
-  (requestType: "client" | "server" | "admin") => [
+  (accessType: "client" | "server" | "admin") => [
     400,
-    `The x-stack-access-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
+    `The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.`,
     {
-      request_type: requestType,
+      request_type: accessType,
     },
   ] as const,
   (json: any) => [json.request_type] as const,

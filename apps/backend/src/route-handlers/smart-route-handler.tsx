@@ -31,7 +31,7 @@ const commonErrors = [
 
 /**
  * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
- * (such as Next.js redirects) will be rethrown.
+ * (such as Next.js redirects) will be re-thrown.
  */
 function catchError(error: unknown): StatusError {
   // catch some Next.js non-errors and rethrow them
@@ -87,7 +87,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       try {
         statusError = catchError(e);
       } catch (e) {
-        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
         throw e;
       }
 

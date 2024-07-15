@@ -1,6 +1,4 @@
-import { unsubscribe } from "diagnostics_channel";
-import { StackAssertionError } from "./utils/errors";
-import { ReadonlyStore, Store } from "./utils/stores";
+import { Store } from "./utils/stores";
 
 export class AccessToken {
   constructor(
@@ -65,6 +63,10 @@ export class InternalSession {
     }
   }
 
+  isKnownToBeInvalid() {
+    return this._knownToBeInvalid.get();
+  }
+
   /**
    * Marks the session object as invalid, meaning that the refresh and access tokens can no longer be used.
    */
@@ -120,10 +122,10 @@ export class InternalSession {
    * @returns An access token (cached if possible), or null if the session either does not represent a user or the session is invalid.
    */
   private async _getPotentiallyExpiredAccessToken(): Promise<AccessToken | null> {
-    const oldAccessToken = this._accessToken.get();
-    if (oldAccessToken) return oldAccessToken;
     if (!this._refreshToken) return null;
     if (this._knownToBeInvalid.get()) return null;
+    const oldAccessToken = this._accessToken.get();
+    if (oldAccessToken) return oldAccessToken;
 
     // refresh access token
     if (!this._refreshPromise) {

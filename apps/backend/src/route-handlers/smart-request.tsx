@@ -171,7 +171,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
-    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutRequestType instead of guessing
+    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutAccessType instead of guessing
     if (adminAccessToken || superSecretAdminKey) {
       requestType = "admin";
     } else if (secretServerKey) {
@@ -181,8 +181,8 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     }
   }
   if (!requestType) return null;
-  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
-  if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
+  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
+  if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {

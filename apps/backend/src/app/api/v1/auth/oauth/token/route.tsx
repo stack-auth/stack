@@ -29,9 +29,11 @@ export const POST = createSmartRouteHandler({
     if (body.redirect_uri) {
       body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash
     }
-
     const oauthRequest = new OAuthRequest({
-      headers: fullReq.headers,
+      headers: {
+        ...fullReq.headers,
+        'content-type': fullReq.headers['content-type']?.map(v => v.split(';')[0]).join(';'), // the OAuth server library doesn't like the charset in the content-type header
+      },
       query: Object.fromEntries(new URL(fullReq.url).searchParams.entries()),
       method: "POST",
       body: body,

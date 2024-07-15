@@ -1,6 +1,6 @@
-import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
 import { InternalSession } from "../sessions";
+import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
+import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
 export type AdminAuthApplicationOptions = Readonly<
   ServerAuthApplicationOptions &
@@ -104,7 +104,7 @@ export class StackAdminInterface extends StackServerInterface {
 
   async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectJson> {
     const response = await this.sendAdminRequest(
-      "/projects/" + encodeURIComponent(this.projectId),
+      "/projects/current",
       {
         method: "POST",
         headers: {
@@ -119,7 +119,7 @@ export class StackAdminInterface extends StackServerInterface {
 
   async updateProject(update: ProjectUpdateOptions): Promise<ProjectJson> {
     const response = await this.sendAdminRequest(
-      "/projects/" + encodeURIComponent(this.projectId),
+      "/projects/current",
       {
         method: "PUT",
         headers: {

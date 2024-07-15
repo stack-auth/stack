@@ -1,6 +1,6 @@
+import { describe } from "vitest";
 import { it } from "../../../../helpers";
 import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
-import { describe } from "vitest";
 
 describe("without project ID", () => {
   backendContext.set({
@@ -43,12 +43,12 @@ describe("without project ID", () => {
       NiceResponse {
         "status": 400,
         "body": {
-          "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+          "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
           "details": { "request_type": "client" },
-          "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
+          "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.",
         },
         "headers": Headers {
-          "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+          "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
           <some fields may have been hidden>,
         },
       }

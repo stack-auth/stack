@@ -1,29 +1,28 @@
-import React, { use, useCallback, useMemo } from "react";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
-import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { Result } from "@stackframe/stack-shared/dist/utils/results";
-import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider, TeamCustomizableJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
-import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
-import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
-import { constructRedirectUrl } from "../utils/url";
-import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
-import { ReactPromise, neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
-import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
-import * as cookie from "cookie";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { ClientProjectJson, DomainConfigJson, EmailConfigJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, ProductionModeError, ProjectJson, StandardProvider, TeamCustomizableJson, TeamJson, TeamMemberJson, UserJson, UserUpdateJson, getProductionModeErrors } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
+import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
+import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
+import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
+import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
+import { Result } from "@stackframe/stack-shared/dist/utils/results";
+import { Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import * as cookie from "cookie";
+import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
+import React, { use, useCallback, useMemo } from "react";
+import { constructRedirectUrl } from "../utils/url";
+import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
+import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
 
 // TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
 type EmailTemplateType = any;
@@ -268,8 +267,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
       await wait(2000);
     }
-    const user = await this._interface.getClientUserByToken(session);
-    return Result.or(user, null);
+    return await this._interface.getClientUserByToken(session);
   });
   private readonly _currentProjectCache = createCache(async () => {
     return Result.orThrow(await this._interface.getClientProject());
@@ -1159,7 +1157,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _createProject(session: InternalSession, newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
     this._ensureInternalProject();
-    const json = await this._interface.createProject(newProject, session);
+    const json = await this._interface.listInternalProjects(newProject, session);
     const res = this._projectAdminFromJson(
       json,
       this._createAdminInterface(json.id, session),
@@ -1244,8 +1242,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   // TODO override the client user cache to use the server user cache, so we save some requests
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
-    const user = await this._interface.getServerUserByToken(session);
-    return Result.or(user, null);
+    return await this._interface.getServerUserByToken(session);
   });
   private readonly _serverUsersCache = createCache(async () => {
     return await this._interface.listServerUsers();
@@ -1365,7 +1362,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
       },
       createTeam: async (data: ServerTeamCustomizableJson) => {
-        const team =  await app._interface.createServerTeamForUser(json.id, data, app._getSession());
+        const team =  await app._interface.createServerTeam(json.id, data, app._getSession());
         await app._serverTeamsCache.refresh([]);
         return app._serverTeamFromJson(team);
       },
@@ -1406,7 +1403,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return res;
       },
       async update(update: ServerUserUpdateJson) {
-        const res = await app._interface.setServerUserCustomizableData(json.id, update);
+        const res = await app._interface.updateServerUser(json.id, update);
         await app._refreshUsers();
         return res;
       },

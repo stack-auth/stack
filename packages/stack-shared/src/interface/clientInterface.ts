@@ -1,14 +1,16 @@
 import * as oauth from 'oauth4webapi';
 
-import { Result } from "../utils/results";
-import { ReadonlyJson } from '../utils/json';
-import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError, captureError, throwErr } from '../utils/errors';
-import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
+import { KnownError, KnownErrors } from '../known-errors';
+import { AccessToken, InternalSession, RefreshToken } from '../sessions';
 import { generateSecureRandomString } from '../utils/crypto';
-import { AccessToken, RefreshToken, InternalSession } from '../sessions';
+import { StackAssertionError, captureError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
+import { ReadonlyJson } from '../utils/json';
+import { Result } from "../utils/results";
+import { CurrentUserCrud } from './crud/current-user';
+import { InternalProjectsCrud } from './crud/projects';
+import { TeamsCrud } from './crud/teams';
 
 type UserCustomizableJson = {
   displayName: string | null,
@@ -196,7 +198,7 @@ export class StackClientInterface {
     const as = {
       issuer: this.options.baseUrl,
       algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/token',
+      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };
     const client: oauth.Client = {
       client_id: this.projectId,
@@ -332,7 +334,7 @@ export class StackClientInterface {
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
-        "X-Stack-Request-Type": requestType,
+        "X-Stack-Access-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
         ...(tokenObj ? {
           "Authorization": "StackSession " + tokenObj.accessToken.token,
@@ -819,15 +821,24 @@ export class StackClientInterface {
     session.markInvalid();
   }
 
-  async getClientUserByToken(tokenStore: InternalSession): Promise<Result<UserJson>> {
-    const response = await this.sendClientRequest(
-      "/current-user",
+  async getClientUserByToken(session: InternalSession): Promise<CurrentUserCrud["Client"]["Read"] | null> {
+    const responseOrError = await this.sendClientRequestAndCatchKnownError(
+      "/users/me",
       {},
-      tokenStore,
+      session,
+      [KnownErrors.CannotGetOwnUserWithoutUser],
     );
-    const user: UserJson | null = await response.json();
-    if (!user) return Result.error(new Error("Failed to get user"));
-    return Result.ok(user);
+    if (responseOrError.status === "error") {
+      if (responseOrError.error instanceof KnownErrors.CannotGetOwnUserWithoutUser) {
+        return null;
+      } else {
+        throw new StackAssertionError("Unexpected uncaught error", { cause: responseOrError.error });
+      }
+    }
+    const response = responseOrError.data;
+    const user: CurrentUserCrud["Client"]["Read"] = await response.json();
+    if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
+    return user;
   }
 
   async listClientUserTeamPermissions(
@@ -858,7 +869,7 @@ export class StackClientInterface {
   }
 
   async getClientProject(): Promise<Result<ClientProjectJson>> {
-    const response = await this.sendClientRequest("/projects/" + this.options.projectId, {}, null);
+    const response = await this.sendClientRequest("/projects/current", {}, null);
     const project: ClientProjectJson | null = await response.json();
     if (!project) return Result.error(new Error("Failed to get project"));
     return Result.ok(project);
@@ -878,8 +889,8 @@ export class StackClientInterface {
     );
   }
 
-  async listProjects(session: InternalSession): Promise<ProjectJson[]> {
-    const response = await this.sendClientRequest("/projects", {}, session);
+  async listInternalProjects(session: InternalSession): Promise<InternalProjectsCrud['Client']['List']> {
+    const response = await this.sendClientRequest("/internal/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
     }
@@ -889,11 +900,11 @@ export class StackClientInterface {
   }
 
   async createProject(
-    project: ProjectUpdateOptions & { displayName: string },
+    project: InternalProjectsCrud['Client']['Create'],
     session: InternalSession,
-  ): Promise<ProjectJson> {
+  ): Promise<InternalProjectsCrud['Client']['Read']> {
     const fetchResponse = await this.sendClientRequest(
-      "/projects",
+      "/internal/projects",
       {
         method: "POST",
         headers: {
@@ -934,11 +945,11 @@ export class StackClientInterface {
   }
 
   async createTeamForCurrentUser(
-    data: TeamCustomizableJson,
+    data: TeamsCrud['Client']['Create'],
     session: InternalSession,
-  ): Promise<TeamJson> {
+  ): Promise<TeamsCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      "/current-user/teams?server=false",
+      "/teams",
       {
         method: "POST",
         headers: {
