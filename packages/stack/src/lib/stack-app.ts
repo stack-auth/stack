@@ -707,6 +707,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       authWithEmail: crud.auth_with_email,
       oauthProviders: crud.oauth_providers,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
+      toClientJson(): CurrentUserCrud['Client']['Read'] {
+        return crud;
+      }
     };
   }
 
@@ -1934,6 +1937,8 @@ export type User =
     getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
     useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
     useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
+
+    toClientJson(): CurrentUserCrud["Client"]["Read"],
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
@@ -1953,6 +1958,7 @@ type BaseUser = Pick<User,
   | "authWithEmail"
   | "oauthProviders"
   | "selectedTeam"
+  | "toClientJson"
 >;
 
 type UserExtra = Omit<User, keyof BaseUser>;
@@ -1961,7 +1967,7 @@ type InternalUserExtra =
   & {
     createProject(newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminProject>,
   }
-  & AsyncStoreProperty<"ownedProjects", [], AdminProject[], true>
+  & AsyncStoreProperty<"ownedProjects", [], AdminOwnedProject[], true>
 
 export type CurrentUser = Auth & User;
 
@@ -2421,10 +2427,10 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
   }
-  & StackClientApp<HasTokenStore, ProjectId>
   & AsyncStoreProperty<"users", [], ServerUser[], true>
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
+  & StackClientApp<HasTokenStore, ProjectId>
 );
 type StackServerAppConstructor = {
   new <
@@ -2437,12 +2443,12 @@ type StackServerAppConstructor = {
 export const StackServerApp: StackServerAppConstructor = _StackServerAppImpl;
 
 export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
-  & StackServerApp<HasTokenStore, ProjectId>
   & AsyncStoreProperty<"project", [], AdminProject, false>
   & AsyncStoreProperty<"apiKeys", [], ApiKey[], true>
   & {
     createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView>,
   }
+  & StackServerApp<HasTokenStore, ProjectId>
 );
 type StackAdminAppConstructor = {
   new <

@@ -17,7 +17,7 @@ import { Link as LinkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Project, UserButton, useUser } from "@stackframe/stack";
+import { AdminProject, UserButton, useUser } from "@stackframe/stack";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import {
@@ -288,7 +288,7 @@ function HeaderBreadcrumb({
     }));
   }, [pathname, projectId]);
 
-  const selectedProject: Project | undefined = useMemo(() => {
+  const selectedProject: AdminProject | undefined = useMemo(() => {
     return projects.find((project) => project.id === projectId);
   }, [projectId, projects]);
 

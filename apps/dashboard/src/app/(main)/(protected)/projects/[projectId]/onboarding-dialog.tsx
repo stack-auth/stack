@@ -1,19 +1,19 @@
 "use client";
 import { ActionDialog } from "@/components/action-dialog";
+import EnvKeys from "@/components/env-keys";
+import { StyledLink } from "@/components/link";
+import { InlineCode } from "@/components/ui/inline-code";
+import Typography from "@/components/ui/typography";
+import { ApiKeyFirstView } from "@stackframe/stack";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
-import EnvKeys from "@/components/env-keys";
-import { InlineCode } from "@/components/ui/inline-code";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ApiKeySetFirstView } from "@stackframe/stack";
-import Typography from "@/components/ui/typography";
-import { StyledLink } from "@/components/link";
 
 export function OnboardingDialog() {
   const stackAdminApp = useAdminApp();
-  const apiKeySets = stackAdminApp.useApiKeySets();
+  const apiKeySets = stackAdminApp.useApiKeys();
   const project = stackAdminApp.useProject();
-  const [apiKey, setApiKey] = useState<ApiKeySetFirstView | null>(null);
+  const [apiKey, setApiKey] = useState<ApiKeyFirstView | null>(null);
 
   useEffect(() => {
     runAsynchronously(async () => {
@@ -21,8 +21,8 @@ export function OnboardingDialog() {
         return;
       }
 
-      // uncancellable beyond this point
-      const apiKey = await stackAdminApp.createApiKeySet({
+      // un-cancellable beyond this point
+      const apiKey = await stackAdminApp.createApiKey({
         hasPublishableClientKey: true,
         hasSecretServerKey: true,
         hasSuperSecretAdminKey: false,

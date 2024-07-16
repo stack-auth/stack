@@ -30,5 +30,6 @@
       "editor.codeActionsOnSave": {
           "source.organizeImports": "explicit"
       }
-  }
+  },
+  "terminal.integrated.wordSeparators": " {}',\"`─‘’“”|"
 }

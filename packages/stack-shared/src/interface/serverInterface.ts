@@ -334,12 +334,12 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listEmailTemplates(): Promise<EmailTemplateCrud['Server']['Read'][]> {
+  async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
     const response = await this.sendServerRequest(`/email-templates`, {}, null);
     return await response.json();
   }
 
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<void> {
     await this.sendServerRequest(
       `/email-templates/${type}`,
       {

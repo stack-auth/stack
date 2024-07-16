@@ -1,3 +1,4 @@
+import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -51,3 +52,12 @@ export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateC
     };
   },
 });
+
+
+// export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, "emailTemplate", {
+//   paramsSchema: yupObject({
+//     type: yupString().oneOf(emailTemplateTypes).required(),
+//   }),
+//   onUpdate: async ({ crud }) => {
+
+// });

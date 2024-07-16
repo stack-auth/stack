@@ -5,16 +5,12 @@ export { default as StackHandler } from "./components-page/stack-handler";
 export { StackTheme } from './providers/theme-provider';
 export type {
   CurrentUser,
-  Project,
-  ServerUser as ServerUser,
-  ApiKeyFirstView as ApiKeySetFirstView,
-  ApiKey as ApiKeySet,
+  ServerUser,
+  ApiKeyFirstView,
+  ApiKey,
   ServerTeam,
-  Team as Team,
-  TeamMember,
-  ServerTeamMember,
-  ServerPermission as Permission,
-  ServerPermission,
+  Team,
+  AdminProject
 } from './lib/stack-app';
 
 export { SignIn } from "./components-page/sign-in";

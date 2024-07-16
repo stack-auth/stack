@@ -9,9 +9,9 @@ import { SearchToolbarItem } from "./elements/toolbar-items";
 import { SmartFormDialog } from "../form-dialog";
 import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
-import { PermissionDefinitionJson } from "@/temporary-types";
 import { PermissionListField } from "../permission-field";
 import { SimpleTooltip } from "../simple-tooltip";
+import { ServerTeamPermissionDefinition } from "../../../../../packages/stack/dist/lib/stack-app";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -27,7 +27,7 @@ function EditDialog(props: {
   selectedPermissionId: string,
 }) {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissionDefinitions();
+  const permissions = stackAdminApp.useTeamPermissionDefinitions();
   const currentPermission = permissions.find((p) => p.id === props.selectedPermissionId);
   if (!currentPermission) {
     return null;
@@ -59,14 +59,14 @@ function EditDialog(props: {
     formSchema={formSchema}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
-      await stackAdminApp.updatePermissionDefinition(props.selectedPermissionId, values);
+      await stackAdminApp.updateTeamPermissionDefinition(props.selectedPermissionId, values);
     }}
     cancelButton
   />;
 }
 
 function DeleteDialog(props: {
-  permission: PermissionDefinitionJson,
+  permission: ServerTeamPermissionDefinition,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
@@ -77,14 +77,14 @@ function DeleteDialog(props: {
     title="Delete Permission"
     danger
     cancelButton
-    okButton={{ label: "Delete Permission", onClick: async () => { await stackApp.deletePermissionDefinition(props.permission.id); } }}
+    okButton={{ label: "Delete Permission", onClick: async () => { await stackApp.deleteTeamPermissionDefinition(props.permission.id); } }}
     confirmText="I understand this will remove the permission from all users and other permissions that contain it."
   >
     {`Are you sure you want to delete the permission "${props.permission.id}"?`}
   </ActionDialog>;
 }
 
-function Actions({ row, invisible }: { row: Row<PermissionDefinitionJson>, invisible: boolean }) {
+function Actions({ row, invisible }: { row: Row<ServerTeamPermissionDefinition>, invisible: boolean }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -108,7 +108,7 @@ function Actions({ row, invisible }: { row: Row<PermissionDefinitionJson>, invis
   );
 }
 
-const columns: ColumnDef<PermissionDefinitionJson>[] =  [
+const columns: ColumnDef<ServerTeamPermissionDefinition>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
@@ -143,6 +143,6 @@ const columns: ColumnDef<PermissionDefinitionJson>[] =  [
   },
 ];
 
-export function TeamPermissionTable(props: { permissions: PermissionDefinitionJson[] }) {
+export function TeamPermissionTable(props: { permissions: ServerTeamPermissionDefinition[] }) {
   return <DataTable data={props.permissions} columns={columns} toolbarRender={toolbarRender} />;
 }

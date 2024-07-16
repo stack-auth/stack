@@ -17,7 +17,7 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   const pathname = usePathname();
   const { setNeedConfirm } = useRouterConfirm();
   const { toast } = useToast();
-  const project = app.useProjectAdmin();
+  const project = app.useProject();
 
   if (!template) {
     // this should not happen, the outer server component should handle this
