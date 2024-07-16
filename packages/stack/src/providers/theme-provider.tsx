@@ -79,9 +79,11 @@ function convertColorsToCSS(theme: Theme) {
 export function StackTheme({
   theme,
   children,
+  nonce,
 } : {
   theme?: ThemeConfig,
   children?: React.ReactNode,
+  nonce?: string,
 }) {
   const themeValue: Theme = {
     ...DEFAULT_THEME,
@@ -92,8 +94,14 @@ export function StackTheme({
 
   return (
     <StyledComponentsRegistry>
-      <BrowserScript />
-      <style dangerouslySetInnerHTML={{ __html: globalCSS + '\n' + convertColorsToCSS(themeValue) }} />
+      <BrowserScript nonce={nonce} />
+      <style
+        suppressHydrationWarning
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: globalCSS + "\n" + convertColorsToCSS(themeValue),
+        }}
+      />
       {children}
     </StyledComponentsRegistry>
   );
