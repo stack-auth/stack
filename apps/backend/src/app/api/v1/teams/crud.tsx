@@ -11,6 +11,7 @@ function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   return {
     id: prisma.teamId,
     display_name: prisma.displayName,
+    profile_image_url: prisma.profileImageUrl,
     created_at_millis: prisma.createdAt.getTime(),
   };
 }
@@ -96,6 +97,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
       },
       data: {
         displayName: data.display_name,
+        profileImageUrl: data.profile_image_url,
       },
     });
 

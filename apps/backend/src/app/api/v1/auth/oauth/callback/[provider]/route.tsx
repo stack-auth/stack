@@ -251,7 +251,7 @@ export const GET = createSmartRouteHandler({
                   primary_email_verified: false, // TODO: check if email is verified with the provider
                   primary_email_auth_enabled: false,
                   oauth_providers: [{
-                    provider_id: provider.id,
+                    id: provider.id,
                     account_id: userInfo.accountId,
                     email: userInfo.email,
                   }],

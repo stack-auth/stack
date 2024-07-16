@@ -1,18 +1,33 @@
 import { InternalSession } from "../sessions";
-import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
+import { ApiKeysCrud } from "./crud/api-keys";
+import { ProjectsCrud } from "./crud/projects";
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
-export type AdminAuthApplicationOptions = Readonly<
-  ServerAuthApplicationOptions &
-  (
-    | {
-      superSecretAdminKey: string,
-    }
-    | {
-      projectOwnerSession: InternalSession,
-    }
-  )
->
+export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
+  | {
+    superSecretAdminKey: string,
+  }
+  | {
+    projectOwnerSession: InternalSession,
+  }
+);
+
+export type ApiKeySetCreateOptions = {
+  has_publishable_client_key: boolean,
+  has_secret_server_key: boolean,
+  has_super_secret_admin_key: boolean,
+  expires_at: Date,
+  description: string,
+};
+
+export type ApiKeySetFirstViewJson = ApiKeysCrud["Admin"]["Read"] & {
+  publishable_client_key?: string,
+  secret_server_key?: string,
+  super_secret_admin_key?: string,
+};
+
+// TODO next-release: remove comment
+/*
 
 export type OAuthProviderUpdateOptions = {
   id: string,
@@ -48,20 +63,6 @@ export type ProjectUpdateOptions = {
   },
 };
 
-export type ApiKeySetBaseJson = {
-  id: string,
-  description: string,
-  expiresAtMillis: number,
-  manuallyRevokedAtMillis: number | null,
-  createdAtMillis: number,
-};
-
-export type ApiKeySetFirstViewJson = ApiKeySetBaseJson & {
-  publishableClientKey?: string,
-  secretServerKey?: string,
-  superSecretAdminKey?: string,
-};
-
 export type ApiKeySetJson = ApiKeySetBaseJson & {
   publishableClientKey: null | {
     lastFour: string,
@@ -73,14 +74,7 @@ export type ApiKeySetJson = ApiKeySetBaseJson & {
     lastFour: string,
   },
 };
-
-export type ApiKeySetCreateOptions = {
-  hasPublishableClientKey: boolean,
-  hasSecretServerKey: boolean,
-  hasSuperSecretAdminKey: boolean,
-  expiresAt: Date,
-  description: string,
-};
+*/
 
 export class StackAdminInterface extends StackServerInterface {
   constructor(public readonly options: AdminAuthApplicationOptions) {
@@ -102,7 +96,7 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectJson> {
+  async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
       "/projects/current",
       {
@@ -117,7 +111,7 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async updateProject(update: ProjectUpdateOptions): Promise<ProjectJson> {
+  async updateProject(update: ProjectsCrud["Admin"]["Update"]): Promise<ProjectsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
       "/projects/current",
       {
@@ -149,10 +143,9 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async listApiKeySets(): Promise<ApiKeySetJson[]> {
+  async listApiKeySets(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
     const response = await this.sendAdminRequest("/api-keys", {}, null);
-    const json = await response.json();
-    return json.map((k: ApiKeySetJson) => k);
+    return await response.json();
   }
 
   async revokeApiKeySetById(id: string) {
@@ -170,7 +163,7 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getApiKeySet(id: string, session: InternalSession): Promise<ApiKeySetJson> {
+  async getApiKeySet(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
     return await response.json();
   }

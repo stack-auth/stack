@@ -1,5 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as fieldSchema from "../../schema-fields";
+import { teamsCrudServerReadSchema } from "./teams";
 
 export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   display_name: fieldSchema.userDisplayNameSchema.optional(),
@@ -19,15 +20,14 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.required(),
   display_name: fieldSchema.userDisplayNameSchema.nullable().defined(),
-  // TODO give this one the type of an actual team
-  selected_team: fieldSchema.yupMixed().nullable().defined(),
+  selected_team: teamsCrudServerReadSchema.nullable().defined(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().defined(),
   profile_image_url: fieldSchema.profileImageUrlSchema.nullable().defined(),
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
   has_password: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
   auth_with_email: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
-    provider_id: fieldSchema.yupString().required(),
+    id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable(),
   }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
@@ -37,7 +37,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
 
 export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(fieldSchema.yupObject({
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
-    provider_id: fieldSchema.yupString().required(),
+    id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable().defined().default(null),
   }).required()).optional(),

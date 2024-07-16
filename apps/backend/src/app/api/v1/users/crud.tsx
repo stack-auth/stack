@@ -84,7 +84,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
             connect: {
               projectConfigId_id: {
                 projectConfigId: auth.project.evaluatedConfig.id,
-                id: provider.provider_id,
+                id: provider.id,
                 email: provider.email,
               }
             }
@@ -113,7 +113,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       has_password: !!prisma.passwordHash,
       auth_with_email: prisma.authWithEmail,
       oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
-        provider_id: a.oauthProviderConfigId,
+        id: a.oauthProviderConfigId,
         account_id: a.providerAccountId,
         email: a.email,
       })),

@@ -240,30 +240,29 @@ function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
   } else if (errors.length === 1) {
     return [errors[0]];
   } else if (errors.length === 2) {
-    const [a, b] = errors;
+    for (const [a, b] of [errors, [...errors].reverse()]) {
+      // Merge errors with the same JSON
+      if (JSON.stringify(a.toDescriptiveJson()) === JSON.stringify(b.toDescriptiveJson())) {
+        return [a];
+      }
 
-    // Merge errors with the same JSON
-    if (JSON.stringify(a.toDescriptiveJson()) === JSON.stringify(b.toDescriptiveJson())) {
-      return [a];
+      // Merge "InsufficientAccessType" errors
+      if (
+        a instanceof KnownErrors.InsufficientAccessType
+        && b instanceof KnownErrors.InsufficientAccessType
+        && a.constructorArgs[0] === b.constructorArgs[0]
+      ) {
+        return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
+      }
+
+      // Merge priority
+      const aPriority = mergeErrorPriority.indexOf(a.constructor as any);
+      const bPriority = mergeErrorPriority.indexOf(b.constructor as any);
+      if (aPriority < bPriority) {
+        return [a];
+      }
     }
-
-    // Merge "InsufficientAccessType" errors
-    if (
-      a instanceof KnownErrors.InsufficientAccessType
-      && b instanceof KnownErrors.InsufficientAccessType
-      && a.constructorArgs[0] === b.constructorArgs[0]
-    ) {
-      return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
-    }
-
-    // Merge priority
-    const aPriority = mergeErrorPriority.indexOf(a.constructor as any);
-    const bPriority = mergeErrorPriority.indexOf(b.constructor as any);
-    if (aPriority < bPriority) {
-      return [a];
-    }
-
-    return [a, b];
+    return errors;
   } else {
     // brute-force all combinations recursively
     let fewestErrors: StatusError[] = errors;

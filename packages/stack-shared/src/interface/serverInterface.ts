@@ -1,17 +1,10 @@
 import { KnownErrors } from "../known-errors";
 import { AccessToken, InternalSession, RefreshToken } from "../sessions";
 import { StackAssertionError } from "../utils/errors";
-import { ReadonlyJson } from "../utils/json";
 import { Result } from "../utils/results";
 import {
   ClientInterfaceOptions,
-  OrglikeJson,
-  PermissionDefinitionJson,
-  PermissionDefinitionScopeJson,
-  StackClientInterface,
-  TeamMemberJson,
-  UserJson,
-  UserUpdateJson,
+  StackClientInterface
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
@@ -20,16 +13,12 @@ import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "./crud/team-
 import { TeamsCrud } from "./crud/teams";
 import { UsersCrud } from "./crud/users";
 
-export type ServerUserJson = UserJson & {
-  serverMetadata: ReadonlyJson,
-};
+export type ServerUserJson = UsersCrud["Server"]["Read"];
 
-export type ServerUserUpdateJson = UserUpdateJson & {
-  serverMetadata?: ReadonlyJson,
-  primaryEmail?: string | null,
-  primaryEmailVerified?: boolean,
-}
+export type ServerUserUpdateJson = UsersCrud["Server"]["Update"];
 
+// TODO next-release: remove comment
+/*
 export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
 export type ServerOrglikeJson = OrglikeJson & {};
 
@@ -51,6 +40,7 @@ export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPe
   readonly __databaseUniqueId: string,
   readonly scope: PermissionDefinitionScopeJson,
 };
+*/
 
 export type ServerAuthApplicationOptions = (
   & ClientInterfaceOptions
@@ -147,7 +137,7 @@ export class StackServerInterface extends StackClientInterface {
       recursive: boolean,
     },
     session: InternalSession
-  ): Promise<TeamPermissionsCrud['Server']['List']> {
+  ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       `/team-permissions?team_id=${options.teamId}&user_id=me&recursive=${options.recursive}`,
       {},
@@ -156,7 +146,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async listServerUserTeams(session: InternalSession): Promise<TeamsCrud['Server']['List']> {
+  async listServerUserTeams(session: InternalSession): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       "/teams?user_id=me",
       {},
@@ -165,7 +155,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Server']['List']> {
+  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/team-permission-definitions`, {}, null);
     return await response.json();
   }
@@ -208,17 +198,17 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listServerUsers(): Promise<UsersCrud['Server']['List']> {
+  async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest("/users", {}, null);
     return await response.json();
   }
 
-  async listServerTeams(): Promise<TeamsCrud['Server']['List']> {
+  async listServerTeams(): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest("/teams", {}, null);
     return await response.json();
   }
 
-  async listServerTeamMembers(teamId: string): Promise<TeamMembershipsCrud['Server']['List']> {
+  async listServerTeamMembers(teamId: string): Promise<TeamMembershipsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/team-memberships?team_id=${teamId}`, {}, null);
     return await response.json();
   }
@@ -317,7 +307,7 @@ export class StackServerInterface extends StackClientInterface {
       userId: string,
       recursive: boolean,
     }
-  ): Promise<TeamPermissionsCrud['Server']['List']> {
+  ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       `/team-permissions?team_id=${options.teamId}&user_id=${options.userId}&recursive=${options.recursive}`,
       {},
@@ -368,7 +358,7 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listEmailTemplates(): Promise<EmailTemplateCrud['Server']['List']> {
+  async listEmailTemplates(): Promise<EmailTemplateCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/email-templates`, {}, null);
     return await response.json();
   }

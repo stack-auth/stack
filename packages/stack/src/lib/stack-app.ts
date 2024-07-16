@@ -1,9 +1,11 @@
 import { isReactServer } from "@stackframe/stack-sc";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
-import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { ClientProjectJson, DomainConfigJson, EmailConfigJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, ProductionModeError, ProjectJson, StandardProvider, TeamCustomizableJson, TeamJson, TeamMemberJson, UserJson, UserUpdateJson, getProductionModeErrors } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface, getProductionModeErrors } from "@stackframe/stack-shared";
+import { ApiKeySetCreateOptions, ApiKeySetFirstViewJson } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { SharedProvider, StandardProvider, UserJson, UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
+import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
@@ -27,6 +29,177 @@ import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
 // TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
 type EmailTemplateType = any;
 type ListEmailTemplatesCrud = Record<any, Record<any, any[]>>;
+
+export type ApiKeySetBaseJson = {
+  id: string,
+  description: string,
+  expiresAtMillis: number,
+  manuallyRevokedAtMillis: number | null,
+  createdAtMillis: number,
+};
+
+export type OAuthProviderUpdateOptions = {
+  id: string,
+  enabled: boolean,
+} & (
+  | {
+    type: SharedProvider,
+  }
+  | {
+    type: StandardProvider,
+    clientId: string,
+    clientSecret: string,
+  }
+)
+
+export type ProjectUpdateOptions = {
+  displayName?: string,
+  description?: string,
+  isProductionMode?: boolean,
+  config?: {
+    domains?: {
+      domain: string,
+      handlerPath: string,
+    }[],
+    oauthProviders?: OAuthProviderUpdateOptions[],
+    credentialEnabled?: boolean,
+    magicLinkEnabled?: boolean,
+    allowLocalhost?: boolean,
+    createTeamOnSignUp?: boolean,
+    emailConfig?: EmailConfigJson,
+    teamCreatorDefaultPermissionIds?: string[],
+    teamMemberDefaultPermissionIds?: string[],
+  },
+};
+
+export type ApiKeySetJson = ApiKeySetBaseJson & {
+  publishableClientKey: null | {
+    lastFour: string,
+  },
+  secretServerKey: null | {
+    lastFour: string,
+  },
+  superSecretAdminKey: null | {
+    lastFour: string,
+  },
+};
+
+export type ClientProjectJson = {
+  id: string,
+  credentialEnabled: boolean,
+  magicLinkEnabled: boolean,
+  oauthProviders: {
+    id: string,
+    enabled: boolean,
+  }[],
+};
+
+export type ProjectJson = {
+  id: string,
+  displayName: string,
+  description?: string,
+  createdAtMillis: number,
+  userCount: number,
+  isProductionMode: boolean,
+  evaluatedConfig: {
+    id: string,
+    allowLocalhost: boolean,
+    credentialEnabled: boolean,
+    magicLinkEnabled: boolean,
+    oauthProviders: OAuthProviderConfigJson[],
+    emailConfig?: EmailConfigJson,
+    domains: DomainConfigJson[],
+    createTeamOnSignUp: boolean,
+    teamCreatorDefaultPermissions: PermissionDefinitionJson[],
+    teamMemberDefaultPermissions: PermissionDefinitionJson[],
+  },
+};
+
+export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
+export type ServerOrglikeJson = OrglikeJson & {};
+
+export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
+export type ServerTeamJson = ServerOrglikeJson;
+
+export type ServerTeamMemberJson = TeamMemberJson & {
+  user: ServerUserJson,
+};
+
+export type ServerPermissionDefinitionCustomizableJson = {
+  readonly id: string,
+  readonly description?: string,
+  readonly scope: PermissionDefinitionScopeJson,
+  readonly containPermissionIds: string[],
+};
+
+export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {
+  readonly __databaseUniqueId: string,
+  readonly scope: PermissionDefinitionScopeJson,
+};
+
+export type OAuthProviderConfigJson = {
+  id: string,
+  enabled: boolean,
+} & (
+  | { type: SharedProvider }
+  | {
+    type: StandardProvider,
+    clientId: string,
+    clientSecret: string,
+  }
+);
+
+export type EmailConfigJson = (
+  {
+    type: "standard",
+    senderName: string,
+    senderEmail: string,
+    host: string,
+    port: number,
+    username: string,
+    password: string,
+  }
+  | {
+    type: "shared",
+  }
+);
+
+export type DomainConfigJson = {
+  domain: string,
+  handlerPath: string,
+}
+
+
+export type OrglikeJson = {
+  id: string,
+  displayName: string,
+  profileImageUrl?: string,
+  createdAtMillis: number,
+};
+
+export type TeamJson = OrglikeJson;
+
+export type OrganizationJson = OrglikeJson;
+
+export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName" | "profileImageUrl">;
+export type TeamCustomizableJson = OrglikeCustomizableJson;
+
+export type TeamMemberJson = {
+  userId: string,
+  teamId: string,
+  displayName: string | null,
+}
+
+
+export type PermissionDefinitionScopeJson =
+  | { type: "global" }
+  | { type: "any-team" }
+  | { type: "specific-team", teamId: string };
+
+export type PermissionDefinitionJson = {
+  id: string,
+  scope: PermissionDefinitionScopeJson,
+};
 
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
@@ -273,7 +446,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return Result.orThrow(await this._interface.getClientProject());
   });
   private readonly _ownedProjectsCache = createCacheBySession(async (session) => {
-    return await this._interface.listProjects(session);
+    return await this._interface.listInternalProjects(session);
   });
   private readonly _currentUserPermissionsCache = createCacheBySession<
     [string, 'team' | 'global', boolean],
@@ -301,7 +474,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       const user = await this._currentUserCache.getOrWait([session], "write-only");
 
       let hasConnection = true;
-      if (!user || !user.oauthProviders.find((p) => p === connectionId)) {
+      if (!user || !user.oauth_providers.find((p) => p.id === connectionId)) {
         hasConnection = false;
       }
       const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
@@ -655,15 +828,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected _teamFromJson(json: TeamJson): Team {
+  protected _teamFromJson(json: TeamsCrud['Client']['Read']): Team {
     return {
       id: json.id,
-      displayName: json.displayName,
-      profileImageUrl: json.profileImageUrl,
-      createdAt: new Date(json.createdAtMillis),
-      toJson() {
-        return json;
-      },
+      displayName: json.display_name,
+      profileImageUrl: json.profile_image_url,
     };
   }
 
@@ -706,38 +875,20 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createBaseUser(json: UserJson): BaseUser {
+  protected _createBaseUser(json: CurrentUserCrud['Client']['Read']): BaseUser {
     return {
-      projectId: json.projectId,
+      projectId: json.project_id,
       id: json.id,
-      displayName: json.displayName,
-      primaryEmail: json.primaryEmail,
-      primaryEmailVerified: json.primaryEmailVerified,
-      profileImageUrl: json.profileImageUrl,
-      signedUpAt: new Date(json.signedUpAtMillis),
-      clientMetadata: json.clientMetadata,
-      hasPassword: json.hasPassword,
-      authWithEmail: json.authWithEmail,
-      oauthProviders: json.oauthProviders,
-      selectedTeam: json.selectedTeam && this._teamFromJson(json.selectedTeam),
-      toClientJson(): UserJson {
-        return pick(json, [
-          "projectId",
-          "id",
-          "displayName",
-          "primaryEmail",
-          "primaryEmailVerified",
-          "profileImageUrl",
-          "signedUpAtMillis",
-          "clientMetadata",
-          "hasPassword",
-          "authMethod",
-          "authWithEmail",
-          "selectedTeamId",
-          "selectedTeam",
-          "oauthProviders",
-        ]);
-      },
+      displayName: json.display_name,
+      primaryEmail: json.primary_email,
+      primaryEmailVerified: json.primary_email_verified,
+      profileImageUrl: json.profile_image_url,
+      signedUpAt: new Date(json.signed_up_at_millis),
+      clientMetadata: json.client_metadata,
+      hasPassword: json.has_password,
+      authWithEmail: json.auth_with_email,
+      oauthProviders: json.oauth_providers,
+      selectedTeam: json.selected_team && this._teamFromJson(json.selected_team),
     };
   }
 
@@ -1386,13 +1537,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.getPermission(scope, permissionId) !== null;
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.grantServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        await app._interface.grantServerTeamUserPermission(scope.id, json.id, permissionId);
         for (const direct of [true, false]) {
           await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
         }
       },
       async revokePermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.revokeServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
+        await app._interface.revokeServerTeamUserPermission(scope.id, json.id, permissionId);
         for (const direct of [true, false]) {
           await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
         }
@@ -1452,7 +1603,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       id: json.id,
       displayName: json.displayName,
       profileImageUrl: json.profileImageUrl,
-      createdAt: new Date(json.createdAtMillis),
       async listMembers() {
         return (await app._interface.listServerTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
       },
@@ -1481,9 +1631,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           userId,
         });
         await app._serverTeamMembersCache.refresh([json.id]);
-      },
-      toJson() {
-        return json;
       },
     };
   }
@@ -1914,7 +2061,7 @@ export type User =
      * Whether the user has a password set.
      */
     readonly hasPassword: boolean,
-    readonly oauthProviders: readonly string[],
+    readonly oauthProviders: readonly { id: string }[],
     updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     /**
@@ -1933,8 +2080,6 @@ export type User =
     getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
     useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
     useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
-
-    toClientJson(): UserJson,
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
@@ -1954,7 +2099,6 @@ type BaseUser = Pick<User,
   | "authWithEmail"
   | "oauthProviders"
   | "selectedTeam"
-  | "toClientJson"
 >;
 
 type UserExtra = Omit<User, keyof BaseUser>;
@@ -2041,9 +2185,6 @@ export type Team = {
   id: string,
   displayName: string,
   profileImageUrl?: string,
-  createdAt: Date,
-
-  toJson(): TeamJson,
 };
 
 export type ServerTeam = Team & {

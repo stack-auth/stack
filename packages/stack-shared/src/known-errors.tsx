@@ -1,4 +1,3 @@
-import { PermissionDefinitionScopeJson } from "./interface/clientInterface";
 import { StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
@@ -812,41 +811,6 @@ const PermissionNotFound = createKnownErrorConstructor(
   (json: any) => [json.details.permission_id] as const,
 );
 
-const PermissionScopeMismatch = createKnownErrorConstructor(
-  KnownError,
-  "PERMISSION_SCOPE_MISMATCH",
-  (permissionId: string, permissionScope: PermissionDefinitionScopeJson, testScope: PermissionDefinitionScopeJson) => {
-    return [
-      400,
-      `The scope of the permission with ID ${permissionId} is \`${permissionScope.type}\` but you tested against permissions of scope \`${testScope.type}\`. ${{
-        "global": `Please don't specify any teams when using global permissions. For example: \`user.hasPermission(${JSON.stringify(permissionId)})\`.`,
-        "any-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
-        "specific-team": `Please specify the team. For example: \`user.hasPermission(team, ${JSON.stringify(permissionId)})\`.`,
-      }[permissionScope.type]}`,
-      {
-        permission_id: permissionId,
-        permission_scope: permissionScope,
-        test_scope: testScope,
-      },
-    ] as const;
-  },
-  (json: any) => [json.details.permission_id, json.details.permission_scope, json.details.test_scope] as const,
-);
-
-const UserNotInTeam = createKnownErrorConstructor(
-  KnownError,
-  "USER_NOT_IN_TEAM",
-  (userId: string, teamId: string) => [
-    400,
-    `User ${userId} is not in team ${teamId}.`,
-    {
-      user_id: userId,
-      team_id: teamId,
-    },
-  ] as const,
-  (json: any) => [json.details.user_id, json.details.team_id] as const,
-);
-
 const TeamNotFound = createKnownErrorConstructor(
   KnownError,
   "TEAM_NOT_FOUND",
@@ -1051,7 +1015,6 @@ export const KnownErrors = {
   EmailNotAssociatedWithUser,
   EmailIsNotPrimaryEmail,
   PermissionNotFound,
-  PermissionScopeMismatch,
   TeamNotFound,
   TeamMembershipNotFound,
   EmailTemplateAlreadyExists,

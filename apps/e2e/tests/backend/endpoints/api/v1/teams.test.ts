@@ -91,6 +91,7 @@ it("creates a team on the client", async ({ expect }) => {
       "body": {
         "display_name": "New Team",
         "id": "<stripped UUID>",
+        "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -107,6 +108,7 @@ it("creates a team on the server", async ({ expect }) => {
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
+        "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -133,6 +135,7 @@ it("updates a team on the server", async ({ expect }) => {
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "My Updated Team",
         "id": "<stripped UUID>",
+        "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -149,6 +152,7 @@ it("updates a team on the server", async ({ expect }) => {
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "My Updated Team",
             "id": "<stripped UUID>",
+            "profile_image_url": null,
           },
         ],
       },

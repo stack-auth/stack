@@ -29,7 +29,7 @@ const domainSchema = yupObject({
   handler_path: schemaFields.handlerPathSchema.required(),
 });
 
-export const projectsCrudAdminReadSchema = yupObject({
+export const projectsCrudServerReadSchema = yupObject({
   id: schemaFields.projectIdSchema.required(),
   display_name: schemaFields.projectDisplayNameSchema.required(),
   description: schemaFields.projectDescriptionSchema.optional(),
@@ -62,7 +62,7 @@ export const projectsCrudClientReadSchema = yupObject({
 }).required();
 
 
-export const projectsCrudAdminUpdateSchema = yupObject({
+export const projectsCrudServerUpdateSchema = yupObject({
   display_name: schemaFields.projectDisplayNameSchema.optional(),
   description: schemaFields.projectDescriptionSchema.optional(),
   is_production_mode: schemaFields.projectIsProductionModeSchema.optional(),
@@ -79,26 +79,26 @@ export const projectsCrudAdminUpdateSchema = yupObject({
   }).optional().default(undefined),
 }).required();
 
-export const projectsCrudAdminCreateSchema = projectsCrudAdminUpdateSchema.concat(yupObject({
+export const projectsCrudServerCreateSchema = projectsCrudServerUpdateSchema.concat(yupObject({
   display_name: schemaFields.projectDisplayNameSchema.required(),
 }).required());
 
 export const projectsCrud = createCrud({
   clientReadSchema: projectsCrudClientReadSchema,
-  adminReadSchema: projectsCrudAdminReadSchema,
-  adminUpdateSchema: projectsCrudAdminUpdateSchema,
+  serverReadSchema: projectsCrudServerReadSchema,
+  serverUpdateSchema: projectsCrudServerUpdateSchema,
   docs: {
     clientRead: {
       summary: 'Get the current project',
       description: 'Get the current project information including display name, oauth providers and authentication methods. Useful for display the available login options to the user.',
       tags: ['Projects'],
     },
-    adminRead: {
+    serverRead: {
       summary: 'Get the current project',
       description: 'Get the current project information and configuration including display name, oauth providers, email configuration, etc.',
       tags: ['Projects'],
     },
-    adminUpdate: {
+    serverUpdate: {
       summary: 'Update the current project',
       description: 'Update the current project information and configuration including display name, oauth providers, email configuration, etc.',
       tags: ['Projects'],
@@ -108,8 +108,8 @@ export const projectsCrud = createCrud({
 export type ProjectsCrud = CrudTypeOf<typeof projectsCrud>;
 
 export const internalProjectsCrud = createCrud({
-  clientReadSchema: projectsCrudAdminReadSchema,
-  clientCreateSchema: projectsCrudAdminCreateSchema,
+  clientReadSchema: projectsCrudServerReadSchema,
+  clientCreateSchema: projectsCrudServerCreateSchema,
   docs: {
     clientList: {
       hidden: true,

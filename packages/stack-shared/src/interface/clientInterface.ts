@@ -9,46 +9,9 @@ import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
 import { Result } from "../utils/results";
 import { CurrentUserCrud } from './crud/current-user';
-import { InternalProjectsCrud } from './crud/projects';
+import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
-
-type UserCustomizableJson = {
-  displayName: string | null,
-  clientMetadata: ReadonlyJson,
-  selectedTeamId: string | null,
-};
-
-export type UserJson = UserCustomizableJson & {
-  projectId: string,
-  id: string,
-  primaryEmail: string | null,
-  primaryEmailVerified: boolean,
-  displayName: string | null,
-  clientMetadata: ReadonlyJson,
-  profileImageUrl: string | null,
-  signedUpAtMillis: number,
-  /**
-   * not used anymore, for backwards compatibility
-   */
-  authMethod: "credential" | "oauth",
-  hasPassword: boolean,
-  authWithEmail: boolean,
-  oauthProviders: string[],
-  selectedTeamId: string | null,
-  selectedTeam: TeamJson | null,
-};
-
-export type UserUpdateJson = Partial<UserCustomizableJson>;
-
-export type ClientProjectJson = {
-  id: string,
-  credentialEnabled: boolean,
-  magicLinkEnabled: boolean,
-  oauthProviders: {
-    id: string,
-    enabled: boolean,
-  }[],
-};
 
 export type ClientInterfaceOptions = {
   clientVersion: string,
@@ -85,6 +48,22 @@ export function toStandardProvider(provider: SharedProvider | StandardProvider):
 export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
   return "shared-" + provider as SharedProvider;
 }
+
+// TODO next-release: remove UserJson and UserUpdateJson
+export type UserJson = CurrentUserCrud['Client']['Read'];
+export type UserUpdateJson = CurrentUserCrud['Client']['Update'];
+
+// TODO next-release: remove comment
+/*
+export type ClientProjectJson = {
+  id: string,
+  credentialEnabled: boolean,
+  magicLinkEnabled: boolean,
+  oauthProviders: {
+    id: string,
+    enabled: boolean,
+  }[],
+};
 
 export type ProjectJson = {
   id: string,
@@ -139,11 +118,6 @@ export type DomainConfigJson = {
   handlerPath: string,
 }
 
-export type ProductionModeError = {
-  errorMessage: string,
-  fixUrlRelative: string,
-};
-
 
 export type OrglikeJson = {
   id: string,
@@ -175,6 +149,7 @@ export type PermissionDefinitionJson = {
   id: string,
   scope: PermissionDefinitionScopeJson,
 };
+*/
 
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
@@ -844,38 +819,36 @@ export class StackClientInterface {
   async listClientUserTeamPermissions(
     options: {
       teamId: string,
-      type: 'global' | 'team',
-      direct: boolean,
+      recursive: boolean,
     },
     session: InternalSession
-  ): Promise<PermissionDefinitionJson[]> {
+  ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
+      `/team-permissions?team_idd=${options.teamId}&recursive=${options.recursive}`,
       {},
       session,
     );
-    const permissions: PermissionDefinitionJson[] = await response.json();
-    return permissions;
+    return await response.json();
   }
 
-  async listClientUserTeams(session: InternalSession): Promise<TeamJson[]> {
+  async listClientUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
       "/current-user/teams",
       {},
       session,
     );
-    const teams: TeamJson[] = await response.json();
+    const teams: TeamsCrud["Client"]["Read"][] = await response.json();
     return teams;
   }
 
-  async getClientProject(): Promise<Result<ClientProjectJson>> {
+  async getClientProject(): Promise<Result<ProjectsCrud['Client']['Read'], KnownErrors["ProjectNotFound"]>> {
     const response = await this.sendClientRequest("/projects/current", {}, null);
-    const project: ClientProjectJson | null = await response.json();
-    if (!project) return Result.error(new Error("Failed to get project"));
+    const project: ProjectsCrud['Client']['Read'] | null = await response.json();
+    if (!project) return Result.error(new KnownErrors.ProjectNotFound());
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: UserUpdateJson, session: InternalSession) {
+  async updateClientUser(update: UserUpdateJson, session: InternalSession) {
     await this.sendClientRequest(
       "/current-user",
       {
@@ -889,7 +862,7 @@ export class StackClientInterface {
     );
   }
 
-  async listInternalProjects(session: InternalSession): Promise<InternalProjectsCrud['Client']['List']> {
+  async listInternalProjects(session: InternalSession): Promise<InternalProjectsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest("/internal/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
@@ -961,49 +934,5 @@ export class StackClientInterface {
     );
     return await response.json();
   }
-}
-
-export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
-  const errors: ProductionModeError[] = [];
-  const fixUrlRelative = `/projects/${project.id}/domains`;
-
-  if (project.evaluatedConfig.allowLocalhost) {
-    errors.push({
-      errorMessage: "Localhost is not allowed in production mode, turn off 'Allow localhost' in project settings",
-      fixUrlRelative,
-    });
-  }
-
-  for (const { domain } of project.evaluatedConfig.domains) {
-    let url;
-    try {
-      url = new URL(domain);
-    } catch (e) {
-      errors.push({
-        errorMessage: "Domain should be a valid URL: " + domain,
-        fixUrlRelative,
-      });
-      continue;
-    }
-
-    if (url.hostname === "localhost") {
-      errors.push({
-        errorMessage: "Domain should not be localhost: " + domain,
-        fixUrlRelative,
-      });
-    } else if (!url.hostname.includes(".") || url.hostname.match(/\d+(\.\d+)*/)) {
-      errors.push({
-        errorMessage: "Not a valid domain" + domain,
-        fixUrlRelative,
-      });
-    } else if (url.protocol !== "https:") {
-      errors.push({
-        errorMessage: "Domain should be HTTPS: " + domain,
-        fixUrlRelative,
-      });
-    }
-  }
-
-  return errors;
 }
 
