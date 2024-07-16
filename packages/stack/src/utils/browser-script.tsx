@@ -31,6 +31,6 @@ const script = () => {
   });
 };
 
-export function BrowserScript() {
-  return <SsrScript script={`(${script.toString()})()`}/>;
+export function BrowserScript(props : { nonce?: string }) {
+  return <SsrScript nonce={props.nonce} script={`(${script.toString()})()`}/>;
 }
