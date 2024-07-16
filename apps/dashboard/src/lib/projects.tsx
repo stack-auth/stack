@@ -6,7 +6,7 @@ import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@/temporary-types";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 

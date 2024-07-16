@@ -15,7 +15,7 @@ export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObj
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.optional(),
-  profile_image_url: fieldSchema.profileImageUrlSchema.optional(),
+  profile_image_url: fieldSchema.profileImageUrlSchema.nullable().optional(),
 }).required();
 export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
 }).required());

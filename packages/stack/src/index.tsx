@@ -10,7 +10,7 @@ export type {
   ApiKeySetFirstView,
   ApiKeySet,
   ServerTeam,
-  Team,
+  Team as Team,
   TeamMember,
   ServerTeamMember,
   ServerPermission as Permission,

@@ -2,7 +2,7 @@ import { FieldLabel } from "@/components/form-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ServerTeam, ServerUser } from "@stackframe/stack";
-import { ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerPermissionDefinitionJson } from "@/temporary-types";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { useEffect, useState } from "react";

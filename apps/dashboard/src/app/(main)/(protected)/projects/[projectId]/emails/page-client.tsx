@@ -8,7 +8,7 @@ import { InputField, SelectField } from "@/components/form-fields";
 import { SimpleTooltip } from "@/components/simple-tooltip";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
-import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { EmailConfigJson } from "@/temporary-types";
 import { Project } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { Card } from "@/components/ui/card";

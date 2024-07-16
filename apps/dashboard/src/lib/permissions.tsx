@@ -1,8 +1,8 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma, TeamSystemPermission as DBTeamSystemPermission } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { PermissionDefinitionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { PermissionDefinitionScopeJson } from "@/temporary-types";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@/temporary-types";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";

@@ -17,31 +17,6 @@ export type ServerUserJson = UsersCrud["Server"]["Read"];
 
 export type ServerUserUpdateJson = UsersCrud["Server"]["Update"];
 
-// TODO next-release: remove comment
-/*
-export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
-export type ServerOrglikeJson = OrglikeJson & {};
-
-export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
-export type ServerTeamJson = ServerOrglikeJson;
-
-export type ServerTeamMemberJson = TeamMemberJson & {
-  user: ServerUserJson,
-};
-
-export type ServerPermissionDefinitionCustomizableJson = {
-  readonly id: string,
-  readonly description?: string,
-  readonly scope: PermissionDefinitionScopeJson,
-  readonly containPermissionIds: string[],
-};
-
-export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {
-  readonly __databaseUniqueId: string,
-  readonly scope: PermissionDefinitionScopeJson,
-};
-*/
-
 export type ServerAuthApplicationOptions = (
   & ClientInterfaceOptions
   & (
@@ -213,7 +188,7 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async createServerTeam(data: TeamsCrud['Server']['Create']): Promise<TeamsCrud['Server']['Read']> {
+  async createServerTeam(data: TeamsCrud['Server']['Create'], session: InternalSession): Promise<TeamsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
       "/teams",
       {
@@ -223,7 +198,7 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify(data),
       },
-      null,
+      session,
     );
     return await response.json();
   }

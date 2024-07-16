@@ -3,8 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { getProject } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { UserUpdateJson } from "@/temporary-types";
+import { ServerUserUpdateJson } from "@/temporary-types";
 import {
   createServerTeamForUser,
   getClientTeamFromServerTeam,

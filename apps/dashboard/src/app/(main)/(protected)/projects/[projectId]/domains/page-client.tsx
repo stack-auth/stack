@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { ActionDialog } from "@/components/action-dialog";
 import { Button } from "@/components/ui/button";
 import { Project } from "@stackframe/stack";
-import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { DomainConfigJson } from "@/temporary-types";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { useAdminApp } from "../use-admin-app";

@@ -64,6 +64,7 @@ it("creates and updates the basic project information of a project", async ({ ex
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -101,6 +102,7 @@ it("updates the basic project configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": false,
+          "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -139,6 +141,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -184,6 +187,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -236,6 +240,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -284,6 +289,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -326,6 +332,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -360,6 +367,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -400,6 +408,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -497,6 +506,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -539,6 +549,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -583,6 +594,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -652,6 +664,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -706,6 +719,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },

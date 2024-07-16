@@ -66,6 +66,7 @@ it("creates a new project", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -106,6 +107,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -152,6 +154,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -200,6 +203,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -241,6 +245,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -291,6 +296,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -334,6 +340,7 @@ it("lists the current projects after creating a new project", async ({ expect })
           {
             "config": {
               "allow_localhost": true,
+              "create_team_on_sign_up": false,
               "credential_enabled": true,
               "domains": [],
               "email_config": { "type": "shared" },

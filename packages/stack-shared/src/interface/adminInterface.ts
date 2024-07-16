@@ -26,56 +26,6 @@ export type ApiKeySetFirstViewJson = ApiKeysCrud["Admin"]["Read"] & {
   super_secret_admin_key?: string,
 };
 
-// TODO next-release: remove comment
-/*
-
-export type OAuthProviderUpdateOptions = {
-  id: string,
-  enabled: boolean,
-} & (
-  | {
-    type: SharedProvider,
-  }
-  | {
-    type: StandardProvider,
-    clientId: string,
-    clientSecret: string,
-  }
-)
-
-export type ProjectUpdateOptions = {
-  displayName?: string,
-  description?: string,
-  isProductionMode?: boolean,
-  config?: {
-    domains?: {
-      domain: string,
-      handlerPath: string,
-    }[],
-    oauthProviders?: OAuthProviderUpdateOptions[],
-    credentialEnabled?: boolean,
-    magicLinkEnabled?: boolean,
-    allowLocalhost?: boolean,
-    createTeamOnSignUp?: boolean,
-    emailConfig?: EmailConfigJson,
-    teamCreatorDefaultPermissionIds?: string[],
-    teamMemberDefaultPermissionIds?: string[],
-  },
-};
-
-export type ApiKeySetJson = ApiKeySetBaseJson & {
-  publishableClientKey: null | {
-    lastFour: string,
-  },
-  secretServerKey: null | {
-    lastFour: string,
-  },
-  superSecretAdminKey: null | {
-    lastFour: string,
-  },
-};
-*/
-
 export class StackAdminInterface extends StackServerInterface {
   constructor(public readonly options: AdminAuthApplicationOptions) {
     super(options);
@@ -168,4 +118,3 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 }
-

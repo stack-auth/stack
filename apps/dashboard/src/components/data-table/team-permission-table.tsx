@@ -9,7 +9,7 @@ import { SearchToolbarItem } from "./elements/toolbar-items";
 import { SmartFormDialog } from "../form-dialog";
 import { ActionDialog } from "../action-dialog";
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
-import { PermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { PermissionDefinitionJson } from "@/temporary-types";
 import { PermissionListField } from "../permission-field";
 import { SimpleTooltip } from "../simple-tooltip";
 
