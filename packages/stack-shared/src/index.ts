@@ -1,9 +1,9 @@
 export {
-  ApiKeySetFirstViewJson, StackAdminInterface
+  StackAdminInterface
 } from "./interface/adminInterface";
 export {
   StackClientInterface,
-  UserJson as UserJson
+  UserJson
 } from "./interface/clientInterface";
 export {
   ServerUserJson, StackServerInterface

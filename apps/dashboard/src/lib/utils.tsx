@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// TODO next-release: remove
 export function validateUrl(url: string, domains: DomainConfigJson[], allowLocalhost: boolean): boolean {
   if (allowLocalhost && (new URL(url).hostname === "localhost" || new URL(url).hostname.match(/^127\.\d+\.\d+\.\d+$/))) {
     return true;

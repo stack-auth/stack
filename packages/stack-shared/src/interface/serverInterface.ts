@@ -183,12 +183,13 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
-  async listServerTeamMembers(teamId: string): Promise<TeamMembershipsCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest(`/team-memberships?team_id=${teamId}`, {}, null);
+  async listServerTeamUsers(teamId: string): Promise<UsersCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(`/users?team_id=${teamId}`, {}, null);
     return await response.json();
   }
 
-  async createServerTeam(data: TeamsCrud['Server']['Create'], session: InternalSession): Promise<TeamsCrud['Server']['Read']> {
+  /* when passing a session, the user will be added to the team */
+  async createServerTeam(data: TeamsCrud['Server']['Create'], session?: InternalSession): Promise<TeamsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
       "/teams",
       {
@@ -198,7 +199,7 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify(data),
       },
-      session,
+      session || null
     );
     return await response.json();
   }

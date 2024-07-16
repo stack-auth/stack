@@ -12,7 +12,7 @@ export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
   }
 );
 
-export type ApiKeySetCreateOptions = {
+export type ApiKeyCreateOptionsJson = {
   has_publishable_client_key: boolean,
   has_secret_server_key: boolean,
   has_super_secret_admin_key: boolean,
@@ -20,7 +20,7 @@ export type ApiKeySetCreateOptions = {
   description: string,
 };
 
-export type ApiKeySetFirstViewJson = ApiKeysCrud["Admin"]["Read"] & {
+export type ApiKeyFirstViewJson = ApiKeysCrud["Admin"]["Read"] & {
   publishable_client_key?: string,
   secret_server_key?: string,
   super_secret_admin_key?: string,
@@ -76,9 +76,9 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async createApiKeySet(
-    options: ApiKeySetCreateOptions,
-  ): Promise<ApiKeySetFirstViewJson> {
+  async createApiKey(
+    options: ApiKeyCreateOptionsJson,
+  ): Promise<ApiKeyFirstViewJson> {
     const response = await this.sendServerRequest(
       "/api-keys",
       {
@@ -93,12 +93,12 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async listApiKeySets(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
+  async listApiKeys(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
     const response = await this.sendAdminRequest("/api-keys", {}, null);
     return await response.json();
   }
 
-  async revokeApiKeySetById(id: string) {
+  async revokeApiKeyById(id: string) {
     await this.sendAdminRequest(
       `/api-keys/${id}`, {
         method: "PUT",
@@ -113,7 +113,7 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getApiKeySet(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
+  async getApiKey(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
     return await response.json();
   }

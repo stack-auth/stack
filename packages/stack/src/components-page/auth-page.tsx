@@ -7,9 +7,9 @@ import { MaybeFullPage } from '../components/elements/maybe-full-page';
 import { useUser, useStackApp } from '..';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { MagicLinkSignInForm } from '../components/magic-link-sign-in-form';
-import { ClientProjectJson } from "@stackframe/stack-shared";
 import { CredentialSignUpForm } from '../components/credential-sign-up-form';
 import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
+import { ClientProject } from '../lib/stack-app';
 
 export function AuthPage({
   fullPage=false,
@@ -18,7 +18,7 @@ export function AuthPage({
 }: {
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
-  mockProject?: ClientProjectJson,
+  mockProject?: ClientProject,
 }) {
   const stackApp = useStackApp();
   const user = useUser();
@@ -29,7 +29,7 @@ export function AuthPage({
     return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
-  const enableSeparator = (project.credentialEnabled || project.magicLinkEnabled) && project.oauthProviders.filter(p => p.enabled).length > 0;
+  const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
   return (
     <MaybeFullPage fullPage={fullPage}>
@@ -56,7 +56,7 @@ export function AuthPage({
         </div>
         <OAuthButtonGroup type={type} mockProject={mockProject} />
         {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
-        {project.credentialEnabled && project.magicLinkEnabled ? (
+        {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue='magic-link'>
             <TabsList className='w-full mb-2'>
               <TabsTrigger value='magic-link' className='flex-1'>Magic Link</TabsTrigger>
@@ -69,9 +69,9 @@ export function AuthPage({
               {type === 'sign-up' ? <CredentialSignUpForm/> : <CredentialSignInForm/>}
             </TabsContent>
           </Tabs>
-        ) : project.credentialEnabled ? (
+        ) : project.config.credentialEnabled ? (
           type === 'sign-up' ? <CredentialSignUpForm/> : <CredentialSignInForm/>
-        ) : project.magicLinkEnabled ? (
+        ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignInForm/>
         ) : null}
       </div>

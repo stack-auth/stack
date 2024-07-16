@@ -59,7 +59,7 @@ export const teamPermissionDefinitionsCrudServerCreateSchema = yupObject({
 }).required();
 
 export const teamPermissionDefinitionsCrudServerUpdateSchema = yupObject({
-  id: schemaFields.customTeamPermissionIdSchema.required(),
+  id: schemaFields.customTeamPermissionIdSchema.optional(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
 }).required();

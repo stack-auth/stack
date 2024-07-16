@@ -4,6 +4,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { emailTemplateCrud, emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateCrud, "emailTemplate", {
   paramsSchema: yupObject({
@@ -19,12 +20,12 @@ export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateC
   },
   baseFields: async ({ auth, params }) => ({
     projectConfigId: auth.project.evaluatedConfig.id,
-    type: params.type,
+    type: params.type && typedToUppercase(params.type),
   }),
   whereUnique: async ({ auth, params }) => ({
     projectConfigId_type: {
       projectConfigId: auth.project.evaluatedConfig.id,
-      type: params.type,
+      type: typedToUppercase(params.type),
     },
   }),
   include: async () => ({}),
@@ -39,14 +40,14 @@ export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateC
     return {
       content: crud.content as any,
       subject: crud.subject,
-      type: type === 'create' ? crud.type : undefined,
+      type: type === 'create' ? crud.type && typedToUppercase(crud.type) : undefined,
     };
   },
   prismaToCrud: async (prisma) => {
     return {
       subject: prisma.subject,
       content: prisma.content as any,
-      type: prisma.type,
+      type: typedToLowercase(prisma.type),
     };
   },
 });
