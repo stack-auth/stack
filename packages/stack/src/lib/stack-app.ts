@@ -1005,8 +1005,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     this._ensurePersistentTokenStore();
-    const session = this._getSession();
-    const result = await this._interface.signInWithMagicLink(code, session);
+    const result = await this._interface.signInWithMagicLink(code);
     if (result instanceof KnownError) {
       return result;
     }
