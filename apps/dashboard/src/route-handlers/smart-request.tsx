@@ -1,17 +1,18 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
-import { DeepPartial, deepPlainCamelCaseToSnakeCase } from "@stackframe/stack-shared/dist/utils/objects";
-import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownError, KnownErrors, ProjectJson, ServerUserJson, UserJson } from "@stackframe/stack-shared";
-import { IsAny } from "@stackframe/stack-shared/dist/utils/types";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { isProjectAdmin, updateProject, whyNotProjectAdmin } from "@/lib/projects";
-import { updateServerUser } from "@/lib/users";
+import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
+import { updateServerUser } from "@/lib/users";
+import { ProjectJson, ServerUserJson } from "@/temporary-types";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { IsAny } from "@stackframe/stack-shared/dist/utils/types";
+import { NextRequest } from "next/server";
+import * as yup from "yup";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 

@@ -1,4 +1,4 @@
-import { isTeamSystemPermission, listPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
+import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { fullProjectInclude, getProject, projectPrismaToCrud } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -37,7 +37,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         },
       ] as const;
 
-      const permissions = await listPermissionDefinitions(oldProject, { type: 'any-team' });
+      const permissions = await listTeamPermissionDefinitions(oldProject);
 
 
       for (const param of dbParams) {

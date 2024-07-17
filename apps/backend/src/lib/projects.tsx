@@ -7,7 +7,7 @@ import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/proje
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
+import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
 export const fullProjectInclude = {
@@ -132,13 +132,13 @@ export function projectPrismaToCrud<A extends 'client' | 'server' | 'admin'>(
         }
       })(),
       team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(permissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType))
+        .map(teamPermissionDefinitionJsonFromDbType)
+        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
         .sort((a, b) => a.id.localeCompare(b.id))
         .map(perm => ({ id: perm.id })),
       team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(permissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType))
+        .map(teamPermissionDefinitionJsonFromDbType)
+        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
         .sort((a, b) => a.id.localeCompare(b.id))
         .map(perm => ({ id: perm.id })),
     }

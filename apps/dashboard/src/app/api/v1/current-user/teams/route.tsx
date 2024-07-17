@@ -11,7 +11,7 @@ import {
   listUserServerTeams,
   listUserTeams,
 } from "@/lib/teams";
-import { ServerTeamJson } from "@/temporary-types
+import { ServerTeamJson } from "@/temporary-types";
 import { TeamJson } from "@/temporary-types";
 
 

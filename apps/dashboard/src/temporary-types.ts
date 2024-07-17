@@ -1,8 +1,23 @@
 // TODO next-release: Remove this file when we remove the dashboard API.
 
 import { SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 
+export type ServerTeamMemberJson = TeamMemberJson & {
+  user: ServerUserJson,
+};
+
+export type ServerPermissionDefinitionCustomizableJson = {
+  readonly id: string,
+  readonly description?: string,
+  readonly scope: PermissionDefinitionScopeJson,
+  readonly containPermissionIds: string[],
+};
+
+export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {
+  readonly __databaseUniqueId: string,
+  readonly scope: PermissionDefinitionScopeJson,
+};
 
 export type ClientProjectJson = {
   id: string,
@@ -133,7 +148,21 @@ export type ProjectUpdateOptions = {
   },
 };
 
-export type ApiKeySetJson = ApiKeysCrud["Admin"]["Read"] & {
+export type ApiKeySetBaseJson = {
+  id: string,
+  description: string,
+  expiresAtMillis: number,
+  manuallyRevokedAtMillis: number | null,
+  createdAtMillis: number,
+};
+
+export type ApiKeySetFirstViewJson = ApiKeySetBaseJson & {
+  publishableClientKey?: string,
+  secretServerKey?: string,
+  superSecretAdminKey?: string,
+};
+
+export type ApiKeySetJson = ApiKeySetBaseJson & {
   publishableClientKey: null | {
     lastFour: string,
   },
@@ -144,3 +173,48 @@ export type ApiKeySetJson = ApiKeysCrud["Admin"]["Read"] & {
     lastFour: string,
   },
 };
+
+
+export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
+export type ServerOrglikeJson = OrglikeJson & {};
+
+export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
+export type ServerTeamJson = ServerOrglikeJson;
+
+type UserCustomizableJson = {
+  displayName: string | null,
+  clientMetadata: ReadonlyJson,
+  selectedTeamId: string | null,
+};
+
+export type UserJson = UserCustomizableJson & {
+  projectId: string,
+  id: string,
+  primaryEmail: string | null,
+  primaryEmailVerified: boolean,
+  displayName: string | null,
+  clientMetadata: ReadonlyJson,
+  profileImageUrl: string | null,
+  signedUpAtMillis: number,
+  /**
+   * not used anymore, for backwards compatibility
+   */
+  authMethod: "credential" | "oauth",
+  hasPassword: boolean,
+  authWithEmail: boolean,
+  oauthProviders: string[],
+  selectedTeamId: string | null,
+  selectedTeam: TeamJson | null,
+};
+
+export type UserUpdateJson = Partial<UserCustomizableJson>;
+
+export type ServerUserJson = UserJson & {
+  serverMetadata: ReadonlyJson,
+};
+
+export type ServerUserUpdateJson = UserUpdateJson & {
+  serverMetadata?: ReadonlyJson,
+  primaryEmail?: string | null,
+  primaryEmailVerified?: boolean,
+}

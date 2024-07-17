@@ -1,8 +1,8 @@
 import { isReactServer } from "@stackframe/stack-sc";
-import { KnownError, KnownErrors, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyFirstViewJson } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StandardProvider, UserJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
@@ -1162,7 +1162,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           uniqueIdentifier: this._getUniqueIdentifier(),
         };
       },
-      setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
+      setCurrentUser: (userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>) => {
         runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([this._getSession()], userJsonPromise));
       },
     };
@@ -1538,7 +1538,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listTeamPermissionDefinitions(): Promise<ServerTeamPermissionDefinition[]> {
-    return await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+    const crud = await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+    return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
   }
 
   async listTeams(): Promise<ServerTeam[]> {
@@ -1652,13 +1653,13 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
           id: p.id,
           enabled: p.enabled,
           type: 'shared',
-        } : {
+        } as const : {
           id: p.id,
           enabled: p.enabled,
           type: 'standard',
           clientId: p.client_id ?? throwErr("Client ID is missing"),
           clientSecret: p.client_secret ?? throwErr("Client secret is missing"),
-        }))),
+        } as const))),
         emailConfig: data.config.email_config.type === 'shared' ? {
           type: 'shared'
         } : {
@@ -2018,8 +2019,6 @@ export type ServerUser =
     revokePermission(scope: Team, permissionId: string): Promise<void>,
 
     hasPermission(scope: Team, permissionId: string): Promise<boolean>,
-
-    toServerJson(): ServerUserJson,
   }
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
@@ -2030,7 +2029,6 @@ export type ServerUser =
 type ServerBaseUser = Pick<ServerUser,
   | keyof BaseUser
   | "serverMetadata"
-  | "toServerJson"
 >;
 
 export type CurrentServerUser = Auth & ServerUser;
@@ -2039,13 +2037,13 @@ export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 
 type ServerUserExtra = Omit<ServerUser, keyof ServerBaseUser>;
 
-type ServerUserUpdateOptions = UserUpdateOptions & {
+type ServerUserUpdateOptions = {
   primaryEmail?: string,
   primaryEmailVerified?: boolean,
   primaryEmailAuthEnabled?: boolean,
   serverMetadata?: ReadonlyJson,
   password?: string,
-}
+} & UserUpdateOptions;
 function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): CurrentUserCrud["Server"]["Update"] {
   return {
     display_name: options.displayName,
@@ -2065,7 +2063,7 @@ export type Project = {
   readonly config: ProjectConfig,
 };
 
-export type AdminProject = Project & {
+export type AdminProject = {
   readonly id: string,
   readonly displayName: string,
   readonly description: string | null,
@@ -2078,16 +2076,14 @@ export type AdminProject = Project & {
 
   getProductionModeErrors(this: AdminProject): Promise<ProductionModeError[]>,
   useProductionModeErrors(this: AdminProject): ProductionModeError[],
-};
-
-type x = AdminProject['config']['oauthProviders'][0]["enabled"];
+} & Project;
 
 declare const y: AdminProject;
 const z = y.config.oauthProviders[0].enabled;
 
-export type AdminOwnedProject = AdminProject & {
+export type AdminOwnedProject = {
   readonly app: StackAdminApp<false>,
-};
+} & AdminProject;
 
 export type AdminProjectUpdateOptions = {
   displayName?: string,
@@ -2147,8 +2143,7 @@ export type OAuthProviderConfig = {
   readonly id: string,
 };
 
-export type AdminProjectConfig = OAuthProviderConfig & {
-  readonly id: string,
+export type AdminProjectConfig = {
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly allowLocalhost: boolean,
@@ -2156,9 +2151,9 @@ export type AdminProjectConfig = OAuthProviderConfig & {
   readonly emailConfig?: AdminEmailConfig,
   readonly domains: AdminDomainConfig[],
   readonly createTeamOnSignUp: boolean,
-  readonly teamCreatorDefaultPermissions: ServerTeamPermissionDefinition[],
-  readonly teamMemberDefaultPermissions: ServerTeamPermissionDefinition[],
-};
+  readonly teamCreatorDefaultPermissions: ServerTeamPermission[],
+  readonly teamMemberDefaultPermissions: ServerTeamPermission[],
+} & OAuthProviderConfig;
 
 export type AdminEmailConfig = (
   {
@@ -2180,7 +2175,7 @@ export type AdminDomainConfig = {
   handlerPath: string,
 };
 
-export type AdminOAuthProviderConfig = OAuthProviderConfig & {
+export type AdminOAuthProviderConfig = {
   id: string,
   enabled: boolean,
 } & (
@@ -2190,7 +2185,7 @@ export type AdminOAuthProviderConfig = OAuthProviderConfig & {
     clientId: string,
     clientSecret: string,
   }
-);
+) & OAuthProviderConfig;
 
 export type AdminProjectConfigUpdateOptions = {
   domains?: {
@@ -2222,13 +2217,13 @@ export type ApiKeyBase = {
 
 export type ApiKeyBaseCrudRead = Pick<ApiKeysCrud["Admin"]["Read"], "id" | "created_at_millis" | "description" | "expires_at_millis" | "manually_revoked_at_millis">;
 
-export type ApiKeyFirstView = ApiKeyBase & {
+export type ApiKeyFirstView = {
   publishableClientKey?: string,
   secretServerKey?: string,
   superSecretAdminKey?: string,
-};
+} & ApiKeyBase;
 
-export type ApiKey = ApiKeyBase & {
+export type ApiKey = {
   publishableClientKey: null | {
     lastFour: string,
   },
@@ -2238,7 +2233,7 @@ export type ApiKey = ApiKeyBase & {
   superSecretAdminKey: null | {
     lastFour: string,
   },
-};
+} & ApiKeyBase;
 
 export type ApiKeyCreateOptions = {
   description: string,
@@ -2280,14 +2275,14 @@ function teamCreateOptionsToCrud(options: TeamCreateOptions): TeamsCrud["Client"
 type ___________server_team = never;  // this is a marker for VSCode's outline view
 
 
-export type ServerTeam = Team & {
+export type ServerTeam = {
   listUsers(): Promise<ServerUser[]>,
   useUsers(): ServerUser[],
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
   removeUser(userId: string): Promise<void>,
-};
+} & Team;
 
 export type ServerTeamCreateOptions = TeamCreateOptions;
 function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
@@ -2317,7 +2312,7 @@ export type ServerTeamPermission = TeamPermission;
 export type ServerTeamPermissionDefinition = {
   id: string,
   description?: string,
-  containedPermissionIds?: string[],
+  containedPermissionIds: string[],
 };
 
 export type ServerTeamPermissionDefinitionUpdateOptions = {
@@ -2352,10 +2347,10 @@ export type Connection = {
   id: string,
 };
 
-export type OAuthConnection = Connection & {
+export type OAuthConnection = {
   getAccessToken(): Promise<{ accessToken: string }>,
   useAccessToken(): { accessToken: string },
-};
+} & Connection;
 
 type _______________STACK_APP_______________ = never;  // this is a marker for VSCode's outline view
 
@@ -2395,7 +2390,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     [stackAppInternalsSymbol]: {
       toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
-      setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
+      setCurrentUser(userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>): void,
     },
   }
   & AsyncStoreProperty<"project", [], Project, false>

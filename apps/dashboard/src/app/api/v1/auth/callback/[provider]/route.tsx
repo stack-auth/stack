@@ -9,14 +9,15 @@ import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared";
+import { ProjectJson } from "@/temporary-types";
 import { createTeamOnSignUp } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { validateUrl } from "@/lib/utils";
 import { Project } from "@stackframe/stack";
 
-const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUrl?: string) => {
+const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
     throw error;
   }

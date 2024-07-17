@@ -13,10 +13,6 @@ import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "./crud/team-
 import { TeamsCrud } from "./crud/teams";
 import { UsersCrud } from "./crud/users";
 
-export type ServerUserJson = UsersCrud["Server"]["Read"];
-
-export type ServerUserUpdateJson = UsersCrud["Server"]["Update"];
-
 export type ServerAuthApplicationOptions = (
   & ClientInterfaceOptions
   & (

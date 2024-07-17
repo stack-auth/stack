@@ -49,10 +49,6 @@ export function toSharedProvider(provider: SharedProvider | StandardProvider): S
   return "shared-" + provider as SharedProvider;
 }
 
-// TODO next-release: remove UserJson and UserUpdateJson
-export type UserJson = CurrentUserCrud['Client']['Read'];
-export type UserUpdateJson = CurrentUserCrud['Client']['Update'];
-
 
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
@@ -751,7 +747,7 @@ export class StackClientInterface {
     return Result.ok(project);
   }
 
-  async updateClientUser(update: UserUpdateJson, session: InternalSession) {
+  async updateClientUser(update: CurrentUserCrud["Client"]["Update"], session: InternalSession) {
     await this.sendClientRequest(
       "/current-user",
       {

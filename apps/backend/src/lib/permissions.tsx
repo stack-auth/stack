@@ -64,13 +64,9 @@ export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSyste
   } as const;
 }
 
-export async function listPotentialParentTeamPermissions(project: ProjectsCrud["Admin"]["Read"]): Promise<(TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string })[]> {
-  return await listTeamPermissionDefinitions(project);
-}
-
 async function getParentDbIds(project: ProjectsCrud["Admin"]["Read"], containedPermissionIds?: string[]) {
   let parentDbIds = [];
-  const potentialParentPermissions = await listPotentialParentTeamPermissions(project);
+  const potentialParentPermissions = await listTeamPermissionDefinitions(project);
   for (const parentPermissionId of containedPermissionIds || []) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
     if (!parentPermission) {
@@ -90,7 +86,7 @@ export async function listUserTeamPermissions(options: {
   permissionId?: string,
   recursive?: boolean,
 }): Promise<TeamPermissionsCrud["Admin"]["Read"][]> {
-  const allPermissions = await listPermissionDefinitions(options.project, { type: "any-team" });
+  const allPermissions = await listTeamPermissionDefinitions(options.project);
   const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
   const results = await prismaClient.teamMemberDirectPermission.findMany({
     where: {
@@ -290,7 +286,7 @@ export async function revokeTeamPermission(options: {
 }
 
 
-export async function listTeamPermissionDefinitions(project: ProjectsCrud["Admin"]["Read"]): Promise<TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string }> {
+export async function listTeamPermissionDefinitions(project: ProjectsCrud["Admin"]["Read"]): Promise<(TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string })[]> {
   const res = await prismaClient.permission.findMany({
     where: {
       projectConfig: {
@@ -310,7 +306,6 @@ export async function listTeamPermissionDefinitions(project: ProjectsCrud["Admin
 
 export async function createTeamPermissionDefinition(options: {
   project: ProjectsCrud["Admin"]["Read"],
-  scope: PermissionDefinitionScopeJson,
   data: {
     id: string,
     description?: string,
@@ -320,15 +315,10 @@ export async function createTeamPermissionDefinition(options: {
   const parentDbIds = await getParentDbIds(options.project, options.data.contained_permission_ids);
   const dbPermission = await prismaClient.permission.create({
     data: {
-      scope: options.scope.type === "global" ? "GLOBAL" : "TEAM",
+      scope: "TEAM",
       queryableId: options.data.id,
       description: options.data.description,
-      ...options.scope.type === "specific-team" ? {
-        projectId: options.project.id,
-        teamId: options.scope.teamId,
-      } : {
-        projectConfigId: options.project.config.id,
-      },
+      projectConfigId: options.project.config.id,
       parentEdges: {
         create: parentDbIds.map(parentDbId => {
           if (isTeamSystemPermission(parentDbId)) {
@@ -349,12 +339,11 @@ export async function createTeamPermissionDefinition(options: {
     },
     include: fullPermissionInclude,
   });
-  return permissionDefinitionJsonFromDbType(dbPermission);
+  return teamPermissionDefinitionJsonFromDbType(dbPermission);
 }
 
 export async function updateTeamPermissionDefinitions(options: {
   project: ProjectsCrud["Admin"]["Read"],
-  scope: PermissionDefinitionScopeJson,
   permissionId: string,
   data: {
     id?: string,
@@ -394,8 +383,7 @@ export async function updateTeamPermissionDefinitions(options: {
         projectConfigId: options.project.config.id,
         queryableId: options.permissionId,
       },
-      scope: options.scope.type === "global" ? "GLOBAL" : "TEAM",
-      teamId: options.scope.type === "specific-team" ? options.scope.teamId : undefined,
+      scope: "TEAM",
     },
     data: {
       queryableId: options.data.id,
@@ -404,46 +392,19 @@ export async function updateTeamPermissionDefinitions(options: {
     },
     include: fullPermissionInclude,
   });
-  return permissionDefinitionJsonFromDbType(db);
+  return teamPermissionDefinitionJsonFromDbType(db);
 }
 
 export async function deleteTeamPermissionDefinition(options: {
   project: ProjectsCrud["Admin"]["Read"],
   permissionId: string,
 }) {
-  switch (options.scope.type) {
-    case "global":
-    case "any-team": {
-      const deleted = await prismaClient.permission.deleteMany({
-        where: {
-          projectConfigId: options.project.config.id,
-          queryableId: options.permissionId,
-          scope: options.scope.type === "global" ? "GLOBAL" : "TEAM",
-        },
-      });
-      if (deleted.count < 1) throw new KnownErrors.PermissionNotFound(options.permissionId);
-      break;
-    }
-    case "specific-team": {
-      const team = await prismaClient.team.findUnique({
-        where: {
-          projectId_teamId: {
-            projectId: options.project.id,
-            teamId: options.scope.teamId,
-          },
-        },
-      });
-      if (!team) throw new KnownErrors.TeamNotFound(options.scope.teamId);
-      const deleted = await prismaClient.permission.deleteMany({
-        where: {
-          projectId: options.project.id,
-          queryableId: options.permissionId,
-          teamId: options.scope.teamId,
-          scope: "TEAM",
-        },
-      });
-      if (deleted.count < 1) throw new KnownErrors.PermissionNotFound(options.permissionId);
-      break;
-    }
-  }
+  const deleted = await prismaClient.permission.deleteMany({
+    where: {
+      projectConfigId: options.project.config.id,
+      queryableId: options.permissionId,
+      scope: "TEAM",
+    },
+  });
+  if (deleted.count < 1) throw new KnownErrors.PermissionNotFound(options.permissionId);
 }

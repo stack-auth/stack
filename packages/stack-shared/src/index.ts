@@ -2,11 +2,10 @@ export {
   StackAdminInterface
 } from "./interface/adminInterface";
 export {
-  StackClientInterface,
-  UserJson
+  StackClientInterface
 } from "./interface/clientInterface";
 export {
-  ServerUserJson, StackServerInterface
+  StackServerInterface
 } from "./interface/serverInterface";
 export {
   KnownError,

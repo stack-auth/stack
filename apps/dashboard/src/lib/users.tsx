@@ -1,4 +1,4 @@
-import { UserJson, ServerUserJson, KnownErrors } from "@stackframe/stack-shared";
+import { UserJson, ServerUserJson } from "@/temporary-types";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { getProject } from "@/lib/projects";
@@ -11,6 +11,7 @@ import {
   getServerTeamFromDbType,
 } from "./teams";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const serverUserInclude = {
   projectUserOAuthAccounts: true,
