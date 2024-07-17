@@ -193,7 +193,7 @@ export class StackClientInterface {
     const params: RequestInit = {
       /**
        * This fetch may be cross-origin, in which case we don't want to send cookies of the
-       * original origin (this is the default behaviour of `credentials`).
+       * original origin (this is the default behavior of `credentials`).
        *
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
        * implement reliance on cookies anywhere.
@@ -541,7 +541,7 @@ export class StackClientInterface {
     };
   }
 
-  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/magic-link-verification",
       {
@@ -722,7 +722,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/team-permissions?team_idd=${options.teamId}&recursive=${options.recursive}`,
+      `/team-permissions?team_id=${options.teamId}&recursive=${options.recursive}`,
       {},
       session,
     );
@@ -732,7 +732,7 @@ export class StackClientInterface {
 
   async listClientUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
-      "/current-user/teams",
+      "/teams?user_id=me",
       {},
       session,
     );
@@ -749,7 +749,7 @@ export class StackClientInterface {
 
   async updateClientUser(update: CurrentUserCrud["Client"]["Update"], session: InternalSession) {
     await this.sendClientRequest(
-      "/current-user",
+      "/user/me",
       {
         method: "PUT",
         headers: {
@@ -800,7 +800,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<{ accessToken: string }> {
     const response = await this.sendClientRequest(
-      `/auth/access-token/${provider}`,
+      `/auth/oauth/connected-account/${provider}/access-token`,
       {
         method: "POST",
         headers: {
