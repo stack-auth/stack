@@ -211,7 +211,6 @@ export class StackClientInterface {
         "X-Stack-Access-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
         ...(tokenObj ? {
-          "Authorization": "StackSession " + tokenObj.accessToken.token,
           "X-Stack-Access-Token": tokenObj.accessToken.token,
         } : {}),
         ...(tokenObj?.refreshToken ? {
