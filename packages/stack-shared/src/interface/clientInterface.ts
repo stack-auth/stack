@@ -593,7 +593,7 @@ export class StackClientInterface {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
-    const url = new URL(this.getApiUrl() + "/auth/authorize/" + options.provider.toLowerCase());
+    const url = new URL(this.getApiUrl() + "/auth/oauth/authorize/" + options.provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
@@ -604,10 +604,10 @@ export class StackClientInterface {
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("type", options.type);
-    url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
+    url.searchParams.set("error_redirect_url", options.errorRedirectUrl);
 
     if (options.afterCallbackRedirectUrl) {
-      url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
+      url.searchParams.set("after_callback_redirect_rrl", options.afterCallbackRedirectUrl);
     }
 
     if (options.type === "link") {
@@ -615,7 +615,7 @@ export class StackClientInterface {
       url.searchParams.set("token", tokens?.accessToken.token || "");
 
       if (options.providerScope) {
-        url.searchParams.set("providerScope", options.providerScope);
+        url.searchParams.set("provider_scope", options.providerScope);
       }
     }
 

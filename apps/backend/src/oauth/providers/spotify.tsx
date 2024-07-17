@@ -12,7 +12,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
       issuer: "https://accounts.spotify.com",
       authorizationEndpoint: "https://accounts.spotify.com/authorize",
       tokenEndpoint: "https://accounts.spotify.com/api/token",
-      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/spotify",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/oauth/callback/spotify",
       baseScope: "user-read-email user-read-private",
       ...options,
     });
