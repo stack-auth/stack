@@ -78,16 +78,15 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       profileImageUrl: crud.profile_image_url,
       projectUserOAuthAccounts: {
         create: crud.oauth_providers?.map((provider) => ({
-          projectId,
           providerConfig: {
             connect: {
               projectConfigId_id: {
                 projectConfigId: auth.project.config.id,
                 id: provider.id,
-                email: provider.email,
               }
             }
           },
+          email: provider.email,
           providerAccountId: provider.account_id,
         })),
       }

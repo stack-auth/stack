@@ -115,7 +115,7 @@ export const GET = createSmartRouteHandler({
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
     cookies().set(
-      "stack-oauth-inner-state-" + innerState,
+      "stack-oauth-" + innerState,
       "true",
       {
         httpOnly: true,
