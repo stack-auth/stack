@@ -2078,9 +2078,6 @@ export type AdminProject = {
   useProductionModeErrors(this: AdminProject): ProductionModeError[],
 } & Project;
 
-declare const y: AdminProject;
-const z = y.config.oauthProviders[0].enabled;
-
 export type AdminOwnedProject = {
   readonly app: StackAdminApp<false>,
 } & AdminProject;
