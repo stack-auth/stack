@@ -1,0 +1,12 @@
+node_modules/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+dbschema/edgeql-js
+
+src/css
+prisma/migrations
+typeorm
+nextjs-2
+
+*.tsbuildinfo

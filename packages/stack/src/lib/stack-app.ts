@@ -168,7 +168,7 @@ export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends 
   // note: if you add more fields here, make sure to ensure the checkString in the constructor has/doesn't have them
 };
 
-const defaultBaseUrl = "https://app.stack-auth.com";
+const defaultBaseUrl = "https://api.stack-auth.com";
 
 type TokenObject = {
   accessToken: string | null,
