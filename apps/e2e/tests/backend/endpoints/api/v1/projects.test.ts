@@ -454,6 +454,7 @@ it("updates the project email configuration with the wrong parameters", async ({
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config contains unknown properties: client_id" },
         "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config contains unknown properties: client_id",
       },
       "headers": Headers {
@@ -476,6 +477,7 @@ it("updates the project email configuration with the wrong parameters", async ({
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field" },
           "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field",
         },
         "headers": Headers {

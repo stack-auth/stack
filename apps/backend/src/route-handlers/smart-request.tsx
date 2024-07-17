@@ -172,14 +172,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
-    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutAccessType instead of guessing
-    if (adminAccessToken || superSecretAdminKey) {
-      requestType = "admin";
-    } else if (secretServerKey) {
-      requestType = "server";
-    } else if (publishableClientKey) {
-      requestType = "client";
-    }
+    throw new KnownErrors.ProjectKeyWithoutAccessType();
   }
   if (!requestType) return null;
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
@@ -237,7 +230,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new KnownErrors.ProjectNotFound();
+    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project");
   }
 
   let user = null;

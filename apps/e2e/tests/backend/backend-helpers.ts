@@ -76,7 +76,7 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
     headers: filterUndefined({
       "content-type": body !== undefined ? "application/json" : undefined,
       "x-stack-access-type": accessType ?? undefined,
-      ...projectKeys !== "no-project" ? {
+      ...projectKeys !== "no-project" && accessType ? {
         "x-stack-project-id": projectKeys.projectId,
         "x-stack-publishable-client-key": projectKeys.publishableClientKey,
         "x-stack-secret-server-key": projectKeys.secretServerKey,

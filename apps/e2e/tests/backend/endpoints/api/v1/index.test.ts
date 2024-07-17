@@ -25,6 +25,7 @@ describe("without project ID", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on GET /api/v1:\\n  - query contains unknown properties: extra" },
           "error": "Request validation failed on GET /api/v1:\\n  - query contains unknown properties: extra",
         },
         "headers": Headers {

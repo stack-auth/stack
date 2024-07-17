@@ -249,6 +249,7 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: server_metadata" },
           "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: server_metadata",
         },
         "headers": Headers {

@@ -185,7 +185,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     {},
   );
   if (!project) {
-    throw new KnownErrors.ProjectNotFound();
+    throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
   }
 
   let user = null;

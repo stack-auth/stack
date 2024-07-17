@@ -17,6 +17,7 @@ export const POST = createSmartRouteHandler({
       code_verifier: yupString(),
       redirect_uri: yupString(),
       refresh_token: yupString(),
+      client_id: yupString().required(),
     }).required(),
   }),
   response: yupObject({
@@ -31,10 +32,8 @@ export const POST = createSmartRouteHandler({
     }
     const oauthRequest = new OAuthRequest({
       headers: {
-        ...fullReq.headers,
         'content-type': fullReq.headers['content-type']?.map(v => v.split(';')[0]).join(';'), // the OAuth server library doesn't like the charset in the content-type header
       },
-      query: Object.fromEntries(new URL(fullReq.url).searchParams.entries()),
       method: "POST",
       body: body,
     });
@@ -43,20 +42,20 @@ export const POST = createSmartRouteHandler({
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.token(
-      oauthRequest,
-      oauthResponse,
-      {
-        // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
-        refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year
-        alwaysIssueNewRefreshToken: false, // add token rotation later
-      }
-    );
+        oauthRequest,
+        oauthResponse,
+        {
+          // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
+          refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year
+          alwaysIssueNewRefreshToken: false, // add token rotation later
+        }
+      );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
         throw new KnownErrors.RefreshTokenExpired();
       }
       if (e instanceof InvalidClientError) {
-        throw new KnownErrors.ProjectNotFound();
+        throw new KnownErrors.InvalidOAuthClientId(body.client_id);
       }
       throw e;
     }

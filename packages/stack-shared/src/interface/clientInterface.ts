@@ -741,9 +741,12 @@ export class StackClientInterface {
   }
 
   async getClientProject(): Promise<Result<ProjectsCrud['Client']['Read'], KnownErrors["ProjectNotFound"]>> {
-    const response = await this.sendClientRequest("/projects/current", {}, null);
-    const project: ProjectsCrud['Client']['Read'] | null = await response.json();
-    if (!project) return Result.error(new KnownErrors.ProjectNotFound());
+    const responseOrError = await this.sendClientRequestAndCatchKnownError("/projects/current", {}, null, [KnownErrors.ProjectNotFound]);
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    const response = responseOrError.data;
+    const project: ProjectsCrud['Client']['Read'] = await response.json();
     return Result.ok(project);
   }
 
