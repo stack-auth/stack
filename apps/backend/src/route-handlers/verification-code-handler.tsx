@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteHandler } from "./smart-route-handler";
 import { SmartResponse } from "./smart-response";
-import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { prismaClient } from "@/prisma-client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
@@ -10,13 +10,14 @@ import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stack
 import { VerificationCodeType } from "@prisma/client";
 import { SmartRequest } from "./smart-request";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 type Method = {
   email: string,
 };
 
 type CreateCodeOptions<Data, CallbackUrl extends string | URL = string | URL> = {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
   method: Method,
   expiresInMs?: number,
   data: Data,
@@ -58,7 +59,7 @@ export function createVerificationCodeHandler<
     createOptions: CreateCodeOptions<Data>,
     sendOptions: SendCodeExtraOptions,
   ) => Promise<void>,
-  handler(project: ProjectJson, method: Method, data: Data, body: RequestBody): Promise<Response>,
+  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody): Promise<Response>,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions> {
   const createHandler = (verifyOnly: boolean) => createSmartRouteHandler({
     metadata: verifyOnly ? options.metadata?.check : options.metadata?.post,
@@ -135,8 +136,8 @@ export function createVerificationCodeHandler<
 
       if (!validateRedirectUrl(
         callbackUrl,
-        project.evaluatedConfig.domains,
-        project.evaluatedConfig.allowLocalhost
+        project.config.domains,
+        project.config.allow_localhost,
       )) {
         throw new KnownErrors.RedirectUrlNotWhitelisted();
       }

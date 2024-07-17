@@ -1,26 +1,26 @@
 "use client";
-import * as yup from "yup";
-import React, { useMemo } from "react";
 import { ActionDialog } from "@/components/action-dialog";
-import { Button } from "@/components/ui/button";
-import { Project } from "@stackframe/stack";
-import { DomainConfigJson } from "@/temporary-types";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingSwitch } from "@/components/settings";
-import { useAdminApp } from "../use-admin-app";
-import { Alert } from "@/components/ui/alert";
-import { SmartFormDialog } from "@/components/form-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ActionCell } from "@/components/data-table/elements/cells";
+import { SmartFormDialog } from "@/components/form-dialog";
+import { SettingCard, SettingSwitch } from "@/components/settings";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Typography from "@/components/ui/typography";
+import { DomainConfigJson } from "@/temporary-types";
+import { AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import React from "react";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 function EditDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
   domains: DomainConfigJson[],
-  project: Project,
+  project: AdminProject,
   type: 'update' | 'create',
 } & (
   {
@@ -99,7 +99,7 @@ function DeleteDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   domain: string,
-  project: Project,
+  project: AdminProject,
 }) {
   return (
     <ActionDialog
@@ -112,7 +112,7 @@ function DeleteDialog(props: {
         onClick: async () => {
           await props.project.update({
             config: {
-              domains: [...props.project.evaluatedConfig.domains].filter(({ domain }) => domain !== props.domain),
+              domains: [...props.project.config.domains].filter(({ domain }) => domain !== props.domain),
             }
           });
         }
@@ -131,8 +131,8 @@ function DeleteDialog(props: {
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const domains = project.evaluatedConfig.domains;
+  const project = stackAdminApp.useProject();
+  const domains = project.config.domains;
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
@@ -201,7 +201,7 @@ export default function PageClient() {
 
       <SettingCard title="Development settings">
         <SettingSwitch
-          checked={project.evaluatedConfig.allowLocalhost}
+          checked={project.config.allowLocalhost}
           onCheckedChange={async (checked) => {
             await project.update({
               config: { allowLocalhost: checked },

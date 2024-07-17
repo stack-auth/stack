@@ -1,12 +1,13 @@
 // TODO remove and replace with CRUD handler
 
 import * as yup from 'yup';
-import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@stackframe/stack-shared';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
+import { ApiKeyFirstViewJson } from '@stackframe/stack-shared/dist/interface/adminInterface';
 
 export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
@@ -17,8 +18,8 @@ export async function checkApiKeySet(
 ): Promise<boolean> {
   const set = await getApiKeySet(...args);
   if (!set) return false;
-  if (set.manuallyRevokedAtMillis) return false;
-  if (set.expiresAtMillis < Date.now()) return false;
+  if (set.manually_revoked_at_millis) return false;
+  if (set.expires_at_millis < Date.now()) return false;
   return true;
 }
 
@@ -30,7 +31,7 @@ export async function getApiKeySet(
     | { publishableClientKey: string }
     | { secretServerKey: string }
     | { superSecretAdminKey: string },
-): Promise<ApiKeySetJson | null> {
+): Promise<ApiKeysCrud["Admin"]["Read"] | null> {
   const where = typeof whereOrId === 'string'
     ? {
       projectId_id: {
@@ -53,7 +54,7 @@ export async function getApiKeySet(
 
 export async function listApiKeySets(
   projectId: string,
-): Promise<ApiKeySetJson[]> {
+): Promise<ApiKeysCrud["Admin"]["Read"][]> {
   const sets = await prismaClient.apiKeySet.findMany({
     where: {
       projectId,
@@ -70,7 +71,7 @@ export async function createApiKeySet(
   hasPublishableClientKey: boolean,
   hasSecretServerKey: boolean,
   hasSuperSecretAdminKey: boolean,
-): Promise<ApiKeySetFirstViewJson> {
+): Promise<ApiKeyFirstViewJson> {
   const set = await prismaClient.apiKeySet.create({
     data: {
       id: generateUuid(),
@@ -100,10 +101,10 @@ export async function createApiKeySet(
     ...set.superSecretAdminKey ? {
       superSecretAdminKey: set.superSecretAdminKey,
     } : {},
-    createdAtMillis: set.createdAt.getTime(),
-    expiresAtMillis: set.expiresAt.getTime(),
+    created_at_millis: set.createdAt.getTime(),
+    expires_at_millis: set.expiresAt.getTime(),
     description: set.description,
-    manuallyRevokedAtMillis: set.manuallyRevokedAt?.getTime() ?? null,
+    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
   };
 }
 
@@ -123,21 +124,21 @@ export async function revokeApiKeySet(projectId: string, apiKeyId: string) {
   return createSummaryFromDbType(set);
 }
 
-function createSummaryFromDbType(set: ApiKeySet): ApiKeySetJson {
+function createSummaryFromDbType(set: ApiKeySet): ApiKeysCrud["Admin"]["Read"] {
   return {
     id: set.id,
     description: set.description,
-    publishableClientKey: set.publishableClientKey === null ? null : {
-      lastFour: set.publishableClientKey.slice(-4),
+    publishable_client_key: set.publishableClientKey === null ? undefined : {
+      last_four: set.publishableClientKey.slice(-4),
     },
-    secretServerKey: set.secretServerKey === null ? null : {
-      lastFour: set.secretServerKey.slice(-4),
+    secret_server_key: set.secretServerKey === null ? undefined : {
+      last_four: set.secretServerKey.slice(-4),
     },
-    superSecretAdminKey: set.superSecretAdminKey === null ? null : {
-      lastFour: set.superSecretAdminKey.slice(-4),
+    super_secret_admin_key: set.superSecretAdminKey === null ? undefined : {
+      last_four: set.superSecretAdminKey.slice(-4),
     },
-    createdAtMillis: set.createdAt.getTime(),
-    expiresAtMillis: set.expiresAt.getTime(),
-    manuallyRevokedAtMillis: set.manuallyRevokedAt?.getTime() ?? null,
+    created_at_millis: set.createdAt.getTime(),
+    expires_at_millis: set.expiresAt.getTime(),
+    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
   };
 }

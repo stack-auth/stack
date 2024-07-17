@@ -1,21 +1,21 @@
 'use client';
+import { ServerUser } from '@stackframe/stack';
+import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
-import { ServerUser } from '@stackframe/stack';
-import { ColumnDef, Row, Table } from "@tanstack/react-table";
+import { ActionDialog } from "../action-dialog";
+import { FormDialog } from "../form-dialog";
+import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
+import { SimpleTooltip } from "../simple-tooltip";
+import Typography from "../ui/typography";
+import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
-import { ActionDialog } from "../action-dialog";
-import Typography from "../ui/typography";
 import { standardFilterFn } from "./elements/utils";
-import { SimpleTooltip } from "../simple-tooltip";
-import { jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -204,7 +204,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
 export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
-    authType: (user.authWithEmail ? "email" : user.oauthProviders[0]) || "",
+    authType: (user.authWithEmail ? "email" : user.oauthProviders[0].id) || "",
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }

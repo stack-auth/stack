@@ -1,63 +1,126 @@
+import { getEmailTemplate } from "@/lib/emails";
+import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
-import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { Prisma } from "@prisma/client";
+import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { emailTemplateCrud, emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
-export const emailTemplateCrudHandlers = createPrismaCrudHandlers(emailTemplateCrud, "emailTemplate", {
+
+function prismaToCrud(prisma: Prisma.EmailTemplateGetPayload<{}>, isDefault: boolean) {
+  return {
+    subject: prisma.subject,
+    content: prisma.content as any,
+    type: typedToLowercase(prisma.type),
+    is_default: isDefault,
+  };
+}
+
+export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
   paramsSchema: yupObject({
     type: yupString().oneOf(emailTemplateTypes).required(),
   }),
-  onPrepare: async ({ auth }) => {
-    if (!auth.user) {
-      throw new KnownErrors.UserAuthenticationRequired();
-    }
-    if (auth.user.project_id !== 'internal') {
-      throw new KnownErrors.ExpectedInternalProject();
-    }
-  },
-  baseFields: async ({ auth, params }) => ({
-    projectConfigId: auth.project.evaluatedConfig.id,
-    type: params.type && typedToUppercase(params.type),
-  }),
-  whereUnique: async ({ auth, params }) => ({
-    projectConfigId_type: {
-      projectConfigId: auth.project.evaluatedConfig.id,
-      type: typedToUppercase(params.type),
-    },
-  }),
-  include: async () => ({}),
-  notFoundToCrud: (context) => {
-    throw new KnownErrors.ProjectNotFound();
-  },
-  crudToPrisma: async (crud, { type }) => {
-    if (!validateEmailTemplateContent(crud.content)) {
-      throw new StatusError(StatusError.BadRequest, 'Invalid email template content format');
-    }
+  async onRead({ params, auth }) {
+    const dbType = typedToUppercase(params.type);
+    const emailTemplate = await prismaClient.emailTemplate.findUnique({
+      where: {
+        projectConfigId_type: {
+          projectConfigId: auth.project.id,
+          type: dbType,
+        },
+      },
+    });
 
-    return {
-      content: crud.content as any,
-      subject: crud.subject,
-      type: type === 'create' ? crud.type && typedToUppercase(crud.type) : undefined,
-    };
+    if (emailTemplate) {
+      return prismaToCrud(emailTemplate, false);
+    } else {
+      return {
+        type: params.type,
+        content: EMAIL_TEMPLATES_METADATA[params.type].defaultContent,
+        subject: EMAIL_TEMPLATES_METADATA[params.type].defaultSubject,
+        is_default: true,
+      };
+    }
   },
-  prismaToCrud: async (prisma) => {
-    return {
-      subject: prisma.subject,
-      content: prisma.content as any,
-      type: typedToLowercase(prisma.type),
-    };
+  async onUpdate({ auth, data, params }) {
+    if (data.content && !validateEmailTemplateContent(data.content)) {
+      throw new StatusError(StatusError.BadRequest, 'Invalid email template content');
+    }
+    const dbType = typedToUppercase(params.type);
+    const oldTemplate = await prismaClient.emailTemplate.findUnique({
+      where: {
+        projectConfigId_type: {
+          projectConfigId: auth.project.config.id,
+          type: dbType,
+        },
+      },
+    });
+
+    const content = data.content || oldTemplate?.content || EMAIL_TEMPLATES_METADATA[params.type].defaultContent;
+    const subject = data.subject || oldTemplate?.subject || EMAIL_TEMPLATES_METADATA[params.type].defaultSubject;
+
+    const db = await prismaClient.emailTemplate.upsert({
+      where: {
+        projectConfigId_type: {
+          projectConfigId: auth.project.id,
+          type: dbType,
+        },
+      },
+      update: {
+        content,
+        subject,
+      },
+      create: {
+        projectConfigId: auth.project.id,
+        type: dbType,
+        content,
+        subject,
+      },
+    });
+
+    return prismaToCrud(db, false);
   },
+  async onDelete({ auth, params }) {
+    const dbType = typedToUppercase(params.type);
+    const emailTemplate = await getEmailTemplate(auth.project.id, dbType);
+    if (!emailTemplate) {
+      throw new StatusError(StatusError.NotFound, 'Email template not found');
+    }
+    await prismaClient.emailTemplate.delete({
+      where: {
+        projectConfigId_type: {
+          projectConfigId: auth.project.id,
+          type: dbType,
+        },
+      },
+    });
+  },
+  async onList({ auth }) {
+    const templates = await prismaClient.emailTemplate.findMany({
+      where: {
+        projectConfigId: auth.project.id,
+      },
+    });
+
+    const result = [];
+    for (const [type, metadata] of typedEntries(EMAIL_TEMPLATES_METADATA)) {
+      if (templates.some((t) => typedToLowercase(t.type) === type)) {
+        result.push(prismaToCrud(templates.find((t) => typedToLowercase(t.type) === type)!, false));
+      } else {
+        result.push({
+          type: typedToLowercase(type),
+          content: metadata.defaultContent,
+          subject: metadata.defaultSubject,
+          is_default: true,
+        });
+      }
+    }
+    return {
+      items: result,
+      is_paginated: false,
+    };
+  }
 });
-
-
-// export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, "emailTemplate", {
-//   paramsSchema: yupObject({
-//     type: yupString().oneOf(emailTemplateTypes).required(),
-//   }),
-//   onUpdate: async ({ crud }) => {
-
-// });

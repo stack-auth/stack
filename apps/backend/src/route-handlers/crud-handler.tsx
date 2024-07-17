@@ -8,9 +8,9 @@ import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
-import { ProjectJson } from "@stackframe/stack-shared";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudlOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -71,7 +71,7 @@ type CrudHandlerDirectByAccess<
 > = {
   [K in L as `${Uncapitalize<A>}${K}`]: (options:
     & {
-      project: ProjectJson,
+      project: ProjectsCrud["Admin"]["Read"],
       user?: UsersCrud["Admin"]["Read"],
     }
     & ({} extends yup.InferType<QS> ? {} : { query: yup.InferType<QS> })
@@ -235,7 +235,7 @@ export function createCrudHandlers<
               `${accessType}${crudOperation}`,
               async ({ user, project, data, query, ...params }: yup.InferType<PS> & {
                 query?: yup.InferType<QS>,
-                project: ProjectJson,
+                project: ProjectsCrud["Admin"]["Read"],
                 user?: UsersCrud["Admin"]["Read"],
                 data: any,
               }) => {

@@ -2,13 +2,14 @@ import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
-import { KnownErrors, OAuthProviderConfigJson, ProjectJson } from "@stackframe/stack-shared";
-import { EmailConfigJson, SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
   return ({
@@ -77,14 +78,14 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
   },
 };
 
-export function projectPrismaToCrud(
+export function projectPrismaToCrud<A extends 'client' | 'server' | 'admin'>(
   prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>,
-  accessType: 'client' | 'server' | 'admin',
-) {
+  accessType: A,
+): ProjectsCrud["Admin"]["Read"] {
   return {
     id: prisma.id,
     display_name: prisma.displayName,
-    description: prisma.description ?? undefined,
+    description: prisma.description ?? "",
     created_at_millis: prisma.createdAt.getTime(),
     user_count: prisma._count.users,
     is_production_mode: prisma.isProductionMode,
@@ -229,7 +230,7 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   return managedProjectIds;
 }
 
-export async function getProject(projectId: string): Promise<ProjectJson | null> {
+export async function getProject(projectId: string): Promise<ProjectsCrud["Admin"]["Read"] | null> {
   const rawProject = await prismaClient.project.findUnique({
     where: { id: projectId },
     include: fullProjectInclude,
@@ -239,76 +240,5 @@ export async function getProject(projectId: string): Promise<ProjectJson | null>
     return null;
   }
 
-  return projectJsonFromDbType(rawProject);
+  return projectPrismaToCrud(rawProject, "admin");
 }
-
-export function projectJsonFromDbType(project: ProjectDB): ProjectJson {
-  let emailConfig: EmailConfigJson | undefined;
-  const emailServiceConfig = project.config.emailServiceConfig;
-  if (emailServiceConfig) {
-    if (emailServiceConfig.proxiedEmailServiceConfig) {
-      emailConfig = {
-        type: "shared",
-      };
-    }
-    if (emailServiceConfig.standardEmailServiceConfig) {
-      const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
-      emailConfig = {
-        type: "standard",
-        host: standardEmailConfig.host,
-        port: standardEmailConfig.port,
-        username: standardEmailConfig.username,
-        password: standardEmailConfig.password,
-        senderEmail: standardEmailConfig.senderEmail,
-        senderName: standardEmailConfig.senderName,
-      };
-    }
-  }
-  return {
-    id: project.id,
-    displayName: project.displayName,
-    description: project.description ?? undefined,
-    createdAtMillis: project.createdAt.getTime(),
-    userCount: project._count.users,
-    isProductionMode: project.isProductionMode,
-    evaluatedConfig: {
-      id: project.config.id,
-      allowLocalhost: project.config.allowLocalhost,
-      credentialEnabled: project.config.credentialEnabled,
-      magicLinkEnabled: project.config.magicLinkEnabled,
-      createTeamOnSignUp: project.config.createTeamOnSignUp,
-      domains: project.config.domains.map((domain) => ({
-        domain: domain.domain,
-        handlerPath: domain.handlerPath,
-      })),
-      oauthProviders: project.config.oauthProviderConfigs.flatMap((provider): OAuthProviderConfigJson[] => {
-        if (provider.proxiedOAuthConfig) {
-          return [{
-            id: provider.id,
-            enabled: provider.enabled,
-            type: fromDBSharedProvider(provider.proxiedOAuthConfig.type),
-          }];
-        }
-        if (provider.standardOAuthConfig) {
-          return [{
-            id: provider.id,
-            enabled: provider.enabled,
-            type: fromDBStandardProvider(provider.standardOAuthConfig.type),
-            clientId: provider.standardOAuthConfig.clientId,
-            clientSecret: provider.standardOAuthConfig.clientSecret,
-          }];
-        }
-        captureError("projectJsonFromDbType", new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${project.id}'. Ignoring it`, { project }));
-        return [];
-      }),
-      emailConfig,
-      teamCreatorDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(permissionDefinitionJsonFromDbType)
-        .concat(project.config.teamCreateDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType)),
-      teamMemberDefaultPermissions: project.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(permissionDefinitionJsonFromDbType)
-        .concat(project.config.teamMemberDefaultSystemPermissions.map(permissionDefinitionJsonFromTeamSystemDbType)),
-    },
-  };
-}
-

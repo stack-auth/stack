@@ -32,7 +32,7 @@ const domainSchema = yupObject({
 export const projectsCrudServerReadSchema = yupObject({
   id: schemaFields.projectIdSchema.required(),
   display_name: schemaFields.projectDisplayNameSchema.required(),
-  description: schemaFields.projectDescriptionSchema.nullable().defined(),
+  description: schemaFields.projectDescriptionSchema.nonNullable().defined(),
   created_at_millis: schemaFields.projectCreatedAtMillisSchema.required(),
   user_count: schemaFields.projectUserCountSchema.required(),
   is_production_mode: schemaFields.projectIsProductionModeSchema.required(),

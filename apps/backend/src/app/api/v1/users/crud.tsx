@@ -83,7 +83,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
           providerConfig: {
             connect: {
               projectConfigId_id: {
-                projectConfigId: auth.project.evaluatedConfig.id,
+                projectConfigId: auth.project.config.id,
                 id: provider.id,
                 email: provider.email,
               }
@@ -125,7 +125,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
     // TODO use the same transaction as the one that creates the user row
 
     const project = context.auth.project;
-    if (project.evaluatedConfig.createTeamOnSignUp) {
+    if (project.config.create_team_on_sign_up) {
       const team = await createServerTeam(
         project.id,
         {

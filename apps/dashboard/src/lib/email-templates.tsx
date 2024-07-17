@@ -72,7 +72,7 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
 export async function updateEmailTemplate(
   projectId: string,
   type: EmailTemplateType,
-  update: Partial<EmailTemplateCrud['Server']['Update']>
+  update: Partial<EmailTemplateCrud['Admin']['Update']>
 ) {
   const project = await getProject(projectId);
   if (!project) {
@@ -116,7 +116,7 @@ export async function deleteEmailTemplate(projectId: string, type: EmailTemplate
 export async function createEmailTemplate(
   projectId: string,
   type: EmailTemplateType,
-  data: EmailTemplateCrud['Server']['Update']
+  data: EmailTemplateCrud['Admin']['Create']
 ) {
   const project = await getProject(projectId);
   if (!project) {

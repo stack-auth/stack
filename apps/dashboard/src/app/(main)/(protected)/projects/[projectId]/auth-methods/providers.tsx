@@ -1,7 +1,13 @@
 "use client";
-import * as yup from "yup";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { useState } from "react";
+import { ActionDialog } from "@/components/action-dialog";
+import { FormDialog } from "@/components/form-dialog";
+import { InputField, SwitchField } from "@/components/form-fields";
+import { SettingIconButton, SettingSwitch } from "@/components/settings";
+import { SimpleTooltip } from "@/components/simple-tooltip";
+import { Badge } from "@/components/ui/badge";
+import { InlineCode } from "@/components/ui/inline-code";
+import { Label } from "@/components/ui/label";
+import Typography from "@/components/ui/typography";
 import {
   SharedProvider,
   sharedProviders,
@@ -9,16 +15,9 @@ import {
   toSharedProvider,
   toStandardProvider,
 } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { SettingIconButton, SettingSwitch } from "@/components/settings";
-import { Badge } from "@/components/ui/badge";
-import { ActionDialog } from "@/components/action-dialog";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Typography from "@/components/ui/typography";
-import { InputField, SwitchField } from "@/components/form-fields";
-import { FormDialog } from "@/components/form-dialog";
-import { SimpleTooltip } from "@/components/simple-tooltip";
-import { InlineCode } from "@/components/ui/inline-code";
-import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import * as yup from "yup";
 
 /**
  * All the different types of OAuth providers that can be created.

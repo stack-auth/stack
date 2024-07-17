@@ -21,7 +21,7 @@ import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { mergeScopeStrings, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import * as cookie from "cookie";
 import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
@@ -765,11 +765,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._clientTeamFromCrud(crud);
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
-        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, !!options?.recursive], "write-only");
+        const recursive = options?.recursive ?? true;
+        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only");
         return permissions.map((crud) => app._clientTeamPermissionFromCrud(crud));
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): TeamPermission[] {
-        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, !!options?.recursive], "user.usePermissions()");
+        const recursive = options?.recursive ?? true;
+        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, recursive], "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._clientTeamPermissionFromCrud(crud)), [permissions]);
       },
       usePermission(scope: Team, permissionId: string): TeamPermission | null {
@@ -1200,9 +1202,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, recursive]) => {
     return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
   });
-  private readonly _serverEmailTemplatesCache = createCache(async () => {
-    return await this._interface.listEmailTemplates();
-  });
 
   constructor(options:
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
@@ -1297,11 +1296,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._serverTeamFromCrud(team);
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<ServerTeamPermission[]> {
-        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, !!options?.recursive], "write-only");
+        const recursive = options?.recursive ?? true;
+        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only");
         return permissions.map((crud) => app._serverPermissionFromCrud(crud));
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): ServerTeamPermission[] {
-        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, !!options?.recursive], "user.usePermissions()");
+        const recursive = options?.recursive ?? true;
+        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive], "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._serverPermissionFromCrud(crud)), [permissions]);
       },
       async getPermission(scope: Team, permissionId: string): Promise<ServerTeamPermission | null> {
@@ -1362,14 +1363,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     Object.freeze(currentUser);
     return currentUser as ProjectCurrentServerUser<ProjectId>;
-  }
-
-  protected _serverEmailTemplateFromCrud(crud: EmailTemplateCrud['Server']['Read']): ServerEmailTemplate {
-    return {
-      type: typedToLowercase(crud.type),
-      subject: crud.subject,
-      content: crud.content,
-    };
   }
 
   protected _serverTeamFromCrud(crud: TeamsCrud['Server']['Read']): ServerTeam {
@@ -1591,24 +1584,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._serverUsersCache.refresh([]),
     ]);
   }
-
-  useEmailTemplates(): ServerEmailTemplate[] {
-    return useAsyncCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
-  }
-
-  async listEmailTemplates(): Promise<ServerEmailTemplate[]> {
-    return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
-  }
-
-  async updateEmailTemplate(type: EmailTemplateType, data: ServerEmailTemplateUpdateOptions): Promise<void> {
-    await this._interface.updateEmailTemplate(type, serverEmailTemplateUpdateOptionsToCrud(data));
-    await this._serverEmailTemplatesCache.refresh([]);
-  }
-
-  async resetEmailTemplate(type: EmailTemplateType) {
-    await this._interface.resetEmailTemplate(type);
-    await this._serverEmailTemplatesCache.refresh([]);
-  }
 }
 
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
@@ -1620,6 +1595,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   });
   private readonly _apiKeysCache = createCache(async () => {
     return await this._interface.listApiKeys();
+  });
+  private readonly _adminEmailTemplatesCache = createCache(async () => {
+    return await this._interface.listEmailTemplates();
   });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
@@ -1715,6 +1693,15 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     };
   }
 
+  _adminEmailTemplateFromCrud(data: EmailTemplateCrud['Admin']['Read']): AdminEmailTemplate {
+    return {
+      type: data.type,
+      subject: data.subject,
+      content: data.content,
+      isDefault: data.is_default,
+    };
+  }
+
   override async getProject(): Promise<AdminProject> {
     return this._adminProjectFromCrud(
       await this._adminProjectCache.getOrWait([], "write-only"),
@@ -1788,6 +1775,28 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     const crud = await this._interface.createApiKey(apiKeyCreateOptionsToCrud(options));
     await this._refreshApiKeys();
     return this._createApiKeyFirstViewFromCrud(crud);
+  }
+
+  useEmailTemplates(): AdminEmailTemplate[] {
+    const crud = useAsyncCache(this._adminEmailTemplatesCache, [], "useEmailTemplates()");
+    return useMemo(() => {
+      return crud.map((j) => this._adminEmailTemplateFromCrud(j));
+    }, [crud]);
+  }
+
+  async listEmailTemplates(): Promise<AdminEmailTemplate[]> {
+    const crud = await this._adminEmailTemplatesCache.getOrWait([], "write-only");
+    return crud.map((j) => this._adminEmailTemplateFromCrud(j));
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void> {
+    await this._interface.updateEmailTemplate(type, adminEmailTemplateUpdateOptionsToCrud(data));
+    await this._adminEmailTemplatesCache.refresh([]);
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType) {
+    await this._interface.resetEmailTemplate(type);
+    await this._adminEmailTemplatesCache.refresh([]);
   }
 
   protected override async _refreshProject() {
@@ -2057,7 +2066,7 @@ export type ClientProject = {
   readonly config: ProjectConfig,
 };
 
-export type AdminProject = {
+export type AdminProject = ClientProject & {
   readonly id: string,
   readonly displayName: string,
   readonly description: string | null,
@@ -2165,7 +2174,7 @@ export type ServerDomainConfig = {
   handlerPath: string,
 };
 
-export type ServerOAuthProviderConfig = {
+export type ServerOAuthProviderConfig = OAuthProviderConfig & {
   id: string,
   enabled: boolean,
 } & (
@@ -2410,11 +2419,6 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
     listTeamPermissionDefinitions(): Promise<ServerTeamPermissionDefinition[]>,
     useTeamPermissionDefinitions(): ServerTeamPermissionDefinition[],
-    useEmailTemplates(): ServerEmailTemplate[],
-    listEmailTemplates(): Promise<ServerEmailTemplate[]>,
-    updateEmailTemplate(type: EmailTemplateType, data: ServerEmailTemplateUpdateOptions): Promise<void>,
-    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
-
     /**
      * @deprecated use `getUser()` instead
      */
@@ -2446,7 +2450,10 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
   & AsyncStoreProperty<"project", [], AdminProject, false>
   & AsyncStoreProperty<"apiKeys", [], ApiKey[], true>
   & {
-    createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView>,
+    useEmailTemplates(): AdminEmailTemplate[],
+    listEmailTemplates(): Promise<AdminEmailTemplate[]>,
+    updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void>,
+    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
@@ -2461,17 +2468,18 @@ export const StackAdminApp: StackAdminAppConstructor = _StackAdminAppImpl;
 
 type _______________EMAIL_TEMPLATE_______________ = never;  // this is a marker for VSCode's outline view
 
-type ServerEmailTemplate = {
+type AdminEmailTemplate = {
   type: EmailTemplateType,
   subject: string,
   content: any,
+  isDefault: boolean,
 }
 
-type ServerEmailTemplateUpdateOptions = {
+type AdminEmailTemplateUpdateOptions = {
   subject?: string,
   content?: any,
 };
-function serverEmailTemplateUpdateOptionsToCrud(options: ServerEmailTemplateUpdateOptions): EmailTemplateCrud['Server']['Update'] {
+function adminEmailTemplateUpdateOptionsToCrud(options: AdminEmailTemplateUpdateOptions): EmailTemplateCrud['Admin']['Update'] {
   return {
     subject: options.subject,
     content: options.content,

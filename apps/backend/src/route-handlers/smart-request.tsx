@@ -5,7 +5,7 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import * as yup from "yup";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
@@ -13,11 +13,12 @@ import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type SmartRequestAuth = {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };

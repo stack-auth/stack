@@ -16,7 +16,7 @@ export default function PageClient(props: { teamId: string }) {
 
   return (
     <PageLayout title="Team Members" description={`Manage team members of "${team.displayName}"`}>
-      <TeamMemberTable members={users || []} team={team} />
+      <TeamMemberTable users={users || []} team={team} />
     </PageLayout>
   );
 }

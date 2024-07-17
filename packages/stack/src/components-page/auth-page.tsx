@@ -18,7 +18,15 @@ export function AuthPage({
 }: {
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
-  mockProject?: ClientProject,
+  mockProject?: {
+    config: {
+      credentialEnabled: boolean,
+      magicLinkEnabled: boolean,
+      oauthProviders: {
+        id: string,
+      }[],
+    },
+  },
 }) {
   const stackApp = useStackApp();
   const user = useUser();

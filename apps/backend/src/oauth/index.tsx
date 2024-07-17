@@ -1,5 +1,4 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { GithubProvider } from "./providers/github";
 import { OAuthModel } from "./model";
@@ -8,7 +7,7 @@ import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
-import { SharedProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { SharedProvider, StandardProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 const _providers = {
   github: GithubProvider,
@@ -24,6 +23,18 @@ const _getEnvForProvider = (provider: keyof typeof _providers) => {
     clientSecret: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_SECRET`),
   };
 };
+
+type OAuthProviderConfigJson = {
+  id: string,
+  enabled: boolean,
+} & (
+  | { type: SharedProvider }
+  | {
+    type: StandardProvider,
+    clientId: string,
+    clientSecret: string,
+  }
+);
 
 const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
   return sharedProviders.includes(provider.type as any);

@@ -1,25 +1,24 @@
 "use client";
 
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingText } from "@/components/settings";
-import * as yup from "yup";
+import { ActionDialog } from "@/components/action-dialog";
+import { ActionCell } from "@/components/data-table/elements/cells";
+import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
+import { useRouter } from "@/components/router";
+import { SettingCard, SettingText } from "@/components/settings";
 import { SimpleTooltip } from "@/components/simple-tooltip";
 import { Button } from "@/components/ui/button";
-import { FormDialog } from "@/components/form-dialog";
+import { Card } from "@/components/ui/card";
+import Typography from "@/components/ui/typography";
 import { EmailConfigJson } from "@/temporary-types";
 import { AdminProject } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
-import { Card } from "@/components/ui/card";
-import Typography from "@/components/ui/typography";
-import { ActionCell } from "@/components/data-table/elements/cells";
-import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
-import { useMemo, useState } from "react";
-import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
+import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ActionDialog } from "@/components/action-dialog";
+import { useMemo, useState } from "react";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -64,7 +63,7 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell
+                {!template.isDefault && <ActionCell
                   dangerItems={[{
                     item: 'Reset to Default',
                     onClick: () => {

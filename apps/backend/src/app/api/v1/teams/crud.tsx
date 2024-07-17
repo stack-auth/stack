@@ -43,7 +43,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
             projectUserId: auth.user.id,
             teamId: db.teamId,
             directPermissions: {
-              create: auth.project.evaluatedConfig.teamCreatorDefaultPermissions.map((p) => {
+              create: auth.project.config.team_creator_default_permissions.map((p) => {
                 if (isTeamSystemPermission(p.id)) {
                   return {
                     systemPermission: teamSystemPermissionStringToDBType(p.id),
@@ -53,7 +53,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
                     permission: {
                       connect: {
                         projectConfigId_queryableId: {
-                          projectConfigId: auth.project.evaluatedConfig.id,
+                          projectConfigId: auth.project.config.id,
                           queryableId: p.id,
                         },
                       }

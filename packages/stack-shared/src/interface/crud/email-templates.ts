@@ -1,5 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { jsonSchema, yupMixed, yupObject, yupString } from "../../schema-fields";
+import { jsonSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
 
 export type EmailTemplateType = typeof emailTemplateTypes[number];
 export const emailTemplateTypes = ['email_verification', 'password_reset', 'magic_link'] as const;
@@ -8,10 +8,11 @@ export const emailTemplateAdminReadSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
   subject: yupString().required(),
   content: jsonSchema.required(),
+  is_default: yupBoolean().required(),
 }).required();
 
 export const emailTemplateCrudAdminUpdateSchema = yupObject({
-  content: jsonSchema.optional(),
+  content: jsonSchema.nonNullable().optional(),
   subject: yupString().optional(),
 }).required();
 

@@ -60,7 +60,7 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.ApiKeyNotFound();
     }
 
-    const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === params.provider);
+    const provider = project.config.oauth_providers.find((p) => p.id === params.provider);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }

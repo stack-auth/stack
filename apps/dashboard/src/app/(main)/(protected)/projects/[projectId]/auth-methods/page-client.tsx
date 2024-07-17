@@ -1,21 +1,20 @@
 "use client";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch, availableProviders } from "./providers";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
 import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const oauthProviders = project.evaluatedConfig.oauthProviders;
+  const project = stackAdminApp.useProject();
+  const oauthProviders = project.config.oauthProviders;
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
       <SettingCard title="Email Authentication" description="Email address based sign in.">
         <SettingSwitch
           label="Email password authentication"
-          checked={project.evaluatedConfig.credentialEnabled}
+          checked={project.config.credentialEnabled}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
@@ -26,7 +25,7 @@ export default function PageClient() {
         />
         <SettingSwitch
           label="Magic link (email with login link)"
-          checked={project.evaluatedConfig.magicLinkEnabled}
+          checked={project.config.magicLinkEnabled}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
@@ -44,7 +43,7 @@ export default function PageClient() {
             key={id}
             id={id}
             provider={provider}
-            updateProvider={async (provider: OAuthProviderConfigJson) => {
+            updateProvider={async (provider) => {
               const alreadyExist = oauthProviders.some((p) => p.id === id);
               const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
               if (!alreadyExist) {

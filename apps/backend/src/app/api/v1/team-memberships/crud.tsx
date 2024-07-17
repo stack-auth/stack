@@ -17,7 +17,7 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
         teamId: params.team_id,
         projectId: auth.project.id,
         directPermissions: {
-          create: auth.project.evaluatedConfig.teamMemberDefaultPermissions.map((p) => {
+          create: auth.project.config.team_member_default_permissions.map((p) => {
             if (isTeamSystemPermission(p.id)) {
               return {
                 systemPermission: teamSystemPermissionStringToDBType(p.id),
@@ -27,7 +27,7 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
                 permission: {
                   connect: {
                     projectConfigId_queryableId: {
-                      projectConfigId: auth.project.evaluatedConfig.id,
+                      projectConfigId: auth.project.config.id,
                       queryableId: p.id,
                     },
                   }

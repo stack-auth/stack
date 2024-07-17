@@ -4,7 +4,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { generators } from "openid-client";
@@ -16,9 +16,10 @@ import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
-const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedirectUrl?: string) => {
-  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
+  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
     throw error;
   }
 
@@ -89,7 +90,7 @@ export const GET = createSmartRouteHandler({
       redirectOrThrowError(new KnownErrors.OuterOAuthTimeout(), project, errorRedirectUrl);
     }
 
-    const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === params.provider);
+    const provider = project.config.oauth_providers.find((p) => p.id === params.provider);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
@@ -203,7 +204,7 @@ export const GET = createSmartRouteHandler({
                       providerConfig: {
                         connect: {
                           projectConfigId_id: {
-                            projectConfigId: project.evaluatedConfig.id,
+                            projectConfigId: project.config.id,
                             id: provider.id,
                           },
                         },

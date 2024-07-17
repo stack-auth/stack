@@ -56,7 +56,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           .map(p => teamSystemPermissionStringToDBType(p as any));
 
         await tx.projectConfig.update({
-          where: { id: oldProject.evaluatedConfig.id },
+          where: { id: oldProject.config.id },
           data: {
             [param.dbSystemName]: systemPerms,
           },
@@ -65,7 +65,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Remove existing default permissions
         await tx.permission.updateMany({
           where: {
-            projectConfigId: oldProject.evaluatedConfig.id,
+            projectConfigId: oldProject.config.id,
             scope: 'TEAM',
           },
           data: {
@@ -77,7 +77,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Add new default permissions
         await tx.permission.updateMany({
           where: {
-            projectConfigId: oldProject.evaluatedConfig.id,
+            projectConfigId: oldProject.config.id,
             queryableId: {
               in: defaultPerms.filter(x => !isTeamSystemPermission(x)),
             },
@@ -100,10 +100,10 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         let updateData = {};
 
         await tx.standardEmailServiceConfig.deleteMany({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
         });
         await tx.proxiedEmailServiceConfig.deleteMany({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
         });
 
 
@@ -129,7 +129,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         }
 
         await tx.emailServiceConfig.update({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
           data: updateData,
         });
       }
@@ -140,7 +140,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
       // update the config if it is already in the DB
       // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
 
-      const oldProviders = oldProject.evaluatedConfig.oauthProviders;
+      const oldProviders = oldProject.config.oauth_providers;
       const oauthProviderUpdates = data.config?.oauth_providers;
       if (oauthProviderUpdates) {
         const providerMap = new Map(oldProviders.map((provider) => [
@@ -167,12 +167,12 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // remove existing provider configs
           if (sharedProviders.includes(oldProvider.type as any)) {
             await tx.proxiedOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.evaluatedConfig.id, id: providerUpdate.id },
+              where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
             });
           }
           if (standardProviders.includes(oldProvider.type as any)) {
             await tx.standardOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.evaluatedConfig.id, id: providerUpdate.id },
+              where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
             });
           }
 
@@ -200,7 +200,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           }
 
           await tx.oAuthProviderConfig.update({
-            where: { projectConfigId_id: { projectConfigId: oldProject.evaluatedConfig.id, id } },
+            where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
             data: {
               enabled: providerUpdate.enabled,
               ...providerConfigUpdate,
@@ -234,7 +234,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           await tx.oAuthProviderConfig.create({
             data: {
               id: provider.id,
-              projectConfigId: oldProject.evaluatedConfig.id,
+              projectConfigId: oldProject.config.id,
               enabled: provider.update.enabled,
               ...providerConfigData,
             },

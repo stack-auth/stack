@@ -9,7 +9,13 @@ export function OAuthButtonGroup({
   mockProject,
 }: {
   type: 'sign-in' | 'sign-up',
-  mockProject?: ClientProject,
+  mockProject?: {
+    config: {
+      oauthProviders: {
+        id: string,
+      }[],
+    },
+  },
 }) {
   const stackApp = useStackApp();
   const project = mockProject || stackApp.useProject();
