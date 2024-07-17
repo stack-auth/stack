@@ -1,15 +1,15 @@
 'use client';
 
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { FormWarningText } from "./elements/form-warning";
-import { useStackApp } from "..";
-import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { useStackApp } from "..";
+import { FormWarningText } from "./elements/form-warning";
 
 const schema = yupObject({
   email: yupString().email('Please enter a valid email').required('Please enter your email'),
@@ -55,10 +55,7 @@ export function CredentialSignUpForm() {
       noValidate
     >
       <Label htmlFor="email" className="mb-1">Email</Label>
-      <Input
-        id="email"
-        type="email"
-      />
+      <Input id="email" type="email" {...register('email')}/>
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
