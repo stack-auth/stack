@@ -77,7 +77,7 @@ export class StackClientInterface {
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_basic',
+      token_endpoint_auth_method: 'client_secret_post',
     };
 
     const rawResponse = await oauth.refreshTokenGrantRequest(
@@ -640,7 +640,7 @@ export class StackClientInterface {
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_basic',
+      token_endpoint_auth_method: 'client_secret_post',
     };
     const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
     if (oauth.isOAuth2Error(params)) {

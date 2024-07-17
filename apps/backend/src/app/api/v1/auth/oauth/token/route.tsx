@@ -2,7 +2,8 @@ import { oauthServer } from "@/oauth";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { InvalidClientError, InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, yupMixed, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import { omit } from "@stackframe/stack-shared/dist/utils/objects";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -10,32 +11,22 @@ export const POST = createSmartRouteHandler({
     description: "This endpoint is used to exchange an authorization code or refresh token for an access token.",
     tags: ["Oauth"]
   },
-  request: yupObject({
-    body: yupObject({
-      grant_type: yupString().oneOf(["refresh_token", "authorization_code"]).required(),
-      code: yupString(),
-      code_verifier: yupString(),
-      redirect_uri: yupString(),
-      refresh_token: yupString(),
-      client_id: yupString().required(),
-    }).required(),
-  }),
+  request: yupObject({}),
   response: yupObject({
     statusCode: yupNumber().required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({ body }, fullReq) {
-    if (body.redirect_uri) {
-      body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash
-    }
+  async handler({}, fullReq) {
     const oauthRequest = new OAuthRequest({
       headers: {
-        'content-type': fullReq.headers['content-type']?.map(v => v.split(';')[0]).join(';'), // the OAuth server library doesn't like the charset in the content-type header
+        ...fullReq.headers,
+        "content-type": "application/x-www-form-urlencoded",
       },
-      method: "POST",
-      body: body,
+      method: fullReq.method,
+      body: fullReq.body,
+      query: fullReq.query,
     });
 
 
@@ -52,10 +43,10 @@ export const POST = createSmartRouteHandler({
       );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
-        throw new KnownErrors.RefreshTokenExpired();
+        throw new KnownErrors.RefreshTokenNotFound();
       }
       if (e instanceof InvalidClientError) {
-        throw new KnownErrors.InvalidOAuthClientId(body.client_id);
+        throw new KnownErrors.InvalidOAuthClientIdOrSecret();
       }
       throw e;
     }

@@ -70,7 +70,6 @@ export abstract class KnownError extends StatusError {
     for (const [_, KnownErrorType] of Object.entries(KnownErrors)) {
       if (json.code === KnownErrorType.prototype.errorCode) {
         const constructorArgs = KnownErrorType.constructorArgsFromJson(json);
-        console.log({ json, constructorArgs, KnownErrorType }, "AAAAAAAAA");
         return new KnownErrorType(
           // @ts-expect-error
           ...constructorArgs,
@@ -565,12 +564,12 @@ const RefreshTokenError = createKnownErrorConstructor(
   "inherit",
 );
 
-const RefreshTokenNotFound = createKnownErrorConstructor(
+const RefreshTokenNotFoundOrExpired = createKnownErrorConstructor(
   RefreshTokenError,
   "REFRESH_TOKEN_NOT_FOUND",
   () => [
     401,
-    "Refresh token not found for this project.",
+    "Refresh token not found for this project, or the session has expired/been revoked.",
   ] as const,
   () => [] as const,
 );
@@ -581,16 +580,6 @@ const ProviderRejected = createKnownErrorConstructor(
   () => [
     401,
     "The provider refused to refresh their token. This usually means that the provider used to authenticate the user no longer regards this session as valid, and the user must re-authenticate.",
-  ] as const,
-  () => [] as const,
-);
-
-const RefreshTokenExpired = createKnownErrorConstructor(
-  RefreshTokenError,
-  "REFRESH_TOKEN_EXPIRED",
-  () => [
-    401,
-    "Refresh token has expired. A new refresh token requires re-authentication.",
   ] as const,
   () => [] as const,
 );
@@ -923,30 +912,17 @@ const OAuthAccessTokenNotAvailableWithSharedOAuthKeys = createKnownErrorConstruc
   () => [] as const,
 );
 
-const InvalidOAuthClientId = createKnownErrorConstructor(
-  KnownError,
-  "INVALID_OAUTH_CLIENT_ID",
-  (clientId: string) => [
-    400,
-    "The OAuth client ID is invalid. It must be equal to the project ID.",
-    {
-      client_id: clientId,
-    },
-  ] as const,
-  (json: any) => [json.client_id] as const,
-);
-
 const InvalidOAuthClientIdOrSecret = createKnownErrorConstructor(
   KnownError,
   "INVALID_OAUTH_CLIENT_ID_OR_SECRET",
-  (clientId: string) => [
+  (clientId?: string) => [
     400,
     "The OAuth client ID or secret is invalid. The client ID must be equal to the project ID, and the client secret must be a publishable client key.",
     {
-      client_id: clientId,
+      client_id: clientId ?? null,
     },
   ] as const,
-  (json: any) => [json.client_id] as const,
+  (json: any) => [json.client_id ?? undefined] as const,
 );
 
 const InvalidScope = createKnownErrorConstructor(
@@ -1042,9 +1018,9 @@ export const KnownErrors = {
   AccessTokenExpired,
   InvalidProjectForAccessToken,
   RefreshTokenError,
-  RefreshTokenNotFound,
+  RefreshTokenNotFound: RefreshTokenNotFoundOrExpired,
   ProviderRejected,
-  RefreshTokenExpired,
+  RefreshTokenNotFoundOrExpired,
   UserEmailAlreadyExists,
   UserNotFound,
   ApiKeyNotFound,
@@ -1074,7 +1050,6 @@ export const KnownErrors = {
   OAuthConnectionDoesNotHaveRequiredScope,
   OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
-  InvalidOAuthClientId,
   InvalidOAuthClientIdOrSecret,
   InvalidScope,
   UserAlreadyConnectedToAnotherOAuthConnection,
