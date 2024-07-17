@@ -1,16 +1,24 @@
+import { StackAssertionError } from "./utils/errors";
 import { Store } from "./utils/stores";
 
 export class AccessToken {
   constructor(
     public readonly token: string,
-  ) {}
-
+  ) {
+    if (token === "undefined") {
+      throw new StackAssertionError("Access token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+    }
+  }
 }
 
 export class RefreshToken {
   constructor(
     public readonly token: string,
-  ) {}
+  ) {
+    if (token === "undefined") {
+      throw new StackAssertionError("Refresh token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+    }
+  }
 }
 
 /**

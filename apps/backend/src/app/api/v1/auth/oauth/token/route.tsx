@@ -43,7 +43,7 @@ export const POST = createSmartRouteHandler({
       );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
-        throw new KnownErrors.RefreshTokenNotFound();
+        throw new KnownErrors.RefreshTokenNotFoundOrExpired();
       }
       if (e instanceof InvalidClientError) {
         throw new KnownErrors.InvalidOAuthClientIdOrSecret();

@@ -566,7 +566,7 @@ const RefreshTokenError = createKnownErrorConstructor(
 
 const RefreshTokenNotFoundOrExpired = createKnownErrorConstructor(
   RefreshTokenError,
-  "REFRESH_TOKEN_NOT_FOUND",
+  "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED",
   () => [
     401,
     "Refresh token not found for this project, or the session has expired/been revoked.",
@@ -1018,7 +1018,6 @@ export const KnownErrors = {
   AccessTokenExpired,
   InvalidProjectForAccessToken,
   RefreshTokenError,
-  RefreshTokenNotFound: RefreshTokenNotFoundOrExpired,
   ProviderRejected,
   RefreshTokenNotFoundOrExpired,
   UserEmailAlreadyExists,

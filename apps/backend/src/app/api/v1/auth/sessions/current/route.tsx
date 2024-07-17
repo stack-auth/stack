@@ -42,7 +42,7 @@ export const DELETE = createSmartRouteHandler({
     } catch (e) {
       // TODO make this less hacky, use a transaction to delete-if-exists instead of try-catch
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
-        throw new KnownErrors.RefreshTokenNotFound();
+        throw new KnownErrors.RefreshTokenNotFoundOrExpired();
       } else {
         throw e;
       }
