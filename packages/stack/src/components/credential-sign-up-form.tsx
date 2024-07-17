@@ -58,7 +58,6 @@ export function CredentialSignUpForm() {
       <Input
         id="email"
         type="email"
-        {...(x => (console.log(x), x))(register('email'))}
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
