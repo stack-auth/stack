@@ -1,7 +1,7 @@
 import { updateServerUser } from "@/lib/users";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
+import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud-deprecated/current-user";
 
 export const currentUserCrudHandlers = createCrudHandlers(currentUserCrud, {
   paramNames: [],
