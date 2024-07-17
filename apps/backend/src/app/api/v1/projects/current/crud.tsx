@@ -12,12 +12,7 @@ import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
   onUpdate: async ({ auth, data }) => {
-    const oldProject = await getProject(auth.project.id);
-
-    // the project does not exist, the update operation is invalid
-    if (!oldProject) {
-      throw new KnownErrors.ProjectNotFound();
-    }
+    const oldProject = auth.project;
 
     const result = await prismaClient.$transaction(async (tx) => {
       // ======================= update default team permissions =======================
@@ -276,15 +271,6 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
     return projectPrismaToCrud(result, auth.type);
   },
   onRead: async ({ auth }) => {
-    const result = await prismaClient.project.findUnique({
-      where: { id: auth.project.id },
-      include: fullProjectInclude,
-    });
-
-    if (!result) {
-      throw new KnownErrors.ProjectNotFound();
-    }
-
-    return projectPrismaToCrud(result, auth.type);
+    return auth.project;
   },
 });

@@ -1,4 +1,4 @@
-import { StatusError, throwErr } from "./utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
 import { deindent } from "./utils/strings";
@@ -62,21 +62,23 @@ export abstract class KnownError extends StatusError {
     return [
       400,
       json.message,
-      json.details,
+      json,
     ];
   }
 
   public static fromJson(json: KnownErrorJson): KnownError {
     for (const [_, KnownErrorType] of Object.entries(KnownErrors)) {
       if (json.code === KnownErrorType.prototype.errorCode) {
+        const constructorArgs = KnownErrorType.constructorArgsFromJson(json);
+        console.log({ json, constructorArgs, KnownErrorType }, "AAAAAAAAA");
         return new KnownErrorType(
           // @ts-expect-error
-          ...KnownErrorType.constructorArgsFromJson(json),
+          ...constructorArgs,
         );
       }
     }
 
-    throw new Error(`Unknown KnownError code: ${json.code}`);
+    throw new Error(`Unknown KnownError code. You may need to update your version of Stack to see more detailed information. ${json.code}: ${json.message}`);
   }
 }
 
@@ -99,7 +101,7 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   SuperClass: Super,
   errorCode: ErrorCode,
   create: ((...args: Args) => Readonly<ConstructorParameters<Super>>),
-  constructorArgsFromJson: ((json: KnownErrorJson) => Args),
+  constructorArgsFromJson: ((jsonDetails: any) => Args),
 ): KnownErrorConstructor<InstanceType<Super> & KnownErrorBrand<ErrorCode>, Args> & { errorCode: ErrorCode };
 function createKnownErrorConstructor<ErrorCode extends string, Super extends AbstractKnownErrorConstructor<any>>(
   SuperClass: Super,
@@ -111,7 +113,7 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
   SuperClass: Super,
   errorCode: ErrorCode,
   create: "inherit" | ((...args: Args) => Readonly<ConstructorParameters<Super>>),
-  constructorArgsFromJson: "inherit" | ((json: KnownErrorJson) => Args),
+  constructorArgsFromJson: "inherit" | ((jsonDetails: any) => Args),
 ): KnownErrorConstructor<InstanceType<Super> & KnownErrorBrand<ErrorCode>, Args> & { errorCode: ErrorCode } {
   const createFn = create === "inherit" ? identityArgs<Args> as never : create;
   const constructorArgsFromJsonFn = constructorArgsFromJson === "inherit" ? SuperClass.constructorArgsFromJson as never : constructorArgsFromJson;
@@ -129,7 +131,7 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
     }
 
     static constructorArgsFromJson(json: KnownErrorJson): Args {
-      return constructorArgsFromJsonFn(json);
+      return constructorArgsFromJsonFn(json.details);
     }
   };
 
@@ -148,7 +150,7 @@ const UnsupportedError = createKnownErrorConstructor(
     },
   ] as const,
   (json) => [
-    (json.details as any)?.originalErrorCode ?? throwErr("originalErrorCode not found in UnsupportedError details"),
+    (json as any)?.originalErrorCode ?? throwErr("originalErrorCode not found in UnsupportedError details"),
   ] as const,
 );
 
@@ -167,9 +169,12 @@ const SchemaError = createKnownErrorConstructor(
   "SCHEMA_ERROR",
   (message: string) => [
     400,
-    message,
+    message || throwErr("SchemaError requires a message"),
+    {
+      message,
+    },
   ] as const,
-  (json) => [json.message] as const,
+  (json: any) => [json.message] as const,
 );
 
 const AllOverloadsFailed = createKnownErrorConstructor(
@@ -189,7 +194,7 @@ const AllOverloadsFailed = createKnownErrorConstructor(
     },
   ] as const,
   (json) => [
-    (json.details as any)?.overload_errors ?? throwErr("overload_errors not found in AllOverloadsFailed details"),
+    (json as any)?.overload_errors ?? throwErr("overload_errors not found in AllOverloadsFailed details"),
   ] as const,
 );
 
@@ -233,7 +238,7 @@ const InvalidRequestType = createKnownErrorConstructor(
     `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
   ] as const,
   (json) => [
-    (json.details as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
+    (json as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
   ] as const,
 );
 
@@ -272,7 +277,7 @@ const InvalidAccessType = createKnownErrorConstructor(
     `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${accessType}'.`,
   ] as const,
   (json) => [
-    (json.details as any)?.accessType ?? throwErr("accessType not found in InvalidAccessType details"),
+    (json as any)?.accessType ?? throwErr("accessType not found in InvalidAccessType details"),
   ] as const,
 );
 
@@ -311,8 +316,8 @@ const InsufficientAccessType = createKnownErrorConstructor(
     },
   ] as const,
   (json: any) => [
-    json.details.actual_access_type,
-    json.details.allowed_access_types,
+    json.actual_access_type,
+    json.allowed_access_types,
   ] as const,
 );
 
@@ -633,11 +638,17 @@ const ApiKeyNotFound = createKnownErrorConstructor(
 const ProjectNotFound = createKnownErrorConstructor(
   KnownError,
   "PROJECT_NOT_FOUND",
-  () => [
-    404,
-    "Project not found or is not accessible with the current user.",
-  ] as const,
-  () => [] as const,
+  (projectId: string) => {
+    if (typeof projectId !== "string") throw new StackAssertionError("projectId of KnownErrors.ProjectNotFound must be a string");
+    return [
+      404,
+      `Project ${projectId} not found or is not accessible with the current user.`,
+      {
+        project_id: projectId,
+      },
+    ] as const;
+  },
+  (json: any) => [json.project_id] as const,
 );
 
 const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
@@ -688,7 +699,7 @@ const PasswordTooShort = createKnownErrorConstructor(
     },
   ] as const,
   (json) => [
-    (json.details as any)?.min_length ?? throwErr("min_length not found in PasswordTooShort details"),
+    (json as any)?.min_length ?? throwErr("min_length not found in PasswordTooShort details"),
   ] as const,
 );
 
@@ -703,7 +714,7 @@ const PasswordTooLong = createKnownErrorConstructor(
     },
   ] as const,
   (json) => [
-    (json.details as any)?.maxLength ?? throwErr("maxLength not found in PasswordTooLong details"),
+    (json as any)?.maxLength ?? throwErr("maxLength not found in PasswordTooLong details"),
   ] as const,
 );
 
@@ -795,7 +806,7 @@ const EmailIsNotPrimaryEmail = createKnownErrorConstructor(
       primary_email: primaryEmail,
     },
   ] as const,
-  (json: any) => [json.details.email, json.details.primary_email] as const,
+  (json: any) => [json.email, json.primary_email] as const,
 );
 
 const PermissionNotFound = createKnownErrorConstructor(
@@ -808,7 +819,7 @@ const PermissionNotFound = createKnownErrorConstructor(
       permission_id: permissionId,
     },
   ] as const,
-  (json: any) => [json.details.permission_id] as const,
+  (json: any) => [json.permission_id] as const,
 );
 
 const ContainedPermissionNotFound = createKnownErrorConstructor(
@@ -821,7 +832,7 @@ const ContainedPermissionNotFound = createKnownErrorConstructor(
       permission_id: permissionId,
     },
   ] as const,
-  (json: any) => [json.details.permission_id] as const,
+  (json: any) => [json.permission_id] as const,
 );
 
 const TeamNotFound = createKnownErrorConstructor(
@@ -834,7 +845,7 @@ const TeamNotFound = createKnownErrorConstructor(
       team_id: teamId,
     },
   ] as const,
-  (json: any) => [json.details.team_id] as const,
+  (json: any) => [json.team_id] as const,
 );
 
 const TeamMembershipNotFound = createKnownErrorConstructor(
@@ -848,7 +859,7 @@ const TeamMembershipNotFound = createKnownErrorConstructor(
       user_id: userId,
     },
   ] as const,
-  (json: any) => [json.details.team_id, json.details.user_id] as const,
+  (json: any) => [json.team_id, json.user_id] as const,
 );
 
 
@@ -912,6 +923,32 @@ const OAuthAccessTokenNotAvailableWithSharedOAuthKeys = createKnownErrorConstruc
   () => [] as const,
 );
 
+const InvalidOAuthClientId = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_OAUTH_CLIENT_ID",
+  (clientId: string) => [
+    400,
+    "The OAuth client ID is invalid. It must be equal to the project ID.",
+    {
+      client_id: clientId,
+    },
+  ] as const,
+  (json: any) => [json.client_id] as const,
+);
+
+const InvalidOAuthClientIdOrSecret = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_OAUTH_CLIENT_ID_OR_SECRET",
+  (clientId: string) => [
+    400,
+    "The OAuth client ID or secret is invalid. The client ID must be equal to the project ID, and the client secret must be a publishable client key.",
+    {
+      client_id: clientId,
+    },
+  ] as const,
+  (json: any) => [json.client_id] as const,
+);
+
 const InvalidScope = createKnownErrorConstructor(
   KnownError,
   "INVALID_SCOPE",
@@ -919,7 +956,7 @@ const InvalidScope = createKnownErrorConstructor(
     400,
     `The scope "${scope}" is not a valid OAuth scope for Stack.`,
   ] as const,
-  (json: any) => [json.details.scope] as const,
+  (json: any) => [json.scope] as const,
 );
 
 const UserAlreadyConnectedToAnotherOAuthConnection = createKnownErrorConstructor(
@@ -1037,6 +1074,8 @@ export const KnownErrors = {
   OAuthConnectionDoesNotHaveRequiredScope,
   OAuthExtraScopeNotAvailableWithSharedOAuthKeys,
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
+  InvalidOAuthClientId,
+  InvalidOAuthClientIdOrSecret,
   InvalidScope,
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,

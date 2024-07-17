@@ -70,6 +70,7 @@ it("cannot use empty password to sign up", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on POST /api/v1/auth/password/sign-up:\\n  - body.password is a required field" },
         "error": "Request validation failed on POST /api/v1/auth/password/sign-up:\\n  - body.password is a required field",
       },
       "headers": Headers {

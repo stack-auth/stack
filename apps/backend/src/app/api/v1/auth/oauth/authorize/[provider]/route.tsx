@@ -53,7 +53,7 @@ export const GET = createSmartRouteHandler({
     const project = await getProject(query.client_id);
 
     if (!project) {
-      throw new KnownErrors.ProjectNotFound();
+      throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
     if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {

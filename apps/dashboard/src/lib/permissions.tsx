@@ -170,7 +170,7 @@ export async function grantTeamUserPermission({
     },
   });
 
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   switch (type) {
     case "global": {
@@ -307,7 +307,7 @@ export async function revokeTeamUserPermission({
     },
   });
 
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   switch (type) {
     case "global": {
@@ -516,7 +516,7 @@ export async function createPermissionDefinition(
       id: projectId,
     },
   });
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   let parentDbIds = [];
   const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
@@ -570,7 +570,7 @@ export async function updatePermissionDefinitions(
       id: projectId,
     },
   });
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   let parentDbIds: string[] = [];
   if (permission.containPermissionIds) {
@@ -632,7 +632,7 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
           id: projectId,
         },
       });
-      if (!project) throw new KnownErrors.ProjectNotFound();
+      if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
       const deleted = await prismaClient.permission.deleteMany({
         where: {
           projectConfigId: project.configId,

@@ -53,9 +53,14 @@ type Status = {
   message: string,
 };
 
-type StatusErrorConstructorParameters = [
+type StatusErrorConstructorParameters =
+| [
+  status: Status,
+  message?: string
+]
+| [
   statusCode: number | Status,
-  message?: string,
+  message: string,
 ];
 
 export class StatusError extends Error {
@@ -114,9 +119,11 @@ export class StatusError extends Error {
       message ??= status.message;
       status = status.statusCode;
     }
-    message ??= "Server Error";
     super(message);
     this.statusCode = status;
+    if (!message) {
+      throw new StackAssertionError("StatusError always requires a message unless a Status object is passed", {}, { cause: this });
+    }
   }
 
   public isClientError() {

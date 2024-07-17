@@ -21,6 +21,7 @@
     "nicify",
     "openapi",
     "Proxied",
+    "reqs",
     "stackframe",
     "typehack",
     "Uncapitalize",

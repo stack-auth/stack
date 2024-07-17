@@ -68,6 +68,7 @@ it("should not allow updating passwords without old password", async ({ expect }
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on POST /api/v1/auth/password/update:\\n  - body.old_password is a required field" },
         "error": "Request validation failed on POST /api/v1/auth/password/update:\\n  - body.old_password is a required field",
       },
       "headers": Headers {
@@ -144,6 +145,7 @@ it("should not allow updating password when not logged in", async ({ expect }) =
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on POST /api/v1/auth/password/update:\\n  - auth.user is a required field" },
         "error": "Request validation failed on POST /api/v1/auth/password/update:\\n  - auth.user is a required field",
       },
       "headers": Headers {

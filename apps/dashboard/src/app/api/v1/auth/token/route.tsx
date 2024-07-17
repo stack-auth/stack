@@ -45,7 +45,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       throw new KnownErrors.RefreshTokenExpired();
     }
     if (e instanceof InvalidClientError) {
-      throw new KnownErrors.ProjectNotFound();
+      throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
     }
     throw e;
   }
