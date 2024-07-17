@@ -727,7 +727,8 @@ export class StackClientInterface {
       {},
       session,
     );
-    return await response.json();
+    const result = await response.json() as TeamPermissionsCrud['Client']['List'];
+    return result.items;
   }
 
   async listClientUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
@@ -767,8 +768,8 @@ export class StackClientInterface {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
     }
 
-    const json = await response.json();
-    return json;
+    const json = await response.json() as InternalProjectsCrud['Client']['List'];
+    return json.items;
   }
 
   async createProject(

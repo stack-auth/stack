@@ -114,7 +114,8 @@ export class StackServerInterface extends StackClientInterface {
       {},
       session,
     );
-    return await response.json();
+    const result = await response.json() as TeamPermissionsCrud['Server']['List'];
+    return result.items;
   }
 
   async listServerUserTeams(session: InternalSession): Promise<TeamsCrud['Server']['Read'][]> {
@@ -123,12 +124,14 @@ export class StackServerInterface extends StackClientInterface {
       {},
       session,
     );
-    return await response.json();
+    const result = await response.json() as TeamsCrud['Server']['List'];
+    return result.items;
   }
 
   async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/team-permission-definitions`, {}, null);
-    return await response.json();
+    const result = await response.json() as TeamPermissionDefinitionsCrud['Server']['List'];
+    return result.items;
   }
 
   async createPermissionDefinition(data: TeamPermissionDefinitionsCrud['Server']['Create']): Promise<TeamPermissionDefinitionsCrud['Server']['Read']> {
@@ -171,17 +174,20 @@ export class StackServerInterface extends StackClientInterface {
 
   async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest("/users", {}, null);
-    return await response.json();
+    const result = await response.json() as UsersCrud['Server']['List'];
+    return result.items;
   }
 
   async listServerTeams(): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest("/teams", {}, null);
-    return await response.json();
+    const result = await response.json() as TeamsCrud['Server']['List'];
+    return result.items;
   }
 
   async listServerTeamUsers(teamId: string): Promise<UsersCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(`/users?team_id=${teamId}`, {}, null);
-    return await response.json();
+    const result = await response.json() as UsersCrud['Server']['List'];
+    return result.items;
   }
 
   /* when passing a session, the user will be added to the team */
@@ -285,7 +291,8 @@ export class StackServerInterface extends StackClientInterface {
       {},
       null
     );
-    return await response.json();
+    const result = await response.json() as TeamPermissionsCrud['Server']['List'];
+    return result.items;
   }
 
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
@@ -332,7 +339,8 @@ export class StackServerInterface extends StackClientInterface {
 
   async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
     const response = await this.sendServerRequest(`/email-templates`, {}, null);
-    return await response.json();
+    const result = await response.json() as EmailTemplateCrud['Admin']['List'];
+    return result.items;
   }
 
   async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<void> {
