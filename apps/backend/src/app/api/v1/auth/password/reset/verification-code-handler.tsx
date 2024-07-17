@@ -39,14 +39,14 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
       project: createOptions.project,
       user: sendOptions.user,
       email: createOptions.method.email,
-      templateId: "PASSWORD_RESET",
+      templateType: "password_reset",
       extraVariables: {
         passwordResetLink: codeObj.link.toString(),
       },
     });
   },
   async handler(project, { email }, data, { password }) {
-    if (!project.evaluatedConfig.credentialEnabled) {
+    if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 

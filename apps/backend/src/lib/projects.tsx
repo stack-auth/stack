@@ -1,36 +1,14 @@
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
-import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, permissionDefinitionJsonFromDbType, permissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-
-function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
-  return ({
-    "GITHUB": "shared-github",
-    "GOOGLE": "shared-google",
-    "FACEBOOK": "shared-facebook",
-    "MICROSOFT": "shared-microsoft",
-    "SPOTIFY": "shared-spotify",
-  } as const)[type];
-}
-
-function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
-  return ({
-    "GITHUB": "github",
-    "FACEBOOK": "facebook",
-    "GOOGLE": "google",
-    "MICROSOFT": "microsoft",
-    "SPOTIFY": "spotify",
-  } as const)[type];
-}
-
 
 export const fullProjectInclude = {
   config: {

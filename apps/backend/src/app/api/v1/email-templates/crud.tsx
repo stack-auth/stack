@@ -85,7 +85,7 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
   },
   async onDelete({ auth, params }) {
     const dbType = typedToUppercase(params.type);
-    const emailTemplate = await getEmailTemplate(auth.project.id, dbType);
+    const emailTemplate = await getEmailTemplate(auth.project.id, params.type);
     if (!emailTemplate) {
       throw new StatusError(StatusError.NotFound, 'Email template not found');
     }

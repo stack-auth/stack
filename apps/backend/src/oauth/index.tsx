@@ -1,13 +1,14 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { GithubProvider } from "./providers/github";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthModel } from "./model";
 import { OAuthBaseProvider } from "./providers/base";
-import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
+import { GithubProvider } from "./providers/github";
+import { GoogleProvider } from "./providers/google";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
-import { SharedProvider, StandardProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 
 const _providers = {
   github: GithubProvider,
@@ -24,33 +25,16 @@ const _getEnvForProvider = (provider: keyof typeof _providers) => {
   };
 };
 
-type OAuthProviderConfigJson = {
-  id: string,
-  enabled: boolean,
-} & (
-  | { type: SharedProvider }
-  | {
-    type: StandardProvider,
-    clientId: string,
-    clientSecret: string,
-  }
-);
-
-const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
-  return sharedProviders.includes(provider.type as any);
-};
-
-export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
-  if (_isSharedProvider(provider)) {
-    const providerName = toStandardProvider(provider.type);
-    return new _providers[providerName]({
-      clientId: _getEnvForProvider(providerName).clientId,
-      clientSecret: _getEnvForProvider(providerName).clientSecret,
+export function getProvider(provider: ProjectsCrud['Admin']['Read']['config']['oauth_providers'][number]): OAuthBaseProvider {
+  if (provider.type === 'shared') {
+    return new _providers[provider.id]({
+      clientId: _getEnvForProvider(provider.id).clientId,
+      clientSecret: _getEnvForProvider(provider.id).clientSecret,
     });
   } else {
-    return new _providers[provider.type]({
-      clientId: provider.clientId,
-      clientSecret: provider.clientSecret,
+    return new _providers[provider.id]({
+      clientId: provider.client_id || throwErr("Client ID is required for standard providers"),
+      clientSecret: provider.client_secret || throwErr("Client secret is required for standard providers"),
     });
   }
 }

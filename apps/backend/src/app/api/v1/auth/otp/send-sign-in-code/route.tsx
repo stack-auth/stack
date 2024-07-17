@@ -27,7 +27,7 @@ export const POST = createSmartRouteHandler({
     bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
-    if (!project.evaluatedConfig.magicLinkEnabled) {
+    if (!project.config.magic_link_enabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
@@ -78,7 +78,7 @@ export const POST = createSmartRouteHandler({
       // TODO fill user object instead of specifying the extra variables below manually (sIVCH.sendCode would do this already)
       user: null,
       email,
-      templateId: "MAGIC_LINK",
+      templateType: "magic_link",
       extraVariables: {
         userDisplayName: userObj.displayName,
         userPrimaryEmail: userObj.primaryEmail,

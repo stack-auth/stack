@@ -28,7 +28,7 @@ export const POST = createSmartRouteHandler({
     bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
-    if (!project.evaluatedConfig.credentialEnabled) {
+    if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 

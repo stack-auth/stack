@@ -9,7 +9,7 @@ import { PredefinedMessageCard } from '../components/message-cards/predefined-me
 import { MagicLinkSignInForm } from '../components/magic-link-sign-in-form';
 import { CredentialSignUpForm } from '../components/credential-sign-up-form';
 import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
-import { ClientProject } from '../lib/stack-app';
+import { Project } from '../lib/stack-app';
 
 export function AuthPage({
   fullPage=false,

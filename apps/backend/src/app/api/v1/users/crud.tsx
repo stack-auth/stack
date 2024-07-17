@@ -1,12 +1,11 @@
 import { addUserToTeam, createServerTeam, getServerTeamFromDbType } from "@/lib/teams";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
-import { userIdOrMeSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
@@ -129,7 +128,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       const team = await createServerTeam(
         project.id,
         {
-          displayName: `${prisma.displayName ?? prisma.primaryEmail ?? "Unnamed user"}'s personal team`,
+          display_name: `${prisma.displayName ?? prisma.primaryEmail ?? "Unnamed user"}'s personal team`,
         },
       );
       await addUserToTeam(project.id, team.id, prisma.projectUserId);

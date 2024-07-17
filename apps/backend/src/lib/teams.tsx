@@ -1,9 +1,7 @@
 // TODO remove and replace with CRUD handler
 
 import { prismaClient } from "@/prisma-client";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 
 // TODO technically we can split this; listUserTeams only needs `team`, and listServerTeams only needs `projectUser`; listTeams needs neither
@@ -153,15 +151,16 @@ export async function removeUserFromTeam(projectId: string, teamId: string, user
 export function getClientTeamFromServerTeam(team: TeamsCrud["Server"]["Read"]): TeamsCrud["Client"]["Read"] {
   return {
     id: team.id,
-    displayName: team.displayName,
-    createdAtMillis: team.createdAtMillis,
+    display_name: team.display_name,
+    profile_image_url: team.profile_image_url,
   };
 }
 
 export function getServerTeamFromDbType(team: Prisma.TeamGetPayload<{}>): TeamsCrud["Server"]["Read"] {
   return {
     id: team.teamId,
-    displayName: team.displayName,
-    createdAtMillis: team.createdAt.getTime(),
+    display_name: team.displayName,
+    created_at_millis: team.createdAt.getTime(),
+    profile_image_url: team.profileImageUrl,
   };
 }

@@ -1,6 +1,5 @@
 import { getProject } from '@/lib/projects';
 import { prismaClient } from '@/prisma-client';
-import { EmailTemplateType } from '@prisma/client';
 import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
@@ -8,9 +7,10 @@ import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
 
-export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
@@ -20,7 +20,7 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
     where: {
       projectConfigId_type: {
         projectConfigId: project.config.id,
-        type,
+        type: typedToUppercase(type),
       },
     },
   });
@@ -31,7 +31,7 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
   } : null;
 }
 
-export async function getEmailTemplateWithDefault(projectId: string, type: EmailTemplateType) {
+export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const template = await getEmailTemplate(projectId, type);
   if (template) {
     return template;
@@ -97,10 +97,10 @@ export async function sendEmailFromTemplate(options: {
   project: ProjectsCrud["Admin"]["Read"],
   user: UsersCrud["Admin"]["Read"] | null,
   email: string,
-  templateId: EmailTemplateType,
+  templateType: keyof typeof EMAIL_TEMPLATES_METADATA,
   extraVariables: Record<string, string | null>,
 }) {
-  const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
+  const template = await getEmailTemplateWithDefault(options.project.id, options.templateType);
 
   const variables = filterUndefined({
     projectDisplayName: options.project.display_name,

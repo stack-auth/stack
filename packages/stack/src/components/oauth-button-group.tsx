@@ -1,7 +1,7 @@
 'use client';
 
 import { useStackApp } from "../lib/hooks";
-import { ClientProject } from "../lib/stack-app";
+import { Project } from "../lib/stack-app";
 import { OAuthButton } from "./oauth-button";
 
 export function OAuthButtonGroup({

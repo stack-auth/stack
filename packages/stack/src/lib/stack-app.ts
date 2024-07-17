@@ -635,7 +635,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected _clientProjectFromCrud(crud: ProjectsCrud['Client']['Read']): ClientProject {
+  protected _clientProjectFromCrud(crud: ProjectsCrud['Client']['Read']): Project {
     return {
       id: crud.id,
       config: {
@@ -1061,12 +1061,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  async getProject(): Promise<ClientProject> {
+  async getProject(): Promise<Project> {
     const crud = await this._currentProjectCache.getOrWait([], "write-only");
     return this._clientProjectFromCrud(crud);
   }
 
-  useProject(): ClientProject {
+  useProject(): Project {
     const crud = useAsyncCache(this._currentProjectCache, [], "useProject()");
     return useMemo(() => this._clientProjectFromCrud(crud), [crud]);
   }
@@ -2060,26 +2060,30 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
 
 type _______________PROJECT_______________ = never;  // this is a marker for VSCode's outline view
 
-// TODO next-release: Rename to Project
-export type ClientProject = {
+export type Project = {
   readonly id: string,
   readonly config: ProjectConfig,
 };
 
-export type AdminProject = ClientProject & {
+export type AdminProject = Project & {
   readonly id: string,
   readonly displayName: string,
   readonly description: string | null,
   readonly createdAt: Date,
   readonly userCount: number,
   readonly isProductionMode: boolean,
-  readonly config: ServerProjectConfig,
+  readonly config: AdminProjectConfig,
 
   update(this: AdminProject, update: AdminProjectUpdateOptions): Promise<void>,
 
   getProductionModeErrors(this: AdminProject): Promise<ProductionModeError[]>,
   useProductionModeErrors(this: AdminProject): ProductionModeError[],
 };
+
+type x = AdminProject['config']['oauthProviders'][0]["enabled"];
+
+declare const y: AdminProject;
+const z = y.config.oauthProviders[0].enabled;
 
 export type AdminOwnedProject = AdminProject & {
   readonly app: StackAdminApp<false>,
@@ -2089,7 +2093,7 @@ export type AdminProjectUpdateOptions = {
   displayName?: string,
   description?: string,
   isProductionMode?: boolean,
-  config?: ServerProjectConfigUpdateOptions,
+  config?: AdminProjectConfigUpdateOptions,
 };
 function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): ProjectsCrud["Server"]["Update"] {
   return {
@@ -2143,18 +2147,20 @@ export type OAuthProviderConfig = {
   readonly id: string,
 };
 
-export type ServerProjectConfig = ProjectConfig & {
+export type AdminProjectConfig = OAuthProviderConfig & {
   readonly id: string,
+  readonly credentialEnabled: boolean,
+  readonly magicLinkEnabled: boolean,
   readonly allowLocalhost: boolean,
-  readonly oauthProviders: ServerOAuthProviderConfig[],
-  readonly emailConfig?: ServerEmailConfig,
-  readonly domains: ServerDomainConfig[],
+  readonly oauthProviders: AdminOAuthProviderConfig[],
+  readonly emailConfig?: AdminEmailConfig,
+  readonly domains: AdminDomainConfig[],
   readonly createTeamOnSignUp: boolean,
   readonly teamCreatorDefaultPermissions: ServerTeamPermissionDefinition[],
   readonly teamMemberDefaultPermissions: ServerTeamPermissionDefinition[],
 };
 
-export type ServerEmailConfig = (
+export type AdminEmailConfig = (
   {
     type: "standard",
     senderName: string,
@@ -2169,12 +2175,12 @@ export type ServerEmailConfig = (
   }
 );
 
-export type ServerDomainConfig = {
+export type AdminDomainConfig = {
   domain: string,
   handlerPath: string,
 };
 
-export type ServerOAuthProviderConfig = OAuthProviderConfig & {
+export type AdminOAuthProviderConfig = OAuthProviderConfig & {
   id: string,
   enabled: boolean,
 } & (
@@ -2186,17 +2192,17 @@ export type ServerOAuthProviderConfig = OAuthProviderConfig & {
   }
 );
 
-export type ServerProjectConfigUpdateOptions = {
+export type AdminProjectConfigUpdateOptions = {
   domains?: {
     domain: string,
     handlerPath: string,
   }[],
-  oauthProviders?: ServerOAuthProviderConfig[],
+  oauthProviders?: AdminOAuthProviderConfig[],
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
-  emailConfig?: ServerEmailConfig,
+  emailConfig?: AdminEmailConfig,
   teamCreatorDefaultPermissions?: { id: string }[],
   teamMemberDefaultPermissions?: { id: string }[],
 };
@@ -2392,7 +2398,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
       setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
     },
   }
-  & AsyncStoreProperty<"project", [], ClientProject, false>
+  & AsyncStoreProperty<"project", [], Project, false>
   & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: (options?: RedirectToOptions) => Promise<void> }
 );
 type StackClientAppConstructor = {
@@ -2454,6 +2460,8 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     listEmailTemplates(): Promise<AdminEmailTemplate[]>,
     updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void>,
     resetEmailTemplate(type: EmailTemplateType): Promise<void>,
+
+    createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
