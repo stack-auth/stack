@@ -811,6 +811,19 @@ const PermissionNotFound = createKnownErrorConstructor(
   (json: any) => [json.details.permission_id] as const,
 );
 
+const ContainedPermissionNotFound = createKnownErrorConstructor(
+  KnownError,
+  "CONTAINED_PERMISSION_NOT_FOUND",
+  (permissionId: string) => [
+    400,
+    `Contained permission with ID "${permissionId}" not found. Make sure you created it on the dashboard.`,
+    {
+      permission_id: permissionId,
+    },
+  ] as const,
+  (json: any) => [json.details.permission_id] as const,
+);
+
 const TeamNotFound = createKnownErrorConstructor(
   KnownError,
   "TEAM_NOT_FOUND",
@@ -1015,6 +1028,7 @@ export const KnownErrors = {
   EmailNotAssociatedWithUser,
   EmailIsNotPrimaryEmail,
   PermissionNotFound,
+  ContainedPermissionNotFound,
   TeamNotFound,
   TeamMembershipNotFound,
   EmailTemplateAlreadyExists,

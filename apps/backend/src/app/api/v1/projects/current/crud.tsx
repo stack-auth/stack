@@ -6,7 +6,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
@@ -165,15 +165,19 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Update existing proxied/standard providers
         for (const [id, { providerUpdate, oldProvider }] of providerMap) {
         // remove existing provider configs
-          if (sharedProviders.includes(oldProvider.type as any)) {
-            await tx.proxiedOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
-            });
-          }
-          if (standardProviders.includes(oldProvider.type as any)) {
-            await tx.standardOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
-            });
+          switch (oldProvider.type) {
+            case 'shared': {
+              await tx.proxiedOAuthProviderConfig.deleteMany({
+                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+              });
+              break;
+            }
+            case 'standard': {
+              await tx.standardOAuthProviderConfig.deleteMany({
+                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+              });
+              break;
+            }
           }
 
           // update provider configs with newly created proxied/standard provider configs
@@ -186,7 +190,6 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
                 },
               },
             };
-
           } else {
             providerConfigUpdate = {
               standardOAuthConfig: {

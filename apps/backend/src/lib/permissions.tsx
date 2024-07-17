@@ -70,7 +70,7 @@ async function getParentDbIds(project: ProjectsCrud["Admin"]["Read"], containedP
   for (const parentPermissionId of containedPermissionIds || []) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
     if (!parentPermission) {
-      throw new KnownErrors.PermissionNotFound(parentPermissionId);
+      throw new KnownErrors.ContainedPermissionNotFound(parentPermissionId);
     }
     parentDbIds.push(parentPermission.__database_id);
   }
@@ -301,7 +301,11 @@ export async function listTeamPermissionDefinitions(project: ProjectsCrud["Admin
     orderBy: { queryableId: 'asc' },
     include: fullPermissionInclude,
   });
-  return res.map(db => teamPermissionDefinitionJsonFromDbType(db));
+  const nonSystemPermissions = res.map(db => teamPermissionDefinitionJsonFromDbType(db));
+
+  const systemPermissions = Object.values(DBTeamSystemPermission).map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db));
+
+  return [...nonSystemPermissions, ...systemPermissions];
 }
 
 export async function createTeamPermissionDefinition(options: {
