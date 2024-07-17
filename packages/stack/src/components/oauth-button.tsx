@@ -3,6 +3,7 @@
 import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
 import Color from 'color';
+import { useId } from 'react';
 
 const iconSize = 22;
 
@@ -69,6 +70,7 @@ export function OAuthButton({
   type: 'sign-in' | 'sign-up',
 }) {
   const stackApp = useStackApp();
+  const styleId = useId().replaceAll(':', '-');
 
   let style : {
     backgroundColor?: string,
@@ -134,12 +136,12 @@ export function OAuthButton({
   }
 
   const styleSheet = `
-    .stack-oauth-button-${provider} {
+    .stack-oauth-button-${styleId} {
       background-color: ${style.backgroundColor} !important;
-      color: ${style.textColor}} !important;
+      color: ${style.textColor} !important;
       border: ${style.border} !important;
     }
-    .stack-oauth-button-${provider}:hover {
+    .stack-oauth-button-${styleId}:hover {
       background-color: ${changeColor(Color(style.backgroundColor), 10)} !important;
     }
   `;
@@ -149,7 +151,7 @@ export function OAuthButton({
       <style>{styleSheet}</style>
       <Button
         onClick={() => stackApp.signInWithOAuth(provider)}
-        className={`.stack-oauth-button-${provider}`}
+        className={`stack-oauth-button-${styleId}`}
       >
         <div className='flex items-center w-full gap-4'>
           {style.icon}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 
 type ContainerProps = {
   size: number,
@@ -10,19 +10,23 @@ const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
   size,
   ...props
 }, ref) => {
+  const styleId = useId().replaceAll(':', '-');
   const styleSheet = `
-    @media (min-width: ${size}px) {
-      .stack-inner-container {
-        width: ${size}px;
-      }
+  .stack-inner-container-${styleId} {
+    max-width: 100%;
+  }
+  @media (min-width: ${size}px) {
+    .stack-inner-container-${styleId} {
+      width: ${size}px;
     }
+  }
   `;
 
   return (
     <>
       <style>{styleSheet}</style>
       <div className="flex justify-center w-full">
-        <div className="w-full" {...props} ref={ref}>
+        <div className={`stack-inner-container-${styleId}`} {...props} ref={ref}>
           {props.children}
         </div>
       </div>
