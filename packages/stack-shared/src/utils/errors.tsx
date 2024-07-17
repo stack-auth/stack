@@ -167,3 +167,4 @@ export class StatusError extends Error {
     };
   }
 }
+StatusError.prototype.name = "StatusError";
