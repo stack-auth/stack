@@ -1,38 +1,43 @@
 "use client";
 
 import React from "react";
-import styled, { keyframes } from 'styled-components';
 
-const getFilterString = (brightness1: number, brightness2: number) => {
-  return `
-    0% {
-      filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(${brightness1});
-    }
-    100% {
-      filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(${brightness2});
-    }
-  `;
-};
+const styleSheet = `
+@keyframes animation-light {
+0% {
+  filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.8);
+}
+100% {
+  filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.9);
+}
+}
 
-const animationLight = keyframes`${getFilterString(0.8, 0.9)}`;
-const animationDark = keyframes`${getFilterString(0.2, 0.1)}`;
+/* keyframes for dark theme animation */
+@keyframes animation-dark {
+0% {
+  filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.2);
+}
+100% {
+  filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.1);
+}
+}
 
-const Primitive = styled("span")`
-  &[data-stack-state="activated"], &[data-stack-state="activated"] * {
-    pointer-events: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    user-select: none !important;
-    cursor: default !important;
-  }
+.primitive[data-stack-state="activated"],
+.primitive[data-stack-state="activated"] * {
+pointer-events: none !important;
+-webkit-user-select: none !important;
+-moz-user-select: none !important;
+user-select: none !important;
+cursor: default !important;
+}
 
-  &[data-stack-state="activated"] {
-    animation: ${animationLight} 1s infinite alternate-reverse !important;
-  }
+.primitive[data-stack-state="activated"] {
+animation: animation-light 1s infinite alternate-reverse !important;
+}
 
-  html[data-stack-theme='dark'] &[data-stack-state="activated"] {
-    animation: ${animationDark} 1s infinite alternate-reverse !important;
-  }
+html[data-stack-theme='dark'] .primitive[data-stack-state="activated"] {
+animation: animation-dark 1s infinite alternate-reverse !important;
+}
 `;
 
 const Skeleton = React.forwardRef<
@@ -40,11 +45,14 @@ const Skeleton = React.forwardRef<
   React.ComponentPropsWithoutRef<"span"> & { deactivated?: boolean }
 >(
   (props, ref) => {
-    return <Primitive
-      ref={ref}
-      data-stack-state={props.deactivated ? "deactivated" : "activated"}
-      {...props}
-    />;
+    return <>
+      <style>{styleSheet}</style>
+      <span
+        ref={ref}
+        data-stack-state={props.deactivated ? "deactivated" : "activated"}
+        {...props}
+      />;
+    </>;
   }
 );
 Skeleton.displayName = "Skeleton";

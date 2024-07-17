@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import StyledComponentsRegistry from "./styled-components-registry";
 import { globalCSS } from "../generated/global-css";
 import { BrowserScript } from "../utils/browser-script";
 import { DEFAULT_THEME } from "../utils/constants";
@@ -91,10 +90,10 @@ export function StackTheme({
   };
 
   return (
-    <StyledComponentsRegistry>
+    <>
       <BrowserScript />
       <style dangerouslySetInnerHTML={{ __html: globalCSS + '\n' + convertColorsToCSS(themeValue) }} />
       {children}
-    </StyledComponentsRegistry>
+    </>
   );
 }

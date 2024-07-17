@@ -3,7 +3,6 @@
 import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
 import Color from 'color';
-import styled from 'styled-components';
 
 const iconSize = 22;
 
@@ -61,16 +60,6 @@ const changeColor = (c: Color, value: number) => {
   }
   return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
 };
-
-const StyledButton = styled(Button)<{ $bgColor?: string, $hoverBgColor?: string, $textColor?: string, $border?: string }>`
-  ${props => props.$bgColor ? `background-color: ${props.$bgColor} !important;` : ''}
-  ${props => props.$textColor ? `color: ${props.$textColor} !important;` : ''}
-  ${props => props.$border ? `border: ${props.$border} !important;` : ''}
-
-  &:hover {
-    ${props => props.$hoverBgColor ? `background-color: ${props.$hoverBgColor} !important;` : ''}
-  }
-`;
 
 export function OAuthButton({
   provider,
@@ -144,20 +133,31 @@ export function OAuthButton({
     }
   }
 
+  const styleSheet = `
+    .stack-oauth-button-${provider} {
+      background-color: ${style.backgroundColor} !important;
+      color: ${style.textColor}} !important;
+      border: ${style.border} !important;
+    }
+    .stack-oauth-button-${provider}:hover {
+      background-color: ${changeColor(Color(style.backgroundColor), 10)} !important;
+    }
+  `;
+
   return (
-    <StyledButton
-      onClick={() => stackApp.signInWithOAuth(provider)}
-      $bgColor={style.backgroundColor}
-      $hoverBgColor={changeColor(Color(style.backgroundColor), 10)}
-      $textColor={style.textColor}
-      $border={style.border}
-    >
-      <div className='flex items-center w-full gap-4'>
-        {style.icon}
-        <span className='flex-1'>
-          {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
-        </span>
-      </div>
-    </StyledButton>
+    <>
+      <style>{styleSheet}</style>
+      <Button
+        onClick={() => stackApp.signInWithOAuth(provider)}
+        className={`.stack-oauth-button-${provider}`}
+      >
+        <div className='flex items-center w-full gap-4'>
+          {style.icon}
+          <span className='flex-1'>
+            {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
+          </span>
+        </div>
+      </Button>
+    </>
   );
 }

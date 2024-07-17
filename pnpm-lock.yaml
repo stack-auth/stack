@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      styled-components:
-        specifier: ^6.1.8
-        version: 6.1.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.1
@@ -120,9 +116,6 @@ importers:
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
-      date-fns:
-        specifier: ^3.6.0
-        version: 3.6.0
       dotenv-cli:
         specifier: ^7.3.0
         version: 7.4.1
@@ -340,9 +333,6 @@ importers:
       cmdk:
         specifier: ^1.0.0
         version: 1.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      date-fns:
-        specifier: ^3.6.0
-        version: 3.6.0
       dotenv-cli:
         specifier: ^7.3.0
         version: 7.4.1
@@ -574,9 +564,6 @@ importers:
       react-icons:
         specifier: ^5.0.1
         version: 5.2.1(react@18.3.1)
-      styled-components:
-        specifier: ^6.1.8
-        version: 6.1.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: ^18.2.66
@@ -629,9 +616,6 @@ importers:
       react-icons:
         specifier: ^5.0.1
         version: 5.2.1(react@18.3.1)
-      styled-components:
-        specifier: ^6.1.8
-        version: 6.1.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: ^18.2.66
@@ -684,9 +668,6 @@ importers:
       react-icons:
         specifier: ^5.0.1
         version: 5.2.1(react@18.3.1)
-      styled-components:
-        specifier: ^6.1.8
-        version: 6.1.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: ^18.2.66
@@ -828,9 +809,6 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
-      styled-components:
-        specifier: ^6.1.8
-        version: 6.1.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -1188,6 +1166,9 @@ importers:
       cmdk:
         specifier: ^1.0.0
         version: 1.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      date-fns:
+        specifier: ^3.6.0
+        version: 3.6.0
       input-otp:
         specifier: ^1.2.4
         version: 1.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

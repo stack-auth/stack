@@ -72,7 +72,8 @@
     "react-day-picker": "^8.10.1",
     "react-hook-form": "^7.51.4",
     "react-resizable-panels": "^2.0.19",
-    "tailwind-merge": "^2.3.0"
+    "tailwind-merge": "^2.3.0",
+    "date-fns": "^3.6.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
