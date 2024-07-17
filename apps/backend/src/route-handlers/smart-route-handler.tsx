@@ -26,6 +26,7 @@ class InternalServerError extends StatusError {
  */
 const commonErrors = [
   KnownErrors.AccessTokenExpired,
+  KnownErrors.CannotGetOwnUserWithoutUser,
   InternalServerError,
 ];
 

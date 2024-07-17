@@ -1,5 +1,6 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 const handler = createSmartRouteHandler({
   request: yupObject({
@@ -14,7 +15,13 @@ const handler = createSmartRouteHandler({
     return {
       statusCode: 404,
       bodyType: "text",
-      body: `URL not found: ${req.url} (404)`,
+      body: deindent`
+        404 — this page does not exist in Stack Auth's API.
+        
+        Did you mean to visit https://app.stack-auth.com?
+
+        URL: ${req.url}
+      `,
     };
   },
 });

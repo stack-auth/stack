@@ -515,7 +515,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/signup",
+      "/auth/password/sign-up",
       {
         headers: {
           "Content-Type": "application/json"
@@ -524,7 +524,7 @@ export class StackClientInterface {
         body: JSON.stringify({
           email,
           password,
-          emailVerificationRedirectUrl,
+          verification_callback_url: emailVerificationRedirectUrl,
         }),
       },
       session,
