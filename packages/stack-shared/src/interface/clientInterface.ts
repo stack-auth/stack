@@ -749,7 +749,7 @@ export class StackClientInterface {
 
   async updateClientUser(update: CurrentUserCrud["Client"]["Update"], session: InternalSession) {
     await this.sendClientRequest(
-      "/user/me",
+      "/users/me",
       {
         method: "PUT",
         headers: {

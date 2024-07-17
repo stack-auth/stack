@@ -65,7 +65,7 @@ export class StackAdminInterface extends StackServerInterface {
     const response = await this.sendAdminRequest(
       "/projects/current",
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
@@ -80,7 +80,7 @@ export class StackAdminInterface extends StackServerInterface {
     options: ApiKeyCreateOptionsJson,
   ): Promise<ApiKeyFirstViewJson> {
     const response = await this.sendServerRequest(
-      "/api-keys",
+      "/internal/api-keys",
       {
         method: "POST",
         headers: {
@@ -100,13 +100,13 @@ export class StackAdminInterface extends StackServerInterface {
 
   async revokeApiKeyById(id: string) {
     await this.sendAdminRequest(
-      `/api-keys/${id}`, {
-        method: "PUT",
+      `/internal/api-keys/${id}`, {
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          revoke: true,
+          revoked: true,
         }),
       },
       null,
@@ -114,7 +114,7 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async getApiKey(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
-    const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
+    const response = await this.sendAdminRequest(`/internal/api-keys/${id}`, {}, session);
     return await response.json();
   }
 }
