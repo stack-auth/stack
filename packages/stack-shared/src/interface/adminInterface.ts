@@ -1,5 +1,6 @@
 import { InternalSession } from "../sessions";
 import { ApiKeysCrud } from "./crud/api-keys";
+import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
 import { ProjectsCrud } from "./crud/projects";
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
@@ -113,5 +114,34 @@ export class StackAdminInterface extends StackServerInterface {
   async getApiKey(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(`/internal/api-keys/${id}`, {}, session);
     return await response.json();
+  }
+
+  async listEmailTemplates(session: InternalSession): Promise<EmailTemplateCrud['Admin']['Read'][]> {
+    const response = await this.sendAdminRequest(`/email-templates`, {}, session);
+    const result = await response.json() as EmailTemplateCrud['Admin']['List'];
+    return result.items;
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update'], session: InternalSession): Promise<EmailTemplateCrud['Admin']['Read']> {
+    const result = await this.sendAdminRequest(
+      `/email-templates/${type}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await result.json();
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType, session: InternalSession): Promise<void> {
+    await this.sendAdminRequest(
+      `/email-templates/${type}`,
+      { method: "DELETE" },
+      session
+    );
   }
 }

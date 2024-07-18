@@ -7,7 +7,6 @@ import {
   StackClientInterface
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
-import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "./crud/team-permissions";
 import { TeamsCrud } from "./crud/teams";
@@ -333,34 +332,6 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify({}),
       },
-      null,
-    );
-  }
-
-  async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
-    const response = await this.sendServerRequest(`/email-templates`, {}, null);
-    const result = await response.json() as EmailTemplateCrud['Admin']['List'];
-    return result.items;
-  }
-
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<void> {
-    await this.sendServerRequest(
-      `/email-templates/${type}`,
-      {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-      null,
-    );
-  }
-
-  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
-    await this.sendServerRequest(
-      `/email-templates/${type}`,
-      { method: "DELETE" },
       null,
     );
   }
