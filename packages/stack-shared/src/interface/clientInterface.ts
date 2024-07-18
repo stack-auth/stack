@@ -676,9 +676,9 @@ export class StackClientInterface {
         captureError("clientInterface.signOut()", new StackAssertionError("Signing out a user without access to the refresh token does not invalidate the session on the server. Please open an issue in the Stack repository if you see this error"));
       } else {
         const res = await this.sendClientRequest(
-          "/auth/signout",
+          "/auth/sessions/current",
           {
-            method: "POST",
+            method: "DELETE",
             headers: {
               "Content-Type": "application/json"
             },
