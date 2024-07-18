@@ -139,9 +139,14 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
   oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn>,
-
-  // we intersect with TokenStoreInit in the beginning to make TypeScript error messages easier to read
   tokenStore: TokenStoreInit<HasTokenStore>,
+
+  /**
+   * By default, the Stack app will automatically prefetch some data from Stack's server when this app is first
+   * constructed. This improves the performance of your app, but will create network requests that are unnecessary if
+   * the app is never used or disposed of immediately. To disable this behavior, set this option to true.
+   */
+  noAutomaticPrefetch?: boolean,
 };
 
 export type StackServerAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
@@ -351,7 +356,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn"> & {
+      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn" | "noAutomaticPrefetch"> & {
         interface: StackClientInterface,
       }
     )
@@ -376,9 +381,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._initUniqueIdentifier();
     }
 
-    numberOfAppsCreated++;
-    if (numberOfAppsCreated > 10) {
-      (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. In production, make sure to minimize the number of Stack apps per page (usually, one per project).`);
+    if (!_options.noAutomaticPrefetch) {
+      numberOfAppsCreated++;
+      if (numberOfAppsCreated > 10) {
+        (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps with automatic pre-fetch enabled (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. If you are getting this error and it is not caused by hot reload, make sure to minimize the number of Stack apps per page (usually, one per project). (If it is caused by hot reload and does not occur in production, you can safely ignore it.)`);
+      }
     }
   }
 
@@ -394,7 +401,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   /**
    * Cloudflare workers does not allow use of randomness on the global scope (on which the Stack app is probably
-   * initialized). For that reason, we generate the unique identifier lazily when it is first needed.
+   * initialized). For that reason, we generate the unique identifier lazily when it is first needed instead of in the
+   * constructor.
    */
   protected _getUniqueIdentifier() {
     if (!this._uniqueIdentifier) {
@@ -831,6 +839,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       projectId: forProjectId,
       tokenStore: null,
       projectOwnerSession: session,
+      noAutomaticPrefetch: true,
     });
   }
 
@@ -1081,11 +1090,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _useOwnedProjects(session: InternalSession): AdminOwnedProject[] {
     this._ensureInternalProject();
-    const crud = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
-    return useMemo(() => crud.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
+    const projects = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
+    return useMemo(() => projects.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
-    )), [crud]);
+    )), [projects]);
   }
 
   protected async _createProject(session: InternalSession, newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminOwnedProject> {
