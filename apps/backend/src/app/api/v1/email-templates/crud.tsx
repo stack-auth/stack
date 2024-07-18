@@ -101,7 +101,7 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
   async onList({ auth }) {
     const templates = await prismaClient.emailTemplate.findMany({
       where: {
-        projectConfigId: auth.project.id,
+        projectConfigId: auth.project.config.id,
       },
     });
 
