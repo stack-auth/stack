@@ -116,13 +116,13 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async listEmailTemplates(session: InternalSession): Promise<EmailTemplateCrud['Admin']['Read'][]> {
-    const response = await this.sendAdminRequest(`/email-templates`, {}, session);
+  async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
+    const response = await this.sendAdminRequest(`/email-templates`, {}, null);
     const result = await response.json() as EmailTemplateCrud['Admin']['List'];
     return result.items;
   }
 
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update'], session: InternalSession): Promise<EmailTemplateCrud['Admin']['Read']> {
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<EmailTemplateCrud['Admin']['Read']> {
     const result = await this.sendAdminRequest(
       `/email-templates/${type}`,
       {
@@ -132,16 +132,16 @@ export class StackAdminInterface extends StackServerInterface {
         },
         body: JSON.stringify(data),
       },
-      session,
+      null,
     );
     return await result.json();
   }
 
-  async resetEmailTemplate(type: EmailTemplateType, session: InternalSession): Promise<void> {
+  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
     await this.sendAdminRequest(
       `/email-templates/${type}`,
       { method: "DELETE" },
-      session
+      null
     );
   }
 }
