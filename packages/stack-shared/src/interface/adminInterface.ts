@@ -46,15 +46,11 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectsCrud["Admin"]["Read"]> {
+  async getProject(): Promise<ProjectsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
       "/projects/current",
       {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(options ?? {}),
+        method: "GET",
       },
       null,
     );
@@ -94,8 +90,9 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async listApiKeys(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
-    const response = await this.sendAdminRequest("/api-keys", {}, null);
-    return await response.json();
+    const response = await this.sendAdminRequest("/internal/api-keys", {}, null);
+    const result = await response.json() as ApiKeysCrud["Admin"]["List"];
+    return result.items;
   }
 
   async revokeApiKeyById(id: string) {
