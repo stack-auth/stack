@@ -8,7 +8,7 @@ export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T
  *
  * Note that since they are assumed to be plain objects, this function does not compare prototypes.
  */
-export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {
+export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUndefinedValues?: boolean } = {}): obj2 is T {
   if (typeof obj1 !== typeof obj2) return false;
   if (obj1 === obj2) return true;
 
@@ -19,13 +19,17 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {
       if (Array.isArray(obj1) || Array.isArray(obj2)) {
         if (!Array.isArray(obj1) || !Array.isArray(obj2)) return false;
         if (obj1.length !== obj2.length) return false;
-        return obj1.every((v, i) => deepPlainEquals(v, obj2[i]));
+        return obj1.every((v, i) => deepPlainEquals(v, obj2[i], options));
       }
 
-      const keys1 = Object.keys(obj1);
-      const keys2 = Object.keys(obj2);
-      if (keys1.length !== keys2.length) return false;
-      return keys1.every((k) => k in (obj2 as any) && deepPlainEquals((obj1 as any)[k], (obj2 as any)[k]));
+      const entries1 = Object.entries(obj1).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      const entries2 = Object.entries(obj2).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      if (entries1.length !== entries2.length) return false;
+      return entries1.every(([k, v1]) => {
+        const e2 = entries2.find(([k2]) => k === k2);
+        if (!e2) return false;
+        return deepPlainEquals(v1, e2[1], options);
+      });
     }
     case 'undefined':
     case 'string':
