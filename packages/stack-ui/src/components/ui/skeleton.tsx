@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { cn } from "../..";
 
 // TODO: add this to the generated global CSS
 const styleSheet = `
@@ -11,9 +12,7 @@ const styleSheet = `
 100% {
   filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.9);
 }
-}
 
-/* keyframes for dark theme animation */
 @keyframes animation-dark {
 0% {
   filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.2);
@@ -21,10 +20,9 @@ const styleSheet = `
 100% {
   filter: grayscale(1) contrast(0) brightness(0) invert(1) brightness(0.1);
 }
-}
 
-.primitive[data-stack-state="activated"],
-.primitive[data-stack-state="activated"] * {
+.stack-skeleton[data-stack-state="activated"],
+.stack-skeleton[data-stack-state="activated"] * {
   pointer-events: none !important;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
@@ -32,11 +30,15 @@ const styleSheet = `
   cursor: default !important;
 }
 
-.primitive[data-stack-state="activated"] {
+.stack-skeleton[data-stack-state="activated"] {
   animation: animation-light 1s infinite alternate-reverse !important;
 }
 
-html[data-stack-theme='dark'] .primitive[data-stack-state="activated"] {
+html[data-stack-theme='dark'] .stack-skeleton[data-stack-state="activated"] {
+  animation: animation-dark 1s infinite alternate-reverse !important;
+}
+
+html[data-stack-theme='dark'] .stack-skeleton[data-stack-state="activated"] {
   animation: animation-dark 1s infinite alternate-reverse !important;
 }
 `;
@@ -50,9 +52,10 @@ const Skeleton = React.forwardRef<
       <>
         <style>{styleSheet}</style>
         <span
+          {...props}
           ref={ref}
           data-stack-state={props.deactivated ? "deactivated" : "activated"}
-          {...props}
+          className={cn(props.className, "stack-skeleton")}
         />
       </>
     );
