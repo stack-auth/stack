@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
       // CORS headers
       ...!isApiRequest ? {} : {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
         "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
       },
