@@ -1073,7 +1073,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _listOwnedProjects(session: InternalSession): Promise<AdminOwnedProject[]> {
     this._ensureInternalProject();
     const crud = await this._ownedProjectsCache.getOrWait([session], "write-only");
-    return crud.map((j) => this._createOwnedAdminApp("internal", session)._adminOwnedProjectFromCrud(
+    return crud.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
     ));
@@ -1082,7 +1082,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _useOwnedProjects(session: InternalSession): AdminOwnedProject[] {
     this._ensureInternalProject();
     const crud = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
-    return useMemo(() => crud.map((j) => this._createOwnedAdminApp("internal", session)._adminOwnedProjectFromCrud(
+    return useMemo(() => crud.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
     )), [crud]);
@@ -1091,7 +1091,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _createProject(session: InternalSession, newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminOwnedProject> {
     this._ensureInternalProject();
     const crud = await this._interface.createProject(adminProjectCreateOptionsToCrud(newProject), session);
-    const res = this._createOwnedAdminApp("internal", session)._adminOwnedProjectFromCrud(
+    const res = this._createOwnedAdminApp(crud.id, session)._adminOwnedProjectFromCrud(
       crud,
       () => this._refreshOwnedProjects(session),
     );
