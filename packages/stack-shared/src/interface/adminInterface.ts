@@ -2,6 +2,7 @@ import { InternalSession } from "../sessions";
 import { ApiKeysCrud } from "./crud/api-keys";
 import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
 import { ProjectsCrud } from "./crud/projects";
+import { TeamPermissionDefinitionsCrud } from "./crud/team-permissions";
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
 export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
@@ -142,6 +143,51 @@ export class StackAdminInterface extends StackServerInterface {
       `/email-templates/${type}`,
       { method: "DELETE" },
       null
+    );
+  }
+
+
+  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Admin']['Read'][]> {
+    const response = await this.sendAdminRequest(`/team-permission-definitions`, {}, null);
+    const result = await response.json() as TeamPermissionDefinitionsCrud['Admin']['List'];
+    return result.items;
+  }
+
+  async createPermissionDefinition(data: TeamPermissionDefinitionsCrud['Admin']['Create']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+    const response = await this.sendAdminRequest(
+      "/team-permission-definitions",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async updatePermissionDefinition(permissionId: string, data: TeamPermissionDefinitionsCrud['Admin']['Update']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+    const response = await this.sendAdminRequest(
+      `/team-permission-definitions/${permissionId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async deletePermissionDefinition(permissionId: string): Promise<void> {
+    await this.sendAdminRequest(
+      `/team-permission-definitions/${permissionId}`,
+      { method: "DELETE" },
+      null,
     );
   }
 }

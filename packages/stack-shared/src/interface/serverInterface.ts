@@ -8,7 +8,7 @@ import {
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
-import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "./crud/team-permissions";
+import { TeamPermissionsCrud } from "./crud/team-permissions";
 import { TeamsCrud } from "./crud/teams";
 import { UsersCrud } from "./crud/users";
 
@@ -125,50 +125,6 @@ export class StackServerInterface extends StackClientInterface {
     );
     const result = await response.json() as TeamsCrud['Server']['List'];
     return result.items;
-  }
-
-  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest(`/team-permission-definitions`, {}, null);
-    const result = await response.json() as TeamPermissionDefinitionsCrud['Server']['List'];
-    return result.items;
-  }
-
-  async createPermissionDefinition(data: TeamPermissionDefinitionsCrud['Server']['Create']): Promise<TeamPermissionDefinitionsCrud['Server']['Read']> {
-    const response = await this.sendServerRequest(
-      "/team-permission-definitions",
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-      null,
-    );
-    return await response.json();
-  }
-
-  async updatePermissionDefinition(permissionId: string, data: TeamPermissionDefinitionsCrud['Server']['Update']): Promise<TeamPermissionDefinitionsCrud['Server']['Read']> {
-    const response = await this.sendServerRequest(
-      `/team-permission-definitions/${permissionId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-      null,
-    );
-    return await response.json();
-  }
-
-  async deletePermissionDefinition(permissionId: string): Promise<void> {
-    await this.sendServerRequest(
-      `/team-permission-definitions/${permissionId}`,
-      { method: "DELETE" },
-      null,
-    );
   }
 
   async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {

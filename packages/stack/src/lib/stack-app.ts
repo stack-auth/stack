@@ -1192,9 +1192,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId]) => {
     return await this._interface.listServerTeamUsers(teamId);
   });
-  private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
-    return await this._interface.listPermissionDefinitions();
-  });
   private readonly _serverTeamUserPermissionsCache = createCache<
     [string, string, boolean],
     TeamPermissionsCrud['Server']['Read'][]
@@ -1294,21 +1291,21 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamsCache.refresh([]);
         return app._serverTeamFromCrud(team);
       },
-      async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<ServerTeamPermission[]> {
+      async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
         const recursive = options?.recursive ?? true;
         const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only");
         return permissions.map((crud) => app._serverPermissionFromCrud(crud));
       },
-      usePermissions(scope: Team, options?: { recursive?: boolean }): ServerTeamPermission[] {
+      usePermissions(scope: Team, options?: { recursive?: boolean }): AdminTeamPermission[] {
         const recursive = options?.recursive ?? true;
         const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive], "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._serverPermissionFromCrud(crud)), [permissions]);
       },
-      async getPermission(scope: Team, permissionId: string): Promise<ServerTeamPermission | null> {
+      async getPermission(scope: Team, permissionId: string): Promise<AdminTeamPermission | null> {
         const permissions = await this.listPermissions(scope);
         return permissions.find((p) => p.id === permissionId) ?? null;
       },
-      usePermission(scope: Team, permissionId: string): ServerTeamPermission | null {
+      usePermission(scope: Team, permissionId: string): AdminTeamPermission | null {
         const permissions = this.usePermissions(scope);
         return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
       },
@@ -1495,51 +1492,18 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [crud]);
   }
 
-  async listPermissionDefinitions(): Promise<ServerTeamPermissionDefinition[]> {
-    const crud = await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
-    return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
-  }
-
-  useTeamPermissionDefinitions(): ServerTeamPermissionDefinition[] {
-    const crud = useAsyncCache(this._serverTeamPermissionDefinitionsCache, [], "usePermissions()");
-    return useMemo(() => {
-      return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
-    }, [crud]);
-  }
-
-  _serverPermissionFromCrud(crud: TeamPermissionsCrud['Server']['Read']): ServerTeamPermission {
+  _serverPermissionFromCrud(crud: TeamPermissionsCrud['Server']['Read']): AdminTeamPermission {
     return {
       id: crud.id,
     };
   }
 
-  _serverTeamPermissionDefinitionFromCrud(crud: TeamPermissionDefinitionsCrud['Server']['Read']): ServerTeamPermissionDefinition {
+  _serverTeamPermissionDefinitionFromCrud(crud: TeamPermissionDefinitionsCrud['Admin']['Read']): AdminTeamPermissionDefinition {
     return {
       id: crud.id,
       description: crud.description,
       containedPermissionIds: crud.contained_permission_ids,
     };
-  }
-
-  async createTeamPermissionDefinition(data: ServerTeamPermissionDefinitionCreateOptions): Promise<ServerTeamPermission>{
-    const crud = await this._interface.createPermissionDefinition(serverTeamPermissionDefinitionCreateOptionsToCrud(data));
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
-    return this._serverTeamPermissionDefinitionFromCrud(crud);
-  }
-
-  async updateTeamPermissionDefinition(permissionId: string, data: ServerTeamPermissionDefinitionUpdateOptions) {
-    await this._interface.updatePermissionDefinition(permissionId, data);
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
-  }
-
-  async deleteTeamPermissionDefinition(permissionId: string): Promise<void> {
-    await this._interface.deletePermissionDefinition(permissionId);
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
-  }
-
-  async listTeamPermissionDefinitions(): Promise<ServerTeamPermissionDefinition[]> {
-    const crud = await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
-    return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
   }
 
   async listTeams(): Promise<ServerTeam[]> {
@@ -1599,6 +1563,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   });
   private readonly _adminEmailTemplatesCache = createCache(async () => {
     return await this._interface.listEmailTemplates();
+  });
+  private readonly _adminTeamPermissionDefinitionsCache = createCache(async () => {
+    return await this._interface.listPermissionDefinitions();
   });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
@@ -1799,6 +1766,35 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     await this._interface.resetEmailTemplate(type);
     await this._adminEmailTemplatesCache.refresh([]);
   }
+
+  async createTeamPermissionDefinition(data: AdminTeamPermissionDefinitionCreateOptions): Promise<AdminTeamPermission>{
+    const crud = await this._interface.createPermissionDefinition(serverTeamPermissionDefinitionCreateOptionsToCrud(data));
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+    return this._serverTeamPermissionDefinitionFromCrud(crud);
+  }
+
+  async updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions) {
+    await this._interface.updatePermissionDefinition(permissionId, data);
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async deleteTeamPermissionDefinition(permissionId: string): Promise<void> {
+    await this._interface.deletePermissionDefinition(permissionId);
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async listTeamPermissionDefinitions(): Promise<AdminTeamPermissionDefinition[]> {
+    const crud = await this._adminTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+    return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
+  }
+
+  useTeamPermissionDefinitions(): AdminTeamPermissionDefinition[] {
+    const crud = useAsyncCache(this._adminTeamPermissionDefinitionsCache, [], "usePermissions()");
+    return useMemo(() => {
+      return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
+    }, [crud]);
+  }
+
 
   protected override async _refreshProject() {
     await Promise.all([
@@ -2022,8 +2018,8 @@ export type ServerUser =
   }
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerTeamPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerTeamPermission[], true>
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], AdminTeamPermission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], AdminTeamPermission[], true>
   & User;
 
 type ServerBaseUser = Pick<ServerUser,
@@ -2148,8 +2144,8 @@ export type AdminProjectConfig = {
   readonly emailConfig?: AdminEmailConfig,
   readonly domains: AdminDomainConfig[],
   readonly createTeamOnSignUp: boolean,
-  readonly teamCreatorDefaultPermissions: ServerTeamPermission[],
-  readonly teamMemberDefaultPermissions: ServerTeamPermission[],
+  readonly teamCreatorDefaultPermissions: AdminTeamPermission[],
+  readonly teamMemberDefaultPermissions: AdminTeamPermission[],
 } & OAuthProviderConfig;
 
 export type AdminEmailConfig = (
@@ -2305,20 +2301,20 @@ export type TeamPermission = {
   id: string,
 };
 
-export type ServerTeamPermission = TeamPermission;
+export type AdminTeamPermission = TeamPermission;
 
-export type ServerTeamPermissionDefinition = {
+export type AdminTeamPermissionDefinition = {
   id: string,
   description?: string,
   containedPermissionIds: string[],
 };
 
-export type ServerTeamPermissionDefinitionCreateOptions = {
+export type AdminTeamPermissionDefinitionCreateOptions = {
   id: string,
   description: string,
   containedPermissionIds: string[],
 };
-export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: ServerTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Server"]["Create"] {
+export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: AdminTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Admin"]["Create"] {
   return {
     id: options.id,
     description: options.description,
@@ -2326,8 +2322,8 @@ export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: Serve
   };
 }
 
-export type ServerTeamPermissionDefinitionUpdateOptions = Partial<ServerTeamPermissionDefinitionCreateOptions>;
-export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: ServerTeamPermissionDefinitionUpdateOptions): TeamPermissionDefinitionsCrud["Server"]["Update"] {
+export type AdminTeamPermissionDefinitionUpdateOptions = Partial<AdminTeamPermissionDefinitionCreateOptions>;
+export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: AdminTeamPermissionDefinitionUpdateOptions): TeamPermissionDefinitionsCrud["Admin"]["Update"] {
   return {
     id: options.id,
     description: options.description,
@@ -2411,11 +2407,6 @@ export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & {
     createTeam(data: ServerTeamCreateOptions): Promise<ServerTeam>,
-    createTeamPermissionDefinition(data: ServerTeamPermissionDefinitionCreateOptions): Promise<ServerTeamPermission>,
-    updateTeamPermissionDefinition(permissionId: string, data: ServerTeamPermissionDefinitionUpdateOptions): Promise<void>,
-    deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
-    listTeamPermissionDefinitions(): Promise<ServerTeamPermissionDefinition[]>,
-    useTeamPermissionDefinitions(): ServerTeamPermissionDefinition[],
     /**
      * @deprecated use `getUser()` instead
      */
@@ -2446,6 +2437,7 @@ export const StackServerApp: StackServerAppConstructor = _StackServerAppImpl;
 export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & AsyncStoreProperty<"project", [], AdminProject, false>
   & AsyncStoreProperty<"apiKeys", [], ApiKey[], true>
+  & AsyncStoreProperty<"teamPermissionDefinitions", [], AdminTeamPermissionDefinition[], true>
   & {
     useEmailTemplates(): AdminEmailTemplate[],
     listEmailTemplates(): Promise<AdminEmailTemplate[]>,
