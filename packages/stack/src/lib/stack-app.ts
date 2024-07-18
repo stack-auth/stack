@@ -2112,11 +2112,23 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
           client_secret: p.clientSecret,
         }),
       })),
+      email_config: options.config?.emailConfig && (
+        options.config.emailConfig.type === 'shared' ? {
+          type: 'shared',
+        } : {
+          type: 'standard',
+          host: options.config.emailConfig.host,
+          port: options.config.emailConfig.port,
+          username: options.config.emailConfig.username,
+          password: options.config.emailConfig.password,
+          sender_name: options.config.emailConfig.senderName,
+          sender_email: options.config.emailConfig.senderEmail,
+        }
+      ),
       credential_enabled: options.config?.credentialEnabled,
       magic_link_enabled: options.config?.magicLinkEnabled,
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
-      email_config: options.config?.emailConfig,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
     },
