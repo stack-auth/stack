@@ -65,7 +65,7 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
     const db = await prismaClient.emailTemplate.upsert({
       where: {
         projectConfigId_type: {
-          projectConfigId: auth.project.id,
+          projectConfigId: auth.project.config.id,
           type: dbType,
         },
       },
@@ -74,7 +74,7 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
         subject,
       },
       create: {
-        projectConfigId: auth.project.id,
+        projectConfigId: auth.project.config.id,
         type: dbType,
         content,
         subject,
