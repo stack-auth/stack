@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useId } from 'react';
+import { cn } from '../..';
 
 type ContainerProps = {
   size: number,
@@ -26,7 +27,7 @@ const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
     <>
       <style>{styleSheet}</style>
       <div className="flex justify-center w-full">
-        <div className={`stack-inner-container-${styleId}`} {...props} ref={ref}>
+        <div {...props} ref={ref} className={cn(props.className, `stack-inner-container-${styleId}`)}>
           {props.children}
         </div>
       </div>
