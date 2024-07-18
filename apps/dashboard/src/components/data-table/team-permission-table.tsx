@@ -1,6 +1,6 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
-import { ServerTeamPermissionDefinition } from "@stackframe/stack";
+import { AdminTeamPermissionDefinition } from "@stackframe/stack";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useState } from "react";
 import * as yup from "yup";
@@ -70,7 +70,7 @@ function EditDialog(props: {
 }
 
 function DeleteDialog(props: {
-  permission: ServerTeamPermissionDefinition,
+  permission: AdminTeamPermissionDefinition,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
@@ -88,7 +88,7 @@ function DeleteDialog(props: {
   </ActionDialog>;
 }
 
-function Actions({ row, invisible }: { row: Row<ServerTeamPermissionDefinition>, invisible: boolean }) {
+function Actions({ row, invisible }: { row: Row<AdminTeamPermissionDefinition>, invisible: boolean }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -112,7 +112,7 @@ function Actions({ row, invisible }: { row: Row<ServerTeamPermissionDefinition>,
   );
 }
 
-const columns: ColumnDef<ServerTeamPermissionDefinition>[] =  [
+const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
@@ -147,6 +147,6 @@ const columns: ColumnDef<ServerTeamPermissionDefinition>[] =  [
   },
 ];
 
-export function TeamPermissionTable(props: { permissions: ServerTeamPermissionDefinition[] }) {
+export function TeamPermissionTable(props: { permissions: AdminTeamPermissionDefinition[] }) {
   return <DataTable data={props.permissions} columns={columns} toolbarRender={toolbarRender} />;
 }

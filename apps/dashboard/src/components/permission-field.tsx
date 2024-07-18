@@ -1,7 +1,7 @@
 import { FieldLabel } from "@/components/form-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ServerTeam, ServerTeamPermissionDefinition, ServerUser } from "@stackframe/stack";
+import { ServerTeam, AdminTeamPermissionDefinition, ServerUser } from "@stackframe/stack";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { useEffect, useState } from "react";
@@ -11,9 +11,9 @@ import { Control, FieldValues, Path } from "react-hook-form";
 const CURRENTLY_EDITED_PERMISSION_SENTINEL = `--stack-internal-currently-edited-permission-sentinel-${generateSecureRandomString()}`;
 
 export class PermissionGraph {
-  public readonly permissions: Map<string, ServerTeamPermissionDefinition>;
+  public readonly permissions: Map<string, AdminTeamPermissionDefinition>;
 
-  constructor(permissions: Iterable<ServerTeamPermissionDefinition>) {
+  constructor(permissions: Iterable<AdminTeamPermissionDefinition>) {
     this.permissions = this._copyPermissions(permissions);
   }
 
@@ -21,8 +21,8 @@ export class PermissionGraph {
     return new PermissionGraph(this.permissions.values());
   }
 
-  _copyPermissions(permissions: Iterable<ServerTeamPermissionDefinition>): Map<string, ServerTeamPermissionDefinition> {
-    const result: Map<string, ServerTeamPermissionDefinition> = new Map();
+  _copyPermissions(permissions: Iterable<AdminTeamPermissionDefinition>): Map<string, AdminTeamPermissionDefinition> {
+    const result: Map<string, AdminTeamPermissionDefinition> = new Map();
     [...permissions].forEach(permission => {
       result.set(permission.id, {
         ...permission,
@@ -34,7 +34,7 @@ export class PermissionGraph {
 
   updatePermission(
     permissionId: string,
-    permission: ServerTeamPermissionDefinition
+    permission: AdminTeamPermissionDefinition
   ) {
     const permissions = this._copyPermissions(this.permissions.values());
     permissions.set(permissionId, permission);
@@ -77,11 +77,11 @@ export class PermissionGraph {
     return new PermissionGraph([...permissions.values()]);
   }
 
-  recursiveContains(permissionId: string): ServerTeamPermissionDefinition[] {
+  recursiveContains(permissionId: string): AdminTeamPermissionDefinition[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
 
-    const result = new Map<string, ServerTeamPermissionDefinition>();
+    const result = new Map<string, AdminTeamPermissionDefinition>();
     const idsToProcess = [...permission.containedPermissionIds];
     while (idsToProcess.length > 0) {
       const id = idsToProcess.pop();
@@ -100,7 +100,7 @@ export class PermissionGraph {
     return this.recursiveContains(permissionId).some(permission => permission.id === targetPermissionId);
   }
 
-  recursiveAncestors(permissionId: string): ServerTeamPermissionDefinition[] {
+  recursiveAncestors(permissionId: string): AdminTeamPermissionDefinition[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
 
@@ -119,7 +119,7 @@ export function PermissionListField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
-  permissions: ServerTeamPermissionDefinition[],
+  permissions: AdminTeamPermissionDefinition[],
   type: 'new' | 'edit' | 'edit-user' | 'select',
 } & ({
     type: 'new',

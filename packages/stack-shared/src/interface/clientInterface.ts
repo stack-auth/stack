@@ -682,9 +682,7 @@ export class StackClientInterface {
             headers: {
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-              refreshToken: tokenObj.refreshToken.token,
-            }),
+            body: JSON.stringify({}),
           },
           session,
         );

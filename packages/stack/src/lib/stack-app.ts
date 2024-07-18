@@ -2466,6 +2466,10 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     resetEmailTemplate(type: EmailTemplateType): Promise<void>,
 
     createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView>,
+
+    createTeamPermissionDefinition(data: AdminTeamPermissionDefinitionCreateOptions): Promise<AdminTeamPermission>,
+    updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions): Promise<void>,
+    deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
