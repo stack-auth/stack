@@ -481,7 +481,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/signin",
+      "/auth/password/sign-in",
       {
         method: "POST",
         headers: {
@@ -502,8 +502,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     };
   }
 
@@ -536,8 +536,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     };
   }
 
@@ -563,9 +563,9 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      newUser: result.newUser,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+      newUser: result.new_user,
     };
   }
 
