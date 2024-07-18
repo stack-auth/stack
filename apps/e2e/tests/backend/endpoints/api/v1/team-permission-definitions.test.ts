@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { ApiKey, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("lists all the team permissions", async ({ expect }) => {
@@ -7,11 +7,13 @@ it("lists all the team permissions", async ({ expect }) => {
     projectKeys: InternalProjectKeys,
   });
   const { adminAccessToken } = await Project.createAndSetAdmin();
-  await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const response = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "GET",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
@@ -73,14 +75,16 @@ it("lists all the team permissions", async ({ expect }) => {
 it("creates, updates, and delete a new team permission", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndSetAdmin();
-  await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const response1 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "POST",
     body: {
       id: 'p1'
-    }
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
@@ -95,12 +99,15 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
 
   // create another permission with contained permissions
   const response2 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "POST",
     body: {
       id: 'p2',
       contained_permission_ids: ['p1', '$read_members']
-    }
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response2).toMatchInlineSnapshot(`
     NiceResponse {
@@ -118,12 +125,15 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
 
   // update the permission
   const response3 = await niceBackendFetch(`/api/v1/team-permission-definitions/p2`, {
-    accessType: "server",
+    accessType: "admin",
     method: "PATCH",
     body: {
       id: 'p3',
       contained_permission_ids: ['p1', '$update_team']
-    }
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
 
   expect(response3).toMatchInlineSnapshot(`
@@ -142,8 +152,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
 
   // list all permissions again
   const response4 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "GET",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response4).toMatchInlineSnapshot(`
     NiceResponse {
@@ -214,8 +227,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
 
   // delete the permission
   const response5 = await niceBackendFetch(`/api/v1/team-permission-definitions/p1`, {
-    accessType: "server",
+    accessType: "admin",
     method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response5).toMatchInlineSnapshot(`
     NiceResponse {
@@ -226,8 +242,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
 
   // list all permissions again
   const response6 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "GET",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response6).toMatchInlineSnapshot(`
     NiceResponse {

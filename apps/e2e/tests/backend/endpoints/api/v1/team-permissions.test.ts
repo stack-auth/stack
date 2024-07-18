@@ -87,28 +87,35 @@ it("grant non-existing permission to a user on the server", async ({ expect }) =
 it("create a new permission and grant it to a user on the server", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndSetAdmin();
-  await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   // create a permission child
   await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "POST",
     body: {
       id: 'child',
       description: 'Child permission',
     },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
 
   // create a permission parent
   await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "POST",
     body: {
       id: 'parent',
       description: 'Parent permission',
       contained_permission_ids: ['child'],
     },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
+
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
   const { teamId } = await Team.create();
@@ -183,15 +190,17 @@ it("create a new permission and grant it to a user on the server", async ({ expe
 
 it("customize default team permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken, projectId } = await Project.createAndSetAdmin();
-  await ApiKey.createAndSetProjectKeys(adminAccessToken);
+  const { adminAccessToken } = await Project.createAndSetAdmin();
 
   const response1 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
-    accessType: "server",
+    accessType: "admin",
     method: "POST",
     body: {
       id: 'test'
-    }
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
   });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
@@ -209,6 +218,8 @@ it("customize default team permissions", async ({ expect }) => {
       team_member_default_permissions: [{ id: 'test' }],
     },
   });
+
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   expect(response2).toMatchInlineSnapshot(`
     NiceResponse {
