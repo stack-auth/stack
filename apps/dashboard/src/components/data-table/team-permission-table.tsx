@@ -1,9 +1,9 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
+import { ServerTeamPermissionDefinition } from "@stackframe/stack";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useState } from "react";
 import * as yup from "yup";
-import { ServerTeamPermissionDefinition } from "@stackframe/stack";
 import { ActionDialog } from "../action-dialog";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
@@ -12,7 +12,6 @@ import { ActionCell, BadgeCell, TextCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -140,7 +139,7 @@ const columns: ColumnDef<ServerTeamPermissionDefinition>[] =  [
         <SimpleTooltip tooltip="Only showing permissions that are contained directly (non-recursive)." type='info' />
       </div>}
     />,
-    cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("containPermissionIds")} />,
+    cell: ({ row }) => <BadgeCell size={120} badges={row.original.containedPermissionIds} />,
   },
   {
     id: "actions",
