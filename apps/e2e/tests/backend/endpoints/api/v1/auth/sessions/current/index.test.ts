@@ -20,11 +20,11 @@ it("should sign out users", async ({ expect }) => {
     NiceResponse {
       "status": 401,
       "body": {
-        "code": "REFRESH_TOKEN_NOT_FOUND",
-        "error": "Refresh token not found for this project.",
+        "code": "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED",
+        "error": "Refresh token not found for this project, or the session has expired/been revoked.",
       },
       "headers": Headers {
-        "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND",
+        "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED",
         <some fields may have been hidden>,
       },
     }
@@ -44,11 +44,11 @@ it("should not sign out users given invalid refresh token", async ({ expect }) =
     NiceResponse {
       "status": 401,
       "body": {
-        "code": "REFRESH_TOKEN_NOT_FOUND",
-        "error": "Refresh token not found for this project.",
+        "code": "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED",
+        "error": "Refresh token not found for this project, or the session has expired/been revoked.",
       },
       "headers": Headers {
-        "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND",
+        "x-stack-known-error": "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED",
         <some fields may have been hidden>,
       },
     }
