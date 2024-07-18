@@ -7,7 +7,7 @@ import { prismaClient } from '@/prisma-client';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
-import { ApiKeyFirstViewJson } from '@stackframe/stack-shared/dist/interface/adminInterface';
+import { ApiKeyCreateCrudResponse } from '@stackframe/stack-shared/dist/interface/adminInterface';
 
 export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
@@ -71,7 +71,7 @@ export async function createApiKeySet(
   hasPublishableClientKey: boolean,
   hasSecretServerKey: boolean,
   hasSuperSecretAdminKey: boolean,
-): Promise<ApiKeyFirstViewJson> {
+): Promise<ApiKeyCreateCrudResponse> {
   const set = await prismaClient.apiKeySet.create({
     data: {
       id: generateUuid(),

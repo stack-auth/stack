@@ -13,15 +13,15 @@ export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
   }
 );
 
-export type ApiKeyCreateOptionsJson = {
+export type ApiKeyCreateCrudRequest = {
   has_publishable_client_key: boolean,
   has_secret_server_key: boolean,
   has_super_secret_admin_key: boolean,
-  expires_at: Date,
+  expires_at_millis: number,
   description: string,
 };
 
-export type ApiKeyFirstViewJson = ApiKeysCrud["Admin"]["Read"] & {
+export type ApiKeyCreateCrudResponse = ApiKeysCrud["Admin"]["Read"] & {
   publishable_client_key?: string,
   secret_server_key?: string,
   super_secret_admin_key?: string,
@@ -74,8 +74,8 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async createApiKey(
-    options: ApiKeyCreateOptionsJson,
-  ): Promise<ApiKeyFirstViewJson> {
+    options: ApiKeyCreateCrudRequest,
+  ): Promise<ApiKeyCreateCrudResponse> {
     const response = await this.sendServerRequest(
       "/internal/api-keys",
       {

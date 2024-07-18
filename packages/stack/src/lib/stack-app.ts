@@ -1,7 +1,7 @@
 import { isReactServer } from "@stackframe/stack-sc";
 import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
-import { ApiKeyFirstViewJson } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
@@ -1750,7 +1750,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     };
   }
 
-  protected _createApiKeyFirstViewFromCrud(data: ApiKeyFirstViewJson): ApiKeyFirstView {
+  protected _createApiKeyFirstViewFromCrud(data: ApiKeyCreateCrudResponse): ApiKeyFirstView {
     return {
       ...this._createApiKeyBaseFromCrud(data),
       publishableClientKey: data.publishable_client_key,
@@ -2238,10 +2238,10 @@ export type ApiKeyCreateOptions = {
   hasSecretServerKey: boolean,
   hasSuperSecretAdminKey: boolean,
 };
-function apiKeyCreateOptionsToCrud(options: ApiKeyCreateOptions) {
+function apiKeyCreateOptionsToCrud(options: ApiKeyCreateOptions): ApiKeyCreateCrudRequest {
   return {
     description: options.description,
-    expires_at: options.expiresAt,
+    expires_at_millis: options.expiresAt.getTime(),
     has_publishable_client_key: options.hasPublishableClientKey,
     has_secret_server_key: options.hasSecretServerKey,
     has_super_secret_admin_key: options.hasSuperSecretAdminKey,
