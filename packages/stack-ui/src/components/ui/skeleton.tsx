@@ -46,14 +46,16 @@ const Skeleton = React.forwardRef<
   React.ComponentPropsWithoutRef<"span"> & { deactivated?: boolean }
 >(
   (props, ref) => {
-    return <>
-      <style>{styleSheet}</style>
-      <span
-        ref={ref}
-        data-stack-state={props.deactivated ? "deactivated" : "activated"}
-        {...props}
-      />;
-    </>;
+    return (
+      <>
+        <style>{styleSheet}</style>
+        <span
+          ref={ref}
+          data-stack-state={props.deactivated ? "deactivated" : "activated"}
+          {...props}
+        />
+      </>
+    );
   }
 );
 Skeleton.displayName = "Skeleton";
