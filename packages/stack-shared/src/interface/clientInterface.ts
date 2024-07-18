@@ -597,7 +597,7 @@ export class StackClientInterface {
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
-    url.searchParams.set("scope", "openid");
+    url.searchParams.set("scope", "legacy");
     url.searchParams.set("state", options.state);
     url.searchParams.set("grant_type", "authorization_code");
     url.searchParams.set("code_challenge", options.codeChallenge);
@@ -635,7 +635,7 @@ export class StackClientInterface {
     const as = {
       issuer: this.options.baseUrl,
       algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/token',
+      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };
     const client: oauth.Client = {
       client_id: this.projectId,
