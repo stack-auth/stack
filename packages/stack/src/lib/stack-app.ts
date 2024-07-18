@@ -2332,7 +2332,7 @@ export type AdminTeamPermissionDefinition = {
 
 export type AdminTeamPermissionDefinitionCreateOptions = {
   id: string,
-  description: string,
+  description?: string,
   containedPermissionIds: string[],
 };
 export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: AdminTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Admin"]["Create"] {
