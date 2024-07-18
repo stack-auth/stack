@@ -1522,9 +1522,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async createTeamPermissionDefinition(data: ServerTeamPermissionDefinitionCreateOptions): Promise<ServerTeamPermission>{
-    const permission = this._serverTeamPermissionDefinitionFromCrud(await this._interface.createPermissionDefinition(data));
+    const crud = await this._interface.createPermissionDefinition(serverTeamPermissionDefinitionCreateOptionsToCrud(data));
     await this._serverTeamPermissionDefinitionsCache.refresh([]);
-    return permission;
+    return this._serverTeamPermissionDefinitionFromCrud(crud);
   }
 
   async updateTeamPermissionDefinition(permissionId: string, data: ServerTeamPermissionDefinitionUpdateOptions) {
@@ -2313,12 +2313,12 @@ export type ServerTeamPermissionDefinition = {
   containedPermissionIds: string[],
 };
 
-export type ServerTeamPermissionDefinitionUpdateOptions = {
-  id?: string,
-  description?: string,
-  containedPermissionIds?: string[],
+export type ServerTeamPermissionDefinitionCreateOptions = {
+  id: string,
+  description: string,
+  containedPermissionIds: string[],
 };
-export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: ServerTeamPermissionDefinitionUpdateOptions): TeamPermissionDefinitionsCrud["Server"]["Update"] {
+export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: ServerTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Server"]["Create"] {
   return {
     id: options.id,
     description: options.description,
@@ -2326,10 +2326,8 @@ export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: Serve
   };
 }
 
-export type ServerTeamPermissionDefinitionCreateOptions = Omit<ServerTeamPermissionDefinitionUpdateOptions, "id"> & {
-  id: string,
-};
-export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: ServerTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Server"]["Create"] {
+export type ServerTeamPermissionDefinitionUpdateOptions = Partial<ServerTeamPermissionDefinitionCreateOptions>;
+export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: ServerTeamPermissionDefinitionUpdateOptions): TeamPermissionDefinitionsCrud["Server"]["Update"] {
   return {
     id: options.id,
     description: options.description,
