@@ -1370,6 +1370,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       id: crud.id,
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
+      createdAt: new Date(crud.created_at_millis),
       async listUsers() {
         return (await app._interface.listServerTeamUsers(crud.id)).map((u) => app._serverUserFromCrud(u));
       },
@@ -2272,6 +2273,7 @@ type ___________server_team = never;  // this is a marker for VSCode's outline v
 
 
 export type ServerTeam = {
+  createdAt: Date,
   listUsers(): Promise<ServerUser[]>,
   useUsers(): ServerUser[],
   update(update: ServerTeamUpdateOptions): Promise<void>,

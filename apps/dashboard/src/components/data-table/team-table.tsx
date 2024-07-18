@@ -105,17 +105,17 @@ const columns: ColumnDef<ServerTeam>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
+    cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
-    cell: ({ row }) => <TextCell size={200}>{row.getValue("displayName")}</TextCell>,
+    cell: ({ row }) => <TextCell size={200}>{row.original.displayName}</TextCell>,
   },
   {
     accessorKey: "createdAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Created At" />,
-    cell: ({ row }) => <DateCell date={row.getValue("createdAt")}></DateCell>,
+    cell: ({ row }) => <DateCell date={row.original.createdAt}></DateCell>,
   },
   {
     id: "actions",
