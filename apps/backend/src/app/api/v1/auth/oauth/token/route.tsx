@@ -2,8 +2,8 @@ import { oauthServer } from "@/oauth";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { InvalidClientError, InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { adaptSchema, yupMixed, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -54,7 +54,7 @@ export const POST = createSmartRouteHandler({
     return {
       statusCode: oauthResponse.status || 200,
       bodyType: "json",
-      body: oauthResponse.body,
+      body: filterUndefined(oauthResponse.body),
       headers: Object.fromEntries(Object.entries(oauthResponse.headers || {}).map(([k, v]) => ([k, [v]]))),
     };
   },
