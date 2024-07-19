@@ -7,8 +7,10 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "cSpell.words": [
+    "cjsx",
     "codegen",
     "Crudl",
+    "ctsx",
     "deindent",
     "Falsey",
     "frontends",
@@ -16,6 +18,8 @@
     "hostable",
     "INBUCKET",
     "Millis",
+    "mjsx",
+    "mtsx",
     "nextjs",
     "Nicifiable",
     "nicify",
@@ -25,6 +29,7 @@
     "stackframe",
     "typehack",
     "Uncapitalize",
+    "Whitespaces",
     "wolfgunblood"
   ],
   "[typescript]": {

@@ -1,7 +1,7 @@
 "use client";
 import { useLayoutEffect } from "react";
 
-export function SsrScript(props: { script: string }) {
+export function SsrScript(props: { script: string, nonce?: string }) {
   useLayoutEffect(() => {
     // TODO fix workaround: React has a bug where it doesn't run the script on the first CSR render if SSR has been skipped due to suspense
     // As a workaround, we run the script in the <script> tag again after the first render
@@ -9,5 +9,11 @@ export function SsrScript(props: { script: string }) {
     (0, eval)(props.script);
   }, []);
 
-  return <script dangerouslySetInnerHTML={{ __html: props.script }} />;
+  return (
+    <script
+      suppressHydrationWarning
+      nonce={props.nonce}
+      dangerouslySetInnerHTML={{ __html: props.script }}
+    />
+  );
 }

@@ -139,7 +139,7 @@ main().then(async() => {
   if (err instanceof UserError) {
     console.error("[ERR] Error: " + err.message);
   } else {
-    console.error("[ERR] An error occured during the initialization process.");
+    console.error("[ERR] An error occurred during the initialization process.");
   }
   console.error("[ERR]");
   console.error("[ERR] If you need assistance, please try installing Slack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com");

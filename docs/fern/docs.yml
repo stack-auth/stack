@@ -1,6 +1,11 @@
 instances:
   - url: https://stack-auth.docs.buildwithfern.com
     custom-domain: docs.stack-auth.com
+    edit-this-page:
+      github:
+        owner: stack-auth
+        repo: stack
+        branch: dev
 title: Stack Auth Documentation
 
 tabs:
