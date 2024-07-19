@@ -331,10 +331,10 @@ export class StackClientInterface {
 
   async sendForgotPasswordEmail(
     email: string,
-    redirectUrl: string,
+    callbackUrl: string,
   ): Promise<KnownErrors["UserNotFound"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/forgot-password",
+      "/auth/password/send-reset-code",
       {
         method: "POST",
         headers: {
@@ -342,7 +342,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify({
           email,
-          redirectUrl,
+          callback_url: callbackUrl,
         }),
       },
       null,
@@ -359,7 +359,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/send-verification-email",
+      "/auth/contact-channels/send-verification-code",
       {
         method: "POST",
         headers: {
@@ -380,10 +380,10 @@ export class StackClientInterface {
 
   async sendMagicLinkEmail(
     email: string,
-    redirectUrl: string,
+    callbackUrl: string,
   ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/send-magic-link",
+      "/auth/otp/send-sign-in-code",
       {
         method: "POST",
         headers: {
@@ -391,7 +391,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify({
           email,
-          redirectUrl,
+          callback_url: callbackUrl,
         }),
       },
       null,
@@ -407,7 +407,7 @@ export class StackClientInterface {
     options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
   ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/password-reset",
+      "/auth/password/reset",
       {
         method: "POST",
         headers: {
@@ -429,7 +429,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/update-password",
+      "/auth/password/update",
       {
         method: "POST",
         headers: {
@@ -456,7 +456,7 @@ export class StackClientInterface {
 
   async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/email-verification",
+      "/auth/contact-channels/verify",
       {
         method: "POST",
         headers: {
@@ -543,7 +543,7 @@ export class StackClientInterface {
 
   async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/magic-link-verification",
+      "/auth/otp/sign-in",
       {
         method: "POST",
         headers: {
