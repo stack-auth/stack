@@ -4,7 +4,7 @@ import { cookies } from '@stackframe/stack-sc';
 import { KnownError, KnownErrors } from '../known-errors';
 import { AccessToken, InternalSession, RefreshToken } from '../sessions';
 import { generateSecureRandomString } from '../utils/crypto';
-import { StackAssertionError, captureError, throwErr } from '../utils/errors';
+import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
 import { Result } from "../utils/results";
@@ -673,22 +673,27 @@ export class StackClientInterface {
   async signOut(session: InternalSession): Promise<void> {
     const tokenObj = await session.getPotentiallyExpiredTokens();
     if (tokenObj) {
-      if (!tokenObj.refreshToken) {
-        // TODO implement this
-        captureError("clientInterface.signOut()", new StackAssertionError("Signing out a user without access to the refresh token does not invalidate the session on the server. Please open an issue in the Stack repository if you see this error"));
-      } else {
-        const res = await this.sendClientRequest(
-          "/auth/sessions/current",
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({}),
+      const resOrError = await this.sendClientRequestAndCatchKnownError(
+        "/auth/sessions/current",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
           },
-          session,
-        );
-        await res.json();
+          body: JSON.stringify({}),
+        },
+        session,
+        [KnownErrors.RefreshTokenError]
+      );
+      if (resOrError.status === "error") {
+        if (resOrError.error instanceof KnownErrors.RefreshTokenError) {
+          // refresh token was already invalid, just continue like nothing happened
+        } else {
+          // this should never happen
+          throw new StackAssertionError("Unexpected error", { error: resOrError.error });
+        }
+      } else {
+        // user was signed out successfully, all good
       }
     }
     session.markInvalid();
