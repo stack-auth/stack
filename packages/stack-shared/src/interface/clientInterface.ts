@@ -359,7 +359,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/contact-channels/send-verification-code",
+      "/contact-channels/send-verification-code",
       {
         method: "POST",
         headers: {
@@ -456,7 +456,7 @@ export class StackClientInterface {
 
   async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/contact-channels/verify",
+      "/contact-channels/verify",
       {
         method: "POST",
         headers: {
