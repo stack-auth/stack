@@ -659,7 +659,6 @@ export class StackClientInterface {
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
-
     return {
       newUser: result.newUser as boolean,
       afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,

@@ -14,6 +14,7 @@ import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stack
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { CrudHandlerInvocationError } from "./crud-handler";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -242,10 +243,16 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    user = await usersCrudHandlers.adminRead({
-      project,
-      user_id: userId,
-    });
+    try {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: userId,
+      });
+    } catch (e) {
+      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
+        user = null;
+      }
+    }
   }
 
   return {
