@@ -119,13 +119,20 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
         throw new StatusError(StatusError.Forbidden, "You are only allowed to access your own teams with the client access token.");
       }
     }
+
+    if (query.user_id === 'me' && !auth.user) {
+      throw new KnownErrors.CannotGetOwnUserWithoutUser();
+    }
+
+    let userId = query.user_id === 'me' ? auth.user?.id : query.user_id;
+
     const db = await prismaClient.team.findMany({
       where: {
         projectId: auth.project.id,
-        ...query.user_id ? {
+        ...userId ? {
           teamMembers: {
             some: {
-              projectUserId: query.user_id === 'me' ? auth.user?.id : query.user_id,
+              projectUserId: userId,
             },
           },
         } : {},

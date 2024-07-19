@@ -283,10 +283,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, boolean],
     TeamPermissionsCrud['Client']['Read'][]
   >(async (session, [teamId, recursive]) => {
-    return await this._interface.listClientUserTeamPermissions({ teamId, recursive }, session);
+    return await this._interface.listCurrentUserTeamPermissions({ teamId, recursive }, session);
   });
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
-    return await this._interface.listClientUserTeams(session);
+    return await this._interface.listCurrentUserTeams(session);
   });
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
     async (session, [accountId, scope]) => {
@@ -1200,6 +1200,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamsCache = createCache(async () => {
     return await this._interface.listServerTeams();
   });
+  private readonly _serverCurrentUserTeamsCache = createCacheBySession(async (session) => {
+    return await this._interface.listServerCurrentUserTeams(session);
+  });
   private readonly _serverTeamUsersCache = createCache<
     string[],
     UsersCrud['Server']['Read'][]
@@ -1276,7 +1279,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.update({ selectedTeamId: team?.id ?? null });
       },
       async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
-        return await this.update({ primaryEmail: email });
+        return await this.update({ primaryEmail: email, primaryEmailVerified: options?.verified });
       },
       getConnectedAccount: async () => {
         return await app._checkFeatureSupport("getConnectedAccount() on ServerUser", {});
@@ -1289,13 +1292,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return teams.find((t) => t.id === teamId) ?? null;
       },
       useTeam(teamId: string) {
-        const teams = this.useTeams();
-        return useMemo(() => {
-          return teams.find((t) => t.id === teamId) ?? null;
-        }, [teams, teamId]);
+        return app._useCheckFeatureSupport("useTeam() on ServerUser", {});
       },
       async listTeams() {
-        return await app.listTeams();
+        const crud = await app._serverCurrentUserTeamsCache.getOrWait([app._getSession()], "write-only");
+        return crud.map((t) => app._serverTeamFromCrud(t));
       },
       useTeams() {
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});

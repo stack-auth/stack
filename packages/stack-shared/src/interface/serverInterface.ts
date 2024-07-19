@@ -101,7 +101,7 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
-  async listServerUserTeamPermissions(
+  async listServerCurrentUserTeamPermissions(
     options: {
       teamId: string,
       recursive: boolean,
@@ -117,7 +117,7 @@ export class StackServerInterface extends StackClientInterface {
     return result.items;
   }
 
-  async listServerUserTeams(session: InternalSession): Promise<TeamsCrud['Server']['Read'][]> {
+  async listServerCurrentUserTeams(session: InternalSession): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       "/teams?user_id=me",
       {},

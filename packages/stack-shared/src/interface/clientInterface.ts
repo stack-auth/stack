@@ -719,7 +719,7 @@ export class StackClientInterface {
     return user;
   }
 
-  async listClientUserTeamPermissions(
+  async listCurrentUserTeamPermissions(
     options: {
       teamId: string,
       recursive: boolean,
@@ -727,7 +727,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/team-permissions?team_id=${options.teamId}&recursive=${options.recursive}`,
+      `/team-permissions?team_id=${options.teamId}?user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );
@@ -735,7 +735,7 @@ export class StackClientInterface {
     return result.items;
   }
 
-  async listClientUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
+  async listCurrentUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
       "/teams?user_id=me",
       {},
@@ -829,7 +829,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<TeamsCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      "/teams",
+      "/teams?add_current_user=true",
       {
         method: "POST",
         headers: {
