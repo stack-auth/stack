@@ -16,6 +16,7 @@ import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/c
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
+import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
 import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
@@ -264,6 +265,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected readonly _oauthScopesOnSignIn: Partial<OAuthScopesOnSignIn>;
 
   private __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
+  private readonly _ownedAdminApps = new DependenciesMap<[InternalSession, string], _StackAdminAppImpl<false, string>>();
 
   private readonly _currentUserCache = createCacheBySession(async (session) => {
     if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
@@ -833,14 +835,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return currentUser as ProjectCurrentUser<ProjectId>;
   }
 
-  protected _createOwnedAdminApp(forProjectId: string, session: InternalSession): _StackAdminAppImpl<false, string> {
-    return new _StackAdminAppImpl({
-      baseUrl: this._interface.options.baseUrl,
-      projectId: forProjectId,
-      tokenStore: null,
-      projectOwnerSession: session,
-      noAutomaticPrefetch: true,
-    });
+  protected _getOwnedAdminApp(forProjectId: string, session: InternalSession): _StackAdminAppImpl<false, string> {
+    if (!this._ownedAdminApps.has([session, forProjectId])) {
+      this._ownedAdminApps.set([session, forProjectId], new _StackAdminAppImpl({
+        baseUrl: this._interface.options.baseUrl,
+        projectId: forProjectId,
+        tokenStore: null,
+        projectOwnerSession: session,
+        noAutomaticPrefetch: true,
+      }));
+    }
+    return this._ownedAdminApps.get([session, forProjectId])!;
   }
 
   get projectId(): ProjectId {
@@ -1082,7 +1087,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _listOwnedProjects(session: InternalSession): Promise<AdminOwnedProject[]> {
     this._ensureInternalProject();
     const crud = await this._ownedProjectsCache.getOrWait([session], "write-only");
-    return crud.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
+    return crud.map((j) => this._getOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
     ));
@@ -1091,7 +1096,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _useOwnedProjects(session: InternalSession): AdminOwnedProject[] {
     this._ensureInternalProject();
     const projects = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
-    return useMemo(() => projects.map((j) => this._createOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
+    return useMemo(() => projects.map((j) => this._getOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
     )), [projects]);
@@ -1100,7 +1105,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _createProject(session: InternalSession, newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminOwnedProject> {
     this._ensureInternalProject();
     const crud = await this._interface.createProject(adminProjectCreateOptionsToCrud(newProject), session);
-    const res = this._createOwnedAdminApp(crud.id, session)._adminOwnedProjectFromCrud(
+    const res = this._getOwnedAdminApp(crud.id, session)._adminOwnedProjectFromCrud(
       crud,
       () => this._refreshOwnedProjects(session),
     );
