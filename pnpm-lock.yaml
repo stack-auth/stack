@@ -484,13 +484,13 @@ importers:
 
   docs:
     dependencies:
-      '@stackframe/stack-backend':
-        specifier: workspace:*
-        version: link:../apps/backend
       fern-api:
         specifier: ^0.31.24
         version: 0.31.24
     devDependencies:
+      '@stackframe/stack-backend':
+        specifier: workspace:*
+        version: link:../apps/backend
       rimraf:
         specifier: ^5.0.7
         version: 5.0.7
