@@ -26,7 +26,7 @@ import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import * as cookie from "cookie";
 import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
-import React, { use, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
@@ -219,7 +219,7 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies
     () => throwErr(new Error("getServerSnapshot should never be called in useAsyncCache because we restrict to CSR earlier"))
   );
 
-  return use(promise);
+  return React.use(promise);
 }
 
 function useStore<T>(store: Store<T>): T {

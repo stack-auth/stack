@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from "react";
+import React from "react";
 import { useStackApp, useUser } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
@@ -45,7 +45,7 @@ export function MagicLinkCallback({
     return invalidJsx;
   }
 
-  const error = use(stackApp.signInWithMagicLink(code));
+  const error = React.use(stackApp.signInWithMagicLink(code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
@@ -57,5 +57,5 @@ export function MagicLinkCallback({
     throw error;
   }
 
-  use(neverResolve());
+  React.use(neverResolve());
 }
