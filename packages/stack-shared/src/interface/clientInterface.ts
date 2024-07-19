@@ -741,8 +741,8 @@ export class StackClientInterface {
       {},
       session,
     );
-    const teams: TeamsCrud["Client"]["Read"][] = await response.json();
-    return teams;
+    const result = await response.json() as TeamsCrud["Client"]["List"];
+    return result.items;
   }
 
   async getClientProject(): Promise<Result<ProjectsCrud['Client']['Read'], KnownErrors["ProjectNotFound"]>> {
