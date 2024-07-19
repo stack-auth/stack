@@ -435,7 +435,10 @@ export class StackClientInterface {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          old_password: options.oldPassword,
+          new_password: options.newPassword,
+        }),
       },
       session,
       [KnownErrors.PasswordConfirmationMismatch, KnownErrors.PasswordRequirementsNotMet]
