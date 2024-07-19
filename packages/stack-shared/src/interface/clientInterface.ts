@@ -759,7 +759,7 @@ export class StackClientInterface {
     await this.sendClientRequest(
       "/users/me",
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
