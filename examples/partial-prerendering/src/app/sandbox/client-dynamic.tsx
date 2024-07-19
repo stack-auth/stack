@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React from "react";
 
 const waiterPromises = new Map();
 
@@ -23,7 +23,7 @@ export function ClientDynamic(props: React.PropsWithChildren<{ val: string }>) {
     console.log("ClientDynamic: waiting for", props.val);
   }
 
-  use(waiterPromise);
+  React.use(waiterPromise);
   return (
     <span>
       {props.children ?? "ClientDynamic"}

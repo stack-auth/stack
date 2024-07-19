@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React from "react";
 import { Button } from "@stackframe/stack-ui";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { uploadProfileImage } from "./server-actions";
