@@ -40,10 +40,7 @@ export default function PageClient () {
     config: {
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
-      oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
-        id: provider,
-        enabled: form.watch("signInMethods").includes(provider),
-      })),
+      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook"].includes(method)).map(provider => ({ id: provider })),
     }
   };
 
