@@ -75,7 +75,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
     ["GET", "Read"],
     ["GET", "List"],
     ["POST", "Create"],
-    ["PATCH", "Update"],
+    ["PUT", "Update"],
     ["DELETE", "Delete"],
   ] as const;
   const accessTypes = ["client", "server", "admin"] as const;

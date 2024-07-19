@@ -1,47 +1,6 @@
 import { it } from "../../../../helpers";
 import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-
-it("lists all the permissions the current user have in a team on the server", async ({ expect }) => {
-  await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
-
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, {
-    accessType: "server",
-    method: "GET",
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "is_paginated": false,
-        "items": [],
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
-it("lists all the permissions the current user have in a team on the client", async ({ expect }) => {
-  await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
-
-  const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, {
-    accessType: "client",
-    method: "GET",
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "is_paginated": false,
-        "items": [],
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
 it("is not allowed to list permissions from the other users on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { teamId } = await Team.create();

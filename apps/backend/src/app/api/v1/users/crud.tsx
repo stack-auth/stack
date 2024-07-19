@@ -92,7 +92,7 @@ export const usersCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(
       }
     };
   },
-  prismaToCrud: async (prisma, { auth }) => {
+  prismaToCrud: async (prisma) => {
     const selectedTeamMembers = prisma.teamMembers;
     if (selectedTeamMembers.length > 1) {
       throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
