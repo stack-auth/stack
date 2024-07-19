@@ -50,11 +50,12 @@ const useFormField = () => {
   const fieldState = getFieldState(fieldContext.name, formState);
 
   const { id } = itemContext;
+  const formItemId = React.useId();
 
   return {
     id,
     name: fieldContext.name,
-    formItemId: `${id}-form-item`,
+    formItemId: `${formItemId}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
     ...fieldState,
