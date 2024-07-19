@@ -61,7 +61,11 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "styled-components": "^6.1.8"
+    "build": "^0.1.4",
+    "lint": "^0.8.19",
+    "pnpm": "^9.5.0",
+    "styled-components": "^6.1.8",
+    "typecheck": "^0.1.2"
   },
   "packageManager": "pnpm@9.1.2"
 }
