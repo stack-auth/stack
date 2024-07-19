@@ -26,7 +26,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
   }),
   onCreate: async ({ query, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {
-      const db = await prismaClient.team.create({
+      const db = await tx.team.create({
         data: {
           displayName: data.display_name,
           projectId: auth.project.id,
@@ -37,7 +37,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
         if (!auth.user) {
           throw new StatusError(StatusError.Unauthorized, "You must be logged in to create a team with the current user as a member.");
         }
-        await prismaClient.teamMember.create({
+        await tx.teamMember.create({
           data: {
             projectId: auth.project.id,
             projectUserId: auth.user.id,
