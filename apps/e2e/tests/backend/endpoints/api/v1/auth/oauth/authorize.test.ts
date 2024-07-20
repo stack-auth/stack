@@ -29,7 +29,7 @@ it("should redirect the user to the OAuth provider with the right arguments", as
     },
   });
   expect(response.status).toBe(307);
-  expect(response.headers.get("location")).toMatch(/^https:\/\/localhost:8107\/auth\?.*$/);
+  expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
   expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
 });
 
