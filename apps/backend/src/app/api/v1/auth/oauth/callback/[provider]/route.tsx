@@ -30,10 +30,7 @@ export const GET = createSmartRouteHandler({
     params: yupObject({
       provider: yupString().required(),
     }).required(),
-    query: yupObject({
-      code: yupString().required(),
-      state: yupString().required(),
-    }).required(),
+    query: yupMixed().required(),
   }),
   response: yupObject({
     statusCode: yupNumber().required(),
@@ -93,10 +90,10 @@ export const GET = createSmartRouteHandler({
 
     const userInfo = await getProvider(provider).getCallback({
       codeVerifier: innerCodeVerifier,
-      state: query.state,
+      state: query.state!,
       callbackParams: {
-        code: query.code,
-        state: query.state,
+        code: query.code!,
+        state: query.state!,
       }
     });
 
