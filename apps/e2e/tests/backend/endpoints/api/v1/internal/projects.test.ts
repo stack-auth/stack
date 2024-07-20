@@ -9,12 +9,12 @@ it("should not have have access to the project", async ({ expect }) => {
     NiceResponse {
       "status": 400,
       "body": {
-        "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+        "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         "details": { "request_type": "client" },
-        "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
+        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.",
       },
       "headers": Headers {
-        "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+        "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         <some fields may have been hidden>,
       },
     }
@@ -66,6 +66,7 @@ it("creates a new project", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -106,6 +107,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -152,6 +154,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -200,6 +203,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -241,6 +245,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -291,6 +296,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -334,6 +340,7 @@ it("lists the current projects after creating a new project", async ({ expect })
           {
             "config": {
               "allow_localhost": true,
+              "create_team_on_sign_up": false,
               "credential_enabled": true,
               "domains": [],
               "email_config": { "type": "shared" },

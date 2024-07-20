@@ -1,18 +1,18 @@
-import * as yup from "yup";
+import { checkApiKeySet } from "@/lib/api-keys";
+import { getProject } from "@/lib/projects";
+import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
+import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { generators } from "openid-client";
-import { getProvider } from "@/oauth";
-import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { getProject } from "@/lib/projects";
-import { checkApiKeySet } from "@/lib/api-keys";
+import { generators } from "openid-client";
+import * as yup from "yup";
 
 const outerOAuthFlowExpirationInMinutes = 10;
 
@@ -53,14 +53,14 @@ export const GET = createSmartRouteHandler({
     const project = await getProject(query.client_id);
 
     if (!project) {
-      throw new KnownErrors.ProjectNotFound();
+      throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
     if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {
       throw new KnownErrors.ApiKeyNotFound();
     }
 
-    const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === params.provider);
+    const provider = project.config.oauth_providers.find((p) => p.id === params.provider);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
@@ -89,7 +89,7 @@ export const GET = createSmartRouteHandler({
       extraScope: query.provider_scope,
     });
 
-    const outerInfo = await prismaClient.oAuthOuterInfo.create({
+    await prismaClient.oAuthOuterInfo.create({
       data: {
         innerState,
         info: {
@@ -115,7 +115,7 @@ export const GET = createSmartRouteHandler({
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
     cookies().set(
-      "stack-oauth-inner-state-" + innerState,
+      "stack-oauth-" + innerState,
       "true",
       {
         httpOnly: true,

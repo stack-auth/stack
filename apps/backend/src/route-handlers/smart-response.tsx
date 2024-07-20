@@ -73,7 +73,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
       break;
     }
     case "json": {
-      if (validated.body === undefined || !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)))) {
+      if (validated.body === undefined || !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)), { ignoreUndefinedValues: true })) {
         throw new StackAssertionError("Invalid JSON body is not JSON", { body: validated.body });
       }
       headers.set("content-type", ["application/json; charset=utf-8"]);

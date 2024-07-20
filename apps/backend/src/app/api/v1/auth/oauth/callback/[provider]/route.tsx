@@ -1,24 +1,21 @@
-import * as yup from "yup";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { getProject } from "@/lib/projects";
+import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { oauthCookieSchema } from "@/lib/tokens";
+import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { generators } from "openid-client";
-import { getProvider, oauthServer } from "@/oauth";
-import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getProject } from "@/lib/projects";
-import { validateRedirectUrl } from "@/lib/redirect-urls";
-import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 
-const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedirectUrl?: string) => {
-  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
+const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
+  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
     throw error;
   }
 
@@ -89,7 +86,7 @@ export const GET = createSmartRouteHandler({
       redirectOrThrowError(new KnownErrors.OuterOAuthTimeout(), project, errorRedirectUrl);
     }
 
-    const provider = project.evaluatedConfig.oauthProviders.find((p) => p.id === params.provider);
+    const provider = project.config.oauth_providers.find((p) => p.id === params.provider);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
@@ -203,7 +200,7 @@ export const GET = createSmartRouteHandler({
                       providerConfig: {
                         connect: {
                           projectConfigId_id: {
-                            projectConfigId: project.evaluatedConfig.id,
+                            projectConfigId: project.config.id,
                             id: provider.id,
                           },
                         },
@@ -251,7 +248,7 @@ export const GET = createSmartRouteHandler({
                   primary_email_verified: false, // TODO: check if email is verified with the provider
                   primary_email_auth_enabled: false,
                   oauth_providers: [{
-                    provider_id: provider.id,
+                    id: provider.id,
                     account_id: userInfo.accountId,
                     email: userInfo.email,
                   }],

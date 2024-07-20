@@ -101,7 +101,11 @@ type InnerCrudTypeOf<S extends InnerCrudSchema> =
   & (S['createSchema'] extends {} ? { Create: yup.InferType<S['createSchema']> } : {})
   & (S['readSchema'] extends {} ? { Read: yup.InferType<S['readSchema']> } : {})
   & (S['updateSchema'] extends {} ? { Update: yup.InferType<S['updateSchema']> } : {})
-  & (S['deleteSchema'] extends {} ? { Delete: yup.InferType<S['deleteSchema']> } : {});
+  & (S['deleteSchema'] extends {} ? { Delete: yup.InferType<S['deleteSchema']> } : {})
+  & (S['readSchema'] extends {} ? { List: {
+    items: yup.InferType<S['readSchema']>[],
+    is_paginated: boolean,
+  }, } : {});
 
 export type CrudTypeOf<S extends CrudSchema> = {
   Client: InnerCrudTypeOf<S['client']>,

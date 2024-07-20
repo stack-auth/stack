@@ -1,5 +1,7 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { usersCrudServerReadSchema, usersCrudServerUpdateSchema, usersCrudServerDeleteSchema } from "./users";
+import { yupObject } from "../../schema-fields";
+import { teamsCrudClientReadSchema } from "./teams";
+import { usersCrudServerDeleteSchema, usersCrudServerReadSchema, usersCrudServerUpdateSchema } from "./users";
 
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "display_name",
@@ -22,9 +24,11 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "auth_with_email",
   "oauth_providers",
   "selected_team_id",
-  "selected_team",
-]).nullable().defined();
+]).concat(yupObject({
+  selected_team: teamsCrudClientReadSchema.nullable().defined(),
+})).nullable().defined(); // TODO: next-release: make required
 
+// TODO: next-release: make required
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();
 
 const serverDeleteSchema = usersCrudServerDeleteSchema;

@@ -8,7 +8,7 @@ import { TeamMemberTable } from '@/components/data-table/team-member-table';
 export default function PageClient(props: { teamId: string }) {
   const stackAdminApp = useAdminApp();
   const team = stackAdminApp.useTeam(props.teamId);
-  const users = team?.useMembers();
+  const users = team?.useUsers();
 
   if (!team) {
     return notFound();
@@ -16,7 +16,7 @@ export default function PageClient(props: { teamId: string }) {
 
   return (
     <PageLayout title="Team Members" description={`Manage team members of "${team.displayName}"`}>
-      <TeamMemberTable members={users || []} team={team} />
+      <TeamMemberTable users={users || []} team={team} />
     </PageLayout>
   );
 }

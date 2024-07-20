@@ -1,18 +1,18 @@
 'use client';
-import { useMemo, useState } from "react";
-import * as yup from "yup";
+import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
+import { useRouter } from "@/components/router";
 import { ServerTeam } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { ActionCell, DateCell, TextCell } from "./elements/cells";
-import { SearchToolbarItem } from "./elements/toolbar-items";
+import { useState } from "react";
+import * as yup from "yup";
+import { ActionDialog } from "../action-dialog";
 import { FormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
-import { ActionDialog } from "../action-dialog";
 import Typography from "../ui/typography";
-import { useRouter } from "@/components/router";
-import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
+import { ActionCell, DateCell, TextCell } from "./elements/cells";
+import { DataTableColumnHeader } from "./elements/column-header";
+import { DataTable } from "./elements/data-table";
+import { SearchToolbarItem } from "./elements/toolbar-items";
 
 function toolbarRender<TData>(table: Table<TData>) {
   return (
@@ -105,17 +105,17 @@ const columns: ColumnDef<ServerTeam>[] =  [
   {
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
-    cell: ({ row }) => <TextCell size={60}>{row.getValue("id")}</TextCell>,
+    cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
-    cell: ({ row }) => <TextCell size={200}>{row.getValue("displayName")}</TextCell>,
+    cell: ({ row }) => <TextCell size={200}>{row.original.displayName}</TextCell>,
   },
   {
     accessorKey: "createdAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Created At" />,
-    cell: ({ row }) => <DateCell date={row.getValue("createdAt")}></DateCell>,
+    cell: ({ row }) => <DateCell date={row.original.createdAt}></DateCell>,
   },
   {
     id: "actions",

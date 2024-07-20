@@ -10,51 +10,42 @@ export const POST = createSmartRouteHandler({
     description: "This endpoint is used to exchange an authorization code or refresh token for an access token.",
     tags: ["Oauth"]
   },
-  request: yupObject({
-    body: yupObject({
-      grant_type: yupString().oneOf(["refresh_token", "authorization_code"]).required(),
-      code: yupString(),
-      code_verifier: yupString(),
-      redirect_uri: yupString(),
-      refresh_token: yupString(),
-    }).required(),
-  }),
+  request: yupObject({}),
   response: yupObject({
     statusCode: yupNumber().required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({ body }, fullReq) {
-    if (body.redirect_uri) {
-      body.redirect_uri = body.redirect_uri.split('#')[0]; // remove hash
-    }
-
+  async handler({}, fullReq) {
     const oauthRequest = new OAuthRequest({
-      headers: fullReq.headers,
-      query: Object.fromEntries(new URL(fullReq.url).searchParams.entries()),
-      method: "POST",
-      body: body,
+      headers: {
+        ...fullReq.headers,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      method: fullReq.method,
+      body: fullReq.body,
+      query: fullReq.query,
     });
 
 
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.token(
-      oauthRequest,
-      oauthResponse,
-      {
-        // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
-        refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year
-        alwaysIssueNewRefreshToken: false, // add token rotation later
-      }
-    );
+        oauthRequest,
+        oauthResponse,
+        {
+          // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
+          refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year
+          alwaysIssueNewRefreshToken: false, // add token rotation later
+        }
+      );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
-        throw new KnownErrors.RefreshTokenExpired();
+        throw new KnownErrors.RefreshTokenNotFoundOrExpired();
       }
       if (e instanceof InvalidClientError) {
-        throw new KnownErrors.ProjectNotFound();
+        throw new KnownErrors.InvalidOAuthClientIdOrSecret();
       }
       throw e;
     }

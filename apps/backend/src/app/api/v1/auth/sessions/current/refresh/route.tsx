@@ -38,7 +38,7 @@ export const POST = createSmartRouteHandler({
       },
     });
     if (!sessionObj) {
-      throw new KnownErrors.RefreshTokenNotFound();
+      throw new KnownErrors.RefreshTokenNotFoundOrExpired();
     }
 
     const accessToken = await encodeAccessToken({

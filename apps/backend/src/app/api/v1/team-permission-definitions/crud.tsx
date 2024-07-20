@@ -1,4 +1,4 @@
-import { createPermissionDefinition, deletePermissionDefinition, listPermissionDefinitions, updatePermissionDefinitions } from "@/lib/permissions";
+import { createTeamPermissionDefinition, deleteTeamPermissionDefinition, listTeamPermissionDefinitions, updateTeamPermissionDefinitions } from "@/lib/permissions";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { teamPermissionDefinitionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
@@ -8,30 +8,27 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
     permission_id: yupString().required(),
   }),
   async onCreate({ auth, data }) {
-    return await createPermissionDefinition({
+    return await createTeamPermissionDefinition({
       project: auth.project,
-      scope: { type: "any-team" },
       data,
     });
   },
   async onUpdate({ auth, data, params }) {
-    return await updatePermissionDefinitions({
+    return await updateTeamPermissionDefinitions({
       project: auth.project,
-      scope: { type: "any-team" },
       permissionId: params.permission_id,
       data,
     });
   },
   async onDelete({ auth, params }) {
-    await deletePermissionDefinition({
+    await deleteTeamPermissionDefinition({
       project: auth.project,
-      scope: { type: "any-team" },
       permissionId: params.permission_id
     });
   },
   async onList({ auth }) {
     return {
-      items: await listPermissionDefinitions(auth.project, { type: "any-team" }),
+      items: await listTeamPermissionDefinitions(auth.project),
       is_paginated: false,
     };
   },

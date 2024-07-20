@@ -1,5 +1,5 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson } from "@/temporary-types";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { GithubProvider } from "./providers/github";
 import { OAuthModel } from "./model";

@@ -1,16 +1,16 @@
 'use client';
-import { useMemo, useState } from "react";
-import { ApiKeySet } from '@stackframe/stack';
+import { ApiKey } from '@stackframe/stack';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { ActionDialog } from "../action-dialog";
+import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
-import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
-import { SearchToolbarItem } from "./elements/toolbar-items";
-import { ActionDialog } from "../action-dialog";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
+import { SearchToolbarItem } from "./elements/toolbar-items";
 import { standardFilterFn } from "./elements/utils";
 
-type ExtendedApiKeySet = ApiKeySet & {
+type ExtendedApiKey = ApiKey & {
   status: 'valid' | 'expired' | 'revoked',
 };
 
@@ -31,7 +31,7 @@ function toolbarRender<TData>(table: Table<TData>) {
 }
 
 function RevokeDialog(props: {
-  apiKey: ExtendedApiKeySet,
+  apiKey: ExtendedApiKey,
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
@@ -48,7 +48,7 @@ function RevokeDialog(props: {
   </ActionDialog>;
 }
 
-function Actions({ row }: { row: Row<ExtendedApiKeySet> }) {
+function Actions({ row }: { row: Row<ExtendedApiKey> }) {
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
   return (
     <>
@@ -64,7 +64,7 @@ function Actions({ row }: { row: Row<ExtendedApiKeySet> }) {
   );
 }
 
-const columns: ColumnDef<ExtendedApiKeySet>[] =  [
+const columns: ColumnDef<ExtendedApiKey>[] =  [
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Description" />,
@@ -99,12 +99,12 @@ const columns: ColumnDef<ExtendedApiKeySet>[] =  [
   },
 ];
 
-export function ApiKeyTable(props: { apiKeys: ApiKeySet[] }) {
+export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
   const extendedApiKeys = useMemo(() => {
     const keys = props.apiKeys.map((apiKey) => ({
       ...apiKey,
       status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
-    } satisfies ExtendedApiKeySet));
+    } satisfies ExtendedApiKey));
     // first soft based on status, then by expiresAt
     return keys.sort((a, b) => {
       if (a.status === b.status) {

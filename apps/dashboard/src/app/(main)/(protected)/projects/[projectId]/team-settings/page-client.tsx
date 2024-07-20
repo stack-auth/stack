@@ -14,11 +14,11 @@ function CreateDialog(props: {
   type: "creator" | "member",
 }) {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const permissions = stackAdminApp.usePermissionDefinitions();
+  const project = stackAdminApp.useProject();
+  const permissions = stackAdminApp.useTeamPermissionDefinitions();
   const selectedPermissionIds = props.type === "creator" ?
-    project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
-    project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
+    project.config.teamCreatorDefaultPermissions.map(x => x.id) :
+    project.config.teamMemberDefaultPermissions.map(x => x.id);
 
   const formSchema = yup.object({
     permissions: yup.array().of(yup.string().required()).required().meta({
@@ -43,13 +43,13 @@ function CreateDialog(props: {
       if (props.type === "creator") {
         await project.update({
           config: {
-            teamCreatorDefaultPermissionIds: values.permissions,
+            teamCreatorDefaultPermissions: values.permissions.map((id) => ({ id })),
           },
         });
       } else {
         await project.update({
           config: {
-            teamMemberDefaultPermissionIds: values.permissions,
+            teamMemberDefaultPermissions: values.permissions.map((id) => ({ id })),
           },
         });
       }
@@ -60,14 +60,14 @@ function CreateDialog(props: {
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
+  const project = stackAdminApp.useProject();
 
   return (
     <PageLayout title="Team Settings">
       <SettingCard title="Automatic Team Creation">
         <SettingSwitch
           label="Create a personal team for each user on sign-up"
-          checked={project.evaluatedConfig.createTeamOnSignUp}
+          checked={project.config.createTeamOnSignUp}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
@@ -104,8 +104,8 @@ export default function PageClient() {
           />}
         >
           <div className="flex flex-wrap gap-2">
-            {project.evaluatedConfig[key].length > 0 ?
-              project.evaluatedConfig[key].map((p) => (
+            {project.config[key].length > 0 ?
+              project.config[key].map((p) => (
                 <Badge key={p.id} variant='secondary'>{p.id}</Badge>
               )) :
               <Typography variant="secondary" type="label">No default permissions set</Typography>

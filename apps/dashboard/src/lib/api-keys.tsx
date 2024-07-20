@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@stackframe/stack-shared';
+import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@/temporary-types';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';

@@ -32,7 +32,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
       project: createOptions.project,
       user: sendOptions.user,
       email: createOptions.method.email,
-      templateId: "EMAIL_VERIFICATION",
+      templateType: "email_verification",
       extraVariables: {
         emailVerificationLink: codeObj.link.toString(),
       },

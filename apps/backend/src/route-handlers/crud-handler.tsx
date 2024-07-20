@@ -2,24 +2,19 @@ import "../polyfills";
 
 import * as yup from "yup";
 import { SmartRouteHandler, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
-import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
+import { CrudOperation, CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
-import { ProjectJson } from "@stackframe/stack-shared";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
-type ListResult<El> = {
-  items: El[],
-  is_paginated: false,
-};
+type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudlOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
-type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
-
-type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Query extends {}, Multi extends boolean = false> =
+type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudlOperation>, Params extends {}, Query extends {}, Multi extends boolean = false> =
   K extends keyof T["Admin"]
     ? (options: {
       params: Params,
@@ -31,7 +26,7 @@ type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<Crud
         ? void
         : (
           Multi extends true
-            ? ListResult<GetAdminKey<T, "Read">>
+            ? GetAdminKey<T, "List">
             : GetAdminKey<T, "Read">
         )
     >
@@ -76,13 +71,13 @@ type CrudHandlerDirectByAccess<
 > = {
   [K in L as `${Uncapitalize<A>}${K}`]: (options:
     & {
-      project: ProjectJson,
+      project: ProjectsCrud["Admin"]["Read"],
       user?: UsersCrud["Admin"]["Read"],
     }
     & ({} extends yup.InferType<QS> ? {} : { query: yup.InferType<QS> })
     & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
     & (K extends "Read" | "List" | "Delete" ? {} : (K extends keyof T[A] ? { data: T[A][K] } : "TYPE ERROR: something went wrong here"))
-  ) => Promise<"Read" extends keyof T[A] ? (K extends "List" ? ListResult<T[A]["Read"]> : (K extends "Delete" ? void : T[A]["Read"])) : void>
+  ) => Promise<(K extends "List" ? ("List" extends keyof T[A] ? T[A]["List"] : void) : (K extends "Delete" ? void : ("Read" extends keyof T[A] ? T[A]["Read"] : void)))>
 };
 
 export type CrudHandlers<
@@ -240,7 +235,7 @@ export function createCrudHandlers<
               `${accessType}${crudOperation}`,
               async ({ user, project, data, query, ...params }: yup.InferType<PS> & {
                 query?: yup.InferType<QS>,
-                project: ProjectJson,
+                project: ProjectsCrud["Admin"]["Read"],
                 user?: UsersCrud["Admin"]["Read"],
                 data: any,
               }) => {

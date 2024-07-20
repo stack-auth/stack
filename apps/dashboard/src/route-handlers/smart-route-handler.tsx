@@ -9,12 +9,13 @@ import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...process.env.NODE_ENV === "development" ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}` : undefined,
     );
   }
 }

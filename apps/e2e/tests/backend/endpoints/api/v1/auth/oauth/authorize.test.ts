@@ -30,7 +30,7 @@ it.todo("should redirect the user to the OAuth provider with the right arguments
   });
   expect(response.status).toBe(307);
   expect(response.headers.get("location")).toMatch(/^https:\/\/github\.com\/login\/oauth\/authorize\?.*$/);
-  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-state-[^=]+=true; Path=\/; Expires=[^;]+; Max-Age=600; HttpOnly$/);
+  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
 });
 
 it.todo("should fail if an invalid client_id is provided", async ({ expect }) => {
@@ -43,13 +43,14 @@ it.todo("should fail if an invalid client_id is provided", async ({ expect }) =>
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 404,
+      "status": 400,
       "body": {
-        "code": "PROJECT_NOT_FOUND",
-        "error": "Project not found or is not accessible with the current user.",
+        "code": "INVALID_OAUTH_CLIENT_ID_OR_SECRET",
+        "details": { "client_id": "some-invalid-client-id" },
+        "error": "The OAuth client ID or secret is invalid. The client ID must be equal to the project ID, and the client secret must be a publishable client key.",
       },
       "headers": Headers {
-        "x-stack-known-error": "PROJECT_NOT_FOUND",
+        "x-stack-known-error": "INVALID_OAUTH_CLIENT_ID_OR_SECRET",
         <some fields may have been hidden>,
       },
     }

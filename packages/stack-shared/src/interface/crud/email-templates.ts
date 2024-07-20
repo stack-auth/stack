@@ -1,47 +1,48 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { jsonSchema, yupMixed, yupObject, yupString } from "../../schema-fields";
+import { jsonSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
 
 export type EmailTemplateType = typeof emailTemplateTypes[number];
-export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
+export const emailTemplateTypes = ['email_verification', 'password_reset', 'magic_link'] as const;
 
-export const emailTemplateServerReadSchema = yupObject({
+export const emailTemplateAdminReadSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
   subject: yupString().required(),
   content: jsonSchema.required(),
+  is_default: yupBoolean().required(),
 }).required();
 
-export const emailTemplateCrudServerUpdateSchema = yupObject({
-  content: jsonSchema.required(),
-  subject: yupString().required(),
+export const emailTemplateCrudAdminUpdateSchema = yupObject({
+  content: jsonSchema.nonNullable().optional(),
+  subject: yupString().optional(),
 }).required();
 
-export const emailTemplateCrudServerDeleteSchema = yupMixed();
+export const emailTemplateCrudAdminDeleteSchema = yupMixed();
 
-export const emailTemplateCrudServerCreateSchema = yupObject({
+export const emailTemplateCrudAdminCreateSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
   content: jsonSchema.required(),
   subject: yupString().required(),
 }).required();
 
 export const emailTemplateCrud = createCrud({
-  serverReadSchema: emailTemplateServerReadSchema,
-  serverUpdateSchema: emailTemplateCrudServerUpdateSchema,
-  serverCreateSchema: emailTemplateCrudServerCreateSchema,
-  serverDeleteSchema: emailTemplateCrudServerDeleteSchema,
+  adminReadSchema: emailTemplateAdminReadSchema,
+  adminUpdateSchema: emailTemplateCrudAdminUpdateSchema,
+  adminCreateSchema: emailTemplateCrudAdminCreateSchema,
+  adminDeleteSchema: emailTemplateCrudAdminDeleteSchema,
   docs: {
-    serverRead: {
+    adminRead: {
       hidden: true,
     },
-    serverCreate: {
+    adminCreate: {
       hidden: true,
     },
-    serverUpdate: {
+    adminUpdate: {
       hidden: true,
     },
-    serverDelete: {
+    adminDelete: {
       hidden: true,
     },
-    serverList: {
+    adminList: {
       hidden: true,
     }
   }

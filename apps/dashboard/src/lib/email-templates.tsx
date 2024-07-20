@@ -6,6 +6,7 @@ import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/
 import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
 import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
 import { ListEmailTemplatesCrud } from "@/app/api/v1/email-templates/cruds-deprecated";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export async function listEmailTemplatesWithDefault(projectId: string) {
   const project = await getProject(projectId);
@@ -26,8 +27,8 @@ export async function listEmailTemplatesWithDefault(projectId: string) {
   const results: ListEmailTemplatesCrud['Server']['Read'] = [];
   for (const type of Object.values(EmailTemplateType)) {
     const template = templateMap.get(type) ?? {
-      content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
-      subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject
+      content: EMAIL_TEMPLATES_METADATA[typedToLowercase(type)].defaultContent,
+      subject: EMAIL_TEMPLATES_METADATA[typedToLowercase(type)].defaultSubject
     };
     results.push({ type, content: template.content, default: !templateMap.has(type), subject: template.subject });
   }
@@ -42,8 +43,8 @@ export async function getEmailTemplateWithDefault(projectId: string, type: Email
   }
   return {
     type,
-    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
-    subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
+    content: EMAIL_TEMPLATES_METADATA[typedToLowercase(type)].defaultContent,
+    subject: EMAIL_TEMPLATES_METADATA[typedToLowercase(type)].defaultSubject,
     default: true,
   };
 }
@@ -72,7 +73,7 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
 export async function updateEmailTemplate(
   projectId: string,
   type: EmailTemplateType,
-  update: Partial<EmailTemplateCrud['Server']['Update']>
+  update: Partial<EmailTemplateCrud['Admin']['Update']>
 ) {
   const project = await getProject(projectId);
   if (!project) {
@@ -116,7 +117,7 @@ export async function deleteEmailTemplate(projectId: string, type: EmailTemplate
 export async function createEmailTemplate(
   projectId: string,
   type: EmailTemplateType,
-  data: EmailTemplateCrud['Server']['Update']
+  data: EmailTemplateCrud['Admin']['Create']
 ) {
   const project = await getProject(projectId);
   if (!project) {

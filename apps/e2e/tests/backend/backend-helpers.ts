@@ -76,7 +76,7 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
     headers: filterUndefined({
       "content-type": body !== undefined ? "application/json" : undefined,
       "x-stack-access-type": accessType ?? undefined,
-      ...projectKeys !== "no-project" ? {
+      ...projectKeys !== "no-project" && accessType ? {
         "x-stack-project-id": projectKeys.projectId,
         "x-stack-publishable-client-key": projectKeys.publishableClientKey,
         "x-stack-secret-server-key": projectKeys.secretServerKey,
@@ -442,7 +442,7 @@ export namespace Project {
 
 export namespace Team {
   export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
-    const response = await niceBackendFetch("/api/v1/teams", {
+    const response = await niceBackendFetch("/api/v1/teams?add_current_user=true", {
       accessType: options.accessType ?? "client",
       method: "POST",
       body: {

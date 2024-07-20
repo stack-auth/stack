@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { Team, useUser } from "..";
+import Image from "next/image";
 
 type SelectedTeamSwitcherProps = {
   urlMap?: (team: Team) => string,
@@ -24,7 +25,7 @@ function TeamIcon(props: { team: Team }) {
   if (props.team.profileImageUrl) {
     return (
       <div className="w-6 h-6 mr-2 rounded bg-gray-200 overflow-hidden">
-        <img src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
+        <Image src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
       </div>
     );
   } else {

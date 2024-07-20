@@ -1,33 +1,32 @@
 "use client";
 
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingText } from "@/components/settings";
-import * as yup from "yup";
+import { ActionDialog } from "@/components/action-dialog";
+import { ActionCell } from "@/components/data-table/elements/cells";
+import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
+import { useRouter } from "@/components/router";
+import { SettingCard, SettingText } from "@/components/settings";
 import { SimpleTooltip } from "@/components/simple-tooltip";
 import { Button } from "@/components/ui/button";
-import { FormDialog } from "@/components/form-dialog";
-import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { Project } from "@stackframe/stack";
-import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { Card } from "@/components/ui/card";
 import Typography from "@/components/ui/typography";
-import { ActionCell } from "@/components/data-table/elements/cells";
-import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
-import { useMemo, useState } from "react";
-import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
+import { EmailConfigJson } from "@/temporary-types";
+import { AdminProject } from "@stackframe/stack";
+import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
+import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ActionDialog } from "@/components/action-dialog";
+import { useMemo, useState } from "react";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const emailConfig = project.evaluatedConfig.emailConfig;
+  const project = stackAdminApp.useProject();
+  const emailConfig = project.config.emailConfig;
   const emailTemplates = stackAdminApp.useEmailTemplates();
   const router = useRouter();
-  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("EMAIL_VERIFICATION");
+  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("email_verification");
   const [resetTemplateDialogOpen, setResetTemplateDialogOpen] = useState(false);
 
   return (
@@ -64,7 +63,7 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell
+                {!template.isDefault && <ActionCell
                   dangerItems={[{
                     item: 'Reset to Default',
                     onClick: () => {
@@ -90,7 +89,7 @@ export default function PageClient() {
 }
 
 function EmailPreview(props: { content: any, type: EmailTemplateType }) {
-  const project = useAdminApp().useProjectAdmin();
+  const project = useAdminApp().useProject();
   const [valid, document] = useMemo(() => {
     const valid = validateEmailTemplateContent(props.content);
     if (!valid) return [false, null];
@@ -120,7 +119,7 @@ function EmailPreview(props: { content: any, type: EmailTemplateType }) {
 }
 
 function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
-  const project = useAdminApp().useProjectAdmin();
+  const project = useAdminApp().useProject();
   const subject = useMemo(() => {
     const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project.displayName);
     return convertEmailSubjectVariables(props.subject, metadata.variables);
@@ -136,7 +135,7 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string)
   });
 }
 
-const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Project) => {
+const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: AdminProject) => {
   if (!emailConfig) {
     return { type: 'shared', senderName: project.displayName } as const;
   } else if (emailConfig.type === 'shared') {
@@ -168,13 +167,13 @@ function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
 }) {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
+  const project = stackAdminApp.useProject();
 
   return <FormDialog
     trigger={props.trigger}
     title="Edit Email Server"
     formSchema={emailServerSchema}
-    defaultValues={getDefaultValues(project.evaluatedConfig.emailConfig, project)}
+    defaultValues={getDefaultValues(project.config.emailConfig, project)}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       if (values.type === 'shared') {

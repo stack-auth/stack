@@ -34,6 +34,24 @@
       ],
       "outputLogs": "new-only"
     },
+    "@stackframe/docs#build": {
+      "dependsOn": [
+        "@stackframe/stack-backend#build"
+      ]
+    },
+    "@stackframe/stack-backend#build": {
+      "dependsOn": [
+        "codegen"
+      ]
+    },
+    "@stackframe/stack-backend#codegen": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "../../docs/fern/openapi"
+      ]
+    },
     "clean": {
       "cache": false
     },

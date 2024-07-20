@@ -37,7 +37,13 @@ async function main() {
     throw new UserError(`Expected file at ${nextConfigPath}. Only Next.js projects are currently supported.`);
   }
 
+  const envPath = path.join(projectPath, '.env');
+  const envDevelopmentPath = path.join(projectPath, '.env.development');
+  const envDefaultPath = path.join(projectPath, '.env.default');
+  const envDefaultsPath = path.join(projectPath, '.env.defaults');
+  const envExamplePath = path.join(projectPath, '.env.example');
   const envLocalPath = path.join(projectPath, '.env.local');
+  const potentialEnvLocations = [envPath, envDevelopmentPath, envDefaultPath, envDefaultsPath, envExamplePath, envLocalPath];
 
   const hasSrcAppFolder = fs.existsSync(path.join(projectPath, 'src/app'));
   const srcPath = path.join(projectPath, hasSrcAppFolder ? 'src' : '');
@@ -103,7 +109,9 @@ async function main() {
   
   console.log();
   console.log("Writing files...");
-  await writeFileIfNotExists(envLocalPath, "# Stack Auth keys\n# Get these variables by creating a project on https://app.stack-auth.com.\nNEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n");
+  if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
+    await writeFile(envLocalPath, "# Stack Auth keys\n# Get these variables by creating a project on https://app.stack-auth.com.\nNEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n");
+  }
   await writeFileIfNotExists(loadingPath, `export default function Loading() {\n${ind}// Stack uses React Suspense, which will render this page while user data is being fetched.\n${ind}// See: https://nextjs.org/docs/app/api-reference/file-conventions/loading\n${ind}return <></>;\n}\n`);
   await writeFileIfNotExists(handlerPath, `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${handlerFileExtension.includes("ts") ? ": any" : ""}) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`);
   await writeFileIfNotExists(stackAppPath, `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`);
@@ -121,7 +129,7 @@ main().then(async() => {
   console.log();
   console.log("Next up, please create an account on https://app.stack-auth.com to create a new project, and copy the Next.js environment variables from a new API key into your .env.local file.");
   console.log();
-  console.log("Then, you will be able to access your sign-in page on http://your-website.example.com/handler/signin. Congratulations!");
+  console.log("Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. Congratulations!");
   console.log();
   console.log("For more information, please visit https://docs.stack-auth.com/docs/getting-started/setup");
   console.log();

@@ -11,7 +11,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
+      redirectUri: process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED + "/api/v1/auth/callback/microsoft",
       baseScope: "User.Read",
       ...options,
     });

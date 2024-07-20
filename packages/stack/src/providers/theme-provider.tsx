@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import StyledComponentsRegistry from "./styled-components-registry";
 import { globalCSS } from "../generated/global-css";
 import { BrowserScript } from "../utils/browser-script";
 import { DEFAULT_THEME } from "../utils/constants";
@@ -93,7 +92,7 @@ export function StackTheme({
   };
 
   return (
-    <StyledComponentsRegistry>
+    <>
       <BrowserScript nonce={nonce} />
       <style
         suppressHydrationWarning
@@ -103,6 +102,6 @@ export function StackTheme({
         }}
       />
       {children}
-    </StyledComponentsRegistry>
+    </>
   );
 }

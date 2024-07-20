@@ -25,6 +25,7 @@
     "nicify",
     "openapi",
     "Proxied",
+    "reqs",
     "stackframe",
     "typehack",
     "Uncapitalize",
@@ -35,5 +36,6 @@
       "editor.codeActionsOnSave": {
           "source.organizeImports": "explicit"
       }
-  }
+  },
+  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|"
 }

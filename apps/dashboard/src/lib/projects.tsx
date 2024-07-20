@@ -1,14 +1,15 @@
 import * as yup from "yup";
-import { KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
+import { OAuthProviderConfigJson, ProjectJson, ServerUserJson, EmailConfigJson } from "@/temporary-types";
 import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@/temporary-types";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({

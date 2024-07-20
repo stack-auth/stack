@@ -1,11 +1,10 @@
-import * as yup from 'yup';
-import { JWTExpired, JOSEError } from 'jose/errors';
-import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
-import { KnownErrors } from '@stackframe/stack-shared';
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { prismaClient } from '@/prisma-client';
+import { KnownErrors } from '@stackframe/stack-shared';
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
+import { JOSEError, JWTExpired } from 'jose/errors';
 
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 

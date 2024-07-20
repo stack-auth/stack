@@ -1,4 +1,4 @@
-import { isTeamSystemPermission, listPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
+import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { fullProjectInclude, getProject, projectPrismaToCrud } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -6,18 +6,13 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
   onUpdate: async ({ auth, data }) => {
-    const oldProject = await getProject(auth.project.id);
-
-    // the project does not exist, the update operation is invalid
-    if (!oldProject) {
-      throw new KnownErrors.ProjectNotFound();
-    }
+    const oldProject = auth.project;
 
     const result = await prismaClient.$transaction(async (tx) => {
       // ======================= update default team permissions =======================
@@ -37,7 +32,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         },
       ] as const;
 
-      const permissions = await listPermissionDefinitions(oldProject, { type: 'any-team' });
+      const permissions = await listTeamPermissionDefinitions(oldProject);
 
 
       for (const param of dbParams) {
@@ -56,7 +51,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           .map(p => teamSystemPermissionStringToDBType(p as any));
 
         await tx.projectConfig.update({
-          where: { id: oldProject.evaluatedConfig.id },
+          where: { id: oldProject.config.id },
           data: {
             [param.dbSystemName]: systemPerms,
           },
@@ -65,7 +60,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Remove existing default permissions
         await tx.permission.updateMany({
           where: {
-            projectConfigId: oldProject.evaluatedConfig.id,
+            projectConfigId: oldProject.config.id,
             scope: 'TEAM',
           },
           data: {
@@ -77,7 +72,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Add new default permissions
         await tx.permission.updateMany({
           where: {
-            projectConfigId: oldProject.evaluatedConfig.id,
+            projectConfigId: oldProject.config.id,
             queryableId: {
               in: defaultPerms.filter(x => !isTeamSystemPermission(x)),
             },
@@ -100,10 +95,10 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         let updateData = {};
 
         await tx.standardEmailServiceConfig.deleteMany({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
         });
         await tx.proxiedEmailServiceConfig.deleteMany({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
         });
 
 
@@ -129,7 +124,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         }
 
         await tx.emailServiceConfig.update({
-          where: { projectConfigId: oldProject.evaluatedConfig.id },
+          where: { projectConfigId: oldProject.config.id },
           data: updateData,
         });
       }
@@ -140,7 +135,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
       // update the config if it is already in the DB
       // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
 
-      const oldProviders = oldProject.evaluatedConfig.oauthProviders;
+      const oldProviders = oldProject.config.oauth_providers;
       const oauthProviderUpdates = data.config?.oauth_providers;
       if (oauthProviderUpdates) {
         const providerMap = new Map(oldProviders.map((provider) => [
@@ -165,15 +160,19 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         // Update existing proxied/standard providers
         for (const [id, { providerUpdate, oldProvider }] of providerMap) {
         // remove existing provider configs
-          if (sharedProviders.includes(oldProvider.type as any)) {
-            await tx.proxiedOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.evaluatedConfig.id, id: providerUpdate.id },
-            });
-          }
-          if (standardProviders.includes(oldProvider.type as any)) {
-            await tx.standardOAuthProviderConfig.deleteMany({
-              where: { projectConfigId: oldProject.evaluatedConfig.id, id: providerUpdate.id },
-            });
+          switch (oldProvider.type) {
+            case 'shared': {
+              await tx.proxiedOAuthProviderConfig.deleteMany({
+                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+              });
+              break;
+            }
+            case 'standard': {
+              await tx.standardOAuthProviderConfig.deleteMany({
+                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
+              });
+              break;
+            }
           }
 
           // update provider configs with newly created proxied/standard provider configs
@@ -186,7 +185,6 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
                 },
               },
             };
-
           } else {
             providerConfigUpdate = {
               standardOAuthConfig: {
@@ -200,7 +198,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           }
 
           await tx.oAuthProviderConfig.update({
-            where: { projectConfigId_id: { projectConfigId: oldProject.evaluatedConfig.id, id } },
+            where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
             data: {
               enabled: providerUpdate.enabled,
               ...providerConfigUpdate,
@@ -234,7 +232,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
           await tx.oAuthProviderConfig.create({
             data: {
               id: provider.id,
-              projectConfigId: oldProject.evaluatedConfig.id,
+              projectConfigId: oldProject.config.id,
               enabled: provider.update.enabled,
               ...providerConfigData,
             },
@@ -273,15 +271,6 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
     return projectPrismaToCrud(result, auth.type);
   },
   onRead: async ({ auth }) => {
-    const result = await prismaClient.project.findUnique({
-      where: { id: auth.project.id },
-      include: fullProjectInclude,
-    });
-
-    if (!result) {
-      throw new KnownErrors.ProjectNotFound();
-    }
-
-    return projectPrismaToCrud(result, auth.type);
+    return auth.project;
   },
 });

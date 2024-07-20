@@ -11,7 +11,7 @@ import { TeamPermissionTable } from "@/components/data-table/team-permission-tab
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissionDefinitions();
+  const permissions = stackAdminApp.useTeamPermissionDefinitions();
   const [createPermissionModalOpen, setCreatePermissionModalOpen] = React.useState(false);
 
   return (
@@ -38,7 +38,7 @@ function CreateDialog(props: {
   onOpenChange: (open: boolean) => void,
 }) {
   const stackAdminApp = useAdminApp();
-  const permissions = stackAdminApp.usePermissionDefinitions();
+  const permissions = stackAdminApp.useTeamPermissionDefinitions();
 
   const formSchema = yup.object({
     id: yup.string().required()
@@ -46,7 +46,7 @@ function CreateDialog(props: {
       .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":" and "_" are allowed')
       .label("ID"),
     description: yup.string().label("Description"),
-    containPermissionIds: yup.array().of(yup.string().required()).required().default([]).meta({
+    containedPermissionIds: yup.array().of(yup.string().required()).required().default([]).meta({
       stackFormFieldRender: (props) => (
         <PermissionListField {...props} permissions={permissions} type="new" />
       ),
@@ -60,11 +60,10 @@ function CreateDialog(props: {
     formSchema={formSchema}
     okButton={{ label: "Create" }}
     onSubmit={async (values) => {
-      await stackAdminApp.createPermissionDefinition({
+      await stackAdminApp.createTeamPermissionDefinition({
         id: values.id,
         description: values.description,
-        scope: { type: "any-team" },
-        containPermissionIds: values.containPermissionIds,
+        containedPermissionIds: values.containedPermissionIds,
       });
     }}
     cancelButton

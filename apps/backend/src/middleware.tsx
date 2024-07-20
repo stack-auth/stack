@@ -6,6 +6,7 @@ import type { NextRequest } from 'next/server';
 const corsAllowedRequestHeaders = [
   // General
   'content-type',
+  'authorization',  // used for OAuth basic authentication
   'x-stack-project-id',
   'x-stack-override-error-status',
   'x-stack-random-nonce',  // used to forcefully disable some caches
@@ -40,7 +41,7 @@ export async function middleware(request: NextRequest) {
       // CORS headers
       ...!isApiRequest ? {} : {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
         "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
       },

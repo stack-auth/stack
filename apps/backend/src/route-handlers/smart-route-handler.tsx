@@ -16,7 +16,7 @@ class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ...["development", "test"].includes(getNodeEnvironment()) ? [`Internal Server Error. The error message follows, but will be stripped in production. ${error}`] : [],
+      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}` : undefined,
     );
   }
 }
@@ -26,12 +26,13 @@ class InternalServerError extends StatusError {
  */
 const commonErrors = [
   KnownErrors.AccessTokenExpired,
+  KnownErrors.CannotGetOwnUserWithoutUser,
   InternalServerError,
 ];
 
 /**
  * Catches the given error, logs it if needed and returns it as a StatusError. Errors that are not actually errors
- * (such as Next.js redirects) will be rethrown.
+ * (such as Next.js redirects) will be re-thrown.
  */
 function catchError(error: unknown): StatusError {
   // catch some Next.js non-errors and rethrow them
@@ -87,7 +88,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       try {
         statusError = catchError(e);
       } catch (e) {
-        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be rethrown. Digest: ${(e as any)?.digest}`);
+        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
         throw e;
       }
 
@@ -240,30 +241,29 @@ function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
   } else if (errors.length === 1) {
     return [errors[0]];
   } else if (errors.length === 2) {
-    const [a, b] = errors;
+    for (const [a, b] of [errors, [...errors].reverse()]) {
+      // Merge errors with the same JSON
+      if (JSON.stringify(a.toDescriptiveJson()) === JSON.stringify(b.toDescriptiveJson())) {
+        return [a];
+      }
 
-    // Merge errors with the same JSON
-    if (JSON.stringify(a.toDescriptiveJson()) === JSON.stringify(b.toDescriptiveJson())) {
-      return [a];
+      // Merge "InsufficientAccessType" errors
+      if (
+        a instanceof KnownErrors.InsufficientAccessType
+        && b instanceof KnownErrors.InsufficientAccessType
+        && a.constructorArgs[0] === b.constructorArgs[0]
+      ) {
+        return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
+      }
+
+      // Merge priority
+      const aPriority = mergeErrorPriority.indexOf(a.constructor as any);
+      const bPriority = mergeErrorPriority.indexOf(b.constructor as any);
+      if (aPriority < bPriority) {
+        return [a];
+      }
     }
-
-    // Merge "InsufficientAccessType" errors
-    if (
-      a instanceof KnownErrors.InsufficientAccessType
-      && b instanceof KnownErrors.InsufficientAccessType
-      && a.constructorArgs[0] === b.constructorArgs[0]
-    ) {
-      return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
-    }
-
-    // Merge priority
-    const aPriority = mergeErrorPriority.indexOf(a.constructor as any);
-    const bPriority = mergeErrorPriority.indexOf(b.constructor as any);
-    if (aPriority < bPriority) {
-      return [a];
-    }
-
-    return [a, b];
+    return errors;
   } else {
     // brute-force all combinations recursively
     let fewestErrors: StatusError[] = errors;

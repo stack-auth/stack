@@ -18,6 +18,7 @@ it("can't send a verification code while logged out", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on POST /api/v1/contact-channels/send-verification-code:\\n  - auth.user is a required field" },
         "error": "Request validation failed on POST /api/v1/contact-channels/send-verification-code:\\n  - auth.user is a required field",
       },
       "headers": Headers {

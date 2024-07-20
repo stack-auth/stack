@@ -12,7 +12,7 @@ export class FacebookProvider extends OAuthBaseProvider {
       issuer: "https://www.facebook.com",
       authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
-      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_BACKEND_URL") + "/api/v1/auth/callback/facebook",
+      redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/facebook",
       baseScope: "public_profile email",
       ...options
     });

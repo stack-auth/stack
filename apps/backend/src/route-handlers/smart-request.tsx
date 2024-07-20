@@ -5,7 +5,7 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import * as yup from "yup";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
@@ -13,11 +13,13 @@ import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { CrudHandlerInvocationError } from "./crud-handler";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type SmartRequestAuth = {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };
@@ -171,18 +173,11 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
-    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutRequestType instead of guessing
-    if (adminAccessToken || superSecretAdminKey) {
-      requestType = "admin";
-    } else if (secretServerKey) {
-      requestType = "server";
-    } else if (publishableClientKey) {
-      requestType = "client";
-    }
+    throw new KnownErrors.ProjectKeyWithoutAccessType();
   }
   if (!requestType) return null;
-  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
-  if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
+  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
+  if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {
@@ -236,7 +231,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new KnownErrors.ProjectNotFound();
+    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project");
   }
 
   let user = null;
@@ -248,10 +243,16 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    user = await usersCrudHandlers.adminRead({
-      project,
-      user_id: userId,
-    });
+    try {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: userId,
+      });
+    } catch (e) {
+      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
+        user = null;
+      }
+    }
   }
 
   return {

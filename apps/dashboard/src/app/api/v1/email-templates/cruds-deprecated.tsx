@@ -1,7 +1,5 @@
-import { listEmailTemplatesWithDefault } from "@/lib/email-templates";
-import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { CrudTypeOf, createCrud } from "@stackframe/stack-shared/dist/crud";
-import { emailTemplateServerReadSchema, emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { emailTemplateServerReadSchema, emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud-deprecated/email-templates";
 import { jsonSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import * as yup from "yup";
 

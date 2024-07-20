@@ -131,7 +131,7 @@ function PasswordSection() {
     <SettingSection
       title='Password'
       desc='Change your password here.'
-      buttonDisabled={passwordChanged}
+      buttonDisabled={passwordChanged || (!oldPassword && !newPassword && !repeatNewPassword)}
       buttonText={passwordChanged ? "Password changed!" : 'Update Password'}
       onButtonClick={async () => {
         setOldPasswordError('');

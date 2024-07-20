@@ -1,24 +1,11 @@
 "use client";
 
-import React from "react";
-import { useUser } from "@stackframe/stack";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { CurrentUser, StackAdminApp } from "@stackframe/stack";
 import { useRouter } from "@/components/router";
+import { StackAdminApp, useUser } from "@stackframe/stack";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import React from "react";
 
 const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
-
-const usersMap = new Map<string, CurrentUser>();
-
-const createAdminApp = cacheFunction((baseUrl: string, projectId: string, userId: string) => {
-  return new StackAdminApp<false, string>({
-    baseUrl,
-    projectId,
-    tokenStore: null,
-    projectOwnerSession: usersMap.get(userId)!._internalSession,
-  });
-});
 
 export function AdminAppProvider(props: { projectId: string, children: React.ReactNode }) {
   const router = useRouter();
@@ -29,17 +16,11 @@ export function AdminAppProvider(props: { projectId: string, children: React.Rea
   if (!project) {
     console.warn(`User ${user.id} does not have access to project ${props.projectId}`);
     setTimeout(() => router.push("/"), 0);
+    return null;
   }
 
-  usersMap.set(user.id, user);
-  const stackAdminApp = createAdminApp(
-    process.env.NEXT_PUBLIC_STACK_URL || throwErr('missing NEXT_PUBLIC_STACK_URL environment variable'),
-    props.projectId,
-    user.id,
-  );
-
   return (
-    <StackAdminAppContext.Provider value={stackAdminApp}>
+    <StackAdminAppContext.Provider value={project.app}>
       {props.children}
     </StackAdminAppContext.Provider>
   );

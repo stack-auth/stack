@@ -2,7 +2,7 @@ import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
 import { yupMixed, yupObject } from "../../schema-fields";
 
-// Team permissions
+// =============== Team permissions =================
 
 export const teamPermissionsCrudClientReadSchema = yupObject({
   id: schemaFields.teamPermissionIdSchema.required(),
@@ -44,50 +44,50 @@ export const teamPermissionsCrud = createCrud({
 });
 export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 
-// Team permission definitions
+// =============== Team permission definitions =================
 
-export const teamPermissionDefinitionsCrudServerReadSchema = yupObject({
+export const teamPermissionDefinitionsCrudAdminReadSchema = yupObject({
   id: schemaFields.teamPermissionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.required()
 }).required();
 
-export const teamPermissionDefinitionsCrudServerCreateSchema = yupObject({
+export const teamPermissionDefinitionsCrudAdminCreateSchema = yupObject({
   id: schemaFields.customTeamPermissionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
 }).required();
 
-export const teamPermissionDefinitionsCrudServerUpdateSchema = yupObject({
-  id: schemaFields.customTeamPermissionIdSchema.required(),
+export const teamPermissionDefinitionsCrudAdminUpdateSchema = yupObject({
+  id: schemaFields.customTeamPermissionIdSchema.optional(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
 }).required();
 
-export const teamPermissionDefinitionsCrudServerDeleteSchema = yupMixed();
+export const teamPermissionDefinitionsCrudAdminDeleteSchema = yupMixed();
 
 export const teamPermissionDefinitionsCrud = createCrud({
-  serverReadSchema: teamPermissionDefinitionsCrudServerReadSchema,
-  serverCreateSchema: teamPermissionDefinitionsCrudServerCreateSchema,
-  serverUpdateSchema: teamPermissionDefinitionsCrudServerUpdateSchema,
-  serverDeleteSchema: teamPermissionDefinitionsCrudServerDeleteSchema,
+  adminReadSchema: teamPermissionDefinitionsCrudAdminReadSchema,
+  adminCreateSchema: teamPermissionDefinitionsCrudAdminCreateSchema,
+  adminUpdateSchema: teamPermissionDefinitionsCrudAdminUpdateSchema,
+  adminDeleteSchema: teamPermissionDefinitionsCrudAdminDeleteSchema,
   docs: {
-    serverList: {
+    adminList: {
       summary: "List team permission definitions",
       description: "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
       tags: ["Permissions"],
     },
-    serverCreate: {
+    adminCreate: {
       summary: "Create a new team permission definition",
       description: "Create a new permission definition (the equivalent of creating a new permission on the Stack dashboard)",
       tags: ["Permissions"],
     },
-    serverUpdate: {
+    adminUpdate: {
       summary: "Update a team permission definition",
       description: "Update a permission definition (the equivalent of updating a permission on the Stack dashboard)",
       tags: ["Permissions"],
     },
-    serverDelete: {
+    adminDelete: {
       summary: "Delete a team permission definition",
       description: "Delete a permission definition (the equivalent of deleting a permission on the Stack dashboard)",
       tags: ["Permissions"],

@@ -3,7 +3,7 @@ import { serverUserInclude } from "@/lib/users";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud-deprecated/users";
 
 export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
   metadataMap: {

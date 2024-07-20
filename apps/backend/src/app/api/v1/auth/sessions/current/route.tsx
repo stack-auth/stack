@@ -24,7 +24,7 @@ export const DELETE = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["empty"]).required(),
   }),
-  async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }, fullReq) {
+  async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }) {
     if (!refreshTokenHeaders || !refreshTokenHeaders[0]) {
       throw new StackAssertionError("Signing out without the refresh token is currently not supported. TODO: implement");
     }
@@ -42,7 +42,7 @@ export const DELETE = createSmartRouteHandler({
     } catch (e) {
       // TODO make this less hacky, use a transaction to delete-if-exists instead of try-catch
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
-        throw new KnownErrors.RefreshTokenNotFound();
+        throw new KnownErrors.RefreshTokenNotFoundOrExpired();
       } else {
         throw e;
       }

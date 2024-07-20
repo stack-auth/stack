@@ -48,7 +48,6 @@
     "react-hook-form": "^7.51.4",
     "rimraf": "^5.0.5",
     "server-only": "^0.0.1",
-    "styled-components": "^6.1.8",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.7.2",

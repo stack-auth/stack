@@ -35,7 +35,6 @@
     "@stackframe/stack-emails": "workspace:*",
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
-    "date-fns": "^3.6.0",
     "dotenv-cli": "^7.3.0",
     "handlebars": "^4.7.8",
     "jose": "^5.2.2",

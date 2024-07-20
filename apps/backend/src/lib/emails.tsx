@@ -1,17 +1,16 @@
-import nodemailer from 'nodemailer';
-import { prismaClient } from '@/prisma-client';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { ProjectJson } from '@stackframe/stack-shared';
-import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
-import { EmailTemplateType } from '@prisma/client';
-import { usersCrudHandlers } from '@/app/api/v1/users/crud';
-import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
-import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { prismaClient } from '@/prisma-client';
 import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
+import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
+import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
+import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
+import nodemailer from 'nodemailer';
 
-export async function getEmailTemplate(projectId: string, type: EmailTemplateType) {
+export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
   if (!project) {
     throw new Error("Project not found");
@@ -20,8 +19,8 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
   const template = await prismaClient.emailTemplate.findUnique({
     where: {
       projectConfigId_type: {
-        projectConfigId: project.evaluatedConfig.id,
-        type,
+        projectConfigId: project.config.id,
+        type: typedToUppercase(type),
       },
     },
   });
@@ -32,7 +31,7 @@ export async function getEmailTemplate(projectId: string, type: EmailTemplateTyp
   } : null;
 }
 
-export async function getEmailTemplateWithDefault(projectId: string, type: EmailTemplateType) {
+export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const template = await getEmailTemplate(projectId, type);
   if (template) {
     return template;
@@ -95,16 +94,16 @@ export async function sendEmail({
 }
 
 export async function sendEmailFromTemplate(options: {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
   user: UsersCrud["Admin"]["Read"] | null,
   email: string,
-  templateId: EmailTemplateType,
+  templateType: keyof typeof EMAIL_TEMPLATES_METADATA,
   extraVariables: Record<string, string | null>,
 }) {
-  const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
+  const template = await getEmailTemplateWithDefault(options.project.id, options.templateType);
 
   const variables = filterUndefined({
-    projectDisplayName: options.project.displayName,
+    projectDisplayName: options.project.display_name,
     userDisplayName: options.user?.display_name || undefined,
     userPrimaryEmail: options.user?.primary_email || undefined,
     ...filterUndefined(options.extraVariables),
@@ -120,11 +119,8 @@ export async function sendEmailFromTemplate(options: {
   });
 }
 
-async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
-  const projectEmailConfig = project.evaluatedConfig.emailConfig;
-  if (!projectEmailConfig) {
-    throw new Error('Email service config not found. TODO: When can this even happen?');
-  }
+async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<EmailConfig> {
+  const projectEmailConfig = project.config.email_config;
 
   if (projectEmailConfig.type === 'shared') {
     return {
@@ -133,18 +129,21 @@ async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
       username: getEnvVariable('STACK_EMAIL_USERNAME'),
       password: getEnvVariable('STACK_EMAIL_PASSWORD'),
       senderEmail: getEnvVariable('STACK_EMAIL_SENDER'),
-      senderName: project.displayName,
+      senderName: project.display_name,
       secure: getPortConfig(getEnvVariable('STACK_EMAIL_PORT')).secure,
       type: 'shared',
     };
   } else {
+    if (!projectEmailConfig.host || !projectEmailConfig.port || !projectEmailConfig.username || !projectEmailConfig.password || !projectEmailConfig.sender_email || !projectEmailConfig.sender_name) {
+      throw new StackAssertionError("Email config is not complete despite not being shared. This should never happen?", { projectId: project.id, emailConfig: projectEmailConfig });
+    }
     return {
       host: projectEmailConfig.host,
       port: projectEmailConfig.port,
       username: projectEmailConfig.username,
       password: projectEmailConfig.password,
-      senderEmail: projectEmailConfig.senderEmail,
-      senderName: projectEmailConfig.senderName,
+      senderEmail: projectEmailConfig.sender_email,
+      senderName: projectEmailConfig.sender_name,
       secure: getPortConfig(projectEmailConfig.port).secure,
       type: 'standard',
     };

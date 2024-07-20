@@ -1,24 +1,24 @@
 "use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useAdminApp } from "../use-admin-app";
-import EnvKeys from "@/components/env-keys";
-import { ApiKeySetFirstView } from "@stackframe/stack";
-import { PageLayout } from "../page-layout";
-import { ApiKeyTable } from "@/components/data-table/api-key-table";
-import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
-import { InputField, SelectField } from "@/components/form-fields";
-import * as yup from "yup";
 import { ActionDialog } from "@/components/action-dialog";
+import { ApiKeyTable } from "@/components/data-table/api-key-table";
+import EnvKeys from "@/components/env-keys";
+import { SmartFormDialog } from "@/components/form-dialog";
+import { SelectField } from "@/components/form-fields";
+import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
+import { ApiKeyFirstView } from "@stackframe/stack";
+import { useState } from "react";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const apiKeySets = stackAdminApp.useApiKeySets();
+  const apiKeySets = stackAdminApp.useApiKeys();
 
   const [isNewApiKeyDialogOpen, setIsNewApiKeyDialogOpen] = useState(false);
-  const [returnedApiKey, setReturnedApiKey] = useState<ApiKeySetFirstView | null>(null);
+  const [returnedApiKey, setReturnedApiKey] = useState<ApiKeyFirstView | null>(null);
 
   return (
     <PageLayout
@@ -67,7 +67,7 @@ const formSchema = yup.object({
 function CreateDialog(props: {
   open: boolean,
   onOpenChange: (open: boolean) => void,
-  onKeyCreated?: (key: ApiKeySetFirstView) => void,
+  onKeyCreated?: (key: ApiKeyFirstView) => void,
 }) {
   const stackAdminApp = useAdminApp();
 
@@ -79,7 +79,7 @@ function CreateDialog(props: {
     okButton={{ label: "Create" }}
     onSubmit={async (values) => {
       const expiresIn = parseInt(values.expiresIn);
-      const newKey = await stackAdminApp.createApiKeySet({
+      const newKey = await stackAdminApp.createApiKey({
         hasPublishableClientKey: true,
         hasSecretServerKey: true,
         hasSuperSecretAdminKey: false,
@@ -93,7 +93,7 @@ function CreateDialog(props: {
 }
 
 function ShowKeyDialog(props: {
-  apiKey?: ApiKeySetFirstView,
+  apiKey?: ApiKeyFirstView,
   onClose?: () => void,
 }) {
   const stackAdminApp = useAdminApp();

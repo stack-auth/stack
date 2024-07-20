@@ -1,21 +1,8 @@
 export { default as StackProvider } from "./providers/stack-provider";
 export { useUser, useStackApp } from "./lib/hooks";
-export { StackClientApp, StackServerApp, StackAdminApp } from "./lib/stack-app";
 export { default as StackHandler } from "./components-page/stack-handler";
 export { StackTheme } from './providers/theme-provider';
-export type {
-  CurrentUser,
-  Project,
-  ServerUser as ServerUser,
-  ApiKeySetFirstView,
-  ApiKeySet,
-  ServerTeam,
-  Team,
-  TeamMember,
-  ServerTeamMember,
-  ServerPermission as Permission,
-  ServerPermission,
-} from './lib/stack-app';
+export * from './lib/stack-app';
 
 export { SignIn } from "./components-page/sign-in";
 export { SignUp } from "./components-page/sign-up";

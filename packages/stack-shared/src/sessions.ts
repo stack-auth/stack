@@ -1,18 +1,24 @@
-import { unsubscribe } from "diagnostics_channel";
 import { StackAssertionError } from "./utils/errors";
-import { ReadonlyStore, Store } from "./utils/stores";
+import { Store } from "./utils/stores";
 
 export class AccessToken {
   constructor(
     public readonly token: string,
-  ) {}
-
+  ) {
+    if (token === "undefined") {
+      throw new StackAssertionError("Access token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+    }
+  }
 }
 
 export class RefreshToken {
   constructor(
     public readonly token: string,
-  ) {}
+  ) {
+    if (token === "undefined") {
+      throw new StackAssertionError("Refresh token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+    }
+  }
 }
 
 /**
@@ -63,6 +69,10 @@ export class InternalSession {
     } else {
       return "not-logged-in";
     }
+  }
+
+  isKnownToBeInvalid() {
+    return this._knownToBeInvalid.get();
   }
 
   /**
@@ -120,10 +130,10 @@ export class InternalSession {
    * @returns An access token (cached if possible), or null if the session either does not represent a user or the session is invalid.
    */
   private async _getPotentiallyExpiredAccessToken(): Promise<AccessToken | null> {
-    const oldAccessToken = this._accessToken.get();
-    if (oldAccessToken) return oldAccessToken;
     if (!this._refreshToken) return null;
     if (this._knownToBeInvalid.get()) return null;
+    const oldAccessToken = this._accessToken.get();
+    if (oldAccessToken) return oldAccessToken;
 
     // refresh access token
     if (!this._refreshPromise) {

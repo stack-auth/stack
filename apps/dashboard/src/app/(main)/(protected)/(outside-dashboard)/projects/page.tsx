@@ -1,7 +1,7 @@
-import PageClient from "./page-client";
-import Footer from "./footer";
 import { stackServerApp } from "@/stack";
 import { redirect } from "next/navigation";
+import Footer from "./footer";
+import PageClient from "./page-client";
 
 export const metadata = {
   title: "Projects",

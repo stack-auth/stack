@@ -5,7 +5,7 @@ import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handle
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, publishableClientKeyHeaderSchema, superSecretAdminKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject, isProjectAdmin, getProjectUpdateSchema, projectSchemaToUpdateOptions, updateProject } from "@/lib/projects";
-import { ClientProjectJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ClientProjectJson } from "@/temporary-types";
 import { KnownErrors } from "@stackframe/stack-shared";
 
 const putOrGetSchema = yup.object({

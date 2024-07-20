@@ -1,8 +1,8 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma, TeamSystemPermission as DBTeamSystemPermission } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { PermissionDefinitionScopeJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { PermissionDefinitionScopeJson } from "@/temporary-types";
+import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson } from "@/temporary-types";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import * as yup from "yup";
@@ -170,7 +170,7 @@ export async function grantTeamUserPermission({
     },
   });
 
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   switch (type) {
     case "global": {
@@ -307,7 +307,7 @@ export async function revokeTeamUserPermission({
     },
   });
 
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   switch (type) {
     case "global": {
@@ -516,7 +516,7 @@ export async function createPermissionDefinition(
       id: projectId,
     },
   });
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   let parentDbIds = [];
   const potentialParentPermissions = await listPotentialParentPermissions(projectId, scope);
@@ -570,7 +570,7 @@ export async function updatePermissionDefinitions(
       id: projectId,
     },
   });
-  if (!project) throw new KnownErrors.ProjectNotFound();
+  if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
 
   let parentDbIds: string[] = [];
   if (permission.containPermissionIds) {
@@ -632,7 +632,7 @@ export async function deletePermissionDefinition(projectId: string, scope: Permi
           id: projectId,
         },
       });
-      if (!project) throw new KnownErrors.ProjectNotFound();
+      if (!project) throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
       const deleted = await prismaClient.permission.deleteMany({
         where: {
           projectConfigId: project.configId,

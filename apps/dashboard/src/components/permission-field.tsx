@@ -1,8 +1,7 @@
 import { FieldLabel } from "@/components/form-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ServerTeam, ServerUser } from "@stackframe/stack";
-import { ServerPermissionDefinitionJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerTeam, AdminTeamPermissionDefinition, ServerUser } from "@stackframe/stack";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { useEffect, useState } from "react";
@@ -12,9 +11,9 @@ import { Control, FieldValues, Path } from "react-hook-form";
 const CURRENTLY_EDITED_PERMISSION_SENTINEL = `--stack-internal-currently-edited-permission-sentinel-${generateSecureRandomString()}`;
 
 export class PermissionGraph {
-  public readonly permissions: Map<string, ServerPermissionDefinitionJson>;
+  public readonly permissions: Map<string, AdminTeamPermissionDefinition>;
 
-  constructor(permissions: Iterable<ServerPermissionDefinitionJson>) {
+  constructor(permissions: Iterable<AdminTeamPermissionDefinition>) {
     this.permissions = this._copyPermissions(permissions);
   }
 
@@ -22,12 +21,12 @@ export class PermissionGraph {
     return new PermissionGraph(this.permissions.values());
   }
 
-  _copyPermissions(permissions: Iterable<ServerPermissionDefinitionJson>): Map<string, ServerPermissionDefinitionJson> {
-    const result: Map<string, ServerPermissionDefinitionJson> = new Map();
+  _copyPermissions(permissions: Iterable<AdminTeamPermissionDefinition>): Map<string, AdminTeamPermissionDefinition> {
+    const result: Map<string, AdminTeamPermissionDefinition> = new Map();
     [...permissions].forEach(permission => {
       result.set(permission.id, {
         ...permission,
-        containPermissionIds: [...permission.containPermissionIds]
+        containedPermissionIds: [...permission.containedPermissionIds],
       });
     });
     return result;
@@ -35,7 +34,7 @@ export class PermissionGraph {
 
   updatePermission(
     permissionId: string,
-    permission: ServerPermissionDefinitionJson
+    permission: AdminTeamPermissionDefinition
   ) {
     const permissions = this._copyPermissions(this.permissions.values());
     permissions.set(permissionId, permission);
@@ -43,21 +42,19 @@ export class PermissionGraph {
     for (const [key, value] of permissions.entries()) {
       permissions.set(key, {
         ...value,
-        containPermissionIds: value.containPermissionIds.map(id => id === permissionId ? permission.id : id)
+        containedPermissionIds: value.containedPermissionIds.map(id => id === permissionId ? permission.id : id)
       });
     }
 
     return new PermissionGraph(permissions.values());
   }
 
-  addPermission(containPermissionIds?: string[]) {
+  addPermission(containedPermissionIds?: string[]) {
     const permissions = this._copyPermissions(this.permissions.values());
     permissions.set(CURRENTLY_EDITED_PERMISSION_SENTINEL, {
       id: CURRENTLY_EDITED_PERMISSION_SENTINEL,
       description: 'none',
-      scope: { type: 'any-team' },
-      __databaseUniqueId: 'none',
-      containPermissionIds: containPermissionIds || [],
+      containedPermissionIds: containedPermissionIds || [],
     });
     return new PermissionGraph(permissions.values());
   }
@@ -73,19 +70,19 @@ export class PermissionGraph {
     for (const [key, value] of permissions.entries()) {
       permissions.set(key, {
         ...value,
-        containPermissionIds: value.containPermissionIds.map(id => id === permissionId ? CURRENTLY_EDITED_PERMISSION_SENTINEL : id),
+        containedPermissionIds: value.containedPermissionIds.map(id => id === permissionId ? CURRENTLY_EDITED_PERMISSION_SENTINEL : id),
       });
     }
 
     return new PermissionGraph([...permissions.values()]);
   }
 
-  recursiveContains(permissionId: string): ServerPermissionDefinitionJson[] {
+  recursiveContains(permissionId: string): AdminTeamPermissionDefinition[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
 
-    const result = new Map<string, ServerPermissionDefinitionJson>();
-    const idsToProcess = [...permission.containPermissionIds];
+    const result = new Map<string, AdminTeamPermissionDefinition>();
+    const idsToProcess = [...permission.containedPermissionIds];
     while (idsToProcess.length > 0) {
       const id = idsToProcess.pop();
       if (!id) throw new Error('Unexpected undefined id, this should not happen');
@@ -93,7 +90,7 @@ export class PermissionGraph {
       const p = this.permissions.get(id);
       if (!p) throw new Error(`Permission with id ${id} not found`);
       result.set(id, p);
-      idsToProcess.push(...p.containPermissionIds);
+      idsToProcess.push(...p.containedPermissionIds);
     }
 
     return [...result.values()];
@@ -103,7 +100,7 @@ export class PermissionGraph {
     return this.recursiveContains(permissionId).some(permission => permission.id === targetPermissionId);
   }
 
-  recursiveAncestors(permissionId: string): ServerPermissionDefinitionJson[] {
+  recursiveAncestors(permissionId: string): AdminTeamPermissionDefinition[] {
     const permission = this.permissions.get(permissionId);
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
 
@@ -122,7 +119,7 @@ export function PermissionListField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
-  permissions: ServerPermissionDefinitionJson[],
+  permissions: AdminTeamPermissionDefinition[],
   type: 'new' | 'edit' | 'edit-user' | 'select',
 } & ({
     type: 'new',
@@ -186,10 +183,10 @@ export function PermissionListField<F extends FieldValues>(props: {
             {[...graph.permissions.values()].map(permission => {
               if (permission.id === CURRENTLY_EDITED_PERMISSION_SENTINEL) return null;
 
-              const selected = currentPermission.containPermissionIds.includes(permission.id);
+              const selected = currentPermission.containedPermissionIds.includes(permission.id);
               const contain = graph.hasPermission(CURRENTLY_EDITED_PERMISSION_SENTINEL, permission.id);
               const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
-                id => id !== permission.id && id !== CURRENTLY_EDITED_PERMISSION_SENTINEL && currentPermission.containPermissionIds.includes(id)
+                id => id !== permission.id && id !== CURRENTLY_EDITED_PERMISSION_SENTINEL && currentPermission.containedPermissionIds.includes(id)
               );
               const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
               return (
@@ -209,7 +206,7 @@ export function PermissionListField<F extends FieldValues>(props: {
                         field.onChange(newContains);
                         setGraph(graph.updatePermission(CURRENTLY_EDITED_PERMISSION_SENTINEL, {
                           ...currentPermission,
-                          containPermissionIds: newContains
+                          containedPermissionIds: newContains
                         }));
                       }}
                     />

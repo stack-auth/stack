@@ -1,52 +1,17 @@
 import * as oauth from 'oauth4webapi';
 
-import { Result } from "../utils/results";
-import { ReadonlyJson } from '../utils/json';
-import { KnownError, KnownErrors } from '../known-errors';
-import { StackAssertionError, captureError, throwErr } from '../utils/errors';
-import { ProjectUpdateOptions } from './adminInterface';
 import { cookies } from '@stackframe/stack-sc';
+import { KnownError, KnownErrors } from '../known-errors';
+import { AccessToken, InternalSession, RefreshToken } from '../sessions';
 import { generateSecureRandomString } from '../utils/crypto';
-import { AccessToken, RefreshToken, InternalSession } from '../sessions';
+import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
-
-type UserCustomizableJson = {
-  displayName: string | null,
-  clientMetadata: ReadonlyJson,
-  selectedTeamId: string | null,
-};
-
-export type UserJson = UserCustomizableJson & {
-  projectId: string,
-  id: string,
-  primaryEmail: string | null,
-  primaryEmailVerified: boolean,
-  displayName: string | null,
-  clientMetadata: ReadonlyJson,
-  profileImageUrl: string | null,
-  signedUpAtMillis: number,
-  /**
-   * not used anymore, for backwards compatibility
-   */
-  authMethod: "credential" | "oauth",
-  hasPassword: boolean,
-  authWithEmail: boolean,
-  oauthProviders: string[],
-  selectedTeamId: string | null,
-  selectedTeam: TeamJson | null,
-};
-
-export type UserUpdateJson = Partial<UserCustomizableJson>;
-
-export type ClientProjectJson = {
-  id: string,
-  credentialEnabled: boolean,
-  magicLinkEnabled: boolean,
-  oauthProviders: {
-    id: string,
-    enabled: boolean,
-  }[],
-};
+import { ReadonlyJson } from '../utils/json';
+import { Result } from "../utils/results";
+import { CurrentUserCrud } from './crud/current-user';
+import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamPermissionsCrud } from './crud/team-permissions';
+import { TeamsCrud } from './crud/teams';
 
 export type ClientInterfaceOptions = {
   clientVersion: string,
@@ -84,95 +49,6 @@ export function toSharedProvider(provider: SharedProvider | StandardProvider): S
   return "shared-" + provider as SharedProvider;
 }
 
-export type ProjectJson = {
-  id: string,
-  displayName: string,
-  description?: string,
-  createdAtMillis: number,
-  userCount: number,
-  isProductionMode: boolean,
-  evaluatedConfig: {
-    id: string,
-    allowLocalhost: boolean,
-    credentialEnabled: boolean,
-    magicLinkEnabled: boolean,
-    oauthProviders: OAuthProviderConfigJson[],
-    emailConfig?: EmailConfigJson,
-    domains: DomainConfigJson[],
-    createTeamOnSignUp: boolean,
-    teamCreatorDefaultPermissions: PermissionDefinitionJson[],
-    teamMemberDefaultPermissions: PermissionDefinitionJson[],
-  },
-};
-
-export type OAuthProviderConfigJson = {
-  id: string,
-  enabled: boolean,
-} & (
-  | { type: SharedProvider }
-  | {
-    type: StandardProvider,
-    clientId: string,
-    clientSecret: string,
-  }
-);
-
-export type EmailConfigJson = (
-  {
-    type: "standard",
-    senderName: string,
-    senderEmail: string,
-    host: string,
-    port: number,
-    username: string,
-    password: string,
-  }
-  | {
-    type: "shared",
-  }
-);
-
-export type DomainConfigJson = {
-  domain: string,
-  handlerPath: string,
-}
-
-export type ProductionModeError = {
-  errorMessage: string,
-  fixUrlRelative: string,
-};
-
-
-export type OrglikeJson = {
-  id: string,
-  displayName: string,
-  profileImageUrl?: string,
-  createdAtMillis: number,
-};
-
-export type TeamJson = OrglikeJson;
-
-export type OrganizationJson = OrglikeJson;
-
-export type OrglikeCustomizableJson = Pick<OrglikeJson, "displayName" | "profileImageUrl">;
-export type TeamCustomizableJson = OrglikeCustomizableJson;
-
-export type TeamMemberJson = {
-  userId: string,
-  teamId: string,
-  displayName: string | null,
-}
-
-
-export type PermissionDefinitionScopeJson =
-  | { type: "global" }
-  | { type: "any-team" }
-  | { type: "specific-team", teamId: string };
-
-export type PermissionDefinitionJson = {
-  id: string,
-  scope: PermissionDefinitionScopeJson,
-};
 
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
@@ -196,12 +72,12 @@ export class StackClientInterface {
     const as = {
       issuer: this.options.baseUrl,
       algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/token',
+      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_basic',
+      token_endpoint_auth_method: 'client_secret_post',
     };
 
     const rawResponse = await oauth.refreshTokenGrantRequest(
@@ -317,7 +193,7 @@ export class StackClientInterface {
     const params: RequestInit = {
       /**
        * This fetch may be cross-origin, in which case we don't want to send cookies of the
-       * original origin (this is the default behaviour of `credentials`).
+       * original origin (this is the default behavior of `credentials`).
        *
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
        * implement reliance on cookies anywhere.
@@ -332,10 +208,9 @@ export class StackClientInterface {
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
-        "X-Stack-Request-Type": requestType,
+        "X-Stack-Access-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
         ...(tokenObj ? {
-          "Authorization": "StackSession " + tokenObj.accessToken.token,
           "X-Stack-Access-Token": tokenObj.accessToken.token,
         } : {}),
         ...(tokenObj?.refreshToken ? {
@@ -456,10 +331,10 @@ export class StackClientInterface {
 
   async sendForgotPasswordEmail(
     email: string,
-    redirectUrl: string,
+    callbackUrl: string,
   ): Promise<KnownErrors["UserNotFound"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/forgot-password",
+      "/auth/password/send-reset-code",
       {
         method: "POST",
         headers: {
@@ -467,7 +342,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify({
           email,
-          redirectUrl,
+          callback_url: callbackUrl,
         }),
       },
       null,
@@ -484,7 +359,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/send-verification-email",
+      "/contact-channels/send-verification-code",
       {
         method: "POST",
         headers: {
@@ -505,10 +380,10 @@ export class StackClientInterface {
 
   async sendMagicLinkEmail(
     email: string,
-    redirectUrl: string,
+    callbackUrl: string,
   ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/send-magic-link",
+      "/auth/otp/send-sign-in-code",
       {
         method: "POST",
         headers: {
@@ -516,7 +391,7 @@ export class StackClientInterface {
         },
         body: JSON.stringify({
           email,
-          redirectUrl,
+          callback_url: callbackUrl,
         }),
       },
       null,
@@ -532,7 +407,7 @@ export class StackClientInterface {
     options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
   ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/password-reset",
+      "/auth/password/reset",
       {
         method: "POST",
         headers: {
@@ -554,13 +429,16 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/update-password",
+      "/auth/password/update",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          old_password: options.oldPassword,
+          new_password: options.newPassword,
+        }),
       },
       session,
       [KnownErrors.PasswordConfirmationMismatch, KnownErrors.PasswordRequirementsNotMet]
@@ -581,7 +459,7 @@ export class StackClientInterface {
 
   async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/email-verification",
+      "/contact-channels/verify",
       {
         method: "POST",
         headers: {
@@ -606,7 +484,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/signin",
+      "/auth/password/sign-in",
       {
         method: "POST",
         headers: {
@@ -627,8 +505,8 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     };
   }
 
@@ -639,7 +517,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/signup",
+      "/auth/password/sign-up",
       {
         headers: {
           "Content-Type": "application/json"
@@ -648,7 +526,7 @@ export class StackClientInterface {
         body: JSON.stringify({
           email,
           password,
-          emailVerificationRedirectUrl,
+          verification_callback_url: emailVerificationRedirectUrl,
         }),
       },
       session,
@@ -661,14 +539,14 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     };
   }
 
-  async signInWithMagicLink(code: string, session: InternalSession): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/magic-link-verification",
+      "/auth/otp/sign-in",
       {
         method: "POST",
         headers: {
@@ -688,9 +566,9 @@ export class StackClientInterface {
 
     const result = await res.data.json();
     return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      newUser: result.newUser,
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+      newUser: result.new_user,
     };
   }
 
@@ -718,21 +596,21 @@ export class StackClientInterface {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
-    const url = new URL(this.getApiUrl() + "/auth/authorize/" + options.provider.toLowerCase());
+    const url = new URL(this.getApiUrl() + "/auth/oauth/authorize/" + options.provider.toLowerCase());
     url.searchParams.set("client_id", this.projectId);
     url.searchParams.set("client_secret", this.options.publishableClientKey);
     url.searchParams.set("redirect_uri", updatedRedirectUrl.toString());
-    url.searchParams.set("scope", "openid");
+    url.searchParams.set("scope", "legacy");
     url.searchParams.set("state", options.state);
     url.searchParams.set("grant_type", "authorization_code");
     url.searchParams.set("code_challenge", options.codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("type", options.type);
-    url.searchParams.set("errorRedirectUrl", options.errorRedirectUrl);
+    url.searchParams.set("error_redirect_url", options.errorRedirectUrl);
 
     if (options.afterCallbackRedirectUrl) {
-      url.searchParams.set("afterCallbackRedirectUrl", options.afterCallbackRedirectUrl);
+      url.searchParams.set("after_callback_redirect_rrl", options.afterCallbackRedirectUrl);
     }
 
     if (options.type === "link") {
@@ -740,7 +618,7 @@ export class StackClientInterface {
       url.searchParams.set("token", tokens?.accessToken.token || "");
 
       if (options.providerScope) {
-        url.searchParams.set("providerScope", options.providerScope);
+        url.searchParams.set("provider_scope", options.providerScope);
       }
     }
 
@@ -760,12 +638,12 @@ export class StackClientInterface {
     const as = {
       issuer: this.options.baseUrl,
       algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/token',
+      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_basic',
+      token_endpoint_auth_method: 'client_secret_post',
     };
     const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
     if (oauth.isOAuth2Error(params)) {
@@ -784,7 +662,6 @@ export class StackClientInterface {
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
-
     return {
       newUser: result.newUser as boolean,
       afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
@@ -796,79 +673,93 @@ export class StackClientInterface {
   async signOut(session: InternalSession): Promise<void> {
     const tokenObj = await session.getPotentiallyExpiredTokens();
     if (tokenObj) {
-      if (!tokenObj.refreshToken) {
-        // TODO implement this
-        captureError("clientInterface.signOut()", new StackAssertionError("Signing out a user without access to the refresh token does not invalidate the session on the server. Please open an issue in the Stack repository if you see this error"));
-      } else {
-        const res = await this.sendClientRequest(
-          "/auth/signout",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              refreshToken: tokenObj.refreshToken.token,
-            }),
+      const resOrError = await this.sendClientRequestAndCatchKnownError(
+        "/auth/sessions/current",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
           },
-          session,
-        );
-        await res.json();
+          body: JSON.stringify({}),
+        },
+        session,
+        [KnownErrors.RefreshTokenError]
+      );
+      if (resOrError.status === "error") {
+        if (resOrError.error instanceof KnownErrors.RefreshTokenError) {
+          // refresh token was already invalid, just continue like nothing happened
+        } else {
+          // this should never happen
+          throw new StackAssertionError("Unexpected error", { error: resOrError.error });
+        }
+      } else {
+        // user was signed out successfully, all good
       }
     }
     session.markInvalid();
   }
 
-  async getClientUserByToken(tokenStore: InternalSession): Promise<Result<UserJson>> {
-    const response = await this.sendClientRequest(
-      "/current-user",
+  async getClientUserByToken(session: InternalSession): Promise<CurrentUserCrud["Client"]["Read"] | null> {
+    const responseOrError = await this.sendClientRequestAndCatchKnownError(
+      "/users/me",
       {},
-      tokenStore,
+      session,
+      [KnownErrors.CannotGetOwnUserWithoutUser],
     );
-    const user: UserJson | null = await response.json();
-    if (!user) return Result.error(new Error("Failed to get user"));
-    return Result.ok(user);
+    if (responseOrError.status === "error") {
+      if (responseOrError.error instanceof KnownErrors.CannotGetOwnUserWithoutUser) {
+        return null;
+      } else {
+        throw new StackAssertionError("Unexpected uncaught error", { cause: responseOrError.error });
+      }
+    }
+    const response = responseOrError.data;
+    const user: CurrentUserCrud["Client"]["Read"] = await response.json();
+    if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
+    return user;
   }
 
-  async listClientUserTeamPermissions(
+  async listCurrentUserTeamPermissions(
     options: {
       teamId: string,
-      type: 'global' | 'team',
-      direct: boolean,
+      recursive: boolean,
     },
     session: InternalSession
-  ): Promise<PermissionDefinitionJson[]> {
+  ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}`,
+      `/team-permissions?team_id=${options.teamId}?user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );
-    const permissions: PermissionDefinitionJson[] = await response.json();
-    return permissions;
+    const result = await response.json() as TeamPermissionsCrud['Client']['List'];
+    return result.items;
   }
 
-  async listClientUserTeams(session: InternalSession): Promise<TeamJson[]> {
+  async listCurrentUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
-      "/current-user/teams",
+      "/teams?user_id=me",
       {},
       session,
     );
-    const teams: TeamJson[] = await response.json();
-    return teams;
+    const result = await response.json() as TeamsCrud["Client"]["List"];
+    return result.items;
   }
 
-  async getClientProject(): Promise<Result<ClientProjectJson>> {
-    const response = await this.sendClientRequest("/projects/" + this.options.projectId, {}, null);
-    const project: ClientProjectJson | null = await response.json();
-    if (!project) return Result.error(new Error("Failed to get project"));
+  async getClientProject(): Promise<Result<ProjectsCrud['Client']['Read'], KnownErrors["ProjectNotFound"]>> {
+    const responseOrError = await this.sendClientRequestAndCatchKnownError("/projects/current", {}, null, [KnownErrors.ProjectNotFound]);
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    const response = responseOrError.data;
+    const project: ProjectsCrud['Client']['Read'] = await response.json();
     return Result.ok(project);
   }
 
-  async setClientUserCustomizableData(update: UserUpdateJson, session: InternalSession) {
+  async updateClientUser(update: CurrentUserCrud["Client"]["Update"], session: InternalSession) {
     await this.sendClientRequest(
-      "/current-user",
+      "/users/me",
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
@@ -878,22 +769,22 @@ export class StackClientInterface {
     );
   }
 
-  async listProjects(session: InternalSession): Promise<ProjectJson[]> {
-    const response = await this.sendClientRequest("/projects", {}, session);
+  async listProjects(session: InternalSession): Promise<InternalProjectsCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest("/internal/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
     }
 
-    const json = await response.json();
-    return json;
+    const json = await response.json() as InternalProjectsCrud['Client']['List'];
+    return json.items;
   }
 
   async createProject(
-    project: ProjectUpdateOptions & { displayName: string },
+    project: InternalProjectsCrud['Client']['Create'],
     session: InternalSession,
-  ): Promise<ProjectJson> {
+  ): Promise<InternalProjectsCrud['Client']['Read']> {
     const fetchResponse = await this.sendClientRequest(
-      "/projects",
+      "/internal/projects",
       {
         method: "POST",
         headers: {
@@ -917,7 +808,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<{ accessToken: string }> {
     const response = await this.sendClientRequest(
-      `/auth/access-token/${provider}`,
+      `/auth/oauth/connected-account/${provider}/access-token`,
       {
         method: "POST",
         headers: {
@@ -934,11 +825,11 @@ export class StackClientInterface {
   }
 
   async createTeamForCurrentUser(
-    data: TeamCustomizableJson,
+    data: TeamsCrud['Client']['Create'],
     session: InternalSession,
-  ): Promise<TeamJson> {
+  ): Promise<TeamsCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      "/current-user/teams?server=false",
+      "/teams?add_current_user=true",
       {
         method: "POST",
         headers: {
@@ -950,49 +841,5 @@ export class StackClientInterface {
     );
     return await response.json();
   }
-}
-
-export function getProductionModeErrors(project: ProjectJson): ProductionModeError[] {
-  const errors: ProductionModeError[] = [];
-  const fixUrlRelative = `/projects/${project.id}/domains`;
-
-  if (project.evaluatedConfig.allowLocalhost) {
-    errors.push({
-      errorMessage: "Localhost is not allowed in production mode, turn off 'Allow localhost' in project settings",
-      fixUrlRelative,
-    });
-  }
-
-  for (const { domain } of project.evaluatedConfig.domains) {
-    let url;
-    try {
-      url = new URL(domain);
-    } catch (e) {
-      errors.push({
-        errorMessage: "Domain should be a valid URL: " + domain,
-        fixUrlRelative,
-      });
-      continue;
-    }
-
-    if (url.hostname === "localhost") {
-      errors.push({
-        errorMessage: "Domain should not be localhost: " + domain,
-        fixUrlRelative,
-      });
-    } else if (!url.hostname.includes(".") || url.hostname.match(/\d+(\.\d+)*/)) {
-      errors.push({
-        errorMessage: "Not a valid domain" + domain,
-        fixUrlRelative,
-      });
-    } else if (url.protocol !== "https:") {
-      errors.push({
-        errorMessage: "Domain should be HTTPS: " + domain,
-        fixUrlRelative,
-      });
-    }
-  }
-
-  return errors;
 }
 

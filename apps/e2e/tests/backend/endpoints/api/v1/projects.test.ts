@@ -11,12 +11,12 @@ it("should not have have access to the project", async ({ expect }) => {
     NiceResponse {
       "status": 400,
       "body": {
-        "code": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+        "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         "details": { "request_type": "client" },
-        "error": "The x-stack-request-type header was 'client', but the x-stack-project-id header was not provided.",
+        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.",
       },
       "headers": Headers {
-        "x-stack-known-error": "REQUEST_TYPE_WITHOUT_PROJECT_ID",
+        "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         <some fields may have been hidden>,
       },
     }
@@ -64,6 +64,7 @@ it("creates and updates the basic project information of a project", async ({ ex
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -101,6 +102,7 @@ it("updates the basic project configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": false,
+          "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -139,6 +141,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -184,6 +187,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
             {
@@ -236,6 +240,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -284,6 +289,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -326,6 +332,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -360,6 +367,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -400,6 +408,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": {
@@ -445,6 +454,7 @@ it("updates the project email configuration with the wrong parameters", async ({
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config contains unknown properties: client_id" },
         "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config contains unknown properties: client_id",
       },
       "headers": Headers {
@@ -467,6 +477,7 @@ it("updates the project email configuration with the wrong parameters", async ({
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field" },
           "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field",
         },
         "headers": Headers {
@@ -497,6 +508,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -539,6 +551,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -583,6 +596,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -652,6 +666,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
@@ -706,6 +721,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },

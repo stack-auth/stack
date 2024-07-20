@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from "react";
+import React from "react";
 import { useStackApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
@@ -33,7 +33,7 @@ export function EmailVerification({
     return invalidJsx;
   }
 
-  const error = use(stackApp.verifyEmail(code));
+  const error = React.use(stackApp.verifyEmail(code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;

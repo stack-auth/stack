@@ -1,34 +1,35 @@
-import React, { use, useCallback, useMemo } from "react";
-import { KnownError, KnownErrors, OAuthProviderConfigJson, ServerUserJson, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
-import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { Result } from "@stackframe/stack-shared/dist/utils/results";
-import { suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
-import { Store } from "@stackframe/stack-shared/dist/utils/stores";
-import { ClientProjectJson, UserJson, ProjectJson, EmailConfigJson, DomainConfigJson, getProductionModeErrors, ProductionModeError, UserUpdateJson, TeamJson, PermissionDefinitionJson, PermissionDefinitionScopeJson, TeamMemberJson, StandardProvider, TeamCustomizableJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
-import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import * as NextNavigationUnscrambled from "next/navigation";  // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
-import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
-import { constructRedirectUrl } from "../utils/url";
-import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
-import { ReactPromise, neverResolve, resolved, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
-import { ApiKeySetBaseJson, ApiKeySetCreateOptions, ApiKeySetFirstViewJson, ApiKeySetJson, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { suspend } from "@stackframe/stack-shared/dist/utils/react";
-import { ServerPermissionDefinitionCustomizableJson, ServerPermissionDefinitionJson, ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson, ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isReactServer } from "@stackframe/stack-sc";
-import * as cookie from "cookie";
+import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
+import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
+import { StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
+import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
+import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
+import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
+import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
+import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
+import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
+import { Result } from "@stackframe/stack-shared/dist/utils/results";
+import { Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
-
-// TODO next-release HACK: some remainders from the backend migration, please remove when client is ported
-type EmailTemplateType = any;
-type ListEmailTemplatesCrud = Record<any, Record<any, any[]>>;
-
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import * as cookie from "cookie";
+import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
+import React, { useCallback, useMemo } from "react";
+import { constructRedirectUrl } from "../utils/url";
+import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
+import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -77,10 +78,6 @@ export type OAuthScopesOnSignIn = {
 
 type ProjectCurrentUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalUser : CurrentUser;
 type ProjectCurrentServerUser<ProjectId> = ProjectId extends "internal" ? CurrentInternalServerUser : CurrentServerUser;
-
-function permissionDefinitionScopeToType(scope: PermissionDefinitionScopeJson): 'team' | 'global' {
-  return ({"any-team": "team", "specific-team": "team", "global": "global"} as const)[scope.type];
-}
 
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   const handler = partial.handler ?? "/handler";
@@ -143,9 +140,14 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
   oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn>,
-
-  // we intersect with TokenStoreInit in the beginning to make TypeScript error messages easier to read
   tokenStore: TokenStoreInit<HasTokenStore>,
+
+  /**
+   * By default, the Stack app will automatically prefetch some data from Stack's server when this app is first
+   * constructed. This improves the performance of your app, but will create network requests that are unnecessary if
+   * the app is never used or disposed of immediately. To disable this behavior, set this option to true.
+   */
+  noAutomaticPrefetch?: boolean,
 };
 
 export type StackServerAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = StackClientAppConstructorOptions<HasTokenStore, ProjectId> & {
@@ -172,7 +174,7 @@ export type StackClientAppJson<HasTokenStore extends boolean, ProjectId extends 
   // note: if you add more fields here, make sure to ensure the checkString in the constructor has/doesn't have them
 };
 
-const defaultBaseUrl = "https://app.stack-auth.com";
+const defaultBaseUrl = "https://api.stack-auth.com";
 
 type TokenObject = {
   accessToken: string | null,
@@ -217,7 +219,7 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies
     () => throwErr(new Error("getServerSnapshot should never be called in useAsyncCache because we restrict to CSR earlier"))
   );
 
-  return use(promise);
+  return React.use(promise);
 }
 
 function useStore<T>(store: Store<T>): T {
@@ -263,13 +265,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected readonly _oauthScopesOnSignIn: Partial<OAuthScopesOnSignIn>;
 
   private __DEMO_ENABLE_SLIGHT_FETCH_DELAY = false;
+  private readonly _ownedAdminApps = new DependenciesMap<[InternalSession, string], _StackAdminAppImpl<false, string>>();
 
   private readonly _currentUserCache = createCacheBySession(async (session) => {
     if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
       await wait(2000);
     }
-    const user = await this._interface.getClientUserByToken(session);
-    return Result.or(user, null);
+    return await this._interface.getClientUserByToken(session);
   });
   private readonly _currentProjectCache = createCache(async () => {
     return Result.orThrow(await this._interface.getClientProject());
@@ -278,13 +280,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listProjects(session);
   });
   private readonly _currentUserPermissionsCache = createCacheBySession<
-    [string, 'team' | 'global', boolean],
-    PermissionDefinitionJson[]
-  >(async (session, [teamId, type, direct]) => {
-    return await this._interface.listClientUserTeamPermissions({ teamId, type, direct }, session);
+    [string, boolean],
+    TeamPermissionsCrud['Client']['Read'][]
+  >(async (session, [teamId, recursive]) => {
+    return await this._interface.listCurrentUserTeamPermissions({ teamId, recursive }, session);
   });
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
-    return await this._interface.listClientUserTeams(session);
+    return await this._interface.listCurrentUserTeams(session);
   });
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
     async (session, [accountId, scope]) => {
@@ -303,7 +305,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       const user = await this._currentUserCache.getOrWait([session], "write-only");
 
       let hasConnection = true;
-      if (!user || !user.oauthProviders.find((p) => p === connectionId)) {
+      if (!user || !user.oauth_providers.find((p) => p.id === connectionId)) {
         hasConnection = false;
       }
       const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
@@ -356,7 +358,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn"> & {
+      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn" | "noAutomaticPrefetch"> & {
         interface: StackClientInterface,
       }
     )
@@ -381,9 +383,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._initUniqueIdentifier();
     }
 
-    numberOfAppsCreated++;
-    if (numberOfAppsCreated > 10) {
-      (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. In production, make sure to minimize the number of Stack apps per page (usually, one per project).`);
+    if (!_options.noAutomaticPrefetch) {
+      numberOfAppsCreated++;
+      if (numberOfAppsCreated > 10) {
+        (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps with automatic pre-fetch enabled (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. If you are getting this error and it is not caused by hot reload, make sure to minimize the number of Stack apps per page (usually, one per project). (If it is caused by hot reload and does not occur in production, you can safely ignore it.)`);
+      }
     }
   }
 
@@ -399,7 +403,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   /**
    * Cloudflare workers does not allow use of randomness on the global scope (on which the Stack app is probably
-   * initialized). For that reason, we generate the unique identifier lazily when it is first needed.
+   * initialized). For that reason, we generate the unique identifier lazily when it is first needed instead of in the
+   * constructor.
    */
   protected _getUniqueIdentifier() {
     if (!this._uniqueIdentifier) {
@@ -640,43 +645,30 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected _permissionFromJson(json: PermissionDefinitionJson): Permission {
-    const type = permissionDefinitionScopeToType(json.scope);
-
-    if (type === 'team') {
-      return {
-        id: json.id,
-        type,
-        teamId: (json.scope as { teamId: string }).teamId,
-      };
-    } else {
-      return {
-        id: json.id,
-        type,
-      };
-    }
-  }
-
-  protected _teamFromJson(json: TeamJson): Team {
+  protected _clientProjectFromCrud(crud: ProjectsCrud['Client']['Read']): Project {
     return {
-      id: json.id,
-      displayName: json.displayName,
-      profileImageUrl: json.profileImageUrl,
-      createdAt: new Date(json.createdAtMillis),
-      toJson() {
-        return json;
-      },
+      id: crud.id,
+      config: {
+        credentialEnabled: crud.config.credential_enabled,
+        magicLinkEnabled: crud.config.magic_link_enabled,
+        oauthProviders: crud.config.oauth_providers.map((p) => ({
+          id: p.id,
+        })),
+      }
     };
   }
 
-  protected _teamMemberFromJson(json: TeamMemberJson): TeamMember;
-  protected _teamMemberFromJson(json: TeamMemberJson | null): TeamMember | null;
-  protected _teamMemberFromJson(json: TeamMemberJson | null): TeamMember | null {
-    if (json === null) return null;
+  protected _clientTeamPermissionFromCrud(crud: TeamPermissionsCrud['Client']['Read']): TeamPermission {
     return {
-      teamId: json.teamId,
-      userId: json.userId,
-      displayName: json.displayName,
+      id: crud.id,
+    };
+  }
+
+  protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read']): Team {
+    return {
+      id: crud.id,
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
     };
   }
 
@@ -708,42 +700,30 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createBaseUser(json: UserJson): BaseUser {
+  protected _createBaseUser(crud: CurrentUserCrud['Client']['Read']): BaseUser {
+    if (!crud) {
+      throw new StackAssertionError("User not found");
+    }
     return {
-      projectId: json.projectId,
-      id: json.id,
-      displayName: json.displayName,
-      primaryEmail: json.primaryEmail,
-      primaryEmailVerified: json.primaryEmailVerified,
-      profileImageUrl: json.profileImageUrl,
-      signedUpAt: new Date(json.signedUpAtMillis),
-      clientMetadata: json.clientMetadata,
-      hasPassword: json.hasPassword,
-      authWithEmail: json.authWithEmail,
-      oauthProviders: json.oauthProviders,
-      selectedTeam: json.selectedTeam && this._teamFromJson(json.selectedTeam),
-      toClientJson(): UserJson {
-        return pick(json, [
-          "projectId",
-          "id",
-          "displayName",
-          "primaryEmail",
-          "primaryEmailVerified",
-          "profileImageUrl",
-          "signedUpAtMillis",
-          "clientMetadata",
-          "hasPassword",
-          "authMethod",
-          "authWithEmail",
-          "selectedTeamId",
-          "selectedTeam",
-          "oauthProviders",
-        ]);
-      },
+      projectId: crud.project_id,
+      id: crud.id,
+      displayName: crud.display_name,
+      primaryEmail: crud.primary_email,
+      primaryEmailVerified: crud.primary_email_verified,
+      profileImageUrl: crud.profile_image_url,
+      signedUpAt: new Date(crud.signed_up_at_millis),
+      clientMetadata: crud.client_metadata,
+      hasPassword: crud.has_password,
+      emailAuthEnabled: crud.auth_with_email,
+      oauthProviders: crud.oauth_providers,
+      selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
+      toClientJson(): CurrentUserCrud['Client']['Read'] {
+        return crud;
+      }
     };
   }
 
-  protected _createUserExtra(json: UserJson, session: InternalSession): UserExtra {
+  protected _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
     const app = this;
     async function getConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
     async function getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
@@ -783,30 +763,32 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async listTeams() {
         const teams = await app._currentUserTeamsCache.getOrWait([session], "write-only");
-        return teams.map((json) => app._teamFromJson(json));
+        return teams.map((crud) => app._clientTeamFromCrud(crud));
       },
       useTeams() {
         const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
-        return useMemo(() => teams.map((json) => app._teamFromJson(json)), [teams]);
+        return useMemo(() => teams.map((crud) => app._clientTeamFromCrud(crud)), [teams]);
       },
-      async createTeam(data: TeamCustomizableJson) {
-        const teamJson = await app._interface.createTeamForCurrentUser(data, session);
+      async createTeam(data: TeamCreateOptions) {
+        const crud = await app._interface.createTeamForCurrentUser(teamCreateOptionsToCrud(data), session);
         await app._currentUserTeamsCache.refresh([session]);
-        return app._teamFromJson(teamJson);
+        return app._clientTeamFromCrud(crud);
       },
-      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<Permission[]> {
-        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, 'team', !!options?.direct], "write-only");
-        return permissions.map((json) => app._permissionFromJson(json));
+      async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
+        const recursive = options?.recursive ?? true;
+        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only");
+        return permissions.map((crud) => app._clientTeamPermissionFromCrud(crud));
       },
-      usePermissions(scope: Team, options?: { direct?: boolean }): Permission[] {
-        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, 'team', !!options?.direct], "user.usePermissions()");
-        return useMemo(() => permissions.map((json) => app._permissionFromJson(json)), [permissions]);
+      usePermissions(scope: Team, options?: { recursive?: boolean }): TeamPermission[] {
+        const recursive = options?.recursive ?? true;
+        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, recursive], "user.usePermissions()");
+        return useMemo(() => permissions.map((crud) => app._clientTeamPermissionFromCrud(crud)), [permissions]);
       },
-      usePermission(scope: Team, permissionId: string): Permission | null {
+      usePermission(scope: Team, permissionId: string): TeamPermission | null {
         const permissions = this.usePermissions(scope);
         return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
       },
-      async getPermission(scope: Team, permissionId: string): Promise<Permission | null> {
+      async getPermission(scope: Team, permissionId: string): Promise<TeamPermission | null> {
         const permissions = await this.listPermissions(scope);
         return permissions.find((p) => p.id === permissionId) ?? null;
       },
@@ -814,7 +796,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return (await this.getPermission(scope, permissionId)) !== null;
       },
       update(update) {
-        return app._updateUser(update, session);
+        return app._updateClientUser(update, session);
       },
       sendVerificationEmail() {
         return app._sendVerificationEmail(session);
@@ -829,7 +811,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const app = this;
     this._ensureInternalProject();
     return {
-      createProject(newProject: ProjectUpdateOptions & { displayName: string }) {
+      createProject(newProject: AdminProjectUpdateOptions & { displayName: string }) {
         return app._createProject(session, newProject);
       },
       listOwnedProjects() {
@@ -841,11 +823,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createCurrentUser(json: UserJson, session: InternalSession): ProjectCurrentUser<ProjectId> {
+  protected _currentUserFromCrud(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): ProjectCurrentUser<ProjectId> {
     const currentUser = {
-      ...this._createBaseUser(json),
+      ...this._createBaseUser(crud),
       ...this._createAuth(session),
-      ...this._createUserExtra(json, session),
+      ...this._createCurrentUserExtra(crud, session),
       ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
     } satisfies CurrentUser;
 
@@ -853,53 +835,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return currentUser as ProjectCurrentUser<ProjectId>;
   }
 
-  protected _projectAdminFromJson(data: ProjectJson, adminInterface: StackAdminInterface, onRefresh: () => Promise<void>): Project {
-    if (data.id !== adminInterface.projectId) {
-      throw new Error(`The project ID of the provided project JSON (${data.id}) does not match the project ID of the app (${adminInterface.projectId})! This is a Stack bug.`);
+  protected _getOwnedAdminApp(forProjectId: string, session: InternalSession): _StackAdminAppImpl<false, string> {
+    if (!this._ownedAdminApps.has([session, forProjectId])) {
+      this._ownedAdminApps.set([session, forProjectId], new _StackAdminAppImpl({
+        baseUrl: this._interface.options.baseUrl,
+        projectId: forProjectId,
+        tokenStore: null,
+        projectOwnerSession: session,
+        noAutomaticPrefetch: true,
+      }));
     }
-
-    return {
-      id: data.id,
-      displayName: data.displayName,
-      description: data.description,
-      createdAt: new Date(data.createdAtMillis),
-      userCount: data.userCount,
-      isProductionMode: data.isProductionMode,
-      evaluatedConfig: {
-        id: data.evaluatedConfig.id,
-        credentialEnabled: data.evaluatedConfig.credentialEnabled,
-        magicLinkEnabled: data.evaluatedConfig.magicLinkEnabled,
-        allowLocalhost: data.evaluatedConfig.allowLocalhost,
-        oauthProviders: data.evaluatedConfig.oauthProviders,
-        emailConfig: data.evaluatedConfig.emailConfig,
-        domains: data.evaluatedConfig.domains,
-        createTeamOnSignUp: data.evaluatedConfig.createTeamOnSignUp,
-        teamCreatorDefaultPermissions: data.evaluatedConfig.teamCreatorDefaultPermissions,
-        teamMemberDefaultPermissions: data.evaluatedConfig.teamMemberDefaultPermissions,
-      },
-
-      async update(update: ProjectUpdateOptions) {
-        await adminInterface.updateProject(update);
-        await onRefresh();
-      },
-
-      toJson() {
-        return data;
-      },
-
-      getProductionModeErrors() {
-        return getProductionModeErrors(this.toJson());
-      },
-    };
-  }
-
-  protected _createAdminInterface(forProjectId: string, session: InternalSession): StackAdminInterface {
-    return new StackAdminInterface({
-      baseUrl: this._interface.options.baseUrl,
-      projectId: forProjectId,
-      clientVersion,
-      projectOwnerSession: session,
-    });
+    return this._ownedAdminApps.get([session, forProjectId])!;
   }
 
   get projectId(): ProjectId {
@@ -965,9 +911,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null> {
     this._ensurePersistentTokenStore(options?.tokenStore);
     const session = this._getSession(options?.tokenStore);
-    const userJson = await this._currentUserCache.getOrWait([session], "write-only");
+    const crud = await this._currentUserCache.getOrWait([session], "write-only");
 
-    if (userJson === null) {
+    if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
           await this.redirectToSignIn();
@@ -982,7 +928,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     }
 
-    return userJson && this._createCurrentUser(userJson, session);
+    return crud && this._currentUserFromCrud(crud, session);
   }
 
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>;
@@ -993,9 +939,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     const router = NextNavigation.useRouter();
     const session = this._useSession(options?.tokenStore);
-    const userJson = useAsyncCache(this._currentUserCache, [session], "useUser()");
+    const crud = useAsyncCache(this._currentUserCache, [session], "useUser()");
 
-    if (userJson === null) {
+    if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
           // Updating the router is not allowed during the component render function, so we do it in a different async tick
@@ -1015,12 +961,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     return useMemo(() => {
-      return userJson && this._createCurrentUser(userJson, session);
-    }, [userJson, session, options?.or]);
+      return crud && this._currentUserFromCrud(crud, session);
+    }, [crud, session, options?.or]);
   }
 
-  protected async _updateUser(update: UserUpdateJson, session: InternalSession) {
-    const res = await this._interface.setClientUserCustomizableData(update, session);
+  protected async _updateClientUser(update: UserUpdateOptions, session: InternalSession) {
+    const res = await this._interface.updateClientUser(userUpdateOptionsToCrud(update), session);
     await this._refreshUser(session);
     return res;
   }
@@ -1073,8 +1019,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     this._ensurePersistentTokenStore();
-    const session = this._getSession();
-    const result = await this._interface.signInWithMagicLink(code, session);
+    const result = await this._interface.signInWithMagicLink(code);
     if (result instanceof KnownError) {
       return result;
     }
@@ -1129,40 +1074,39 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  async getProject(): Promise<ClientProjectJson> {
-    return await this._currentProjectCache.getOrWait([], "write-only");
+  async getProject(): Promise<Project> {
+    const crud = await this._currentProjectCache.getOrWait([], "write-only");
+    return this._clientProjectFromCrud(crud);
   }
 
-  useProject(): ClientProjectJson {
-    return useAsyncCache(this._currentProjectCache, [], "useProject()");
+  useProject(): Project {
+    const crud = useAsyncCache(this._currentProjectCache, [], "useProject()");
+    return useMemo(() => this._clientProjectFromCrud(crud), [crud]);
   }
 
-  protected async _listOwnedProjects(session: InternalSession): Promise<Project[]> {
+  protected async _listOwnedProjects(session: InternalSession): Promise<AdminOwnedProject[]> {
     this._ensureInternalProject();
-    const json = await this._ownedProjectsCache.getOrWait([session], "write-only");
-    return json.map((j) => this._projectAdminFromJson(
+    const crud = await this._ownedProjectsCache.getOrWait([session], "write-only");
+    return crud.map((j) => this._getOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
-      this._createAdminInterface(j.id, session),
       () => this._refreshOwnedProjects(session),
     ));
   }
 
-  protected _useOwnedProjects(session: InternalSession): Project[] {
+  protected _useOwnedProjects(session: InternalSession): AdminOwnedProject[] {
     this._ensureInternalProject();
-    const json = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
-    return useMemo(() => json.map((j) => this._projectAdminFromJson(
+    const projects = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
+    return useMemo(() => projects.map((j) => this._getOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
-      this._createAdminInterface(j.id, session),
       () => this._refreshOwnedProjects(session),
-    )), [json]);
+    )), [projects]);
   }
 
-  protected async _createProject(session: InternalSession, newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project> {
+  protected async _createProject(session: InternalSession, newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminOwnedProject> {
     this._ensureInternalProject();
-    const json = await this._interface.createProject(newProject, session);
-    const res = this._projectAdminFromJson(
-      json,
-      this._createAdminInterface(json.id, session),
+    const crud = await this._interface.createProject(adminProjectCreateOptionsToCrud(newProject), session);
+    const res = this._getOwnedAdminApp(crud.id, session)._adminOwnedProjectFromCrud(
+      crud,
       () => this._refreshOwnedProjects(session),
     );
     await this._refreshOwnedProjects(session);
@@ -1231,7 +1175,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           uniqueIdentifier: this._getUniqueIdentifier(),
         };
       },
-      setCurrentUser: (userJsonPromise: Promise<UserJson | null>) => {
+      setCurrentUser: (userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>) => {
         runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([this._getSession()], userJsonPromise));
       },
     };
@@ -1244,33 +1188,32 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   // TODO override the client user cache to use the server user cache, so we save some requests
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
-    const user = await this._interface.getServerUserByToken(session);
-    return Result.or(user, null);
+    return await this._interface.getServerUserByToken(session);
   });
   private readonly _serverUsersCache = createCache(async () => {
     return await this._interface.listServerUsers();
   });
-  private readonly _serverUserCache = createCache<string[], ServerUserJson | null>(async ([userId]) => {
+  private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
     return Result.or(user, null);
   });
   private readonly _serverTeamsCache = createCache(async () => {
     return await this._interface.listServerTeams();
   });
-  private readonly _serverTeamMembersCache = createCache<string[], ServerTeamMemberJson[]>(async ([teamId]) => {
-    return await this._interface.listServerTeamMembers(teamId);
+  private readonly _serverCurrentUserTeamsCache = createCacheBySession(async (session) => {
+    return await this._interface.listServerCurrentUserTeams(session);
   });
-  private readonly _serverTeamPermissionDefinitionsCache = createCache(async () => {
-    return await this._interface.listPermissionDefinitions();
+  private readonly _serverTeamUsersCache = createCache<
+    string[],
+    UsersCrud['Server']['Read'][]
+  >(async ([teamId]) => {
+    return await this._interface.listServerTeamUsers(teamId);
   });
   private readonly _serverTeamUserPermissionsCache = createCache<
-    [string, string, 'team' | 'global', boolean],
-    ServerPermissionDefinitionJson[]
-  >(async ([teamId, userId, type, direct]) => {
-    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, type, direct });
-  });
-  private readonly _serverEmailTemplatesCache = createCache(async () => {
-    return await this._interface.listEmailTemplates();
+    [string, string, boolean],
+    TeamPermissionsCrud['Server']['Read'][]
+  >(async ([teamId, userId, recursive]) => {
+    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
   });
 
   constructor(options:
@@ -1301,28 +1244,27 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected override _createBaseUser(json: ServerUserJson): ServerBaseUser;
-  protected override _createBaseUser(json: UserJson): BaseUser;
-  protected override _createBaseUser(json: UserJson | ServerUserJson): BaseUser | ServerBaseUser {
+  protected override _createBaseUser(crud: UsersCrud['Server']['Read']): ServerBaseUser;
+  protected override _createBaseUser(crud: CurrentUserCrud['Client']['Read']): BaseUser;
+  protected override _createBaseUser(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): BaseUser | ServerBaseUser {
+    if (!crud) {
+      throw new StackAssertionError("User not found");
+    }
     return {
-      ...super._createBaseUser(json),
-      ..."serverMetadata" in json ? {
-        serverMetadata: json.serverMetadata,
-        toServerJson() {
-          return {
-            ...this.toClientJson(),
-            ...pick(json, [
-              "serverMetadata"
-            ]),
-          };
-        },
+      ...super._createBaseUser(crud),
+      ..."server_metadata" in crud ? {
+        // server user
+        serverMetadata: crud.server_metadata,
       } : {},
     };
   }
 
-  protected override _createUserExtra(json: ServerUserJson): ServerUserExtra;
-  protected override _createUserExtra(json: UserJson): UserExtra;
-  protected override _createUserExtra(json: UserJson | ServerUserJson): ServerUserExtra {
+  protected override _createCurrentUserExtra(crud: UsersCrud['Server']['Read']): ServerUserExtra;
+  protected override _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read']): UserExtra;
+  protected override _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): ServerUserExtra {
+    if (!crud) {
+      throw new StackAssertionError("User not found");
+    }
     const app = this;
     return {
       async setDisplayName(displayName: string) {
@@ -1338,7 +1280,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.update({ selectedTeamId: team?.id ?? null });
       },
       async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
-        return await this.update({ primaryEmail: email });
+        return await this.update({ primaryEmail: email, primaryEmailVerified: options?.verified });
       },
       getConnectedAccount: async () => {
         return await app._checkFeatureSupport("getConnectedAccount() on ServerUser", {});
@@ -1351,37 +1293,35 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return teams.find((t) => t.id === teamId) ?? null;
       },
       useTeam(teamId: string) {
-        const teams = this.useTeams();
-        return useMemo(() => {
-          return teams.find((t) => t.id === teamId) ?? null;
-        }, [teams, teamId]);
+        return app._useCheckFeatureSupport("useTeam() on ServerUser", {});
       },
       async listTeams() {
-        const teams = await app.listTeams();
-        const withMembers = await Promise.all(teams.map(async (t) => [t, await t.listMembers()] as const));
-        return withMembers.filter(([_, members]) => members.find((m) => m.userId === json.id)).map(([t]) => t);
+        const crud = await app._serverCurrentUserTeamsCache.getOrWait([app._getSession()], "write-only");
+        return crud.map((t) => app._serverTeamFromCrud(t));
       },
       useTeams() {
         return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
       },
-      createTeam: async (data: ServerTeamCustomizableJson) => {
-        const team =  await app._interface.createServerTeamForUser(json.id, data, app._getSession());
+      createTeam: async (data: ServerTeamCreateOptions) => {
+        const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), app._getSession());
         await app._serverTeamsCache.refresh([]);
-        return app._serverTeamFromJson(team);
+        return app._serverTeamFromCrud(team);
       },
-      async listPermissions(scope: Team, options?: { direct?: boolean }): Promise<ServerPermission[]> {
-        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, json.id, 'team', !!options?.direct], "write-only");
-        return permissions.map((json) => app._serverPermissionFromJson(json));
+      async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
+        const recursive = options?.recursive ?? true;
+        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only");
+        return permissions.map((crud) => app._serverPermissionFromCrud(crud));
       },
-      usePermissions(scope: Team, options?: { direct?: boolean }): ServerPermission[] {
-        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, json.id, 'team', !!options?.direct], "user.usePermissions()");
-        return useMemo(() => permissions.map((json) => app._serverPermissionFromJson(json)), [permissions]);
+      usePermissions(scope: Team, options?: { recursive?: boolean }): AdminTeamPermission[] {
+        const recursive = options?.recursive ?? true;
+        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive], "user.usePermissions()");
+        return useMemo(() => permissions.map((crud) => app._serverPermissionFromCrud(crud)), [permissions]);
       },
-      async getPermission(scope: Team, permissionId: string): Promise<ServerPermission | null> {
+      async getPermission(scope: Team, permissionId: string): Promise<AdminTeamPermission | null> {
         const permissions = await this.listPermissions(scope);
         return permissions.find((p) => p.id === permissionId) ?? null;
       },
-      usePermission(scope: Team, permissionId: string): ServerPermission | null {
+      usePermission(scope: Team, permissionId: string): AdminTeamPermission | null {
         const permissions = this.usePermissions(scope);
         return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
       },
@@ -1389,26 +1329,25 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.getPermission(scope, permissionId) !== null;
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.grantServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
-        for (const direct of [true, false]) {
-          await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
+        await app._interface.grantServerTeamUserPermission(scope.id, crud.id, permissionId);
+        for (const recursive of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
         }
       },
       async revokePermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.revokeServerTeamUserPermission(scope.id, json.id, permissionId, 'team');
-        for (const direct of [true, false]) {
-          await app._serverTeamUserPermissionsCache.refresh([scope.id, json.id, 'team', direct]);
+        await app._interface.revokeServerTeamUserPermission(scope.id, crud.id, permissionId);
+        for (const recursive of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
         }
       },
       async delete() {
-        const res = await app._interface.deleteServerServerUser(json.id);
+        const res = await app._interface.deleteServerServerUser(crud.id);
         await app._refreshUsers();
         return res;
       },
-      async update(update: ServerUserUpdateJson) {
-        const res = await app._interface.setServerUserCustomizableData(json.id, update);
+      async update(update: ServerUserUpdateOptions) {
+        const res = await app._interface.updateServerUser(crud.id, serverUserUpdateOptionsToCrud(update));
         await app._refreshUsers();
-        return res;
       },
       async sendVerificationEmail() {
         return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
@@ -1419,17 +1358,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createUser(json: ServerUserJson): ServerUser {
+  protected _serverUserFromCrud(crud: UsersCrud['Server']['Read']): ServerUser {
     return {
-      ...this._createBaseUser(json),
-      ...this._createUserExtra(json),
+      ...this._createBaseUser(crud),
+      ...this._createCurrentUserExtra(crud),
     };
   }
 
-  protected override _createCurrentUser(json: ServerUserJson, session: InternalSession): ProjectCurrentServerUser<ProjectId> {
+  protected override _currentUserFromCrud(crud: UsersCrud['Server']['Read'], session: InternalSession): ProjectCurrentServerUser<ProjectId> {
     const app = this;
     const currentUser = {
-      ...this._createUser(json),
+      ...this._serverUserFromCrud(crud),
       ...this._createAuth(session),
       ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
     } satisfies ServerUser;
@@ -1438,55 +1377,41 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return currentUser as ProjectCurrentServerUser<ProjectId>;
   }
 
-  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson): ServerTeamMember;
-  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson | null): ServerTeamMember | null;
-  protected _serverTeamMemberFromJson(json: ServerTeamMemberJson | null): ServerTeamMember | null {
-    if (json === null) return null;
+  protected _serverTeamFromCrud(crud: TeamsCrud['Server']['Read']): ServerTeam {
     const app = this;
     return {
-      ...app._teamMemberFromJson(json),
-      user: app._createUser(json.user),
-    };
-  }
-
-  protected _serverTeamFromJson(json: ServerTeamJson): ServerTeam {
-    const app = this;
-    return {
-      id: json.id,
-      displayName: json.displayName,
-      profileImageUrl: json.profileImageUrl,
-      createdAt: new Date(json.createdAtMillis),
-      async listMembers() {
-        return (await app._interface.listServerTeamMembers(json.id)).map((u) => app._serverTeamMemberFromJson(u));
+      id: crud.id,
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
+      createdAt: new Date(crud.created_at_millis),
+      async listUsers() {
+        return (await app._interface.listServerTeamUsers(crud.id)).map((u) => app._serverUserFromCrud(u));
       },
-      async update(update: Partial<ServerTeamCustomizableJson>) {
-        await app._interface.updateServerTeam(json.id, update);
+      async update(update: Partial<ServerTeamUpdateOptions>) {
+        await app._interface.updateServerTeam(crud.id, serverTeamUpdateOptionsToCrud(update));
         await app._serverTeamsCache.refresh([]);
       },
       async delete() {
-        await app._interface.deleteServerTeam(json.id);
+        await app._interface.deleteServerTeam(crud.id);
         await app._serverTeamsCache.refresh([]);
       },
-      useMembers() {
-        const result = useAsyncCache(app._serverTeamMembersCache, [json.id], "team.useUsers()");
-        return useMemo(() => result.map((u) => app._serverTeamMemberFromJson(u)), [result]);
+      useUsers() {
+        const result = useAsyncCache(app._serverTeamUsersCache, [crud.id], "team.useUsers()");
+        return useMemo(() => result.map((u) => app._serverUserFromCrud(u)), [result]);
       },
       async addUser(userId) {
         await app._interface.addServerUserToTeam({
-          teamId: json.id,
+          teamId: crud.id,
           userId,
         });
-        await app._serverTeamMembersCache.refresh([json.id]);
+        await app._serverTeamUsersCache.refresh([crud.id]);
       },
       async removeUser(userId) {
         await app._interface.removeServerUserFromTeam({
-          teamId: json.id,
+          teamId: crud.id,
           userId,
         });
-        await app._serverTeamMembersCache.refresh([json.id]);
-      },
-      toJson() {
-        return json;
+        await app._serverTeamUsersCache.refresh([crud.id]);
       },
     };
   }
@@ -1499,9 +1424,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     // TODO this code is duplicated from the client app; fix that
     this._ensurePersistentTokenStore(options?.tokenStore);
     const session = this._getSession(options?.tokenStore);
-    const userJson = await this._currentServerUserCache.getOrWait([session], "write-only");
+    const crud = await this._currentServerUserCache.getOrWait([session], "write-only");
 
-    if (userJson === null) {
+    if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
           await this.redirectToSignIn();
@@ -1516,7 +1441,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
     }
 
-    return userJson && this._createCurrentUser(userJson, session);
+    return crud && this._currentUserFromCrud(crud, session);
   }
 
   async getServerUser(): Promise<ProjectCurrentServerUser<ProjectId> | null> {
@@ -1525,8 +1450,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async getServerUserById(userId: string): Promise<ServerUser | null> {
-    const json = await this._serverUserCache.getOrWait([userId], "write-only");
-    return json && this._createUser(json);
+    const crud = await this._serverUserCache.getOrWait([userId], "write-only");
+    return crud && this._serverUserFromCrud(crud);
   }
 
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>;
@@ -1538,9 +1463,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     const router = NextNavigation.useRouter();
     const session = this._getSession(options?.tokenStore);
-    const userJson = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
+    const crud = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
 
-    if (userJson === null) {
+    if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
           // Updating the router is not allowed during the component render function, so we do it in a different async tick
@@ -1560,77 +1485,58 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     return useMemo(() => {
-      return userJson && this._createCurrentUser(userJson, session);
-    }, [userJson, session, options?.or]);
+      return crud && this._currentUserFromCrud(crud, session);
+    }, [crud, session, options?.or]);
   }
 
   useUserById(userId: string): ServerUser | null {
-    const json = useAsyncCache(this._serverUserCache, [userId], "useUserById()");
+    const crud = useAsyncCache(this._serverUserCache, [userId], "useUserById()");
     return useMemo(() => {
-      return json && this._createUser(json);
-    }, [json]);
+      return crud && this._serverUserFromCrud(crud);
+    }, [crud]);
   }
 
   async listUsers(): Promise<ServerUser[]> {
-    const json = await this._serverUsersCache.getOrWait([], "write-only");
-    return json.map((j) => this._createUser(j));
+    const crud = await this._serverUsersCache.getOrWait([], "write-only");
+    return crud.map((j) => this._serverUserFromCrud(j));
   }
 
   useUsers(): ServerUser[] {
-    const json = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
+    const crud = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
     return useMemo(() => {
-      return json.map((j) => this._createUser(j));
-    }, [json]);
+      return crud.map((j) => this._serverUserFromCrud(j));
+    }, [crud]);
   }
 
-  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
-    return await this._serverTeamPermissionDefinitionsCache.getOrWait([], "write-only");
-  }
-
-  usePermissionDefinitions(): ServerPermissionDefinitionJson[] {
-    return useAsyncCache(this._serverTeamPermissionDefinitionsCache, [], "usePermissions()");
-  }
-
-  _serverPermissionFromJson(json: ServerPermissionDefinitionJson): ServerPermission {
+  _serverPermissionFromCrud(crud: TeamPermissionsCrud['Server']['Read']): AdminTeamPermission {
     return {
-      ...this._permissionFromJson(json),
-      __databaseUniqueId: json.__databaseUniqueId,
-      description: json.description,
-      containPermissionIds: json.containPermissionIds,
+      id: crud.id,
     };
   }
 
-  async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>{
-    const permission = this._serverPermissionFromJson(await this._interface.createPermissionDefinition(data));
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
-    return permission;
-  }
-
-  async updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>) {
-    await this._interface.updatePermissionDefinition(permissionId, data);
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
-  }
-
-  async deletePermissionDefinition(permissionId: string): Promise<void> {
-    await this._interface.deletePermissionDefinition(permissionId);
-    await this._serverTeamPermissionDefinitionsCache.refresh([]);
+  _serverTeamPermissionDefinitionFromCrud(crud: TeamPermissionDefinitionsCrud['Admin']['Read']): AdminTeamPermissionDefinition {
+    return {
+      id: crud.id,
+      description: crud.description,
+      containedPermissionIds: crud.contained_permission_ids,
+    };
   }
 
   async listTeams(): Promise<ServerTeam[]> {
     const teams = await this._serverTeamsCache.getOrWait([], "write-only");
-    return teams.map((t) => this._serverTeamFromJson(t));
+    return teams.map((t) => this._serverTeamFromCrud(t));
   }
 
-  async createTeam(data: ServerTeamCustomizableJson) : Promise<ServerTeam> {
-    const team = await this._interface.createServerTeam(data);
+  async createTeam(data: ServerTeamCreateOptions) : Promise<ServerTeam> {
+    const team = await this._interface.createServerTeam(serverTeamCreateOptionsToCrud(data));
     await this._serverTeamsCache.refresh([]);
-    return this._serverTeamFromJson(team);
+    return this._serverTeamFromCrud(team);
   }
 
   useTeams(): ServerTeam[] {
     const teams = useAsyncCache(this._serverTeamsCache, [], "useServerTeams()");
     return useMemo(() => {
-      return teams.map((t) => this._serverTeamFromJson(t));
+      return teams.map((t) => this._serverTeamFromCrud(t));
     }, [teams]);
   }
 
@@ -1659,24 +1565,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._serverUsersCache.refresh([]),
     ]);
   }
-
-  useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'] {
-    return useAsyncCache(this._serverEmailTemplatesCache, [], "useEmailTemplates()");
-  }
-
-  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
-    return await this._serverEmailTemplatesCache.getOrWait([], "write-only");
-  }
-
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
-    await this._interface.updateEmailTemplate(type, data);
-    await this._serverEmailTemplatesCache.refresh([]);
-  }
-
-  async resetEmailTemplate(type: EmailTemplateType) {
-    await this._interface.resetEmailTemplate(type);
-    await this._serverEmailTemplatesCache.refresh([]);
-  }
 }
 
 class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackServerAppImpl<HasTokenStore, ProjectId>
@@ -1686,8 +1574,14 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   private readonly _adminProjectCache = createCache(async () => {
     return await this._interface.getProject();
   });
-  private readonly _apiKeySetsCache = createCache(async () => {
-    return await this._interface.listApiKeySets();
+  private readonly _apiKeysCache = createCache(async () => {
+    return await this._interface.listApiKeys();
+  });
+  private readonly _adminEmailTemplatesCache = createCache(async () => {
+    return await this._interface.listEmailTemplates();
+  });
+  private readonly _adminTeamPermissionDefinitionsCache = createCache(async () => {
+    return await this._interface.listPermissionDefinitions();
   });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
@@ -1710,15 +1604,111 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     });
   }
 
+  _adminOwnedProjectFromCrud(data: InternalProjectsCrud['Admin']['Read'], onRefresh: () => Promise<void>): AdminOwnedProject {
+    if (this._tokenStoreInit !== null) {
+      throw new StackAssertionError("Owned apps must always have tokenStore === null — did you not create this project with app._createOwnedApp()?");;
+    }
+    return {
+      ...this._adminProjectFromCrud(data, onRefresh),
+      app: this as StackAdminApp<false>,
+    };
+  }
 
-  protected _createApiKeySetBaseFromJson(data: ApiKeySetBaseJson): ApiKeySetBase {
+  _adminProjectFromCrud(data: InternalProjectsCrud['Admin']['Read'], onRefresh: () => Promise<void>): AdminProject {
+    if (data.id !== this.projectId) {
+      throw new StackAssertionError(`The project ID of the provided project JSON (${data.id}) does not match the project ID of the app (${this.projectId})!`);
+    }
+
+    const app = this;
+    return {
+      id: data.id,
+      displayName: data.display_name,
+      description: data.description,
+      createdAt: new Date(data.created_at_millis),
+      userCount: data.user_count,
+      isProductionMode: data.is_production_mode,
+      config: {
+        id: data.config.id,
+        credentialEnabled: data.config.credential_enabled,
+        magicLinkEnabled: data.config.magic_link_enabled,
+        allowLocalhost: data.config.allow_localhost,
+        oauthProviders: data.config.oauth_providers.map((p) => ((p.type === 'shared' ? {
+          id: p.id,
+          enabled: p.enabled,
+          type: 'shared',
+        } as const : {
+          id: p.id,
+          enabled: p.enabled,
+          type: 'standard',
+          clientId: p.client_id ?? throwErr("Client ID is missing"),
+          clientSecret: p.client_secret ?? throwErr("Client secret is missing"),
+        } as const))),
+        emailConfig: data.config.email_config.type === 'shared' ? {
+          type: 'shared'
+        } : {
+          type: 'standard',
+          host: data.config.email_config.host ?? throwErr("Email host is missing"),
+          port: data.config.email_config.port ?? throwErr("Email port is missing"),
+          username: data.config.email_config.username ?? throwErr("Email username is missing"),
+          password: data.config.email_config.password ?? throwErr("Email password is missing"),
+          senderName: data.config.email_config.sender_name ?? throwErr("Email sender name is missing"),
+          senderEmail: data.config.email_config.sender_email ?? throwErr("Email sender email is missing"),
+        },
+        domains: data.config.domains.map((d) => ({
+          domain: d.domain,
+          handlerPath: d.handler_path,
+        })),
+        createTeamOnSignUp: data.config.create_team_on_sign_up,
+        teamCreatorDefaultPermissions: data.config.team_creator_default_permissions,
+        teamMemberDefaultPermissions: data.config.team_member_default_permissions,
+      },
+
+      async update(update: AdminProjectUpdateOptions) {
+        await app._interface.updateProject(adminProjectUpdateOptionsToCrud(update));
+        await onRefresh();
+      },
+
+      async getProductionModeErrors() {
+        return getProductionModeErrors(data);
+      },
+      useProductionModeErrors() {
+        return getProductionModeErrors(data);
+      },
+    };
+  }
+
+  _adminEmailTemplateFromCrud(data: EmailTemplateCrud['Admin']['Read']): AdminEmailTemplate {
+    return {
+      type: data.type,
+      subject: data.subject,
+      content: data.content,
+      isDefault: data.is_default,
+    };
+  }
+
+  override async getProject(): Promise<AdminProject> {
+    return this._adminProjectFromCrud(
+      await this._adminProjectCache.getOrWait([], "write-only"),
+      () => this._refreshProject()
+    );
+  }
+
+  override useProject(): AdminProject {
+    const crud = useAsyncCache(this._adminProjectCache, [], "useProjectAdmin()");
+    return useMemo(() => this._adminProjectFromCrud(
+      crud,
+      () => this._refreshProject()
+    ), [crud]);
+  }
+
+  protected _createApiKeyBaseFromCrud(data: ApiKeyBaseCrudRead): ApiKeyBase {
     const app = this;
     return {
       id: data.id,
       description: data.description,
-      expiresAt: new Date(data.expiresAtMillis),
-      manuallyRevokedAt: data.manuallyRevokedAtMillis ? new Date(data.manuallyRevokedAtMillis) : null,
-      createdAt: new Date(data.createdAtMillis),
+      expiresAt: new Date(data.expires_at_millis),
+      manuallyRevokedAt: data.manually_revoked_at_millis ? new Date(data.manually_revoked_at_millis) : null,
+      createdAt: new Date(data.created_at_millis),
       isValid() {
         return this.whyInvalid() === null;
       },
@@ -1728,65 +1718,99 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         return null;
       },
       async revoke() {
-        const res = await app._interface.revokeApiKeySetById(data.id);
-        await app._refreshApiKeySets();
+        const res = await app._interface.revokeApiKeyById(data.id);
+        await app._refreshApiKeys();
         return res;
       }
     };
   }
 
-  protected _createApiKeySetFromJson(data: ApiKeySetJson): ApiKeySet {
+  protected _createApiKeyFromCrud(data: ApiKeysCrud["Admin"]["Read"]): ApiKey {
     return {
-      ...this._createApiKeySetBaseFromJson(data),
-      publishableClientKey: data.publishableClientKey ? { lastFour: data.publishableClientKey.lastFour } : null,
-      secretServerKey: data.secretServerKey ? { lastFour: data.secretServerKey.lastFour } : null,
-      superSecretAdminKey: data.superSecretAdminKey ? { lastFour: data.superSecretAdminKey.lastFour } : null,
+      ...this._createApiKeyBaseFromCrud(data),
+      publishableClientKey: data.publishable_client_key ? { lastFour: data.publishable_client_key.last_four } : null,
+      secretServerKey: data.secret_server_key ? { lastFour: data.secret_server_key.last_four } : null,
+      superSecretAdminKey: data.super_secret_admin_key ? { lastFour: data.super_secret_admin_key.last_four } : null,
     };
   }
 
-  protected _createApiKeySetFirstViewFromJson(data: ApiKeySetFirstViewJson): ApiKeySetFirstView {
+  protected _createApiKeyFirstViewFromCrud(data: ApiKeyCreateCrudResponse): ApiKeyFirstView {
     return {
-      ...this._createApiKeySetBaseFromJson(data),
-      publishableClientKey: data.publishableClientKey,
-      secretServerKey: data.secretServerKey,
-      superSecretAdminKey: data.superSecretAdminKey,
+      ...this._createApiKeyBaseFromCrud(data),
+      publishableClientKey: data.publishable_client_key,
+      secretServerKey: data.secret_server_key,
+      superSecretAdminKey: data.super_secret_admin_key,
     };
   }
 
-  async getProjectAdmin(): Promise<Project> {
-    return this._projectAdminFromJson(
-      await this._adminProjectCache.getOrWait([], "write-only"),
-      this._interface,
-      () => this._refreshProject()
-    );
+  async listApiKeys(): Promise<ApiKey[]> {
+    const crud = await this._apiKeysCache.getOrWait([], "write-only");
+    return crud.map((j) => this._createApiKeyFromCrud(j));
   }
 
-  useProjectAdmin(): Project {
-    const json = useAsyncCache(this._adminProjectCache, [], "useProjectAdmin()");
-    return useMemo(() => this._projectAdminFromJson(
-      json,
-      this._interface,
-      () => this._refreshProject()
-    ), [json]);
-  }
-
-  async listApiKeySets(): Promise<ApiKeySet[]> {
-    const json = await this._apiKeySetsCache.getOrWait([], "write-only");
-    return json.map((j) => this._createApiKeySetFromJson(j));
-  }
-
-  useApiKeySets(): ApiKeySet[] {
-    const json = useAsyncCache(this._apiKeySetsCache, [], "useApiKeySets()");
+  useApiKeys(): ApiKey[] {
+    const crud = useAsyncCache(this._apiKeysCache, [], "useApiKeys()");
     return useMemo(() => {
-      return json.map((j) => this._createApiKeySetFromJson(j));
-    }, [json]);
+      return crud.map((j) => this._createApiKeyFromCrud(j));
+    }, [crud]);
   }
 
-  async createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView> {
-    const json = await this._interface.createApiKeySet(options);
-    await this._refreshApiKeySets();
-    return this._createApiKeySetFirstViewFromJson(json);
+  async createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView> {
+    const crud = await this._interface.createApiKey(apiKeyCreateOptionsToCrud(options));
+    await this._refreshApiKeys();
+    return this._createApiKeyFirstViewFromCrud(crud);
   }
+
+  useEmailTemplates(): AdminEmailTemplate[] {
+    const crud = useAsyncCache(this._adminEmailTemplatesCache, [], "useEmailTemplates()");
+    return useMemo(() => {
+      return crud.map((j) => this._adminEmailTemplateFromCrud(j));
+    }, [crud]);
+  }
+
+  async listEmailTemplates(): Promise<AdminEmailTemplate[]> {
+    const crud = await this._adminEmailTemplatesCache.getOrWait([], "write-only");
+    return crud.map((j) => this._adminEmailTemplateFromCrud(j));
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void> {
+    await this._interface.updateEmailTemplate(type, adminEmailTemplateUpdateOptionsToCrud(data));
+    await this._adminEmailTemplatesCache.refresh([]);
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType) {
+    await this._interface.resetEmailTemplate(type);
+    await this._adminEmailTemplatesCache.refresh([]);
+  }
+
+  async createTeamPermissionDefinition(data: AdminTeamPermissionDefinitionCreateOptions): Promise<AdminTeamPermission>{
+    const crud = await this._interface.createPermissionDefinition(serverTeamPermissionDefinitionCreateOptionsToCrud(data));
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+    return this._serverTeamPermissionDefinitionFromCrud(crud);
+  }
+
+  async updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions) {
+    await this._interface.updatePermissionDefinition(permissionId, data);
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async deleteTeamPermissionDefinition(permissionId: string): Promise<void> {
+    await this._interface.deletePermissionDefinition(permissionId);
+    await this._adminTeamPermissionDefinitionsCache.refresh([]);
+  }
+
+  async listTeamPermissionDefinitions(): Promise<AdminTeamPermissionDefinition[]> {
+    const crud = await this._adminTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+    return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
+  }
+
+  useTeamPermissionDefinitions(): AdminTeamPermissionDefinition[] {
+    const crud = useAsyncCache(this._adminTeamPermissionDefinitionsCache, [], "usePermissions()");
+    return useMemo(() => {
+      return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
+    }, [crud]);
+  }
+
 
   protected override async _refreshProject() {
     await Promise.all([
@@ -1795,14 +1819,13 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     ]);
   }
 
-  protected async _refreshApiKeySets() {
-    await this._apiKeySetsCache.refresh([]);
+  protected async _refreshApiKeys() {
+    await this._apiKeysCache.refresh([]);
   }
 }
 
-type RedirectToOptions = {
-  replace?: boolean,
-};
+type _______________USER_______________ = never;  // this is a marker for VSCode's outline view
+type ___________client_user = never;  // this is a marker for VSCode's outline view
 
 type Session = {
   getTokens(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
@@ -1906,43 +1929,43 @@ export type User =
 
     readonly signedUpAt: Date,
 
-    readonly clientMetadata: ReadonlyJson,
-    setClientMetadata(metadata: ReadonlyJson): Promise<void>,
+    readonly clientMetadata: any,
+    setClientMetadata(metadata: any): Promise<void>,
 
     /**
      * Whether the primary e-mail can be used for authentication.
      */
-    readonly authWithEmail: boolean,
+    readonly emailAuthEnabled: boolean,
     /**
      * Whether the user has a password set.
      */
     readonly hasPassword: boolean,
-    readonly oauthProviders: readonly string[],
+    readonly oauthProviders: readonly { id: string }[],
     updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
     /**
      * A shorthand method to update multiple fields of the user at once.
      */
-    update(update: UserUpdateJson): Promise<void>,
+    update(update: UserUpdateOptions): Promise<void>,
 
     hasPermission(scope: Team, permissionId: string): Promise<boolean>,
 
     readonly selectedTeam: Team | null,
     setSelectedTeam(team: Team | null): Promise<void>,
 
-    createTeam(data: TeamCustomizableJson): Promise<Team>,
+    createTeam(data: TeamCreateOptions): Promise<Team>,
 
     getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
     getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
     useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
     useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
 
-    toClientJson(): UserJson,
+    toClientJson(): CurrentUserCrud["Client"]["Read"],
   }
   & AsyncStoreProperty<"team", [id: string], Team | null, false>
   & AsyncStoreProperty<"teams", [], Team[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], Permission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], Permission[], true>;
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { recursive?: boolean }], TeamPermission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { recursive?: boolean }], TeamPermission[], true>;
 
 type BaseUser = Pick<User,
   | "projectId"
@@ -1954,7 +1977,7 @@ type BaseUser = Pick<User,
   | "signedUpAt"
   | "clientMetadata"
   | "hasPassword"
-  | "authWithEmail"
+  | "emailAuthEnabled"
   | "oauthProviders"
   | "selectedTeam"
   | "toClientJson"
@@ -1964,13 +1987,29 @@ type UserExtra = Omit<User, keyof BaseUser>;
 
 type InternalUserExtra =
   & {
-    createProject(newProject: ProjectUpdateOptions & { displayName: string }): Promise<Project>,
+    createProject(newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminProject>,
   }
-  & AsyncStoreProperty<"ownedProjects", [], Project[], true>
+  & AsyncStoreProperty<"ownedProjects", [], AdminOwnedProject[], true>
 
 export type CurrentUser = Auth & User;
 
 export type CurrentInternalUser = CurrentUser & InternalUserExtra;
+
+type UserUpdateOptions = {
+  displayName?: string,
+  clientMetadata?: ReadonlyJson,
+  selectedTeamId?: string | null,
+}
+
+function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
+  return {
+    display_name: options.displayName,
+    client_metadata: options.clientMetadata,
+    selected_team_id: options.selectedTeamId,
+  };
+}
+
+type ___________server_user = never;  // this is a marker for VSCode's outline view
 
 /**
  * A user including sensitive fields that should only be used on the server, never sent to the client
@@ -1980,119 +2019,213 @@ export type ServerUser =
   & {
     setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
 
-    readonly serverMetadata: ReadonlyJson,
-    setServerMetadata(metadata: ReadonlyJson): Promise<void>,
+    readonly serverMetadata: any,
+    setServerMetadata(metadata: any): Promise<void>,
 
     updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
-    update(user: Partial<ServerUserUpdateJson>): Promise<void>,
+    update(user: ServerUserUpdateOptions): Promise<void>,
     delete(): Promise<void>,
 
     grantPermission(scope: Team, permissionId: string): Promise<void>,
     revokePermission(scope: Team, permissionId: string): Promise<void>,
 
     hasPermission(scope: Team, permissionId: string): Promise<boolean>,
-
-    toServerJson(): ServerUserJson,
   }
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], ServerPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], ServerPermission[], true>
+  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], AdminTeamPermission | null, false>
+  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], AdminTeamPermission[], true>
   & User;
 
 type ServerBaseUser = Pick<ServerUser,
   | keyof BaseUser
   | "serverMetadata"
-  | "toServerJson"
 >;
-
-type ServerUserExtra = Omit<ServerUser, keyof ServerBaseUser>;
 
 export type CurrentServerUser = Auth & ServerUser;
 
 export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 
+type ServerUserExtra = Omit<ServerUser, keyof ServerBaseUser>;
+
+type ServerUserUpdateOptions = {
+  primaryEmail?: string,
+  primaryEmailVerified?: boolean,
+  primaryEmailAuthEnabled?: boolean,
+  serverMetadata?: ReadonlyJson,
+  password?: string,
+} & UserUpdateOptions;
+function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): CurrentUserCrud["Server"]["Update"] {
+  return {
+    display_name: options.displayName,
+    client_metadata: options.clientMetadata,
+    selected_team_id: options.selectedTeamId,
+    primary_email: options.primaryEmail,
+    primary_email_verified: options.primaryEmailVerified,
+    server_metadata: options.serverMetadata,
+  };
+}
+
+
+type _______________PROJECT_______________ = never;  // this is a marker for VSCode's outline view
+
 export type Project = {
   readonly id: string,
+  readonly config: ProjectConfig,
+};
+
+export type AdminProject = {
+  readonly id: string,
   readonly displayName: string,
-  readonly description?: string,
+  readonly description: string | null,
   readonly createdAt: Date,
   readonly userCount: number,
   readonly isProductionMode: boolean,
-  readonly evaluatedConfig: {
-    readonly id: string,
-    readonly allowLocalhost: boolean,
-    readonly credentialEnabled: boolean,
-    readonly magicLinkEnabled: boolean,
-    readonly oauthProviders: OAuthProviderConfig[],
-    readonly emailConfig?: EmailConfig,
-    readonly domains: DomainConfig[],
-    readonly createTeamOnSignUp: boolean,
-    readonly teamCreatorDefaultPermissions: PermissionDefinitionJson[],
-    readonly teamMemberDefaultPermissions: PermissionDefinitionJson[],
-  },
+  readonly config: AdminProjectConfig,
 
-  update(this: Project, update: ProjectUpdateOptions): Promise<void>,
+  update(this: AdminProject, update: AdminProjectUpdateOptions): Promise<void>,
 
-  toJson(this: Project): ProjectJson,
+  getProductionModeErrors(this: AdminProject): Promise<ProductionModeError[]>,
+  useProductionModeErrors(this: AdminProject): ProductionModeError[],
+} & Project;
 
-  getProductionModeErrors(this: Project): ProductionModeError[],
+export type AdminOwnedProject = {
+  readonly app: StackAdminApp<false>,
+} & AdminProject;
+
+export type AdminProjectUpdateOptions = {
+  displayName?: string,
+  description?: string,
+  isProductionMode?: boolean,
+  config?: AdminProjectConfigUpdateOptions,
 };
+function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): ProjectsCrud["Server"]["Update"] {
+  return {
+    display_name: options.displayName,
+    description: options.description,
+    is_production_mode: options.isProductionMode,
+    config: {
+      domains: options.config?.domains?.map((d) => ({
+        domain: d.domain,
+        handler_path: d.handlerPath
+      })),
+      oauth_providers: options.config?.oauthProviders?.map((p) => ({
+        id: p.id as any,
+        enabled: p.enabled,
+        type: p.type,
+        ...(p.type === 'standard' && {
+          client_id: p.clientId,
+          client_secret: p.clientSecret,
+        }),
+      })),
+      email_config: options.config?.emailConfig && (
+        options.config.emailConfig.type === 'shared' ? {
+          type: 'shared',
+        } : {
+          type: 'standard',
+          host: options.config.emailConfig.host,
+          port: options.config.emailConfig.port,
+          username: options.config.emailConfig.username,
+          password: options.config.emailConfig.password,
+          sender_name: options.config.emailConfig.senderName,
+          sender_email: options.config.emailConfig.senderEmail,
+        }
+      ),
+      credential_enabled: options.config?.credentialEnabled,
+      magic_link_enabled: options.config?.magicLinkEnabled,
+      allow_localhost: options.config?.allowLocalhost,
+      create_team_on_sign_up: options.config?.createTeamOnSignUp,
+      team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
+      team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
+    },
+  };
+}
 
-export type Team = {
-  id: string,
+export type AdminProjectCreateOptions = Omit<AdminProjectUpdateOptions, 'displayName'> & {
   displayName: string,
-  profileImageUrl?: string,
-  createdAt: Date,
-
-  toJson(): TeamJson,
 };
-
-export type ServerTeam = Team & {
-  listMembers(): Promise<ServerTeamMember[]>,
-  useMembers(): ServerTeamMember[],
-  update(update: Partial<ServerTeamCustomizableJson>): Promise<void>,
-  delete(): Promise<void>,
-  addUser(userId: string): Promise<void>,
-  removeUser(userId: string): Promise<void>,
-};
-
-export type TeamMember = {
-  userId: string,
-  teamId: string,
-  displayName: string | null,
+function adminProjectCreateOptionsToCrud(options: AdminProjectCreateOptions): InternalProjectsCrud["Server"]["Create"] {
+  return {
+    ...adminProjectUpdateOptionsToCrud(options),
+    display_name: options.displayName,
+  };
 }
 
-export type ServerTeamMember = TeamMember & {
-  user: ServerUser,
-}
+type _______________PROJECT_CONFIG_______________ = never;  // this is a marker for VSCode's outline view
 
-export type Permission = {
-  id: string,
-} & (
-  | { type: "global" }
-  | { type: "team", teamId: string }
+export type ProjectConfig = {
+  readonly credentialEnabled: boolean,
+  readonly magicLinkEnabled: boolean,
+  readonly oauthProviders: OAuthProviderConfig[],
+};
+
+export type OAuthProviderConfig = {
+  readonly id: string,
+};
+
+export type AdminProjectConfig = {
+  readonly credentialEnabled: boolean,
+  readonly magicLinkEnabled: boolean,
+  readonly allowLocalhost: boolean,
+  readonly oauthProviders: AdminOAuthProviderConfig[],
+  readonly emailConfig?: AdminEmailConfig,
+  readonly domains: AdminDomainConfig[],
+  readonly createTeamOnSignUp: boolean,
+  readonly teamCreatorDefaultPermissions: AdminTeamPermission[],
+  readonly teamMemberDefaultPermissions: AdminTeamPermission[],
+} & OAuthProviderConfig;
+
+export type AdminEmailConfig = (
+  {
+    type: "standard",
+    senderName: string,
+    senderEmail: string,
+    host: string,
+    port: number,
+    username: string,
+    password: string,
+  }
+  | {
+    type: "shared",
+  }
 );
 
-export type ServerPermission = Permission & {
-  readonly __databaseUniqueId: string,
-  readonly description?: string,
-  readonly containPermissionIds: string[],
+export type AdminDomainConfig = {
+  domain: string,
+  handlerPath: string,
 };
 
-
-export type Connection = {
+export type AdminOAuthProviderConfig = {
   id: string,
-}
+  enabled: boolean,
+} & (
+  | { type: 'shared' }
+  | {
+    type: 'standard',
+    clientId: string,
+    clientSecret: string,
+  }
+) & OAuthProviderConfig;
 
-export type OAuthConnection = Connection & {
-  getAccessToken(): Promise<{ accessToken: string }>,
-  useAccessToken(): { accessToken: string },
-}
+export type AdminProjectConfigUpdateOptions = {
+  domains?: {
+    domain: string,
+    handlerPath: string,
+  }[],
+  oauthProviders?: AdminOAuthProviderConfig[],
+  credentialEnabled?: boolean,
+  magicLinkEnabled?: boolean,
+  allowLocalhost?: boolean,
+  createTeamOnSignUp?: boolean,
+  emailConfig?: AdminEmailConfig,
+  teamCreatorDefaultPermissions?: { id: string }[],
+  teamMemberDefaultPermissions?: { id: string }[],
+};
 
+type _______________API_KEYS_______________ = never;  // this is a marker for VSCode's outline view
 
-export type ApiKeySetBase = {
+export type ApiKeyBase = {
   id: string,
   description: string,
   expiresAt: Date,
@@ -2103,13 +2236,15 @@ export type ApiKeySetBase = {
   revoke(): Promise<void>,
 };
 
-export type ApiKeySetFirstView = ApiKeySetBase & {
+export type ApiKeyBaseCrudRead = Pick<ApiKeysCrud["Admin"]["Read"], "id" | "created_at_millis" | "description" | "expires_at_millis" | "manually_revoked_at_millis">;
+
+export type ApiKeyFirstView = {
   publishableClientKey?: string,
   secretServerKey?: string,
   superSecretAdminKey?: string,
-};
+} & ApiKeyBase;
 
-export type ApiKeySet = ApiKeySetBase & {
+export type ApiKey = {
   publishableClientKey: null | {
     lastFour: string,
   },
@@ -2119,14 +2254,125 @@ export type ApiKeySet = ApiKeySetBase & {
   superSecretAdminKey: null | {
     lastFour: string,
   },
+} & ApiKeyBase;
+
+export type ApiKeyCreateOptions = {
+  description: string,
+  expiresAt: Date,
+  hasPublishableClientKey: boolean,
+  hasSecretServerKey: boolean,
+  hasSuperSecretAdminKey: boolean,
+};
+function apiKeyCreateOptionsToCrud(options: ApiKeyCreateOptions): ApiKeyCreateCrudRequest {
+  return {
+    description: options.description,
+    expires_at_millis: options.expiresAt.getTime(),
+    has_publishable_client_key: options.hasPublishableClientKey,
+    has_secret_server_key: options.hasSecretServerKey,
+    has_super_secret_admin_key: options.hasSuperSecretAdminKey,
+  };
+}
+
+type _______________TEAM_______________ = never;  // this is a marker for VSCode's outline view
+type ___________client_team = never;  // this is a marker for VSCode's outline view
+
+export type Team = {
+  id: string,
+  displayName: string,
+  profileImageUrl: string | null,
 };
 
+export type TeamCreateOptions = {
+  displayName: string,
+  profileImageUrl?: string,
+}
+function teamCreateOptionsToCrud(options: TeamCreateOptions): TeamsCrud["Client"]["Create"] {
+  return {
+    display_name: options.displayName,
+    profile_image_url: options.profileImageUrl,
+  };
+}
 
-export type EmailConfig = EmailConfigJson;
+type ___________server_team = never;  // this is a marker for VSCode's outline view
 
-export type DomainConfig = DomainConfigJson;
 
-export type OAuthProviderConfig = OAuthProviderConfigJson;
+export type ServerTeam = {
+  createdAt: Date,
+  listUsers(): Promise<ServerUser[]>,
+  useUsers(): ServerUser[],
+  update(update: ServerTeamUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
+  addUser(userId: string): Promise<void>,
+  removeUser(userId: string): Promise<void>,
+} & Team;
+
+export type ServerTeamCreateOptions = TeamCreateOptions;
+function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
+  return teamCreateOptionsToCrud(options);
+}
+
+export type ServerTeamUpdateOptions = {
+  displayName?: string,
+  profileImageUrl?: string | null,
+};
+function serverTeamUpdateOptionsToCrud(options: ServerTeamUpdateOptions): TeamsCrud["Server"]["Update"] {
+  return {
+    display_name: options.displayName,
+    profile_image_url: options.profileImageUrl,
+  };
+}
+
+type _______________PERMISSION_______________ = never;  // this is a marker for VSCode's outline view
+
+
+export type TeamPermission = {
+  id: string,
+};
+
+export type AdminTeamPermission = TeamPermission;
+
+export type AdminTeamPermissionDefinition = {
+  id: string,
+  description?: string,
+  containedPermissionIds: string[],
+};
+
+export type AdminTeamPermissionDefinitionCreateOptions = {
+  id: string,
+  description?: string,
+  containedPermissionIds: string[],
+};
+export function serverTeamPermissionDefinitionCreateOptionsToCrud(options: AdminTeamPermissionDefinitionCreateOptions): TeamPermissionDefinitionsCrud["Admin"]["Create"] {
+  return {
+    id: options.id,
+    description: options.description,
+    contained_permission_ids: options.containedPermissionIds,
+  };
+}
+
+export type AdminTeamPermissionDefinitionUpdateOptions = Partial<AdminTeamPermissionDefinitionCreateOptions>;
+export function serverTeamPermissionDefinitionUpdateOptionsToCrud(options: AdminTeamPermissionDefinitionUpdateOptions): TeamPermissionDefinitionsCrud["Admin"]["Update"] {
+  return {
+    id: options.id,
+    description: options.description,
+    contained_permission_ids: options.containedPermissionIds,
+  };
+}
+
+
+type _______________CONNECTED_ACCOUNT_______________ = never;  // this is a marker for VSCode's outline view
+
+
+export type Connection = {
+  id: string,
+};
+
+export type OAuthConnection = {
+  getAccessToken(): Promise<{ accessToken: string }>,
+  useAccessToken(): { accessToken: string },
+} & Connection;
+
+type _______________STACK_APP_______________ = never;  // this is a marker for VSCode's outline view
 
 export type GetUserOptions<HasTokenStore> =
   & {
@@ -2136,10 +2382,6 @@ export type GetUserOptions<HasTokenStore> =
   & (HasTokenStore extends false ? {
     tokenStore: TokenStoreInit,
   } : {});
-
-type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
-  & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
-  & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & {
@@ -2168,10 +2410,10 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     [stackAppInternalsSymbol]: {
       toClientJson(): StackClientAppJson<HasTokenStore, ProjectId>,
-      setCurrentUser(userJsonPromise: Promise<UserJson | null>): void,
+      setCurrentUser(userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>): void,
     },
   }
-  & AsyncStoreProperty<"project", [], ClientProjectJson, false>
+  & AsyncStoreProperty<"project", [], Project, false>
   & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: (options?: RedirectToOptions) => Promise<void> }
 );
 type StackClientAppConstructor = {
@@ -2192,17 +2434,7 @@ export const StackClientApp: StackClientAppConstructor = _StackClientAppImpl;
 
 export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
   & {
-    createTeam(data: ServerTeamCustomizableJson): Promise<ServerTeam>,
-    createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermission>,
-    updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>): Promise<void>,
-    deletePermissionDefinition(permissionId: string): Promise<void>,
-    listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]>,
-    usePermissionDefinitions(): ServerPermissionDefinitionJson[],
-    useEmailTemplates(): ListEmailTemplatesCrud['Server']['Read'],
-    listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']>,
-    updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void>,
-    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
-
+    createTeam(data: ServerTeamCreateOptions): Promise<ServerTeam>,
     /**
      * @deprecated use `getUser()` instead
      */
@@ -2215,10 +2447,10 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
   }
-  & StackClientApp<HasTokenStore, ProjectId>
   & AsyncStoreProperty<"users", [], ServerUser[], true>
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
+  & StackClientApp<HasTokenStore, ProjectId>
 );
 type StackServerAppConstructor = {
   new <
@@ -2231,12 +2463,22 @@ type StackServerAppConstructor = {
 export const StackServerApp: StackServerAppConstructor = _StackServerAppImpl;
 
 export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId extends string = string> = (
-  & StackServerApp<HasTokenStore, ProjectId>
-  & AsyncStoreProperty<"projectAdmin", [], Project, false>
-  & AsyncStoreProperty<"apiKeySets", [], ApiKeySet[], true>
+  & AsyncStoreProperty<"project", [], AdminProject, false>
+  & AsyncStoreProperty<"apiKeys", [], ApiKey[], true>
+  & AsyncStoreProperty<"teamPermissionDefinitions", [], AdminTeamPermissionDefinition[], true>
   & {
-    createApiKeySet(options: ApiKeySetCreateOptions): Promise<ApiKeySetFirstView>,
+    useEmailTemplates(): AdminEmailTemplate[],
+    listEmailTemplates(): Promise<AdminEmailTemplate[]>,
+    updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void>,
+    resetEmailTemplate(type: EmailTemplateType): Promise<void>,
+
+    createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView>,
+
+    createTeamPermissionDefinition(data: AdminTeamPermissionDefinitionCreateOptions): Promise<AdminTeamPermission>,
+    updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions): Promise<void>,
+    deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
   }
+  & StackServerApp<HasTokenStore, ProjectId>
 );
 type StackAdminAppConstructor = {
   new <
@@ -2246,3 +2488,33 @@ type StackAdminAppConstructor = {
   new (options: StackAdminAppConstructorOptions<boolean, string>): StackAdminApp<boolean, string>,
 };
 export const StackAdminApp: StackAdminAppConstructor = _StackAdminAppImpl;
+
+type _______________EMAIL_TEMPLATE_______________ = never;  // this is a marker for VSCode's outline view
+
+type AdminEmailTemplate = {
+  type: EmailTemplateType,
+  subject: string,
+  content: any,
+  isDefault: boolean,
+}
+
+type AdminEmailTemplateUpdateOptions = {
+  subject?: string,
+  content?: any,
+};
+function adminEmailTemplateUpdateOptionsToCrud(options: AdminEmailTemplateUpdateOptions): EmailTemplateCrud['Admin']['Update'] {
+  return {
+    subject: options.subject,
+    content: options.content,
+  };
+}
+
+type _______________VARIOUS_______________ = never;  // this is a marker for VSCode's outline view
+
+type RedirectToOptions = {
+  replace?: boolean,
+};
+
+type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
+  & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
+  & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }

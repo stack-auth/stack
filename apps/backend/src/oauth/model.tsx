@@ -43,11 +43,11 @@ export class OAuthModel implements AuthorizationCodeModel {
       return false;
     }
 
-    const redirectUris = project.evaluatedConfig.domains.map(
-      ({ domain, handlerPath }) => new URL(handlerPath, domain).toString()
+    const redirectUris = project.config.domains.map(
+      ({ domain, handler_path }) => new URL(handler_path, domain).toString()
     );
 
-    if (redirectUris.length === 0 && project.evaluatedConfig.allowLocalhost) {
+    if (redirectUris.length === 0 && project.config.allow_localhost) {
       redirectUris.push("http://localhost");
     }
 
@@ -258,8 +258,8 @@ export class OAuthModel implements AuthorizationCodeModel {
 
     return validateRedirectUrl(
       redirect_uri,
-      project.evaluatedConfig.domains,
-      project.evaluatedConfig.allowLocalhost,
+      project.config.domains,
+      project.config.allow_localhost,
     );
   }
 }

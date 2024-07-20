@@ -1,85 +1,31 @@
-import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
-import { EmailConfigJson, ProjectJson, SharedProvider, StandardProvider } from "./clientInterface";
 import { InternalSession } from "../sessions";
+import { ApiKeysCrud } from "./crud/api-keys";
+import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
+import { ProjectsCrud } from "./crud/projects";
+import { TeamPermissionDefinitionsCrud } from "./crud/team-permissions";
+import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
-export type AdminAuthApplicationOptions = Readonly<
-  ServerAuthApplicationOptions &
-  (
-    | {
-      superSecretAdminKey: string,
-    }
-    | {
-      projectOwnerSession: InternalSession,
-    }
-  )
->
-
-export type OAuthProviderUpdateOptions = {
-  id: string,
-  enabled: boolean,
-} & (
+export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
   | {
-    type: SharedProvider,
+    superSecretAdminKey: string,
   }
   | {
-    type: StandardProvider,
-    clientId: string,
-    clientSecret: string,
+    projectOwnerSession: InternalSession,
   }
-)
+);
 
-export type ProjectUpdateOptions = {
-  displayName?: string,
-  description?: string,
-  isProductionMode?: boolean,
-  config?: {
-    domains?: {
-      domain: string,
-      handlerPath: string,
-    }[],
-    oauthProviders?: OAuthProviderUpdateOptions[],
-    credentialEnabled?: boolean,
-    magicLinkEnabled?: boolean,
-    allowLocalhost?: boolean,
-    createTeamOnSignUp?: boolean,
-    emailConfig?: EmailConfigJson,
-    teamCreatorDefaultPermissionIds?: string[],
-    teamMemberDefaultPermissionIds?: string[],
-  },
-};
-
-export type ApiKeySetBaseJson = {
-  id: string,
+export type ApiKeyCreateCrudRequest = {
+  has_publishable_client_key: boolean,
+  has_secret_server_key: boolean,
+  has_super_secret_admin_key: boolean,
+  expires_at_millis: number,
   description: string,
-  expiresAtMillis: number,
-  manuallyRevokedAtMillis: number | null,
-  createdAtMillis: number,
 };
 
-export type ApiKeySetFirstViewJson = ApiKeySetBaseJson & {
-  publishableClientKey?: string,
-  secretServerKey?: string,
-  superSecretAdminKey?: string,
-};
-
-export type ApiKeySetJson = ApiKeySetBaseJson & {
-  publishableClientKey: null | {
-    lastFour: string,
-  },
-  secretServerKey: null | {
-    lastFour: string,
-  },
-  superSecretAdminKey: null | {
-    lastFour: string,
-  },
-};
-
-export type ApiKeySetCreateOptions = {
-  hasPublishableClientKey: boolean,
-  hasSecretServerKey: boolean,
-  hasSuperSecretAdminKey: boolean,
-  expiresAt: Date,
-  description: string,
+export type ApiKeyCreateCrudResponse = ApiKeysCrud["Admin"]["Read"] & {
+  publishable_client_key?: string,
+  secret_server_key?: string,
+  super_secret_admin_key?: string,
 };
 
 export class StackAdminInterface extends StackServerInterface {
@@ -102,26 +48,22 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-  async getProject(options?: { showDisabledOAuth?: boolean }): Promise<ProjectJson> {
+  async getProject(): Promise<ProjectsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
-      "/projects/" + encodeURIComponent(this.projectId),
+      "/projects/current",
       {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(options ?? {}),
+        method: "GET",
       },
       null,
     );
     return await response.json();
   }
 
-  async updateProject(update: ProjectUpdateOptions): Promise<ProjectJson> {
+  async updateProject(update: ProjectsCrud["Admin"]["Update"]): Promise<ProjectsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
-      "/projects/" + encodeURIComponent(this.projectId),
+      "/projects/current",
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
@@ -132,11 +74,11 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async createApiKeySet(
-    options: ApiKeySetCreateOptions,
-  ): Promise<ApiKeySetFirstViewJson> {
+  async createApiKey(
+    options: ApiKeyCreateCrudRequest,
+  ): Promise<ApiKeyCreateCrudResponse> {
     const response = await this.sendServerRequest(
-      "/api-keys",
+      "/internal/api-keys",
       {
         method: "POST",
         headers: {
@@ -149,30 +91,103 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async listApiKeySets(): Promise<ApiKeySetJson[]> {
-    const response = await this.sendAdminRequest("/api-keys", {}, null);
-    const json = await response.json();
-    return json.map((k: ApiKeySetJson) => k);
+  async listApiKeys(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
+    const response = await this.sendAdminRequest("/internal/api-keys", {}, null);
+    const result = await response.json() as ApiKeysCrud["Admin"]["List"];
+    return result.items;
   }
 
-  async revokeApiKeySetById(id: string) {
+  async revokeApiKeyById(id: string) {
     await this.sendAdminRequest(
-      `/api-keys/${id}`, {
-        method: "PUT",
+      `/internal/api-keys/${id}`, {
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          revoke: true,
+          revoked: true,
         }),
       },
       null,
     );
   }
 
-  async getApiKeySet(id: string, session: InternalSession): Promise<ApiKeySetJson> {
-    const response = await this.sendAdminRequest(`/api-keys/${id}`, {}, session);
+  async getApiKey(id: string, session: InternalSession): Promise<ApiKeysCrud["Admin"]["Read"]> {
+    const response = await this.sendAdminRequest(`/internal/api-keys/${id}`, {}, session);
     return await response.json();
   }
-}
 
+  async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
+    const response = await this.sendAdminRequest(`/email-templates`, {}, null);
+    const result = await response.json() as EmailTemplateCrud['Admin']['List'];
+    return result.items;
+  }
+
+  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<EmailTemplateCrud['Admin']['Read']> {
+    const result = await this.sendAdminRequest(
+      `/email-templates/${type}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await result.json();
+  }
+
+  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
+    await this.sendAdminRequest(
+      `/email-templates/${type}`,
+      { method: "DELETE" },
+      null
+    );
+  }
+
+
+  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Admin']['Read'][]> {
+    const response = await this.sendAdminRequest(`/team-permission-definitions`, {}, null);
+    const result = await response.json() as TeamPermissionDefinitionsCrud['Admin']['List'];
+    return result.items;
+  }
+
+  async createPermissionDefinition(data: TeamPermissionDefinitionsCrud['Admin']['Create']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+    const response = await this.sendAdminRequest(
+      "/team-permission-definitions",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async updatePermissionDefinition(permissionId: string, data: TeamPermissionDefinitionsCrud['Admin']['Update']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+    const response = await this.sendAdminRequest(
+      `/team-permission-definitions/${permissionId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async deletePermissionDefinition(permissionId: string): Promise<void> {
+    await this.sendAdminRequest(
+      `/team-permission-definitions/${permissionId}`,
+      { method: "DELETE" },
+      null,
+    );
+  }
+}
