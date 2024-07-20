@@ -204,7 +204,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
 export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
-    authType: (user.authWithEmail ? "email" : user.oauthProviders[0].id) || "",
+    authType: (user.emailAuthEnabled ? "email" : user.oauthProviders[0].id) || "",
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }
