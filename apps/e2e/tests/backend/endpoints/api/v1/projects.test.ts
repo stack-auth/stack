@@ -38,6 +38,7 @@ it("gets current project (internal)", async ({ expect }) => {
             { "id": "facebook" },
             { "id": "github" },
             { "id": "google" },
+            { "id": "microsoft" },
           ],
           "magic_link_enabled": true,
         },
