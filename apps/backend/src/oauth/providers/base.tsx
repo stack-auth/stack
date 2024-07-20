@@ -30,10 +30,6 @@ export abstract class OAuthBaseProvider {
       }
     )
   ) {
-    if (options.clientId === "MOCK" && !options.isMock) {
-      throw new StackAssertionError("Invalid client ID; may not be MOCK except for the mock provider", { options });
-    }
-
     const issuer = "discoverFromUrl" in options ? await Issuer.discover(options.discoverFromUrl) : new Issuer({
       issuer: options.issuer,
       authorization_endpoint: options.authorizationEndpoint,
