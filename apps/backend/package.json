@@ -55,6 +55,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
+    "chokidar-cli": "^3.0.0",
     "@types/react": "^18.2.66",
     "prisma": "^5.9.1",
     "rimraf": "^5.0.5",
