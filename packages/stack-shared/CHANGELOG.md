@@ -1,5 +1,13 @@
 # @stackframe/stack-shared
 
+## 2.5.4
+
+### Patch Changes
+
+- Backend rework
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.4
+
 ## 2.5.3
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # cjs-test
 
+## 2.5.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.4
+
 ## 2.5.3
 
 ### Patch Changes

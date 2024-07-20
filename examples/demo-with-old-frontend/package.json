@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-demo-app-with-old-frontend",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "",
   "private": true,
   "scripts": {
@@ -14,9 +14,9 @@
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
-    "@stackframe/stack": "^2.5.3",
-    "@stackframe/stack-shared": "^2.5.3",
-    "@stackframe/stack-ui": "^2.5.3",
+    "@stackframe/stack": "^2.5.4",
+    "@stackframe/stack-shared": "^2.5.4",
+    "@stackframe/stack-ui": "^2.5.4",
     "next": "^14.1",
     "next-themes": "^0.2.1",
     "react": "^18.2",
