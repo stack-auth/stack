@@ -482,58 +482,6 @@ importers:
         specifier: ^16.4.5
         version: 16.4.5
 
-  apps/mock-oauth:
-    dependencies:
-      '@node-oauth/oauth2-server':
-        specifier: ^5.1.0
-        version: 5.1.0
-      '@stackframe/stack-shared':
-        specifier: workspace:*
-        version: link:../../packages/stack-shared
-      dotenv-cli:
-        specifier: ^7.3.0
-        version: 7.4.1
-      jose:
-        specifier: ^5.2.2
-        version: 5.4.0
-      next:
-        specifier: ^14.1
-        version: 14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      openid-client:
-        specifier: ^5.6.4
-        version: 5.6.5
-      prettier:
-        specifier: ^3.2.5
-        version: 3.3.2
-      react:
-        specifier: ^18.2
-        version: 18.3.1
-      server-only:
-        specifier: ^0.0.1
-        version: 0.0.1
-      yaml:
-        specifier: ^2.4.5
-        version: 2.4.5
-      yup:
-        specifier: ^1.4.0
-        version: 1.4.0
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.10
-        version: 20.14.2
-      '@types/react':
-        specifier: ^18.2.66
-        version: 18.3.3
-      glob:
-        specifier: ^10.4.1
-        version: 10.4.1
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.7
-      tsx:
-        specifier: ^4.7.2
-        version: 4.15.5
-
   docs:
     dependencies:
       fern-api:
@@ -542,7 +490,7 @@ importers:
     devDependencies:
       '@stackframe/stack-backend':
         specifier: workspace:*
-        version: link:../apps/mock-oauth
+        version: link:../apps/backend
       rimraf:
         specifier: ^5.0.7
         version: 5.0.7
@@ -773,6 +721,9 @@ importers:
       eslint-config-next:
         specifier: 14.2.5
         version: 14.2.5(eslint@8.30.0)(typescript@5.3.3)
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.7
       typescript:
         specifier: ^5
         version: 5.3.3
