@@ -15,11 +15,10 @@ import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { SearchToolbarItem } from "./elements/toolbar-items";
-import { standardFilterFn } from "./elements/utils";
-import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import { arrayFilterFn, standardFilterFn } from "./elements/utils";
 
 export type ExtendedServerUser = ServerUser & {
-  authType: string,
+  authTypes: string[],
   emailVerified: 'verified' | 'unverified',
 };
 
@@ -28,9 +27,9 @@ function userToolbarRender<TData>(table: Table<TData>) {
     <>
       <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
       <DataTableFacetedFilter
-        column={table.getColumn("authType")}
+        column={table.getColumn("authTypes")}
         title="Auth Method"
-        options={['email', ...standardProviders].map((provider) => ({
+        options={['email', 'password', ...standardProviders].map((provider) => ({
           value: provider,
           label: provider,
         }))}
@@ -145,10 +144,6 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
-function capitalizeFirstLetter(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
 export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   {
     accessorKey: "profileImageUrl",
@@ -186,10 +181,10 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
 const columns: ColumnDef<ExtendedServerUser>[] =  [
   ...getCommonUserColumns<ExtendedServerUser>(),
   {
-    accessorKey: "authType",
+    accessorKey: "authTypes",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
-    cell: ({ row }) => <BadgeCell badges={[capitalizeFirstLetter(row.original.authType)]} />,
-    filterFn: standardFilterFn,
+    cell: ({ row }) => <BadgeCell badges={row.original.authTypes} />,
+    filterFn: arrayFilterFn,
   },
   {
     accessorKey: "signedUpAt",
@@ -205,7 +200,11 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
 export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
-    authType: (user.emailAuthEnabled ? "email" : (user.oauthProviders[0]?.id ?? throwErr(`Unknown auth type for user ${user.displayName ?? user.primaryEmail} (${user.id}) in project ${user.projectId} — neither e-mail nor OAuth enabled`))) || "",
+    authTypes: [
+      ...user.emailAuthEnabled ? ["email"] : [],
+      ...user.hasPassword ? ["password"] : [],
+      ...user.oauthProviders.map(p => p.id),
+    ],
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }

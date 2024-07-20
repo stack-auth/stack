@@ -106,6 +106,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         authWithEmail: data.primary_email_auth_enabled ?? false,
         passwordHash: data.password == null ? data.password : await hashPassword(data.password),
         profileImageUrl: data.profile_image_url,
+        projectUserOAuthAccounts: data.oauth_providers ? {
+          createMany: {
+            data: data.oauth_providers.map((provider) => ({
+              projectConfigId: auth.project.config.id,
+              oauthProviderConfigId: provider.id,
+              providerAccountId: provider.account_id,
+              email: provider.email,
+            }))
+          }
+        } : undefined,
       },
       include: fullInclude,
     });
