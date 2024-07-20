@@ -490,12 +490,39 @@ describe("with server access", () => {
 
   it("should be able to read a user", async ({ expect }) => {
     await Auth.Otp.signIn();
+    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+    }));
+    const userId = signedInResponse.body.id;
     backendContext.set({
       userAuth: null,
     });
-    const response = await niceBackendFetch("/api/v1/users/123", {
+    const response = await niceBackendFetch("/api/v1/users/" + userId, {
       accessType: "server",
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "project_id": "internal",
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    expect(response.body.primary_email).toEqual(backendContext.value.mailbox.emailAddress);
   });
 
   it.todo("should not be able to create a user");

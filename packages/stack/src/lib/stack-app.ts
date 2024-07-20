@@ -714,7 +714,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       signedUpAt: new Date(crud.signed_up_at_millis),
       clientMetadata: crud.client_metadata,
       hasPassword: crud.has_password,
-      authWithEmail: crud.auth_with_email,
+      emailAuthEnabled: crud.auth_with_email,
       oauthProviders: crud.oauth_providers,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       toClientJson(): CurrentUserCrud['Client']['Read'] {
@@ -1252,8 +1252,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     return {
       ...super._createBaseUser(crud),
-      ..."serverMetadata" in crud ? {
-        serverMetadata: crud.serverMetadata,
+      ..."server_metadata" in crud ? {
+        // server user
+        serverMetadata: crud.server_metadata,
       } : {},
     };
   }
@@ -1928,13 +1929,13 @@ export type User =
 
     readonly signedUpAt: Date,
 
-    readonly clientMetadata: ReadonlyJson,
-    setClientMetadata(metadata: ReadonlyJson): Promise<void>,
+    readonly clientMetadata: any,
+    setClientMetadata(metadata: any): Promise<void>,
 
     /**
      * Whether the primary e-mail can be used for authentication.
      */
-    readonly authWithEmail: boolean,
+    readonly emailAuthEnabled: boolean,
     /**
      * Whether the user has a password set.
      */
@@ -1976,7 +1977,7 @@ type BaseUser = Pick<User,
   | "signedUpAt"
   | "clientMetadata"
   | "hasPassword"
-  | "authWithEmail"
+  | "emailAuthEnabled"
   | "oauthProviders"
   | "selectedTeam"
   | "toClientJson"
@@ -2018,8 +2019,8 @@ export type ServerUser =
   & {
     setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
 
-    readonly serverMetadata: ReadonlyJson,
-    setServerMetadata(metadata: ReadonlyJson): Promise<void>,
+    readonly serverMetadata: any,
+    setServerMetadata(metadata: any): Promise<void>,
 
     updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 

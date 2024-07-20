@@ -197,10 +197,10 @@ function isStringArray(value: any): value is string[] {
 
 export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   const serverMetadata = projectUser.server_metadata;
-  if (typeof serverMetadata !== "object" || !(!serverMetadata || "managedProjectIds" in serverMetadata)) {
+  if (typeof serverMetadata !== "object") {
     throw new StackAssertionError("Invalid server metadata, did something go wrong?", { serverMetadata });
   }
-  const managedProjectIds = serverMetadata?.managedProjectIds ?? [];
+  const managedProjectIds = (serverMetadata as any)?.managedProjectIds ?? [];
   if (!isStringArray(managedProjectIds)) {
     throw new StackAssertionError("Invalid server metadata, did something go wrong? Expected string array", { managedProjectIds });
   }

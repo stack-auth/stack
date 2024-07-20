@@ -8,8 +8,8 @@ export async function middleware(request: NextRequest) {
   // fetch the user object, and redirect if not logged in
   const user = await stackServerApp.getUser();
   if (!user) {
-    console.log('User in middleware is not logged in. Redirecting to /handler/signin');
-    return NextResponse.redirect(new URL('/handler/signin', request.url));
+    console.log('User in middleware is not logged in. Redirecting to sign-in page');
+    return NextResponse.redirect(stackServerApp.urls.signIn);
   }
 
   console.log('User in middleware is logged in. ID: ', user.id);

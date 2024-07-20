@@ -57,50 +57,68 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
   }
 
+  const availablePaths = {
+    signIn: 'sign-in',
+    signUp: 'sign-up',
+    emailVerification: 'email-verification',
+    passwordReset: 'password-reset',
+    forgotPassword: 'forgot-password',
+    signOut: 'sign-out',
+    oauthCallback: 'oauth-callback',
+    accountSettings: 'account-settings',
+    magicLinkCallback: 'magic-link-callback',
+    error: 'error',
+  };
+
   const path = stack.join('/');
   switch (path) {
-    case 'signin': {
+    case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
       await redirectIfHasUser();
       return <SignIn fullPage={fullPage} />;
     }
-    case 'signup': {
+    case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
       await redirectIfHasUser();
       return <SignUp fullPage={fullPage} />;
     }
-    case 'email-verification': {
+    case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
       return <EmailVerification searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'password-reset': {
+    case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
       return <PasswordReset searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'forgot-password': {
+    case availablePaths.forgotPassword: {
       redirectIfNotHandler('forgotPassword');
       return <ForgotPassword fullPage={fullPage} />;
     }
-    case 'signout': {
+    case availablePaths.signOut: {
       redirectIfNotHandler('signOut');
       return <SignOut fullPage={fullPage} />;
     }
-    case 'oauth-callback': {
+    case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
       return <OAuthCallback fullPage={fullPage} />;
     }
-    case 'account-settings': {
+    case availablePaths.accountSettings: {
       redirectIfNotHandler('accountSettings');
       return <AccountSettings fullPage={fullPage} />;
     }
-    case 'magic-link-callback': {
+    case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'error': {
+    case availablePaths.error: {
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
+      for (const [key, value] of Object.entries(availablePaths)) {
+        if (path === value.replaceAll('-', '')) {
+          redirect(`${app.urls.handler}/${value}`, RedirectType.replace);
+        }
+      }
       return notFound();
     }
   }

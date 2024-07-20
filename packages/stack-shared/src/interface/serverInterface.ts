@@ -59,7 +59,7 @@ export class StackServerInterface extends StackClientInterface {
     InstanceType<E>
   >> {
     try {
-      return Result.ok(await this.sendClientRequest(path, requestOptions, tokenStoreOrNull));
+      return Result.ok(await this.sendServerRequest(path, requestOptions, tokenStoreOrNull));
     } catch (e) {
       for (const errorType of errorsToCatch) {
         if (e instanceof errorType) {

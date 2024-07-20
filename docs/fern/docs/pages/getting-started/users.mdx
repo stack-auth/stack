@@ -54,7 +54,7 @@ On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the u
     export async function middleware(request: NextRequest) {
       const user = await stackServerApp.getUser();
       if (!user) {
-        return NextResponse.redirect(new URL('/handler/signin', request.url));
+        return NextResponse.redirect(new URL('/handler/sign-in', request.url));
       }
       return NextResponse.next();
     }

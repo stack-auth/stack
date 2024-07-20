@@ -1,0 +1,25 @@
+{
+  "name": "@stackframe/e-commerce-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 8111",
+    "build": "next build",
+    "start": "next start --port 8111",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@stackframe/stack": "workspace:*",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "typescript": "^5"
+  }
+}

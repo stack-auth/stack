@@ -44,7 +44,7 @@ async function UserInfo() {
       </>}
       {!user && <>
         You are not logged in.<br />
-        <Link href="/handler/signin">Log in</Link>
+        <Link href="/handler/sign-in">Log in</Link>
       </>}
     </div>
   );
@@ -69,7 +69,7 @@ async function UserInfo() {
       </>}
       {!user && <>
         You are not logged in.<br />
-        <Link href="/handler/signin">Log in</Link>
+        <Link href="/handler/sign-in">Log in</Link>
       </>}
     </div>
   );
