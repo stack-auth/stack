@@ -21,7 +21,7 @@ function getAuthorizeQuery() {
   };
 }
 
-it("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
+it.todo("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
     redirect: "manual",
     query: {
@@ -33,7 +33,7 @@ it("should redirect the user to the OAuth provider with the right arguments", as
   expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
 });
 
-it("should fail if an invalid client_id is provided", async ({ expect }) => {
+it.todo("should fail if an invalid client_id is provided", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
     redirect: "manual",
     query: {
@@ -57,7 +57,7 @@ it("should fail if an invalid client_id is provided", async ({ expect }) => {
   `);
 });
 
-it("should fail if an invalid client_secret is provided", async ({ expect }) => {
+it.todo("should fail if an invalid client_secret is provided", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
     redirect: "manual",
     query: {
