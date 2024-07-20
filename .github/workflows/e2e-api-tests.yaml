@@ -36,10 +36,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create .env.production.local file for stack-backend
+      - name: Create .env.test.local file for stack-backend
         run: cp apps/backend/.env.development apps/backend/.env.test.local
 
-      - name: Create .env.production.local file for stack-dashboard
+      - name: Create .env.test.local file for stack-dashboard
         run: cp apps/dashboard/.env.development apps/dashboard/.env.test.local
 
       - name: Build stack-backend

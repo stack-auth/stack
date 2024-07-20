@@ -16,6 +16,7 @@ import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { standardFilterFn } from "./elements/utils";
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 
 export type ExtendedServerUser = ServerUser & {
   authType: string,
@@ -204,7 +205,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
 export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
-    authType: (user.emailAuthEnabled ? "email" : user.oauthProviders[0].id) || "",
+    authType: (user.emailAuthEnabled ? "email" : (user.oauthProviders[0]?.id ?? throwErr(`Unknown auth type for user ${user.displayName ?? user.primaryEmail} (${user.id}) in project ${user.projectId} — neither e-mail nor OAuth enabled`))) || "",
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }

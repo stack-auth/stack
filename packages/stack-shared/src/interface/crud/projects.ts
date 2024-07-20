@@ -14,6 +14,10 @@ const oauthProviderSchema = yupObject({
   client_secret: yupRequiredWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
 });
 
+const enabledOAuthProviderSchema = yupObject({
+  id: schemaFields.oauthIdSchema.required(),
+});
+
 const emailConfigSchema = yupObject({
   type: schemaFields.emailTypeSchema.required(),
   host: yupRequiredWhen(schemaFields.emailHostSchema, 'type', 'standard'),
@@ -42,6 +46,7 @@ export const projectsCrudServerReadSchema = yupObject({
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
+    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
     domains: yupArray(domainSchema.required()).required(),
     email_config: emailConfigSchema.required(),
     create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.required(),
@@ -56,9 +61,7 @@ export const projectsCrudClientReadSchema = yupObject({
   config: yupObject({
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
-    oauth_providers: yupArray(yupObject({
-      id: schemaFields.oauthIdSchema.required(),
-    }).required()).required(),
+    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
   }).required(),
 }).required();
 

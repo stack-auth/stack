@@ -161,7 +161,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
       return result;
     });
 
-    return projectPrismaToCrud(result, 'admin');
+    return projectPrismaToCrud(result);
   },
   onList: async ({ auth }) => {
     const results = await prismaClient.project.findMany({
@@ -173,7 +173,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
     });
 
     return {
-      items: results.map(x => projectPrismaToCrud(x, 'admin')),
+      items: results.map(x => projectPrismaToCrud(x)),
       is_paginated: false,
     } as const;
   }
