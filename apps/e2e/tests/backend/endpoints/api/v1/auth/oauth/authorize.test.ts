@@ -2,8 +2,6 @@ import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { it, localRedirectUrl } from "../../../../../../helpers";
 import { backendContext, niceBackendFetch } from "../../../../../backend-helpers";
 
-// TODO: We need to mock STACK_GITHUB_CLIENT_ID and STACK_GITHUB_CLIENT_SECRET before we can run these tests, so they're currently marked as todo
-
 function getAuthorizeQuery() {
   const projectKeys = backendContext.value.projectKeys;
   if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
@@ -22,7 +20,7 @@ function getAuthorizeQuery() {
 }
 
 it("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),
@@ -34,7 +32,7 @@ it("should redirect the user to the OAuth provider with the right arguments", as
 });
 
 it("should fail if an invalid client_id is provided", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),
@@ -58,7 +56,7 @@ it("should fail if an invalid client_id is provided", async ({ expect }) => {
 });
 
 it("should fail if an invalid client_secret is provided", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),
