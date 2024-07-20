@@ -83,11 +83,11 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   const handler = partial.handler ?? "/handler";
   return {
     handler,
-    signIn: `${handler}/signin`,
+    signIn: `${handler}/sign-in`,
     afterSignIn: "/",
-    signUp: `${handler}/signup`,
+    signUp: `${handler}/sign-up`,
     afterSignUp: "/",
-    signOut: `${handler}/signout`,
+    signOut: `${handler}/sign-out`,
     afterSignOut: "/",
     emailVerification: `${handler}/email-verification`,
     passwordReset: `${handler}/password-reset`,
