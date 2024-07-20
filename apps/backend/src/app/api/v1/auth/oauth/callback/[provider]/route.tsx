@@ -9,7 +9,7 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -90,10 +90,10 @@ export const GET = createSmartRouteHandler({
 
     const userInfo = await getProvider(provider).getCallback({
       codeVerifier: innerCodeVerifier,
-      state: query.state!,
+      state: query.state ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide state in query")),
       callbackParams: {
-        code: query.code!,
-        state: query.state!,
+        code: query.code ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide code in query")),
+        state: query.state ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide state in query")),
       }
     });
 
