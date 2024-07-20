@@ -133,6 +133,7 @@ class RetryError extends AggregateError {
     return this.errors.length;
   }
 }
+RetryError.prototype.name = "RetryError";
 
 async function retry<T>(
   fn: () => Result<T> | Promise<Result<T>>,

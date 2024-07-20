@@ -1,5 +1,5 @@
 {
-  "name": "oauth-mock-server",
+  "name": "@stackframe/oauth-mock-server",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
