@@ -4,11 +4,17 @@ import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class GithubProvider extends OAuthBaseProvider {
-  constructor(options: {
+  private constructor(
+    ...args: ConstructorParameters<typeof OAuthBaseProvider>
+  ) {
+    super(...args);
+  }
+
+  static async create(options: {
     clientId: string,
     clientSecret: string,
   }) {
-    super({
+    return new GithubProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://github.com",
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
@@ -16,7 +22,7 @@ export class GithubProvider extends OAuthBaseProvider {
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/github",
       baseScope: "user:email",
       ...options,
-    });
+    }));
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {

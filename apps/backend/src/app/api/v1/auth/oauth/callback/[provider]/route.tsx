@@ -91,7 +91,8 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
 
-    const userInfo = await getProvider(provider).getCallback({
+    const providerObj = await getProvider(provider);
+    const userInfo = await providerObj.getCallback({
       codeVerifier: innerCodeVerifier,
       state: query.state,
       callbackParams: {
@@ -155,7 +156,7 @@ export const GET = createSmartRouteHandler({
             oAuthProviderConfigId: provider.id,
             refreshToken: userInfo.refreshToken,
             providerAccountId: userInfo.accountId,
-            scopes: extractScopes(getProvider(provider).scope + " " + providerScope),
+            scopes: extractScopes(providerObj.scope + " " + providerScope),
           }
         });
       }

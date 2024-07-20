@@ -1,0 +1,18 @@
+{
+  "name": "oauth-mock-server",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@types/oidc-provider": "^8.5.1",
+    "@stackframe/stack-shared": "workspace:*",
+    "oidc-provider": "^8.5.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.2"
+  }
+}

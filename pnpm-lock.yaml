@@ -484,6 +484,9 @@ importers:
 
   apps/oauth-mock-server:
     dependencies:
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../../packages/stack-shared
       '@types/oidc-provider':
         specifier: ^8.5.1
         version: 8.5.1

@@ -4,18 +4,24 @@ import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class FacebookProvider extends OAuthBaseProvider {
-  constructor(options: {
+  private constructor(
+    ...args: ConstructorParameters<typeof OAuthBaseProvider>
+  ) {
+    super(...args);
+  }
+
+  static async create(options: {
     clientId: string,
     clientSecret: string,
   }) {
-    super({
+    return new FacebookProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://www.facebook.com",
       authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/facebook",
       baseScope: "public_profile email",
       ...options
-    });
+    }));
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {

@@ -83,7 +83,8 @@ export const GET = createSmartRouteHandler({
 
     const innerCodeVerifier = generators.codeVerifier();
     const innerState = generators.state();
-    const oauthUrl = getProvider(provider).getAuthorizationUrl({
+    const providerObj = await getProvider(provider);
+    const oauthUrl = providerObj.getAuthorizationUrl({
       codeVerifier: innerCodeVerifier,
       state: innerState,
       extraScope: query.provider_scope,

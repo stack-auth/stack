@@ -9,6 +9,7 @@ import { GithubProvider } from "./providers/github";
 import { GoogleProvider } from "./providers/google";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
+import { MockProvider } from "./providers/mock";
 
 const _providers = {
   github: GithubProvider,
@@ -18,6 +19,8 @@ const _providers = {
   spotify: SpotifyProvider,
 } as const;
 
+const mockProvider = MockProvider;
+
 const _getEnvForProvider = (provider: keyof typeof _providers) => {
   return {
     clientId: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_ID`),
@@ -25,14 +28,23 @@ const _getEnvForProvider = (provider: keyof typeof _providers) => {
   };
 };
 
-export function getProvider(provider: ProjectsCrud['Admin']['Read']['config']['oauth_providers'][number]): OAuthBaseProvider {
+export async function getProvider(provider: ProjectsCrud['Admin']['Read']['config']['oauth_providers'][number]): Promise<OAuthBaseProvider> {
   if (provider.type === 'shared') {
-    return new _providers[provider.id]({
-      clientId: _getEnvForProvider(provider.id).clientId,
-      clientSecret: _getEnvForProvider(provider.id).clientSecret,
-    });
+    const clientId = _getEnvForProvider(provider.id).clientId;
+    const clientSecret = _getEnvForProvider(provider.id).clientSecret;
+    if (clientId === "MOCK") {
+      return await mockProvider.create(provider.id, {
+        clientId,
+        clientSecret,
+      });
+    } else {
+      return await _providers[provider.id].create({
+        clientId,
+        clientSecret,
+      });
+    }
   } else {
-    return new _providers[provider.id]({
+    return await _providers[provider.id].create({
       clientId: provider.client_id || throwErr("Client ID is required for standard providers"),
       clientSecret: provider.client_secret || throwErr("Client secret is required for standard providers"),
     });
