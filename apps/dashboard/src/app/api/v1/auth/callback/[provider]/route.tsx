@@ -45,8 +45,8 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const providerId = options.params.provider;
 
-  const infoId = cookies().get("stack-oauth-" + state.slice(0, 8));
-  cookies().delete("stack-oauth-" + state.slice(0, 8));
+  const infoId = cookies().get("stack-oauth-inner-" + state.slice(0, 8));
+  cookies().delete("stack-oauth-inner-" + state.slice(0, 8));
 
   if (!infoId) {
     throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");

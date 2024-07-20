@@ -1,7 +1,7 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthModel } from "./model";
 import { OAuthBaseProvider } from "./providers/base";
 import { FacebookProvider } from "./providers/facebook";
@@ -33,10 +33,10 @@ export async function getProvider(provider: ProjectsCrud['Admin']['Read']['confi
     const clientId = _getEnvForProvider(provider.id).clientId;
     const clientSecret = _getEnvForProvider(provider.id).clientSecret;
     if (clientId === "MOCK") {
-      return await mockProvider.create(provider.id, {
-        clientId,
-        clientSecret,
-      });
+      if (clientSecret !== "MOCK") {
+        throw new StackAssertionError("If OAuth provider client ID is set to MOCK, then client secret must also be set to MOCK");
+      }
+      return await mockProvider.create(provider.id);
     } else {
       return await _providers[provider.id].create({
         clientId,

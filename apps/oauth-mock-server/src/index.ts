@@ -2,12 +2,22 @@ import Provider, { Configuration } from 'oidc-provider';
 
 const port = Number.parseInt(process.env.PORT || "8107");
 
+const mockedProviders = [
+  "github",
+  "facebook",
+  "google",
+  "microsoft",
+  "spotify",
+];
+
 const configuration: Configuration  = {
-  clients: [{
-    client_id: 'MOCK',
-    client_secret: 'MOCK',
-    redirect_uris: ['http://localhost:8102/api/v1/auth/oauth/callback/github'],
-  }],
+  clients: mockedProviders.map((providerId) => ({
+    client_id: providerId,
+    client_secret: 'MOCK-SERVER-SECRET',
+    redirect_uris: [
+      `http://localhost:8102/api/v1/auth/oauth/callback/${providerId}`,
+    ],
+  })),
 };
 
 const oidc = new Provider(`http://localhost:${port}`, configuration);

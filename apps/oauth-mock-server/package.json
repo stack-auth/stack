@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx src/index.ts",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch --clear-screen=false src/index.ts"
   },
   "dependencies": {
     "@types/oidc-provider": "^8.5.1",

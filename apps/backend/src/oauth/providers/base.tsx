@@ -85,14 +85,14 @@ export abstract class OAuthBaseProvider {
     state: string,
   }): Promise<OAuthUserInfo> {
     let tokenSet;
+    const params = {
+      code_verifier: options.codeVerifier,
+      state: options.state,
+    };
     try {
-      const params = {
-        code_verifier: options.codeVerifier,
-        state: options.state,
-      };
       tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
     } catch (error) {
-      throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
+      throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
     }
     if (!tokenSet.access_token) {
       throw new StackAssertionError("No access token received", { tokenSet });

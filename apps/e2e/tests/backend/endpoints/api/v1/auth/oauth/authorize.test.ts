@@ -30,7 +30,7 @@ it.todo("should redirect the user to the OAuth provider with the right arguments
   });
   expect(response.status).toBe(307);
   expect(response.headers.get("location")).toMatch(/^https:\/\/github\.com\/login\/oauth\/authorize\?.*$/);
-  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
+  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
 });
 
 it.todo("should fail if an invalid client_id is provided", async ({ expect }) => {
