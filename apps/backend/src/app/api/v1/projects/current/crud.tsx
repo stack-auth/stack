@@ -1,12 +1,10 @@
 import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
-import { fullProjectInclude, getProject, projectPrismaToCrud } from "@/lib/projects";
+import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
@@ -268,7 +266,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
       });
     });
 
-    return projectPrismaToCrud(result, auth.type);
+    return projectPrismaToCrud(result);
   },
   onRead: async ({ auth }) => {
     return auth.project;

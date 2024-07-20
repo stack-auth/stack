@@ -651,7 +651,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       config: {
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
-        oauthProviders: crud.config.oauth_providers.map((p) => ({
+        oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
           id: p.id,
         })),
       }

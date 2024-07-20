@@ -190,6 +190,7 @@ it("customize default team permissions", async ({ expect }) => {
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],

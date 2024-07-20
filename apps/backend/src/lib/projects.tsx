@@ -56,10 +56,36 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
   },
 };
 
-export function projectPrismaToCrud<A extends 'client' | 'server' | 'admin'>(
-  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>,
-  accessType: A,
+export function projectPrismaToCrud(
+  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
 ): ProjectsCrud["Admin"]["Read"] {
+  const oauthProviders = prisma.config.oauthProviderConfigs
+    .flatMap((provider): {
+      id: Lowercase<ProxiedOAuthProviderType>,
+      enabled: boolean,
+      type: 'standard' | 'shared',
+      client_id?: string | undefined,
+      client_secret?: string ,
+    }[] => {
+      if (provider.proxiedOAuthConfig) {
+        return [{
+          id: typedToLowercase(provider.proxiedOAuthConfig.type),
+          enabled: provider.enabled,
+          type: 'shared',
+        }];
+      } else if (provider.standardOAuthConfig) {
+        return [{
+          id: typedToLowercase(provider.standardOAuthConfig.type),
+          enabled: provider.enabled,
+          type: 'standard',
+          client_id: provider.standardOAuthConfig.clientId,
+          client_secret: provider.standardOAuthConfig.clientSecret,
+        }];
+      } else {
+        throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
+      }
+    })
+    .sort((a, b) => a.id.localeCompare(b.id));
   return {
     id: prisma.id,
     display_name: prisma.displayName,
@@ -79,34 +105,8 @@ export function projectPrismaToCrud<A extends 'client' | 'server' | 'admin'>(
           handler_path: domain.handlerPath,
         }))
         .sort((a, b) => a.domain.localeCompare(b.domain)),
-      oauth_providers: prisma.config.oauthProviderConfigs
-        .flatMap((provider): {
-          id: Lowercase<ProxiedOAuthProviderType>,
-          enabled: boolean,
-          type: 'standard' | 'shared',
-          client_id?: string | undefined,
-          client_secret?: string ,
-        }[] => {
-          if (provider.proxiedOAuthConfig) {
-            return [{
-              id: typedToLowercase(provider.proxiedOAuthConfig.type),
-              enabled: provider.enabled,
-              type: 'shared',
-            }];
-          } else if (provider.standardOAuthConfig) {
-            return [{
-              id: typedToLowercase(provider.standardOAuthConfig.type),
-              enabled: provider.enabled,
-              type: 'standard',
-              client_id: provider.standardOAuthConfig.clientId,
-              client_secret: provider.standardOAuthConfig.clientSecret,
-            }];
-          } else {
-            throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
-          }
-        })
-        .filter(p => accessType === 'admin' ? true : p.enabled)
-        .sort((a, b) => a.id.localeCompare(b.id)),
+      oauth_providers: oauthProviders,
+      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
       email_config: (() => {
         const emailServiceConfig = prisma.config.emailServiceConfig;
         if (!emailServiceConfig) {
@@ -218,5 +218,5 @@ export async function getProject(projectId: string): Promise<ProjectsCrud["Admin
     return null;
   }
 
-  return projectPrismaToCrud(rawProject, "admin");
+  return projectPrismaToCrud(rawProject);
 }
