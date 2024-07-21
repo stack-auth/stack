@@ -22,7 +22,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     add_current_user: yupString().oneOf(["true", "false"]).optional(),
   }),
   paramsSchema: yupObject({
-    team_id: yupString().required(),
+    team_id: yupString().uuid().required(),
   }),
   onCreate: async ({ query, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {

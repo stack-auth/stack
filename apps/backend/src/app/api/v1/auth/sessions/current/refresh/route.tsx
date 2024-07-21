@@ -1,4 +1,4 @@
-import { encodeAccessToken } from "@/lib/tokens";
+import { generateAccessToken } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -41,7 +41,7 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.RefreshTokenNotFoundOrExpired();
     }
 
-    const accessToken = await encodeAccessToken({
+    const accessToken = await generateAccessToken({
       projectId: sessionObj.projectId,
       userId: sessionObj.projectUserId,
     });
