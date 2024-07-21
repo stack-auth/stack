@@ -1,11 +1,11 @@
 import { createTeamPermissionDefinition, deleteTeamPermissionDefinition, listTeamPermissionDefinitions, updateTeamPermissionDefinitions } from "@/lib/permissions";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { teamPermissionDefinitionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { teamPermissionDefinitionIdSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPermissionDefinitionsCrud, {
   paramsSchema: yupObject({
-    permission_id: yupString().required(),
+    permission_id: teamPermissionDefinitionIdSchema.required(),
   }),
   async onCreate({ auth, data }) {
     return await createTeamPermissionDefinition({

@@ -4,7 +4,7 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -18,11 +18,11 @@ function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
 
 export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
-    user_id: yupString().optional(),
+    user_id: userIdOrMeSchema.optional(),
     add_current_user: yupString().oneOf(["true", "false"]).optional(),
   }),
   paramsSchema: yupObject({
-    team_id: yupString().required(),
+    team_id: yupString().uuid().required(),
   }),
   onCreate: async ({ query, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {

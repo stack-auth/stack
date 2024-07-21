@@ -2,13 +2,13 @@ import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/li
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 
 export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCrud, {
   paramsSchema: yupObject({
-    team_id: yupString().required(),
-    user_id: yupString().required(),
+    team_id: yupString().uuid().required(),
+    user_id: userIdOrMeSchema.required(),
   }),
   onCreate: async ({ auth, params }) => {
     await prismaClient.teamMember.create({
