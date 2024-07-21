@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   return {
@@ -73,18 +73,39 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     return prismaToCrud(db);
   },
   onRead: async ({ params, auth }) => {
-    const db = await prismaClient.team.findUnique({
-      where: {
-        projectId_teamId: {
-          projectId: auth.project.id,
-          teamId: params.team_id,
-        },
-      },
-    });
+    const db = await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client') {
+        const member = await tx.teamMember.findUnique({
+          where: {
+            projectId_projectUserId_teamId: {
+              projectId: auth.project.id,
+              projectUserId: auth.user?.id || throwErr("Client must be logged in"),
+              teamId: params.team_id,
+            },
+          },
+        });
 
-    if (!db) {
-      throw new KnownErrors.TeamNotFound(params.team_id);
-    }
+        if (!member) {
+          throw new KnownErrors.TeamNotFound(params.team_id);
+        }
+      }
+
+
+      const db = await prismaClient.team.findUnique({
+        where: {
+          projectId_teamId: {
+            projectId: auth.project.id,
+            teamId: params.team_id,
+          },
+        },
+      });
+
+      if (!db) {
+        throw new KnownErrors.TeamNotFound(params.team_id);
+      }
+
+      return db;
+    });
 
     return prismaToCrud(db);
   },
