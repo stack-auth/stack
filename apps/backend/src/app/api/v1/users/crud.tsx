@@ -1,4 +1,3 @@
-import { getServerTeamFromDbType } from "@/lib/teams";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -9,6 +8,7 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { teamPrismaToCrud } from "../teams/crud";
 
 const fullInclude = {
   projectUserOAuthAccounts: true,
@@ -46,7 +46,7 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
       email: a.email,
     })),
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
-    selected_team: selectedTeamMembers[0] ? getServerTeamFromDbType(selectedTeamMembers[0]?.team) : null,
+    selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
   };
 };
 
@@ -177,7 +177,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return prismaToCrud(db);
   },
   onDelete: async ({ auth, params }) => {
-    const db = await prismaClient.projectUser.delete({
+    await prismaClient.projectUser.delete({
       where: {
         projectId_projectUserId: {
           projectId: auth.project.id,

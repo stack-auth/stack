@@ -1,4 +1,5 @@
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
+import { sendWebhooks } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
@@ -7,7 +8,8 @@ import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
-function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
+
+export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   return {
     id: prisma.teamId,
     display_name: prisma.displayName,
@@ -69,7 +71,17 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
       return db;
     });
 
-    return prismaToCrud(db);
+    await sendWebhooks({
+      type: "team.created",
+      projectId: auth.project.id,
+      data: {
+        team_id: db.teamId,
+        display_name: db.displayName,
+        by_user_id: auth.user?.id,
+      },
+    });
+
+    return teamPrismaToCrud(db);
   },
   onRead: async ({ params, auth }) => {
     const db = await prismaClient.team.findUnique({
@@ -85,7 +97,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
       throw new KnownErrors.TeamNotFound(params.team_id);
     }
 
-    return prismaToCrud(db);
+    return teamPrismaToCrud(db);
   },
   onUpdate: async ({ params, auth, data }) => {
     const db = await prismaClient.team.update({
@@ -101,15 +113,23 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
       },
     });
 
-    return prismaToCrud(db);
+    return teamPrismaToCrud(db);
   },
   onDelete: async ({ params, auth }) => {
-    const db = await prismaClient.team.delete({
+    await prismaClient.team.delete({
       where: {
         projectId_teamId: {
           projectId: auth.project.id,
           teamId: params.team_id,
         },
+      },
+    });
+
+    await sendWebhooks({
+      type: "team.deleted",
+      projectId: auth.project.id,
+      data: {
+        team_id: params.team_id,
       },
     });
   },
@@ -143,7 +163,7 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     });
 
     return {
-      items: db.map(prismaToCrud),
+      items: db.map(teamPrismaToCrud),
       is_paginated: false,
     };
   }
