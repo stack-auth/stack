@@ -8,7 +8,7 @@ it("is not allowed to list all the teams in a project on the client", async ({ e
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 403,
-      "body": "You are only allowed to access your own teams with the client access token.",
+      "body": "Client can only list teams for their own user. user_id must be either \\"me\\" or the ID of the current user",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

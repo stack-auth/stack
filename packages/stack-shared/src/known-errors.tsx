@@ -975,6 +975,16 @@ const UserAuthenticationRequired = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const TeamMembershipAlreadyExists = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_MEMBERSHIP_ALREADY_EXISTS",
+  () => [
+    400,
+    "Team membership already exists.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1055,6 +1065,7 @@ export const KnownErrors = {
   OuterOAuthTimeout,
   OAuthProviderNotFoundOrNotEnabled,
   UserAuthenticationRequired,
+  TeamMembershipAlreadyExists,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

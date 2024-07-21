@@ -1,6 +1,7 @@
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -114,17 +115,10 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     });
   },
   onList: async ({ query, auth }) => {
-    if (auth.type === 'client') {
-      if (query.user_id !== 'me' && query.user_id !== auth.user?.id) {
-        throw new StatusError(StatusError.Forbidden, "You are only allowed to access your own teams with the client access token.");
-      }
+    const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
+    if (auth.type === 'client' && userId !== auth.user?.id) {
+      throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
     }
-
-    if (query.user_id === 'me' && !auth.user) {
-      throw new KnownErrors.CannotGetOwnUserWithoutUser();
-    }
-
-    let userId = query.user_id === 'me' ? auth.user?.id : query.user_id;
 
     const db = await prismaClient.team.findMany({
       where: {
