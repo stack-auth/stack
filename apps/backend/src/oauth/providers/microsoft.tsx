@@ -4,18 +4,24 @@ import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
-  constructor(options: {
+  private constructor(
+    ...args: ConstructorParameters<typeof OAuthBaseProvider>
+  ) {
+    super(...args);
+  }
+
+  static async create(options: {
     clientId: string,
     clientSecret: string,
   }) {
-    super({
+    return new MicrosoftProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/microsoft",
       baseScope: "User.Read",
       ...options,
-    });
+    }));
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {

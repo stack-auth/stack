@@ -2,8 +2,6 @@ import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { it, localRedirectUrl } from "../../../../../../helpers";
 import { backendContext, niceBackendFetch } from "../../../../../backend-helpers";
 
-// TODO: We need to mock STACK_GITHUB_CLIENT_ID and STACK_GITHUB_CLIENT_SECRET before we can run these tests, so they're currently marked as todo
-
 function getAuthorizeQuery() {
   const projectKeys = backendContext.value.projectKeys;
   if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
@@ -21,20 +19,20 @@ function getAuthorizeQuery() {
   };
 }
 
-it.todo("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+it("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),
     },
   });
   expect(response.status).toBe(307);
-  expect(response.headers.get("location")).toMatch(/^https:\/\/github\.com\/login\/oauth\/authorize\?.*$/);
-  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; Secure; HttpOnly$/);
+  expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
+  expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+; (Secure;)? HttpOnly$/);
 });
 
-it.todo("should fail if an invalid client_id is provided", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+it("should fail if an invalid client_id is provided", async ({ expect }) => {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),
@@ -57,8 +55,8 @@ it.todo("should fail if an invalid client_id is provided", async ({ expect }) =>
   `);
 });
 
-it.todo("should fail if an invalid client_secret is provided", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/github", {
+it("should fail if an invalid client_secret is provided", async ({ expect }) => {
+  const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
       ...getAuthorizeQuery(),

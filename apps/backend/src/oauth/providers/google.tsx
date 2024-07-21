@@ -4,11 +4,17 @@ import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class GoogleProvider extends OAuthBaseProvider {
-  constructor(options: {
+  private constructor(
+    ...args: ConstructorParameters<typeof OAuthBaseProvider>
+  ) {
+    super(...args);
+  }
+
+  static async create(options: {
     clientId: string,
     clientSecret: string,
   }) {
-    super({
+    return new GoogleProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://accounts.google.com",
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
@@ -16,7 +22,7 @@ export class GoogleProvider extends OAuthBaseProvider {
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/google",
       baseScope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
       ...options,
-    });
+    }));
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {

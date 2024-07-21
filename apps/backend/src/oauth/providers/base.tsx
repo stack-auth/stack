@@ -4,28 +4,39 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 
 export abstract class OAuthBaseProvider {
-  issuer: Issuer;
-  scope: string;
-  oauthClient: Client;
-  redirectUri: string;
+  constructor(
+    public readonly oauthClient: Client,
+    public readonly scope: string,
+    public readonly redirectUri: string,
+  ) {}
 
-  constructor(options: {
-    issuer: string,
-    authorizationEndpoint: string,
-    tokenEndpoint: string,
-    userinfoEndpoint?: string,
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string,
-    baseScope: string,
-  }) {
-    this.issuer = new Issuer({
+  protected static async createConstructorArgs(options:
+    & {
+      clientId: string,
+      clientSecret: string,
+      redirectUri: string,
+      baseScope: string,
+      isMock?: boolean,
+    }
+    & (
+      | {
+        issuer: string,
+        authorizationEndpoint: string,
+        tokenEndpoint: string,
+        userinfoEndpoint?: string,
+      }
+      | {
+        discoverFromUrl: string,
+      }
+    )
+  ) {
+    const issuer = "discoverFromUrl" in options ? await Issuer.discover(options.discoverFromUrl) : new Issuer({
       issuer: options.issuer,
       authorization_endpoint: options.authorizationEndpoint,
       token_endpoint: options.tokenEndpoint,
       userinfo_endpoint: options.userinfoEndpoint,
     });
-    this.oauthClient = new this.issuer.Client({
+    const oauthClient = new issuer.Client({
       client_id: options.clientId,
       client_secret: options.clientSecret,
       redirect_uri: options.redirectUri,
@@ -33,21 +44,20 @@ export abstract class OAuthBaseProvider {
     });
 
     // facebook always return an id_token even in the OAuth2 flow, which is not supported by openid-client
-    const oldGrant = this.oauthClient.grant;
+    const oldGrant = oauthClient.grant;
     if (!(oldGrant as any)) {
       // it seems that on Sentry, this was undefined in one scenario, so let's log some data to help debug if it happens again
       // not sure if that is actually what was going on? the error log has very few details
       // https://stackframe-pw.sentry.io/issues/5515577938
-      throw new StackAssertionError("oldGrant is undefined for some reason — that should never happen!", { options, oauthClient: this.oauthClient });
+      throw new StackAssertionError("oldGrant is undefined for some reason — that should never happen!", { options, oauthClient });
     }
-    this.oauthClient.grant = async function (params) {
+    oauthClient.grant = async function (params) {
       const grant = await oldGrant.call(this, params);
       delete grant.id_token;
       return grant;
     };
 
-    this.redirectUri = options.redirectUri;
-    this.scope = options.baseScope;
+    return [oauthClient, options.baseScope, options.redirectUri] as const;
   }
 
   getAuthorizationUrl(options: {
@@ -71,14 +81,14 @@ export abstract class OAuthBaseProvider {
     state: string,
   }): Promise<OAuthUserInfo> {
     let tokenSet;
+    const params = {
+      code_verifier: options.codeVerifier,
+      state: options.state,
+    };
     try {
-      const params = {
-        code_verifier: options.codeVerifier,
-        state: options.state,
-      };
       tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
     } catch (error) {
-      throw new StackAssertionError("OAuth callback failed", undefined, { cause: error });
+      throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
     }
     if (!tokenSet.access_token) {
       throw new StackAssertionError("No access token received", { tokenSet });

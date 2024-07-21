@@ -129,7 +129,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
   });
 
   cookies().set(
-    "stack-oauth-" + innerState.slice(0, 8),
+    "stack-oauth-inner-" + innerState.slice(0, 8),
     outerInfo.id,
     {
       httpOnly: true,

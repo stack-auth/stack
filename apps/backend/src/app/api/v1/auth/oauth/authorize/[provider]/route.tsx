@@ -83,7 +83,8 @@ export const GET = createSmartRouteHandler({
 
     const innerCodeVerifier = generators.codeVerifier();
     const innerState = generators.state();
-    const oauthUrl = getProvider(provider).getAuthorizationUrl({
+    const providerObj = await getProvider(provider);
+    const oauthUrl = providerObj.getAuthorizationUrl({
       codeVerifier: innerCodeVerifier,
       state: innerState,
       extraScope: query.provider_scope,
@@ -115,7 +116,7 @@ export const GET = createSmartRouteHandler({
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
     cookies().set(
-      "stack-oauth-" + innerState,
+      "stack-oauth-inner-" + innerState,
       "true",
       {
         httpOnly: true,

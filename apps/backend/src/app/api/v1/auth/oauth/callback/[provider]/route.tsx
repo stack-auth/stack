@@ -39,8 +39,9 @@ export const GET = createSmartRouteHandler({
     headers: yupMixed().required(),
   }),
   async handler({ params, query }, fullReq) {
-    const cookieInfo = cookies().get("stack-oauth-" + query.state);
-    cookies().delete("stack-oauth-" + query.state);
+    const innerState = query.state ?? "";
+    const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
+    cookies().delete("stack-oauth-inner-" + query.state);
 
     if (cookieInfo?.value !== 'true') {
       throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
@@ -88,13 +89,11 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
 
-    const userInfo = await getProvider(provider).getCallback({
+    const providerObj = await getProvider(provider);
+    const userInfo = await providerObj.getCallback({
       codeVerifier: innerCodeVerifier,
-      state: query.state ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide state in query")),
-      callbackParams: {
-        code: query.code ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide code in query")),
-        state: query.state ?? throwErr(new StatusError(StatusError.BadRequest, "Must provide state in query")),
-      }
+      state: innerState,
+      callbackParams: query,
     });
 
     if (type === "link") {
@@ -152,7 +151,7 @@ export const GET = createSmartRouteHandler({
             oAuthProviderConfigId: provider.id,
             refreshToken: userInfo.refreshToken,
             providerAccountId: userInfo.accountId,
-            scopes: extractScopes(getProvider(provider).scope + " " + providerScope),
+            scopes: extractScopes(providerObj.scope + " " + providerScope),
           }
         });
       }
