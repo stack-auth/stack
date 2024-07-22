@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { isUuid } from "./utils/uuids";
 
 const _idDescription = (identify: string) => `The immutable ID used to uniquely identify this ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name, used in places like frontend UI. This is not a unique identifier.`;
@@ -99,7 +100,7 @@ export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin'
 export const adminAuthTypeSchema = yupString().oneOf(['admin']);
 
 // Projects
-export const projectIdSchema = yupString().meta({ openapiField: { description: _idDescription('project'), exampleValue: 'e0b52f4d-dece-408c-af49-d23061bb0f8d' } });
+export const projectIdSchema = yupString().test((v) => v === undefined || v === "internal" || isUuid(v)).meta({ openapiField: { description: _idDescription('project'), exampleValue: 'e0b52f4d-dece-408c-af49-d23061bb0f8d' } });
 export const projectDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('project'), exampleValue: 'MyMusic' } });
 export const projectDescriptionSchema = yupString().nullable().meta({ openapiField: { description: 'A human readable description of the project', exampleValue: 'A music streaming service' } });
 export const projectCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('project'), exampleValue: 1630000000000 } });
@@ -174,7 +175,7 @@ export const teamSystemPermissions = [
   '$remove_members',
   '$invite_members',
 ] as const;
-export const teamPermissionIdSchema = yupString()
+export const teamPermissionDefinitionIdSchema = yupString()
   .matches(/^\$?[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" and optional "$" at the beginning are allowed')
   .test('is-system-permission', 'System permissions must start with a dollar sign', (value, ctx) => {
     if (!value) return true;
@@ -184,11 +185,11 @@ export const teamPermissionIdSchema = yupString()
     return true;
   })
   .meta({ openapiField: { description: `The permission ID used to uniquely identify a permission. Can either be a custom permission with lowercase letters, numbers, ":", and "_" characters, or one of the system permissions: ${teamSystemPermissions.join(', ')}`, exampleValue: '$read_secret_info' } });
-export const customTeamPermissionIdSchema = yupString()
+export const customTeamPermissionDefinitionIdSchema = yupString()
   .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed')
   .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission. Can only contain lowercase letters, numbers, ":", and "_" characters', exampleValue: 'read_secret_info' } });
 export const teamPermissionDescriptionSchema = yupString().meta({ openapiField: { description: 'A human-readable description of the permission', exampleValue: 'Read secret information' } });
-export const containedPermissionIdsSchema = yupArray(teamPermissionIdSchema.required()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
+export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdSchema.required()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
 
 // Teams
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });

@@ -57,6 +57,20 @@ export async function encodeAccessToken({
   projectId: string,
   userId: string,
 }) {
+  const date = new Date();
+  await prismaClient.event.create({
+    data: {
+      systemEventTypeIds: ["$project", "$user-activity", "$project-activity"],
+      data: {
+        projectId,
+        userId,
+      },
+      isWide: false,
+      eventStartedAt: date,
+      eventEndedAt: date,
+    },
+  });
+
   return await encryptJWT({ projectId, userId }, process.env.STACK_ACCESS_TOKEN_EXPIRATION_TIME || '1h');
 }
 

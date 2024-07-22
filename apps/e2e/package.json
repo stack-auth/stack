@@ -1,13 +1,14 @@
 {
   "name": "@stackframe/e2e-tests",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "private": true,
   "type": "module",
   "scripts": {
     "test:watch": "vitest watch",
     "test": "vitest run",
     "lint": "eslint --ext .tsx,.ts .",
-    "clean": "rimraf dist && rimraf node_modules"
+    "clean": "rimraf dist && rimraf node_modules",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

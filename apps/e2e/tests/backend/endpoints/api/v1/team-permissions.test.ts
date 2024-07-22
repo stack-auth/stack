@@ -11,18 +11,18 @@ it("is not allowed to list permissions from the other users on the client", asyn
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 403,
       "body": "Client can only list permissions for their own user. user_id must be either \\"me\\" or the ID of the current user",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
 
-it("grant non-existing permission to a user on the server", async ({ expect }) => {
+it("is not allowed to grant non-existing permission to a user on the server", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
-  const response = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/not-exist`, {
+  const response = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/does_not_exist`, {
     accessType: "server",
     method: "POST",
     body: {},
@@ -32,8 +32,8 @@ it("grant non-existing permission to a user on the server", async ({ expect }) =
       "status": 404,
       "body": {
         "code": "PERMISSION_NOT_FOUND",
-        "details": { "permission_id": "not-exist" },
-        "error": "Permission \\"not-exist\\" not found. Make sure you created it on the dashboard.",
+        "details": { "permission_id": "does_not_exist" },
+        "error": "Permission \\"does_not_exist\\" not found. Make sure you created it on the dashboard.",
       },
       "headers": Headers {
         "x-stack-known-error": "PERMISSION_NOT_FOUND",
@@ -43,7 +43,7 @@ it("grant non-existing permission to a user on the server", async ({ expect }) =
   `);
 });
 
-it("create a new permission and grant it to a user on the server", async ({ expect }) => {
+it("can create a new permission and grant it to a user on the server", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndSetAdmin();
 
@@ -147,7 +147,7 @@ it("create a new permission and grant it to a user on the server", async ({ expe
   `);
 });
 
-it("customize default team permissions", async ({ expect }) => {
+it("can customize default team permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndSetAdmin();
 

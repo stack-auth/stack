@@ -538,3 +538,24 @@ enum StandardOAuthProviderType {
 }
 
 //#endregion
+
+
+//#region Events
+
+model Event {
+  id String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // if isWide == false, then eventEndedAt is always equal to eventStartedAt
+  isWide         Boolean
+  eventStartedAt DateTime
+  eventEndedAt   DateTime
+
+  // TODO: add event_type, and at least one of either system_event_type or event_type is always set
+  systemEventTypeIds String[]
+  data               Json
+}
+
+//#endregion

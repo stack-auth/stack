@@ -1,20 +1,21 @@
 import { grantTeamPermission, listUserTeamPermissions, revokeTeamPermission } from "@/lib/permissions";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamPermissionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { teamPermissionDefinitionIdSchema, userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCrud, {
   querySchema: yupObject({
-    team_id: yupString().optional(),
-    user_id: yupString().optional(),
-    permission_id: yupString().optional(),
+    team_id: yupString().uuid().optional(),
+    user_id: userIdOrMeSchema.optional(),
+    permission_id: teamPermissionDefinitionIdSchema.optional(),
     recursive: yupString().oneOf(['true', 'false']).optional(),
   }),
   paramsSchema: yupObject({
-    team_id: yupString().required(),
-    user_id: yupString().required(),
-    permission_id: yupString().required(),
+    team_id: yupString().uuid().required(),
+    user_id: userIdOrMeSchema.required(),
+    permission_id: teamPermissionDefinitionIdSchema.required(),
   }),
   async onCreate({ auth, params }) {
     return await grantTeamPermission({
@@ -33,15 +34,9 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
     });
   },
   async onList({ auth, query }) {
-    let userId = query.user_id;
-    if (userId === 'me') {
-      if (!auth.user) {
-        throw new StatusError(StatusError.BadRequest, 'User authentication required to list permissions for user_id=me');
-      }
-      userId = auth.user.id;
-    }
+    const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
     if (auth.type === 'client' && userId !== auth.user?.id) {
-      throw new StatusError(StatusError.BadRequest, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
+      throw new StatusError(StatusError.Forbidden, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
     }
 
     return {
