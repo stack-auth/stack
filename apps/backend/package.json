@@ -31,8 +31,8 @@
     "@react-email/render": "^0.0.12",
     "@react-email/tailwind": "^0.0.14",
     "@sentry/nextjs": "^7.105.0",
-    "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-emails": "workspace:*",
+    "@stackframe/stack-shared": "workspace:*",
     "@vercel/analytics": "^1.2.2",
     "bcrypt": "^5.1.1",
     "dotenv-cli": "^7.3.0",
@@ -48,6 +48,7 @@
     "react-email": "2.1.0",
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
+    "svix": "^1.25.0",
     "yaml": "^2.4.5",
     "yup": "^1.4.0"
   },
@@ -55,11 +56,11 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "chokidar-cli": "^3.0.0",
     "@types/react": "^18.2.66",
+    "chokidar-cli": "^3.0.0",
+    "glob": "^10.4.1",
     "prisma": "^5.9.1",
     "rimraf": "^5.0.5",
-    "tsx": "^4.7.2",
-    "glob": "^10.4.1"
+    "tsx": "^4.7.2"
   }
 }

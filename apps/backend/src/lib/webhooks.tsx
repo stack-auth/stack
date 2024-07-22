@@ -1,5 +1,6 @@
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { Svix } from "svix";
 
 export async function sendWebhooks(options: {
   type: string,
@@ -8,7 +9,9 @@ export async function sendWebhooks(options: {
 }) {
   try {
     const dataString = getEnvVariable("STACK_WEBHOOK_DATA");
-    const verification = getEnvVariable("STACK_WEBHOOK_VERIFICATION");
+    const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
+    const svix = new Svix(apiKey);
+
     if (!dataString) {
       return;
     }
@@ -18,17 +21,13 @@ export async function sendWebhooks(options: {
         continue;
       }
 
-      await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: options.type,
+      await svix.application.getOrCreate({ uid: projectId, name: projectId });
+      await svix.endpoint.create(projectId, { url });
+      await svix.message.create(projectId, {
+        eventType: options.type,
+        payload: {
           data: options.data,
-          timestamp: Date.now(),
-          verification,
-        }),
+        },
       });
     }
   } catch (error) {
