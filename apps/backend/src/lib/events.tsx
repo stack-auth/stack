@@ -34,7 +34,7 @@ const UserActivityEventType = {
   dataSchema: yupObject({
     userId: yupString().uuid().required(),
   }),
-  inherits: [ProjectEventType],
+  inherits: [ProjectActivityEventType],
 } as const satisfies SystemEventTypeBase;
 
 const ApiRequestEventType = {
