@@ -11,7 +11,7 @@ it("is not allowed to list permissions from the other users on the client", asyn
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 403,
       "body": "Client can only list permissions for their own user. user_id must be either \\"me\\" or the ID of the current user",
       "headers": Headers { <some fields may have been hidden> },
     }

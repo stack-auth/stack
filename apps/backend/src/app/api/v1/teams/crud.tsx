@@ -1,11 +1,13 @@
+import { ensureTeamMembershipExist } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 function prismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   return {
@@ -72,18 +74,30 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     return prismaToCrud(db);
   },
   onRead: async ({ params, auth }) => {
-    const db = await prismaClient.team.findUnique({
-      where: {
-        projectId_teamId: {
+    const db = await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client') {
+        await ensureTeamMembershipExist(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
-        },
-      },
-    });
+          userId: auth.user?.id ?? throwErr("Client must be logged in to read a team"),
+        });
+      }
 
-    if (!db) {
-      throw new KnownErrors.TeamNotFound(params.team_id);
-    }
+      const db = await prismaClient.team.findUnique({
+        where: {
+          projectId_teamId: {
+            projectId: auth.project.id,
+            teamId: params.team_id,
+          },
+        },
+      });
+
+      if (!db) {
+        throw new KnownErrors.TeamNotFound(params.team_id);
+      }
+
+      return db;
+    });
 
     return prismaToCrud(db);
   },
@@ -114,17 +128,10 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     });
   },
   onList: async ({ query, auth }) => {
-    if (auth.type === 'client') {
-      if (query.user_id !== 'me' && query.user_id !== auth.user?.id) {
-        throw new StatusError(StatusError.Forbidden, "You are only allowed to access your own teams with the client access token.");
-      }
+    const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
+    if (auth.type === 'client' && userId !== auth.user?.id) {
+      throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
     }
-
-    if (query.user_id === 'me' && !auth.user) {
-      throw new KnownErrors.CannotGetOwnUserWithoutUser();
-    }
-
-    let userId = query.user_id === 'me' ? auth.user?.id : query.user_id;
 
     const db = await prismaClient.team.findMany({
       where: {

@@ -1,5 +1,5 @@
-import { it } from "../../../../helpers";
-import { Auth, Team, niceBackendFetch } from "../../../backend-helpers";
+import { createMailbox, it } from "../../../../helpers";
+import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -8,7 +8,7 @@ it("is not allowed to list all the teams in a project on the client", async ({ e
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 403,
-      "body": "You are only allowed to access your own teams with the client access token.",
+      "body": "Client can only list teams for their own user. user_id must be either \\"me\\" or the ID of the current user",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -111,6 +111,114 @@ it("creates a team on the server", async ({ expect }) => {
         "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("gets a specific team", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { createTeamResponse: response, teamId } = await Team.create();
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("gets a team that the user is not part of on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  backendContext.set({
+    mailbox: createMailbox()
+  });
+
+  await Auth.Otp.signIn();
+  const { createTeamResponse: response } = await Team.create();
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response3 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "server" });
+  expect(response3).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should not be allowed to get a team that the user is not part of on the client", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  backendContext.set({
+    mailbox: createMailbox()
+  });
+
+  await Auth.Otp.signIn();
+  const { createTeamResponse: response } = await Team.create();
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response3 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
+  expect(response3).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 404,
+      "body": {
+        "code": "TEAM_MEMBERSHIP_NOT_FOUND",
+        "details": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "error": "User <stripped UUID> is not found in team <stripped UUID>.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "TEAM_MEMBERSHIP_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
