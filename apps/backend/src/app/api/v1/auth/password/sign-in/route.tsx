@@ -1,4 +1,4 @@
-import { createAuthTokens, encodeAccessToken } from "@/lib/tokens";
+import { createAuthTokens, generateAccessToken } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";

@@ -2,7 +2,7 @@ import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken, encodeAccessToken } from "@/lib/tokens";
+import { decodeAccessToken, generateAccessToken } from "@/lib/tokens";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
@@ -72,7 +72,7 @@ export class OAuthModel implements AuthorizationCodeModel {
 
   async generateAccessToken(client: Client, user: User, scope: string[]): Promise<string> {
     assertScopeIsValid(scope);
-    return await encodeAccessToken({
+    return await generateAccessToken({
       projectId: client.id,
       userId: user.id,
     });

@@ -5,6 +5,7 @@ import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { JOSEError, JWTExpired } from 'jose/errors';
+import { SystemEventTypes, logEvent } from './events';
 
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
@@ -49,13 +50,15 @@ export async function decodeAccessToken(accessToken: string) {
   return await accessTokenSchema.validate(decoded);
 }
 
-export async function encodeAccessToken({
+export async function generateAccessToken({
   projectId,
   userId,
 }: {
   projectId: string,
   userId: string,
 }) {
+  await logEvent([SystemEventTypes.UserActivity], { projectId, userId });
+
   // TODO: pass the scope and some other information down to the token
   return await encryptJWT({ projectId, userId }, getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "1h"));
 }
@@ -68,7 +71,7 @@ export async function createAuthTokens({
   projectUserId: string,
 }) {
   const refreshToken = generateSecureRandomString();
-  const accessToken = await encodeAccessToken({
+  const accessToken = await generateAccessToken({
     projectId,
     userId: projectUserId,
   });

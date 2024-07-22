@@ -28,6 +28,7 @@
     "Proxied",
     "reqs",
     "stackframe",
+    "typecheck",
     "typehack",
     "Uncapitalize",
     "Whitespaces",
