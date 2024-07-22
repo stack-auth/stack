@@ -118,7 +118,7 @@ export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchr
     {
       ...args[1],
       onError: error => {
-        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}`);
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}\n\n${error}`);
         args[1]?.onError?.(error);
       },
     },
