@@ -1,5 +1,11 @@
 # e2e-tests
 
+## 2.5.7
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.5.7
+
 ## 2.5.6
 
 ### Patch Changes
