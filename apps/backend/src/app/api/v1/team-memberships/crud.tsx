@@ -1,3 +1,4 @@
+import { ensureTeamExist, ensureTeamMembershipDoesNotExist } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -16,31 +17,16 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
     const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
 
     await prismaClient.$transaction(async (tx) => {
-      const team = await tx.team.findUnique({
-        where: {
-          projectId_teamId: {
-            projectId: auth.project.id,
-            teamId: params.team_id,
-          },
-        },
-      });
-      if (!team) {
-        throw new KnownErrors.TeamNotFound(params.team_id);
-      }
-
-      const oldMembership = await tx.teamMember.findUnique({
-        where: {
-          projectId_projectUserId_teamId: {
-            projectId: auth.project.id,
-            projectUserId: userId,
-            teamId: params.team_id,
-          },
-        },
+      await ensureTeamExist(tx, {
+        projectId: auth.project.id,
+        teamId: params.team_id,
       });
 
-      if (oldMembership) {
-        throw new KnownErrors.TeamMembershipAlreadyExists();
-      }
+      await ensureTeamMembershipDoesNotExist(tx, {
+        projectId: auth.project.id,
+        teamId: params.team_id,
+        userId,
+      });
 
       await tx.teamMember.create({
         data: {

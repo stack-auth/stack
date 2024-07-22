@@ -1,3 +1,4 @@
+import { ensureTeamMembershipExist } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -75,21 +76,12 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
   onRead: async ({ params, auth }) => {
     const db = await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        const member = await tx.teamMember.findUnique({
-          where: {
-            projectId_projectUserId_teamId: {
-              projectId: auth.project.id,
-              projectUserId: auth.user?.id || throwErr("Client must be logged in"),
-              teamId: params.team_id,
-            },
-          },
+        await ensureTeamMembershipExist(tx, {
+          projectId: auth.project.id,
+          teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr("Client must be logged in to read a team"),
         });
-
-        if (!member) {
-          throw new KnownErrors.TeamNotFound(params.team_id);
-        }
       }
-
 
       const db = await prismaClient.team.findUnique({
         where: {

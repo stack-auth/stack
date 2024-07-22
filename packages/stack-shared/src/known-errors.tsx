@@ -837,6 +837,19 @@ const TeamNotFound = createKnownErrorConstructor(
   (json: any) => [json.team_id] as const,
 );
 
+const TeamAlreadyExists = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_ALREADY_EXISTS",
+  (teamId: string) => [
+    400,
+    `Team ${teamId} already exists.`,
+    {
+      team_id: teamId,
+    },
+  ] as const,
+  (json: any) => [json.team_id] as const,
+);
+
 const TeamMembershipNotFound = createKnownErrorConstructor(
   KnownError,
   "TEAM_MEMBERSHIP_NOT_FOUND",

@@ -208,12 +208,15 @@ it("should not be allowed to get a team that the user is not part of on the clie
     NiceResponse {
       "status": 404,
       "body": {
-        "code": "TEAM_NOT_FOUND",
-        "details": { "team_id": "<stripped UUID>" },
-        "error": "Team <stripped UUID> not found.",
+        "code": "TEAM_MEMBERSHIP_NOT_FOUND",
+        "details": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "error": "User <stripped UUID> is not found in team <stripped UUID>.",
       },
       "headers": Headers {
-        "x-stack-known-error": "TEAM_NOT_FOUND",
+        "x-stack-known-error": "TEAM_MEMBERSHIP_NOT_FOUND",
         <some fields may have been hidden>,
       },
     }
