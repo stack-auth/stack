@@ -7,7 +7,7 @@ import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeySet", {
   paramsSchema: yupObject({
-    api_key_id: yupString().required(),
+    api_key_id: yupString().uuid().required(),
   }),
   baseFields: async () => ({}),
   where: async ({ auth }) => {

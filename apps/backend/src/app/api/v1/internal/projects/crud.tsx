@@ -3,14 +3,14 @@ import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { projectIdSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
 export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
-    projectId: yupString().required(),
+    projectId: projectIdSchema.required(),
   }),
   onPrepare: async ({ auth }) => {
     if (!auth.user) {
