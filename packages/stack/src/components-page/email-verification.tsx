@@ -1,10 +1,15 @@
 'use client';
 
 import React from "react";
-import { useStackApp } from "..";
+import { StackClientApp, useStackApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+
+const cacheVerifyEmail = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
+  return await stackApp.verifyEmail(code);
+});
 
 export function EmailVerification({
   searchParams: {
@@ -33,7 +38,7 @@ export function EmailVerification({
     return invalidJsx;
   }
 
-  const error = React.use(stackApp.verifyEmail(code));
+  const error = React.use(cacheVerifyEmail(stackApp, code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;

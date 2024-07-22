@@ -176,52 +176,54 @@ export function PermissionListField<F extends FieldValues>(props: {
     <FormField
       control={props.control}
       name={props.name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{props.label}</FormLabel>
-          <div className="flex-col rounded-lg border p-3 shadow-sm max-h-64 overflow-y-auto">
-            {[...graph.permissions.values()].map(permission => {
-              if (permission.id === CURRENTLY_EDITED_PERMISSION_SENTINEL) return null;
+      render={({ field }) => {
+        return (
+          <FormItem>
+            <FormLabel>{props.label}</FormLabel>
+            <div className="flex-col rounded-lg border p-3 shadow-sm max-h-64 overflow-y-auto">
+              {[...graph.permissions.values()].map(permission => {
+                if (permission.id === CURRENTLY_EDITED_PERMISSION_SENTINEL) return null;
 
-              const selected = currentPermission.containedPermissionIds.includes(permission.id);
-              const contain = graph.hasPermission(CURRENTLY_EDITED_PERMISSION_SENTINEL, permission.id);
-              const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
+                const selected = currentPermission.containedPermissionIds.includes(permission.id);
+                const contain = graph.hasPermission(CURRENTLY_EDITED_PERMISSION_SENTINEL, permission.id);
+                const ancestors = graph.recursiveAncestors(permission.id).map(p => p.id).filter(
                 id => id !== permission.id && id !== CURRENTLY_EDITED_PERMISSION_SENTINEL && currentPermission.containedPermissionIds.includes(id)
               );
-              const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
-              return (
-                <label className="flex flex-row justify-start gap-2 -my-3 py-3" key={permission.id}>
-                  <FormControl>
-                    <Checkbox
-                      checked={selected}
-                      onCheckedChange={(checked) => {
-                        let newContains: string[];
-                        if (checked) {
-                          newContains = [...field.value, permission.id];
-                        } else {
-                          newContains = field.value.filter((v: any) => v !== permission.id);
-                        }
-                        newContains = [...new Set(newContains)];
+                const inheritedFrom = contain && ancestors.length > 0 && `(from ${ancestors.join(', ')})`;
+                return (
+                  <label className="flex flex-row justify-start gap-2 -my-3 py-3" key={permission.id}>
+                    <FormControl>
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={(checked) => {
+                          let newContains: string[];
+                          if (checked) {
+                            newContains = [...field.value || [], permission.id];
+                          } else {
+                            newContains = (field.value  || []).filter((v: any) => v !== permission.id);
+                          }
+                          newContains = [...new Set(newContains)];
 
                         field.onChange(newContains);
                         setGraph(graph.updatePermission(CURRENTLY_EDITED_PERMISSION_SENTINEL, {
                           ...currentPermission,
                           containedPermissionIds: newContains
                         }));
-                      }}
-                    />
-                  </FormControl>
-                  <FieldLabel>
-                    {permission.id}
-                    {inheritedFrom && <span className="text-gray-500 ml-1">{inheritedFrom}</span>}
-                  </FieldLabel>
-                  <FormMessage />
-                </label>
-              );
-            })}
-          </div>
-        </FormItem>
-      )}
+                        }}
+                      />
+                    </FormControl>
+                    <FieldLabel>
+                      {permission.id}
+                      {inheritedFrom && <span className="text-gray-500 ml-1">{inheritedFrom}</span>}
+                    </FieldLabel>
+                    <FormMessage />
+                  </label>
+                );
+              })}
+            </div>
+          </FormItem>
+        );
+      }}
     />
   );
 }

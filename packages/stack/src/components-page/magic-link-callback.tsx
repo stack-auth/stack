@@ -1,11 +1,16 @@
 'use client';
 
 import React from "react";
-import { useStackApp, useUser } from "..";
+import { StackClientApp, useStackApp, useUser } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+
+const cacheSignInWithMagicLink = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
+  return await stackApp.signInWithMagicLink(code);
+});
 
 export function MagicLinkCallback({
   searchParams: {
@@ -45,7 +50,7 @@ export function MagicLinkCallback({
     return invalidJsx;
   }
 
-  const error = React.use(stackApp.signInWithMagicLink(code));
+  const error = React.use(cacheSignInWithMagicLink(stackApp, code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
