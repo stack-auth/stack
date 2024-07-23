@@ -170,10 +170,13 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
     if (path && !pathParams.includes(`{${key}}`)) {
       return { schema: null };
     }
+
+    const meta = "meta" in field ? field.meta : {};
     return {
       name: key,
       in: path ? 'path' : 'query',
       schema: getFieldSchema(field as any, crudOperation),
+      description: meta?.openapiField?.description,
       required: !(field as any).optional && !(field as any).nullable,
     };
   }).filter((x) => x.schema !== null);

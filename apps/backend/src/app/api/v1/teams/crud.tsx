@@ -22,8 +22,8 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
 
 export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
-    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
-    add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'] } }),
+    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'], description: 'Filter for the teams that the user is a member of. Can be either `me` or an ID. Must be `me` in the client API', exampleValue: 'me' } }),
+    add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], description: "If to add the current user to the team. If this is not `true`, the newly created team will have no members. Notice that if you didn't specify `add_current_user=true` on the client side, the user cannot join the team again without re-adding them on the server side.", exampleValue: 'true' } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().required(),

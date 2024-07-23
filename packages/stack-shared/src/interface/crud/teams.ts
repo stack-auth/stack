@@ -44,7 +44,7 @@ export const teamsCrud = createCrud({
   docs: {
     clientList: {
       summary: "List teams",
-      description: "List all the teams that the current user is a member of.",
+      description: "List all the teams that the current user is a member of. `user_id=me` must be passed in the query parameters.",
       tags: ["Teams"],
     },
     clientCreate: {
