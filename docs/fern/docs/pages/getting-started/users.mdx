@@ -1,15 +1,15 @@
 ---
 slug: getting-started/users
-subtitle: Get and manage user information
+subtitle: Reading and writing user information, and protecting pages
 ---
 
 In [the last guide](./setup.mdx), we initialized Stack. This created new files containing a `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize those for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
-## Use the current user in a client component
+## Retrieving the current user in Client Components
 
-We can use the `useUser()` hook to get the current user in a Client Component. This hook will return `null` if the user is not logged in. Here is an example:
+The `useUser()` hook returns the current user in a Client Component. By default, it will return `null` if the user is not signed in.
 
-```tsx title="Client user profile"
+```tsx
 "use client";
 import { useUser } from "@stackframe/stack"
 
@@ -19,11 +19,18 @@ export function MyComponent() {
 }
 ```
 
-## Use the current user in a server component
+Sometimes, you want to retrieve the user only if they're signed in, and redirect to the sign-in page otherwise. In this case, simply pass `{ or: "redirect" }` in the options:
 
-On Server Components, you can just import the `StackServerApp` that you created in the previous chapter (usually you would find it in the root or `src` directory):
+```tsx
+const user = useUser({ or: "redirect" });
+return <div>{`Hello, ${user.displayName ?? "anon"}`}</div>;
+```
 
-```tsx title="Server user profile"
+## Retrieving the current user in Server Components
+
+Since `useUser()` is a stateful hook, you can't use it on server components. Instead, you can import `stackServerApp` from `stack.ts` and call `getUser()`:
+
+```tsx
 import { stackServerApp } from "@/stack";
 
 export default async function MyComponent() {

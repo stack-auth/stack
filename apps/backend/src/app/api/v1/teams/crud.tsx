@@ -22,8 +22,8 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
 
 export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
-    user_id: userIdOrMeSchema.optional(),
-    add_current_user: yupString().oneOf(["true", "false"]).optional(),
+    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
+    add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'] } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().required(),

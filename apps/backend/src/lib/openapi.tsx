@@ -1,5 +1,5 @@
 import { SmartRouteHandler } from '@/route-handlers/smart-route-handler';
-import { EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
+import { CrudlOperation, EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
 import { typedEntries, typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
@@ -116,10 +116,14 @@ function parseRouteHandler(options: {
   return result;
 }
 
-function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any, properties?: any, required?: any } | undefined {
+function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | null {
   const meta = "meta" in field ? field.meta : {};
   if (meta?.openapiField?.hidden) {
-    return undefined;
+    return null;
+  }
+
+  if (meta?.openapiField?.onlyShowInOperations && !meta.openapiField.onlyShowInOperations.includes(crudOperation as any)) {
+    return null;
   }
 
   const openapiFieldExtra = {
@@ -140,7 +144,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       return {
         type: 'object',
         properties: typedFromEntries(typedEntries((field as any).fields)
-          .map(([key, field]) => [key, getFieldSchema(field)])),
+          .map(([key, field]) => [key, getFieldSchema(field, crudOperation)])),
         required: typedEntries((field as any).fields)
           .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
           .map(([key]) => key),
@@ -148,7 +152,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       };
     }
     case 'array': {
-      return { type: 'array', items: getFieldSchema((field as any).innerType), ...openapiFieldExtra };
+      return { type: 'array', items: getFieldSchema((field as any).innerType, crudOperation), ...openapiFieldExtra };
     }
     default: {
       throw new Error(`Unsupported field type: ${field.type}`);
@@ -156,7 +160,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
   }
 }
 
-function toParameters(description: yup.SchemaFieldDescription, path?: string) {
+function toParameters(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>, path?: string) {
   const pathParams: string[] = path ? path.match(/{[^}]+}/g) || [] : [];
   if (!isSchemaObjectDescription(description)) {
     throw new StackAssertionError('Parameters field must be an object schema', { actual: description });
@@ -169,24 +173,24 @@ function toParameters(description: yup.SchemaFieldDescription, path?: string) {
     return {
       name: key,
       in: path ? 'path' : 'query',
-      schema: getFieldSchema(field as any),
+      schema: getFieldSchema(field as any, crudOperation),
       required: !(field as any).optional && !(field as any).nullable,
     };
   }).filter((x) => x.schema !== null);
 }
 
-function toSchema(description: yup.SchemaFieldDescription): any {
+function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): any {
   if (isSchemaObjectDescription(description)) {
     return {
       type: 'object',
       properties: Object.fromEntries(Object.entries(description.fields).map(([key, field]) => {
-        return [key, getFieldSchema(field)];
+        return [key, getFieldSchema(field, crudOperation)];
       }, {}))
     };
   } else if (isSchemaArrayDescription(description)) {
     return {
       type: 'array',
-      items: toSchema(description.innerType),
+      items: toSchema(description.innerType, crudOperation),
     };
   } else {
     throw new StackAssertionError(`Unsupported schema type: ${description.type}`, { actual: description });
@@ -208,13 +212,13 @@ function toRequired(description: yup.SchemaFieldDescription) {
   return res;
 }
 
-function toExamples(description: yup.SchemaFieldDescription) {
+function toExamples(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
   if (!isSchemaObjectDescription(description)) {
     throw new StackAssertionError('Examples field must be an object schema', { actual: description });
   }
 
   return Object.entries(description.fields).reduce((acc, [key, field]) => {
-    const schema = getFieldSchema(field);
+    const schema = getFieldSchema(field, crudOperation);
     if (!schema) return acc;
     const example = "meta" in field ? field.meta?.openapiField?.exampleValue : undefined;
     return { ...acc, [key]: example };
@@ -235,9 +239,9 @@ export function parseOverload(options: {
     description: `No documentation available for this endpoint.`,
   };
 
-  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, options.path) : [];
-  const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
-  const responseSchema = options.responseDesc ? toSchema(options.responseDesc) : {};
+  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, endpointDocumentation.crudOperation, options.path) : [];
+  const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc, endpointDocumentation.crudOperation) : [];
+  const responseSchema = options.responseDesc ? toSchema(options.responseDesc, endpointDocumentation.crudOperation) : {};
   const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : undefined;
 
   let requestBody;
@@ -247,9 +251,9 @@ export function parseOverload(options: {
       content: {
         'application/json': {
           schema: {
-            ...toSchema(options.requestBodyDesc),
+            ...toSchema(options.requestBodyDesc, endpointDocumentation.crudOperation),
             required: toRequired(options.requestBodyDesc),
-            example: toExamples(options.requestBodyDesc),
+            example: toExamples(options.requestBodyDesc, endpointDocumentation.crudOperation),
           },
         },
       },

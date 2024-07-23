@@ -29,14 +29,18 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       ```
 
       ### Done!
-      The setup wizards has created some files for you, they are:
-      - `app/handler/[...stack]/page.tsx`: The stack handler for pages like sign-in, sign-up, password reset, etc. You can [replace them with your own pages](/docs/customization/custom-pages) later.
-      - `app/layout.tsx`: The layout file that wraps the entire body with `StackProvider` and `StackTheme`.
-      - `app/loading.tsx`: The loading indicator for Next.js suspense, you can customize it as you like.
-      - `stack.ts`: The file for the stack server app that reads the environment variables and creates a server app that you can later use to access Stack from your Next.js server.
+      That's it! The following files should have been created or updated in your project:
+
+      - `app/handler/[...stack]/page.tsx`: This file contains the default pages for sign-in, sign-out, account settings, and more. If you prefer, later you will learn how to [use custom pages](/docs/customization/custom-pages) instead.
+      - `app/layout.tsx`: The layout file was updated to wrap the entire body with `StackProvider` and `StackTheme`.
+      - `app/loading.tsx`: If not yet found, Stack automatically adds a Suspense boundary to your app. This is shown to the user while Stack's async hooks, like `useUser`, are loading.
+      - `stack.ts`: This file contains the `stackServerApp` which you can use to access Stack from Server Components, Server Actions, API routes, and middleware.
     </Steps>
   </Tab>
   <Tab title="Manual installation">
+    Note: The setup wizard also supports existing, complicated projects. Cases where manual installation is necessary are rare.
+
+    If you are struggling with the setup wizard, please reach out to us on our [Discord](https://discord.stack-auth.com) first, where we'll be happy to help you.
     <Steps>
       ### Install npm package
 
@@ -138,7 +142,7 @@ That's it! Stack is now configured in your Next.js project. If you start your Ne
 
 ![Stack sign in page](../imgs/sign-in.png)
 
-After signing up/in, you will be redirected back to the home page. We will show you how to add useful information to it in the next section. You can also check out the [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
+After signing up/in, you will be redirected back to the home page. We will show you how to add user information to it in the next section. You can also check out the [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
 
 ![Stack account settings page](../imgs/account-settings-page.png)
 
@@ -146,4 +150,4 @@ After signing up/in, you will be redirected back to the home page. We will show 
 
 ## Next steps
 
-Next, we will show you how to get user information, protect a page, and store/retrieve user information in code.
+Next up, we will show you how to retrieve and update user information, and how to protect a page.

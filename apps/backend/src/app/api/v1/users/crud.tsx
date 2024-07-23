@@ -52,7 +52,7 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   querySchema: yupObject({
-    team_id: yupString().uuid().optional(),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
   }),
   paramsSchema: yupObject({
     user_id: userIdOrMeSchema.required(),

@@ -222,9 +222,11 @@ export function createCrudHandlers<
                 };
               },
             });
+
+            const metadata = crud[accessType][`${typedToLowercase(crudOperation)}Docs`];
             return {
               ...frw,
-              metadata: crud[accessType][`${typedToLowercase(crudOperation)}Docs`],
+              metadata: metadata ? (metadata.hidden ? metadata : { ...metadata, crudOperation }) : undefined,
             };
           }
         );
