@@ -5,42 +5,44 @@ subtitle: Reading and writing user information, and protecting pages
 
 In [the last guide](./setup.mdx), we initialized Stack. This created new files containing a `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize those for accessing and modifying the current user information on Server Components and Client Components, respectively.
 
-## Retrieving the current user in Client Components
+## Client Component basics
 
 The `useUser()` hook returns the current user in a Client Component. By default, it will return `null` if the user is not signed in.
 
-```tsx
+```tsx title="my-client-component.tsx"
 "use client";
 import { useUser } from "@stackframe/stack"
 
-export function MyComponent() {
+export function MyClientComponent() {
   const user = useUser();
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
-Sometimes, you want to retrieve the user only if they're signed in, and redirect to the sign-in page otherwise. In this case, simply pass `{ or: "redirect" }` in the options:
+The `useUser()` hook is simply a shorthand for `useStackApp().useUser()`. `useStackApp()` also contains other useful hooks and methods for clients, which will be described later.
+
+Sometimes, you want to retrieve the user only if they're signed in, and redirect to the sign-in page otherwise. In this case, simply pass `{ or: "redirect" }`, and the function will never return `null`.
 
 ```tsx
-const user = useUser({ or: "redirect" });
-return <div>{`Hello, ${user.displayName ?? "anon"}`}</div>;
+  const user = useUser({ or: "redirect" });
+  return <div>{`Hello, ${user.displayName ?? "anon"}`}</div>;
 ```
 
-## Retrieving the current user in Server Components
+## Server Component basics
 
 Since `useUser()` is a stateful hook, you can't use it on server components. Instead, you can import `stackServerApp` from `stack.ts` and call `getUser()`:
 
-```tsx
+```tsx title="my-server-component.tsx"
 import { stackServerApp } from "@/stack";
 
-export default async function MyComponent() {
-  const user = await stackServerApp.getUser();
+export default async function MyServerComponent() {
+  const user = await stackServerApp.getUser();  // or: stackServerApp.getUser({ or: "redirect" })
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
 <Note>
-The difference between `getUser()` and `useUser()` is that `useUser()` will re-render the component when the user changes (for example on signout), while `getUser()` will only fetch the user once. Since Server Components cannot re-render, `useUser()` cannot be used there. 
+Since `useUser()` is a hook, it will re-render the component on user changes (eg. signout), while `getUser()` will only fetch the user once (on page load). You can also call `useStackApp().getUser()` on the client side to get the user in a non-component context.
 </Note>
 
 
@@ -50,33 +52,10 @@ There are three ways to protect a page: in Client Components with `useUser({ or:
 
 On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the user to the sign-in page if they are not logged in. Similarly, on Server Components, call `await getUser({ or: "redirect" })` to protect a page (or component).
 
-Middleware can be used whenever it is easy to tell whether a page should be protected given just the URL, for example you have a `/private` section only accessible to logged-in users.
+Middleware can be used whenever it is easy to tell whether a page should be protected given just the URL, for example, when you have a `/private` section only accessible to logged-in users.
 
 
 <Tabs>
-  <Tab title="Client Component">
-    ```tsx title="my-component.tsx"
-    "use client";
-    import { useUser } from "@stackframe/stack";
-
-    export default function Protected() {
-      useUser({ or: 'redirect' });
-      return <h1>You can only see this if you are logged in</h1>
-    }
-    ```
-  </Tab>
-
-  <Tab title="Server Component">
-    ```tsx title="my-component.tsx"
-    import { stackServerApp } from "@/stack";
-
-    export default async function Protected() {
-      await stackServerApp.getUser({ or: 'redirect' });
-      return <h1>You can only see this if you are logged in</h1>
-    }
-    ```
-  </Tab>
-
   <Tab title="Middleware">
     ```tsx title="middleware.tsx"
     export async function middleware(request: NextRequest) {
@@ -89,31 +68,104 @@ Middleware can be used whenever it is easy to tell whether a page should be prot
     }
     ```
   </Tab>
+
+  <Tab title="Client Component">
+    ```tsx title="my-protected-client-component.tsx"
+    "use client";
+    import { useUser } from "@stackframe/stack";
+
+    export default function MyProtectedClientComponent() {
+      useUser({ or: 'redirect' });
+      return <h1>You can only see this if you are logged in</h1>
+    }
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx title="my-protected-server-component.tsx"
+    import { stackServerApp } from "@/stack";
+
+    export default async function MyProtectedServerComponent() {
+      await stackServerApp.getUser({ or: 'redirect' });
+      return <h1>You can only see this if you are logged in</h1>
+    }
+    ```
+  </Tab>
 </Tabs>
 
 <Note>
   If you have sensitive information hidden in the page HTML itself, be aware of Next.js differences when using Server vs. Client Components.
 
-  - **Client Components**: Client components are always sent to the browser, regardless of page protection. This is standard Next.js behavior. For more information, please refer to the [Next.js documentation](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment). (Again, this will not allow attackers to impersonate a user).
+  - **Client Components**: Client components are always sent to the browser, regardless of page protection. This is standard Next.js behavior. For more information, please refer to the [Next.js documentation](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment).
 
   - **Server Components**: If a component is protected, it is guaranteed that its bundled HTML will not be sent to the browser if the user is not logged in. However, this is not necessarily true for its children and the rest of the page, as Next.js may split components on the same page and send them to the client separately for performance.
   
     For example, if your page is `<Parent><Child /></Parent>`, where `Parent` is protected and `Child` is not, Next.js may still send `<Child />` to the browser even if the user is not logged in. (Normal browsers will never display it, but attackers may be able to retrieve it.) Notably, this also applies to unprotected pages inside protected layouts.
   
-    To remediate this, every component that contains sensitive information should protect itself, instead of relying on an outer layout. This is good practice anyways; it prevents you from accidentally exposing the data.
+    To remediate this, every component/page that contains sensitive information should protect itself, instead of relying on an outer layout. This is good practice anyways; it prevents you from accidentally exposing the data.
+  
+  - **Middleware**: Because middleware runs on the edge, it ensures that the protected URLs are not accessible to anyone who is not authorized, so you don't have to worry about Next.js pre-sending unprotected components to the client.
   
   Irregardless of which method you use, attackers will never be able to, say, impersonate a user.
 
 </Note>
 
 
+## User metadata
+
+You can update attributes on a user object with the `user.update()` function.
+
+```tsx title="my-client-component.tsx"
+'use client';
+import { useUser } from "@stackframe/stack";
+
+export default function MyClientComponent() {
+  const user = useUser();
+  return <button onClick={async () => await user.update({ displayName: "New Name" })}>
+    Change Name
+  </button>;
+}
+```
+
+You can store custom data in the `clientMetadata` field. It will be readable and writable by the user themselves and should not contain any sensitive information.
+
+```tsx
+await user.update({
+  clientMetadata: {
+    mailingAddress: "123 Main St",
+  },
+});
+```
+
+You can then read the `clientMetadata` field from the `User` object:
+
+```tsx
+const user = useUser();
+console.log(user.clientMetadata);
+```
+
+If you want to store sensitive information, you can use the `serverMetadata` field. This data is only readable & writable from the server.
+
+```tsx title="my-server-component.tsx"
+const user = await stackServerApp.getUser();
+await user.update({
+  serverMetadata: {
+    secretInfo: "This is a secret",
+  },
+});
+
+// later:
+const user = await stackServerApp.getUser();
+console.log(user.serverMetadata);
+```
+
 ## Signing out
 
-You can sign out the user by redirecting them to `/handler/signout` or simply by calling `user.signOut()`. They will be redirected to the URL [configured as `afterSignOut` in the `StackServerApp`](/docs/api-documentation/app).
+You can sign out the user by redirecting them to `/handler/sign-out` or simply by calling `user.signOut()`. They will be redirected to the URL [configured as `afterSignOut` in the `StackServerApp`](/docs/api-documentation/app).
 
 <Tabs>
   <Tab title="user.signOut()">
-    ```tsx title="Sign-out button"
+    ```tsx title="sign-out-button.tsx"
     "use client";
     import { useUser } from "@stackframe/stack";
 
@@ -125,24 +177,24 @@ You can sign out the user by redirecting them to `/handler/signout` or simply by
   </Tab>
 
   <Tab title="Redirect">
-    ```tsx title="Sign-out link"
+    ```tsx title="sign-out-link.tsx"
     import { stackServerApp } from "@/stack";
 
     export default async function SignOutLink() {
+      // stackServerApp.urls.signOut is equal to /handler/sign-out
       return <a href={stackServerApp.urls.signOut}>Sign Out</a>;
     }
     ```
   </Tab>
 </Tabs>
 
+## Example: Custom profile page
 
-## Example Profile Page
-
-Stack automatically creates a user profile on sign-up. Let's create a page that displays this information. In `app/profile/page.tsx`:
+Stack automatically creates a user profile on sign-up. Let's build a page that displays this information. In `app/profile/page.tsx`:
 
 <Tabs>
   <Tab title="Client Component">
-    ```tsx title="Client profile page"
+    ```tsx title="app/profile/page.tsx"
     'use client';
     import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 
@@ -154,7 +206,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
           {user ? (
             <div>
               <UserButton />
-              <p>Welcome, {user.displayName}</p>
+              <p>Welcome, {user.displayName ?? "anonymous user"}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <button onClick={() => user.signOut()}>Sign Out</button>
             </div>
@@ -172,7 +224,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   </Tab>
 
   <Tab title="Server Component">
-    ```tsx title="Server profile page"
+    ```tsx title="app/profile/page.tsx"
     import { stackServerApp } from "@/stack";
     import { UserButton } from "@stackframe/stack";
 
@@ -183,7 +235,7 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
           {user ? (
             <div>
               <UserButton />
-              <p>Welcome, {user.displayName}</p>
+              <p>Welcome, {user.displayName ?? "anonymous user"}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <p><a href={stackServerApp.urls.signOut}>Sign Out</a></p>
             </div>
@@ -201,66 +253,10 @@ Stack automatically creates a user profile on sign-up. Let's create a page that 
   </Tab>
 </Tabs>
 
-Note the `UserButton` is a component that you normally put in the top right corner of your page. It shows the user's profile picture (and optionally their name) and opens a dropdown with the user's profile, account settings, and sign-out button. It looks like this:
+After saving your code, you can see the profile page on [http://localhost:3000/profile](http://localhost:3000/profile).
 
-![UserButton](../imgs/user-button.png)
+For more examples on how to use the `User` object, check the [CurrentUser object in the SDK documentation](../sdk/current-user.mdx).
 
-You will now be able to see the new profile page on [http://localhost:3000/profile](http://localhost:3000/profile).
+## Next steps
 
-To see more examples of how to use the `User` object, check out the [User API documentation](../sdk/current-user.mdx).
-
-## Custom User Information
-
-You can update the user's information by calling `user.update()` with the new data. The user data from the `userUser()` hook will also be updated automatically. Here is an example:
-
-```tsx title="Update user display name"
-'use client';
-import { useUser } from "@stackframe/stack";
-
-export default function UpdateUser() {
-  const user = useUser();
-  return <button onClick={async () => await user.update({ displayName: "New Name" })}>
-    Change Name
-  </button>;
-}
-```
-
-You can store custom data in the `clientMetadata` field. Note that this data is visible on the client side and should not contain any sensitive information.
-
-```tsx title="Store client metadata"
-await user.update({
-  clientMetadata: {
-    mailingAddress: "123 Main St",
-  },
-});
-```
-
-You can then get the `clientMetadata` field from the `User` object:
-
-```tsx title="Read client metadata"
-const user = useUser();
-console.log(user.clientMetadata);
-```
-
-If you want to store sensitive information that is only visible on the server side, you can use the `serverMetadata` field. This data will not be sent accessible on the client side. So you also have to use the `getUser()` on the `StackServerApp` to access this data.
-
-```tsx title="Store server metadata"
-// server side only
-import { stackServerApp } from "@/stack";
-const user = await stackServerApp.getUser();
-await user.update({
-  serverMetadata: {
-    secretInfo: "This is a secret",
-  },
-});
-```
-
-You can also access them from the `User` object:
-
-```tsx title="Read server metadata"
-// server side only
-import { stackServerApp } from "@/stack";
-const user = await stackServerApp.getUser();
-console.log(user.serverMetadata);
-```
-
+In the next guide, we will show you how to put [your application into production](./production.mdx).

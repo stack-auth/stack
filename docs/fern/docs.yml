@@ -33,12 +33,12 @@ navigation:
           - page: Installation & Setup
             icon: fa-regular fa-download
             path: ./docs/pages/getting-started/setup.mdx
+          - page: Components
+            icon: fa-regular fa-puzzle
+            path: ./docs/pages/getting-started/components.mdx
           - page: Users
             icon: fa-regular fa-address-book
             path: ./docs/pages/getting-started/users.mdx
-          # - page: Protecting Pages
-          #   icon: fa-regular fa-shield-check
-          #   path: ./docs/pages/getting-started/protecting-pages.mdx
           - page: Going to Production
             icon: fa-regular fa-rocket
             path: ./docs/pages/getting-started/production.mdx
@@ -107,6 +107,10 @@ navigation:
 
   - tab: api
     layout: 
+      - section: Get Started
+        contents:
+          - page: Authentication
+            path: ./docs/pages/rest-api/auth.mdx
       - api: Client API Reference
         slug: client
         api-name: client

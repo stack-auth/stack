@@ -1,0 +1,28 @@
+---
+slug: getting-started/components
+subtitle: Pre-built Next.js components to make your life easier
+---
+
+In [the last guide](./setup.mdx), we initialized Stack. This time, we will take a quick look at some of the most useful Next.js components.
+
+For the full documentation of all available components, please refer to the [SDK reference](/docs/sdk).
+
+## `<UserButton />`
+
+The `<UserButton />` component shows the user's avatar and opens a dropdown with various user settings.
+
+![UserButton](../imgs/user-button.png)
+
+```tsx title="page.tsx"
+import { UserButton } from '@stackframe/stack';
+
+export default function Page() {
+  return (
+    <UserButton />
+  );
+}
+```
+
+## Next steps
+
+In the next guide, we will do a deep-dive into retrieving and modifying user objects, as well as how to protect a page.
