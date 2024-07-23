@@ -10,7 +10,7 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
     team_id: yupString().uuid().optional(),
     user_id: userIdOrMeSchema.optional(),
     permission_id: teamPermissionDefinitionIdSchema.optional(),
-    recursive: yupString().oneOf(['true', 'false']).optional(),
+    recursive: yupString().oneOf(['true', 'false']).optional().meta({ openapiField: { description: 'Whether to list permissions recursively. If set to `false`, only the permission the users directly have will be listed. If set to `true` all the direct and indirect permissions will be listed.', exampleValue: 'true' } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().required(),

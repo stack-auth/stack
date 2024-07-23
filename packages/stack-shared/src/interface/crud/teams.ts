@@ -49,7 +49,7 @@ export const teamsCrud = createCrud({
     },
     clientCreate: {
       summary: "Create a team",
-      description: "Create a new team and add the current user as a member.",
+      description: "Create a new team and optionally add the current user as a member.",
       tags: ["Teams"],
     },
     clientRead: {
@@ -59,7 +59,7 @@ export const teamsCrud = createCrud({
     },
     serverCreate: {
       summary: "Create a team",
-      description: "Create a new team and add the current user as a member.",
+      description: "Create a new team and optionally add the current user as a member.",
       tags: ["Teams"],
     },
     serverList: {

@@ -116,14 +116,14 @@ function parseRouteHandler(options: {
   return result;
 }
 
-function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | null {
+function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | undefined {
   const meta = "meta" in field ? field.meta : {};
   if (meta?.openapiField?.hidden) {
-    return null;
+    return undefined;
   }
 
   if (meta?.openapiField?.onlyShowInOperations && !meta.openapiField.onlyShowInOperations.includes(crudOperation as any)) {
-    return null;
+    return undefined;
   }
 
   const openapiFieldExtra = {
@@ -146,7 +146,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capit
         properties: typedFromEntries(typedEntries((field as any).fields)
           .map(([key, field]) => [key, getFieldSchema(field, crudOperation)])),
         required: typedEntries((field as any).fields)
-          .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
+          .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field as any, crudOperation))
           .map(([key]) => key),
         ...openapiFieldExtra
       };
@@ -168,18 +168,19 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
 
   return Object.entries(description.fields).map(([key, field]) => {
     if (path && !pathParams.includes(`{${key}}`)) {
-      return { schema: null };
+      return { schema: undefined };
     }
 
     const meta = "meta" in field ? field.meta : {};
+    const schema = getFieldSchema(field, crudOperation);
     return {
       name: key,
       in: path ? 'path' : 'query',
-      schema: getFieldSchema(field as any, crudOperation),
+      schema,
       description: meta?.openapiField?.description,
-      required: !(field as any).optional && !(field as any).nullable,
+      required: !(field as any).optional && !(field as any).nullable && schema,
     };
-  }).filter((x) => x.schema !== null);
+  }).filter((x) => x.schema !== undefined);
 }
 
 function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): any {
@@ -200,11 +201,11 @@ function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capit
   }
 }
 
-function toRequired(description: yup.SchemaFieldDescription) {
+function toRequired(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
   let res: string[] = [];
   if (isSchemaObjectDescription(description)) {
     res = Object.entries(description.fields)
-      .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
+      .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field, crudOperation))
       .map(([key]) => key);
   } else if (isSchemaArrayDescription(description)) {
     res = [];
@@ -245,7 +246,7 @@ export function parseOverload(options: {
   const pathParameters = options.pathDesc ? toParameters(options.pathDesc, endpointDocumentation.crudOperation, options.path) : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc, endpointDocumentation.crudOperation) : [];
   const responseSchema = options.responseDesc ? toSchema(options.responseDesc, endpointDocumentation.crudOperation) : {};
-  const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : undefined;
+  const responseRequired = options.responseDesc ? toRequired(options.responseDesc, endpointDocumentation.crudOperation) : undefined;
 
   let requestBody;
   if (options.requestBodyDesc) {
@@ -255,7 +256,7 @@ export function parseOverload(options: {
         'application/json': {
           schema: {
             ...toSchema(options.requestBodyDesc, endpointDocumentation.crudOperation),
-            required: toRequired(options.requestBodyDesc),
+            required: toRequired(options.requestBodyDesc, endpointDocumentation.crudOperation),
             example: toExamples(options.requestBodyDesc, endpointDocumentation.crudOperation),
           },
         },

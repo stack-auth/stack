@@ -15,7 +15,6 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
 }).required();
 
 export const usersCrudServerReadSchema = fieldSchema.yupObject({
-  project_id: fieldSchema.projectIdSchema.required(),
   id: fieldSchema.userIdSchema.required(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.required(),

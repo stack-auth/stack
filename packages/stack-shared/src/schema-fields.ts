@@ -185,7 +185,7 @@ export const teamPermissionDefinitionIdSchema = yupString()
     }
     return true;
   })
-  .meta({ openapiField: { description: `The permission ID used to uniquely identify a permission. Can either be a custom permission with lowercase letters, numbers, ":", and "_" characters, or one of the system permissions: ${teamSystemPermissions.join(', ')}`, exampleValue: '$read_secret_info' } });
+  .meta({ openapiField: { description: `The permission ID used to uniquely identify a permission. Can either be a custom permission with lowercase letters, numbers, \`:\`, and \`_\` characters, or one of the system permissions: ${teamSystemPermissions.map(x => `\`${x}\``).join(', ')}`, exampleValue: 'read_secret_info' } });
 export const customTeamPermissionDefinitionIdSchema = yupString()
   .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed')
   .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission. Can only contain lowercase letters, numbers, ":", and "_" characters', exampleValue: 'read_secret_info' } });
