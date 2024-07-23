@@ -29,6 +29,11 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       ```
 
       ### Done!
+      The setup wizards has created some files for you, they are:
+      - `app/handler/[...stack]/page.tsx`: The stack handler for pages like sign-in, sign-up, password reset, etc. You can [replace them with your own pages](/docs/customization/custom-pages) later.
+      - `app/layout.tsx`: The layout file that wraps the entire body with `StackProvider` and `StackTheme`.
+      - `app/loading.tsx`: The loading indicator for Next.js suspense, you can customize it as you like.
+      - `stack.ts`: The file for the stack server app that reads the environment variables and creates a server app that you can later use to access Stack from your Next.js server.
     </Steps>
   </Tab>
   <Tab title="Manual installation">

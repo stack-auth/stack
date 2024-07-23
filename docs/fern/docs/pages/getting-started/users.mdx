@@ -7,24 +7,21 @@ In [the last guide](./setup.mdx), we initialized Stack. This created new files c
 
 ## Use the current user in a client component
 
-We can use the `useStackApp()` hook to get a `StackClientApp` object. With it, we can retrieve the current user in Client Components:
+We can use the `useUser()` hook to get the current user in a Client Component. This hook will return `null` if the user is not logged in. Here is an example:
 
 ```tsx title="Client user profile"
 "use client";
-import { useStackApp } from "@stackframe/stack";
+import { useUser } from "@stackframe/stack"
 
 export function MyComponent() {
-  const app = useStackApp();
-  const user = app.useUser();
+  const user = useUser();
   return <div>{user ? `Hello, ${user.displayName ?? "anon"}` : 'You are not logged in'}</div>;
 }
 ```
 
-Because it's so common, `useUser()` is also exposed as a standalone hook: `import { useUser } from "@stackframe/stack"`. This is simply a shortcut because `useUser()` is shorter than `useStackApp().useUser()`. (This is not the case with other hooks; most are on the `StackClientApp` object, for example, you must explicitly call `useStackApp().useProject()` versus `useProject()`.)
-
 ## Use the current user in a server component
 
-On Server Components, you don't need `useStackApp()`. Instead, you can just import the `StackServerApp` that you created in the previous chapter (usually you would find it in the root or `src` directory):
+On Server Components, you can just import the `StackServerApp` that you created in the previous chapter (usually you would find it in the root or `src` directory):
 
 ```tsx title="Server user profile"
 import { stackServerApp } from "@/stack";
@@ -42,25 +39,14 @@ The difference between `getUser()` and `useUser()` is that `useUser()` will re-r
 
 ## Protecting a page
 
-There are three ways to protect a page: Using middleware, in Client Components with `useUser({ or: "redirect" })`, and in Server Components with `await getUser({ or: "redirect" })`.
-
-Middleware can be used whenever it is easy to tell whether a page should be protected given just the URL, for example you have a `/private` section only accessible to logged-in users.
+There are three ways to protect a page: in Client Components with `useUser({ or: "redirect" })`, in Server Components with `await getUser({ or: "redirect" })`, or with middleware.
 
 On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the user to the sign-in page if they are not logged in. Similarly, on Server Components, call `await getUser({ or: "redirect" })` to protect a page (or component).
 
-<Tabs>
-  <Tab title="Middleware">
-    ```tsx title="middleware.tsx"
-    export async function middleware(request: NextRequest) {
-      const user = await stackServerApp.getUser();
-      if (!user) {
-        return NextResponse.redirect(new URL('/handler/sign-in', request.url));
-      }
-      return NextResponse.next();
-    }
-    ```
-  </Tab>
+Middleware can be used whenever it is easy to tell whether a page should be protected given just the URL, for example you have a `/private` section only accessible to logged-in users.
 
+
+<Tabs>
   <Tab title="Client Component">
     ```tsx title="my-component.tsx"
     "use client";
@@ -80,6 +66,19 @@ On Client Components, the `useUser({ or: 'redirect' })` hook will redirect the u
     export default async function Protected() {
       await stackServerApp.getUser({ or: 'redirect' });
       return <h1>You can only see this if you are logged in</h1>
+    }
+    ```
+  </Tab>
+
+  <Tab title="Middleware">
+    ```tsx title="middleware.tsx"
+    export async function middleware(request: NextRequest) {
+      // You can add your own route protection logic here
+      const user = await stackServerApp.getUser();
+      if (!user) {
+        return NextResponse.redirect(new URL('/handler/sign-in', request.url));
+      }
+      return NextResponse.next();
     }
     ```
   </Tab>
