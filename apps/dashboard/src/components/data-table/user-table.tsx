@@ -51,8 +51,8 @@ const userEditFormSchema = yup.object({
   primaryEmail: yup.string().email("Primary Email must be a valid email address"),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
-  clientMetadata: jsonStringSchema,
-  serverMetadata: jsonStringSchema,
+  clientMetadata: jsonStringSchema.default("null"),
+  serverMetadata: jsonStringSchema.default("null"),
 });
 
 function EditUserDialog(props: {
@@ -65,8 +65,8 @@ function EditUserDialog(props: {
     primaryEmail: props.user.primaryEmail || undefined,
     primaryEmailVerified: props.user.primaryEmailVerified,
     signedUpAt: props.user.signedUpAt,
-    clientMetadata: props.user.clientMetadata ? JSON.stringify(props.user.clientMetadata) : undefined,
-    serverMetadata: props.user.serverMetadata ? JSON.stringify(props.user.serverMetadata) : undefined,
+    clientMetadata: JSON.stringify(props.user.clientMetadata ?? null),
+    serverMetadata: JSON.stringify(props.user.serverMetadata ?? null),
   };
 
   return <FormDialog
@@ -92,8 +92,8 @@ function EditUserDialog(props: {
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
 
-        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" />
-        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" />
+        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" placeholder="null" />
+        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" placeholder="null" />
       </>
     )}
     onSubmit={async (values) => { await props.user.update({
