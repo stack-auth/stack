@@ -9,7 +9,7 @@ async function main() {
   for (const audience of ['client', 'server', 'admin'] as const) {
     const filePathPrefix = "src/app/api/v1";
     const importPathPrefix = "@/app/api/v1";
-    const filePaths = await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}");
+    const filePaths = [filePathPrefix + "/route.ts", ...await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}")];
     const openAPISchema = yaml.stringify(parseOpenAPI({
       endpoints: new Map(await Promise.all(filePaths.map(async (filePath) => {
         if (!filePath.startsWith(filePathPrefix)) {

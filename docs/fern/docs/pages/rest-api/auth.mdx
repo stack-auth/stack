@@ -1,3 +1,21 @@
+---
+slug: rest-api/auth
+subtitle: REST API Overview
+---
+
+Stack offers a REST API for backends & frontends of any language. This API is used to authenticate users, manage user data, and more.
+
+## Authentication
+
+Stack requires some headers to be sent with each request to authenticate the user:
+
+<EndpointRequestSnippet endpoint="GET /api/v1" />
+
+
 ## Client vs Server
 
-Stack provides two 
+Stack Auth provides two ways to authenticate the API requests: client and server. 
+
+The client method is normally used for client-side applications, like from a browser or mobile app, the client APIs can only read and update the currently authenticated user's data.
+
+The server method is used for places like your bakend server, admin panel, or your data management scripts. The server APIs can read and update any user's data.

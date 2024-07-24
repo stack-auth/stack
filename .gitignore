@@ -108,3 +108,7 @@ docs/docs/reference/adapter
 
 # Sentry Config File
 .sentryclirc
+
+# python
+__pycache__/
+.venv/

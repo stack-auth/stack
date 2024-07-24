@@ -13,15 +13,17 @@ The `<UserButton />` component shows the user's avatar and opens a dropdown with
 
 ![UserButton](../imgs/user-button.png)
 
-```tsx title="page.tsx"
-import { UserButton } from '@stackframe/stack';
+<Accordion title="Show code">
+  ```tsx title="page.tsx"
+  import { UserButton } from '@stackframe/stack';
 
-export default function Page() {
-  return (
-    <UserButton />
-  );
-}
-```
+  export default function Page() {
+    return (
+      <UserButton />
+    );
+  }
+  ```
+</Accordion>
 
 ## `<SignIn />` and `<SignUp />`
 
@@ -30,14 +32,17 @@ These components show a sign-in and sign-up form, respectively.
 ![Sign-in Component](../imgs/sign-in.png)
 
 ```tsx title="page.tsx"
-return (
-  <SignIn />
-);
+import { UserButton } from '@stackframe/stack';
+
+export default function Page() {
+  return (
+    <SignIn />
+  );
+}
 ```
 
 All of Stack's components are modular and built from smaller primitives. For example, the `<SignIn />` component is composed of the following:
 
-- A text heading
 - An `<OAuthButtonGroup />`, which itself is composed of multiple `<OAuthButton />` components
 - A `<MagicLinkSignInForm />`, which has a text field and calls `useStackApp().signInWithMagicLink()`
 - A `<CredentialSignInForm />`, which has two text fields and calls `useStackApp().signInWithCredential()`
@@ -48,7 +53,7 @@ To change the default sign-in URL to your own, see the documentation on [custom 
 
 ## Others
 
-There are many other components available. For a comprehensive list, please check the [SDK reference](/docs/sdk).
+Stack has many more components available. For a comprehensive list, please check the [SDK reference](/docs/sdk).
 
 ## Next steps
 
