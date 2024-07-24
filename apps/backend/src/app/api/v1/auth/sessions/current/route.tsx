@@ -22,7 +22,7 @@ export const DELETE = createSmartRouteHandler({
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["empty"]).required(),
+    bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }) {
     if (!refreshTokenHeaders || !refreshTokenHeaders[0]) {
@@ -50,7 +50,7 @@ export const DELETE = createSmartRouteHandler({
 
     return {
       statusCode: 200,
-      bodyType: "empty",
+      bodyType: "success",
     };
   },
 });

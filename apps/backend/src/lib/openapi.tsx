@@ -1,6 +1,6 @@
 import { SmartRouteHandler } from '@/route-handlers/smart-route-handler';
 import { CrudlOperation, EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
-import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { StackAssertionError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
 import { typedEntries, typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
@@ -57,6 +57,14 @@ function isSchemaTupleDescription(value: yup.SchemaFieldDescription): value is y
   return value.type === 'tuple';
 }
 
+function isSchemaStringDescription(value: yup.SchemaFieldDescription): value is yup.SchemaDescription & { type: 'string' } {
+  return value.type === 'string';
+}
+
+function isSchemaNumberDescription(value: yup.SchemaFieldDescription): value is yup.SchemaDescription & { type: 'number' } {
+  return value.type === 'number';
+}
+
 function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescription, audience: 'client' | 'server' | 'admin') {
   const schemaAuth = requestDescribe.fields.auth;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- yup types are wrong and claim that fields always exist
@@ -66,9 +74,10 @@ function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescri
   const schemaAudience = schemaAuth.fields.type;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- same as above
   if (!schemaAudience) return true;
-  if ("oneOf" in schemaAudience) {
+  if ("oneOf" in schemaAudience && schemaAudience.oneOf.length > 0) {
     return schemaAudience.oneOf.includes(audience);
   }
+  return true;
 }
 
 
@@ -110,6 +119,8 @@ function parseRouteHandler(options: {
       parameterDesc: undefinedIfMixed(requestDescribe.fields.query),
       requestBodyDesc: undefinedIfMixed(requestDescribe.fields.body),
       responseDesc: undefinedIfMixed(responseDescribe.fields.body),
+      responseTypeDesc: undefinedIfMixed(responseDescribe.fields.bodyType) ?? throwErr('Response type must be defined and not mixed', { options, bodyTypeField: responseDescribe.fields.bodyType }),
+      statusCodeDesc: undefinedIfMixed(responseDescribe.fields.statusCode) ?? throwErr('Status code must be defined and not mixed', { options, statusCodeField: responseDescribe.fields.statusCode }),
     });
   }
 
@@ -197,7 +208,7 @@ function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capit
       items: toSchema(description.innerType, crudOperation),
     };
   } else {
-    throw new StackAssertionError(`Unsupported schema type: ${description.type}`, { actual: description });
+    throw new StackAssertionError(`Unsupported schema type in toSchema: ${description.type}`, { actual: description });
   }
 }
 
@@ -210,7 +221,7 @@ function toRequired(description: yup.SchemaFieldDescription, crudOperation?: Cap
   } else if (isSchemaArrayDescription(description)) {
     res = [];
   } else {
-    throw new StackAssertionError(`Unsupported schema type: ${description.type}`, { actual: description });
+    throw new StackAssertionError(`Unsupported schema type in toRequired: ${description.type}`, { actual: description });
   }
   if (res.length === 0) return undefined;
   return res;
@@ -237,16 +248,19 @@ export function parseOverload(options: {
   parameterDesc?: yup.SchemaFieldDescription,
   requestBodyDesc?: yup.SchemaFieldDescription,
   responseDesc?: yup.SchemaFieldDescription,
+  responseTypeDesc: yup.SchemaFieldDescription,
+  statusCodeDesc: yup.SchemaFieldDescription,
 }) {
   const endpointDocumentation = options.metadata ?? {
     summary: `${options.method} ${options.path}`,
     description: `No documentation available for this endpoint.`,
   };
+  if (endpointDocumentation.hidden) {
+    return undefined;
+  }
 
   const pathParameters = options.pathDesc ? toParameters(options.pathDesc, endpointDocumentation.crudOperation, options.path) : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc, endpointDocumentation.crudOperation) : [];
-  const responseSchema = options.responseDesc ? toSchema(options.responseDesc, endpointDocumentation.crudOperation) : {};
-  const responseRequired = options.responseDesc ? toRequired(options.responseDesc, endpointDocumentation.crudOperation) : undefined;
 
   let requestBody;
   if (options.requestBodyDesc) {
@@ -264,28 +278,107 @@ export function parseOverload(options: {
     };
   }
 
-  if (endpointDocumentation.hidden) {
-    return undefined;
-  }
-
-  return {
+  const exRes = {
     summary: endpointDocumentation.summary,
     description: endpointDocumentation.description,
     parameters: queryParameters.concat(pathParameters),
     requestBody,
     tags: endpointDocumentation.tags ?? ["Others"],
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': {
-            schema: {
-              ...responseSchema,
-              required: responseRequired,
+  } as const;
+
+  if (!isSchemaStringDescription(options.responseTypeDesc)) {
+    throw new StackAssertionError(`Expected response type to be a string`, { actual: options.responseTypeDesc, options });
+  }
+  if (options.responseTypeDesc.oneOf.length !== 1) {
+    throw new StackAssertionError(`Expected response type to have exactly one value`, { actual: options.responseTypeDesc, options });
+  }
+  const bodyType = options.responseTypeDesc.oneOf[0];
+
+  if (!isSchemaNumberDescription(options.statusCodeDesc)) {
+    throw new StackAssertionError('Expected status code to be a number', { actual: options.statusCodeDesc, options });
+  }
+  if (options.statusCodeDesc.oneOf.length !== 1) {
+    throw new StackAssertionError('Expected status code to have exactly one value', { actual: options.statusCodeDesc.oneOf, options });
+  }
+  const status = options.statusCodeDesc.oneOf[0] as number;
+
+  switch (bodyType) {
+    case 'json': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              'application/json': {
+                schema: {
+                  ...options.responseDesc ? toSchema(options.responseDesc, endpointDocumentation.crudOperation) : {},
+                  required: options.responseDesc ? toRequired(options.responseDesc, endpointDocumentation.crudOperation) : undefined,
+                },
+              },
             },
           },
         },
-      },
-    },
-  };
+      };
+    }
+    case 'text': {
+      if (!options.responseDesc || !isSchemaStringDescription(options.responseDesc)) {
+        throw new StackAssertionError('Expected response body of bodyType=="text" to be a string schema', { actual: options.responseDesc });
+      }
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              'text/plain': {
+                schema: {
+                  type: 'string',
+                  example: options.responseDesc.meta?.openapiField?.exampleValue,
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+    case 'success': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      description: "Always equal to true.",
+                      example: true,
+                    },
+                  },
+                  required: ["success"],
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+    case 'empty': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'No content',
+          },
+        },
+      };
+    }
+    default: {
+      throw new StackAssertionError(`Unsupported body type: ${bodyType}`);
+    }
+  }
 }

@@ -195,7 +195,7 @@ export function createCrudHandlers<
                 query: (options.querySchema ?? yupObject({})) as QuerySchema,
               }),
               response: yupObject({
-                statusCode: yupNumber().oneOf([200, 201]).required(),
+                statusCode: yupNumber().oneOf([crudOperation === "Create" ? 201 : 200]).required(),
                 headers: yupObject({
                   location: yupArray(yupString().required()).default([]),
                 }),
