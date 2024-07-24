@@ -1,3 +1,3 @@
-import { NextResponse } from "next/server";
+import { connectedAccountAccessTokenCrudHandlers } from "./crud";
 
-export const GET = () => NextResponse.json("TODO");
+export const POST = connectedAccountAccessTokenCrudHandlers.createHandler;

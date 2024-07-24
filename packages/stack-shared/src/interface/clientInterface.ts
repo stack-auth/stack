@@ -808,7 +808,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<{ accessToken: string }> {
     const response = await this.sendClientRequest(
-      `/auth/oauth/connected-account/${provider}/access-token`,
+      `/auth/oauth/connected-accounts/${provider}/access-token`,
       {
         method: "POST",
         headers: {
