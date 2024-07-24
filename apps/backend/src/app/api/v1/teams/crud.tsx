@@ -1,4 +1,4 @@
-import { ensureTeamMembershipExist } from "@/lib/db-checks";
+import { ensureTeamExist, ensureTeamMembershipExist } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { sendWebhooks } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
@@ -114,17 +114,29 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
     return teamPrismaToCrud(db);
   },
   onUpdate: async ({ params, auth, data }) => {
-    const db = await prismaClient.team.update({
-      where: {
-        projectId_teamId: {
+    const db = await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client') {
+        await ensureTeamMembershipExist(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+        });
+      }
+
+      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
+
+      return await tx.team.update({
+        where: {
+          projectId_teamId: {
+            projectId: auth.project.id,
+            teamId: params.team_id,
+          },
         },
-      },
-      data: {
-        displayName: data.display_name,
-        profileImageUrl: data.profile_image_url,
-      },
+        data: {
+          displayName: data.display_name,
+          profileImageUrl: data.profile_image_url,
+        },
+      });
     });
 
     return teamPrismaToCrud(db);

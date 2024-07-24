@@ -1,4 +1,5 @@
 import { grantTeamPermission, listUserTeamPermissions, revokeTeamPermission } from "@/lib/permissions";
+import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamPermissionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
@@ -18,19 +19,23 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
     permission_id: teamPermissionDefinitionIdSchema.required(),
   }),
   async onCreate({ auth, params }) {
-    return await grantTeamPermission({
-      project: auth.project,
-      teamId: params.team_id,
-      userId: params.user_id,
-      permissionId: params.permission_id
+    return await prismaClient.$transaction(async (tx) => {
+      return await grantTeamPermission(tx, {
+        project: auth.project,
+        teamId: params.team_id,
+        userId: params.user_id,
+        permissionId: params.permission_id
+      });
     });
   },
   async onDelete({ auth, params }) {
-    return await revokeTeamPermission({
-      project: auth.project,
-      teamId: params.team_id,
-      userId: params.user_id,
-      permissionId: params.permission_id
+    return await prismaClient.$transaction(async (tx) => {
+      return await revokeTeamPermission(tx, {
+        project: auth.project,
+        teamId: params.team_id,
+        userId: params.user_id,
+        permissionId: params.permission_id
+      });
     });
   },
   async onList({ auth, query }) {
@@ -39,15 +44,17 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       throw new StatusError(StatusError.Forbidden, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
     }
 
-    return {
-      items: await listUserTeamPermissions({
-        project: auth.project,
-        teamId: query.team_id,
-        permissionId: query.permission_id,
-        userId,
-        recursive: query.recursive === 'true',
-      }),
-      is_paginated: false,
-    };
+    return await prismaClient.$transaction(async (tx) => {
+      return {
+        items: await listUserTeamPermissions(tx, {
+          project: auth.project,
+          teamId: query.team_id,
+          permissionId: query.permission_id,
+          userId,
+          recursive: query.recursive === 'true',
+        }),
+        is_paginated: false,
+      };
+    });
   },
 });

@@ -1,5 +1,7 @@
 import { KnownErrors } from "@stackframe/stack-shared";
 import { PrismaTransaction } from "./types";
+import { listUserTeamPermissions } from "./permissions";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 
 async function _getTeamMembership(
@@ -68,5 +70,27 @@ export async function ensureTeamExist(
 
   if (!team) {
     throw new KnownErrors.TeamNotFound(options.teamId);
+  }
+}
+
+export async function ensureUserHasTeamPermission(
+  tx: PrismaTransaction,
+  options: {
+    project: ProjectsCrud["Admin"]["Read"],
+    teamId: string,
+    userId: string,
+    permissionId: string,
+  }
+) {
+  const result = await listUserTeamPermissions(tx, {
+    project: options.project,
+    teamId: options.teamId,
+    userId: options.userId,
+    permissionId: options.permissionId,
+    recursive: true,
+  });
+
+  if (result.length === 0) {
+    throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
   }
 }

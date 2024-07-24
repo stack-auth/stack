@@ -34,7 +34,7 @@ export const teamsCrudServerDeleteSchema = teamsCrudClientDeleteSchema;
 
 export const teamsCrud = createCrud({
   clientReadSchema: teamsCrudClientReadSchema,
-  // clientUpdateSchema: teamsCrudClientUpdateSchema,
+  clientUpdateSchema: teamsCrudClientUpdateSchema,
   clientCreateSchema: teamsCrudClientCreateSchema,
   // clientDeleteSchema: teamsCrudClientDeleteSchema,
   serverReadSchema: teamsCrudServerReadSchema,
