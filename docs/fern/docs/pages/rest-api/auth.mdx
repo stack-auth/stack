@@ -7,7 +7,7 @@ Stack offers a REST API for backends & frontends of any programming language or 
 
 ## Authentication
 
-Stack requires some headers to be sent on every endpoint:
+The following authentication headers are common to every endpoint:
 
 ```http
 curl https://api.stack-auth.com/api/v1/ \
@@ -24,7 +24,7 @@ curl https://api.stack-auth.com/api/v1/ \
 | `X-Stack-Project-Id` | UUID | Required. The project ID as found on the Stack dashboard. |
 | `X-Stack-Publishable-Client-Key` | string | Required for client access. The API key as found on the Stack dashboard. |
 | `X-Stack-Secret-Server-Key` | string | Required for server access. The API key as found on the Stack dashboard. |
-| `X-Stack-Access-Token` | string | Optional. The access token for the current user. If not given, the user will be assumed to be logged out. |
+| `X-Stack-Access-Token` | string | Optional. The access token for the current user. If not given, the request is considered to be logged out. |
 
 To see how to use these headers in various programming languages, see the [examples](./server-examples).
 
