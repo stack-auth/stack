@@ -18,7 +18,7 @@ async function main() {
         const suffix = filePath.slice(filePathPrefix.length);
         const midfix = suffix.slice(0, suffix.lastIndexOf("/route."));
         const importPath = `${importPathPrefix}${suffix}`;
-        const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}") || "/";
+        const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}");
         const module = require(importPath);
         const handlersByMethod = new Map(
           HTTP_METHODS.map(method => [method, module[method]] as const)
