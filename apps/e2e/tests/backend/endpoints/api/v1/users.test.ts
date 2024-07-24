@@ -19,7 +19,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -36,7 +36,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
