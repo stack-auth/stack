@@ -29,7 +29,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
     id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable(),
-  }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: ['google', 'github'] } }),
+  }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();
