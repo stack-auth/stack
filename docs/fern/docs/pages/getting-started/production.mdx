@@ -1,11 +1,11 @@
 ---
 slug: getting-started/production
-subtitle: Steps to Prepare Stack for Production Use
+subtitle: Steps to prepare Stack for production use
 ---
 
 Stack makes development easy with various default settings, but these settings need to be optimized for security and user experience when moving to production. Here's a checklist of things you need to do before switching to production mode:
 
-### Domains and Handlers
+### Domains and handlers
 
 By default, Stack allows all localhost paths as valid callback URLs. This is convenient for development but poses a security risk in production because attackers could use their own domains as callback URLs to intercept sensitive information. Therefore, in production, Stack must know your domain (e.g., `https://your-website.com`) and only allow callbacks from those domains.
 
@@ -15,7 +15,7 @@ Follow these steps when you're ready to push your application to production:
    
 2. **Disable Localhost Callbacks**: For enhanced security, disable the `Allow all localhost callbacks for development` option.
 
-### OAuth Providers
+### OAuth providers
 
 Stack uses shared OAuth keys for development to simplify setup when using "Sign in with Google/GitHub/etc." However, this isn't secure for production as it displays "Stack Development" on the providers' consent screens, making it unclear to users if the OAuth request is genuinely from your site. Thus, you should configure your own OAuth keys with the providers and connect them to Stack.
 
@@ -47,7 +47,7 @@ To use your own OAuth provider setups in production, follow these steps for each
 
 2. **Enter OAuth Credentials**: Go to the `Auth Methods` section in the Stack dashboard, open the provider's settings, switch from shared keys to custom keys, and enter the client ID and client secret.
 
-### Email Server
+### Email server
 
 For development, Stack uses a shared email server, which sends emails from Stack's domain. This is not ideal for production as users may not trust emails from an unfamiliar domain. You should set up an email server connected to your own domain.
 
@@ -55,6 +55,6 @@ Steps to connect your own email server with Stack:
 1. **Setup Email Server**: Configure your own email server and connect it to your domain (this step is beyond Stack's documentation scope).
 2. **Configure Stack's Email Settings**: Navigate to the `Emails` section in the Stack dashboard, click `Edit` in the `Email Server` section, switch from `Shared` to `Custom SMTP server`, enter your SMTP configurations, and save.
 
-### Enable Production Mode
+### Enabling production mode
 
 After completing the steps above, you can enable production mode on the `Project Settings` tab in the Stack dashboard, ensuring that your website runs securely with Stack in a production environment.

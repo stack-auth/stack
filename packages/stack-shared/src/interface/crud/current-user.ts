@@ -12,7 +12,6 @@ const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
 const serverUpdateSchema = usersCrudServerUpdateSchema;
 
 const clientReadSchema = usersCrudServerReadSchema.pick([
-  "project_id",
   "id",
   "primary_email",
   "primary_email_verified",

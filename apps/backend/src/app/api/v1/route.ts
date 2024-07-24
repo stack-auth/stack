@@ -1,9 +1,13 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { adaptSchema, projectIdSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
-import * as yup from "yup";
-import { adaptSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    summary: "/api/v1",
+    description: "Returns a human-readable message with some useful information about the API.",
+    tags: [],
+  },
   request: yupObject({
     auth: yupObject({
       type: adaptSchema,
@@ -14,12 +18,22 @@ export const GET = createSmartRouteHandler({
       // No query parameters
       // empty object means that it will fail if query parameters are given regardless
     }),
+    headers: yupObject({
+      // we list all automatically parsed headers here so the documentation shows them
+      "X-Stack-Project-Id": yupTuple([projectIdSchema]),
+      "X-Stack-Access-Type": yupTuple([yupString().oneOf(["client", "server", "admin"])]),
+      "X-Stack-Access-Token": yupTuple([yupString()]),
+      "X-Stack-Refresh-Token": yupTuple([yupString()]),
+      "X-Stack-Publishable-Client-Key": yupTuple([yupString()]),
+      "X-Stack-Secret-Server-Key": yupTuple([yupString()]),
+      "X-Stack-Super-Secret-Admin-Key": yupTuple([yupString()]),
+    }),
     method: yupString().oneOf(["GET"]).required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required(),
+    body: yupString().required().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
   }),
   handler: async (req) => {
     return {

@@ -5,7 +5,7 @@ subtitle: Getting started with Stack in 5 minutes
 
 ## Setup
 
-To get started with Stack, you need to [create a Next.js](https://nextjs.org/docs) project with the App router first.
+To get started with Stack, you need a [Next.js project](https://nextjs.org/docs/getting-started/installation) with the app router. The pages router is not supported.
 
 We recommend using our **setup wizard**, which will automatically detect your project structure and guide you through the installation process. In case it fails, you can choose to do the manual installation instead.
 
@@ -29,9 +29,18 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       ```
 
       ### Done!
+      That's it! The following files should have been created or updated in your project:
+
+      - `app/handler/[...stack]/page.tsx`: This file contains the default pages for sign-in, sign-out, account settings, and more. If you prefer, later you will learn how to [use custom pages](/docs/customization/custom-pages) instead.
+      - `app/layout.tsx`: The layout file was updated to wrap the entire body with `StackProvider` and `StackTheme`.
+      - `app/loading.tsx`: If not yet found, Stack automatically adds a Suspense boundary to your app. This is shown to the user while Stack's async hooks, like `useUser`, are loading.
+      - `stack.ts`: This file contains the `stackServerApp` which you can use to access Stack from Server Components, Server Actions, API routes, and middleware.
     </Steps>
   </Tab>
   <Tab title="Manual installation">
+    Note: The setup wizard also supports existing, complicated projects. Cases where manual installation is necessary are rare.
+
+    If you are struggling with the setup wizard, please reach out to us on our [Discord](https://discord.stack-auth.com) first, where we'll be happy to help you.
     <Steps>
       ### Install npm package
 
@@ -133,7 +142,7 @@ That's it! Stack is now configured in your Next.js project. If you start your Ne
 
 ![Stack sign in page](../imgs/sign-in.png)
 
-After signing up/in, you will be redirected back to the home page. We will show you how to add useful information to it in the next section. You can also check out the [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
+After signing up/in, you will be redirected back to the home page. We will show you how to add user information to it in the next section. You can also check out the [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings) page which looks like this:
 
 ![Stack account settings page](../imgs/account-settings-page.png)
 
@@ -141,4 +150,4 @@ After signing up/in, you will be redirected back to the home page. We will show 
 
 ## Next steps
 
-Next, we will show you how to get user information, protect a page, and store/retrieve user information in code.
+Next up, we will show you how to retrieve and update user information, and how to protect a page.

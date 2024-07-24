@@ -705,7 +705,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new StackAssertionError("User not found");
     }
     return {
-      projectId: crud.project_id,
       id: crud.id,
       displayName: crud.display_name,
       primaryEmail: crud.primary_email,
@@ -1910,7 +1909,6 @@ type Auth = {
 
 export type User =
   & {
-    readonly projectId: string,
     readonly id: string,
 
     readonly displayName: string | null,
@@ -1968,7 +1966,6 @@ export type User =
   & AsyncStoreProperty<"permissions", [scope: Team, options?: { recursive?: boolean }], TeamPermission[], true>;
 
 type BaseUser = Pick<User,
-  | "projectId"
   | "id"
   | "displayName"
   | "primaryEmail"

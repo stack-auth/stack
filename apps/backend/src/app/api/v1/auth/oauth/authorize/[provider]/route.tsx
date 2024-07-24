@@ -48,6 +48,7 @@ export const GET = createSmartRouteHandler({
   response: yupObject({
     // we never return as we always redirect
     statusCode: yupNumber().oneOf([302]).required(),
+    bodyType: yupString().oneOf(["empty"]).required(),
   }),
   async handler({ params, query }, fullReq) {
     const project = await getProject(query.client_id);
