@@ -21,13 +21,13 @@ export const teamPermissionsCrud = createCrud({
   serverDeleteSchema: teamPermissionsCrudServerDeleteSchema,
   docs: {
     clientList: {
-      summary: "List team permissions of the current user",
-      description: "user_id=me needs to be set",
+      summary: "List team permissions",
+      description: "List team permissions of the current user. `user_id=me` must be set for client requests. Note that this might contain the permissions with the same permission ID across different teams. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
       tags: ["Permissions"],
     },
     serverList: {
       summary: "List team permissions of a user",
-      description: "Query and filter the permission with team_id, user_id, and permission_id",
+      description: "Query and filter the permission with `team_id`, `user_id`, and `permission_id`. Note that this might contain the permissions with the same permission ID across different teams and users. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
       tags: ["Permissions"],
     },
     serverCreate: {

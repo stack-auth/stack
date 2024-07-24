@@ -74,7 +74,7 @@ export const teamsCrud = createCrud({
     },
     serverUpdate: {
       summary: "Update a team",
-      description: "Update a team by ID.",
+      description: "Update the team information by ID.",
       tags: ["Teams"],
     },
     serverDelete: {

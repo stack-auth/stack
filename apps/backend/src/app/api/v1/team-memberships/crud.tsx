@@ -3,7 +3,6 @@ import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/li
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
