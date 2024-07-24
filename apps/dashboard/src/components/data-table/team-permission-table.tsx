@@ -40,7 +40,7 @@ function EditDialog(props: {
       .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":" and "_" are allowed')
       .label("ID"),
     description: yup.string().label("Description"),
-    containPermissionIds: yup.array().of(yup.string().required()).required().meta({
+    containedPermissionIds: yup.array().of(yup.string().required()).required().meta({
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
@@ -53,7 +53,7 @@ function EditDialog(props: {
           selectedPermissionId={props.selectedPermissionId}
         />
       ),
-    }),
+    })
   }).default(currentPermission);
 
   return <SmartFormDialog
@@ -131,7 +131,7 @@ const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
     cell: ({ row }) => <TextCell size={200}>{row.getValue("description")}</TextCell>,
   },
   {
-    accessorKey: "containPermissionIds",
+    accessorKey: "containedPermissionIds",
     header: ({ column }) => <DataTableColumnHeader
       column={column}
       columnTitle={<div className="flex items-center gap-1">

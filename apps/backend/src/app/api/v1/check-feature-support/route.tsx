@@ -4,6 +4,9 @@ import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/s
 import { yupObject, yupString, yupNumber, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     auth: yupObject({
       type: yupMixed(),

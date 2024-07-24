@@ -283,6 +283,7 @@ it("deletes a team on the server", async ({ expect }) => {
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
+      "body": { "success": true },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

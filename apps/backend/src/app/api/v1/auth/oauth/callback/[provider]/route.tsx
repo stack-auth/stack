@@ -13,6 +13,7 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { oauthResponseToSmartResponse } from "../../oauth-helpers";
 
 const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
@@ -33,7 +34,7 @@ export const GET = createSmartRouteHandler({
     query: yupMixed().required(),
   }),
   response: yupObject({
-    statusCode: yupNumber().required(),
+    statusCode: yupNumber().oneOf([302]).required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupMixed().required(),
     headers: yupMixed().required(),
@@ -44,7 +45,7 @@ export const GET = createSmartRouteHandler({
     cookies().delete("stack-oauth-inner-" + query.state);
 
     if (cookieInfo?.value !== 'true') {
-      throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
+      throw new StatusError(StatusError.BadRequest, "stack-oauth-inner-<xyz> cookie not found");
     }
 
     const outerInfoDB = await prismaClient.oAuthOuterInfo.findUnique({
@@ -54,7 +55,7 @@ export const GET = createSmartRouteHandler({
     });
 
     if (!outerInfoDB) {
-      throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth cookie value. Please try signing in again.");
+      throw new StatusError(StatusError.BadRequest, "Invalid stack-oauth-inner-<xyz> cookie value. Please try signing in again.");
     }
 
     let outerInfo: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
@@ -275,11 +276,6 @@ export const GET = createSmartRouteHandler({
       throw error;
     }
 
-    return {
-      statusCode: oauthResponse.status || 200,
-      bodyType: "json",
-      body: oauthResponse.body,
-      headers: Object.fromEntries(Object.entries(oauthResponse.headers || {}).map(([k, v]) => ([k, [v]]))),
-    };
+    return oauthResponseToSmartResponse(oauthResponse);
   },
 });

@@ -19,7 +19,7 @@ Stack comes with a few predefined team permissions known as system permissions. 
 
 ### Checking if a User has a Permission
 
-To check whether a user has a specific permission, use the `getPermission` method or the `usePermission` hook on the `User` object. This returns the `Permission` object if the user has it; otherwise, it returns `null`. Always perform permission checks on the server side for business logic, as client-side checks can be bypassed. Here’s an example:
+To check whether a user has a specific permission, use the `getPermission` method or the `usePermission` hook on the `User` object. This returns the `Permission` object if the user has it; otherwise, it returns `null`. Always perform permission checks on the server side for business logic, as client-side checks can be bypassed. Here's an example:
 
 <Tabs>
   <Tab title="Client Component">
@@ -109,7 +109,7 @@ To get a list of all permissions a user has, use the `listPermissions` method or
 
 ### Granting a Permission to a User
 
-To grant a permission to a user, use the `grantPermission` method on the `ServerUser`. Here’s an example:
+To grant a permission to a user, use the `grantPermission` method on the `ServerUser`. Here's an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');
@@ -119,7 +119,7 @@ await user.grantPermission(team, 'read');
 
 ### Revoking a Permission from a User
 
-To revoke a permission from a user, use the `revokePermission` method on the `ServerUser`. Here’s an example:
+To revoke a permission from a user, use the `revokePermission` method on the `ServerUser`. Here's an example:
 
 ```tsx
 const team = await stackServerApp.getTeam('teamId');

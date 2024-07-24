@@ -14,7 +14,7 @@ const schema = yupObject({
   email: yupString().email('Please enter a valid email').required('Please enter your email')
 });
 
-export function MagicLinkSignInForm() {
+export function MagicLinkSignIn() {
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });

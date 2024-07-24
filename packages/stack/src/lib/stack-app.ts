@@ -291,7 +291,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
     async (session, [accountId, scope]) => {
       try {
-        return await this._interface.getAccessToken(accountId, scope || "", session);
+        const result = await this._interface.createProviderAccessToken(accountId, scope || "", session);
+        return {
+          accessToken: result.access_token,
+        };
       } catch (err) {
         if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
           throw err;
@@ -705,7 +708,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw new StackAssertionError("User not found");
     }
     return {
-      projectId: crud.project_id,
       id: crud.id,
       displayName: crud.display_name,
       primaryEmail: crud.primary_email,
@@ -1910,7 +1912,6 @@ type Auth = {
 
 export type User =
   & {
-    readonly projectId: string,
     readonly id: string,
 
     readonly displayName: string | null,
@@ -1968,7 +1969,6 @@ export type User =
   & AsyncStoreProperty<"permissions", [scope: Team, options?: { recursive?: boolean }], TeamPermission[], true>;
 
 type BaseUser = Pick<User,
-  | "projectId"
   | "id"
   | "displayName"
   | "primaryEmail"

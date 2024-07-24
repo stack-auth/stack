@@ -15,7 +15,7 @@ const schema = yupObject({
   password: yupString().required('Please enter your password')
 });
 
-export function CredentialSignInForm() {
+export function CredentialSignIn() {
   const { register, handleSubmit, setError, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
