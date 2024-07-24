@@ -1,6 +1,6 @@
 To authenticate your server endpoints, you need to send the user's access token and refresh token in the headers of the request to your server, and then making a request to Stack's server API to verify the user's identity.
 
-## Sending Requests to Your Server Endpoints
+## Sending requests to your server endpoints
 
 To authenticate your own server endpoints using Stack's server API, you need to protect your endpoints by sending the user's access token and refresh token in the headers of the request.
 
@@ -19,7 +19,7 @@ const response = await fetch('/api/users/me', {
 });
 ```
 
-## Authenticating the User on the Server Endpoints
+## Authenticating the user on the server endpoints
 
 On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user.
 
