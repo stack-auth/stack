@@ -65,6 +65,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
 
     return {
       statusCode: 200,
+      bodyType: "json",
       body: {
         refresh_token: refreshToken,
         access_token: accessToken,
