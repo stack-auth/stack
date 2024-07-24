@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.5.8
+
+### Patch Changes
+
+- Improved docs
+
 ## 2.5.7
 
 ## 2.5.6
