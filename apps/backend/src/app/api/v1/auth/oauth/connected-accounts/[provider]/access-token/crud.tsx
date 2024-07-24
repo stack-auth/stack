@@ -2,30 +2,28 @@ import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { accessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud-deprecated/oauth";
+import { providerAccessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud/oauth";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
-const crudHandlers = createCrudHandlers(accessTokenCrud, {
-  paramNames: ['provider'],
-  async onRead() {
-    throw Error('Not implemented');
-  },
+
+export const providerAccessTokenCrudHandlers = createCrudHandlers(providerAccessTokenCrud, {
+  paramsSchema: yupObject({
+    provider: yupString().required(),
+  }),
   async onCreate({ auth, data, params }) {
     if (!auth.user) throw new KnownErrors.UserNotFound();
-    const provider = auth.project.evaluatedConfig.oauthProviders.find((p) => p.id === params.provider);
-    if (!provider) {
-      throw new StatusError(StatusError.NotFound, "Provider not found");
+    const provider = auth.project.config.oauth_providers.find((p) => p.id === params.provider);
+    if (!provider || !provider.enabled) {
+      throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
-    if (!provider.enabled) {
-      throw new StatusError(StatusError.NotFound, "Provider not enabled");
-    }
-    if (sharedProviders.includes(provider.type as any)) {
+
+    if (provider.type === 'shared') {
       throw new KnownErrors.OAuthAccessTokenNotAvailableWithSharedOAuthKeys();
     }
 
-    if (!auth.user.oauthProviders.includes(params.provider)) {
+    if (!auth.user.oauth_providers.map(x => x.id).includes(params.provider)) {
       throw new KnownErrors.OAuthConnectionNotConnectedToUser();
     }
 
@@ -47,7 +45,7 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
       throw new KnownErrors.OAuthConnectionDoesNotHaveRequiredScope();
     }
 
-    const tokenSet = await getProvider(provider).getAccessToken({
+    const tokenSet = await (await getProvider(provider)).getAccessToken({
       refreshToken: filteredTokens[0].refreshToken,
       scope: data.scope,
     });
@@ -75,9 +73,9 @@ const crudHandlers = createCrudHandlers(accessTokenCrud, {
     }
 
     return {
-      accessToken: tokenSet.access_token,
+      access_token: tokenSet.access_token,
     };
   },
 });
 
-export const POST = crudHandlers.createHandler;
+
