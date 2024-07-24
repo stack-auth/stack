@@ -82,6 +82,12 @@ export async function ensureUserHasTeamPermission(
     permissionId: TeamSystemPermission,
   }
 ) {
+  await ensureTeamMembershipExist(tx, {
+    projectId: options.project.id,
+    teamId: options.teamId,
+    userId: options.userId,
+  });
+
   const result = await listUserTeamPermissions(tx, {
     project: options.project,
     teamId: options.teamId,

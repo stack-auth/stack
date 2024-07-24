@@ -117,12 +117,6 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onUpdate: async ({ params, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        await ensureTeamMembershipExist(tx, {
-          projectId: auth.project.id,
-          teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
-        });
-
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,
@@ -152,12 +146,6 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onDelete: async ({ params, auth }) => {
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        await ensureTeamMembershipExist(tx, {
-          projectId: auth.project.id,
-          teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
-        });
-
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,

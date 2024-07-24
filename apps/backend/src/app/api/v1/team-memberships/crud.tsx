@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipDoesNotExist } from "@/lib/db-checks";
+import { ensureTeamExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -59,14 +59,25 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
     return {};
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.teamMember.delete({
-      where: {
-        projectId_projectUserId_teamId: {
-          projectId: auth.project.id,
-          projectUserId: params.user_id,
+    await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client') {
+        await ensureUserHasTeamPermission(tx, {
+          project: auth.project,
           teamId: params.team_id,
+          userId: params.user_id,
+          permissionId: "$remove_members",
+        });
+      }
+
+      await tx.teamMember.delete({
+        where: {
+          projectId_projectUserId_teamId: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+            teamId: params.team_id,
+          },
         },
-      },
+      });
     });
   },
 });
