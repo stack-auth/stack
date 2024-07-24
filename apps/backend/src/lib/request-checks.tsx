@@ -87,12 +87,7 @@ export async function ensureUserHasTeamPermission(
     teamId: options.teamId,
     userId: options.userId,
   });
-  console.log(await listUserTeamPermissions(tx, {
-    project: options.project,
-    teamId: options.teamId,
-    userId: options.userId,
-    recursive: true,
-  }), '!!!!!!!!!!');
+
   const result = await listUserTeamPermissions(tx, {
     project: options.project,
     teamId: options.teamId,

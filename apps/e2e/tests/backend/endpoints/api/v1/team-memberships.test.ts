@@ -33,7 +33,7 @@ it("is not allowed to add user to team on client", async ({ expect }) => {
   `);
 });
 
-it("creates a team and manage users in it", async ({ expect }) => {
+it("creates a team and manage users on the server", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
   backendContext.set({
     mailbox: createMailbox(),
@@ -181,6 +181,85 @@ it("should give team creator default permissions", async ({ expect }) => {
           },
         ],
       },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("can leave team", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // Does not have permission to remove user from team
+  const response1 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/me`, {
+    accessType: "client",
+    method: "DELETE",
+    body: {},
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("removes user from team on the client", async ({ expect }) => {
+  const { userId: userId1 } = await Auth.Otp.signIn();
+  backendContext.set({
+    mailbox: createMailbox(),
+  });
+  const { userId: userId2 } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Does not have permission to remove user from team
+  const response1 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
+    accessType: "client",
+    method: "DELETE",
+    body: {},
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "TEAM_PERMISSION_REQUIRED",
+        "details": {
+          "permission_id": "$remove_members",
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "error": "User <stripped UUID> does not have permission $remove_members in team <stripped UUID>.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "TEAM_PERMISSION_REQUIRED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId2}/$remove_members`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to remove user from team
+  const response2 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
+    accessType: "client",
+    method: "DELETE",
+    body: {},
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

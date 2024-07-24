@@ -92,7 +92,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureTeamMembershipExist(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be logged in to read a team"),
+          userId: auth.user?.id ?? throwErr('auth.user is null'),
         });
       }
 
@@ -120,7 +120,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+          userId: auth.user?.id ?? throwErr('auth.user is null'),
           permissionId: "$update_team",
         });
       }
@@ -149,7 +149,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+          userId: auth.user?.id ?? throwErr('auth.user is null'),
           permissionId: "$delete_team",
         });
       }

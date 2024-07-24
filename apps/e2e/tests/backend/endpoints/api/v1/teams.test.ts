@@ -362,7 +362,7 @@ it("deletes a team on the client", async ({ expect }) => {
     body: {},
   });
 
-  // Has permission to update a team
+  // Has permission to delete a team
   const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "client",
     method: "DELETE",

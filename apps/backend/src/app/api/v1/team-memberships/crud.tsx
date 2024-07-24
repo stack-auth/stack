@@ -5,6 +5,7 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCrud, {
@@ -68,7 +69,7 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: params.user_id,
+          userId: auth.user?.id ?? throwErr('auth.user is null'),
           permissionId: "$remove_members",
         });
       }
