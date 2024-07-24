@@ -40,7 +40,7 @@ export abstract class OAuthResponseError extends StatusError {
   public override getHeaders(): Record<string, string[]> {
     return {
       "Content-Type": ["application/json; charset=utf-8"],
-      ...this.oauthResponse.headers,
+      ...Object.fromEntries(Object.entries(this.oauthResponse.headers || {}).map(([k, v]) => ([k, [v]]))),
     };
   }
 }
