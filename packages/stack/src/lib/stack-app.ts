@@ -291,7 +291,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
     async (session, [accountId, scope]) => {
       try {
-        return await this._interface.getAccessToken(accountId, scope || "", session);
+        const result = await this._interface.createProviderAccessToken(accountId, scope || "", session);
+        return {
+          accessToken: result.access_token,
+        };
       } catch (err) {
         if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
           throw err;

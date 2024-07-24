@@ -1,3 +1,3 @@
-import { connectedAccountAccessTokenCrudHandlers } from "./crud";
+import { providerAccessTokenCrudHandlers } from "./crud";
 
-export const POST = connectedAccountAccessTokenCrudHandlers.createHandler;
+export const POST = providerAccessTokenCrudHandlers.createHandler;

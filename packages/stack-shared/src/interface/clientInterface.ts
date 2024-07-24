@@ -9,6 +9,7 @@ import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
 import { Result } from "../utils/results";
 import { CurrentUserCrud } from './crud/current-user';
+import { ProviderAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -802,11 +803,11 @@ export class StackClientInterface {
     return json;
   }
 
-  async getAccessToken(
+  async createProviderAccessToken(
     provider: string,
     scope: string,
     session: InternalSession,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<ProviderAccessTokenCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
       `/auth/oauth/connected-accounts/${provider}/access-token`,
       {
@@ -818,10 +819,7 @@ export class StackClientInterface {
       },
       session,
     );
-    const json = await response.json();
-    return {
-      accessToken: json.accessToken,
-    };
+    return await response.json();
   }
 
   async createTeamForCurrentUser(

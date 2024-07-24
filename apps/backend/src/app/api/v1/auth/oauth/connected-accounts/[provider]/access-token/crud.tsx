@@ -2,13 +2,13 @@ import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { accessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud/oauth";
+import { providerAccessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud/oauth";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 
-export const connectedAccountAccessTokenCrudHandlers = createCrudHandlers(accessTokenCrud, {
+export const providerAccessTokenCrudHandlers = createCrudHandlers(providerAccessTokenCrud, {
   paramsSchema: yupObject({
     provider: yupString().required(),
   }),
