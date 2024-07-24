@@ -1,9 +1,13 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
-import * as yup from "yup";
 import { adaptSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    summary: "/api/v1",
+    description: "Returns a human-readable message with some useful information about the API.",
+    tags: [],
+  },
   request: yupObject({
     auth: yupObject({
       type: adaptSchema,
@@ -19,7 +23,7 @@ export const GET = createSmartRouteHandler({
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required(),
+    body: yupString().required().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
   }),
   handler: async (req) => {
     return {

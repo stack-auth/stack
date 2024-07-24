@@ -28,6 +28,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
     body: signInResponseSchema.required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
