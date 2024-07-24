@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/db-checks";
+import { ensureTeamExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";

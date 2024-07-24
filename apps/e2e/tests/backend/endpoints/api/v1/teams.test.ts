@@ -223,7 +223,63 @@ it("should not be allowed to get a team that the user is not part of on the clie
   `);
 });
 
-it.todo("updates a team on the client");
+it("updates a team on the client", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // Does not have permission to update a team
+  const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "My Updated Team",
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "TEAM_PERMISSION_REQUIRED",
+        "details": {
+          "permission_id": "$update_team",
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "error": "User <stripped UUID> does not have permission $update_team in team <stripped UUID>.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "TEAM_PERMISSION_REQUIRED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "My Updated Team",
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "My Updated Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
 
 it("updates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();

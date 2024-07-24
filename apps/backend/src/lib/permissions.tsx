@@ -105,9 +105,12 @@ export async function listUserTeamPermissions(
       projectId: options.project.id,
       projectUserId: options.userId,
       teamId: options.teamId,
-      permission: options.permissionId ? {
-        queryableId: options.permissionId,
-      } : undefined
+      permission: options.permissionId && !isTeamSystemPermission(options.permissionId) ?
+        { queryableId: options.permissionId } :
+        undefined,
+      systemPermission: options.permissionId && isTeamSystemPermission(options.permissionId) ?
+        teamSystemPermissionStringToDBType(options.permissionId) :
+        undefined,
     },
     include: {
       permission: true,
