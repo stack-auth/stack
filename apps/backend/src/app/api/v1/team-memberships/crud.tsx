@@ -60,7 +60,11 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
   },
   onDelete: async ({ auth, params }) => {
     await prismaClient.$transaction(async (tx) => {
-      if (auth.type === 'client') {
+      const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
+
+      // Users are always allowed to remove themselves from a team
+      // Only users with the $remove_members permission can remove other users
+      if (auth.type === 'client' && userId !== auth.user?.id) {
         await ensureUserHasTeamPermission(tx, {
           project: auth.project,
           teamId: params.team_id,
