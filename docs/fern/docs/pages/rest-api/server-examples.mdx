@@ -1,13 +1,12 @@
+To authenticate your server endpoints, you need to send the user's access token and refresh token in the headers of the request to your server, and then making a request to Stack's server API to verify the user's identity.
 
+## Sending Requests to Your Server Endpoints
 
-In order to authenticate your own server endpoints, you need to procect them with Stack's server API. This is done by sending the user's access token and refresh token in the headers of the request.
+To authenticate your own server endpoints using Stack's server API, you need to protect your endpoints by sending the user's access token and refresh token in the headers of the request.
 
+On the client side, you can retrieve the access token and refresh token from the `user` object by calling `user.getAuthJson()`. This will return an object containing `accessToken` and `refreshToken`.
 
-## Sending requests to your server endpoints
-
-On the client side, you can use get the access token and refresh token from the `user` object by calling `user.getAuthJson()`. This will return an object with `accessToken` and `refreshToken`.
-
-Then you can call your server endpoint with these two tokens in the headers.
+Then, you can call your server endpoint with these two tokens in the headers, like this:
 
 ```typescript
 const { accessToken, refreshToken } = await user.getAuthJson();
@@ -20,7 +19,7 @@ const response = await fetch('/api/users/me', {
 });
 ```
 
-## Authenticating the user on the server endpoints
+## Authenticating the User on the Server Endpoints
 
 On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user.
 
