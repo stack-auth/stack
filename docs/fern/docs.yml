@@ -113,9 +113,9 @@ navigation:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
-      - page: Server examples
+      - page: Examples
         icon: fa-regular fa-code
-        path: ./docs/pages/rest-api/server-examples.mdx
+        path: ./docs/pages/rest-api/examples.mdx
       - api: Client API Reference
         slug: client
         api-name: client

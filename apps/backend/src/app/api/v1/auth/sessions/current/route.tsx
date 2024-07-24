@@ -17,7 +17,7 @@ export const DELETE = createSmartRouteHandler({
       project: adaptSchema,
     }).required(),
     headers: yupObject({
-      "x-stack-refresh-token": yupTuple([yupString()]),
+      "x-stack-refresh-token": yupTuple([yupString().required()]).required(),
     }),
   }),
   response: yupObject({
@@ -25,7 +25,7 @@ export const DELETE = createSmartRouteHandler({
     bodyType: yupString().oneOf(["success"]).required(),
   }),
   async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }) {
-    if (!refreshTokenHeaders || !refreshTokenHeaders[0]) {
+    if (!refreshTokenHeaders[0]) {
       throw new StackAssertionError("Signing out without the refresh token is currently not supported. TODO: implement");
     }
     const refreshToken = refreshTokenHeaders[0];

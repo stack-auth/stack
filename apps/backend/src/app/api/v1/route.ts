@@ -1,5 +1,5 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, projectIdSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const GET = createSmartRouteHandler({
@@ -17,6 +17,16 @@ export const GET = createSmartRouteHandler({
     query: yupObject({
       // No query parameters
       // empty object means that it will fail if query parameters are given regardless
+    }),
+    headers: yupObject({
+      // we list all automatically parsed headers here so the documentation shows them
+      "X-Stack-Project-Id": yupTuple([projectIdSchema.required()]).required(),
+      "X-Stack-Access-Type": yupTuple([yupString().oneOf(["client", "server", "admin"])]),
+      "X-Stack-Access-Token": yupTuple([yupString()]),
+      "X-Stack-Refresh-Token": yupTuple([yupString()]),
+      "X-Stack-Publishable-Client-Key": yupTuple([yupString()]),
+      "X-Stack-Secret-Server-Key": yupTuple([yupString()]),
+      "X-Stack-Super-Secret-Admin-Key": yupTuple([yupString()]),
     }),
     method: yupString().oneOf(["GET"]).required(),
   }),

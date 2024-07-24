@@ -118,6 +118,7 @@ function parseRouteHandler(options: {
       path: options.path,
       pathDesc: undefinedIfMixed(requestDescribe.fields.params),
       parameterDesc: undefinedIfMixed(requestDescribe.fields.query),
+      headerDesc: undefinedIfMixed(requestDescribe.fields.headers),
       requestBodyDesc: undefinedIfMixed(requestDescribe.fields.body),
       responseDesc: undefinedIfMixed(responseDescribe.fields.body),
       responseTypeDesc: undefinedIfMixed(responseDescribe.fields.bodyType) ?? throwErr('Response type must be defined and not mixed', { options, bodyTypeField: responseDescribe.fields.bodyType }),
@@ -195,6 +196,33 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
   }).filter((x) => x.schema !== undefined);
 }
 
+function toHeaderParameters(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
+  if (!isSchemaObjectDescription(description)) {
+    throw new StackAssertionError('Parameters field must be an object schema', { actual: description });
+  }
+
+  return Object.entries(description.fields).map(([key, tupleField]) => {
+    if (!isSchemaTupleDescription(tupleField)) {
+      throw new StackAssertionError('Header field must be a tuple schema', { actual: tupleField, key });
+    }
+    if (tupleField.innerType.length !== 1) {
+      throw new StackAssertionError('Header fields of length !== 1 not currently supported', { actual: tupleField, key });
+    }
+    const field = tupleField.innerType[0];
+    const meta = "meta" in field ? field.meta : {};
+    const schema = getFieldSchema(field, crudOperation);
+    return {
+      name: key,
+      in: 'header',
+      type: 'string',
+      schema,
+      description: meta?.openapiField?.description,
+      example: meta?.openapiField?.exampleValue,
+      required: !(field as any).optional && !(field as any).nullable && !!schema,
+    };
+  }).filter((x) => x.schema !== undefined);
+}
+
 function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): any {
   if (isSchemaObjectDescription(description)) {
     return {
@@ -247,6 +275,7 @@ export function parseOverload(options: {
   path: string,
   pathDesc?: yup.SchemaFieldDescription,
   parameterDesc?: yup.SchemaFieldDescription,
+  headerDesc?: yup.SchemaFieldDescription,
   requestBodyDesc?: yup.SchemaFieldDescription,
   responseDesc?: yup.SchemaFieldDescription,
   responseTypeDesc: yup.SchemaFieldDescription,
@@ -262,6 +291,7 @@ export function parseOverload(options: {
 
   const pathParameters = options.pathDesc ? toParameters(options.pathDesc, endpointDocumentation.crudOperation, options.path) : [];
   const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc, endpointDocumentation.crudOperation) : [];
+  const headerParameters = options.headerDesc ? toHeaderParameters(options.headerDesc, endpointDocumentation.crudOperation) : [];
 
   let requestBody;
   if (options.requestBodyDesc) {
@@ -282,7 +312,7 @@ export function parseOverload(options: {
   const exRes = {
     summary: endpointDocumentation.summary,
     description: endpointDocumentation.description,
-    parameters: queryParameters.concat(pathParameters),
+    parameters: [...queryParameters, ...pathParameters, ...headerParameters],
     requestBody,
     tags: endpointDocumentation.tags ?? ["Others"],
   } as const;
