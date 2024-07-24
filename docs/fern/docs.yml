@@ -113,14 +113,9 @@ navigation:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
-      - section: Examples
-        contents:
-          - page: Node.js
-            icon: fa-brands fa-node-js
-            path: ./docs/pages/rest-api/node.mdx
-          - page: Python
-            icon: fa-brands fa-python
-            path: ./docs/pages/rest-api/python.mdx
+      - page: Server examples
+        icon: fa-regular fa-code
+        path: ./docs/pages/rest-api/server-examples.mdx
       - api: Client API Reference
         slug: client
         api-name: client

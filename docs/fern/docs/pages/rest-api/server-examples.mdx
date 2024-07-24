@@ -1,0 +1,65 @@
+
+
+In order to authenticate your own server endpoints, you need to procect them with Stack's server API. This is done by sending the user's access token and refresh token in the headers of the request.
+
+
+## Sending requests to your server endpoints
+
+On the client side, you can use get the access token and refresh token from the `user` object by calling `user.getAuthJson()`. This will return an object with `accessToken` and `refreshToken`.
+
+Then you can call your server endpoint with these two tokens in the headers.
+
+```typescript
+const { accessToken, refreshToken } = await user.getAuthJson();
+const response = await fetch('/api/users/me', {
+  headers: {
+    'x-stack-access-token': accessToken,
+    'x-stack-refresh-token': refreshToken
+  },
+  // your other options and parameters
+});
+```
+
+## Authenticating the user on the server endpoints
+
+On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user.
+
+<Tabs>
+  <Tab title="Node.js">
+    ```javascript
+    const url = 'https://api.stack-auth.com/v1/api/users/me';
+    const headers = {
+      'x-stack-access-token': 'access token from headers',
+      'x-stack-refresh-token': 'refresh token from headers'
+    };
+
+    fetch(url, { headers })
+      .then(response => response.json())
+      .then(data => {
+        if (data.id) {
+          console.log('User is authenticated');
+        } else {
+          console.log('User is not authenticated');
+        }
+      });
+    ```
+  </Tab>
+
+  <Tab title="Python">
+   ```python
+    import requests
+
+    url = 'https://api.stack-auth.com/v1/api/users/me'
+    headers = {
+      'x-stack-access-token': 'access token from headers',
+      'x-stack-refresh-token': 'refresh token from headers'
+    }
+
+    response = requests.get(url, headers=headers)
+    if (response.json()['id'] is not None):
+      print('User is authenticated')
+    else:
+      print('User is not authenticated')
+    ```
+  </Tab>
+</Tabs>
