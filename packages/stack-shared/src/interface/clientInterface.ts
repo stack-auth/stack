@@ -610,7 +610,7 @@ export class StackClientInterface {
     url.searchParams.set("error_redirect_url", options.errorRedirectUrl);
 
     if (options.afterCallbackRedirectUrl) {
-      url.searchParams.set("after_callback_redirect_rrl", options.afterCallbackRedirectUrl);
+      url.searchParams.set("after_callback_redirect_url", options.afterCallbackRedirectUrl);
     }
 
     if (options.type === "link") {
