@@ -1,16 +1,16 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { yupObject, yupString } from "../../schema-fields";
 
-export const accessTokenReadSchema = yupObject({
+export const providerAccessTokenReadSchema = yupObject({
   access_token: yupString().required(),
 }).required();
 
-export const accessTokenCreateSchema = yupObject({
+export const providerAccessTokenCreateSchema = yupObject({
   scope: yupString().optional(),
 }).required();
 
-export const accessTokenCrud = createCrud({
-  clientReadSchema: accessTokenReadSchema,
-  clientCreateSchema: accessTokenCreateSchema,
+export const providerAccessTokenCrud = createCrud({
+  clientReadSchema: providerAccessTokenReadSchema,
+  clientCreateSchema: providerAccessTokenCreateSchema,
 });
-export type AccessTokenCrud = CrudTypeOf<typeof accessTokenCrud>;
+export type ProviderAccessTokenCrud = CrudTypeOf<typeof providerAccessTokenCrud>;
