@@ -31,7 +31,8 @@ export function parseOpenAPI(options: {
               .filter(([_, handler]) => handler !== undefined)
           )]
         ))
-        .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0),
+        .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
+        .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
     ),
   };
 }
