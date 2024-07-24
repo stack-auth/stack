@@ -21,8 +21,4 @@ export { OAuthButtonGroup } from "./components/oauth-button-group";
 
 export {
   SelectedTeamSwitcher,
-  /**
-   * @deprecated This was renamed to `SelectedTeamSwitcher`.
-   */
-  SelectedTeamSwitcher as TeamSwitcher,
 } from "./components/selected-team-switcher";
