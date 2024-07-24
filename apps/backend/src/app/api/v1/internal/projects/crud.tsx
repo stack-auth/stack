@@ -16,7 +16,7 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
     if (!auth.user) {
       throw new KnownErrors.UserAuthenticationRequired();
     }
-    if (auth.user.project_id !== 'internal') {
+    if (auth.project.id !== "internal") {
       throw new KnownErrors.ExpectedInternalProject();
     }
   },

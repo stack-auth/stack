@@ -236,6 +236,7 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
   expect(response5).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
+      "body": { "success": true },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

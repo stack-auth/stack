@@ -14,6 +14,7 @@ declare module 'yup' {
       description?: string,
       exampleValue?: any,
       hidden?: boolean,
+      onlyShowInOperations?: Capitalize<CrudlOperation>[],
     },
   }
 }
@@ -22,6 +23,7 @@ type ShownEndpointDocumentation = {
   summary: string,
   description: string,
   tags?: string[],
+  crudOperation?: Capitalize<CrudlOperation>,
 };
 export type EndpointDocumentation =
   | ({ hidden: true } & Partial<ShownEndpointDocumentation>)

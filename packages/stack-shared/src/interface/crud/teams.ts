@@ -44,12 +44,12 @@ export const teamsCrud = createCrud({
   docs: {
     clientList: {
       summary: "List teams",
-      description: "List all the teams that the current user is a member of.",
+      description: "List all the teams that the current user is a member of. `user_id=me` must be passed in the query parameters.",
       tags: ["Teams"],
     },
     clientCreate: {
       summary: "Create a team",
-      description: "Create a new team and add the current user as a member.",
+      description: "Create a new team and optionally add the current user as a member.",
       tags: ["Teams"],
     },
     clientRead: {
@@ -59,7 +59,7 @@ export const teamsCrud = createCrud({
     },
     serverCreate: {
       summary: "Create a team",
-      description: "Create a new team and add the current user as a member.",
+      description: "Create a new team and optionally add the current user as a member.",
       tags: ["Teams"],
     },
     serverList: {
@@ -74,7 +74,7 @@ export const teamsCrud = createCrud({
     },
     serverUpdate: {
       summary: "Update a team",
-      description: "Update a team by ID.",
+      description: "Update the team information by ID.",
       tags: ["Teams"],
     },
     serverDelete: {

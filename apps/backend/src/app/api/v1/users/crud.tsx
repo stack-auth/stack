@@ -28,7 +28,6 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
   return {
-    project_id: prisma.projectId,
     id: prisma.projectUserId,
     display_name: prisma.displayName || null,
     primary_email: prisma.primaryEmail,
@@ -52,7 +51,7 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   querySchema: yupObject({
-    team_id: yupString().uuid().optional(),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
   }),
   paramsSchema: yupObject({
     user_id: userIdOrMeSchema.required(),

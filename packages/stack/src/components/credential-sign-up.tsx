@@ -27,7 +27,7 @@ const schema = yupObject({
   passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], 'Passwords do not match').required('Please repeat your password')
 });
 
-export function CredentialSignUpForm() {
+export function CredentialSignUp() {
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });

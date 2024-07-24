@@ -285,7 +285,11 @@ const AccessTypeWithoutProjectId = createKnownErrorConstructor(
   "ACCESS_TYPE_WITHOUT_PROJECT_ID",
   (accessType: "client" | "server" | "admin") => [
     400,
-    `The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.`,
+    deindent`
+      The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.
+      
+      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
+    `,
     {
       request_type: accessType,
     },
@@ -298,7 +302,11 @@ const AccessTypeRequired = createKnownErrorConstructor(
   "ACCESS_TYPE_REQUIRED",
   () => [
     400,
-    `You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.`,
+    deindent`
+      You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
+      
+      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
+    `,
   ] as const,
   () => [] as const,
 );
