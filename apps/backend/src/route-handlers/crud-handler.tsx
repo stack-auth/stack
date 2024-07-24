@@ -2,7 +2,7 @@ import "../polyfills";
 
 import * as yup from "yup";
 import { SmartRouteHandler, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
-import { CrudOperation, CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
+import { CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
 import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
@@ -199,7 +199,7 @@ export function createCrudHandlers<
                 headers: yupObject({
                   location: yupArray(yupString().required()).default([]),
                 }),
-                bodyType: yupString().oneOf([crudOperation === "Delete" ? "empty" : "json"]).required(),
+                bodyType: yupString().oneOf([crudOperation === "Delete" ? "success" : "json"]).required(),
                 body: accessSchemas.output,
               }),
               handler: async (req, fullReq) => {
@@ -217,7 +217,7 @@ export function createCrudHandlers<
                   headers: {
                     location: crudOperation === "Create" ? [req.url] : [],
                   },
-                  bodyType: crudOperation === "Delete" ? "empty" : "json",
+                  bodyType: crudOperation === "Delete" ? "success" : "json",
                   body: result,
                 };
               },

@@ -9,6 +9,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -20,7 +21,7 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   };
 }
 
-export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
+export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
     user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'], description: 'Filter for the teams that the user is a member of. Can be either `me` or an ID. Must be `me` in the client API', exampleValue: 'me' } }),
     add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], description: "If to add the current user to the team. If this is not `true`, the newly created team will have no members. Notice that if you didn't specify `add_current_user=true` on the client side, the user cannot join the team again without re-adding them on the server side.", exampleValue: 'true' } }),
@@ -174,4 +175,4 @@ export const teamsCrudHandlers = createCrudHandlers(teamsCrud, {
       is_paginated: false,
     };
   }
-});
+}));

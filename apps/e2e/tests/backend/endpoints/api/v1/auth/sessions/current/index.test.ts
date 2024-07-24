@@ -8,6 +8,7 @@ it("should sign out users", async ({ expect }) => {
   expect(res.signOutResponse).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
+      "body": { "success": true },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

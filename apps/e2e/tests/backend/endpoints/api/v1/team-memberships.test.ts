@@ -74,7 +74,6 @@ it("creates a team and manage users in it", async ({ expect }) => {
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
-            "project_id": "internal",
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,
@@ -90,7 +89,6 @@ it("creates a team and manage users in it", async ({ expect }) => {
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
-            "project_id": "internal",
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,
@@ -111,6 +109,7 @@ it("creates a team and manage users in it", async ({ expect }) => {
   expect(response3).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
+      "body": { "success": true },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -135,7 +134,6 @@ it("creates a team and manage users in it", async ({ expect }) => {
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
-            "project_id": "internal",
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,

@@ -139,6 +139,7 @@ export namespace Auth {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
+        "body": { "success": true },
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
