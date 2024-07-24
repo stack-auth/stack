@@ -2,6 +2,8 @@
   "name": "@stackframe/stack",
   "version": "2.5.8",
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
