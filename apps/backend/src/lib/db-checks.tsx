@@ -1,6 +1,6 @@
 import { KnownErrors } from "@stackframe/stack-shared";
 import { PrismaTransaction } from "./types";
-import { listUserTeamPermissions } from "./permissions";
+import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 
@@ -79,7 +79,7 @@ export async function ensureUserHasTeamPermission(
     project: ProjectsCrud["Admin"]["Read"],
     teamId: string,
     userId: string,
-    permissionId: string,
+    permissionId: TeamSystemPermission,
   }
 ) {
   const result = await listUserTeamPermissions(tx, {

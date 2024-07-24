@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExist } from "@/lib/db-checks";
+import { ensureTeamExist, ensureTeamMembershipExist, ensureUserHasTeamPermission } from "@/lib/db-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { sendWebhooks } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
@@ -122,6 +122,13 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
         });
+
+        await ensureUserHasTeamPermission(tx, {
+          project: auth.project,
+          teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+          permissionId: "$update_team",
+        });
       }
 
       await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
@@ -143,13 +150,30 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     return teamPrismaToCrud(db);
   },
   onDelete: async ({ params, auth }) => {
-    await prismaClient.team.delete({
-      where: {
-        projectId_teamId: {
+    await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client') {
+        await ensureTeamMembershipExist(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+        });
+
+        await ensureUserHasTeamPermission(tx, {
+          project: auth.project,
+          teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr("Client must be logged in to update a team"),
+          permissionId: "$delete_team",
+        });
+      }
+
+      await tx.team.delete({
+        where: {
+          projectId_teamId: {
+            projectId: auth.project.id,
+            teamId: params.team_id,
+          },
         },
-      },
+      });
     });
 
     await sendWebhooks({

@@ -27,6 +27,8 @@ export function teamDBTypeToSystemPermissionString(permission: DBTeamSystemPermi
   return '$' + typedToLowercase(permission) as `$${Lowercase<DBTeamSystemPermission>}`;
 }
 
+export type TeamSystemPermission = ReturnType<typeof teamDBTypeToSystemPermissionString>;
+
 const descriptionMap: Record<DBTeamSystemPermission, string> = {
   "UPDATE_TEAM": "Update the team information",
   "DELETE_TEAM": "Delete the team",
