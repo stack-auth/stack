@@ -804,7 +804,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._updateClientUser(update, session);
       },
       sendVerificationEmail() {
-        return app._sendVerificationEmail(session);
+        if (!crud?.primary_email) {
+          throw new StackAssertionError("User does not have a primary email");
+        }
+        return app._sendVerificationEmail(crud.primary_email, session);
       },
       updatePassword(options: { oldPassword: string, newPassword: string}) {
         return app._updatePassword(options, session);
@@ -903,8 +906,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         url = getRelativePart(nextUrl);
       }
     }
-
-    console.log("HIIIIIIIIIIIII", handlerName, url, new Error());
 
     await this._redirectIfTrusted(url, options);
   }
@@ -1097,9 +1098,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await this.redirectToAfterSignOut();
   }
 
-  protected async _sendVerificationEmail(session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
+  protected async _sendVerificationEmail(email: string, session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    return await this._interface.sendVerificationEmail(emailVerificationRedirectUrl, session);
+    return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
   }
 
   protected async _updatePassword(
