@@ -114,7 +114,9 @@ model TeamMember {
   projectUserId String @db.Uuid
   teamId        String @db.Uuid
 
+  // This will override the displayName of the user in this team.
   displayName     String?
+  // This will override the profileImageUrl of the user in this team.
   profileImageUrl String?
 
   createdAt DateTime @default(now())
