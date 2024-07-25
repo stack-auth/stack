@@ -5,9 +5,10 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
-export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
+export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
   onUpdate: async ({ auth, data }) => {
     const oldProject = auth.project;
@@ -271,4 +272,4 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
   onRead: async ({ auth }) => {
     return auth.project;
   },
-});
+}));

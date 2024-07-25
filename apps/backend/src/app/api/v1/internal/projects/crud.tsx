@@ -5,10 +5,11 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { projectIdSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 
-export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsCrud, {
+export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
     projectId: projectIdSchema.required(),
   }),
@@ -177,4 +178,4 @@ export const internalProjectsCrudHandlers = createCrudHandlers(internalProjectsC
       is_paginated: false,
     } as const;
   }
-});
+}));

@@ -4,8 +4,9 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { apiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeySet", {
+export const apiKeyCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(apiKeysCrud, "apiKeySet", {
   paramsSchema: yupObject({
     api_key_id: yupString().uuid().required(),
   }),
@@ -68,4 +69,4 @@ export const apiKeyCrudHandlers = createPrismaCrudHandlers(apiKeysCrud, "apiKeyS
       manually_revoked_at_millis: prisma.manuallyRevokedAt?.getTime(),
     };
   },
-});
+}));
