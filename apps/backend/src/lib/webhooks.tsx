@@ -16,7 +16,7 @@ export async function sendWebhooks(options: {
       return;
     }
     const data = JSON.parse(dataString);
-    for (const { url, projectId } of data) {
+    for (const { projectId } of data) {
       if (projectId !== options.projectId) {
         continue;
       }
