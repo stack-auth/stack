@@ -1,9 +1,9 @@
 import { StackClientInterface } from "@stackframe/stack-shared";
-import { saveVerifierAndState, getVerifierAndState } from "./cookie";
-import { constructRedirectUrl } from "../utils/url";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { constructRedirectUrl } from "../utils/url";
+import { getVerifierAndState, saveVerifierAndState } from "./cookie";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,

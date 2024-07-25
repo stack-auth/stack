@@ -8,7 +8,7 @@ type LinkProps = {
   children: React.ReactNode,
   className?: string,
   target?: string,
-  onClick?: () => void,
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>,
   prefetch?: boolean,
 };
 
@@ -18,6 +18,7 @@ function Link(props: LinkProps) {
     target={props.target}
     className={props.className}
     prefetch={props.prefetch}
+    onClick={props.onClick}
   >
     {props.children}
   </NextLink>;

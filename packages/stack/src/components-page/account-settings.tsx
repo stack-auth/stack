@@ -47,8 +47,8 @@ function SettingSection(props: {
 }
 
 function ProfileSection() {
-  const user = useUser();
-  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
+  const user = useUser()!;
+  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user.displayName || '' });
   const [changed, setChanged] = useState(false);
 
   return (
@@ -58,15 +58,15 @@ function ProfileSection() {
       buttonDisabled={!changed}
       buttonText='Save'
       onButtonClick={async () => {
-        await user?.update(userInfo);
+        await user.update(userInfo);
         setChanged(false);
       }}
     >
       <div className='flex gap-4 items-center'>
         <UserAvatar user={user} size={50}/>
         <div className='flex flex-col'>
-          <Typography>{user?.displayName}</Typography>
-          <Typography variant='secondary' type='label'>{user?.primaryEmail}</Typography>
+          <Typography>{user.displayName}</Typography>
+          <Typography variant='secondary' type='label'>{user.primaryEmail}</Typography>
         </div>
       </div>
 
