@@ -356,7 +356,8 @@ export class StackClientInterface {
   }
 
   async sendVerificationEmail(
-    emailVerificationRedirectUrl: string,
+    email: string,
+    callbackUrl: string,
     session: InternalSession
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
@@ -367,7 +368,8 @@ export class StackClientInterface {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          emailVerificationRedirectUrl,
+          email,
+          callback_url: callbackUrl,
         }),
       },
       session,
