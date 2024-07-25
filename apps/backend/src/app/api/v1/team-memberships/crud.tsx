@@ -1,10 +1,11 @@
-import { ensureTeamExist, ensureTeamMembershipDoesNotExist } from "@/lib/db-checks";
+import { ensureTeamExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 
 export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCrud, {
@@ -59,14 +60,29 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
     return {};
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.teamMember.delete({
-      where: {
-        projectId_projectUserId_teamId: {
-          projectId: auth.project.id,
-          projectUserId: params.user_id,
+    await prismaClient.$transaction(async (tx) => {
+      const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
+
+      // Users are always allowed to remove themselves from a team
+      // Only users with the $remove_members permission can remove other users
+      if (auth.type === 'client' && userId !== auth.user?.id) {
+        await ensureUserHasTeamPermission(tx, {
+          project: auth.project,
           teamId: params.team_id,
+          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          permissionId: "$remove_members",
+        });
+      }
+
+      await tx.teamMember.delete({
+        where: {
+          projectId_projectUserId_teamId: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+            teamId: params.team_id,
+          },
         },
-      },
+      });
     });
   },
 });

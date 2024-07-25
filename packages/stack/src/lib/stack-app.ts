@@ -1357,6 +1357,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
         return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
       },
+      async createSession(options: { expiresInMillis?: number }) {
+        const tokens = await app._interface.createServerUserSession(crud.id, options.expiresInMillis ?? 1000 * 60 * 60 * 24 * 365);
+        return {
+          async getTokens() {
+            return tokens;
+          },
+        };
+      },
     };
   }
 
@@ -2031,6 +2039,11 @@ export type ServerUser =
     revokePermission(scope: Team, permissionId: string): Promise<void>,
 
     hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+
+    /**
+     * Creates a new session object with a refresh token for this user. Can be used to impersonate them.
+     */
+    createSession(options?: { expiresInMillis?: number }): Promise<Session>,
   }
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>

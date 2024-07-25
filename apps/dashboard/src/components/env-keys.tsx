@@ -1,4 +1,5 @@
 import { CopyButton } from "./copy-button";
+import { CopyField } from "./copy-field";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from "./ui/textarea";
@@ -18,6 +19,7 @@ export default function EnvKeys(props: {
       </TabsList>
       <TabsContent value={'env'}>
         <CopyField
+          monospace
           height={160}
           value={Object.entries({
             NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
@@ -32,6 +34,7 @@ export default function EnvKeys(props: {
         <div className="flex flex-col gap-2">
           {props.projectId && (
             <CopyField
+              monospace
               value={props.projectId}
               label="Project ID"
               helper="This ID is used in your client-side code and is safe to expose to the public."
@@ -39,6 +42,7 @@ export default function EnvKeys(props: {
           )}
           {props.publishableClientKey && (
             <CopyField
+              monospace
               value={props.publishableClientKey}
               label="Publishable Client Key"
               helper="This key is used in your client-side code and is safe to expose to the public."
@@ -46,6 +50,7 @@ export default function EnvKeys(props: {
           )}
           {props.secretServerKey && (
             <CopyField
+              monospace
               value={props.secretServerKey}
               label="Secret Server Key"
               helper="This key is used on the server-side and can be used to perform actions on behalf of your users. Keep it safe."
@@ -53,6 +58,7 @@ export default function EnvKeys(props: {
           )}
           {props.superSecretAdminKey && (
             <CopyField
+              monospace
               value={props.superSecretAdminKey}
               label="Super Secret Admin Key"
               helper="This key is for administrative use only. Anyone owning this key will be able to create unlimited new keys and revoke any other keys. Be careful!"
@@ -61,30 +67,5 @@ export default function EnvKeys(props: {
         </div>
       </TabsContent>
     </Tabs>
-  );
-}
-
-function CopyField(props: { value: string, label?: React.ReactNode, helper?: React.ReactNode, height?: number}) {
-  return (
-    <div>
-      {props.label && (
-        <Label>
-          {props.label}
-        </Label>
-      )}
-      <div className="relative pr-2">
-        <Textarea
-          readOnly
-          value={props.value}
-          style={{ height: props.height }}
-        />
-        <CopyButton content={props.value} className="absolute right-4 top-2" />
-      </div>
-      {props.helper && (
-        <Typography variant='secondary' type='label'>
-          {props.helper}
-        </Typography>
-      )}
-    </div>
   );
 }

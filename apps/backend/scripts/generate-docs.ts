@@ -1,11 +1,16 @@
 import { parseOpenAPI } from '@/lib/openapi';
 import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
 import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 import fs from 'fs';
 import { glob } from 'glob';
 import yaml from 'yaml';
 
 async function main() {
+  console.log("Started docs schema generator, waiting five seconds before actually starting");
+  await wait(5_000);
+  console.log("Waited five seconds, generating schemas now");
+
   for (const audience of ['client', 'server', 'admin'] as const) {
     const filePathPrefix = "src/app/api/v1";
     const importPathPrefix = "@/app/api/v1";
@@ -20,18 +25,18 @@ async function main() {
         const importPath = `${importPathPrefix}${suffix}`;
         const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}");
         const module = require(importPath);
-        const handlersByMethod = new Map(
+        const handlersByMethod = new Map( 
           HTTP_METHODS.map(method => [method, module[method]] as const)
             .filter(([_, handler]) => isSmartRouteHandler(handler))
         );
         return [urlPath, handlersByMethod] as const;
       }))),
       audience,
-    }));
+    }));  
 
     fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
   }
-  console.log("Successfully updated OpenAPI schemas");
+  console.log("Successfully updated docs schemas");
 }
 main().catch((...args) => {
   console.error(`ERROR! Could not update OpenAPI schema`, ...args);

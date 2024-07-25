@@ -234,6 +234,28 @@ export class StackServerInterface extends StackClientInterface {
     return await response.json();
   }
 
+  async createServerUserSession(userId: string, expiresInMillis: number): Promise<{ accessToken: string, refreshToken: string }> {
+    const response = await this.sendServerRequest(
+      "/auth/sessions",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          expires_in_millis: expiresInMillis,
+        }),
+      },
+      null,
+    );
+    const result = await response.json();
+    return {
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+    };
+  }
+
   async listServerTeamMemberPermissions(
     options: {
       teamId: string,

@@ -33,10 +33,12 @@ export const teamsCrudClientDeleteSchema = yupMixed();
 export const teamsCrudServerDeleteSchema = teamsCrudClientDeleteSchema;
 
 export const teamsCrud = createCrud({
+  // Client
   clientReadSchema: teamsCrudClientReadSchema,
-  // clientUpdateSchema: teamsCrudClientUpdateSchema,
+  clientUpdateSchema: teamsCrudClientUpdateSchema,
   clientCreateSchema: teamsCrudClientCreateSchema,
-  // clientDeleteSchema: teamsCrudClientDeleteSchema,
+  clientDeleteSchema: teamsCrudClientDeleteSchema,
+  // Server
   serverReadSchema: teamsCrudServerReadSchema,
   serverUpdateSchema: teamsCrudServerUpdateSchema,
   serverCreateSchema: teamsCrudServerCreateSchema,

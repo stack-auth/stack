@@ -30,7 +30,7 @@ export const projectsCrudHandlers = createCrudHandlers(projectsCrud, {
         },
       ] as const;
 
-      const permissions = await listTeamPermissionDefinitions(oldProject);
+      const permissions = await listTeamPermissionDefinitions(tx, oldProject);
 
 
       for (const param of dbParams) {

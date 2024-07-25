@@ -135,8 +135,8 @@ importers:
         specifier: ^8.11.3
         version: 8.12.0
       posthog-js:
-        specifier: ^1.138.1
-        version: 1.139.2
+        specifier: ^1.149.1
+        version: 1.149.2
       prettier:
         specifier: ^3.2.5
         version: 3.3.2
@@ -373,8 +373,8 @@ importers:
         specifier: ^8.11.3
         version: 8.12.0
       posthog-js:
-        specifier: ^1.138.1
-        version: 1.139.2
+        specifier: ^1.149.1
+        version: 1.149.2
       prettier:
         specifier: ^3.2.5
         version: 3.3.2
@@ -6875,8 +6875,8 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
-  posthog-js@1.139.2:
-    resolution: {integrity: sha512-myyuOADqZvYwgqmriwlKDEUDwLhscivFLh67UWBj4Wt9kOlmklvJb36W0ES2GAS6IdojbnGZGH5lF3heqreLWQ==}
+  posthog-js@1.149.2:
+    resolution: {integrity: sha512-4tNtVJkq3wZ5CvfOEp3Jtl/r3ogZb5To+bdu7JoO5QjkpTY9TV1pfo/Ag4keODpAzRDahC8OaCoIr4mY3dSK4g==}
 
   preact@10.22.0:
     resolution: {integrity: sha512-RRurnSjJPj4rp5K6XoP45Ui33ncb7e4H7WiOHVpjbkvqvA3U+N8Z6Qbo0AE6leGYBV66n8EhEaFixvIu3SkxFw==}
@@ -8120,6 +8120,9 @@ packages:
 
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
+
+  web-vitals@4.2.2:
+    resolution: {integrity: sha512-nYfoOqb4EmElljyXU2qdeE76KsvoHdftQKY4DzA9Aw8DervCg2bG634pHLrJ/d6+B4mE3nWTSJv8Mo7B2mbZkw==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -14810,10 +14813,11 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  posthog-js@1.139.2:
+  posthog-js@1.149.2:
     dependencies:
       fflate: 0.4.8
       preact: 10.22.0
+      web-vitals: 4.2.2
 
   preact@10.22.0: {}
 
@@ -16318,6 +16322,8 @@ snapshots:
       defaults: 1.0.4
 
   web-namespaces@2.0.1: {}
+
+  web-vitals@4.2.2: {}
 
   webidl-conversions@3.0.1: {}
 

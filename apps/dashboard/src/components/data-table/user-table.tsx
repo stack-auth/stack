@@ -16,6 +16,10 @@ import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { arrayFilterFn, standardFilterFn } from "./elements/utils";
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
+import { CopyField } from '../copy-field';
+import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
+import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -123,22 +127,65 @@ function DeleteUserDialog(props: {
   </ActionDialog>;
 }
 
+function ImpersonateUserDialog(props: {
+  user: ServerUser,
+  impersonateSnippet: string | null,
+  onClose: () => void,
+}) {
+  return <ActionDialog
+    open={props.impersonateSnippet !== null}
+    onOpenChange={(open) => !open && props.onClose()}
+    title="Impersonate User"
+    okButton
+  >
+    <Typography>
+      Open your website and paste the following code into the browser console:
+    </Typography>
+    <CopyField
+      monospace
+      height={60}
+      value={props.impersonateSnippet ?? ""}
+    />
+  </ActionDialog>;
+}
+
 function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [impersonateSnippet, setImpersonateSnippet] = useState<string | null>(null);
+  const app = useAdminApp();
+
   return (
     <>
       <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
+      <ImpersonateUserDialog user={row.original} impersonateSnippet={impersonateSnippet} onClose={() => setImpersonateSnippet(null)} />
       <ActionCell
-        items={[{
-          item: "Edit",
-          onClick: () => setIsEditModalOpen(true),
-        }]}
-        dangerItems={[{
-          item: "Delete",
-          onClick: () => setIsDeleteModalOpen(true),
-        }]}
+        items={[
+          {
+            item: "Impersonate",
+            onClick: async () => {
+              const expiresInMillis = 1000 * 60 * 60 * 2;
+              const expiresAtDate = new Date(Date.now() + expiresInMillis);
+              const session = await row.original.createSession({ expiresInMillis });
+              const tokens = await session.getTokens();
+              setImpersonateSnippet(deindent`
+                document.cookie = 'stack-refresh-${app.projectId}=${tokens.refreshToken}; expires=${expiresAtDate.toUTCString()}; path=/'; 
+                window.location.reload();
+              `);
+            }
+          },
+          '-',
+          {
+            item: "Edit",
+            onClick: () => setIsEditModalOpen(true),
+          },
+          {
+            item: "Delete",
+            onClick: () => setIsDeleteModalOpen(true),
+            danger: true,
+          },
+        ]}
       />
     </>
   );

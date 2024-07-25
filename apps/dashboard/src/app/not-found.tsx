@@ -1,19 +1,16 @@
 "use client";
 
-import { useIsHydrated } from "@/hooks/use-is-hydrated";
 import ErrorPage from "@/components/ui/error-page";
+import { Link } from "@/components/link";
 
 export default function NotFound() {
-  const isHydrated = useIsHydrated();
-  const customBasePath = process.env.__NEXT_ROUTER_BASEPATH;
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const showBasePathDisclaimer = isDevelopment && isHydrated && customBasePath && !window.location.pathname.startsWith(customBasePath);
-
   return <ErrorPage
     title="Oh no! 404"
     description="Page not found."
     redirectUrl="/"
-    secondaryDescription={showBasePathDisclaimer && `Developer hint: This is probably because the base path was set to ${customBasePath} in next.config.js, but your current path is outside of that.`}
+    secondaryDescription={<>
+      Did you mean to <Link href="/handler/sign-in" className="underline">log in</Link>?
+    </>}
     redirectText="Go to home"
   />;
 }

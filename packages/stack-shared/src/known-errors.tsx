@@ -612,6 +612,19 @@ const CannotGetOwnUserWithoutUser = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const UserIdDoesNotExist = createKnownErrorConstructor(
+  KnownError,
+  "USER_ID_DOES_NOT_EXIST",
+  (userId: string) => [
+    400,
+    `The given user with the ID ${userId} does not exist.`,
+    {
+      user_id: userId,
+    },
+  ] as const,
+  (json: any) => [json.user_id] as const,
+);
+
 const UserNotFound = createKnownErrorConstructor(
   KnownError,
   "USER_NOT_FOUND",
@@ -1006,6 +1019,21 @@ const TeamMembershipAlreadyExists = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const TeamPermissionRequired = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_PERMISSION_REQUIRED",
+  (teamId, userId, permissionId) => [
+    401,
+    `User ${userId} does not have permission ${permissionId} in team ${teamId}.`,
+    {
+      team_id: teamId,
+      user_id: userId,
+      permission_id: permissionId,
+    },
+  ] as const,
+  (json) => [json.team_id, json.user_id, json.permission_id] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1052,6 +1080,7 @@ export const KnownErrors = {
   ProviderRejected,
   RefreshTokenNotFoundOrExpired,
   UserEmailAlreadyExists,
+  UserIdDoesNotExist,
   UserNotFound,
   ApiKeyNotFound,
   ProjectNotFound,
@@ -1087,6 +1116,7 @@ export const KnownErrors = {
   OAuthProviderNotFoundOrNotEnabled,
   UserAuthenticationRequired,
   TeamMembershipAlreadyExists,
+  TeamPermissionRequired,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
