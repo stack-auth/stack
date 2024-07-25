@@ -728,7 +728,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
+  protected _createUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
     const app = this;
     async function getConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
     async function getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
@@ -835,7 +835,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const currentUser = {
       ...this._createBaseUser(crud),
       ...this._createAuth(session),
-      ...this._createCurrentUserExtra(crud, session),
+      ...this._createUserExtra(crud, session),
       ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
     } satisfies CurrentUser;
 
@@ -1259,6 +1259,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
   });
 
+  private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
+    const result = await this._interface.updateServerUser(userId, userUpdateOptionsToCrud(update));
+    await this._refreshUsers();
+    return result;
+  }
+
   constructor(options:
     | StackServerAppConstructorOptions<HasTokenStore, ProjectId>
     | {
@@ -1287,9 +1293,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     });
   }
 
-  protected override _createBaseUser(crud: UsersCrud['Server']['Read']): ServerBaseUser;
+  protected override _createBaseUser(crud: UsersCrud['Server']['Read']): ServerBaseUser & BaseUser;
   protected override _createBaseUser(crud: CurrentUserCrud['Client']['Read']): BaseUser;
-  protected override _createBaseUser(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): BaseUser | ServerBaseUser {
+  protected override _createBaseUser(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): ({} | ServerBaseUser) & BaseUser {
+    const app = this;
     if (!crud) {
       throw new StackAssertionError("User not found");
     }
@@ -1299,12 +1306,43 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         // server user
         serverMetadata: crud.server_metadata,
       } : {},
+      async setServerMetadata(metadata: Record<string, any>) {
+        await app._updateServerUser(crud.id, { serverMetadata: metadata });
+      },
+      async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
+        await app._updateServerUser(crud.id, { primaryEmail: email, primaryEmailVerified: options?.verified });
+      },
+      async grantPermission(scope: Team, permissionId: string): Promise<void> {
+        await app._interface.grantServerTeamUserPermission(scope.id, crud.id, permissionId);
+        for (const recursive of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
+        }
+      },
+      async revokePermission(scope: Team, permissionId: string): Promise<void> {
+        await app._interface.revokeServerTeamUserPermission(scope.id, crud.id, permissionId);
+        for (const recursive of [true, false]) {
+          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
+        }
+      },
+      async delete() {
+        const res = await app._interface.deleteServerServerUser(crud.id);
+        await app._refreshUsers();
+        return res;
+      },
+      async createSession(options: { expiresInMillis?: number }) {
+        const tokens = await app._interface.createServerUserSession(crud.id, options.expiresInMillis ?? 1000 * 60 * 60 * 24 * 365);
+        return {
+          async getTokens() {
+            return tokens;
+          },
+        };
+      },
     };
   }
 
-  protected override _createCurrentUserExtra(crud: UsersCrud['Server']['Read']): ServerUserExtra;
-  protected override _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read']): UserExtra;
-  protected override _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): ServerUserExtra {
+  protected override _createUserExtra(crud: UsersCrud['Server']['Read']): UserExtra;
+  protected override _createUserExtra(crud: CurrentUserCrud['Client']['Read']): UserExtra;
+  protected override _createUserExtra(crud: CurrentUserCrud['Client']['Read'] | UsersCrud['Server']['Read']): UserExtra {
     if (!crud) {
       throw new StackAssertionError("User not found");
     }
@@ -1316,15 +1354,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async setClientMetadata(metadata: Record<string, any>) {
         return await this.update({ clientMetadata: metadata });
       },
-      async setServerMetadata(metadata: Record<string, any>) {
-        return await this.update({ serverMetadata: metadata });
-      },
+
       async setSelectedTeam(team: Team | null) {
         return await this.update({ selectedTeamId: team?.id ?? null });
       },
-      async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
-        return await this.update({ primaryEmail: email, primaryEmailVerified: options?.verified });
-      },
+
       getConnectedAccount: async () => {
         return await app._checkFeatureSupport("getConnectedAccount() on ServerUser", {});
       },
@@ -1371,26 +1405,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
         return await this.getPermission(scope, permissionId) !== null;
       },
-      async grantPermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.grantServerTeamUserPermission(scope.id, crud.id, permissionId);
-        for (const recursive of [true, false]) {
-          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
-        }
-      },
-      async revokePermission(scope: Team, permissionId: string): Promise<void> {
-        await app._interface.revokeServerTeamUserPermission(scope.id, crud.id, permissionId);
-        for (const recursive of [true, false]) {
-          await app._serverTeamUserPermissionsCache.refresh([scope.id, crud.id, recursive]);
-        }
-      },
-      async delete() {
-        const res = await app._interface.deleteServerServerUser(crud.id);
-        await app._refreshUsers();
-        return res;
-      },
       async update(update: ServerUserUpdateOptions) {
-        const res = await app._interface.updateServerUser(crud.id, serverUserUpdateOptionsToCrud(update));
-        await app._refreshUsers();
+        await app._updateServerUser(crud.id, update);
       },
       async sendVerificationEmail() {
         return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
@@ -1398,21 +1414,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
         return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
       },
-      async createSession(options: { expiresInMillis?: number }) {
-        const tokens = await app._interface.createServerUserSession(crud.id, options.expiresInMillis ?? 1000 * 60 * 60 * 24 * 365);
-        return {
-          async getTokens() {
-            return tokens;
-          },
-        };
-      },
     };
   }
 
   protected _serverUserFromCrud(crud: UsersCrud['Server']['Read']): ServerUser {
     return {
+      ...this._createUserExtra(crud),
       ...this._createBaseUser(crud),
-      ...this._createCurrentUserExtra(crud),
     };
   }
 
@@ -1957,80 +1965,89 @@ type Auth = {
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
 };
 
-export type User =
-  & {
-    readonly id: string,
+/**
+ * ```
+ * +----------+-------------+-------------------+
+ * |    \     |   !Server   |      Server       |
+ * +----------+-------------+-------------------+
+ * | !Session | User        | ServerUser        |
+ * | Session  | CurrentUser | CurrentServerUser |
+ * +----------+-------------+-------------------+
+ * ```
+ *
+ * The fields on each of these types are available iff:
+ * BaseUser: true
+ * Auth: Session
+ * ServerBaseUser: Server
+ * UserExtra: Session OR Server
+ *
+ * The types are defined as follows (in the typescript manner):
+ * User = BaseUser
+ * CurrentUser = BaseUser & Auth & UserExtra
+ * ServerUser = BaseUser & ServerBaseUser & UserExtra
+ * CurrentServerUser = BaseUser & ServerBaseUser & Auth & UserExtra
+ **/
 
-    readonly displayName: string | null,
-    setDisplayName(displayName: string): Promise<void>,
+type BaseUser = {
+  readonly id: string,
 
-    /**
-     * The user's email address.
-     *
-     * Note: This might NOT be unique across multiple users, so always use `id` for unique identification.
-     */
-    readonly primaryEmail: string | null,
-    readonly primaryEmailVerified: boolean,
-    sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
+  readonly displayName: string | null,
 
-    readonly profileImageUrl: string | null,
+  /**
+   * The user's email address.
+   *
+   * Note: This might NOT be unique across multiple users, so always use `id` for unique identification.
+   */
+  readonly primaryEmail: string | null,
+  readonly primaryEmailVerified: boolean,
 
-    readonly signedUpAt: Date,
+  readonly profileImageUrl: string | null,
 
-    readonly clientMetadata: any,
-    setClientMetadata(metadata: any): Promise<void>,
+  readonly signedUpAt: Date,
 
-    /**
-     * Whether the primary e-mail can be used for authentication.
-     */
-    readonly emailAuthEnabled: boolean,
-    /**
-     * Whether the user has a password set.
-     */
-    readonly hasPassword: boolean,
-    readonly oauthProviders: readonly { id: string }[],
-    updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+  readonly clientMetadata: any,
 
-    /**
-     * A shorthand method to update multiple fields of the user at once.
-     */
-    update(update: UserUpdateOptions): Promise<void>,
+  /**
+   * Whether the primary e-mail can be used for authentication.
+   */
+  readonly emailAuthEnabled: boolean,
+  /**
+   * Whether the user has a password set.
+   */
+  readonly hasPassword: boolean,
+  readonly oauthProviders: readonly { id: string }[],
 
-    hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+  /**
+   * A shorthand method to update multiple fields of the user at once.
+   */
+  readonly selectedTeam: Team | null,
+  toClientJson(): CurrentUserCrud["Client"]["Read"],
+}
 
-    readonly selectedTeam: Team | null,
-    setSelectedTeam(team: Team | null): Promise<void>,
+type UserExtra = {
+  setDisplayName(displayName: string): Promise<void>,
+  sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
+  setClientMetadata(metadata: any): Promise<void>,
+  updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
-    createTeam(data: TeamCreateOptions): Promise<Team>,
+  /**
+   * A shorthand method to update multiple fields of the user at once.
+   */
+  update(update: UserUpdateOptions): Promise<void>,
 
-    getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
-    getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
-    useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
-    useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
+  hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+  setSelectedTeam(team: Team | null): Promise<void>,
+  createTeam(data: TeamCreateOptions): Promise<Team>,
 
-    toClientJson(): CurrentUserCrud["Client"]["Read"],
-  }
-  & AsyncStoreProperty<"team", [id: string], Team | null, false>
-  & AsyncStoreProperty<"teams", [], Team[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { recursive?: boolean }], TeamPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { recursive?: boolean }], TeamPermission[], true>;
-
-type BaseUser = Pick<User,
-  | "id"
-  | "displayName"
-  | "primaryEmail"
-  | "primaryEmailVerified"
-  | "profileImageUrl"
-  | "signedUpAt"
-  | "clientMetadata"
-  | "hasPassword"
-  | "emailAuthEnabled"
-  | "oauthProviders"
-  | "selectedTeam"
-  | "toClientJson"
->;
-
-type UserExtra = Omit<User, keyof BaseUser>;
+  getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
+  getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
+  useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
+  useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
+}
+& AsyncStoreProperty<"team", [id: string], Team | null, false>
+& AsyncStoreProperty<"teams", [], Team[], true>
+& AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { recursive?: boolean }], TeamPermission | null, false>
+& AsyncStoreProperty<"permissions", [scope: Team, options?: { recursive?: boolean }], TeamPermission[], true>;
 
 type InternalUserExtra =
   & {
@@ -2038,7 +2055,9 @@ type InternalUserExtra =
   }
   & AsyncStoreProperty<"ownedProjects", [], AdminOwnedProject[], true>
 
-export type CurrentUser = Auth & User;
+export type User = BaseUser;
+
+export type CurrentUser = BaseUser & Auth & UserExtra;
 
 export type CurrentInternalUser = CurrentUser & InternalUserExtra;
 
@@ -2058,48 +2077,41 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
 
 type ___________server_user = never;  // this is a marker for VSCode's outline view
 
+type ServerBaseUser = {
+  setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
+
+  readonly serverMetadata: any,
+  setServerMetadata(metadata: any): Promise<void>,
+
+  updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+
+  update(user: ServerUserUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
+
+  grantPermission(scope: Team, permissionId: string): Promise<void>,
+  revokePermission(scope: Team, permissionId: string): Promise<void>,
+
+  hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+
+  /**
+   * Creates a new session object with a refresh token for this user. Can be used to impersonate them.
+   */
+  createSession(options?: { expiresInMillis?: number }): Promise<Session>,
+}
+& AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
+& AsyncStoreProperty<"teams", [], ServerTeam[], true>
+& AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], AdminTeamPermission | null, false>
+& AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], AdminTeamPermission[], true>;
+
 /**
  * A user including sensitive fields that should only be used on the server, never sent to the client
  * (such as sensitive information and serverMetadata).
  */
-export type ServerUser =
-  & {
-    setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
-
-    readonly serverMetadata: any,
-    setServerMetadata(metadata: any): Promise<void>,
-
-    updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
-
-    update(user: ServerUserUpdateOptions): Promise<void>,
-    delete(): Promise<void>,
-
-    grantPermission(scope: Team, permissionId: string): Promise<void>,
-    revokePermission(scope: Team, permissionId: string): Promise<void>,
-
-    hasPermission(scope: Team, permissionId: string): Promise<boolean>,
-
-    /**
-     * Creates a new session object with a refresh token for this user. Can be used to impersonate them.
-     */
-    createSession(options?: { expiresInMillis?: number }): Promise<Session>,
-  }
-  & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
-  & AsyncStoreProperty<"teams", [], ServerTeam[], true>
-  & AsyncStoreProperty<"permission", [scope: Team, permissionId: string, options?: { direct?: boolean }], AdminTeamPermission | null, false>
-  & AsyncStoreProperty<"permissions", [scope: Team, options?: { direct?: boolean }], AdminTeamPermission[], true>
-  & User;
-
-type ServerBaseUser = Pick<ServerUser,
-  | keyof BaseUser
-  | "serverMetadata"
->;
+export type ServerUser = ServerBaseUser & BaseUser & UserExtra;
 
 export type CurrentServerUser = Auth & ServerUser;
 
 export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
-
-type ServerUserExtra = Omit<ServerUser, keyof ServerBaseUser>;
 
 type ServerUserUpdateOptions = {
   primaryEmail?: string,
