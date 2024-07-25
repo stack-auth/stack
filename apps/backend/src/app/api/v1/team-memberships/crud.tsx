@@ -6,9 +6,51 @@ import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { PrismaTransaction } from "@/lib/types";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 
-export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCrud, {
+export async function addUserToTeam(tx: PrismaTransaction, options: {
+  project: ProjectsCrud['Admin']['Read'],
+  teamId: string,
+  userId: string,
+  type: 'member' | 'creator',
+}) {
+  const permissionAttributeName = options.type === 'creator' ? 'team_creator_default_permissions' : 'team_member_default_permissions';
+
+  await tx.teamMember.create({
+    data: {
+      projectUserId: options.userId,
+      teamId: options.teamId,
+      projectId: options.project.id,
+      directPermissions: {
+        create: options.project.config[permissionAttributeName].map((p) => {
+          if (isTeamSystemPermission(p.id)) {
+            return {
+              systemPermission: teamSystemPermissionStringToDBType(p.id),
+            };
+          } else {
+            return {
+              permission: {
+                connect: {
+                  projectConfigId_queryableId: {
+                    projectConfigId: options.project.config.id,
+                    queryableId: p.id,
+                  },
+                }
+              }
+            };
+          }
+        }),
+      }
+    },
+  });
+}
+
+
+export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMembershipsCrud, {
   paramsSchema: yupObject({
     team_id: yupString().uuid().required(),
     user_id: userIdOrMeSchema.required(),
@@ -28,32 +70,24 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
         userId,
       });
 
-      await tx.teamMember.create({
-        data: {
-          projectUserId: userId,
-          teamId: params.team_id,
-          projectId: auth.project.id,
-          directPermissions: {
-            create: auth.project.config.team_member_default_permissions.map((p) => {
-              if (isTeamSystemPermission(p.id)) {
-                return {
-                  systemPermission: teamSystemPermissionStringToDBType(p.id),
-                };
-              } else {
-                return {
-                  permission: {
-                    connect: {
-                      projectConfigId_queryableId: {
-                        projectConfigId: auth.project.config.id,
-                        queryableId: p.id,
-                      },
-                    }
-                  }
-                };
-              }
-            }),
-          }
+      const user = await tx.projectUser.findUnique({
+        where: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: userId,
+          },
         },
+      });
+
+      if (!user) {
+        throw new KnownErrors.UserNotFound();
+      }
+
+      await addUserToTeam(tx, {
+        project: auth.project,
+        teamId: params.team_id,
+        userId,
+        type: 'member',
       });
     });
 
@@ -85,4 +119,4 @@ export const teamMembershipsCrudHandlers = createCrudHandlers(teamMembershipsCru
       });
     });
   },
-});
+}));

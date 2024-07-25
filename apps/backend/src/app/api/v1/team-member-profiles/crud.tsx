@@ -7,17 +7,19 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { teamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/crud/team-member-profiles";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
+const fullInclude = { projectUser: true };
 
-function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{}>) {
+function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof fullInclude }>) {
   return {
     user_id: prisma.projectUserId,
-    display_name: prisma.displayName,
-    profile_image_url: prisma.profileImageUrl,
+    display_name: prisma.displayName ?? prisma.projectUser.displayName,
+    profile_image_url: prisma.profileImageUrl ?? prisma.projectUser.profileImageUrl,
   };
 }
 
-export const teamMemberProfilesCrudHandlers = createCrudHandlers(teamMemberProfilesCrud, {
+export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMemberProfilesCrud, {
   querySchema: yupObject({
     user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
@@ -65,6 +67,10 @@ export const teamMemberProfilesCrudHandlers = createCrudHandlers(teamMemberProfi
           teamId: query.team_id,
           projectUserId: userId,
         },
+        orderBy: {
+          projectId: 'asc',
+        },
+        include: fullInclude,
       });
 
       return {
@@ -96,6 +102,7 @@ export const teamMemberProfilesCrudHandlers = createCrudHandlers(teamMemberProfi
             teamId: params.team_id,
           },
         },
+        include: fullInclude,
       });
 
       if (!db) {
@@ -131,10 +138,11 @@ export const teamMemberProfilesCrudHandlers = createCrudHandlers(teamMemberProfi
         data: {
           displayName: data.display_name,
           profileImageUrl: data.profile_image_url,
-        }
+        },
+        include: fullInclude,
       });
 
       return prismaToCrud(db);
     });
   },
-});
+}));
