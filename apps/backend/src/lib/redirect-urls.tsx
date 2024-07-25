@@ -7,7 +7,7 @@ export function validateRedirectUrl(urlOrString: string | URL, domains: { domain
   }
   return domains.some((domain) => {
     const testUrl = url;
-    const baseUrl = new URL(domain.handler_path, domain.domain);
+    const baseUrl = new URL(domain.domain);
 
     const sameOrigin = baseUrl.protocol === testUrl.protocol && baseUrl.hostname === testUrl.hostname;
     const isSubPath = testUrl.pathname.startsWith(baseUrl.pathname);
