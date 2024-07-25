@@ -32,6 +32,7 @@ export function TextAreaField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
+  monospace?: boolean,
 }) {
   return (
     <FormField
@@ -47,6 +48,9 @@ export function TextAreaField<F extends FieldValues>(props: {
                 rows={props.rows}
                 placeholder={props.placeholder}
                 value={field.value ?? ""}
+                style={{
+                  fontFamily: props.monospace ? "ui-monospace, monospace" : undefined,
+                }}
               />
             </FormControl>
             <FormMessage />
