@@ -10,6 +10,7 @@ import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { addUserToTeam } from "../team-memberships/crud";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -42,32 +43,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         if (!auth.user) {
           throw new StatusError(StatusError.Unauthorized, "You must be logged in to create a team with the current user as a member.");
         }
-        await tx.teamMember.create({
-          data: {
-            projectId: auth.project.id,
-            projectUserId: auth.user.id,
-            teamId: db.teamId,
-            directPermissions: {
-              create: auth.project.config.team_creator_default_permissions.map((p) => {
-                if (isTeamSystemPermission(p.id)) {
-                  return {
-                    systemPermission: teamSystemPermissionStringToDBType(p.id),
-                  };
-                } else {
-                  return {
-                    permission: {
-                      connect: {
-                        projectConfigId_queryableId: {
-                          projectConfigId: auth.project.config.id,
-                          queryableId: p.id,
-                        },
-                      }
-                    }
-                  };
-                }
-              }),
-            },
-          }
+
+        await addUserToTeam(tx, {
+          project: auth.project,
+          teamId: db.teamId,
+          userId: auth.user.id,
+          type: 'creator',
         });
       }
 

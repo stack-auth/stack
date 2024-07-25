@@ -114,6 +114,9 @@ model TeamMember {
   projectUserId String @db.Uuid
   teamId        String @db.Uuid
 
+  displayName     String?
+  profileImageUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -538,7 +541,6 @@ enum StandardOAuthProviderType {
 }
 
 //#endregion
-
 
 //#region Events
 
