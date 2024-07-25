@@ -1,6 +1,6 @@
-import { generateRandomCodeVerifier, generateRandomState, calculatePKCECodeChallenge } from "oauth4webapi";
-import Cookies from "js-cookie";
 import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
+import Cookies from "js-cookie";
+import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
 
 type SetCookieOptions = { maxAge?: number };
 
@@ -68,8 +68,8 @@ export async function saveVerifierAndState() {
   const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
   const state = generateRandomState();
 
-  setCookie("stack-code-verifier", codeVerifier, { maxAge: 60 * 10 });
-  setCookie("stack-state", state, { maxAge: 60 * 10 });
+  setCookie("stack-outer-code-verifier", codeVerifier, { maxAge: 60 * 10 });
+  setCookie("stack-outer-state", state, { maxAge: 60 * 10 });
 
   return {
     codeChallenge,
@@ -78,8 +78,8 @@ export async function saveVerifierAndState() {
 }
 
 export function getVerifierAndState() {
-  const codeVerifier = getCookie("stack-code-verifier");
-  const state = getCookie("stack-state");
+  const codeVerifier = getCookie("stack-outer-code-verifier");
+  const state = getCookie("stack-outer-state");
   return {
     codeVerifier,
     state,

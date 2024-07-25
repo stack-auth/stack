@@ -89,17 +89,17 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         <DropdownMenuSeparator />
         {user && <Item
           text="Account settings"
-          onClick={() => router.push(app.urls.accountSettings)}
+          onClick={async () => await app.redirectToAccountSettings()}
           icon={<CircleUser {...iconProps} />}
         />}
         {!user && <Item
           text="Sign in"
-          onClick={() => router.push(app.urls.signIn)}
+          onClick={async () => await app.redirectToAfterSignIn()}
           icon={<LogIn {...iconProps} />}
         />}
         {!user && <Item
           text="Sign up"
-          onClick={() => router.push(app.urls.signUp)}
+          onClick={async () => await app.redirectToAfterSignUp()}
           icon={<UserPlus {...iconProps}/> }
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (

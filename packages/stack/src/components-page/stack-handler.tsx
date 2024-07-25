@@ -12,24 +12,19 @@ import { AccountSettings } from "./account-settings";
 import { MagicLinkCallback } from "./magic-link-callback";
 import { ErrorPage } from "./error-page";
 import { PasswordReset } from "./password-reset";
+import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
   params: { stack } = {},
   searchParams = {},
-  // TODO set default to false like on the other components (may break old code)
-  fullPage = "deprecated-unset",
+  fullPage = false,
 }: {
   app: StackServerApp<HasTokenStore>,
   params?: { stack?: string[] },
   searchParams?: Record<string, string>,
-  fullPage?: boolean | "deprecated-unset",
+  fullPage?: boolean,
 }) {
-  if (fullPage === "deprecated-unset") {
-    console.warn("You are not passing `fullPage` to Stack's Handler. The default behaviour will soon change from `true` to `false`. Please update your Handler component in handler/[...stack]/page.tsx by adding the `fullPage` prop.");
-    fullPage = true;
-  }
-
   if (!stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>
@@ -42,20 +37,18 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     const url = app.urls[name];
     const handlerUrl = app.urls.handler;
 
-    if (url.startsWith(handlerUrl)) {
+    if (url !== handlerUrl && url.startsWith(handlerUrl + "/")) {
       // don't redirect if the url is a handler url
       return;
     }
 
-    redirect(url, RedirectType.replace);
-  }
-
-  async function redirectIfHasUser() {
-    const user = await app.getUser();
-    if (user) {
-      redirect(app.urls.afterSignIn);
+    const urlObj = new URL(url, "http://example.com");
+    for (const [key, value] of Object.entries(searchParams)) {
+      urlObj.searchParams.set(key, value);
     }
-  }
+
+    redirect(getRelativePart(urlObj), RedirectType.replace);
+  };
 
   const availablePaths = {
     signIn: 'sign-in',
@@ -74,12 +67,10 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      await redirectIfHasUser();
       return <SignIn fullPage={fullPage} />;
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      await redirectIfHasUser();
       return <SignUp fullPage={fullPage} />;
     }
     case availablePaths.emailVerification: {

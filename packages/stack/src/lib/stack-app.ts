@@ -23,6 +23,7 @@ import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { Store } from "@stackframe/stack-shared/dist/utils/stores";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { getRelativePart, isRelative } from "@stackframe/stack-shared/dist/utils/urls";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import * as cookie from "cookie";
 import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
@@ -56,8 +57,8 @@ export type TokenStoreInit<HasTokenStore extends boolean = boolean> =
 export type HandlerUrls = {
   handler: string,
   signIn: string,
-  afterSignIn: string,
   signUp: string,
+  afterSignIn: string,
   afterSignUp: string,
   signOut: string,
   afterSignOut: string,
@@ -81,29 +82,31 @@ type ProjectCurrentServerUser<ProjectId> = ProjectId extends "internal" ? Curren
 
 function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   const handler = partial.handler ?? "/handler";
+  const home = partial.home ?? "/";
+  const afterSignIn = partial.afterSignIn ?? home;
   return {
     handler,
     signIn: `${handler}/sign-in`,
-    afterSignIn: "/",
+    afterSignIn: home,
     signUp: `${handler}/sign-up`,
-    afterSignUp: "/",
+    afterSignUp: afterSignIn,
     signOut: `${handler}/sign-out`,
-    afterSignOut: "/",
+    afterSignOut: home,
     emailVerification: `${handler}/email-verification`,
     passwordReset: `${handler}/password-reset`,
     forgotPassword: `${handler}/forgot-password`,
     oauthCallback: `${handler}/oauth-callback`,
     magicLinkCallback: `${handler}/magic-link-callback`,
-    home: "/",
+    home: home,
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
     ...filterUndefined(partial),
   };
 }
 
-async function _redirectTo(url: string, options?: { replace?: boolean }) {
+async function _redirectTo(url: URL | string, options?: { replace?: boolean }) {
   if (isReactServer) {
-    NextNavigation.redirect(url, options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
+    NextNavigation.redirect(url.toString(), options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
   } else {
     if (options?.replace) {
       window.location.replace(url);
@@ -417,13 +420,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._uniqueIdentifier!;
   }
 
-  protected async _checkFeatureSupport(featureName: string, options: any) {
-    return await this._interface.checkFeatureSupport({ ...options, featureName });
+  protected async _checkFeatureSupport(name: string, options: any) {
+    return await this._interface.checkFeatureSupport({ ...options, name });
   }
 
-  protected _useCheckFeatureSupport(featureName: string, options: any): never {
-    runAsynchronously(this._checkFeatureSupport(featureName, options));
-    throw new StackAssertionError(`${featureName} is not currently supported. Please reach out to Stack support for more information.`);
+  protected _useCheckFeatureSupport(name: string, options: any): never {
+    runAsynchronously(this._checkFeatureSupport(name, options));
+    throw new StackAssertionError(`${name} is not currently supported. Please reach out to Stack support for more information.`);
   }
 
   protected _memoryTokenStore = createEmptyTokenStore();
@@ -854,33 +857,72 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._interface.projectId as ProjectId;
   }
 
+  protected async _isTrusted(url: string): Promise<boolean> {
+    return isRelative(url);
+  }
+
   get urls(): Readonly<HandlerUrls> {
     return getUrls(this._urlOptions);
   }
 
-  protected async _redirectTo(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
-    const url = this.urls[handlerName];
+  protected async _redirectIfTrusted(url: string, options?: RedirectToOptions) {
+    if (!await this._isTrusted(url)) {
+      throw new Error(`Redirect URL ${url} is not trusted; should be relative.`);
+    }
+    return await _redirectTo(url, options);
+  }
+
+  protected async _redirectToHandler(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
+    let url = this.urls[handlerName];
     if (!url) {
       throw new Error(`No URL for handler name ${handlerName}`);
     }
 
-    await _redirectTo(url, options);
+    if (handlerName === "afterSignIn" || handlerName === "afterSignUp") {
+      if (isReactServer || typeof window === "undefined") {
+        try {
+          await this._checkFeatureSupport("rsc-handler-" + handlerName, {});
+        } catch (e) {}
+      } else {
+        const queryParams = new URLSearchParams(window.location.search);
+        url = queryParams.get("after_auth_return_to") || url;
+      }
+    } else if (handlerName === "signIn" || handlerName === "signUp") {
+      if (isReactServer || typeof window === "undefined") {
+        try {
+          await this._checkFeatureSupport("rsc-handler-" + handlerName, {});
+        } catch (e) {}
+      } else {
+        const currentUrl = new URL(window.location.href);
+        const nextUrl = new URL(url, currentUrl);
+        if (currentUrl.searchParams.has("after_auth_return_to")) {
+          nextUrl.searchParams.set("after_auth_return_to", currentUrl.searchParams.get("after_auth_return_to")!);
+        } else if (currentUrl.protocol === nextUrl.protocol && currentUrl.host === nextUrl.host) {
+          nextUrl.searchParams.set("after_auth_return_to", getRelativePart(currentUrl));
+        }
+        url = getRelativePart(nextUrl);
+      }
+    }
+
+    console.log("HIIIIIIIIIIIII", handlerName, url, new Error());
+
+    await this._redirectIfTrusted(url, options);
   }
 
-  async redirectToSignIn() { return await this._redirectTo("signIn"); }
-  async redirectToSignUp() { return await this._redirectTo("signUp"); }
-  async redirectToSignOut() { return await this._redirectTo("signOut"); }
-  async redirectToEmailVerification() { return await this._redirectTo("emailVerification"); }
-  async redirectToPasswordReset() { return await this._redirectTo("passwordReset"); }
-  async redirectToForgotPassword() { return await this._redirectTo("forgotPassword"); }
-  async redirectToHome() { return await this._redirectTo("home"); }
-  async redirectToOAuthCallback() { return await this._redirectTo("oauthCallback"); }
-  async redirectToMagicLinkCallback() { return await this._redirectTo("magicLinkCallback"); }
-  async redirectToAfterSignIn() { return await this._redirectTo("afterSignIn"); }
-  async redirectToAfterSignUp() { return await this._redirectTo("afterSignUp"); }
-  async redirectToAfterSignOut() { return await this._redirectTo("afterSignOut"); }
-  async redirectToAccountSettings() { return await this._redirectTo("accountSettings"); }
-  async redirectToError() { return await this._redirectTo("error"); }
+  async redirectToSignIn(options?: RedirectToOptions) { return await this._redirectToHandler("signIn", options); }
+  async redirectToSignUp(options?: RedirectToOptions) { return await this._redirectToHandler("signUp", options); }
+  async redirectToSignOut(options?: RedirectToOptions) { return await this._redirectToHandler("signOut", options); }
+  async redirectToEmailVerification(options?: RedirectToOptions) { return await this._redirectToHandler("emailVerification", options); }
+  async redirectToPasswordReset(options?: RedirectToOptions) { return await this._redirectToHandler("passwordReset", options); }
+  async redirectToForgotPassword(options?: RedirectToOptions) { return await this._redirectToHandler("forgotPassword", options); }
+  async redirectToHome(options?: RedirectToOptions) { return await this._redirectToHandler("home", options); }
+  async redirectToOAuthCallback(options?: RedirectToOptions) { return await this._redirectToHandler("oauthCallback", options); }
+  async redirectToMagicLinkCallback(options?: RedirectToOptions) { return await this._redirectToHandler("magicLinkCallback", options); }
+  async redirectToAfterSignIn(options?: RedirectToOptions) { return await this._redirectToHandler("afterSignIn", options); }
+  async redirectToAfterSignUp(options?: RedirectToOptions) { return await this._redirectToHandler("afterSignUp", options); }
+  async redirectToAfterSignOut(options?: RedirectToOptions) { return await this._redirectToHandler("afterSignOut", options); }
+  async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
+  async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -918,7 +960,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
-          await this.redirectToSignIn();
+          await this.redirectToSignIn({ replace: true });
           break;
         }
         case 'throw': {
@@ -946,9 +988,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
-          // Updating the router is not allowed during the component render function, so we do it in a different async tick
-          // The error would be: "Cannot update a component (`Router`) while rendering a different component."
-          setTimeout(() => router.replace(this.urls.signIn), 0);
+          runAsynchronously(this.redirectToSignIn({ replace: true }));
           suspend();
           throw new StackAssertionError("suspend should never return");
         }
@@ -1439,7 +1479,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
-          await this.redirectToSignIn();
+          await this.redirectToSignIn({ replace: true });
           break;
         }
         case 'throw': {
@@ -1478,9 +1518,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (crud === null) {
       switch (options?.or) {
         case 'redirect': {
-          // Updating the router is not allowed during the component render function, so we do it in a different async tick
-          // The error would be: "Cannot update a component (`Router`) while rendering a different component."
-          setTimeout(() => router.replace(this.urls.signIn), 0);
+          runAsynchronously(this.redirectToSignIn({ replace: true }));
           suspend();
           throw new StackAssertionError("suspend should never return");
         }

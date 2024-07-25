@@ -16,6 +16,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
 import { CSPostHogProvider, UserIdentity } from './providers';
+import { ClientPolyfill } from './client-polyfill';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
@@ -71,6 +72,7 @@ export default function RootLayout({
         )}
           suppressHydrationWarning
         >
+          <ClientPolyfill />
           <Analytics />
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
