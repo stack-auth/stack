@@ -14,3 +14,6 @@ export const providerAccessTokenCrud = createCrud({
   clientCreateSchema: providerAccessTokenCreateSchema,
 });
 export type ProviderAccessTokenCrud = CrudTypeOf<typeof providerAccessTokenCrud>;
+
+export type ProviderType = "google" | "github" | "microsoft" | "facebook" | "spotify";
+export const providerList = ["google", "github", "microsoft", "facebook", "spotify"] as const;

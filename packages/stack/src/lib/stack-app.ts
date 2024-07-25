@@ -2,10 +2,10 @@ import { isReactServer } from "@stackframe/stack-sc";
 import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ProviderType } from "@stackframe/stack-shared/dist/interface/crud/oauth";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -73,7 +73,7 @@ export type HandlerUrls = {
 }
 
 export type OAuthScopesOnSignIn = {
-  [key in StandardProvider]: string[];
+  [key in ProviderType]: string[];
 };
 
 
@@ -306,7 +306,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return null;
     }
   );
-  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[StandardProvider, string, boolean], OAuthConnection | null>(
+  private readonly _currentUserOAuthConnectionCache = createCacheBySession<[ProviderType, string, boolean], OAuthConnection | null>(
     async (session, [connectionId, scope, redirect]) => {
       const user = await this._currentUserCache.getOrWait([session], "write-only");
 
@@ -730,16 +730,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _createCurrentUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
     const app = this;
-    async function getConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
-    async function getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
-    async function getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
+    async function getConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
+    async function getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
+    async function getConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
       const scopeString = options?.scopes?.join(" ");
       return await app._currentUserOAuthConnectionCache.getOrWait([session, id, scopeString || "", options?.or === 'redirect'], "write-only");
     }
 
-    function useConnectedAccount(id: StandardProvider, options?: { scopes?: string[] }): OAuthConnection | null;
-    function useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
-    function useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
+    function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
+    function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
+    function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
       return useAsyncCache(app._currentUserOAuthConnectionCache, [session, id, scopeString || "", options?.or === 'redirect'], "user.useConnectedAccount()");
     }
@@ -1014,7 +1014,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return res;
   }
 
-  async signInWithOAuth(provider: StandardProvider) {
+  async signInWithOAuth(provider: ProviderType) {
     this._ensurePersistentTokenStore();
     await signInWithOAuth(
       this._interface, {
@@ -2003,10 +2003,10 @@ export type User =
 
     createTeam(data: TeamCreateOptions): Promise<Team>,
 
-    getConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
-    getConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
-    useConnectedAccount(id: StandardProvider, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
-    useConnectedAccount(id: StandardProvider, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
+    getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
+    getConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
+    useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
+    useConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
 
     toClientJson(): CurrentUserCrud["Client"]["Read"],
   }

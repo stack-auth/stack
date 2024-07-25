@@ -1,11 +1,13 @@
 'use client';
+import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
-import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { jsonStringOrEmptySchema, jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { ActionDialog } from "../action-dialog";
+import { CopyField } from '../copy-field';
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
 import { SimpleTooltip } from "../simple-tooltip";
@@ -16,10 +18,7 @@ import { DataTable } from "./elements/data-table";
 import { DataTableFacetedFilter } from "./elements/faceted-filter";
 import { SearchToolbarItem } from "./elements/toolbar-items";
 import { arrayFilterFn, standardFilterFn } from "./elements/utils";
-import { wait } from '@stackframe/stack-shared/dist/utils/promises';
-import { CopyField } from '../copy-field';
-import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
+import { providerList } from '@stackframe/stack-shared/dist/interface/crud/oauth';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -33,7 +32,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
       <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
-        options={['email', 'password', ...standardProviders].map((provider) => ({
+        options={['email', 'password', ...providerList].map((provider) => ({
           value: provider,
           label: provider,
         }))}
