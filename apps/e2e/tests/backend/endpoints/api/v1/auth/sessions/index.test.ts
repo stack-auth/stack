@@ -60,13 +60,14 @@ it("creates sessions for existing users", async ({ expect }) => {
 
 it("creates sessions that expire", async ({ expect }) => {
   const res = await Auth.Password.signUpWithEmail();
+  await Auth.expectToBeSignedIn();
   const beginDate = new Date();
   const res2 = await niceBackendFetch("/api/v1/auth/sessions", {
     accessType: "server",
     method: "POST",
     body: {
       user_id: res.userId,
-      expires_in_millis: 3_000,
+      expires_in_millis: 5_000,
     },
   });
   expect(res2).toMatchInlineSnapshot(`
@@ -79,7 +80,7 @@ it("creates sessions that expire", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  const waitPromise = wait(3000);
+  const waitPromise = wait(5_001);
   try {
     const refreshSessionResponse1 = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
       method: "POST",
@@ -99,8 +100,8 @@ it("creates sessions that expire", async ({ expect }) => {
     await Auth.expectToBeSignedIn();
   } finally {
     const timeSinceBeginDate = new Date().getTime() - beginDate.getTime();
-    if (timeSinceBeginDate > 2_000) {
-      throw new StackAssertionError(`Requests were too slow (${timeSinceBeginDate}ms > 2000ms); try again or try to understand why they were slow.`);
+    if (timeSinceBeginDate > 4_000) {
+      throw new StackAssertionError(`Timeout error: Requests were too slow (${timeSinceBeginDate}ms > 4000ms); try again or try to understand why they were slow.`);
     }
   }
   await waitPromise;

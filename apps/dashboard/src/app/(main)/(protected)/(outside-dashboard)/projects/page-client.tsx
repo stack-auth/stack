@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@stackframe/stack";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 
 export default function PageClient() {
@@ -16,6 +16,12 @@ export default function PageClient() {
   const [sort, setSort] = useState<"recency" | "name">("recency");
   const [search, setSearch] = useState<string>("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (rawProjects.length === 0) {
+      router.push('/new-project');
+    }
+  }, [router, rawProjects]);
 
   const projects = useMemo(() => {
     let newProjects = [...rawProjects];

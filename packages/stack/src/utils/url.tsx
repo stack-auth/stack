@@ -12,6 +12,14 @@ export function autoRedirect() {
 }
 
 export function constructRedirectUrl(redirectUrl: URL | string | undefined) {
+  const retainedQueryParams = ["after_auth_return_to"];
+  const currentUrl = new URL(window.location.href);
   const url = redirectUrl ? new URL(redirectUrl, window.location.href) : new URL(window.location.href);
-  return url.href.split("#")[0];
+  for (const param of retainedQueryParams) {
+    if (currentUrl.searchParams.has(param)) {
+      url.searchParams.set(param, currentUrl.searchParams.get(param)!);
+    }
+  }
+  url.hash = "";
+  return url.toString();
 }
