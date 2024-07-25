@@ -5,8 +5,9 @@ import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamPermissionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
 import { teamPermissionDefinitionIdSchema, userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCrud, {
+export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamPermissionsCrud, {
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { description: 'Filter with the team ID. If set, only the permissions of the members in a specific team will be returned.', exampleValue: 'cce084a3-28b7-418e-913e-c8ee6d802ea4' } }),
     user_id: userIdOrMeSchema.optional().meta({ openapiField: { description: 'Filter with the user ID. If set, only the permissions this user has will be returned. Client request must set `user_id=me`', exampleValue: 'me' } }),
@@ -57,4 +58,4 @@ export const teamPermissionsCrudHandlers = createCrudHandlers(teamPermissionsCru
       };
     });
   },
-});
+}));

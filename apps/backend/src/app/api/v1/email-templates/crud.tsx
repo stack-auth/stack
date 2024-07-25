@@ -7,6 +7,7 @@ import { emailTemplateCrud, emailTemplateTypes } from "@stackframe/stack-shared/
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedEntries } from "@stackframe/stack-shared/dist/utils/objects";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 
@@ -19,7 +20,7 @@ function prismaToCrud(prisma: Prisma.EmailTemplateGetPayload<{}>, isDefault: boo
   };
 }
 
-export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
+export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandlers(emailTemplateCrud, {
   paramsSchema: yupObject({
     type: yupString().oneOf(emailTemplateTypes).required(),
   }),
@@ -123,4 +124,4 @@ export const emailTemplateCrudHandlers = createCrudHandlers(emailTemplateCrud, {
       is_paginated: false,
     };
   }
-});
+}));

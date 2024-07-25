@@ -30,6 +30,8 @@ export async function ensureTeamMembershipExist(
     userId: string,
   }
 ) {
+  await ensureUserExist(tx, { projectId: options.projectId, userId: options.userId });
+
   const member = await _getTeamMembership(tx, options);
 
   if (!member) {
@@ -98,5 +100,26 @@ export async function ensureUserHasTeamPermission(
 
   if (result.length === 0) {
     throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
+  }
+}
+
+export async function ensureUserExist(
+  tx: PrismaTransaction,
+  options: {
+    projectId: string,
+    userId: string,
+  }
+) {
+  const user = await tx.projectUser.findUnique({
+    where: {
+      projectId_projectUserId: {
+        projectId: options.projectId,
+        projectUserId: options.userId,
+      },
+    },
+  });
+
+  if (!user) {
+    throw new KnownErrors.UserNotFound();
   }
 }

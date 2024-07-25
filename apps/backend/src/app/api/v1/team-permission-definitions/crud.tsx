@@ -2,9 +2,10 @@ import { createTeamPermissionDefinition, deleteTeamPermissionDefinition, listTea
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { teamPermissionDefinitionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
-import { teamPermissionDefinitionIdSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { teamPermissionDefinitionIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
+import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPermissionDefinitionsCrud, {
+export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamPermissionDefinitionsCrud, {
   paramsSchema: yupObject({
     permission_id: teamPermissionDefinitionIdSchema.required(),
   }),
@@ -41,4 +42,4 @@ export const teamPermissionDefinitionsCrudHandlers = createCrudHandlers(teamPerm
       };
     });
   },
-});
+}));

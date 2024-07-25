@@ -37,7 +37,7 @@ export const POST = createSmartRouteHandler({
         },
       },
     });
-    console.log("AAAAAAAAA", sessionObj);
+
     if (!sessionObj || (sessionObj.expiresAt && sessionObj.expiresAt < new Date())) {
       throw new KnownErrors.RefreshTokenNotFoundOrExpired();
     }
