@@ -53,15 +53,27 @@ async function createTeam() {
 }
 
 
-it("list member profiles in team", async ({ expect }) => {
+it("lists and updates member profiles in team", async ({ expect }) => {
   const { teamId, userId1, userId2, currentUserId } = await createTeam();
 
-
-  // Does not have permission to list all members in team
-  const response1 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}`, {
+  // Must specify team_id
+  const response = await niceBackendFetch(`/api/v1/team-member-profiles`, {
     accessType: "client",
     method: "GET",
   });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "team_id is required for access type client",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    // Does not have permission to list all members in team
+    const response1 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}`, {
+      accessType: "client",
+      method: "GET",
+    });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 401,
@@ -95,6 +107,7 @@ it("list member profiles in team", async ({ expect }) => {
           {
             "display_name": "User 3",
             "profile_image_url": null,
+            "team_id": "<stripped UUID>",
             "user_id": "<stripped UUID>",
           },
         ],
@@ -124,19 +137,111 @@ it("list member profiles in team", async ({ expect }) => {
           {
             "display_name": "User 3",
             "profile_image_url": null,
+            "team_id": "<stripped UUID>",
             "user_id": "<stripped UUID>",
           },
           {
             "display_name": "User 1",
             "profile_image_url": null,
+            "team_id": "<stripped UUID>",
             "user_id": "<stripped UUID>",
           },
           {
             "display_name": "User 2",
             "profile_image_url": null,
+            "team_id": "<stripped UUID>",
             "user_id": "<stripped UUID>",
           },
         ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // Update own profile
+  const response4 = await niceBackendFetch(`/api/v1/team-member-profiles/${teamId}/me`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "User 3 Updated",
+    },
+  });
+  expect(response4).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "User 3 Updated",
+        "profile_image_url": null,
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // Update own user display name, profile display name should not be updated
+  await niceBackendFetch(`/api/v1/users/${currentUserId}`, {
+    accessType: "server",
+    method: "PATCH",
+    body: {
+      display_name: "User name updated",
+    },
+  });
+
+  const response5 = await niceBackendFetch(`/api/v1/team-member-profiles/${teamId}/me`, {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response5).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "User 3 Updated",
+        "profile_image_url": null,
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // Not allowed to update other member profile
+  const response6 = await niceBackendFetch(`/api/v1/team-member-profiles/${teamId}/${userId1}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "User 1 Updated",
+    },
+  });
+  expect(response6).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 403,
+      "body": "Cannot update another user's profile",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // Update user display name, profile display name should be updated
+  await niceBackendFetch(`/api/v1/users/${userId2}`, {
+    accessType: "server",
+    method: "PATCH",
+    body: {
+      display_name: "User 2 Updated",
+    },
+  });
+
+  const response7 = await niceBackendFetch(`/api/v1/team-member-profiles/${teamId}/${userId2}`, {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response7).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "User 2 Updated",
+        "profile_image_url": null,
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
       },
       "headers": Headers { <some fields may have been hidden> },
     }

@@ -13,6 +13,7 @@ const fullInclude = { projectUser: true };
 
 function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof fullInclude }>) {
   return {
+    team_id: prisma.teamId,
     user_id: prisma.projectUserId,
     display_name: prisma.displayName ?? prisma.projectUser.displayName,
     profile_image_url: prisma.profileImageUrl ?? prisma.projectUser.profileImageUrl,
@@ -68,7 +69,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
           projectUserId: userId,
         },
         orderBy: {
-          projectId: 'asc',
+          createdAt: 'asc',
         },
         include: fullInclude,
       });

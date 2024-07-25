@@ -4,6 +4,7 @@ import { yupObject } from "../../schema-fields";
 
 
 export const teamMemberProfilesCrudClientReadSchema = yupObject({
+  team_id: schemaFields.teamIdSchema.required(),
   user_id: schemaFields.userIdSchema.required(),
   display_name: schemaFields.teamMemberDisplayNameSchema.nullable().defined(),
   profile_image_url: schemaFields.teamMemberProfileImageUrlSchema.nullable().defined(),
