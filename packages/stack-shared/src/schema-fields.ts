@@ -94,6 +94,15 @@ export const jsonStringSchema = yupString().test("json", "Invalid JSON format", 
     return false;
   }
 });
+export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON format", (value) => {
+  if (!value) return true;
+  try {
+    JSON.parse(value);
+    return true;
+  } catch (error) {
+    return false;
+  }
+});
 export const emailSchema = yupString().email();
 
 // Request auth

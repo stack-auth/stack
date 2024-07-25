@@ -1,7 +1,7 @@
 'use client';
 import { ServerUser } from '@stackframe/stack';
 import { standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { jsonStringOrEmptySchema, jsonStringSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
@@ -55,8 +55,8 @@ const userEditFormSchema = yup.object({
   primaryEmail: yup.string().email("Primary Email must be a valid email address"),
   signedUpAt: yup.date().required(),
   primaryEmailVerified: yup.boolean().required(),
-  clientMetadata: jsonStringSchema,
-  serverMetadata: jsonStringSchema,
+  clientMetadata: jsonStringOrEmptySchema.default("null"),
+  serverMetadata: jsonStringOrEmptySchema.default("null"),
 });
 
 function EditUserDialog(props: {
@@ -69,8 +69,8 @@ function EditUserDialog(props: {
     primaryEmail: props.user.primaryEmail || undefined,
     primaryEmailVerified: props.user.primaryEmailVerified,
     signedUpAt: props.user.signedUpAt,
-    clientMetadata: props.user.clientMetadata ? JSON.stringify(props.user.clientMetadata) : undefined,
-    serverMetadata: props.user.serverMetadata ? JSON.stringify(props.user.serverMetadata) : undefined,
+    clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
+    serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
   };
 
   return <FormDialog
@@ -96,8 +96,8 @@ function EditUserDialog(props: {
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
 
-        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" />
-        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" />
+        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" placeholder="null" monospace />
+        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" placeholder="null" monospace />
       </>
     )}
     onSubmit={async (values) => { await props.user.update({
