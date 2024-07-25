@@ -22,7 +22,6 @@ export async function sendWebhooks(options: {
       }
 
       await svix.application.getOrCreate({ uid: projectId, name: projectId });
-      await svix.endpoint.create(projectId, { url });
       await svix.message.create(projectId, {
         eventType: options.type,
         payload: {
