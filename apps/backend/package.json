@@ -16,7 +16,7 @@
     "prisma": "pnpm run with-env prisma",
     "prisma-studio": "pnpm run with-env prisma studio --port 8106 --browser none",
     "lint": "next lint",
-    "watch-docs": "pnpm run with-env chokidar --silent '../../**/*' -i '../../docs/**' -i '../../**/node_modules/**' -i '../../**/.next/**' -i '../../**/dist/**' -c 'tsx scripts/generate-docs.ts'",
+    "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
     "generate-docs": "pnpm run with-env tsx scripts/generate-docs.ts",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
   },
@@ -42,7 +42,7 @@
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",
     "pg": "^8.11.3",
-    "posthog-js": "^1.138.1",
+    "posthog-js": "^1.149.1",
     "prettier": "^3.2.5",
     "react": "^18.2",
     "react-email": "2.1.0",

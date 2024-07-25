@@ -7,7 +7,7 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 
 export const DELETE = createSmartRouteHandler({
   metadata: {
-    summary: "Sign out",
+    summary: "Sign out of the current session",
     description: "Sign out of the current session and invalidate the refresh token",
     tags: ["Sessions"],
   },

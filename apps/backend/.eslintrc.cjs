@@ -2,7 +2,7 @@ const defaults = require("../../eslint-configs/defaults.js");
 
 module.exports = {
   extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
-  ignorePatterns: ["/*", "!/src", "!/prisma"],
+  ignorePatterns: ["/*", "!/src", "!/scripts", "!/prisma"],
   rules: {
     "no-restricted-syntax": [
       ...defaults.rules["no-restricted-syntax"],

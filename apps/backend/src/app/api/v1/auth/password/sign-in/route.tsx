@@ -2,8 +2,8 @@ import { createAuthTokens, generateAccessToken } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, signInEmailSchema, yupString, emailVerificationCallbackUrlSchema, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
