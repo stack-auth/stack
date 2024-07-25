@@ -5,11 +5,11 @@ import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, niceFetch } from "../helpers";
 
 type BackendContext = {
-  projectKeys: ProjectKeys,
-  mailbox: Mailbox,
-  userAuth: {
-    refreshToken?: string,
-    accessToken?: string,
+  readonly projectKeys: ProjectKeys,
+  readonly mailbox: Mailbox,
+  readonly userAuth: {
+    readonly refreshToken?: string,
+    readonly accessToken?: string,
   } | null,
 };
 
@@ -143,7 +143,7 @@ export namespace Auth {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    if (backendContext.value.userAuth) backendContext.value.userAuth.accessToken = undefined;
+    if (backendContext.value.userAuth) backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: undefined } });
     await Auth.expectToBeSignedOut();
     return {
       signOutResponse: response,

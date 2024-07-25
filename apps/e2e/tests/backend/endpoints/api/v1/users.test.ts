@@ -96,7 +96,7 @@ describe("with client access", () => {
 
   it("should be able to read own user if signed in even without refresh token", async ({ expect }) => {
     await Auth.Otp.signIn();
-    backendContext.value.userAuth!.refreshToken = undefined;
+    backendContext.set({ userAuth: { ...backendContext.value.userAuth, refreshToken: undefined } });
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
     });
@@ -122,21 +122,21 @@ describe("with client access", () => {
     `);
   });
 
-  it("should return access token invalid error when reading own user with no access token", async ({ expect }) => {
+  it("should not be able to read own user without access token even if refresh token is given", async ({ expect }) => {
     await Auth.Otp.signIn();
-    backendContext.value.userAuth!.accessToken = "12342134";
+    backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: undefined } });
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 401,
+        "status": 400,
         "body": {
-          "code": "UNPARSABLE_ACCESS_TOKEN",
-          "error": "Access token is not parsable.",
+          "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+          "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
         },
         "headers": Headers {
-          "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
+          "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
           <some fields may have been hidden>,
         },
       }
@@ -145,7 +145,7 @@ describe("with client access", () => {
 
   it("should return access token invalid error when reading own user with invalid access token", async ({ expect }) => {
     await Auth.Otp.signIn();
-    backendContext.value.userAuth!.accessToken = "12342134";
+    backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: "12341234" } });
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
     });

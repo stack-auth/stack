@@ -3,6 +3,7 @@
 import { useRouter } from "@/components/router";
 import { StackAdminApp, useUser } from "@stackframe/stack";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { notFound } from "next/navigation";
 import React from "react";
 
 const StackAdminAppContext = React.createContext<StackAdminApp<false> | null>(null);
@@ -14,9 +15,8 @@ export function AdminAppProvider(props: { projectId: string, children: React.Rea
 
   const project = projects.find(p => p.id === props.projectId);
   if (!project) {
-    console.warn(`User ${user.id} does not have access to project ${props.projectId}`);
-    setTimeout(() => router.push("/"), 0);
-    return null;
+    console.warn(`Project ${props.projectId} does not exist, or ${user.id} does not have access to it`);
+    return notFound();
   }
 
   return (

@@ -3,7 +3,7 @@ import { Auth, backendContext, niceBackendFetch } from "../../../../../backend-h
 
 it("should allow signing in to existing accounts", async ({ expect }) => {
   const res = await Auth.Password.signUpWithEmail();
-  backendContext.value.userAuth = null;
+  backendContext.set({ userAuth: null });
   await Auth.expectToBeSignedOut();
   const res2 = await Auth.Password.signInWithEmail({ password: res.password });
   expect(res2.signInResponse).toMatchInlineSnapshot(`

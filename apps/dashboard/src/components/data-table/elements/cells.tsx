@@ -71,13 +71,17 @@ export function DateCell(props: { date: Date, ignoreAfterYears?: number }) {
   );
 }
 
-type ActionItem = {
+type ActionItem = '-' | {
   item: React.ReactNode,
-  onClick: (e: React.MouseEvent) => void,
+  onClick: (e: React.MouseEvent) => void | Promise<void>,
+  danger?: boolean,
 }
 
 export function ActionCell(props: {
   items?: ActionItem[],
+  /**
+   * @deprecated use `items: [{ danger: true }]` instead
+   */
   dangerItems?: ActionItem[],
   invisible?: boolean,
 }) {
@@ -96,14 +100,18 @@ export function ActionCell(props: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        {props.items?.map((item, index) => (
-          <DropdownMenuItem key={index} onClick={item.onClick}>
+        {props.items?.map((item, index) => item === '-' ? (
+          <DropdownMenuSeparator key={index} />
+        ) : (
+          <DropdownMenuItem key={index} onClick={item.onClick} className={item.danger ? "text-destructive" : ""}>
             {item.item}
           </DropdownMenuItem>
         ))}
         {props.items && props.dangerItems && <DropdownMenuSeparator />}
         <div className="text-destructive">
-          {props.dangerItems?.map((item, index) => (
+          {props.dangerItems?.map((item, index) => item === '-' ? (
+            <DropdownMenuSeparator key={index} />
+          ) : (
             <DropdownMenuItem key={index} onClick={item.onClick}>
               {item.item}
             </DropdownMenuItem>

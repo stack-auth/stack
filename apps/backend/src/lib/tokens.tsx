@@ -66,10 +66,14 @@ export async function generateAccessToken({
 export async function createAuthTokens({
   projectId,
   projectUserId,
+  expiresAt,
 }: {
   projectId: string,
   projectUserId: string,
+  expiresAt?: Date,
 }) {
+  expiresAt ??= new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
+
   const refreshToken = generateSecureRandomString();
   const accessToken = await generateAccessToken({
     projectId,
@@ -81,6 +85,7 @@ export async function createAuthTokens({
       projectId,
       projectUserId,
       refreshToken: refreshToken,
+      expiresAt,
     },
   });
 

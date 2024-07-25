@@ -9,8 +9,42 @@ import {
 } from "@radix-ui/react-icons";
 
 import { cn } from "@/lib/utils";
+import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
+import { Spinner } from "./spinner";
+import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+const DropdownMenuContext = React.createContext<{
+  open: boolean,
+  setOpen: (open: boolean) => void,
+} | undefined>(undefined);
+
+const DropdownMenu = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>
+>(({ ...props }, ref) => {
+  const [open, setOpen] = React.useState(!!props.open);
+
+  return (
+    <DropdownMenuContext.Provider value={{
+      open,
+      setOpen: (o) => {
+        props.onOpenChange?.(o);
+        setOpen(o);
+      }
+    }}>
+      <DropdownMenuPrimitive.Root
+        {...props}
+        open={props.open ?? open}
+        onOpenChange={o => {
+          props.onOpenChange?.(o);
+          setOpen(o);
+        }}
+      />
+    </DropdownMenuContext.Provider>
+  );
+});
+DropdownMenu.displayName = DropdownMenuPrimitive.Root.displayName;
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
@@ -81,11 +115,18 @@ DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
 
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+  Omit<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>, "onClick"> & {
     inset?: boolean,
+    onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void | Promise<void>,
   }
->(({ className, inset, ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
+>(({ className, inset, ...props }, ref) => {
+  const { setOpen } = React.useContext(DropdownMenuContext) ?? throwErr("No DropdownMenuContext found");
+  const [handleClick, isLoading] = useAsyncCallback(async (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    await props.onClick?.(e);
+    setOpen(false);
+  }, [props.onClick]);
+
+  return <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
@@ -93,8 +134,20 @@ const DropdownMenuItem = React.forwardRef<
       className
     )}
     {...props}
-  />
-));
+    disabled={isLoading || props.disabled}
+    onClick={props.onClick ? (e) => {
+      e.preventDefault();
+      runAsynchronouslyWithAlert(handleClick(e));
+    } : undefined}
+  >
+    <div style={{ visibility: isLoading ? "visible" : "hidden", position: "absolute", inset: 0, display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Spinner />
+    </div>
+    <div style={{ visibility: isLoading ? "hidden" : "visible" }}>
+      {props.children}
+    </div>
+  </DropdownMenuPrimitive.Item>;
+});
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
 const DropdownMenuCheckboxItem = React.forwardRef<
