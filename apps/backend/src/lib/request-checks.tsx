@@ -1,7 +1,9 @@
+import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { PrismaTransaction } from "./types";
-import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
+import { PrismaTransaction } from "./types";
 
 
 async function _getTeamMembership(
@@ -122,4 +124,22 @@ export async function ensureUserExist(
   if (!user) {
     throw new KnownErrors.UserNotFound();
   }
+}
+
+export function ensureSharedProvider(
+  providerId: ProviderType
+): Lowercase<ProxiedOAuthProviderType> {
+  if (!sharedProviders.includes(providerId as any)) {
+    throw new KnownErrors.InvalidSharedOAuthProviderId(providerId);
+  }
+  return providerId as any;
+}
+
+export function ensureStandardProvider(
+  providerId: ProviderType
+): Lowercase<StandardOAuthProviderType> {
+  if (!standardProviders.includes(providerId as any)) {
+    throw new KnownErrors.InvalidStandardOAuthProviderId(providerId);
+  }
+  return providerId as any;
 }

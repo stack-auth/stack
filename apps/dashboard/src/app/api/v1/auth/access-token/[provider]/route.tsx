@@ -1,8 +1,8 @@
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { sharedProviders } from "@/temporary-types";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { accessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud-deprecated/oauth";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";

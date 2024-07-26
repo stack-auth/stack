@@ -1034,6 +1034,32 @@ const TeamPermissionRequired = createKnownErrorConstructor(
   (json) => [json.team_id, json.user_id, json.permission_id] as const,
 );
 
+const InvalidSharedOAuthProviderId = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_SHARED_OAUTH_PROVIDER_ID",
+  (providerId) => [
+    400,
+    `The shared OAuth provider with ID ${providerId} is not valid.`,
+    {
+      provider_id: providerId,
+    },
+  ] as const,
+  (json) => [json.provider_id] as const,
+);
+
+const InvalidStandardOAuthProviderId = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_STANDARD_OAUTH_PROVIDER_ID",
+  (providerId) => [
+    400,
+    `The standard OAuth provider with ID ${providerId} is not valid.`,
+    {
+      provider_id: providerId,
+    },
+  ] as const,
+  (json) => [json.provider_id] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1117,6 +1143,8 @@ export const KnownErrors = {
   UserAuthenticationRequired,
   TeamMembershipAlreadyExists,
   TeamPermissionRequired,
+  InvalidSharedOAuthProviderId,
+  InvalidStandardOAuthProviderId,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

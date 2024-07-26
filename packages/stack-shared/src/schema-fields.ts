@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { allProviders } from "./utils/oauth";
 import { isUuid } from "./utils/uuids";
 
 const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
@@ -124,7 +125,7 @@ export const projectCreateTeamOnSignUpSchema = yupBoolean().meta({ openapiField:
 export const projectMagicLinkEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
 export const projectCredentialEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
 // Project OAuth config
-export const oauthIdSchema = yupString().oneOf(['google', 'github', 'facebook', 'microsoft', 'spotify']).meta({ openapiField: { description: 'OAuth provider ID, one of google, github, facebook, microsoft, spotify', exampleValue: 'google' } });
+export const oauthIdSchema = yupString().oneOf(allProviders).meta({ openapiField: { description: `OAuth provider ID, one of ${allProviders.map(x => `\`${x}\``).join(', ')}`, exampleValue: 'google' } });
 export const oauthEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether the OAuth provider is enabled. If an provider is first enabled, then disabled, it will be shown in the list but with enabled=false', exampleValue: true } });
 export const oauthTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'OAuth provider type, one of shared, standard. "shared" uses Stack shared OAuth keys and it is only meant for development. "standard" uses your own OAuth keys and will show your logo and company name when signing in with the provider.', exampleValue: 'standard' } });
 export const oauthClientIdSchema = yupString().meta({ openapiField: { description: 'OAuth client ID. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-id' } });
