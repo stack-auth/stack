@@ -1,8 +1,9 @@
 "use client";
-import { useAdminApp } from "../use-admin-app";
-import { ProviderSettingSwitch, availableProviders } from "./providers";
-import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
+import { allProviders } from "@stackframe/stack-shared/dist/interface/crud/oauth";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
+import { ProviderSettingSwitch } from "./providers";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -37,7 +38,7 @@ export default function PageClient() {
       </SettingCard>
 
       <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
-        {availableProviders.map((id) => {
+        {allProviders.map((id) => {
           const provider = oauthProviders.find((provider) => provider.id === id);
           return <ProviderSettingSwitch
             key={id}

@@ -19,7 +19,6 @@ type Props = {
   updateProvider: (provider: AdminProject['config']['oauthProviders'][number]) => Promise<void>,
 };
 
-export const availableProviders = ['github', 'google', 'facebook', 'microsoft', 'spotify'] as const;
 function toTitle(id: string) {
   return {
     github: "GitHub",
