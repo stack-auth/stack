@@ -22,6 +22,10 @@ const corsAllowedRequestHeaders = [
   // User auth
   'x-stack-refresh-token',
   'x-stack-access-token',
+
+  // Others
+  'baggage',
+  'sentry-trace',
 ];
 
 const corsAllowedResponseHeaders = [
