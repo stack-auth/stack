@@ -1,14 +1,13 @@
-import * as yup from "yup";
-import { OAuthProviderConfigJson, ProjectJson, ServerUserJson, EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@/temporary-types";
-import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
+import { EmailConfigJson, OAuthProviderConfigJson, OAuthProviderUpdateOptions, ProjectJson, ProjectUpdateOptions, ServerUserJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@/temporary-types";
+import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import * as yup from "yup";
+import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@/temporary-types";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
-import { KnownErrors } from "@stackframe/stack-shared";
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({
@@ -17,7 +16,7 @@ function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
     "shared-facebook": "FACEBOOK",
     "shared-microsoft": "MICROSOFT",
     "shared-spotify": "SPOTIFY",
-  } as const)[type];
+  } as any)[type];
 }
 
 function toDBStandardProvider(type: StandardProvider): StandardOAuthProviderType {
