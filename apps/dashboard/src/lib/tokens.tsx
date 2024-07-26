@@ -60,7 +60,7 @@ export async function encodeAccessToken({
   const date = new Date();
   await prismaClient.event.create({
     data: {
-      systemEventTypeIds: ["$project", "$user-activity", "$project-activity"],
+      systemEventTypeIds: ["$project", "$user-activity", "$project-activity", "$legacy-api"],
       data: {
         projectId,
         userId,

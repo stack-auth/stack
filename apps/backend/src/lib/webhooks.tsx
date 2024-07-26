@@ -25,11 +25,12 @@ export async function sendWebhooks(options: {
       await svix.message.create(projectId, {
         eventType: options.type,
         payload: {
+          type: options.type,
           data: options.data,
         },
       });
     }
   } catch (error) {
-    captureError("Failed to send webhook", error);
+    captureError("send-webhook", error);
   }
 }
