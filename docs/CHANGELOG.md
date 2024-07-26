@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.9
+
+### Patch Changes
+
+- Impersonation
+
 ## 2.5.8
 
 ### Patch Changes

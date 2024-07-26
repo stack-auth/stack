@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.9
+
+### Patch Changes
+
+- Impersonation
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.9
+  - @stackframe/stack-emails@2.5.9
+
 ## 2.5.8
 
 ### Patch Changes

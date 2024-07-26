@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.9
+
+### Patch Changes
+
+- Impersonation
+  - @stackframe/stack-sc@2.5.9
+
 ## 2.5.8
 
 ### Patch Changes
