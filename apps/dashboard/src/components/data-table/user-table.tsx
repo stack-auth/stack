@@ -1,8 +1,8 @@
 'use client';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
-import { allProviders } from '@stackframe/stack-shared/dist/interface/crud/oauth';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";

@@ -5,7 +5,6 @@ import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/s
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ProviderType } from "@stackframe/stack-shared/dist/interface/crud/oauth";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -17,6 +16,7 @@ import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
+import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
 import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";

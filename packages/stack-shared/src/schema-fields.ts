@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import { allProviders } from "./interface/crud/oauth";
+import { allProviders } from "./utils/oauth";
 import { isUuid } from "./utils/uuids";
 
 const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;

@@ -1,6 +1,6 @@
 "use client";
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { allProviders } from "@stackframe/stack-shared/dist/interface/crud/oauth";
+import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch } from "./providers";

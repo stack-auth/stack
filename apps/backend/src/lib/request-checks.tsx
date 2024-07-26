@@ -1,10 +1,9 @@
-import { KnownErrors } from "@stackframe/stack-shared";
-import { PrismaTransaction } from "./types";
-import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/crud/oauth";
-import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
+import { PrismaTransaction } from "./types";
 
 
 async function _getTeamMembership(

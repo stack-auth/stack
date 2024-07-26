@@ -47,7 +47,7 @@ export const providerFormSchema = yup.object({
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
 
-export function ProviderSettingDialog(props: Props) {
+export function ProviderSettingDialog(props: Props & { open: boolean, onClose: () => void }) {
   const defaultValues = {
     shared: props.provider?.type === 'shared',
     clientId: (props.provider as any)?.clientId ?? "",
@@ -73,7 +73,8 @@ export function ProviderSettingDialog(props: Props) {
       defaultValues={defaultValues}
       formSchema={providerFormSchema}
       onSubmit={onSubmit}
-      trigger={<SettingIconButton />}
+      open={props.open}
+      onClose={props.onClose}
       title={`${toTitle(props.id)} OAuth provider`}
       cancelButton
       okButton={{ label: 'Save' }}
@@ -154,6 +155,7 @@ export function ProviderSettingSwitch(props: Props) {
   const enabled = !!props.provider?.enabled;
   const isShared = props.provider?.type === 'shared';
   const [TurnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+  const [ProviderSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
 
   const updateProvider = async (checked: boolean) => {
     await props.updateProvider({
@@ -183,10 +185,10 @@ export function ProviderSettingSwitch(props: Props) {
             setTurnOffProviderDialogOpen(true);
             return;
           } else {
-            await updateProvider(checked);
+            setProviderSettingDialogOpen(true);
           }
         }}
-        actions={<ProviderSettingDialog {...props} />}
+        actions={<SettingIconButton onClick={() => setProviderSettingDialogOpen(true)} />}
         onlyShowActionsWhenChecked
       />
 
@@ -196,6 +198,8 @@ export function ProviderSettingSwitch(props: Props) {
         providerId={props.id}
         onConfirm={() => runAsynchronously(updateProvider(false))}
       />
+
+      <ProviderSettingDialog {...props} open={ProviderSettingDialogOpen} onClose={() => setProviderSettingDialogOpen(false)} />
     </>
   );
 }
