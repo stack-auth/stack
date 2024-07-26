@@ -68,7 +68,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
         enabled: true,
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
-        facebookConfigId: values.facebookConfigId || "",
+        facebookConfigId: values.facebookConfigId,
       });
     }
   };
