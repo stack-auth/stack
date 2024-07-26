@@ -15,5 +15,10 @@ export const providerAccessTokenCrud = createCrud({
 });
 export type ProviderAccessTokenCrud = CrudTypeOf<typeof providerAccessTokenCrud>;
 
-export type ProviderType = "google" | "github" | "microsoft" | "facebook" | "spotify";
-export const providerList = ["google", "github", "microsoft", "facebook", "spotify"] as const;
+export const standardProviders = ["google", "github", "facebook", "microsoft", "spotify"] as const;
+export const sharedProviders = ["google", "github", "facebook", "microsoft"] as const;
+export const allProviders = ["google", "github", "facebook", "microsoft", "spotify"] as const;
+
+export type ProviderType = typeof allProviders[number];
+export type StandardProviderType = typeof standardProviders[number];
+export type SharedProviderType = typeof sharedProviders[number];

@@ -1,5 +1,6 @@
 import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
+import { ensureSharedProvider } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -7,6 +8,7 @@ import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { ensureStandardProvider } from "../../../../../lib/request-checks";
 
 export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
@@ -180,7 +182,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             providerConfigUpdate = {
               proxiedOAuthConfig: {
                 create: {
-                  type: typedToUppercase(providerUpdate.id),
+                  type: typedToUppercase(ensureSharedProvider(providerUpdate.id)),
                 },
               },
             };
@@ -188,7 +190,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             providerConfigUpdate = {
               standardOAuthConfig: {
                 create: {
-                  type: typedToUppercase(providerUpdate.id),
+                  type: typedToUppercase(ensureStandardProvider(providerUpdate.id)),
                   clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
                   clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
                 },
@@ -212,7 +214,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             providerConfigData = {
               proxiedOAuthConfig: {
                 create: {
-                  type: typedToUppercase(provider.update.id),
+                  type: typedToUppercase(ensureSharedProvider(provider.update.id)),
                 },
               },
             };
@@ -220,7 +222,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             providerConfigData = {
               standardOAuthConfig: {
                 create: {
-                  type: typedToUppercase(provider.update.id),
+                  type: typedToUppercase(ensureStandardProvider(provider.update.id)),
                   clientId: provider.update.client_id ?? throwErr('client_id is required'),
                   clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
                 },
