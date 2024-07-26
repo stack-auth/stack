@@ -17,7 +17,7 @@ export function StackProviderClient(props: {
   const appJson = props.appJson;
   const app = StackClientApp[stackAppInternalsSymbol].fromClientJson(appJson);
 
-  globalVar._stackAuth = { app };
+  globalVar.__STACK_AUTH__ = { app };
 
   return (
     <StackContext.Provider value={{ app }}>
