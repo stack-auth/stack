@@ -17,9 +17,7 @@ export function StackProviderClient(props: {
   const appJson = props.appJson;
   const app = StackClientApp[stackAppInternalsSymbol].fromClientJson(appJson);
 
-  if (process.env.NODE_ENV === "development") {
-    globalVar.stackApp = app;
-  }
+  globalVar._stackAuth = { app };
 
   return (
     <StackContext.Provider value={{ app }}>
