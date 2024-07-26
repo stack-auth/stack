@@ -2,6 +2,7 @@ import { TokenSet } from "openid-client";
 import { OAuthBaseProvider } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export class FacebookProvider extends OAuthBaseProvider {
   private constructor(
@@ -13,6 +14,7 @@ export class FacebookProvider extends OAuthBaseProvider {
   static async create(options: {
     clientId: string,
     clientSecret: string,
+    facebookConfigId?: string,
   }) {
     return new FacebookProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://www.facebook.com",
@@ -20,7 +22,10 @@ export class FacebookProvider extends OAuthBaseProvider {
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/facebook",
       baseScope: "public_profile email",
-      ...options
+      ...options,
+      authorizationExtraParams: options.facebookConfigId ? {
+        config_id: options.facebookConfigId,
+      } : undefined,
     }));
   }
 
@@ -29,6 +34,10 @@ export class FacebookProvider extends OAuthBaseProvider {
     url.searchParams.append('access_token', tokenSet.access_token || "");
     url.searchParams.append('fields', 'id,name,email');
     const rawUserInfo = await fetch(url).then((res) => res.json());
+
+    if (!rawUserInfo.email) {
+      throw new StatusError(StatusError.BadRequest, `Facebook OAuth did not return an email address. This is likely because you did not allow the "email" scope on the Facebook developer dashboard.`);
+    }
 
     return validateUserInfo({
       accountId: rawUserInfo.id,

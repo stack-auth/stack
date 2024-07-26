@@ -58,6 +58,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                       type: typedToUppercase(ensureStandardProvider(item.id)),
                       clientId: item.client_id ?? throwErr('client_id is required'),
                       clientSecret: item.client_secret ?? throwErr('client_secret is required'),
+                      facebookConfigId: item.facebook_config_id,
                     }
                   } : undefined,
                 }))
