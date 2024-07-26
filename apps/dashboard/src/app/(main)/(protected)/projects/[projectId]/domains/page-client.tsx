@@ -55,8 +55,20 @@ function EditDialog(props: {
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
       .required()
-      .label("Handler path")
+      .label("Handler path (default: /handler)")
       .default(props.type === 'update' ? props.defaultHandlerPath : "/handler"),
+    description: yup.mixed().meta({
+      stackFormFieldRender: () => (
+        <>
+          <Typography variant="secondary" type="footnote">
+            Note that sub-domains are not automatically added. Create two domains like www.example.com and example.com if you want to allow both.
+          </Typography>
+          <Typography variant="secondary" type="footnote">
+            {"You don't need to change the handler path unless you updated the path to the StackHandler."}
+          </Typography>
+        </>
+      ),
+    }),
   });
 
   return <SmartFormDialog
