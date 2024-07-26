@@ -94,12 +94,12 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         />}
         {!user && <Item
           text="Sign in"
-          onClick={async () => await app.redirectToAfterSignIn()}
+          onClick={async () => await app.redirectToSignIn()}
           icon={<LogIn {...iconProps} />}
         />}
         {!user && <Item
           text="Sign up"
-          onClick={async () => await app.redirectToAfterSignUp()}
+          onClick={async () => await app.redirectToSignUp()}
           icon={<UserPlus {...iconProps}/> }
         />}
         {user && props.extraItems && props.extraItems.map((item, index) => (
