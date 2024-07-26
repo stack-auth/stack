@@ -24,33 +24,6 @@ export type ClientInterfaceOptions = {
   projectOwnerSession: InternalSession,
 });
 
-export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify";
-export const sharedProviders = [
-  "shared-github",
-  "shared-google",
-  "shared-facebook",
-  "shared-microsoft",
-  "shared-spotify",
-] as const;
-
-export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify";
-export const standardProviders = [
-  "github",
-  "facebook",
-  "google",
-  "microsoft",
-  "spotify",
-] as const;
-
-export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
-  return provider.replace("shared-", "") as StandardProvider;
-}
-
-export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
-  return "shared-" + provider as SharedProvider;
-}
-
-
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
     // nothing here

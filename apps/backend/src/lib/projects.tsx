@@ -1,11 +1,12 @@
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
-import { Prisma, ProxiedOAuthProviderType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
@@ -61,7 +62,7 @@ export function projectPrismaToCrud(
 ): ProjectsCrud["Admin"]["Read"] {
   const oauthProviders = prisma.config.oauthProviderConfigs
     .flatMap((provider): {
-      id: Lowercase<ProxiedOAuthProviderType>,
+      id: ProviderType,
       enabled: boolean,
       type: 'standard' | 'shared',
       client_id?: string | undefined,

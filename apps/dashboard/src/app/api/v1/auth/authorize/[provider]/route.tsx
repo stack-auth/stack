@@ -10,8 +10,8 @@ import { getProject } from "@/lib/projects";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
-import { sharedProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { prismaClient } from "@/prisma-client";
+import { sharedProviders } from "@/temporary-types";
 
 
 const expireMinutes = 10;

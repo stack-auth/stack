@@ -1,6 +1,5 @@
 // TODO next-release: Remove this file when we remove the dashboard API.
 
-import { SharedProvider, StandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 
 export type ServerTeamMemberJson = TeamMemberJson & {
@@ -217,4 +216,30 @@ export type ServerUserUpdateJson = UserUpdateJson & {
   serverMetadata?: ReadonlyJson,
   primaryEmail?: string | null,
   primaryEmailVerified?: boolean,
+}
+
+export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify";
+export const sharedProviders = [
+  "shared-github",
+  "shared-google",
+  "shared-facebook",
+  "shared-microsoft",
+  "shared-spotify",
+] as const;
+
+export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify";
+export const standardProviders = [
+  "github",
+  "facebook",
+  "google",
+  "microsoft",
+  "spotify",
+] as const;
+
+export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
+  return provider.replace("shared-", "") as StandardProvider;
+}
+
+export function toSharedProvider(provider: SharedProvider | StandardProvider): SharedProvider {
+  return "shared-" + provider as SharedProvider;
 }
