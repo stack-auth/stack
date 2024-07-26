@@ -517,7 +517,6 @@ enum ProxiedOAuthProviderType {
   FACEBOOK
   GOOGLE
   MICROSOFT
-  SPOTIFY
 }
 
 model StandardOAuthProviderConfig {
@@ -530,6 +529,10 @@ model StandardOAuthProviderConfig {
   type         StandardOAuthProviderType
   clientId     String
   clientSecret String
+
+  // optional extra parameters for specific oauth providers
+  // Facebook business integration requires a config_id
+  facebookConfigId String?
 
   @@id([projectConfigId, id])
 }

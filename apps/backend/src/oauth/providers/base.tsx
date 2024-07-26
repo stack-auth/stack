@@ -8,6 +8,7 @@ export abstract class OAuthBaseProvider {
     public readonly oauthClient: Client,
     public readonly scope: string,
     public readonly redirectUri: string,
+    public readonly authorizationExtraParams?: Record<string, string>,
   ) {}
 
   protected static async createConstructorArgs(options:
@@ -16,7 +17,7 @@ export abstract class OAuthBaseProvider {
       clientSecret: string,
       redirectUri: string,
       baseScope: string,
-      isMock?: boolean,
+      authorizationExtraParams?: Record<string, string>,
     }
     & (
       | {
@@ -57,7 +58,7 @@ export abstract class OAuthBaseProvider {
       return grant;
     };
 
-    return [oauthClient, options.baseScope, options.redirectUri] as const;
+    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams] as const;
   }
 
   getAuthorizationUrl(options: {
@@ -72,6 +73,7 @@ export abstract class OAuthBaseProvider {
       state: options.state,
       response_type: "code",
       access_type: "offline",
+      ...this.authorizationExtraParams,
     });
   }
 

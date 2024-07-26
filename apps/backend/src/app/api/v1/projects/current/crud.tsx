@@ -193,6 +193,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   type: typedToUppercase(ensureStandardProvider(providerUpdate.id)),
                   clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
                   clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
+                  facebookConfigId: providerUpdate.facebook_config_id,
                 },
               },
             };
@@ -225,6 +226,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   type: typedToUppercase(ensureStandardProvider(provider.update.id)),
                   clientId: provider.update.client_id ?? throwErr('client_id is required'),
                   clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
+                  facebookConfigId: provider.update.facebook_config_id,
                 },
               },
             };

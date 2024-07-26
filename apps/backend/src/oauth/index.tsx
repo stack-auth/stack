@@ -47,6 +47,7 @@ export async function getProvider(provider: ProjectsCrud['Admin']['Read']['confi
     return await _providers[provider.id].create({
       clientId: provider.client_id || throwErr("Client ID is required for standard providers"),
       clientSecret: provider.client_secret || throwErr("Client secret is required for standard providers"),
+      facebookConfigId: provider.facebook_config_id
     });
   }
 }

@@ -9,7 +9,7 @@ import { InlineCode } from "@/components/ui/inline-code";
 import { Label } from "@/components/ui/label";
 import Typography from "@/components/ui/typography";
 import { AdminProject } from "@stackframe/stack";
-import { sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { useState } from "react";
 import * as yup from "yup";
@@ -44,6 +44,7 @@ export const providerFormSchema = yup.object({
       then: (schema) => schema.required(),
       otherwise: (schema) => schema.optional()
     }),
+  facebookConfigId: yup.string().optional(),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -54,6 +55,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
     shared: props.provider ? (props.provider.type === 'shared') : hasSharedKeys,
     clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
+    facebookConfigId: (props.provider as any)?.facebookConfigId ?? "",
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
@@ -66,6 +68,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
         enabled: true,
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
+        facebookConfigId: values.facebookConfigId,
       });
     }
   };
@@ -94,7 +97,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
 
           {form.watch("shared") ?
             <Typography variant="secondary" type="footnote">
-            Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
+              Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
             </Typography> :
             <div className="flex flex-col gap-2">
               <Label>Redirect URL for the OAuth provider settings
@@ -121,6 +124,15 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
                 placeholder="Client Secret"
                 required
               />
+
+              {props.id === 'facebook' && (
+                <InputField
+                  control={form.control}
+                  name="facebookConfigId"
+                  label="Configuration ID (only required for Facebook Business)"
+                  placeholder="Facebook Config ID"
+                />
+              )}
             </>
           )}
         </>

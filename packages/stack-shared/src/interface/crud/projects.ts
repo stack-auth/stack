@@ -12,6 +12,9 @@ const oauthProviderSchema = yupObject({
   type: schemaFields.oauthTypeSchema.required(),
   client_id: yupRequiredWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
   client_secret: yupRequiredWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
+
+  // extra params
+  facebook_config_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the configuration id for Facebook business login (for things like ads and marketing).' } }),
 });
 
 const enabledOAuthProviderSchema = yupObject({
