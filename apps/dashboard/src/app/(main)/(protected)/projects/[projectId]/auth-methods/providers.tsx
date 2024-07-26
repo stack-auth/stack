@@ -9,6 +9,7 @@ import { InlineCode } from "@/components/ui/inline-code";
 import { Label } from "@/components/ui/label";
 import Typography from "@/components/ui/typography";
 import { AdminProject } from "@stackframe/stack";
+import { sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { useState } from "react";
 import * as yup from "yup";
@@ -48,8 +49,9 @@ export const providerFormSchema = yup.object({
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
 
 export function ProviderSettingDialog(props: Props & { open: boolean, onClose: () => void }) {
+  const hasSharedKeys = sharedProviders.includes(props.id as any);
   const defaultValues = {
-    shared: props.provider?.type === 'shared',
+    shared: props.provider ? (props.provider.type === 'shared') : hasSharedKeys,
     clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
   };
@@ -80,11 +82,15 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
       okButton={{ label: 'Save' }}
       render={(form) => (
         <>
-          <SwitchField
-            control={form.control}
-            name="shared"
-            label="Shared keys"
-          />
+          {hasSharedKeys ?
+            <SwitchField
+              control={form.control}
+              name="shared"
+              label="Shared keys"
+            /> :
+            <Typography variant="secondary" type="footnote">
+              This OAuth provider does not support shared keys
+            </Typography>}
 
           {form.watch("shared") ?
             <Typography variant="secondary" type="footnote">
