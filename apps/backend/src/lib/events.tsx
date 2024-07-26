@@ -15,6 +15,12 @@ type SystemEventTypeBase = EventType & {
   id: `$${string}`,
 };
 
+const LegacyApiEventType = {
+  id: "$legacy-api",
+  dataSchema: yupObject({}),
+  inherits: [],
+} as const satisfies SystemEventTypeBase;
+
 const ProjectEventType = {
   id: "$project",
   dataSchema: yupObject({
@@ -55,6 +61,7 @@ export const SystemEventTypes = stripEventTypeSuffixFromKeys({
   ProjectActivityEventType,
   UserActivityEventType,
   ApiRequestEventType,
+  LegacyApiEventType,
 } as const);
 const systemEventTypesById = new Map(Object.values(SystemEventTypes).map(eventType => [eventType.id, eventType]));
 
