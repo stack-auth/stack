@@ -36,8 +36,14 @@ const ansis = {
   red: "\x1b[31m",
   blue: "\x1b[34m",
   green: "\x1b[32m",
+  yellow: "\x1b[33m",
   clear: "\x1b[0m",
+  bold: "\x1b[1m",
 };
+
+const filesCreated = [];
+const filesModified = [];
+const commandsExecuted = [];
 
 async function main() {
   console.log();
@@ -56,7 +62,6 @@ async function main() {
        ██████
   `);
   console.log();
-  console.log();
 
 
   let projectPath = await getProjectPath();
@@ -68,6 +73,17 @@ async function main() {
   if (!fs.existsSync(packageJsonPath)) {
     throw new UserError(
       `The package.json file does not exist in the project path ${projectPath}. You must initialize a new project first before installing Stack.`
+    );
+  }
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+  if (!packageJson.dependencies || !packageJson.dependencies["next"]) {
+    throw new UserError(
+      `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
+    );
+  }
+  if (!packageJson.dependencies["next"].includes("14")) {
+    throw new UserError(
+      `The project at ${projectPath} is using an unsupported version of Next.js (found ${packageJson.dependencies["next"]}).\n\nOnly Next.js 14 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
     );
   }
 
@@ -135,11 +151,11 @@ async function main() {
   if (stackAppContent) {
     if (!stackAppContent.includes("@stackframe/stack")) {
       throw new UserError(
-        `A file at the path ${stackAppPath} already exists. Stack uses the /src/stack-app file to initialize the Stack SDK. Please remove the existing file and try again.`
+        `A file at the path ${stackAppPath} already exists. Stack uses the /src/stack.ts file to initialize the Stack SDK. Please remove the existing file and try again.`
       );
     }
     throw new UserError(
-      `It seems that you've already installed Stack in this project.`
+      `It seems that you already installed Stack in this project.`
     );
   }
 
@@ -162,33 +178,41 @@ async function main() {
     (await findJsExtension(loadingPathWithoutExtension)) ?? defaultExtension;
   const loadingPath = loadingPathWithoutExtension + "." + loadingFileExtension;
 
-  console.log();
-  console.log("Found supported project at:", projectPath);
-  console.log("Installing now! 💃");
-
   const packageManager = await getPackageManager();
   const versionCommand = `${packageManager} --version`;
   const installCommand =
     packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
 
-  process.stdout.write("\nChecking package manager version... ");
   try {
-    await shellNicelyFormatted(versionCommand, { shell: true });
+    await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
   } catch (err) {
     throw new UserError(
-      `Could not run the package manager command ${versionCommand}. Please make sure ${packageManager} is installed on your system.`
+      `Could not run the package manager command '${versionCommand}'. Please make sure ${packageManager} is installed on your system.`
     );
   }
 
+  const isReady = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "ready",
+      message: `Found a Next.js project at ${projectPath}. Ready to install Stack?`,
+      default: true,
+    },
+  ]);
+  if (!isReady.ready) {
+    throw new UserError("Installation aborted.");
+  }
+
   console.log();
-  console.log("Installing dependencies...");
+  console.log(`${ansis.bold}Installing dependencies...${ansis.clear}`);
   await shellNicelyFormatted(`${installCommand} @stackframe/stack`, {
     shell: true,
     cwd: projectPath,
   });
 
   console.log();
-  console.log("Writing files...");
+  console.log(`${ansis.bold}Writing files...${ansis.clear}`);
+  console.log();
   if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
     await writeFile(
       envLocalPath,
@@ -209,6 +233,24 @@ async function main() {
   );
   await writeFile(layoutPath, updatedLayoutContent);
   console.log("Files written successfully!");
+
+  console.log();
+  console.log();
+  console.log();
+  console.log(`${ansis.bold}${ansis.green}Installation succeeded!${ansis.clear}`);
+  console.log();
+  console.log("Commands executed:");
+  for (const command of commandsExecuted) {
+    console.log(`  ${ansis.blue}${command}${ansis.clear}`);
+  }
+  console.log();
+  console.log("Files written:");
+  for (const file of filesModified) {
+    console.log(`  ${ansis.yellow}${file}${ansis.clear}`);
+  }
+  for (const file of filesCreated) {
+    console.log(`  ${ansis.green}${file}${ansis.clear}`);
+  }
 }
 main()
   .then(async () => {
@@ -221,8 +263,8 @@ main()
     console.log(`${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`);
     console.log();
     console.log("Next steps:");
-    console.log(" 1. Create an account and project on https://app.stack-auth.com");
-    console.log(" 2. Copy the environment variables from the new API key into your .env.local file");
+    console.log("  1. Create an account and project on https://app.stack-auth.com");
+    console.log("  2. Copy the environment variables from the new API key into your .env.local file");
     console.log();
     console.log(
       "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
@@ -410,7 +452,7 @@ async function getPackageManager() {
 }
 
 
-async function shellNicelyFormatted(command, options) {
+async function shellNicelyFormatted(command, { quiet, ...options }) {
   console.log();
   const ui = new inquirer.ui.BottomBar();
   let dots = 4;
@@ -425,8 +467,10 @@ async function shellNicelyFormatted(command, options) {
   try {
     if (!isDryRun) {
       const child = child_process.spawn(command, options);
-      child.stdout.pipe(ui.log);
-      child.stderr.pipe(ui.log);
+      if (!quiet) {
+        child.stdout.pipe(ui.log);
+        child.stderr.pipe(ui.log);
+      }
 
       await new Promise((resolve, reject) => {
         child.on("exit", (code) => {
@@ -440,9 +484,13 @@ async function shellNicelyFormatted(command, options) {
     } else {
       console.log(`[DRY-RUN] Would have run: ${command}`);
     }
+
+    if (!quiet) {
+      commandsExecuted.push(command);
+    }
   } finally {
     clearTimeout(interval);
-    ui.updateBottomBar(`Command ${command} finished successfully!\n`);
+    ui.updateBottomBar(quiet ? "" : `Command ${command} finished successfully!\n`);
     ui.close();
   }
 }
@@ -461,11 +509,18 @@ async function readFile(fullPath) {
 }
 
 async function writeFile(fullPath, content) {
+  let create = !fs.existsSync(fullPath);
   if (!isDryRun) {
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
     fs.writeFileSync(fullPath, content);
   } else {
     console.log(`[DRY-RUN] Would have written to ${fullPath}`);
+  }
+  const relativeToProjectPath = path.relative(await getProjectPath(), fullPath);
+  if (!create) {
+    filesModified.push(relativeToProjectPath);
+  } else {
+    filesCreated.push(relativeToProjectPath);
   }
 }
 
