@@ -4,14 +4,14 @@
   <a href="https://docs.stack-auth.com">📘 Documentation</a>
   | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
   | <a href="https://demo.stack-auth.com/">✨ Demo</a>
-  | <a href="https://discord.stack-auth.com">Discord</a>
+  | <a href="https://discord.stack-auth.com">🎮 Discord</a>
 </h4>
 
-## 💬 What is Stack?
+## 💬 What is Stack Auth?
 
-Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
+Stack Auth is the open-source, self-hostable alternative to Auth0/Clerk.
 
-We provide frontend and backend libraries for Next.js, React, and JavaScript. You can set it up in one minute and scale with the project as it grows.
+We are a fully managed solution; we provide frontend and backend libraries for Next.js, React, and JavaScript. Our setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
 
 Here are some of the components you get out-of-the-box:
 
