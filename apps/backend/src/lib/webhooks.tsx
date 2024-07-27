@@ -7,31 +7,16 @@ export async function sendWebhooks(options: {
   projectId: string,
   data: any,
 }) {
-  try {
-    const dataString = getEnvVariable("STACK_WEBHOOK_DATA");
-    const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
-    const server = getEnvVariable("STACK_SVIX_SERVER_URL", undefined);
-    const svix = new Svix(apiKey, { serverUrl: server });
+  const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
+  const server = getEnvVariable("STACK_SVIX_SERVER_URL", undefined);
+  const svix = new Svix(apiKey, { serverUrl: server });
 
-    if (!dataString) {
-      return;
-    }
-    const data = JSON.parse(dataString);
-    for (const { projectId } of data) {
-      if (projectId !== options.projectId) {
-        continue;
-      }
-
-      await svix.application.getOrCreate({ uid: projectId, name: projectId });
-      await svix.message.create(projectId, {
-        eventType: options.type,
-        payload: {
-          type: options.type,
-          data: options.data,
-        },
-      });
-    }
-  } catch (error) {
-    captureError("send-webhook", error);
-  }
+  await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
+  await svix.message.create(options.projectId, {
+    eventType: options.type,
+    payload: {
+      type: options.type,
+      data: options.data,
+    },
+  });
 }
