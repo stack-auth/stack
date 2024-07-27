@@ -1,19 +1,20 @@
 "use client";
 
+import { ActionDialog } from "@/components/action-dialog";
+import { ActionCell } from "@/components/data-table/elements/cells";
+import { SmartFormDialog } from "@/components/form-dialog";
+import { SettingCard } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Typography from "@/components/ui/typography";
+import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { useMemo, useState } from "react";
+import { SvixProvider, useEndpoints, useSvix } from "svix-react";
+import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { SvixProvider, useEndpoints, useNewEndpoint, useSvix } from "svix-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ActionCell } from "@/components/data-table/elements/cells";
-import { SettingCard } from "@/components/settings";
-import { Button } from "@/components/ui/button";
-import * as yup from "yup";
-import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { SmartFormDialog } from "@/components/form-dialog";
-import { useMemo, useState } from "react";
-import { ActionDialog } from "@/components/action-dialog";
-import Typography from "@/components/ui/typography";
+import { useRouter } from "next/navigation";
 
 type Endpoint = {
   id: string,
@@ -103,6 +104,9 @@ function DeleteDialog(props: {
 function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const router = useRouter();
+  const app = useAdminApp();
+  const project = app.useProject();
 
   return (
     <>
@@ -120,6 +124,7 @@ function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
       />
       <ActionCell
         items={[
+          { item: "View", onClick: () => router.push(`/projects/${project.id}/webhooks/${props.endpoint.id}`) },
           { item: "Edit", onClick: () => setEditDialogOpen(true) },
           '-',
           { item: "Delete", onClick: () => setDeleteDialogOpen(true), danger: true }
@@ -130,7 +135,7 @@ function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
 }
 
 function Endpoints(props: { updateFn: () => void }) {
-  const endpoints = useEndpoints();
+  const endpoints = useEndpoints({ limit: 100});
   let content = null;
 
   if (endpoints.error) {
@@ -180,7 +185,6 @@ function Endpoints(props: { updateFn: () => void }) {
     </SettingCard>
   );
 }
-
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
