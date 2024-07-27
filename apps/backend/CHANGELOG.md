@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.10
+
+### Patch Changes
+
+- Facebook Business support
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.10
+  - @stackframe/stack-emails@2.5.10
+
 ## 2.5.9
 
 ### Patch Changes

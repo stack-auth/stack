@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.10
+
+### Patch Changes
+
+- Facebook Business support
+  - @stackframe/stack-sc@2.5.10
+
 ## 2.5.9
 
 ### Patch Changes
