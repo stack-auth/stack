@@ -10,7 +10,8 @@ export async function sendWebhooks(options: {
   try {
     const dataString = getEnvVariable("STACK_WEBHOOK_DATA");
     const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
-    const svix = new Svix(apiKey);
+    const server = getEnvVariable("STACK_SVIX_SERVER_URL", undefined);
+    const svix = new Svix(apiKey, { serverUrl: server });
 
     if (!dataString) {
       return;

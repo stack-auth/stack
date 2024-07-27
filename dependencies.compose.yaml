@@ -1,4 +1,6 @@
 services:
+  # ================= stack =================
+
   db:
     image: postgres:latest
     environment:
@@ -19,6 +21,8 @@ services:
     volumes:
       - inbucket-data:/data
 
+  # ================= svix =================
+
   svix-db:
     image: postgres:latest
     environment:
@@ -34,7 +38,6 @@ services:
     volumes:
       - svix-redis-data:/data
 
-
   svix-server:
     image: svix/svix-server
     environment:
@@ -42,7 +45,7 @@ services:
       SVIX_REDIS_DSN: redis://svix-redis:6379
       SVIX_DB_DSN: postgres://postgres:password@svix-db:5432/svix
       SVIX_CACHE_TYPE: memory
-      SVIX_JWT_SECRET: x
+      SVIX_JWT_SECRET: secret
       SVIX_LOG_LEVEL: trace
       SVIX_QUEUE_TYPE: redis
     ports:
@@ -50,6 +53,8 @@ services:
     depends_on:
     - svix-redis
     - svix-db
+
+# ================= volumes =================
 
 volumes:
   postgres-data:
