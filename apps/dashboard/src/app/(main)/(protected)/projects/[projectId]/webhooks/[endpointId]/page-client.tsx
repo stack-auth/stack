@@ -1,17 +1,16 @@
 "use client";
 
+import { CopyButton } from "@/components/copy-button";
+import { SettingCard } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Typography from "@/components/ui/typography";
 import { useMemo, useState } from "react";
-import { SvixProvider, useEndpoint, useEndpointMessageAttempts, useEndpointSecret, useSvix,  } from "svix-react";
+import { SvixProvider, useEndpoint, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
-import { SettingCard } from "@/components/settings";
-import { Badge } from "@/components/ui/badge";
-import Typography from "@/components/ui/typography";
-import { Label } from "@/components/ui/label";
-import { CopyButton } from "@/components/copy-button";
-import { Button } from "@/components/ui/button";
 
 const statusToString = {
   0: "Success",

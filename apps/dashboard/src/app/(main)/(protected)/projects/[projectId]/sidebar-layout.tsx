@@ -149,6 +149,24 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/webhooks\/([^\/]+)$/);
+      let href;
+      if (match) {
+        href = `/teams/${match[1]}`;
+      } else {
+        href = "";
+      }
+
+      return [
+        { item: "Webhooks", href: "/webhooks" },
+        { item: "Endpoint", href },
+      ];
+    },
+    regex: /^\/projects\/[^\/]+\/webhooks\/[^\/]+$/,
+    type: 'hidden',
+  },
+  {
+    name: (pathname: string) => {
       const match = pathname.match(/^\/projects\/[^\/]+\/emails\/templates\/([^\/]+)$/);
       let item;
       let href;
