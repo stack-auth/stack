@@ -139,13 +139,9 @@ function Endpoints(props: { updateFn: () => void }) {
 
   if (endpoints.error) {
     content = <Alert>An error has occurred</Alert>;
-  }
-
-  if (endpoints.loading) {
-    content = <Alert>Loading...</Alert>;
-  }
-
-  if (!endpoints.data?.length) {
+  } else if (endpoints.loading || !endpoints.data) {
+    content = null;
+  } else if (!endpoints.data.length) {
     content = <Alert>No domains added yet.</Alert>;
   } else {
     content = (

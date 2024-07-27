@@ -11,6 +11,8 @@ import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoint, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const statusToString = {
   0: "Success",
@@ -23,12 +25,12 @@ function PageInner(props: { endpointId: string }) {
   const endpoint = useEndpoint(props.endpointId);
   const secret = useEndpointSecret(props.endpointId);
 
-  if (endpoint.loading || secret.loading) {
-    throw new Promise(() => undefined);
+  if (endpoint.error || secret.error) {
+    return <Alert>An error has occurred</Alert>;
   }
 
-  if (endpoint.error || !endpoint.data || secret.error || !secret.data) {
-    return <Alert>An error has occurred</Alert>;
+  if (endpoint.loading || secret.loading || !secret.data || !endpoint.data) {
+    return null;
   }
 
   return (
@@ -59,14 +61,14 @@ function PageInner(props: { endpointId: string }) {
 }
 
 function MessageTable(props: { endpointId: string }) {
-  const messages = useEndpointMessageAttempts(props.endpointId);
-
-  if (messages.loading) {
-    throw new Promise(() => undefined);
-  }
+  const messages = useEndpointMessageAttempts(props.endpointId, { limit: 10 });
 
   if (messages.error || !messages.data) {
     return <Alert>An error has occurred</Alert>;
+  }
+
+  if (messages.loading) {
+    return null;
   }
 
   if (messages.data.length === 0) {
@@ -74,25 +76,37 @@ function MessageTable(props: { endpointId: string }) {
   }
 
   return (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[200px]">ID</TableHead>
-            <TableHead className="w-[100px]">Message</TableHead>
-            <TableHead className="w-[300px]">Timestamp</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {messages.data.map(message => (
-            <TableRow key={message.id}>
-              <TableCell>{message.id}</TableCell>
-              <TableCell><Badge variant={'secondary'}>{statusToString[message.status]}</Badge></TableCell>
-              <TableCell>{message.timestamp.toLocaleString()}</TableCell>
+    <div className="flex flex-col gap-4">
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">ID</TableHead>
+              <TableHead className="w-[100px]">Message</TableHead>
+              <TableHead className="w-[300px]">Timestamp</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {messages.data.map(message => (
+              <TableRow key={message.id}>
+                <TableCell>{message.id}</TableCell>
+                <TableCell><Badge variant={'secondary'}>{statusToString[message.status]}</Badge></TableCell>
+                <TableCell>{message.timestamp.toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex justify-end gap-4">
+        <Button size='icon' variant={'outline'} disabled={!messages.hasPrevPage} onClick={messages.prevPage}>
+          <ChevronLeft />
+        </Button>
+
+        <Button size='icon' variant={'outline'} disabled={!messages.hasNextPage} onClick={messages.nextPage}>
+          <ChevronRight />
+        </Button>
+      </div>
     </div>
   );
 }
