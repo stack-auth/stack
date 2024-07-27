@@ -22,26 +22,22 @@ type Endpoint = {
   description?: string,
 };
 
-const endpointFormSchema = yup.object({
-  makeSureAlert: yup.mixed().meta({
-    stackFormFieldRender: () => (
-      <Alert> Make sure this is a trusted URL that you control.</Alert>
-    ),
-  }),
-  url: urlSchema.required().label("URL"),
-  description: yup.string().label("Description"),
-});
-
 function CreateDialog(props: {
   trigger: React.ReactNode,
   updateFn: () => void,
 }) {
   const { svix, appId } = useSvix();
 
+  const formSchema = yup.object({
+    makeSureAlert: yup.mixed().meta({ stackFormFieldRender: () => <Alert> Make sure this is a trusted URL that you control.</Alert> }),
+    url: urlSchema.required().label("URL"),
+    description: yup.string().label("Description"),
+  });
+
   return <SmartFormDialog
     trigger={props.trigger}
     title={"Create new endpoint"}
-    formSchema={endpointFormSchema}
+    formSchema={formSchema}
     okButton={{ label: "Create" }}
     onSubmit={async (values) => {
       await svix.endpoint.create(appId, { url: values.url, description: values.description });
@@ -50,14 +46,17 @@ function CreateDialog(props: {
   />;
 }
 
-function EditDialog(props: {
+export function EndpointEditDialog(props: {
   open: boolean,
   onClose: () => void,
   endpoint: Endpoint,
   updateFn: () => void,
 }) {
   const { svix, appId } = useSvix();
-  const formSchema = endpointFormSchema.default(props.endpoint);
+
+  const formSchema = yup.object({
+    description: yup.string().label("Description"),
+  }).default(props.endpoint);
 
   return <SmartFormDialog
     open={props.open}
@@ -66,7 +65,7 @@ function EditDialog(props: {
     formSchema={formSchema}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
-      await svix.endpoint.update(appId, props.endpoint.id, { url: values.url, description: values.description });
+      await svix.endpoint.update(appId, props.endpoint.id, { url: props.endpoint.url, description: values.description });
       props.updateFn();
     }}
   />;
@@ -110,7 +109,7 @@ function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
 
   return (
     <>
-      <EditDialog
+      <EndpointEditDialog
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
         endpoint={props.endpoint}
@@ -124,7 +123,7 @@ function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
       />
       <ActionCell
         items={[
-          { item: "View", onClick: () => router.push(`/projects/${project.id}/webhooks/${props.endpoint.id}`) },
+          { item: "View Details", onClick: () => router.push(`/projects/${project.id}/webhooks/${props.endpoint.id}`) },
           { item: "Edit", onClick: () => setEditDialogOpen(true) },
           '-',
           { item: "Delete", onClick: () => setDeleteDialogOpen(true), danger: true }

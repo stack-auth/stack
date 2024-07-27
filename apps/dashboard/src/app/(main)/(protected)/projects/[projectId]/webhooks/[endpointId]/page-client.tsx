@@ -8,6 +8,10 @@ import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { SettingCard } from "@/components/settings";
 import { Badge } from "@/components/ui/badge";
+import Typography from "@/components/ui/typography";
+import { Label } from "@/components/ui/label";
+import { CopyButton } from "@/components/copy-button";
+import { Button } from "@/components/ui/button";
 
 const statusToString = {
   0: "Success",
@@ -16,19 +20,38 @@ const statusToString = {
   3: "Sending",
 };
 
-function PageInner(props: { endpointId: string, updateFn: () => void }) {
+function PageInner(props: { endpointId: string }) {
   const endpoint = useEndpoint(props.endpointId);
+  const secret = useEndpointSecret(props.endpointId);
 
-  if (endpoint.loading) {
+  if (endpoint.loading || secret.loading) {
     throw new Promise(() => undefined);
   }
 
-  if (endpoint.error || !endpoint.data) {
+  if (endpoint.error || !endpoint.data || secret.error || !secret.data) {
     return <Alert>An error has occurred</Alert>;
   }
 
   return (
     <PageLayout title="Webhook Endpoint" description={endpoint.data.url}>
+      <SettingCard title="Endpoint Details">
+        <div>
+          <Label>URL</Label>
+          <Typography>{endpoint.data.url}</Typography>
+        </div>
+        <div>
+          <Label>Description</Label>
+          <Typography>{endpoint.data.description || "No description"}</Typography>
+        </div>
+        <div>
+          <Label>Verification secret</Label>
+          <div className="flex items-center space-x-2">
+            <Typography type='label'> {secret.data.key}</Typography>
+            <CopyButton content={secret.data.key} />
+          </div>
+        </div>
+      </SettingCard>
+
       <SettingCard title="Events History" description="The log of events sent to this endpoint">
         <MessageTable endpointId={props.endpointId} />
       </SettingCard>
@@ -92,7 +115,7 @@ export default function PageClient(props: { endpointId: string }) {
       appId={stackAdminApp.projectId}
       options={{ serverUrl: process.env.NEXT_PUBLIC_STACK_SVIX_SERVER_URL }}
     >
-      <PageInner endpointId={props.endpointId} updateFn={() => setUpdateCounter(x => x + 1)} />
+      <PageInner endpointId={props.endpointId} />
     </SvixProvider>
   );
 }
