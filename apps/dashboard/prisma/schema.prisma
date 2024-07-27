@@ -517,6 +517,7 @@ enum ProxiedOAuthProviderType {
   FACEBOOK
   GOOGLE
   MICROSOFT
+  SPOTIFY
 }
 
 model StandardOAuthProviderConfig {
