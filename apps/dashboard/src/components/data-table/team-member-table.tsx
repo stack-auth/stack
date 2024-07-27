@@ -118,14 +118,18 @@ function Actions(
         onSubmit={() => setUpdateCounter(c => c + 1)}
       />
       <ActionCell
-        items={[{
-          item: "Edit permissions",
-          onClick: () => setIsEditModalOpen(true),
-        }]}
-        dangerItems={[{
-          item: "Remove from team",
-          onClick: () => setIsRemoveModalOpen(true),
-        }]}
+        items={[
+          {
+            item: "Edit permissions",
+            onClick: () => setIsEditModalOpen(true),
+          },
+          '-',
+          {
+            item: "Remove from team",
+            danger: true,
+            onClick: () => setIsRemoveModalOpen(true),
+          }
+        ]}
       />
     </>
   );

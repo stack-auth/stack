@@ -11,7 +11,11 @@ function ActionMenu() {
   return (
     <>
       <ActionCell
-        items={[{ item: "Edit", onClick: () => {} }, { item: "Delete", onClick: () => {}, danger: true }]}
+        items={[
+          { item: "Edit", onClick: () => {} },
+          '-',
+          { item: "Delete", onClick: () => {}, danger: true }
+        ]}
       />
     </>
   );

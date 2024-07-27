@@ -101,12 +101,14 @@ function Actions({ row, invisible }: { row: Row<AdminTeamPermissionDefinition>, 
           {
             item: "Edit",
             onClick: () => setIsEditModalOpen(true),
+          },
+          '-',
+          {
+            item: "Delete",
+            danger: true,
+            onClick: () => setIsDeleteModalOpen(true),
           }
         ]}
-        dangerItems={[{
-          item: "Delete",
-          onClick: () => setIsDeleteModalOpen(true),
-        }]}
       />
     </div>
   );

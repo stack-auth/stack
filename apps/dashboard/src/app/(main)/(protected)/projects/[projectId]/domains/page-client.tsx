@@ -167,8 +167,11 @@ function ActionMenu(props: {
         project={props.project}
       />
       <ActionCell
-        items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
-        dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
+        items={[
+          { item: "Edit", onClick: () => setIsEditModalOpen(true) },
+          '-',
+          { item: "Delete", onClick: () => setIsDeleteModalOpen(true), danger: true }
+        ]}
       />
     </>
   );
