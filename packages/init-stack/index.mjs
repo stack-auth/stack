@@ -232,7 +232,7 @@ async function main() {
     `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`
   );
   await writeFile(layoutPath, updatedLayoutContent);
-  console.log("Files written successfully!");
+  console.log(`${ansis.green}√${ansis.clear} Done writing files`);
 
   console.log();
   console.log();
@@ -490,7 +490,7 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
     }
   } finally {
     clearTimeout(interval);
-    ui.updateBottomBar(quiet ? "" : `Command ${command} finished successfully!\n`);
+    ui.updateBottomBar(quiet ? "" : `${ansis.green}√${ansis.clear} Command ${command} succeeded\n`);
     ui.close();
   }
 }
