@@ -5,11 +5,13 @@ import { PostHogProvider } from 'posthog-js/react';
 import { Suspense, useEffect, useState } from 'react';
 
 if (typeof window !== 'undefined') {
-  posthog.init("phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k", {
-    api_host: "/consume",
-    ui_host: "https://eu.i.posthog.com",
-    person_profiles: 'identified_only',
-  });
+  const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k";
+  if (postHogKey.length > 5) {
+    posthog.init(postHogKey, {
+      api_host: "/consume",
+      ui_host: "https://eu.i.posthog.com",
+    });
+  }
 }
 export function CSPostHogProvider({ children }: { children: React.ReactNode }) {
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
@@ -27,7 +29,7 @@ function UserIdentityInner() {
     if (user && user.id !== lastUserId) {
       posthog.identify(user.id, {
         primaryEmail: user.primaryEmail,
-        displayName: user.displayName,
+        displayName: user.displayName ?? user.primaryEmail ?? user.id,
       });
       setLastUserId(user.id);
     } else if (!user && lastUserId) {

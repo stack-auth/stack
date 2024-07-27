@@ -13,7 +13,7 @@ const corsAllowedRequestHeaders = [
   'x-stack-client-version',
 
   // Project auth
-  'x-stack-access-type',
+  //'x-stack-access-type',
   'x-stack-publishable-client-key',
   'x-stack-secret-server-key',
   'x-stack-super-secret-admin-key',
@@ -23,7 +23,7 @@ const corsAllowedRequestHeaders = [
   'x-stack-refresh-token',
   'x-stack-access-token',
 
-  // Others
+  // Sentry
   'baggage',
   'sentry-trace',
 ];
@@ -40,17 +40,15 @@ export async function middleware(request: NextRequest) {
   const isApiRequest = url.pathname.startsWith('/api/');
 
   // default headers
-  const responseInit: ResponseInit = {
+  const responseInit: ResponseInit | undefined = isApiRequest ? {
     headers: {
       // CORS headers
-      ...!isApiRequest ? {} : {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
-        "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
-      },
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
+      "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
     },
-  };
+  } : undefined;
 
   // we want to allow preflight requests to pass through
   // even if the API route does not implement OPTIONS
