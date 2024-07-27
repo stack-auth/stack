@@ -30,8 +30,34 @@ class UserError extends Error {
 
 let savedProjectPath = process.argv[2] || undefined;
 
+const isDryRun = process.argv.includes("--dry-run");
+
+const ansis = {
+  red: "\x1b[31m",
+  blue: "\x1b[34m",
+  green: "\x1b[32m",
+  clear: "\x1b[0m",
+};
+
 async function main() {
-  console.log("Welcome to the Stack installation wizard! 🧙‍♂️");
+  console.log();
+  console.log(`
+       ██████            
+   ██████████████        
+████████████████████     
+████████████████████                WELCOME TO
+█████████████████        ╔═╗╔╦╗╔═╗╔═╗╦╔═  ┌─┐┬ ┬┌┬┐┬ ┬
+█████████████            ╚═╗ ║ ╠═╣║  ╠╩╗  ├─┤│ │ │ ├─┤
+█████████████   ████     ╚═╝ ╩ ╩ ╩╚═╝╩ ╩  ┴ ┴└─┘ ┴ ┴ ┴
+   █████████████████     
+       ██████     ██     
+████            ████     
+   █████    █████
+       ██████
+  `);
+  console.log();
+  console.log();
+
 
   let projectPath = await getProjectPath();
   if (!fs.existsSync(projectPath)) {
@@ -190,51 +216,53 @@ main()
     console.log();
     console.log();
     console.log();
-    console.log("===============================================");
+    console.log(`${ansis.green}===============================================${ansis.clear}`);
     console.log();
-    console.log("Successfully installed Stack! 🚀🚀🚀");
+    console.log(`${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`);
+    console.log();
+    console.log("Next steps:");
+    console.log(" 1. Create an account and project on https://app.stack-auth.com");
+    console.log(" 2. Copy the environment variables from the new API key into your .env.local file");
     console.log();
     console.log(
-      "Next up, please create an account on https://app.stack-auth.com to create a new project, and copy the Next.js environment variables from a new API key into your .env.local file."
+      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
     );
     console.log();
-    console.log(
-      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. Congratulations!"
-    );
+    console.log(`${ansis.green}===============================================${ansis.clear}`);
     console.log();
     console.log(
       "For more information, please visit https://docs.stack-auth.com/docs/getting-started/setup"
     );
     console.log();
-    console.log("===============================================");
-    console.log();
     await open("https://app.stack-auth.com/wizard-congrats");
   })
   .catch((err) => {
-    console.error(err);
+    if (!(err instanceof UserError)) {
+      console.error(err);
+    }
     console.error();
     console.error();
     console.error();
     console.error();
-    console.error("===============================================");
+    console.error(`${ansis.red}===============================================${ansis.clear}`);
     console.error();
     if (err instanceof UserError) {
-      console.error("[ERR] Error: " + err.message);
+      console.error(`${ansis.red}ERROR!${ansis.clear} ${err.message}`);
     } else {
       console.error(
-        "[ERR] An error occurred during the initialization process."
+        "An error occurred during the initialization process."
       );
     }
-    console.error("[ERR]");
+    console.error();
+    console.error(`${ansis.red}===============================================${ansis.clear}`);
+    console.error();
     console.error(
-      "[ERR] If you need assistance, please try installing Slack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
+      "If you need assistance, please try installing Slack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
     );
     if (!(err instanceof UserError)) {
-      console.error("[ERR]");
-      console.error(`[ERR] Error message: ${err.message}`);
+      console.error("");
+      console.error(`Error message: ${err.message}`);
     }
-    console.error();
-    console.error("===============================================");
     console.error();
     process.exit(1);
   });
@@ -381,31 +409,49 @@ async function getPackageManager() {
   return answers.packageManager;
 }
 
+
 async function shellNicelyFormatted(command, options) {
   console.log();
   const ui = new inquirer.ui.BottomBar();
-  ui.updateBottomBar(`Running command: ${command}...`);
-  const child = child_process.spawn(command, options);
-  child.stdout.pipe(ui.log);
-  child.stderr.pipe(ui.log);
+  let dots = 4;
+  ui.updateBottomBar(`${ansis.blue}Running command: ${command}...${ansis.clear}`);
+  const interval = setInterval(() => {
+    if (!isDryRun) {
+      ui.updateBottomBar(
+        `${ansis.blue}Running command: ${command}${".".repeat(dots++ % 5)}${ansis.clear}`
+      );
+    }
+  }, 700);
+  try {
+    if (!isDryRun) {
+      const child = child_process.spawn(command, options);
+      child.stdout.pipe(ui.log);
+      child.stderr.pipe(ui.log);
 
-  await new Promise((resolve, reject) => {
-    child.on("exit", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command ${command} failed with code ${code}`));
-      }
-    });
-  });
-
-  ui.updateBottomBar(`Command ${command} finished successfully!\n`);
-  ui.close();
+      await new Promise((resolve, reject) => {
+        child.on("exit", (code) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`Command ${command} failed with code ${code}`));
+          }
+        });
+      });
+    } else {
+      console.log(`[DRY-RUN] Would have run: ${command}`);
+    }
+  } finally {
+    clearTimeout(interval);
+    ui.updateBottomBar(`Command ${command} finished successfully!\n`);
+    ui.close();
+  }
 }
 
 async function readFile(fullPath) {
   try {
-    return fs.readFileSync(fullPath, "utf-8");
+    if (!isDryRun) {
+      return fs.readFileSync(fullPath, "utf-8");
+    }
   } catch (err) {
     if (err.code === "ENOENT") {
       return null;
@@ -415,8 +461,12 @@ async function readFile(fullPath) {
 }
 
 async function writeFile(fullPath, content) {
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, content);
+  if (!isDryRun) {
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, content);
+  } else {
+    console.log(`[DRY-RUN] Would have written to ${fullPath}`);
+  }
 }
 
 async function writeFileIfNotExists(fullPath, content) {
