@@ -2,12 +2,16 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useUser } from "@stackframe/stack";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 // ensure that the polyfills are loaded even on the client
 import "../polyfills";
 
 export function ClientPolyfill() {
+  return <Suspense fallback={null}><InnerClientPolyfill /></Suspense>;
+}
+
+function InnerClientPolyfill() {
   const user = useUser();
 
   useEffect(() => {
