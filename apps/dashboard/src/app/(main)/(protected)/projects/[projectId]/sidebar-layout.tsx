@@ -12,6 +12,7 @@ import {
   ShieldEllipsis,
   User,
   Users,
+  Webhook,
 } from "lucide-react";
 import { Link as LinkIcon } from "lucide-react";
 
@@ -137,6 +138,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/emails",
     regex: /^\/projects\/[^\/]+\/emails$/,
     icon: Mail,
+    type: 'item'
+  },
+  {
+    name: "Webhooks",
+    href: "/webhooks",
+    regex: /^\/projects\/[^\/]+\/webhooks$/,
+    icon: Webhook,
     type: 'item'
   },
   {
