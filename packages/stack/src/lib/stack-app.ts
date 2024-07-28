@@ -1820,7 +1820,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions) {
-    await this._interface.updatePermissionDefinition(permissionId, data);
+    await this._interface.updatePermissionDefinition(permissionId, serverTeamPermissionDefinitionUpdateOptionsToCrud(data));
     await this._adminTeamPermissionDefinitionsCache.refresh([]);
   }
 

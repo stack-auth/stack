@@ -34,8 +34,11 @@ A dashboard for managing user data, teams, auth methods, and permissions:
 
 | | |
 |-|-|
-| <h3>Sign-in/sign-up components</h3> | ![Sign-in component](/assets/sign-in.png) |
-
+| <h3>`<SignIn/>` and `<SignUp/>` components</h3> Ready to use sign-in and sign up components. Support Github, Google, Microsoft, Facebook, Spotify, email/password, and magic link. All customizable on the dashboard without extra setup. | ![Sign-in component](/assets/sign-in.png) |
+| <h3>`<AccountSetting/>` component</h3> Component for update user name, send verification email, and change password. | ![Account settings component](/assets/account-settings.png) |
+| <h3>`<UserButton/>` component</h3> Component for user profile, dark/light theme, and navigating to account-setting page, and sign-out. | ![User button component](/assets/user-button.png) |
+| <h3>`<SelectedTeamSwitcher/>` component</h3> Component for switching between your teams. | ![Selected team switcher component](/assets/team-switcher.png) |
+| <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. | ![RBAC](/assets/permissions.png) |
 
 ## 🔭 Vision
 
