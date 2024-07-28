@@ -15,14 +15,16 @@ Stack gets you started in just five minutes, after which you'll be ready to use 
 
 We support Next.js frontends, along with any backend that can use our [REST API](https://docs.stack-auth.com/rest-api/auth). Check out our [setup guide](https://docs.stack-auth.com/getting-started/setup) to get started.
 
-![Stack Setup](/.github/assets/create-project.gif)
+<div align="center">
+<img alt="Stack Setup" src=".github/assets/create-project.gif" height="300px" />
+</div>
 
 ## ✨ Features
 
 | | |
-|-|-|
-| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. | ![Sign-in component](/.github/assets/dark-light-mode.png) |
-| <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | ![Dark/light mode](/.github/assets/components.webp) |
+|-|:-:|
+| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. All the components support dark/light modes. | ![Sign-in component](/.github/assets/dark-light-mode.png) |
+| <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | <img alt="Dark/light mode" src=".github/assets/components.png" height="256" width="433"> |
 | <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would've had to build. | ![User dashboard](/.github/assets/dashboard.png) |
 | <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | ![Account settings component](/.github/assets/account-settings.png) |
 | <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | ![Selected team switcher component](/.github/assets/team-switcher.png) |
