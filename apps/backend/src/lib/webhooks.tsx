@@ -1,5 +1,4 @@
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { Svix } from "svix";
 
 export async function sendWebhooks(options: {
