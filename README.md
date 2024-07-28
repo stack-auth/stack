@@ -19,17 +19,6 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 ## ✨ Features
 
-<!-- - Composable React components & hooks
-- OAuth (Google, Facebook, GitHub, etc.)
-- Magic link and email password authentication (with email verification and password reset)
-- Easy to set up with proxied providers (no need to sign up and create OAuth endpoints yourself on all the providers)
-- User management & analytics
-- Teams & permissions
-- User-associated metadata with client-/server-specific permissions
-- Out-of-the-box dark/light mode support
-- Fully customizable UI, or build your own UI with our functions like `signInWithOAuth`
-- **100% open-source!** -->
-
 | | |
 |-|-|
 | <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. | ![Sign-in component](/.github/assets/dark-light-mode.png) |
@@ -38,12 +27,11 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 | <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | ![Account settings component](/.github/assets/account-settings.png) |
 | <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | ![Selected team switcher component](/.github/assets/team-switcher.png) |
 | <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Fetching whether permissions exist is just a single line of code. | ![RBAC](/.github/assets/permissions.png) |
-| <h3>Connected accounts</h3> Let your users connect any number of OAuth services with their accounts, and we will automatically refresh access tokens for you. | ![OAuth refresh](/.github/assets/oauth-refresh.png) |
+| <h3>OAuth Providers</h3>Stack not only supports OAuth login but also provides access tokens management for third-party APIs such as Outlook and Google Calendar. We handle token refreshes and scope control for you and you can call an simple API to get the access token | ![OAuth tokens](/.github/assets/connected-accounts.png) |
 | <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | ![Webhooks](/.github/assets/impersonate.png) |
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | ![Webhooks](/.github/assets/stack-webhooks.png) |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | ![Email templates](/.github/assets/email-editor.png) |
-| <h3>User session & JWT handling</h3> Stack refreshes access tokens for you, so you can get the best performance at no implementation cost. | ![Dark/light mode](/.github/assets/user-button.png) |
-| <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | ![M2M authentication](/.github/assets/m2m-auth.png) |
+| <h3>User session & JWT handling</h3> Stack handles all the refresh/access token, JWTs, and cookies, so you can get the best performance at no implementation cost. | ![User button](/.github/assets/user-button.png) |
 
 
 ## 📦 Installation & Setup
