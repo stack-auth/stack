@@ -23,18 +23,19 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 | | |
 |-|:-:|
-| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. All the components support dark/light modes. | <img alt="Sign-in component" src=".github/assets/dark-light-mode.png" height="280"> |
+| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links, with shared development keys to make setup faster. All components support dark/light modes. | <img alt="Sign-in component" src=".github/assets/dark-light-mode.png" height="280"> |
 | <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | ![Dark/light mode](.github/assets/components.png) |
-| <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would've had to build. | ![User dashboard](.github/assets/dashboard.png) |
-| <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | <img alt="Account settings component" src=".github/assets/account-settings.png" height="280"> |
-| <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | <img alt="Selected team switcher component" src=".github/assets/team-switcher.png" height="280"> |
-| <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Fetching whether permissions exist is just a single line of code. | <img alt="RBAC" src=".github/assets/permissions.png" height="280"> |
-| <h3>OAuth Providers</h3>Stack not only supports OAuth login but also provides access tokens management for third-party APIs such as Outlook and Google Calendar. We handle token refreshes and scope control for you and you can call an simple API to get the access token | <img alt="OAuth tokens" src=".github/assets/connected-accounts.png" height="280"> |
+| <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would have to build. | ![User dashboard](.github/assets/dashboard.png) |
+| <h3>Account settings</h3> Lets users update their profile, verify their e-mail, or change their password. No setup required. | <img alt="Account settings component" src=".github/assets/account-settings.png" height="280"> |
+| <h3>Multi-tenancy & teams</h3> Manage B2B customers with an organization structure that makes sense and scales to millions. | <img alt="Selected team switcher component" src=".github/assets/team-switcher.png" height="280"> |
+| <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Organizations can create org-specific roles. | <img alt="RBAC" src=".github/assets/permissions.png" height="280"> |
+| <h3>OAuth Connections</h3>Beyond login, Stack can also manage access tokens for third-party APIs, such as Outlook and Google Calendar. It handles refreshing tokens and controlling scope, making access tokens accessible via a single function call. | <img alt="OAuth tokens" src=".github/assets/connected-accounts.png" height="280"> |
 | <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | <img alt="Webhooks" src=".github/assets/impersonate.png" height="280"> |
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | <img alt="Webhooks" src=".github/assets/stack-webhooks.png" height="280"> |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | <img alt="Email templates" src=".github/assets/email-editor.png" height="280"> |
-| <h3>User session & JWT handling</h3> Stack handles all the refresh/access token, JWTs, and cookies, so you can get the best performance at no implementation cost. | <img alt="User button" src=".github/assets/user-button.png" height="280"> |
+| <h3>User session & JWT handling</h3> Stack manages refresh and access tokens, JWTs, and cookies, resulting in the best performance at no implementation cost. | <img alt="User button" src=".github/assets/user-button.png" height="280"> |
 | <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | <img src=".github/assets/m2m-auth.png" alt="M2M authentication" height="250"> |
+
 
 ## 📦 Installation & Setup
 
@@ -49,10 +50,11 @@ Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) 
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
 
+**Important**: Please read the [contribution guidelines](CONTRIBUTING.md) carefully and join [our Discord](https://discord.stack-auth.com) if you'd like to help.
+
+
 <details>
   <summary>Local setup</summary>
-
-Please read the [contribution guidelines](CONTRIBUTING.md) before contributing.
 
 ### Requirements
 
@@ -112,8 +114,6 @@ pnpm run prisma migrate dev
 </details>
 
 ## Contributors
-
-**Important**: Please read the [contribution guidelines](CONTRIBUTING.md) carefully and join [our Discord](https://discord.stack-auth.com) if you'd like to help.
 
 Thanks to the amazing community who built Stack:
 
