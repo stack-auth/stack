@@ -37,7 +37,7 @@ export function PredefinedMessageCard({
     }
     case 'emailSent': {
       title = "Email sent!";
-      message = 'Please check your inbox. Make sure to check your spam folder.';
+      message = 'If the user with this e-mail address exists, an e-mail was sent to your inbox. Make sure to check your spam folder.';
       primaryAction = () => stackApp.redirectToHome();
       primaryButton = "Go to home";
       break;
