@@ -30,6 +30,7 @@
     "Proxied",
     "reqs",
     "stackframe",
+    "Svix",
     "typecheck",
     "typehack",
     "Uncapitalize",
