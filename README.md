@@ -7,23 +7,21 @@
   | <a href="https://discord.stack-auth.com">🎮 Discord</a>
 </h4>
 
-## 💬 What is Stack Auth?
+# Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is the open-source, self-hostable alternative to Auth0/Clerk.
+Stack Auth is a fully managed solution. It provide frontend and backend libraries for Next.js, React, and JavaScript. The setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
 
-We are a fully managed solution; we provide frontend and backend libraries for Next.js, React, and JavaScript. Our setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
+Get started with OAuth and email/password Auth by just clicking a few toggles:
 
-Here are some of the components you get out-of-the-box:
+![Stack Setup](/assets/create-project.gif)
 
-![Stack Sign Up Page](/assets/components.png)
-
-Here is the user/project management dashboard:
+A dashboard for managing user data, teams, auth methods, and permissions:
 
 ![Stack Dashboard](/assets/dashboard.png)
 
 ## ✨ Features
 
-- Composable React components & hooks
+<!-- - Composable React components & hooks
 - OAuth (Google, Facebook, GitHub, etc.)
 - Magic link and email password authentication (with email verification and password reset)
 - Easy to set up with proxied providers (no need to sign up and create OAuth endpoints yourself on all the providers)
@@ -32,7 +30,12 @@ Here is the user/project management dashboard:
 - User-associated metadata with client-/server-specific permissions
 - Out-of-the-box dark/light mode support
 - Fully customizable UI, or build your own UI with our functions like `signInWithOAuth`
-- **100% open-source!**
+- **100% open-source!** -->
+
+| | |
+|-|-|
+| <h3>Sign-in/sign-up components</h3> | ![Sign-in component](/assets/sign-in.png) |
+
 
 ## 🔭 Vision
 
