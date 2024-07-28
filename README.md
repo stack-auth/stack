@@ -9,7 +9,7 @@
 
 # Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is the managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
+Stack Auth is a managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
 
 Stack gets you started in just five minutes, after which you'll be ready to use all of its features as you grow your project. Our managed service is completely optional and you can export your user data and self-host, for free, at any time.
 
@@ -30,20 +30,20 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - Fully customizable UI, or build your own UI with our functions like `signInWithOAuth`
 - **100% open-source!** -->
 
-| | |
+|  | |
 |-|-|
-| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. | ![Sign-in component](/.github/assets/dark-light-mode.png) |
-| <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | ![Dark/light mode](/.github/assets/components.webp) |
-| <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would've had to build. | ![User dashboard](/.github/assets/dashboard.png) |
-| <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | ![Account settings component](/.github/assets/account-settings.png) |
-| <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | ![Selected team switcher component](/.github/assets/team-switcher.png) |
-| <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Fetching whether permissions exist is just a single line of code. | ![RBAC](/.github/assets/permissions.png) |
-| <h3>Connected accounts</h3> Let your users connect any number of OAuth services with their accounts, and we will automatically refresh access tokens for you. | ![OAuth refresh](/.github/assets/oauth-refresh.png) |
-| <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | ![Webhooks](/.github/assets/impersonate.png) |
-| <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | ![Webhooks](/.github/assets/stack-webhooks.png) |
-| <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | ![Email templates](/.github/assets/email-editor.png) |
-| <h3>User session & JWT handling</h3> Stack refreshes access tokens for you, so you can get the best performance at no implementation cost. | ![Dark/light mode](/.github/assets/user-button.png) |
-| <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | ![M2M authentication](/.github/assets/m2m-auth.png) |
+| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. | <img src=".github/assets/dark-light-mode.png" alt="Sign-in component" height="200"> |
+| <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | <img src=".github/assets/components.webp" alt="Dark/light mode" height="250"> |
+| <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would've had to build. | <img src=".github/assets/dashboard.png" alt="User dashboard" height="250"> |
+| <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | <img src=".github/assets/account-settings.png" alt="Account settings component" height="250"> |
+| <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | <img src=".github/assets/team-switcher.png" alt="Selected team switcher component" height="250"> |
+| <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Fetching whether permissions exist is just a single line of code. | <img src=".github/assets/permissions.png" alt="RBAC" height="250"> |
+| <h3>Connected accounts</h3> Let your users connect any number of OAuth services with their accounts, and we will automatically refresh access tokens for you. | <img src=".github/assets/oauth-refresh.png" alt="OAuth refresh" height="250"> |
+| <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | <img src=".github/assets/impersonate.png" alt="Webhooks" height="250"> |
+| <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | <img src=".github/assets/stack-webhooks.png" alt="Webhooks" height="250"> |
+| <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | <img src=".github/assets/email-editor.png" alt="Email templates" height="250"> |
+| <h3>User session & JWT handling</h3> Stack refreshes access tokens for you, so you can get the best performance at no implementation cost. | <img src=".github/assets/user-button.png" alt="Dark/light mode" height="250"> |
+| <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | <img src=".github/assets/m2m-auth.png" alt="M2M authentication" height="250"> |
 
 
 ## 📦 Installation & Setup
