@@ -34,6 +34,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | <img alt="Webhooks" src=".github/assets/stack-webhooks.png" height="280"> |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | <img alt="Email templates" src=".github/assets/email-editor.png" height="280"> |
 | <h3>User session & JWT handling</h3> Stack handles all the refresh/access token, JWTs, and cookies, so you can get the best performance at no implementation cost. | <img alt="User button" src=".github/assets/user-button.png" height="280"> |
+| <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | <img src=".github/assets/m2m-auth.png" alt="M2M authentication" height="250"> |
 
 ## 📦 Installation & Setup
 
