@@ -2,7 +2,7 @@ import { SignUp } from "./sign-up";
 import { SignIn } from "./sign-in";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import { EmailVerification } from "./email-verification";
-import { StackServerApp } from "..";
+import { AuthPage, StackServerApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
 import { SignOut } from "./sign-out";
@@ -67,11 +67,11 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      return <SignIn fullPage={fullPage} />;
+      return <AuthPage fullPage={fullPage} type='sign-in' automaticRedirect />;
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      return <SignUp fullPage={fullPage} />;
+      return <AuthPage fullPage={fullPage} type='sign-up' automaticRedirect />;
     }
     case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');

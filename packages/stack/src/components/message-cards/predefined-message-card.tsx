@@ -45,14 +45,14 @@ export function PredefinedMessageCard({
     case 'passwordReset': {
       title = "Password reset successfully!";
       message = 'Your password has been reset. You can now sign in with your new password.';
-      primaryAction = () => stackApp.redirectToSignIn();
+      primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
       primaryButton = "Sign in";
       break;
     }
     case 'emailVerified': {
       title = "Email verified!";
       message = 'Your have successfully verified your email.';
-      primaryAction = () => stackApp.redirectToSignIn();
+      primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
       primaryButton = "Sign in";
       break;
     }
