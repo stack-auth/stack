@@ -1,5 +1,12 @@
 # e2e-tests
 
+## 2.5.11
+
+### Patch Changes
+
+- Update descriptions & docs
+  - @stackframe/stack-shared@2.5.11
+
 ## 2.5.10
 
 ### Patch Changes
