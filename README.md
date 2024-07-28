@@ -52,10 +52,6 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 **Important**: Please read the [contribution guidelines](CONTRIBUTING.md) carefully and join [our Discord](https://discord.stack-auth.com) if you'd like to help.
 
-
-<details>
-  <summary>Local setup</summary>
-
 ### Requirements
 
 - Node v20
@@ -111,7 +107,6 @@ If you make changes to the Prisma schema, you need to run the following command 
 ```sh
 pnpm run prisma migrate dev
 ```
-</details>
 
 ## Contributors
 
