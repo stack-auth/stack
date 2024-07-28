@@ -1,4 +1,4 @@
-![Stack Logo](/assets/logo.png)
+![Stack Logo](/.github/assets/logo.png)
 
 <h3 align="center">
   <a href="https://docs.stack-auth.com">📘 Docs</a>
@@ -9,20 +9,13 @@
 
 # Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is a managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
+Stack Auth is the managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
 
-Stack gets you started in just five minutes, and you'll be ready to use all of its features as you grow your project. Our managed service is completely optional and you can export your user data and self-host, for free, at any time.
+Stack gets you started in just five minutes, after which you'll be ready to use all of its features as you grow your project. Our managed service is completely optional and you can export your user data and self-host, for free, at any time.
 
-We support Next.js frontends, along with any backend that can use our REST API. Check out our <a href="https://docs.stack-auth.com/getting-started/setup">setup guide</a> to get started.
+We support Next.js frontends, along with any backend that can use our [REST API](https://docs.stack-auth.com/rest-api/auth). Check out our [setup guide](https://docs.stack-auth.com/getting-started/setup) to get started.
 
-Get started with OAuth and email/password Auth by just clicking a few toggles:
-
-![Stack Setup](/assets/create-project.gif)
-
-
-A dashboard for managing user data, teams, auth methods, and permissions:
-
-![Stack Dashboard](/assets/dashboard.png)
+![Stack Setup](/.github/assets/create-project.gif)
 
 ## ✨ Features
 
@@ -39,32 +32,23 @@ A dashboard for managing user data, teams, auth methods, and permissions:
 
 | | |
 |-|-|
-| <h3>`<SignIn/>` and `<SignUp/>` </h3> Ready to use sign-in and sign up components. Support Github, Google, Microsoft, Facebook, Spotify, email/password, and magic link. All customizable on the dashboard without extra setup. | ![Sign-in component](/assets/sign-in.png) |
-| <h3>`<AccountSetting/>`</h3> Component for update user name, send verification email, and change password. | ![Account settings component](/assets/account-settings.png) |
-| <h3>`<UserButton/>`</h3> Component for user profile, dark/light theme, and navigating to account-setting page, and sign-out. | ![User button component](/assets/user-button.png) |
-| <h3>`<SelectedTeamSwitcher/>`</h3> Component for switching between your teams. | ![Selected team switcher component](/assets/team-switcher.png) |
-| <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. Check if a user has permission with `user.hasPermission`. | ![RBAC](/assets/permissions.png) |
-| <h3>Dark/light mode</h3> Dark and light mode, supports server rendering, no flashes. | ![Dark/light mode](/assets/dark-light-mode.png) |
-| <h3>Customizable email templates</h3> Customize email templates for sign-up, password reset, and email verification, with an WYSIWYG editor right in the dashboard | ![Email templates](/assets/email-editor.png) |
-| <h3>Webhooks</h3> Sync user and team data to your own database and server with webhooks. |
-| <h3>Impersonation</h3> Impersonate users with a single click |
- 
+| <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links. All customizable on the dashboard, with shared development keys avoiding extra setup. | ![Sign-in component](/.github/assets/dark-light-mode.png) |
+| <h3>Idiomatic Next.js APIs</h3> We build on server components, React hooks, and route handlers. | ![Dark/light mode](/.github/assets/components.webp) |
+| <h3>User dashboard</h3> Dashboard to filter, analyze, and edit users. Replaces the first internal tool you would've had to build. | ![User dashboard](/.github/assets/dashboard.png) |
+| <h3>Account settings</h3> Let users update their profile, verify their e-mail, or change their password with zero setup. | ![Account settings component](/.github/assets/account-settings.png) |
+| <h3>Multi-tenancy & teams</h3> Manage your B2B customers with an organization structure that makes sense and scales to millions. | ![Selected team switcher component](/.github/assets/team-switcher.png) |
+| <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Fetching whether permissions exist is just a single line of code. | ![RBAC](/.github/assets/permissions.png) |
+| <h3>Connected accounts</h3> Let your users connect any number of OAuth services with their accounts, and we will automatically refresh access tokens for you. | ![OAuth refresh](/.github/assets/oauth-refresh.png) |
+| <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | ![Webhooks](/.github/assets/impersonate.png) |
+| <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | ![Webhooks](/.github/assets/stack-webhooks.png) |
+| <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | ![Email templates](/.github/assets/email-editor.png) |
+| <h3>User session & JWT handling</h3> Stack refreshes access tokens for you, so you can get the best performance at no implementation cost. | ![Dark/light mode](/.github/assets/user-button.png) |
+| <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | ![M2M authentication](/.github/assets/m2m-auth.png) |
 
-## 🔭 Vision
-
-We all know how much overhead there is when starting a new project. Developers need to handle so many things that aren't even part of their core business, like user authentication, user profiles, payments, dashboards, hosting, and more. Our vision is to build a full-stack framework that handles all of this out-of-the-box with less than 10 minutes of setup, so developers can focus on what they really want to build. Authentication is the first step towards this vision.
 
 ## 📦 Installation & Setup
 
-To get started with Stack, you need to [create a Next.js project](https://nextjs.org/docs/getting-started/installation) using the App router. Then, you can install Stack by running the following command:
-
-```bash
-npx @stackframe/init-stack@latest
-```
-
-You will then be guided through the installation process.
-
-For further configuration and usage, refer to [our documentation](https://docs.stack-auth.com).
+Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) on how to set up Stack Auth in your Next.js project.
 
 ## 🌱 Some community projects built with Stack
 
@@ -74,6 +58,9 @@ For further configuration and usage, refer to [our documentation](https://docs.s
 ## 🏗️ Development & Contribution
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
+
+<details>
+  <summary>Local setup</summary>
 
 Please read the [contribution guidelines](CONTRIBUTING.md) before contributing.
 
@@ -132,12 +119,13 @@ If you make changes to the Prisma schema, you need to run the following command 
 ```sh
 pnpm run prisma migrate dev
 ```
+</details>
 
 ## Contributors
 
-**Important**: Please read the [contribution guidelines](CONTRIBUTING.md) carefully and join [our Discord](https://discord.stack-auth.com) if you'd also like to help.
+**Important**: Please read the [contribution guidelines](CONTRIBUTING.md) carefully and join [our Discord](https://discord.stack-auth.com) if you'd like to help.
 
-Thanks to our amazing community who have helped us build Stack:
+Thanks to the amazing community who built Stack:
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
   <img src="https://api.dev.stack-auth.com/api/v1/contributors" />
