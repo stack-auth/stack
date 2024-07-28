@@ -38,7 +38,7 @@ A dashboard for managing user data, teams, auth methods, and permissions:
 | <h3>`<AccountSetting/>` component</h3> Component for update user name, send verification email, and change password. | ![Account settings component](/assets/account-settings.png) |
 | <h3>`<UserButton/>` component</h3> Component for user profile, dark/light theme, and navigating to account-setting page, and sign-out. | ![User button component](/assets/user-button.png) |
 | <h3>`<SelectedTeamSwitcher/>` component</h3> Component for switching between your teams. | ![Selected team switcher component](/assets/team-switcher.png) |
-| <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. | ![RBAC](/assets/permissions.png) |
+| <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. Check if a user has permission with `user.hasPermission`. | ![RBAC](/assets/permissions.png) |
 
 ## 🔭 Vision
 
