@@ -16,7 +16,7 @@ async function getResetCode() {
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
-      "body": { "success": true },
+      "body": { "success": "maybe, only if user with e-mail exists" },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
