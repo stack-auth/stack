@@ -9,7 +9,7 @@
 
 # Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is a fully managed solution. It provide frontend and backend libraries for Next.js, React, and JavaScript. The setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
+Stack Auth is a fully managed authentication solution. It provides frontend and backend libraries for Next.js, React, and JavaScript. The setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
 
 Get started with OAuth and email/password Auth by just clicking a few toggles:
 
@@ -40,7 +40,7 @@ A dashboard for managing user data, teams, auth methods, and permissions:
 | <h3>`<SelectedTeamSwitcher/>`</h3> Component for switching between your teams. | ![Selected team switcher component](/assets/team-switcher.png) |
 | <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. Check if a user has permission with `user.hasPermission`. | ![RBAC](/assets/permissions.png) |
 | <h3>Dark/light mode</h3> Dark and light mode, supports server rendering, no flashes. | ![Dark/light mode](/assets/dark-light-mode.png) |
-| <h3>Customizable email templates</h3> Customize email templates for sign-up, password reset, and email verification, with an WYSIWYG | ![Email templates](/assets/email-templates.png) |
+| <h3>Customizable email templates</h3> Customize email templates for sign-up, password reset, and email verification, with an WYSIWYG | ![Email templates](/assets/email-editor.png) |
 
 ## 🔭 Vision
 
