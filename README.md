@@ -9,7 +9,7 @@
 
 # Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is the managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
+Stack Auth is a managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
 
 Stack gets you started in just five minutes, after which you'll be ready to use all of its features as you grow your project. Our managed service is completely optional and you can export your user data and self-host, for free, at any time.
 
@@ -32,7 +32,6 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | ![Webhooks](/.github/assets/stack-webhooks.png) |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | ![Email templates](/.github/assets/email-editor.png) |
 | <h3>User session & JWT handling</h3> Stack handles all the refresh/access token, JWTs, and cookies, so you can get the best performance at no implementation cost. | ![User button](/.github/assets/user-button.png) |
-
 
 ## 📦 Installation & Setup
 
