@@ -72,7 +72,7 @@ export function AuthPage({
             <Typography>
               {"Already have an account? "}
               <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
-                runAsynchronously(stackApp.redirectToSignUp());
+                runAsynchronously(stackApp.redirectToSignIn());
                 e.preventDefault();
               }}>
                 Sign in
