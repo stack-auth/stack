@@ -71,7 +71,7 @@ export function createVerificationCodeHandler<
         code: yupString().required(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      }).concat((verifyOnly ? null : options.requestBody) as undefined ?? yupObject({})).required(),
+      }).concat((verifyOnly ? undefined : options.requestBody) ?? yupObject({})).required(),
     }),
     response: verifyOnly ? yupObject({
       statusCode: yupNumber().oneOf([200]).required(),

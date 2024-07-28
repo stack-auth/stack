@@ -445,16 +445,19 @@ export class StackClientInterface {
   }
 
   async resetPassword(
-    options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
+    options: { code: string } & ({ password: string } | { onlyVerifyCode: true })
   ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/password/reset",
+      "onlyVerifyCode" in options ? "/auth/password/reset/check-code" : "/auth/password/reset",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          code: options.code,
+          ...("password" in options ? { password: options.password } : {}),
+        }),
       },
       null,
       [KnownErrors.VerificationCodeError]
