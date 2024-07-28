@@ -1,7 +1,7 @@
 ![Stack Logo](/assets/logo.png)
 
 <h3 align="center">
-  <a href="https://docs.stack-auth.com">📘 Documentation</a>
+  <a href="https://docs.stack-auth.com">📘 Docs</a>
   | <a href="https://stack-auth.com/">☁️ Hosted Version</a>
   | <a href="https://demo.stack-auth.com/">✨ Demo</a>
   | <a href="https://discord.stack-auth.com">🎮 Discord</a>
@@ -9,11 +9,16 @@
 
 # Stack Auth: Open-source Clerk/Auth0 alternative
 
-Stack Auth is a fully managed authentication solution. It provides frontend and backend libraries for Next.js, React, and JavaScript. The setup is just five minutes, and you will instantly get to use features that you would otherwise need to implement yourself as you grow your project, such as password reset, organizations/teams, impersonation, RBAC, and user metadata.
+Stack Auth is a managed user authentication solution. It is developer-friendly and fully open-source (licensed under MIT and AGPL).
+
+Stack gets you started in just five minutes, and you'll be ready to use all of its features as you grow your project. Our managed service is completely optional and you can export your user data and self-host, for free, at any time.
+
+We support Next.js frontends, along with any backend that can use our REST API. Check out our <a href="https://docs.stack-auth.com/getting-started/setup">setup guide</a> to get started.
 
 Get started with OAuth and email/password Auth by just clicking a few toggles:
 
 ![Stack Setup](/assets/create-project.gif)
+
 
 A dashboard for managing user data, teams, auth methods, and permissions:
 
@@ -40,7 +45,10 @@ A dashboard for managing user data, teams, auth methods, and permissions:
 | <h3>`<SelectedTeamSwitcher/>`</h3> Component for switching between your teams. | ![Selected team switcher component](/assets/team-switcher.png) |
 | <h3>Role-based access control</h3> Define arbitrary permission graph (yes, any graph) and assign to users. Check if a user has permission with `user.hasPermission`. | ![RBAC](/assets/permissions.png) |
 | <h3>Dark/light mode</h3> Dark and light mode, supports server rendering, no flashes. | ![Dark/light mode](/assets/dark-light-mode.png) |
-| <h3>Customizable email templates</h3> Customize email templates for sign-up, password reset, and email verification, with an WYSIWYG | ![Email templates](/assets/email-editor.png) |
+| <h3>Customizable email templates</h3> Customize email templates for sign-up, password reset, and email verification, with an WYSIWYG editor right in the dashboard | ![Email templates](/assets/email-editor.png) |
+| <h3>Webhooks</h3> Sync user and team data to your own database and server with webhooks. |
+| <h3>Impersonation</h3> Impersonate users with a single click |
+ 
 
 ## 🔭 Vision
 
