@@ -16,7 +16,7 @@ Stack gets you started in just five minutes, after which you'll be ready to use 
 We support Next.js frontends, along with any backend that can use our [REST API](https://docs.stack-auth.com/rest-api/auth). Check out our [setup guide](https://docs.stack-auth.com/getting-started/setup) to get started.
 
 <div align="center">
-<img alt="Stack Setup" src=".github/assets/create-project.gif" height="300px" />
+<img alt="Stack Setup" src=".github/assets/create-project.gif" height="328" width="400" />
 </div>
 
 ## ✨ Features
