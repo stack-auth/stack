@@ -29,7 +29,7 @@ export const GET = createSmartRouteHandler({
   },
   request: yupObject({
     params: yupObject({
-      provider: yupString().required(),
+      provider_id: yupString().required(),
     }).required(),
     query: yupMixed().required(),
   }),
@@ -85,7 +85,7 @@ export const GET = createSmartRouteHandler({
       redirectOrThrowError(new KnownErrors.OuterOAuthTimeout(), project, errorRedirectUrl);
     }
 
-    const provider = project.config.oauth_providers.find((p) => p.id === params.provider);
+    const provider = project.config.oauth_providers.find((p) => p.id === params.provider_id);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }

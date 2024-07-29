@@ -10,7 +10,7 @@ import { ReadonlyJson } from '../utils/json';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
-import { ProviderAccessTokenCrud } from './crud/oauth';
+import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -850,7 +850,7 @@ export class StackClientInterface {
     provider: string,
     scope: string,
     session: InternalSession,
-  ): Promise<ProviderAccessTokenCrud['Client']['Read']> {
+  ): Promise<ConnectedAccountAccessTokenCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
       `/auth/oauth/connected-accounts/${provider}/access-token`,
       {

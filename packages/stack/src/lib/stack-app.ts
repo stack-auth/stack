@@ -292,12 +292,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listCurrentUserTeams(session);
   });
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
-    async (session, [accountId, scope]) => {
+    async (session, [providerId, scope]) => {
       try {
-        const result = await this._interface.createProviderAccessToken(accountId, scope || "", session);
-        return {
-          accessToken: result.access_token,
-        };
+        const result = await this._interface.createProviderAccessToken(providerId, scope || "", session);
+        return { accessToken: result.access_token };
       } catch (err) {
         if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
           throw err;
@@ -307,55 +305,72 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   );
   private readonly _currentUserOAuthConnectionCache = createCacheBySession<[ProviderType, string, boolean], OAuthConnection | null>(
-    async (session, [connectionId, scope, redirect]) => {
-      const user = await this._currentUserCache.getOrWait([session], "write-only");
-
-      let hasConnection = true;
-      if (!user || !user.oauth_providers.find((p) => p.id === connectionId)) {
-        hasConnection = false;
-      }
-      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
-      if (!token) {
-        hasConnection = false;
-      }
-
-      if (!hasConnection && redirect) {
-        await addNewOAuthProviderOrScope(
-          this._interface,
-          {
-            provider: connectionId,
-            redirectUrl: this.urls.oauthCallback,
-            errorRedirectUrl: this.urls.error,
-            providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
-          },
-          session,
-        );
-        return await neverResolve();
-      } else if (!hasConnection) {
-        return null;
-      }
-
-      const app = this;
-      return {
-        id: connectionId,
-        async getAccessToken() {
-          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
-          if (!result) {
-            throw new StackAssertionError("No access token available");
-          }
-          return result;
-        },
-        useAccessToken() {
-          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, connectionId, scope || ""], "oauthAccount.useAccessToken()");
-          if (!result) {
-            throw new StackAssertionError("No access token available");
-          }
-          return result;
-        }
-      };
+    async (session, [providerId, scope, redirect]) => {
+      return await this._getUserOAuthConnectionCacheFn(
+        async () => await this._currentUserCache.getOrWait([session], "write-only"),
+        async () => await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""], "write-only"),
+        providerId,
+        scope,
+        redirect,
+        session,
+      );
     }
   );
 
+  protected async _getUserOAuthConnectionCacheFn(
+    getUser: () => Promise<CurrentUserCrud['Client']['Read'] | null>,
+    getOrWaitOAuthToken: () => Promise<{ accessToken: string } | null>,
+    providerId: ProviderType,
+    scope: string | null,
+    redirect: boolean,
+    session: InternalSession,
+  ) {
+    const user = await getUser();
+    let hasConnection = true;
+    if (!user || !user.oauth_providers.find((p) => p.id === providerId)) {
+      hasConnection = false;
+    }
+
+    const token = await getOrWaitOAuthToken();
+    if (!token) {
+      hasConnection = false;
+    }
+
+    if (!hasConnection && redirect) {
+      await addNewOAuthProviderOrScope(
+          this._interface,
+          {
+            provider: providerId,
+            redirectUrl: this.urls.oauthCallback,
+            errorRedirectUrl: this.urls.error,
+            providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[providerId] ?? []).join(" ")),
+          },
+          session,
+        );
+      return await neverResolve();
+    } else if (!hasConnection) {
+      return null;
+    }
+
+    const app = this;
+    return {
+      id: providerId,
+      async getAccessToken() {
+        const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""], "write-only");
+        if (!result) {
+          throw new StackAssertionError("No access token available");
+        }
+        return result;
+      },
+      useAccessToken() {
+        const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""], "oauthAccount.useAccessToken()");
+        if (!result) {
+          throw new StackAssertionError("No access token available");
+        }
+        return result;
+      }
+    };
+  }
 
   constructor(protected readonly _options:
     & {
@@ -1260,6 +1275,31 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, recursive]) => {
     return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
   });
+  private readonly _serverUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
+    async (session, [providerId, scope]) => {
+      try {
+        const result = await this._interface.createProviderAccessToken(providerId, scope || "", session);
+        return { accessToken: result.access_token };
+      } catch (err) {
+        if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
+          throw err;
+        }
+      }
+      return null;
+    }
+  );
+  private readonly _serverUserOAuthConnectionCache = createCacheBySession<[string, ProviderType, string, boolean], OAuthConnection | null>(
+    async (session, [userId, providerId, scope, redirect]) => {
+      return await this._getUserOAuthConnectionCacheFn(
+        async () => await this._serverUserCache.getOrWait([userId], "write-only"),
+        async () => await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""], "write-only"),
+        providerId,
+        scope,
+        redirect,
+        session,
+      );
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
