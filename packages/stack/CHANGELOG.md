@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.5.13
+
+### Patch Changes
+
+- Add server side get connected account
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.13
+  - @stackframe/stack-ui@2.5.13
+  - @stackframe/stack-sc@2.5.13
+
 ## 2.5.12
 
 ### Patch Changes
