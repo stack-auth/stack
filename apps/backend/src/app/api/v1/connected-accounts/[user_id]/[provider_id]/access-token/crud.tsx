@@ -82,9 +82,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       });
     }
 
-    return {
-      access_token: tokenSet.access_token,
-    };
+    return { access_token: tokenSet.access_token };
   },
 }));
 

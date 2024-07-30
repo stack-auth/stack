@@ -852,7 +852,7 @@ export class StackClientInterface {
     session: InternalSession,
   ): Promise<ConnectedAccountAccessTokenCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      `/auth/oauth/connected-accounts/${provider}/access-token`,
+      `/connected-accounts/me/${provider}/access-token`,
       {
         method: "POST",
         headers: {
