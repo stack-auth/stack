@@ -244,7 +244,7 @@ export class StackServerInterface extends StackClientInterface {
     provider: string,
     scope: string,
   ): Promise<ConnectedAccountAccessTokenCrud['Server']['Read']> {
-    const response = await this.sendClientRequest(
+    const response = await this.sendServerRequest(
       `/connected-accounts/${userId}/${provider}/access-token`,
       {
         method: "POST",

@@ -772,8 +772,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async setSelectedTeam(team: Team | null) {
         await this.update({ selectedTeamId: team?.id ?? null });
       },
-      getConnectedAccount: getConnectedAccount,
-      useConnectedAccount: useConnectedAccount,
+      getConnectedAccount,
+      useConnectedAccount,
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
