@@ -37,7 +37,31 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       throw new KnownErrors.OAuthConnectionNotConnectedToUser();
     }
 
-    const tokens = await prismaClient.oAuthToken.findMany({
+    // ====================== retrieve access token if it exists ======================
+
+    const accessTokens = await prismaClient.oAuthAccessToken.findMany({
+      where: {
+        projectId: auth.project.id,
+        oAuthProviderConfigId: params.provider_id,
+        projectUserOAuthAccount: {
+          projectUserId: userId,
+        },
+        expiresAt: {
+          // is at least 5 minutes in the future
+          gt: new Date(Date.now() + 5 * 60 * 1000),
+        },
+      },
+    });
+    const filteredTokens = accessTokens.filter((t) => {
+      return extractScopes(data.scope || "").every((scope) => t.scopes.includes(scope));
+    });
+    if (filteredTokens.length !== 0) {
+      return { access_token: filteredTokens[0].accessToken };
+    }
+
+    // ============== no access token found, try to refresh the token ==============
+
+    const refreshTokens = await prismaClient.oAuthToken.findMany({
       where: {
         projectId: auth.project.id,
         oAuthProviderConfigId: params.provider_id,
@@ -47,42 +71,53 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       },
     });
 
-    const filteredTokens = tokens.filter((t) => {
+    const filteredRefreshTokens = refreshTokens.filter((t) => {
       return extractScopes(data.scope || "").every((scope) => t.scopes.includes(scope));
     });
 
-    if (filteredTokens.length === 0) {
+    if (filteredRefreshTokens.length === 0) {
       throw new KnownErrors.OAuthConnectionDoesNotHaveRequiredScope();
     }
 
     const tokenSet = await (await getProvider(provider)).getAccessToken({
-      refreshToken: filteredTokens[0].refreshToken,
+      refreshToken: filteredRefreshTokens[0].refreshToken,
       scope: data.scope,
     });
 
-    if (!tokenSet.access_token) {
+    if (!tokenSet.accessToken) {
       throw new StackAssertionError("No access token returned");
     }
 
-    if (tokenSet.refresh_token) {
+    await prismaClient.oAuthAccessToken.create({
+      data: {
+        projectId: auth.project.id,
+        oAuthProviderConfigId: provider.id,
+        accessToken: tokenSet.accessToken,
+        providerAccountId: filteredRefreshTokens[0].providerAccountId,
+        scopes: filteredRefreshTokens[0].scopes,
+        expiresAt: tokenSet.accessTokenExpiredAt
+      }
+    });
+
+    if (tokenSet.refreshToken) {
       // remove the old token, add the new token to the DB
       await prismaClient.oAuthToken.deleteMany({
         where: {
-          refreshToken: filteredTokens[0].refreshToken,
+          refreshToken: filteredRefreshTokens[0].refreshToken,
         },
       });
       await prismaClient.oAuthToken.create({
         data: {
           projectId: auth.project.id,
           oAuthProviderConfigId: provider.id,
-          refreshToken: tokenSet.refresh_token,
-          providerAccountId: filteredTokens[0].providerAccountId,
-          scopes: filteredTokens[0].scopes,
+          refreshToken: tokenSet.refreshToken,
+          providerAccountId: filteredRefreshTokens[0].providerAccountId,
+          scopes: filteredRefreshTokens[0].scopes,
         }
       });
     }
 
-    return { access_token: tokenSet.access_token };
+    return { access_token: tokenSet.accessToken };
   },
 }));
 

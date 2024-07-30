@@ -1,5 +1,4 @@
-import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./base";
+import { OAuthBaseProvider, TokenSet } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
@@ -29,7 +28,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       'https://graph.microsoft.com/v1.0/me',
       {
         headers: {
-          Authorization: `Bearer ${tokenSet.access_token}`,
+          Authorization: `Bearer ${tokenSet.accessToken}`,
         },
       }
     ).then(res => res.json());
@@ -39,8 +38,6 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       displayName: rawUserInfo.displayName,
       email: rawUserInfo.mail || rawUserInfo.userPrincipalName,
       profileImageUrl: undefined, // Microsoft Graph API does not return profile image URL
-      accessToken: tokenSet.access_token,
-      refreshToken: tokenSet.refresh_token,
     });
   }
 }

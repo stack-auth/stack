@@ -1,5 +1,4 @@
-import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./base";
+import { OAuthBaseProvider, TokenSet } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
@@ -27,7 +26,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const info = await fetch("https://api.spotify.com/v1/me", {
       headers: {
-        Authorization: `Bearer ${tokenSet.access_token}`,
+        Authorization: `Bearer ${tokenSet.accessToken}`,
       },
     }).then((res) => res.json());
 
@@ -36,8 +35,6 @@ export class SpotifyProvider extends OAuthBaseProvider {
       displayName: info.display_name,
       email: info.email,
       profileImageUrl: info.images?.[0]?.url,
-      accessToken: tokenSet.access_token,
-      refreshToken: tokenSet.refresh_token,
     });
   }
 }

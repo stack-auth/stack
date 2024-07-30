@@ -9,7 +9,7 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -91,7 +91,7 @@ export const GET = createSmartRouteHandler({
     }
 
     const providerObj = await getProvider(provider);
-    const userInfo = await providerObj.getCallback({
+    const { userInfo, tokenSet } = await providerObj.getCallback({
       codeVerifier: innerCodeVerifier,
       state: innerState,
       callbackParams: query,
@@ -144,18 +144,29 @@ export const GET = createSmartRouteHandler({
       }
     });
 
-    const storeRefreshToken = async () => {
-      if (userInfo.refreshToken) {
+    const storeTokens = async () => {
+      if (tokenSet.refreshToken) {
         await prismaClient.oAuthToken.create({
           data: {
             projectId: outerInfo.projectId,
             oAuthProviderConfigId: provider.id,
-            refreshToken: userInfo.refreshToken,
+            refreshToken: tokenSet.refreshToken,
             providerAccountId: userInfo.accountId,
             scopes: extractScopes(providerObj.scope + " " + providerScope),
           }
         });
       }
+
+      await prismaClient.oAuthAccessToken.create({
+        data: {
+          projectId: outerInfo.projectId,
+          oAuthProviderConfigId: provider.id,
+          accessToken: tokenSet.accessToken,
+          providerAccountId: userInfo.accountId,
+          scopes: extractScopes(providerObj.scope + " " + providerScope),
+          expiresAt: tokenSet.accessTokenExpiredAt,
+        }
+      });
     };
 
     const oauthResponse = new OAuthResponse();
@@ -187,7 +198,7 @@ export const GET = createSmartRouteHandler({
                   if (oldAccount.projectUserId !== projectUserId) {
                     throw new KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser();
                   }
-                  await storeRefreshToken();
+                  await storeTokens();
                 } else {
                   // ========================== connect account with user ==========================
                   await prismaClient.projectUserOAuthAccount.create({
@@ -214,7 +225,7 @@ export const GET = createSmartRouteHandler({
                   });
                 }
 
-                await storeRefreshToken();
+                await storeTokens();
                 return {
                   id: projectUserId,
                   newUser: false,
@@ -225,7 +236,7 @@ export const GET = createSmartRouteHandler({
               // ========================== sign in user ==========================
 
               if (oldAccount) {
-                await storeRefreshToken();
+                await storeTokens();
 
                 return {
                   id: oldAccount.projectUserId,
@@ -251,7 +262,7 @@ export const GET = createSmartRouteHandler({
                   }],
                 }
               });
-              await storeRefreshToken();
+              await storeTokens();
               return {
                 id: newAccount.id,
                 newUser: true,
