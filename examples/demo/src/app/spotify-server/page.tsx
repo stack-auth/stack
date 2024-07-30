@@ -5,5 +5,11 @@ export default async function Page() {
   const connection = await user.getConnectedAccount('spotify', { or: 'redirect' });
   const tokens = await connection.getAccessToken();
 
-  return tokens.accessToken;
+  const response = await fetch('https://api.spotify.com/v1/me/playlists', {
+    headers: {
+      Authorization: `Bearer ${tokens.accessToken}`,
+    },
+  });
+  const data = await response.json();
+  return JSON.stringify(data);
 }
