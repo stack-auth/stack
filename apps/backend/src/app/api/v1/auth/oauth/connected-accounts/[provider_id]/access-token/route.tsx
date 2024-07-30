@@ -4,6 +4,9 @@ import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 // TODO: Deprecated route, remove together with the v1 dashboard endpoints
 export const POST = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     body: yupObject({
       scope: yupString().optional(),
