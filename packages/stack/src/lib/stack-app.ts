@@ -292,12 +292,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.listCurrentUserTeams(session);
   });
   private readonly _currentUserOAuthConnectionAccessTokensCache = createCacheBySession<[string, string], { accessToken: string } | null>(
-    async (session, [accountId, scope]) => {
+    async (session, [providerId, scope]) => {
       try {
-        const result = await this._interface.createProviderAccessToken(accountId, scope || "", session);
-        return {
-          accessToken: result.access_token,
-        };
+        const result = await this._interface.createProviderAccessToken(providerId, scope || "", session);
+        return { accessToken: result.access_token };
       } catch (err) {
         if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
           throw err;
@@ -307,55 +305,75 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   );
   private readonly _currentUserOAuthConnectionCache = createCacheBySession<[ProviderType, string, boolean], OAuthConnection | null>(
-    async (session, [connectionId, scope, redirect]) => {
-      const user = await this._currentUserCache.getOrWait([session], "write-only");
-
-      let hasConnection = true;
-      if (!user || !user.oauth_providers.find((p) => p.id === connectionId)) {
-        hasConnection = false;
-      }
-      const token = await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
-      if (!token) {
-        hasConnection = false;
-      }
-
-      if (!hasConnection && redirect) {
-        await addNewOAuthProviderOrScope(
-          this._interface,
-          {
-            provider: connectionId,
-            redirectUrl: this.urls.oauthCallback,
-            errorRedirectUrl: this.urls.error,
-            providerScope: mergeScopeStrings(scope || "", (this._oauthScopesOnSignIn[connectionId] ?? []).join(" ")),
-          },
-          session,
-        );
-        return await neverResolve();
-      } else if (!hasConnection) {
-        return null;
-      }
-
-      const app = this;
-      return {
-        id: connectionId,
-        async getAccessToken() {
-          const result = await app._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, connectionId, scope || ""], "write-only");
-          if (!result) {
-            throw new StackAssertionError("No access token available");
-          }
-          return result;
-        },
-        useAccessToken() {
-          const result = useAsyncCache(app._currentUserOAuthConnectionAccessTokensCache, [session, connectionId, scope || ""], "oauthAccount.useAccessToken()");
-          if (!result) {
-            throw new StackAssertionError("No access token available");
-          }
-          return result;
-        }
-      };
+    async (session, [providerId, scope, redirect]) => {
+      return await this._getUserOAuthConnectionCacheFn({
+        getUser: async () => await this._currentUserCache.getOrWait([session], "write-only"),
+        getOrWaitOAuthToken: async () => await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""], "write-only"),
+        useOAuthToken: () => useAsyncCache(this._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""], "useOAuthToken"),
+        providerId,
+        scope,
+        redirect,
+        session,
+      });
     }
   );
 
+  protected async _getUserOAuthConnectionCacheFn(options: {
+    getUser: () => Promise<CurrentUserCrud['Client']['Read'] | null>,
+    getOrWaitOAuthToken: () => Promise<{ accessToken: string } | null>,
+    useOAuthToken: () => { accessToken: string } | null,
+    providerId: ProviderType,
+    scope: string | null,
+  } & ({ redirect: true, session: InternalSession | null } | { redirect: false }),) {
+    const user = await options.getUser();
+    let hasConnection = true;
+    if (!user || !user.oauth_providers.find((p) => p.id === options.providerId)) {
+      hasConnection = false;
+    }
+
+    const token = await options.getOrWaitOAuthToken();
+    if (!token) {
+      hasConnection = false;
+    }
+
+    if (!hasConnection && options.redirect) {
+      if (!options.session) {
+        throw new Error("No session found. You might be calling getConnectedAccount with redirect without having a user session.");
+      }
+      await addNewOAuthProviderOrScope(
+          this._interface,
+          {
+            provider: options.providerId,
+            redirectUrl: this.urls.oauthCallback,
+            errorRedirectUrl: this.urls.error,
+            providerScope: mergeScopeStrings(options.scope || "", (this._oauthScopesOnSignIn[options.providerId] ?? []).join(" ")),
+          },
+          options.session,
+        );
+      return await neverResolve();
+    } else if (!hasConnection) {
+      return null;
+    }
+
+    const app = this;
+    return {
+      id: options.providerId,
+      async getAccessToken() {
+        const result = await options.getOrWaitOAuthToken();
+        if (!result) {
+          throw new StackAssertionError("No access token available");
+        }
+        return result;
+      },
+      useAccessToken() {
+        const result = options.useOAuthToken();
+        if (!result) {
+          throw new StackAssertionError("No access token available");
+        }
+        return result;
+      }
+    };
+  }
 
   constructor(protected readonly _options:
     & {
@@ -754,8 +772,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async setSelectedTeam(team: Team | null) {
         await this.update({ selectedTeamId: team?.id ?? null });
       },
-      getConnectedAccount: getConnectedAccount,
-      useConnectedAccount: useConnectedAccount,
+      getConnectedAccount,
+      useConnectedAccount,
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
@@ -1242,11 +1260,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const user = await this._interface.getServerUserById(userId);
     return Result.or(user, null);
   });
-  private readonly _serverTeamsCache = createCache(async () => {
-    return await this._interface.listServerTeams();
-  });
-  private readonly _serverCurrentUserTeamsCache = createCacheBySession(async (session) => {
-    return await this._interface.listServerCurrentUserTeams(session);
+  private readonly _serverTeamsCache = createCache<[string | undefined], TeamsCrud['Server']['Read'][]>(async ([userId]) => {
+    return await this._interface.listServerTeams({ userId });
   });
   private readonly _serverTeamUsersCache = createCache<
     string[],
@@ -1260,6 +1275,32 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, recursive]) => {
     return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
   });
+  private readonly _serverUserOAuthConnectionAccessTokensCache = createCache<[string, string, string], { accessToken: string } | null>(
+    async ([userId, providerId, scope]) => {
+      try {
+        const result = await this._interface.createServerProviderAccessToken(userId, providerId, scope || "");
+        return { accessToken: result.access_token };
+      } catch (err) {
+        if (!(err instanceof KnownErrors.OAuthConnectionDoesNotHaveRequiredScope || err instanceof KnownErrors.OAuthConnectionNotConnectedToUser)) {
+          throw err;
+        }
+      }
+      return null;
+    }
+  );
+  private readonly _serverUserOAuthConnectionCache = createCache<[string, ProviderType, string, boolean], OAuthConnection | null>(
+    async ([userId, providerId, scope, redirect]) => {
+      return await this._getUserOAuthConnectionCacheFn({
+        getUser: async () => await this._serverUserCache.getOrWait([userId], "write-only"),
+        getOrWaitOAuthToken: async () => await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""], "write-only"),
+        useOAuthToken: () => useAsyncCache(this._serverUserOAuthConnectionAccessTokensCache, [userId, providerId, scope || ""], "user.useConnectedAccount()"),
+        providerId,
+        scope,
+        redirect,
+        session: null,
+      });
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
@@ -1297,6 +1338,21 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _serverUserFromCrud(crud: UsersCrud['Server']['Read']): ServerUser {
     const app = this;
+
+    async function getConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
+    async function getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
+    async function getConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
+      const scopeString = options?.scopes?.join(" ");
+      return await app._serverUserOAuthConnectionCache.getOrWait([crud.id, id, scopeString || "", options?.or === 'redirect'], "write-only");
+    }
+
+    function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
+    function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
+    function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
+      const scopeString = options?.scopes?.join(" ");
+      return useAsyncCache(app._serverUserOAuthConnectionCache, [crud.id, id, scopeString || "", options?.or === 'redirect'], "user.useConnectedAccount()");
+    }
+
     return {
       ...super._createBaseUser(crud),
       serverMetadata: crud.server_metadata,
@@ -1340,29 +1396,29 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async setSelectedTeam(team: Team | null) {
         return await this.update({ selectedTeamId: team?.id ?? null });
       },
-      getConnectedAccount: async () => {
-        return await app._checkFeatureSupport("getConnectedAccount() on ServerUser", {});
-      },
-      useConnectedAccount: () => {
-        return app._useCheckFeatureSupport("useConnectedAccount() on ServerUser", {});
-      },
+      getConnectedAccount,
+      useConnectedAccount,
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
       },
       useTeam(teamId: string) {
-        return app._useCheckFeatureSupport("useTeam() on ServerUser", {});
+        const teams = this.useTeams();
+        return useMemo(() => {
+          return teams.find((t) => t.id === teamId) ?? null;
+        }, [teams, teamId]);
       },
       async listTeams() {
-        const crud = await app._serverCurrentUserTeamsCache.getOrWait([app._getSession()], "write-only");
-        return crud.map((t) => app._serverTeamFromCrud(t));
+        const teams = await app._serverTeamsCache.getOrWait([crud.id], "write-only");
+        return teams.map((t) => app._serverTeamFromCrud(t));
       },
       useTeams() {
-        return app._useCheckFeatureSupport("useTeams() on ServerUser", {});
+        const teams = useAsyncCache(app._serverTeamsCache, [crud.id], "user.useTeams()");
+        return useMemo(() => teams.map((t) => app._serverTeamFromCrud(t)), [teams]);
       },
       createTeam: async (data: ServerTeamCreateOptions) => {
         const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), app._getSession());
-        await app._serverTeamsCache.refresh([]);
+        await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
@@ -1422,11 +1478,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async update(update: Partial<ServerTeamUpdateOptions>) {
         await app._interface.updateServerTeam(crud.id, serverTeamUpdateOptionsToCrud(update));
-        await app._serverTeamsCache.refresh([]);
+        await app._serverTeamsCache.refresh([undefined]);
       },
       async delete() {
         await app._interface.deleteServerTeam(crud.id);
-        await app._serverTeamsCache.refresh([]);
+        await app._serverTeamsCache.refresh([undefined]);
       },
       useUsers() {
         const result = useAsyncCache(app._serverTeamUsersCache, [crud.id], "team.useUsers()");
@@ -1554,18 +1610,18 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listTeams(): Promise<ServerTeam[]> {
-    const teams = await this._serverTeamsCache.getOrWait([], "write-only");
+    const teams = await this._serverTeamsCache.getOrWait([undefined], "write-only");
     return teams.map((t) => this._serverTeamFromCrud(t));
   }
 
   async createTeam(data: ServerTeamCreateOptions) : Promise<ServerTeam> {
     const team = await this._interface.createServerTeam(serverTeamCreateOptionsToCrud(data));
-    await this._serverTeamsCache.refresh([]);
+    await this._serverTeamsCache.refresh([undefined]);
     return this._serverTeamFromCrud(team);
   }
 
   useTeams(): ServerTeam[] {
-    const teams = useAsyncCache(this._serverTeamsCache, [], "useServerTeams()");
+    const teams = useAsyncCache(this._serverTeamsCache, [undefined], "useServerTeams()");
     return useMemo(() => {
       return teams.map((t) => this._serverTeamFromCrud(t));
     }, [teams]);
