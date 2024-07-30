@@ -134,7 +134,7 @@ export class StackServerInterface extends StackClientInterface {
     userId?: string,
   }): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/teams" + new URLSearchParams(filterUndefined({
+      "/teams?" + new URLSearchParams(filterUndefined({
         user_id: options?.userId,
       })),
       {},
