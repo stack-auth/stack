@@ -15,6 +15,28 @@ You will see that most of the asynchronous functions on `StackApp` come in two f
 
 Normally, you would choose between the two based on whether you are in a React Server Component or a React Client Component. However, there are some scenarios where you use `getXyz` on the client, for example as the callback of an `onClick` handler.
 
+```tsx
+// server-component.tsx
+async function ServerComponent() {
+  const app = stackServerApp;
+  // returns a Promise, must be awaited
+  const user = await app.getUser();
+
+  return <div>{user.displayName}</div>;
+}
+
+
+// client-component.tsx
+"use client";
+function ClientComponent() {
+  const app = useApp();
+  // returns the value directly
+  const user = app.useUser();
+
+  return <div>{user.displayName}</div>;
+}
+```
+
 ## Client vs. server
 
 `StackClientApp` is the app which contains everything needed to build a frontend application, for example the own user object. It requires a publishable client key in its initialization (usually set by the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable).
@@ -23,4 +45,6 @@ Normally, you would choose between the two based on whether you are in a React S
 
 There is also a third type, `StackAdminApp`, but it is rarely used. It is meant for internal tools that have special requirements, and can edit the Stack project configuration. This is useful for configuring Stack programmatically, for example with Terraform.
 
-Some of the functions have different return types; for example, `StackClientApp.getUser()` returns a `Promise<User>` while `StackServerApp.getUser()` returns a `Promise<ServerUser>`. The `Server` or `Admin` prefixes indicates that the object contains server-/admin-only functionality respectively.
+<Note>
+  Some of the functions have different return types; for example, `StackClientApp.getUser()` returns a `Promise<User>` while `StackServerApp.getUser()` returns a `Promise<ServerUser>`. The `Server` or `Admin` prefixes indicates that the object contains server-/admin-only functionality.
+</Note>
