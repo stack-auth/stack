@@ -4,17 +4,17 @@ import { CopyButton } from "@/components/copy-button";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Typography from "@/components/ui/typography";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { getSvixResult } from "../utils";
 
 const statusToString = {
@@ -27,18 +27,15 @@ const statusToString = {
 function PageInner(props: { endpointId: string }) {
   const endpoint = getSvixResult(useEndpoint(props.endpointId));
 
-  if (!endpoint.loaded) return endpoint.rendered;
-
-
   return (
-    <PageLayout title="Webhook Endpoint" description={endpoint.data.url}>
+    <PageLayout title="Webhook Endpoint" description={endpoint.loaded ? endpoint.data.url : 'Loading...'}>
       <SettingCard title="Details" description="The details of this endpoint">
         <EndpointDetails endpointId={props.endpointId} />
       </SettingCard>
 
-      <SettingCard title="Filters" description="Only receive certain events">
+      {/* <SettingCard title="Filters" description="Filter the events that are sent to this endpoint">
         <FilterEvents endpointId={props.endpointId} />
-      </SettingCard>
+      </SettingCard> */}
 
       <SettingCard title="Events History" description="The log of events sent to this endpoint">
         <MessageTable endpointId={props.endpointId} />
@@ -51,47 +48,91 @@ function EndpointDetails(props: { endpointId: string }) {
   const endpoint = getSvixResult(useEndpoint(props.endpointId));
   const secret = getSvixResult(useEndpointSecret(props.endpointId));
 
-  if (!endpoint.loaded) return endpoint.rendered;
-  if (!secret.loaded) return secret.rendered;
-
   return (
     <>
       <div>
         <Label>URL</Label>
-        <Typography>{endpoint.data.url}</Typography>
+        <Typography>{endpoint.loaded ? endpoint.data.url : 'Loading...'}</Typography>
       </div>
       <div>
         <Label>Description</Label>
-        <Typography>{endpoint.data.description || "No description"}</Typography>
+        <Typography>{endpoint.loaded ? endpoint.data.description || "" : 'Loading...'}</Typography>
       </div>
       <div>
         <Label>Verification secret</Label>
         <div className="flex items-center space-x-2">
-          <Typography type='label'> {secret.data.key}</Typography>
-          <CopyButton content={secret.data.key} />
+          <Typography type='label'> {secret.loaded ? secret.data.key : 'Loading...'} </Typography>
+          <CopyButton content={secret.loaded ? secret.data.key : ''} className={secret.loaded ? '' : 'hidden'} />
         </div>
       </div>
     </>
   );
 }
 
+const eventTypes = [
+  'user.created',
+  'user.updated',
+  'user.deleted',
+];
+
 function FilterEvents(props: { endpointId: string }) {
   const endpoint = getSvixResult(useEndpoint(props.endpointId));
   const { updateEndpoint } = useEndpointFunctions(props.endpointId);
+  const [enabled, setEnabled] = useState(false);
 
   if (!endpoint.loaded) return endpoint.rendered;
-
   const filterTypes = endpoint.data.filterTypes;
+  const checked = !!filterTypes || enabled;
 
   return (
     <>
       <SettingSwitch
         label="Enable filtering"
-        checked={!!filterTypes?.length}
+        checked={checked}
         onCheckedChange={async (checked) => {
-          // await updateEndpoint({ filterTypes: checked ? ['*'] : [] });
+          if (checked) {
+            setEnabled(true);
+          } else {
+            await updateEndpoint({ url: endpoint.data.url });
+            setEnabled(false);
+          }
         }}
       />
+
+      {checked ?
+        <div className="border rounded-md p-4">
+          <Label>Only receive events of the following types</Label>
+          <div className="flex flex-col gap-2 mt-2">
+            {eventTypes.map(eventType => {
+              const checked = filterTypes?.includes(eventType);
+              const oldFilterTypes = filterTypes || [];
+              return (
+                <div key={eventType} className="flex items-center space-x-2">
+                  <Checkbox
+                    key={eventType}
+                    checked={checked}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        runAsynchronously(updateEndpoint({
+                          url: endpoint.data.url,
+                          filterTypes: [...new Set([...oldFilterTypes, eventType])],
+                        }));
+                      } else {
+                        runAsynchronously(updateEndpoint({
+                          url: endpoint.data.url,
+                          filterTypes: oldFilterTypes.filter(type => type !== eventType),
+                        }));
+                      }
+                    }}
+                  />
+                  <Typography variant={checked ? undefined : "secondary"}>{eventType}</Typography>
+                </div>
+              ); })}
+          </div>
+        </div> :
+        <div>
+          <Alert>Receiving all the event types</Alert>
+        </div>}
     </>
   );
 }
