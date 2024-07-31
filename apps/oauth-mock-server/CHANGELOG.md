@@ -1,5 +1,11 @@
 # @stackframe/oauth-mock-server
 
+## 2.5.14
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.5.14
+
 ## 2.5.13
 
 ### Patch Changes

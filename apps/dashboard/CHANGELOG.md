@@ -1,5 +1,14 @@
 # @stackframe/stack-dashboard
 
+## 2.5.14
+
+### Patch Changes
+
+- added oauth token table
+  - @stackframe/stack@2.5.14
+  - @stackframe/stack-emails@2.5.14
+  - @stackframe/stack-shared@2.5.14
+
 ## 2.5.13
 
 ### Patch Changes

@@ -31,7 +31,7 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       ### Done!
       That's it! The following files should have been created or updated in your project:
 
-      - `app/handler/[...stack]/page.tsx`: This file contains the default pages for sign-in, sign-out, account settings, and more. If you prefer, later you will learn how to [use custom pages](/docs/customization/custom-pages) instead.
+      - `app/handler/[...stack]/page.tsx`: This file contains the default pages for sign-in, sign-out, account settings, and more. If you prefer, later you will learn how to [use custom pages](/customization/custom-pages) instead.
       - `app/layout.tsx`: The layout file was updated to wrap the entire body with `StackProvider` and `StackTheme`.
       - `app/loading.tsx`: If not yet found, Stack automatically adds a Suspense boundary to your app. This is shown to the user while Stack's async hooks, like `useUser`, are loading.
       - `stack.ts`: This file contains the `stackServerApp` which you can use to access Stack from Server Components, Server Actions, API routes, and middleware.
@@ -91,7 +91,7 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       }
       ```
 
-      This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/docs/customization/custom-pages) later.
+      This will create pages for sign-in, sign-up, password reset, and others. Additionally, it will be used as a callback URL for OAuth. You can [replace them with your own pages](/customization/custom-pages) later.
 
 
       ### Add StackProvider to `layout.tsx`
