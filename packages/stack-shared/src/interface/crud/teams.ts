@@ -1,6 +1,7 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as fieldSchema from "../../schema-fields";
-import { yupMixed, yupObject } from "../../schema-fields";
+import { yupObject } from "../../schema-fields";
+import { WebhookEvent } from "../webhooks";
 
 // Read
 export const teamsCrudClientReadSchema = yupObject({
@@ -29,7 +30,9 @@ export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yu
 }).required());
 
 // Delete
-export const teamsCrudClientDeleteSchema = yupMixed();
+export const teamsCrudClientDeleteSchema = yupObject({
+  id: fieldSchema.teamIdSchema.required(),
+}).required();
 export const teamsCrudServerDeleteSchema = teamsCrudClientDeleteSchema;
 
 export const teamsCrud = createCrud({
@@ -87,3 +90,37 @@ export const teamsCrud = createCrud({
   },
 });
 export type TeamsCrud = CrudTypeOf<typeof teamsCrud>;
+
+export const teamCreatedWebhookEvent = {
+  type: "team.created",
+  schema: teamsCrud.server.readSchema,
+  metadata: {
+    summary: "Team Created",
+    description: "This event is triggered when a team is created.",
+    tags: ["Teams"],
+  },
+} satisfies WebhookEvent<typeof teamsCrud.server.readSchema>;
+
+export const teamUpdatedWebhookEvent = {
+  type: "team.updated",
+  schema: teamsCrud.server.readSchema,
+  metadata: {
+    summary: "Team Updated",
+    description: "This event is triggered when a team is updated.",
+    tags: ["Teams"],
+  },
+} satisfies WebhookEvent<typeof teamsCrud.server.readSchema>;
+
+const webhookTeamDeletedSchema = fieldSchema.yupObject({
+  id: fieldSchema.userIdSchema.required(),
+}).required();
+
+export const teamDeletedWebhookEvent = {
+  type: "team.deleted",
+  schema: webhookTeamDeletedSchema,
+  metadata: {
+    summary: "Team Deleted",
+    description: "This event is triggered when a team is deleted.",
+    tags: ["Teams"],
+  },
+} satisfies WebhookEvent<typeof webhookTeamDeletedSchema>;

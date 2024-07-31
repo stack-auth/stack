@@ -1,7 +1,11 @@
+import { teamCreatedWebhookEvent, teamDeletedWebhookEvent, teamUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/teams";
+import { userCreatedWebhookEvent, userDeletedWebhookEvent, userUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { WebhookEvent } from "@stackframe/stack-shared/dist/interface/webhooks";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { Svix } from "svix";
+import * as yup from "yup";
 
-export async function sendWebhooks(options: {
+async function sendWebhooks(options: {
   type: string,
   projectId: string,
   data: any,
@@ -19,3 +23,22 @@ export async function sendWebhooks(options: {
     },
   });
 }
+
+function createWebhookSender<T extends yup.Schema>(event: WebhookEvent<T>) {
+  return async (options: { projectId: string, data: yup.InferType<typeof event.schema> }) => {
+    await sendWebhooks({
+      type: event.type,
+      projectId: options.projectId,
+      data: options.data,
+    });
+  };
+}
+
+type x = yup.InferType<typeof userUpdatedWebhookEvent.schema>;
+
+export const sendUserCreatedWebhook = createWebhookSender(userCreatedWebhookEvent);
+export const sendUserUpdatedWebhook = createWebhookSender(userUpdatedWebhookEvent);
+export const sendUserDeletedWebhook = createWebhookSender(userDeletedWebhookEvent);
+export const sendTeamCreatedWebhook = createWebhookSender(teamCreatedWebhookEvent);
+export const sendTeamUpdatedWebhook = createWebhookSender(teamUpdatedWebhookEvent);
+export const sendTeamDeletedWebhook = createWebhookSender(teamDeletedWebhookEvent);
