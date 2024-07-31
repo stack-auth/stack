@@ -48,7 +48,7 @@ function EditDialog(props: {
         .filter((_, i) => props.type === 'update' && i !== props.editIndex)
         .map(({ domain }) => domain), "Domain already exists")
       .required()
-      .label("Origin (protocol + domain)")
+      .label("Origin (starts with https:// or http://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),

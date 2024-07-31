@@ -15,6 +15,7 @@ import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 import { useRouter } from "next/navigation";
+import { getSvixResult } from "./utils";
 
 type Endpoint = {
   id: string,
@@ -30,7 +31,7 @@ function CreateDialog(props: {
 
   const formSchema = yup.object({
     makeSureAlert: yup.mixed().meta({ stackFormFieldRender: () => <Alert> Make sure this is a trusted URL that you control.</Alert> }),
-    url: urlSchema.required().label("URL"),
+    url: urlSchema.required().label("URL (starts with https:// or http://)"),
     description: yup.string().label("Description"),
   });
 
@@ -134,15 +135,11 @@ function ActionMenu(props: { endpoint: Endpoint, updateFn: () => void }) {
 }
 
 function Endpoints(props: { updateFn: () => void }) {
-  const endpoints = useEndpoints({ limit: 100});
+  const endpoints = getSvixResult(useEndpoints({ limit: 100 }));
   let content = null;
 
-  if (endpoints.error) {
-    content = <Alert>An error has occurred</Alert>;
-  } else if (endpoints.loading || !endpoints.data) {
-    content = null;
-  } else if (!endpoints.data.length) {
-    content = <Alert>No domains added yet.</Alert>;
+  if (!endpoints.loaded) {
+    content = endpoints.rendered;
   } else {
     content = (
       <div className="border rounded-md">

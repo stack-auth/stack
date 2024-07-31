@@ -1,18 +1,21 @@
 "use client";
 
 import { CopyButton } from "@/components/copy-button";
-import { SettingCard } from "@/components/settings";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Typography from "@/components/ui/typography";
 import { useMemo, useState } from "react";
-import { SvixProvider, useEndpoint, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
+import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { getSvixResult } from "../utils";
 
 const statusToString = {
   0: "Success",
@@ -22,35 +25,19 @@ const statusToString = {
 };
 
 function PageInner(props: { endpointId: string }) {
-  const endpoint = useEndpoint(props.endpointId);
-  const secret = useEndpointSecret(props.endpointId);
+  const endpoint = getSvixResult(useEndpoint(props.endpointId));
 
-  if (endpoint.error || secret.error) {
-    return <Alert>An error has occurred</Alert>;
-  }
+  if (!endpoint.loaded) return endpoint.rendered;
 
-  if (endpoint.loading || secret.loading || !secret.data || !endpoint.data) {
-    return null;
-  }
 
   return (
     <PageLayout title="Webhook Endpoint" description={endpoint.data.url}>
-      <SettingCard title="Endpoint Details">
-        <div>
-          <Label>URL</Label>
-          <Typography>{endpoint.data.url}</Typography>
-        </div>
-        <div>
-          <Label>Description</Label>
-          <Typography>{endpoint.data.description || "No description"}</Typography>
-        </div>
-        <div>
-          <Label>Verification secret</Label>
-          <div className="flex items-center space-x-2">
-            <Typography type='label'> {secret.data.key}</Typography>
-            <CopyButton content={secret.data.key} />
-          </div>
-        </div>
+      <SettingCard title="Details" description="The details of this endpoint">
+        <EndpointDetails endpointId={props.endpointId} />
+      </SettingCard>
+
+      <SettingCard title="Filters" description="Only receive certain events">
+        <FilterEvents endpointId={props.endpointId} />
       </SettingCard>
 
       <SettingCard title="Events History" description="The log of events sent to this endpoint">
@@ -60,16 +47,60 @@ function PageInner(props: { endpointId: string }) {
   );
 }
 
+function EndpointDetails(props: { endpointId: string }) {
+  const endpoint = getSvixResult(useEndpoint(props.endpointId));
+  const secret = getSvixResult(useEndpointSecret(props.endpointId));
+
+  if (!endpoint.loaded) return endpoint.rendered;
+  if (!secret.loaded) return secret.rendered;
+
+  return (
+    <>
+      <div>
+        <Label>URL</Label>
+        <Typography>{endpoint.data.url}</Typography>
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Typography>{endpoint.data.description || "No description"}</Typography>
+      </div>
+      <div>
+        <Label>Verification secret</Label>
+        <div className="flex items-center space-x-2">
+          <Typography type='label'> {secret.data.key}</Typography>
+          <CopyButton content={secret.data.key} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function FilterEvents(props: { endpointId: string }) {
+  const endpoint = getSvixResult(useEndpoint(props.endpointId));
+  const { updateEndpoint } = useEndpointFunctions(props.endpointId);
+
+  if (!endpoint.loaded) return endpoint.rendered;
+
+  const filterTypes = endpoint.data.filterTypes;
+
+  return (
+    <>
+      <SettingSwitch
+        label="Enable filtering"
+        checked={!!filterTypes?.length}
+        onCheckedChange={async (checked) => {
+          // await updateEndpoint({ filterTypes: checked ? ['*'] : [] });
+        }}
+      />
+    </>
+  );
+}
+
+
 function MessageTable(props: { endpointId: string }) {
-  const messages = useEndpointMessageAttempts(props.endpointId, { limit: 10 });
+  const messages = getSvixResult(useEndpointMessageAttempts(props.endpointId, { limit: 10 }));
 
-  if (messages.error || !messages.data) {
-    return <Alert>An error has occurred</Alert>;
-  }
-
-  if (messages.loading) {
-    return null;
-  }
+  if (!messages.loaded) return messages.rendered;
 
   if (messages.data.length === 0) {
     return <Alert>No events sent</Alert>;
