@@ -72,11 +72,11 @@ export default function RootLayout({
         )}
           suppressHydrationWarning
         >
-          <ClientPolyfill />
           <Analytics />
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
               <StackTheme>
+                <ClientPolyfill />
                 <RouterProvider>
                   <UserIdentity />
                   {children}

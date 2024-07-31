@@ -59,13 +59,18 @@ Middleware can be used whenever it is easy to tell whether a page should be prot
   <Tab title="Middleware">
     ```tsx title="middleware.tsx"
     export async function middleware(request: NextRequest) {
-      // You can add your own route protection logic here
       const user = await stackServerApp.getUser();
       if (!user) {
         return NextResponse.redirect(new URL('/handler/sign-in', request.url));
       }
       return NextResponse.next();
     }
+
+    export const config = {
+      // You can add your own route protection logic here
+      // Make sure not to protect the root URL, as it would prevent users from accessing static Next.js files or Stack's /handler path
+      matcher: '/protected/:path*',
+    };
     ```
   </Tab>
 

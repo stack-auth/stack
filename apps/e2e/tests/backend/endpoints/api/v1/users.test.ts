@@ -519,8 +519,106 @@ describe("with server access", () => {
 
   it.todo("should not be able to create a user");
 
-  it.todo("should be able to update a user");
+  it("should be able to update a user", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+    }));
+    const userId = signedInResponse.body.id;
+    backendContext.set({
+      userAuth: null,
+    });
+    const response1 = await niceBackendFetch("/api/v1/users/" + userId, {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        display_name: "John Doe",
+        server_metadata: { key: "value" },
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": { "key": "value" },
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const response2 = await niceBackendFetch("/api/v1/users/" + userId, {
+      accessType: "server",
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": { "key": "value" },
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
 
-  it.todo("should be able to delete a user");
+  it("should be able to delete a user", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+    }));
+    const userId = signedInResponse.body.id;
+    backendContext.set({
+      userAuth: null,
+    });
+    const response1 = await niceBackendFetch("/api/v1/users/" + userId, {
+      accessType: "server",
+      method: "DELETE",
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const response2 = await niceBackendFetch("/api/v1/users/" + userId, {
+      accessType: "server",
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 404,
+        "body": {
+          "code": "USER_NOT_FOUND",
+          "error": "User not found.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_NOT_FOUND",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 
 });

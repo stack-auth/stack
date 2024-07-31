@@ -8,8 +8,9 @@ import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
 import { Result } from "../utils/results";
+import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
-import { ProviderAccessTokenCrud } from './crud/oauth';
+import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -35,6 +36,54 @@ export class StackClientInterface {
 
   getApiUrl() {
     return this.options.baseUrl + "/api/v1";
+  }
+
+  public async runNetworkDiagnostics(session?: InternalSession | null, requestType?: "client" | "server" | "admin") {
+    const tryRequest = async (cb: () => Promise<void>) => {
+      try {
+        await cb();
+        return "OK";
+      } catch (e) {
+        return `${e}`;
+      }
+    };
+    const cfTrace = await tryRequest(async () => {
+      const res = await fetch("https://1.1.1.1/cdn-cgi/trace");
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+      }
+    });
+    const apiRoot = session !== undefined && requestType !== undefined ? await tryRequest(async () => {
+      const res = await this.sendClientRequestInner("/", {}, session!, requestType);
+      if (res.status === "error") {
+        throw res.error;
+      }
+    }) : "Not tested";
+    const baseUrlBackend = await tryRequest(async () => {
+      const res = await fetch(new URL("/health", this.getApiUrl()));
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+      }
+    });
+    const prodDashboard = await tryRequest(async () => {
+      const res = await fetch("https://app.stackframe.com/health");
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+      }
+    });
+    const prodBackend = await tryRequest(async () => {
+      const res = await fetch("https://api.stackframe.com/health");
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+      }
+    });
+    return {
+      cfTrace,
+      apiRoot,
+      baseUrlBackend,
+      prodDashboard,
+      prodBackend,
+    };
   }
 
   public async fetchNewAccessToken(refreshToken: RefreshToken) {
@@ -98,13 +147,29 @@ export class StackClientInterface {
     });
 
 
-    return await Result.orThrowAsync(
-      Result.retry(
-        () => this.sendClientRequestInner(path, requestOptions, session!, requestType),
-        5,
-        { exponentialDelayBase: 1000 },
-      )
+    const retriedResult = await Result.retry(
+      () => this.sendClientRequestInner(path, requestOptions, session!, requestType),
+      5,
+      { exponentialDelayBase: 1000 },
     );
+
+    // try to diagnose the error for the user
+    if (retriedResult.status === "error") {
+      if (!navigator.onLine) {
+        throw new Error("Failed to send Stack request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
+      }
+      throw new Error(deindent`
+        Stack is unable to connect to the server. Please check your internet connection and try again.
+        
+        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
+
+        ${retriedResult.error}
+        
+        ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
+      `, { cause: retriedResult.error });
+    }
+
+    return retriedResult.data;
   }
 
   public createSession(options: Omit<ConstructorParameters<typeof InternalSession>[0], "refreshAccessTokenCallback">): InternalSession {
@@ -380,16 +445,19 @@ export class StackClientInterface {
   }
 
   async resetPassword(
-    options: { code: string } & ({ password: string } | { onlyVerifyCode: boolean })
+    options: { code: string } & ({ password: string } | { onlyVerifyCode: true })
   ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/auth/password/reset",
+      "onlyVerifyCode" in options ? "/auth/password/reset/check-code" : "/auth/password/reset",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          code: options.code,
+          ...("password" in options ? { password: options.password } : {}),
+        }),
       },
       null,
       [KnownErrors.VerificationCodeError]
@@ -782,9 +850,9 @@ export class StackClientInterface {
     provider: string,
     scope: string,
     session: InternalSession,
-  ): Promise<ProviderAccessTokenCrud['Client']['Read']> {
+  ): Promise<ConnectedAccountAccessTokenCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      `/auth/oauth/connected-accounts/${provider}/access-token`,
+      `/connected-accounts/me/${provider}/access-token`,
       {
         method: "POST",
         headers: {

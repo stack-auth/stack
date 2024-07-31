@@ -147,7 +147,6 @@ export class StackAdminInterface extends StackServerInterface {
     );
   }
 
-
   async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Admin']['Read'][]> {
     const response = await this.sendAdminRequest(`/team-permission-definitions`, {}, null);
     const result = await response.json() as TeamPermissionDefinitionsCrud['Admin']['List'];

@@ -1,7 +1,7 @@
 import { createMailbox, it } from "../../../../helpers";
 import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-async function createTeam() {
+async function signInAndCreateTeam() {
   const { userId: userId1 } = await Auth.Otp.signIn();
   backendContext.set({ mailbox: createMailbox() });
 
@@ -54,26 +54,28 @@ async function createTeam() {
 
 
 it("lists and updates member profiles in team", async ({ expect }) => {
-  const { teamId, userId1, userId2, currentUserId } = await createTeam();
-
+  await signInAndCreateTeam();
   // Must specify team_id
   const response = await niceBackendFetch(`/api/v1/team-member-profiles`, {
     accessType: "client",
     method: "GET",
   });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 400,
-        "body": "team_id is required for access type client",
-        "headers": Headers { <some fields may have been hidden> },
-      }
-    `);
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "team_id is required for access type client",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
 
-    // Does not have permission to list all members in team
-    const response1 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}`, {
-      accessType: "client",
-      method: "GET",
-    });
+
+it("does not have permission to list all members in their own team by default", async ({ expect }) => {
+  const { teamId } = await signInAndCreateTeam();
+  const response1 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}`, {
+    accessType: "client",
+    method: "GET",
+  });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 401,
@@ -92,8 +94,10 @@ it("lists and updates member profiles in team", async ({ expect }) => {
       },
     }
   `);
+});
 
-  // List own profile
+it("can read own profile", async ({ expect }) => {
+  const { teamId, userId1, userId2, currentUserId } = await signInAndCreateTeam();
   const response2 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}&user_id=me`, {
     accessType: "client",
     method: "GET",
@@ -115,7 +119,11 @@ it("lists and updates member profiles in team", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
 
+
+it("can do several operations when granted $read_members permission", async ({ expect }) => {
+  const { teamId, userId1, userId2, currentUserId } = await signInAndCreateTeam();
   // Grant $read_members permission
   await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${currentUserId}/$read_members`, {
     accessType: "server",

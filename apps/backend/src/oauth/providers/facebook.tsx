@@ -1,8 +1,7 @@
-import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class FacebookProvider extends OAuthBaseProvider {
   private constructor(
@@ -31,7 +30,7 @@ export class FacebookProvider extends OAuthBaseProvider {
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const url = new URL('https://graph.facebook.com/v3.2/me');
-    url.searchParams.append('access_token', tokenSet.access_token || "");
+    url.searchParams.append('access_token', tokenSet.accessToken || "");
     url.searchParams.append('fields', 'id,name,email');
     const rawUserInfo = await fetch(url).then((res) => res.json());
 
@@ -44,8 +43,6 @@ export class FacebookProvider extends OAuthBaseProvider {
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
       profileImageUrl: `https://graph.facebook.com/v19.0/${rawUserInfo.id}/picture`,
-      accessToken: tokenSet.access_token,
-      refreshToken: tokenSet.refresh_token,
     });
   }
 }

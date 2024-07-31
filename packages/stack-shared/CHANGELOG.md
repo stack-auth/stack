@@ -1,5 +1,32 @@
 # @stackframe/stack-shared
 
+## 2.5.13
+
+### Patch Changes
+
+- Add server side get connected account
+  - @stackframe/stack-sc@2.5.13
+
+## 2.5.12
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.5.12
+
+## 2.5.11
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.11
+
+## 2.5.10
+
+### Patch Changes
+
+- Facebook Business support
+  - @stackframe/stack-sc@2.5.10
+
 ## 2.5.9
 
 ### Patch Changes

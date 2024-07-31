@@ -5,10 +5,11 @@ import { PostHogProvider } from 'posthog-js/react';
 import { Suspense, useEffect, useState } from 'react';
 
 if (typeof window !== 'undefined') {
-  if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: 'identified_only',
+  const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k";
+  if (postHogKey.length > 5) {
+    posthog.init(postHogKey, {
+      api_host: "/consume",
+      ui_host: "https://eu.i.posthog.com",
     });
   }
 }
@@ -28,7 +29,7 @@ function UserIdentityInner() {
     if (user && user.id !== lastUserId) {
       posthog.identify(user.id, {
         primaryEmail: user.primaryEmail,
-        displayName: user.displayName,
+        displayName: user.displayName ?? user.primaryEmail ?? user.id,
       });
       setLastUserId(user.id);
     } else if (!user && lastUserId) {
