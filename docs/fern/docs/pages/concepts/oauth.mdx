@@ -1,17 +1,23 @@
 ---
 slug: concepts/oauth
-subtitle: Integrating OAuth Providers for API Access
+subtitle: Managing third-party OAuth access tokens
 ---
 
-With Stack, users can connect multiple OAuth accounts, enabling access to provider-specific data and services such as Google Drive, Microsoft Calendar, GitHub repositories, and more.
+Stack has good support for working with OAuth and OIDC providers, such as Google, Facebook, Microsoft, and others.
 
-## Connecting with an OAuth Provider Post Sign-in
+Beyond using OAuth for signing in, Stack can manage your users' access token so you can invoke APIs on their behalf. For example, you can use this to send emails with Gmail, access repositories on GitHub, or access files on OneDrive.
 
-Users can connect with an OAuth provider during sign-in or after signing in using other methods. For the latter, use the `user.useConnectedAccount('<provider_name>', { or: 'redirect' })` method. If the account is already connected, the method returns a Connection object; otherwise, it redirects the user to the provider's authorization page. 
+A connected account is simply an external account that is linked to the user in some way. If you are not using shared keys (see note below), any user created with "Sign up with OAuth" is automatically connected to the account they signed up with, but it's also possible to connect a user with a provider that is unavailable for sign in.
 
 <Note>
-  In order to connect accounts after sign-in, you need to set up your own OAuth client ID and client secret with the provider. See more details in the section [Going to Production](../getting-started/production#oauth-providers)
+  You cannot connect a user's accounts with shared OAuth keys. You need to set up your own OAuth client ID and client secret in Stack's dashboard. For more details, check [Going to Production](../getting-started/production#oauth-providers).
 </Note>
+
+## Connecting with OAuth providers
+
+You can access a user's connected account with the `user.getConnectedAccount(providerId)` function or `user.useConnectedAccount(providerId)` hook.
+
+Often, you'll want to redirect the user to the OAuth provider's authorization page if they have not connected the account yet. Just like the `getUser(...)` function, `getConnectedAccount(...)` can also take an `{ or: "redirect" }` argument to achieve this.
 
 Here's how to connect with Google:
 
@@ -29,9 +35,10 @@ export default function Page() {
 }
 ```
 
-## Connecting with Extra Scopes
 
-You can request extra scopes when connecting with an OAuth provider. For instance, to access Google Drive, pass the `https://www.googleapis.com/auth/drive.readonly` scope. Here's an example:
+## Providing scopes
+
+Most providers have access control in the form of OAuth scopes. These are the permissions that the user will see on the authorization screen (eg. "Your App wants access to your calendar"). For instance, to read Google Drive content, you need the `https://www.googleapis.com/auth/drive.readonly` scope:
 
 ```jsx
 'use client';
@@ -47,9 +54,11 @@ export default function Page() {
 }
 ```
 
-## Retrieving the Access Token
+Check your provider's API documentation to find a list of available scopes.
 
-Once connected with an OAuth provider, obtain the access token using the `account.getAccessToken()` method. Use this token to access the provider's API endpoints. Here's an example of using the access token to interact with Google Drive API:
+## Retrieving the access token
+
+Once connected with an OAuth provider, obtain the access token with the `account.getAccessToken()` function. Check your provider's API documentation to understand how you can use this token to authorize the user in requests.
 
 ```jsx
 'use client';
@@ -60,37 +69,33 @@ import { useUser } from "@stackframe/stack";
 export default function Page() {
   const user = useUser({ or: 'redirect' });
   const account = user.useConnectedAccount('google', { or: 'redirect', scopes: ['https://www.googleapis.com/auth/drive.readonly'] });
-  const tokens = account.useAccessToken();
+  const { accessToken } = account.useAccessToken();
   const [response, setResponse] = useState<any>();
 
   useEffect(() => {
     fetch('https://www.googleapis.com/drive/v3/files', {
-      headers: { Authorization: `Bearer ${tokens.accessToken}` }
+      headers: { Authorization: `Bearer ${accessToken}` }
     })
       .then((res) => res.json())
       .then((data) => setResponse(data))
       .catch((err) => console.error(err));
-  }, [tokens]);
+  }, [accessToken]);
 
   return <div>{response ? JSON.stringify(response) : 'Loading...'}</div>;
 }
 ```
 
-## Requesting Extra Scopes During Sign-in
+## Sign-in default scopes
 
-To avoid showing the authorization page twice, you can request extra scopes during the sign-in process. This approach is optional and depends on your application's design. Some applications may prefer to request extra permissions only when needed, while others might want to obtain all necessary permissions upfront.
+To avoid showing the authorization page twice, you can already request scopes during the sign-in flow. This approach is optional. Some applications may prefer to request extra permissions only when needed, while others might want to obtain all necessary permissions upfront.
 
-Configure the `StackServerApp` with the required scopes:
+To do this, edit the `oauthScopesOnSignIn` setting of your `stackServerApp`:
 
 ```jsx title='stack.ts'
-// imports ...
-
 export const stackServerApp = new StackServerApp({
-  // your other settings ...
+  // ...your other settings...
   oauthScopesOnSignIn: {
     google: ['https://www.googleapis.com/authdrive.readonly']
   }
 });
 ```
-
-By setting this up, users will be prompted for all necessary permissions during the initial sign-in, avoiding the need for them to approve additional permissions later. Choose the approach that best fits your application's user experience and workflow.

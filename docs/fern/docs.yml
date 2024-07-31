@@ -47,18 +47,19 @@ navigation:
             path: ./docs/pages/getting-started/production.mdx
       - section: Concepts
         contents:
-          # - page: Client vs. Server
-          #   icon: fa-regular fa-code-branch
-          - page: OAuth Providers
-            icon: fa-regular fa-key
+          - page: The StackApp Object
+            icon: fa-regular fa-folder-gear
+            path: ./docs/pages/concepts/stack-app.mdx
+          - page: Connected OAuth Accounts
+            icon: fa-regular fa-link
             path: ./docs/pages/concepts/oauth.mdx
           - page: Teams
             icon: fa-regular fa-users
-            path: ./docs/pages/concepts/teams.mdx
+            path: ./docs/pages/concepts/orgs-and-teams.mdx
           - page: Selecting a Team
             icon: fa-regular fa-exchange
             path: ./docs/pages/concepts/team-selection.mdx
-          - page: Permissions
+          - page: Permissions & RBAC
             icon: fa-regular fa-user-lock
             path: ./docs/pages/concepts/permissions.mdx
           # - page: Local Development
@@ -85,6 +86,9 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
   - tab: sdk
     layout: 
+      - page: SDK Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/sdk/overview.mdx
       - section: Classes
         contents:
           - page: CurrentUser
