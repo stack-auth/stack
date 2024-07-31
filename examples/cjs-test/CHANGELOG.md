@@ -1,5 +1,11 @@
 # cjs-test
 
+## 2.5.14
+
+### Patch Changes
+
+- @stackframe/stack@2.5.14
+
 ## 2.5.13
 
 ### Patch Changes
