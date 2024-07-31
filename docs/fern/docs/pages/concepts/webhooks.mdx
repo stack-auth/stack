@@ -14,17 +14,43 @@ In the Stack dashboard, you can create a webhook endpoint in the "Webhooks" sect
   "event": "team.created",
   "data": {
     "id": "2209422a-eef7-4668-967d-be79409972c5",
-    "display_name": "My Team"
+    "display_name": "My Team",
+    ...
   }
 }
 ```
 
 ## Verifying Webhooks
 
-To ensure the webhook is coming from Stack (and not from a malicious actor) and is not prone to replay attacks, you should verify the request. Stack signs the webhook payload with a secret key that you can find in the endpoint details on the dashboard. You can verify the signature using the Svix client library. Check out the [Svix documentation](https://docs.svix.com/receiving/verifying-payloads/how) for instructions on how to verify the signature in JavaScript, Python, Ruby, and other languages.
+To ensure the webhook is coming from Stack (and not from a malicious actor) and is not prone to replay attacks, you should verify the request. 
+
+Stack signs the webhook payload with a secret key that you can find in the endpoint details on the dashboard. You can verify the signature using the Svix client library. Check out the [Svix documentation](https://docs.svix.com/receiving/verifying-payloads/how) for instructions on how to verify the signature in JavaScript, Python, Ruby, and other languages. Here is an quick example in JavaScript:
+
+```jsx
+import { Webhook } from "svix";
+
+const secret = "<from the dashboard>";
+const headers = {
+  "svix-id": "<from the webhook request headers>",
+  "svix-timestamp": "<from the webhook request headers>",
+  "svix-signature": "<from the webhook request headers>",
+};
+const payload = "<the webhook request body>";
+
+const wh = new Webhook(secret);
+// Throws on error, returns the verified content on success
+const payload = wh.verify(payload, headers);
+```
 
 If you do not want to install the Svix client library or are using a language that is not supported, you can [verify the signature manually](https://docs.svix.com/receiving/verifying-payloads/how-manual).
 
 ## Event Types
 
 Please refer to the webhook endpoint API reference for more details on the available event types and their payload structures.
+
+- [user.created](/rest-api/webhooks/users/user-created)
+- [user.updated](/rest-api/webhooks/users/user-updated)
+- [user.deleted](/rest-api/webhooks/users/user-deleted)
+- [team.created](/rest-api/webhooks/teams/team-created)
+- [team.updated](/rest-api/webhooks/teams/team-updated)
+- [team.deleted](/rest-api/webhooks/teams/team-deleted)
