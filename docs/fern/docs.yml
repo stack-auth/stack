@@ -129,6 +129,9 @@ navigation:
       - api: Server API Reference
         slug: server
         api-name: server
+      - api: Webhooks API Reference
+        slug: webhooks
+        api-name: webhooks
       # - api: Admin API Reference
       #   slug: admin
       #   api-name: admin

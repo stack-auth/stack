@@ -1,5 +1,6 @@
-import { parseOpenAPI } from '@/lib/openapi';
+import { parseOpenAPI, parseWebhookOpenAPI } from '@/lib/openapi';
 import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import { webhookEvents } from '@stackframe/stack-shared/dist/interface/webhooks';
 import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
 import fs from 'fs';
 import { glob } from 'glob';
@@ -30,8 +31,12 @@ async function main() {
       }))),
       audience,
     }));
-
     fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
+
+    const webhookOpenAPISchema = yaml.stringify(parseWebhookOpenAPI({
+      webhooks: webhookEvents,
+    }));
+    fs.writeFileSync(`../../docs/fern/openapi/webhooks.yaml`, webhookOpenAPISchema);
   }
   console.log("Successfully updated docs schemas");
 }
