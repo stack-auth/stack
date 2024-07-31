@@ -12,5 +12,10 @@ export const connectedAccountAccessTokenCreateSchema = yupObject({
 export const connectedAccountAccessTokenCrud = createCrud({
   clientReadSchema: connectedAccountAccessTokenReadSchema,
   clientCreateSchema: connectedAccountAccessTokenCreateSchema,
+  docs: {
+    clientCreate: {
+      hidden: true,
+    }
+  },
 });
 export type ConnectedAccountAccessTokenCrud = CrudTypeOf<typeof connectedAccountAccessTokenCrud>;

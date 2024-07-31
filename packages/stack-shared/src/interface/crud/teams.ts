@@ -62,6 +62,16 @@ export const teamsCrud = createCrud({
       description: "Get a team that the current user is a member of.",
       tags: ["Teams"],
     },
+    clientUpdate: {
+      summary: "Update a team",
+      description: "Update the team information. Only allowed if the current user is a member of the team and has the `$update_team` permission.",
+      tags: ["Teams"],
+    },
+    clientDelete: {
+      summary: "Delete a team",
+      description: "Delete a team. Only allowed if the current user is a member of the team and has the `$delete_team` permission.",
+      tags: ["Teams"],
+    },
     serverCreate: {
       summary: "Create a team",
       description: "Create a new team and optionally add the current user as a member.",
