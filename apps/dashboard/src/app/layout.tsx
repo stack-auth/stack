@@ -17,6 +17,7 @@ import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
 import { CSPostHogProvider, UserIdentity } from './providers';
 import { ClientPolyfill } from './client-polyfill';
+import GlassPromptBar from 'glass-js';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
@@ -81,6 +82,7 @@ export default function RootLayout({
                   <UserIdentity />
                   {children}
                 </RouterProvider>
+                <GlassPromptBar />
               </StackTheme>
             </StackProvider>
           </ThemeProvider>

@@ -70,6 +70,10 @@ const nextConfig = {
 
   poweredByHeader: false,
 
+  experimental: {
+    swcPlugins: [["glass-js/swc", {}]]
+  },
+
   async rewrites() {
     return [
       {
