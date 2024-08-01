@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import TextDimensionInput from './text-dimension-input';
 
 export const DEFAULT_2_COLUMNS = [6] as [number];

@@ -1,4 +1,4 @@
-import React from 'react';
+import { Typography } from '@stackframe/stack-ui';
 import { TEditorBlock } from '../../documents/editor/core';
 import { setDocument, useDocument, useSelectedBlockId } from '../../documents/editor/editor-context';
 import ButtonSidebarPanel from './input-panels/button-sidebar-panel';
@@ -9,7 +9,6 @@ import HeadingSidebarPanel from './input-panels/heading-sidebar-panel';
 import ImageSidebarPanel from './input-panels/image-sidebar-panel';
 import SpacerSidebarPanel from './input-panels/spacer-sidebar-panel';
 import TextSidebarPanel from './input-panels/text-sidebar-panel';
-import Typography from '../../../components/ui/typography';
 
 function renderMessage(val: string) {
   return (

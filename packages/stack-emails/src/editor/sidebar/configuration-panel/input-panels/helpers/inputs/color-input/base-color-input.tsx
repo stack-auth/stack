@@ -1,7 +1,7 @@
+import { Label } from '@stackframe/stack-ui';
 import { CircleSlash, Plus } from 'lucide-react';
 import React, { useState } from 'react';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
-import { Label } from '../../../../../../../components/ui/label';
 
 type Props =
   | {
