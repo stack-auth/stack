@@ -41,7 +41,7 @@ services:
   svix-server:
     image: svix/svix-server
     environment:
-      WAIT_FOR: true
+      WAIT_FOR: 'true'
       SVIX_REDIS_DSN: redis://svix-redis:6379
       SVIX_DB_DSN: postgres://postgres:password@svix-db:5432/svix
       SVIX_CACHE_TYPE: memory
