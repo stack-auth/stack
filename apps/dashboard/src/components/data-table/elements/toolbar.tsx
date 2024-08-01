@@ -1,9 +1,8 @@
 "use client";
 
 import { Cross2Icon } from "@radix-ui/react-icons";
+import { Button } from "@stackframe/stack-ui";
 import { Table } from "@tanstack/react-table";
-
-import { Button } from "@/components/ui/button";
 import { DataTableViewOptions } from "./view-options";
 
 interface DataTableToolbarProps<TData> {
