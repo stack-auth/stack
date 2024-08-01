@@ -1,4 +1,4 @@
-import { Label, Textarea, Typography } from "@stackframe/stack-ui";
+import { Label, Textarea, Typography } from "..";
 import { CopyButton } from "./copy-button";
 
 export function CopyField(props: { value: string, label?: React.ReactNode, helper?: React.ReactNode, height?: number, monospace?: boolean }) {

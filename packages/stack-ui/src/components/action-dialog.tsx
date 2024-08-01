@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@stackframe/stack-ui';
+import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '..';
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import React, { useId } from "react";
 

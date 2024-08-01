@@ -1,9 +1,8 @@
 "use client";
 
-import { CopyButton } from "@/components/copy-button";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Alert, Badge, Button, Checkbox, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";

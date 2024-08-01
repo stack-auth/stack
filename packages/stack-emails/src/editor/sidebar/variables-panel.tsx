@@ -1,5 +1,4 @@
-import { Typography } from '@stackframe/stack-ui';
-import { CopyButton } from '../../components/copy-button';
+import { CopyButton, Typography } from '@stackframe/stack-ui';
 import { useMetadata } from '../documents/editor/editor-context';
 import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
 

@@ -1,13 +1,11 @@
 "use client";
-import { ActionDialog } from "@/components/action-dialog";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
-import { SimpleTooltip } from "@/components/simple-tooltip";
 import { AdminProject } from "@stackframe/stack";
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Badge, InlineCode, Label, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Badge, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
 import * as yup from "yup";
 

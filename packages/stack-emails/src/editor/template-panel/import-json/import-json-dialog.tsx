@@ -1,6 +1,5 @@
-import { Textarea, Typography, useToast } from '@stackframe/stack-ui';
+import { ActionDialog, Textarea, Typography, useToast } from '@stackframe/stack-ui';
 import React, { useState } from 'react';
-import { ActionDialog } from '../../../components/action-dialog';
 import { resetDocument } from '../../documents/editor/editor-context';
 import validateJsonStringValue from './validateJsonStringValue';
 

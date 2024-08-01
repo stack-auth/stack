@@ -1,6 +1,5 @@
-import { Typography } from '@stackframe/stack-ui';
+import { SimpleTooltip, Typography } from '@stackframe/stack-ui';
 import React from 'react';
-import { SimpleTooltip } from '../../../../../components/simple-tooltip';
 
 type SidebarPanelProps = {
   title: string,

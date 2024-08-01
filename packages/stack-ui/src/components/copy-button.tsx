@@ -1,14 +1,12 @@
 "use client";
-import { cn } from "@/lib/utils";
-import { Button, useToast } from "@stackframe/stack-ui";
+
 import { Copy } from "lucide-react";
 import React from "react";
+import { Button, cn, useToast } from "..";
 
 const CopyButton = React.forwardRef<
   React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button> & {
-    content: string,
-  }
+  React.ComponentProps<typeof Button> & { content: string }
 >((props, ref) => {
   const { toast } = useToast();
 

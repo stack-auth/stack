@@ -1,18 +1,16 @@
 "use client";
 
-import { ActionDialog } from "@/components/action-dialog";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { SettingCard, SettingText } from "@/components/settings";
-import { SimpleTooltip } from "@/components/simple-tooltip";
 import { EmailConfigJson } from "@/temporary-types";
 import { AdminProject } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { Button, Card, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";

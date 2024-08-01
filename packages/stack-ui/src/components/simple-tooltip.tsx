@@ -1,4 +1,4 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@stackframe/stack-ui";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "..";
 import { CircleAlert, Info } from "lucide-react";
 
 export function SimpleTooltip(props: {

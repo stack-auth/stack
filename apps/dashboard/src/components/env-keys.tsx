@@ -1,5 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
-import { CopyField } from "./copy-field";
+import { CopyField, Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
 
 export default function EnvKeys(props: {
   projectId: string,

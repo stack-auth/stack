@@ -1,11 +1,10 @@
 'use client';
-import { BrowserFrame } from "@/components/browser-frame";
 import { InputField, SwitchListField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuthPage, useUser } from "@stackframe/stack";
 import { runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { Button, Form, Separator, Typography } from "@stackframe/stack-ui";
+import { BrowserFrame, Button, Form, Separator, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";

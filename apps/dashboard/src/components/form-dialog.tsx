@@ -1,8 +1,8 @@
 "use client";
-import { ActionDialog, ActionDialogProps } from "@/components/action-dialog";
+
 import { yupResolver } from "@hookform/resolvers/yup";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Form } from "@stackframe/stack-ui";
+import { ActionDialog, ActionDialogProps, Form } from "@stackframe/stack-ui";
 import React, { useEffect, useId, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as yup from "yup";

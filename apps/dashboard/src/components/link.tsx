@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 // eslint-disable-next-line
 import NextLink from 'next/link';
 import { useRouter, useRouterConfirm } from "./router";

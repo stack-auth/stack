@@ -1,10 +1,9 @@
 "use client";
-import { ActionDialog } from "@/components/action-dialog";
 import EnvKeys from "@/components/env-keys";
 import { StyledLink } from "@/components/link";
 import { ApiKeyFirstView } from "@stackframe/stack";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { InlineCode, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, InlineCode, Typography } from "@stackframe/stack-ui";
 import { useEffect, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
 
