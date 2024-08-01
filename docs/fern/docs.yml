@@ -62,6 +62,9 @@ navigation:
           - page: Permissions & RBAC
             icon: fa-regular fa-user-lock
             path: ./docs/pages/concepts/permissions.mdx
+          - page: Webhooks
+            icon: fa-regular fa-webhook
+            path: ./docs/pages/concepts/webhooks.mdx
           # - page: Local Development
           #   icon: fa-regular fa-laptop
       - section: Customization
@@ -126,6 +129,9 @@ navigation:
       - api: Server API Reference
         slug: server
         api-name: server
+      - api: Webhooks API Reference
+        slug: webhooks
+        api-name: webhooks
       # - api: Admin API Reference
       #   slug: admin
       #   api-name: admin

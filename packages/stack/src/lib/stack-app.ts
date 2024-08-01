@@ -1670,6 +1670,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   private readonly _adminTeamPermissionDefinitionsCache = createCache(async () => {
     return await this._interface.listPermissionDefinitions();
   });
+  private readonly _svixTokenCache = createCache(async () => {
+    return await this._interface.getSvixToken();
+  });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
@@ -1899,6 +1902,10 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     }, [crud]);
   }
 
+  useSvixToken(): string {
+    const crud = useAsyncCache(this._svixTokenCache, [], "useSvixToken()");
+    return crud.token;
+  }
 
   protected override async _refreshProject() {
     await Promise.all([
@@ -2577,6 +2584,8 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     createTeamPermissionDefinition(data: AdminTeamPermissionDefinitionCreateOptions): Promise<AdminTeamPermission>,
     updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions): Promise<void>,
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
+
+    useSvixToken(): string,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );

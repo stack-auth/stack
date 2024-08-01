@@ -2,6 +2,7 @@ import { InternalSession } from "../sessions";
 import { ApiKeysCrud } from "./crud/api-keys";
 import { EmailTemplateCrud, EmailTemplateType } from "./crud/email-templates";
 import { ProjectsCrud } from "./crud/projects";
+import { SvixTokenCrud } from "./crud/svix-token";
 import { TeamPermissionDefinitionsCrud } from "./crud/team-permissions";
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
@@ -188,5 +189,20 @@ export class StackAdminInterface extends StackServerInterface {
       { method: "DELETE" },
       null,
     );
+  }
+
+  async getSvixToken(): Promise<SvixTokenCrud["Admin"]["Read"]> {
+    const response = await this.sendAdminRequest(
+      "/webhooks/svix-token",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
+    return await response.json();
   }
 }

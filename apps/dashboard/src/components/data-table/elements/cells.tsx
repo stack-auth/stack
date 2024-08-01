@@ -79,10 +79,6 @@ type ActionItem = '-' | {
 
 export function ActionCell(props: {
   items?: ActionItem[],
-  /**
-   * @deprecated use `items: [{ danger: true }]` instead
-   */
-  dangerItems?: ActionItem[],
   invisible?: boolean,
 }) {
   return (
@@ -107,16 +103,6 @@ export function ActionCell(props: {
             {item.item}
           </DropdownMenuItem>
         ))}
-        {props.items && props.dangerItems && <DropdownMenuSeparator />}
-        <div className="text-destructive">
-          {props.dangerItems?.map((item, index) => item === '-' ? (
-            <DropdownMenuSeparator key={index} />
-          ) : (
-            <DropdownMenuItem key={index} onClick={item.onClick}>
-              {item.item}
-            </DropdownMenuItem>
-          ))}
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -17,6 +17,11 @@ export const teamMembershipsCrud = createCrud({
       description: "",
       tags: ["Teams"],
     },
+    clientDelete: {
+      summary: "Remove a user from a team",
+      description: "All the users are allowed to remove themselves from a team (`user_id=me`). Only the users who have the `$remove_members` permission are allowed to remove other users from a team. `team_id` is must an ID of a team that the user is a member of.",
+      tags: ["Teams"],
+    },
     serverDelete: {
       summary: "Remove a user from a team",
       description: "",

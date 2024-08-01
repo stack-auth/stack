@@ -55,8 +55,9 @@ function Actions({ row }: { row: Row<ExtendedApiKey> }) {
       <RevokeDialog apiKey={row.original} open={isRevokeModalOpen} onOpenChange={setIsRevokeModalOpen} />
       <ActionCell
         invisible={row.original.status !== 'valid'}
-        dangerItems={[{
+        items={[{
           item: "Revoke",
+          danger: true,
           onClick: () => setIsRevokeModalOpen(true),
         }]}
       />

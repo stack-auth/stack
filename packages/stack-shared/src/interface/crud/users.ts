@@ -1,5 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as fieldSchema from "../../schema-fields";
+import { WebhookEvent } from "../webhooks";
 import { teamsCrudServerReadSchema } from "./teams";
 
 export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
@@ -78,3 +79,37 @@ export const usersCrud = createCrud({
   },
 });
 export type UsersCrud = CrudTypeOf<typeof usersCrud>;
+
+export const userCreatedWebhookEvent = {
+  type: "user.created",
+  schema: usersCrud.server.readSchema,
+  metadata: {
+    summary: "User Created",
+    description: "This event is triggered when a user is created.",
+    tags: ["Users"],
+  },
+} satisfies WebhookEvent<typeof usersCrud.server.readSchema>;
+
+export const userUpdatedWebhookEvent = {
+  type: "user.updated",
+  schema: usersCrud.server.readSchema,
+  metadata: {
+    summary: "User Updated",
+    description: "This event is triggered when a user is updated.",
+    tags: ["Users"],
+  },
+} satisfies WebhookEvent<typeof usersCrud.server.readSchema>;
+
+const webhookUserDeletedSchema = fieldSchema.yupObject({
+  id: fieldSchema.userIdSchema.required(),
+}).required();
+
+export const userDeletedWebhookEvent = {
+  type: "user.deleted",
+  schema: webhookUserDeletedSchema,
+  metadata: {
+    summary: "User Deleted",
+    description: "This event is triggered when a user is deleted.",
+    tags: ["Users"],
+  },
+} satisfies WebhookEvent<typeof webhookUserDeletedSchema>;

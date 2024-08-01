@@ -9,6 +9,7 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
+import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 
 const fullInclude = {
   projectUserOAuthAccounts: true,
@@ -119,7 +120,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       include: fullInclude,
     });
 
-    return prismaToCrud(db);
+    const result = prismaToCrud(db);
+
+    await sendUserCreatedWebhook({
+      projectId: auth.project.id,
+      data: result,
+    });
+
+    return result;
   },
   onUpdate: async ({ auth, data, params }) => {
     const db = await prismaClient.$transaction(async (tx) => {
@@ -173,7 +181,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       return db;
     });
 
-    return prismaToCrud(db);
+    const result = prismaToCrud(db);
+
+    await sendUserUpdatedWebhook({
+      projectId: auth.project.id,
+      data: result,
+    });
+
+    return result;
   },
   onDelete: async ({ auth, params }) => {
     await prismaClient.projectUser.delete({
@@ -184,6 +199,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         },
       },
       include: fullInclude,
+    });
+
+    await sendUserDeletedWebhook({
+      projectId: auth.project.id,
+      data: {
+        id: params.user_id,
+      },
     });
   }
 }));
