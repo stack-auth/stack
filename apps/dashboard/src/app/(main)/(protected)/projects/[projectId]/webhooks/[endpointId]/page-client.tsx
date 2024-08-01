@@ -2,14 +2,8 @@
 
 import { CopyButton } from "@/components/copy-button";
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Typography from "@/components/ui/typography";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Alert, Badge, Button, Checkbox, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";

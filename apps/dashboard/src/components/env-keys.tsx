@@ -1,9 +1,5 @@
-import { CopyButton } from "./copy-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
 import { CopyField } from "./copy-field";
-import { Label } from "./ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Textarea } from "./ui/textarea";
-import Typography from "./ui/typography";
 
 export default function EnvKeys(props: {
   projectId: string,

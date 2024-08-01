@@ -1,9 +1,9 @@
 'use client';
 
+import { cn } from "@/lib/utils";
 // eslint-disable-next-line
 import NextLink from 'next/link';
-import { confirmAlertMessage, useRouter, useRouterConfirm } from "./router";
-import { cn } from "@/lib/utils";
+import { useRouter, useRouterConfirm } from "./router";
 
 type LinkProps = {
   href: string,

@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from "@/components/router";
-import { Button } from "@/components/ui/button";
+import { Button } from "@stackframe/stack-ui";
 
 
 export default function Actions() {

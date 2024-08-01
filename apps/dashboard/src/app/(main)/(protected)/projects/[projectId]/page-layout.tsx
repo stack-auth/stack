@@ -1,4 +1,4 @@
-import Typography from "@/components/ui/typography";
+import { Typography } from "@stackframe/stack-ui";
 
 export function PageLayout(props: {
   children: React.ReactNode,

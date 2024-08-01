@@ -1,7 +1,5 @@
-import { InlineCode } from "@/components/ui/inline-code";
 import { Confetti } from "@/components/confetti";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import Typography from "@/components/ui/typography";
+import { Card, CardContent, CardFooter, CardHeader, InlineCode, Typography } from "@stackframe/stack-ui";
 import Actions from "./actions";
 
 export const metadata = {

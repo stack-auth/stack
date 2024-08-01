@@ -1,6 +1,5 @@
 import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
-import { Alert } from "@/components/ui/alert";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { Alert } from "@stackframe/stack-ui";
 
 type Pagination = {
   hasPrevPage?: boolean,

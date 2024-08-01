@@ -1,25 +1,10 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "./ui/switch";
-import { Settings } from "lucide-react";
-import { Button } from "./ui/button";
-import React, { useEffect, useId, useRef, useState } from "react";
-import { Label } from "./ui/label";
-import { DelayedInput, Input } from "./ui/input";
-import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Accordion } from "@radix-ui/react-accordion";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { FieldValues, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Form } from "./ui/form";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, useToast } from "@stackframe/stack-ui";
+import { Settings } from "lucide-react";
+import React, { useEffect, useId, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useToast } from "./ui/use-toast";
 
 
 export function SettingCard(props: {

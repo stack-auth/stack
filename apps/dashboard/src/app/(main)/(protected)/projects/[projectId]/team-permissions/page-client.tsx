@@ -1,12 +1,12 @@
 "use client";
+import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
+import { SmartFormDialog } from "@/components/form-dialog";
+import { PermissionListField } from "@/components/permission-field";
+import { Button } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
-import { useAdminApp } from "../use-admin-app";
-import { Button } from "@/components/ui/button";
-import { PermissionListField } from "@/components/permission-field";
 import { PageLayout } from "../page-layout";
-import { SmartFormDialog } from "@/components/form-dialog";
-import { TeamPermissionTable } from "@/components/data-table/team-permission-table";
+import { useAdminApp } from "../use-admin-app";
 
 
 export default function PageClient() {

@@ -2,8 +2,7 @@
 import { InputField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
-import { Alert } from "@/components/ui/alert";
-import Typography from "@/components/ui/typography";
+import { Alert, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
