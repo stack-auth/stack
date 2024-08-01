@@ -31,6 +31,7 @@
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@vercel/analytics": "^1.2.2",
+    "bcrypt": "^5.1.1",
     "dotenv-cli": "^7.3.0",
     "jose": "^5.2.2",
     "next": "^14.1",

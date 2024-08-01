@@ -36,6 +36,7 @@
     "@stackframe/stack-ui": "workspace:*",
     "@tanstack/react-table": "^8.17.0",
     "@vercel/analytics": "^1.2.2",
+    "bcrypt": "^5.1.1",
     "canvas-confetti": "^1.9.2",
     "clsx": "^2.0.0",
     "dotenv-cli": "^7.3.0",
