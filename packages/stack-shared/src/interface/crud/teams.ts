@@ -30,9 +30,7 @@ export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yu
 }).required());
 
 // Delete
-export const teamsCrudClientDeleteSchema = yupObject({
-  id: fieldSchema.teamIdSchema.required(),
-}).required();
+export const teamsCrudClientDeleteSchema = fieldSchema.yupMixed();
 export const teamsCrudServerDeleteSchema = teamsCrudClientDeleteSchema;
 
 export const teamsCrud = createCrud({

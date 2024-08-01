@@ -1,5 +1,5 @@
 import { ensureTeamExist, ensureTeamMembershipExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
-import { sendTeamCreatedWebhook, sendTeamDeletedWebhook } from "@/lib/webhooks";
+import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
@@ -118,7 +118,14 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       });
     });
 
-    return teamPrismaToCrud(db);
+    const result = teamPrismaToCrud(db);
+
+    await sendTeamUpdatedWebhook({
+      projectId: auth.project.id,
+      data: result,
+    });
+
+    return result;
   },
   onDelete: async ({ params, auth }) => {
     await prismaClient.$transaction(async (tx) => {
