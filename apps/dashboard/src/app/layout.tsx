@@ -1,22 +1,22 @@
-import '../polyfills';
-import './globals.css';
-import React from 'react';
-import type { Metadata } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from "geist/font/mono";
-import { Analytics } from "@vercel/analytics/react";
-import { Inter as FontSans } from "next/font/google";
-import { StyleLink } from '@/components/style-link';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { stackServerApp } from '@/stack';
-import { StackProvider, StackTheme } from '@stackframe/stack';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
-import { CSPostHogProvider, UserIdentity } from './providers';
+import { StyleLink } from '@/components/style-link';
+import { ThemeProvider } from '@/components/theme-provider';
+import { cn } from '@/lib/utils';
+import { stackServerApp } from '@/stack';
+import { StackProvider, StackTheme } from '@stackframe/stack';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { Toaster } from '@stackframe/stack-ui';
+import { Analytics } from "@vercel/analytics/react";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from 'geist/font/sans';
+import type { Metadata } from 'next';
+import { Inter as FontSans } from "next/font/google";
+import React from 'react';
+import '../polyfills';
 import { ClientPolyfill } from './client-polyfill';
+import './globals.css';
+import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),

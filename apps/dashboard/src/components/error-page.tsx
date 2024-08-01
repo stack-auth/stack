@@ -1,10 +1,8 @@
 "use client";
 
 import { Logo } from "@/components/logo";
-import Typography from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "@/components/router";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Button, Typography } from "@stackframe/stack-ui";
 
 export default function ErrorPage(props: {
   title: React.ReactNode,

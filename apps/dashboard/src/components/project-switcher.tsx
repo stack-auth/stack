@@ -1,13 +1,7 @@
 "use client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useUser } from "@stackframe/stack";
 import { useRouter } from "@/components/router";
+import { useUser } from "@stackframe/stack";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
 import { useMemo } from "react";
 
 export function ProjectAvatar(props: { displayName: string }) {

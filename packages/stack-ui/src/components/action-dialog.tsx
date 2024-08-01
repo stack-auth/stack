@@ -1,13 +1,8 @@
 'use client';
 
-import React, { useEffect, useId } from "react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogBody } from '@/components/ui/dialog';
-import { Button } from "@/components/ui/button";
+import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '..';
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Checkbox } from "./ui/checkbox";
-import { Alert } from "./ui/alert";
-import { Label } from "./ui/label";
+import React, { useId } from "react";
 
 export type ActionDialogProps = {
   trigger?: React.ReactNode,

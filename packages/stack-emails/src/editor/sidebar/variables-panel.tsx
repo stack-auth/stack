@@ -1,9 +1,6 @@
-import { Label } from '../../components/ui/label';
-import { CopyButton } from '../../components/copy-button';
-import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
-import { Input } from '../../components/ui/input';
+import { CopyButton, Typography } from '@stackframe/stack-ui';
 import { useMetadata } from '../documents/editor/editor-context';
-import Typography from '../../components/ui/typography';
+import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
 
 export default function VariablesPanel() {
   const metadata = useMetadata();

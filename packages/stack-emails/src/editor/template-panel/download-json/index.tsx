@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { useDocument } from '../../documents/editor/editor-context';
-import { Button } from '../../../components/ui/button';
+import { Button } from '@stackframe/stack-ui';
 import { Download } from 'lucide-react';
+import { useMemo } from 'react';
+import { useDocument } from '../../documents/editor/editor-context';
 
 export default function DownloadJson() {
   const doc = useDocument();

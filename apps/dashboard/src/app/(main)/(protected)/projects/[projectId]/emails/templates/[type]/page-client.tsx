@@ -1,13 +1,13 @@
 'use client';
-import EmailEditor from "@stackframe/stack-emails/dist/editor/editor";
-import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { useAdminApp } from "../../../use-admin-app";
+import ErrorPage from "@/components/error-page";
 import { confirmAlertMessage, useRouter, useRouterConfirm } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
-import ErrorPage from "@/components/ui/error-page";
 import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
-import { useToast } from "@/components/ui/use-toast";
+import EmailEditor from "@stackframe/stack-emails/dist/editor/editor";
+import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { useToast } from "@stackframe/stack-ui";
 import { usePathname } from "next/navigation";
+import { useAdminApp } from "../../../use-admin-app";
 
 export default function PageClient(props: { templateType: EmailTemplateType }) {
   const app = useAdminApp();

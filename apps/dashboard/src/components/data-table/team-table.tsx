@@ -2,13 +2,12 @@
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { useRouter } from "@/components/router";
 import { ServerTeam } from '@stackframe/stack';
+import { ActionDialog, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useState } from "react";
 import * as yup from "yup";
-import { ActionDialog } from "../action-dialog";
 import { FormDialog } from "../form-dialog";
 import { InputField } from "../form-fields";
-import Typography from "../ui/typography";
 import { ActionCell, DateCell, TextCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";

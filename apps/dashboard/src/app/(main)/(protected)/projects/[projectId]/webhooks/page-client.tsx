@@ -1,20 +1,16 @@
 "use client";
 
-import { ActionDialog } from "@/components/action-dialog";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard } from "@/components/settings";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Typography from "@/components/ui/typography";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoints, useSvix } from "svix-react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { useRouter } from "next/navigation";
 import { getSvixResult } from "./utils";
 
 type Endpoint = {

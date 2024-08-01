@@ -1,10 +1,10 @@
 "use client";
 
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import { Alert } from "@/components/ui/alert";
-import { StyledLink } from "@/components/link";
 import { UserTable } from "@/components/data-table/user-table";
+import { StyledLink } from "@/components/link";
+import { Alert } from "@stackframe/stack-ui";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 
 export default function PageClient() {

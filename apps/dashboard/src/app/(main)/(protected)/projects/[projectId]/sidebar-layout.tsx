@@ -1,8 +1,27 @@
 'use client';
 
+import { Link } from "@/components/link";
+import { ProjectSwitcher } from "@/components/project-switcher";
+import { cn } from "@/lib/utils";
+import { AdminProject, UserButton, useUser } from "@stackframe/stack";
+import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  Typography,
+  buttonVariants
+} from "@stackframe/stack-ui";
 import {
   Book,
   KeyRound,
+  Link as LinkIcon,
   LockKeyhole,
   LucideIcon,
   Mail,
@@ -14,27 +33,10 @@ import {
   Users,
   Webhook,
 } from "lucide-react";
-import { Link as LinkIcon } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { AdminProject, UserButton, useUser } from "@stackframe/stack";
+import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { ProjectSwitcher } from "@/components/project-switcher";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Typography from "@/components/ui/typography";
-import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
-import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
-import { Link } from "@/components/link";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }
 

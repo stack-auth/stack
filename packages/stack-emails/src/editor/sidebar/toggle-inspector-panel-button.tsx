@@ -1,6 +1,6 @@
-import { toggleInspectorDrawerOpen, useInspectorDrawerOpen } from '../documents/editor/editor-context';
-import { Button } from '../../components/ui/button';
+import { Button } from '@stackframe/stack-ui';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { toggleInspectorDrawerOpen, useInspectorDrawerOpen } from '../documents/editor/editor-context';
 
 export default function ToggleInspectorPanelButton() {
   const inspectorDrawerOpen = useInspectorDrawerOpen();

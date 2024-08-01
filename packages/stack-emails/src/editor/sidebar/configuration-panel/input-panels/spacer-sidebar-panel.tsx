@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { MoveVertical } from 'lucide-react';
+import { useState } from 'react';
 import { SpacerProps, SpacerPropsDefaults, SpacerPropsSchema } from '../../../blocks/block-spacer';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import SliderInput from './helpers/inputs/slider-input';
-import { MoveVertical } from 'lucide-react';
 
 type SpacerSidebarPanelProps = {
   data: SpacerProps,

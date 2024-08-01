@@ -1,7 +1,7 @@
 "use client";
 
-import { Spinner } from "@/components/ui/spinner";
 import * as Sentry from "@sentry/nextjs";
+import { Spinner } from "@stackframe/stack-ui";
 import Error from "next/error";
 import { useEffect } from "react";
 

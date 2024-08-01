@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import { ImageProps, ImagePropsSchema } from '../../../blocks/block-image';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextDimensionInput from './helpers/inputs/text-dimension-input';

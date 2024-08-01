@@ -1,6 +1,6 @@
 "use client";
 
-import ErrorPage from "@/components/ui/error-page";
+import ErrorPage from "@/components/error-page";
 import { Link } from "@/components/link";
 
 export default function NotFound() {

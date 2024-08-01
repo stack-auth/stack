@@ -1,9 +1,8 @@
 'use client';
-import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
-import { useFromNow } from '@/hooks/use-from-now';
 import { useRouter } from "@/components/router";
-import Typography from './ui/typography';
+import { useFromNow } from '@/hooks/use-from-now';
 import { AdminProject } from '@stackframe/stack';
+import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
 
 export function ProjectCard({ project }: { project: AdminProject }) {
   const createdAt = useFromNow(project.createdAt);

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import ImportJsonDialog from './import-json-dialog';
-import { Button } from '../../../components/ui/button';
+import { Button } from '@stackframe/stack-ui';
 import { Upload } from 'lucide-react';
+import { useState } from 'react';
+import ImportJsonDialog from './import-json-dialog';
 
 export default function ImportJson() {
   const [open, setOpen] = useState(false);

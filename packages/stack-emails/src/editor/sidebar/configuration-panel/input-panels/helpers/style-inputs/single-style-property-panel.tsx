@@ -1,4 +1,4 @@
-import React from 'react';
+import { Square } from 'lucide-react';
 import { TStyle } from '../../../../../documents/blocks/helpers/t-style';
 import { NullableColorInput } from '../inputs/color-input';
 import { NullableFontFamily } from '../inputs/font-family';
@@ -7,7 +7,6 @@ import FontWeightInput from '../inputs/font-weight-input';
 import PaddingInput from '../inputs/padding-input';
 import SliderInput from '../inputs/slider-input';
 import TextAlignInput from '../inputs/text-align-input';
-import { Square } from 'lucide-react';
 
 type StylePropertyPanelProps = {
   name: keyof TStyle,
