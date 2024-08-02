@@ -70,7 +70,12 @@ Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) 
 
 ## 🌱 Some community projects built with Stack
 
+Have your own? Happy to feature it if you create a PR or message us on [Discord](https://discord.stack-auth.com).
+
+### Templates
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
+
+### Examples
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
 
 ## 🏗️ Development & Contribution
