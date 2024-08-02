@@ -28,6 +28,8 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [✨ Features](#-features)
 - [📦 Installation & Setup](#-installation--setup)
 - [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
+  - [Templates](#templates)
+  - [Examples](#examples)
 - [🏗️ Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
