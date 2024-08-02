@@ -32,7 +32,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
-- [Contributors](#contributors)
+- [❤️ Contributors](#-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
