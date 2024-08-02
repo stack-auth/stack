@@ -21,8 +21,20 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 ## Table of contents
 
-<!-- START doctoc -->
-<!-- END doctoc -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [How is this different from `X`?](#how-is-this-different-from-x)
+- [✨ Features](#-features)
+- [📦 Installation & Setup](#-installation--setup)
+- [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
+- [🏗️ Development & Contribution](#-development--contribution)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Database migrations](#database-migrations)
+- [Contributors](#contributors)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## How is this different from `X`?
 
