@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+
 ## 2.5.14
 
 ## 2.5.13

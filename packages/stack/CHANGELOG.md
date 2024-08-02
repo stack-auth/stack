@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.15
+  - @stackframe/stack-sc@2.5.15
+  - @stackframe/stack-ui@2.5.15
+
 ## 2.5.14
 
 ### Patch Changes
