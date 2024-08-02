@@ -21,20 +21,8 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 ## Table of contents
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [How is this different from `X`?](#how-is-this-different-from-x)
-- [Features](#features)
-- [Installation & Setup](#installation--setup)
-- [Some community projects built with Stack](#some-community-projects-built-with-stack)
-- [Development & Contribution](#development--contribution)
-  - [Requirements](#requirements)
-  - [Setup](#setup)
-  - [Database migrations](#database-migrations)
-- [Contributors](#contributors)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- START doctoc -->
+<!-- END doctoc -->
 
 ## How is this different from `X`?
 
@@ -46,7 +34,7 @@ Ask yourself about `X`:
 
 If you answered "no" to any of these questions, then that's how Stack Auth is different from `X`.
 
-## Features
+## ✨ Features
 
 | | |
 |-|:-:|
@@ -64,16 +52,16 @@ If you answered "no" to any of these questions, then that's how Stack Auth is di
 | <h3>M2M authentication</h3> Use short-lived access tokens to authenticate your machines to other machines. | <img src=".github/assets/m2m-auth.png" alt="M2M authentication" height="250"> |
 
 
-## Installation & Setup
+## 📦 Installation & Setup
 
 Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) on how to set up Stack Auth in your Next.js project.
 
-## Some community projects built with Stack
+## 🌱 Some community projects built with Stack
 
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
 
-## Development & Contribution
+## 🏗️ Development & Contribution
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
 
