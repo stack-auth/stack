@@ -4,5 +4,7 @@ jobs:
   generateTOC:
     name: TOC Generator
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: technote-space/toc-generator@v4
