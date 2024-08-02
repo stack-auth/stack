@@ -36,7 +36,7 @@ export const POST = createSmartRouteHandler({
     await teamInvitationCodeHandler.sendCode({
       project: auth.project,
       data: {
-        user_id: auth.user.id,
+        team_id: body.team_id,
       },
       method: {
         email: body.email,

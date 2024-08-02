@@ -5,6 +5,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
 
 export const teamInvitationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -21,7 +22,9 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
   },
   userRequired: true,
   type: VerificationCodeType.TEAM_INVITATION,
-  data: yupObject({}).required(),
+  data: yupObject({
+    team_id: yupString().required(),
+  }).required(),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
@@ -37,7 +40,13 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       },
     });
   },
-  async handler(project, { email }, data, body, user) {
+  async handler(project, {}, data, body, user) {
+    await teamMembershipsCrudHandlers.adminCreate({
+      project,
+      team_id: data.team_id,
+      user_id: user.id,
+      data: {},
+    });
 
     return {
       statusCode: 200,
