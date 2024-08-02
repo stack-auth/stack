@@ -8,9 +8,10 @@ import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { VerificationCodeType } from "@prisma/client";
-import { SmartRequest } from "./smart-request";
+import { SmartRequest, SmartRequestAuth } from "./smart-request";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 type Method = {
   email: string,
@@ -45,6 +46,7 @@ export function createVerificationCodeHandler<
   RequestBody extends {} & DeepPartial<SmartRequest["body"]>,
   Response extends SmartResponse,
   SendCodeExtraOptions extends {},
+  UserRequired extends boolean,
 >(options: {
   metadata?: {
     post?: SmartRouteHandlerOverloadMetadata,
@@ -52,6 +54,7 @@ export function createVerificationCodeHandler<
   },
   type: VerificationCodeType,
   data: yup.Schema<Data>,
+  userRequired?: UserRequired,
   requestBody?: yup.ObjectSchema<RequestBody>,
   response: yup.Schema<Response>,
   send: (
@@ -59,13 +62,14 @@ export function createVerificationCodeHandler<
     createOptions: CreateCodeOptions<Data>,
     sendOptions: SendCodeExtraOptions,
   ) => Promise<void>,
-  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody): Promise<Response>,
+  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody, user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined): Promise<Response>,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions> {
   const createHandler = (verifyOnly: boolean) => createSmartRouteHandler({
     metadata: verifyOnly ? options.metadata?.check : options.metadata?.post,
     request: yupObject({
       auth: yupObject({
         project: adaptSchema.required(),
+        user: options.userRequired ? adaptSchema.required() : adaptSchema,
       }).required(),
       body: yupObject({
         code: yupString().required(),
@@ -119,7 +123,7 @@ export function createVerificationCodeHandler<
           },
         });
 
-        return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any);
+        return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any);
       }
     },
   });

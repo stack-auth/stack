@@ -365,6 +365,7 @@ model VerificationCode {
 enum VerificationCodeType {
   ONE_TIME_PASSWORD
   CONTACT_CHANNEL_VERIFICATION
+  TEAM_INVITATION
 }
 
 // @deprecated
