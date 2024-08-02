@@ -19,6 +19,11 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 <img alt="Stack Setup" src=".github/assets/create-project.gif" height="328" width="400" />
 </div>
 
+## Table of contents
+
+<!-- START doctoc -->
+<!-- END doctoc -->
+
 ## How is this different from `X`?
 
 Ask yourself about `X`:
