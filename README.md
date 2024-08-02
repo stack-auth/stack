@@ -23,7 +23,6 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
 
 - [How is this different from `X`?](#how-is-this-different-from-x)
 - [✨ Features](#-features)
