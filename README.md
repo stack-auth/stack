@@ -135,7 +135,7 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
-## Contributors
+## ❤️ Contributors
 
 Thanks to the amazing community who built Stack:
 
