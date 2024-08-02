@@ -24,7 +24,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [How is this different from `X`?](#how-is-this-different-from-x)
+- [How is this different from X?](#how-is-this-different-from-x)
 - [✨ Features](#-features)
 - [📦 Installation & Setup](#-installation--setup)
 - [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
