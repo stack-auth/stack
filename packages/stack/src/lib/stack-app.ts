@@ -966,6 +966,34 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.verifyPasswordResetCode(code);
   }
 
+  async verifyTeamInvitation(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      onlyVerifyCode: true,
+      code,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok({ teamDisplayName: result.data.team_display_name });
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+  async acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      code,
+      onlyVerifyCode: false,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
   async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     return await this._interface.verifyEmail(code);
   }
@@ -2504,6 +2532,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    verifyTeamInvitation(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
+    acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
 

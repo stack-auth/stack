@@ -121,7 +121,7 @@ export function PasswordReset({
   searchParams,
   fullPage = false,
 }: {
-  searchParams?: Record<string, string>,
+  searchParams: Record<string, string>,
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
@@ -144,7 +144,7 @@ export function PasswordReset({
     </MessageCard>
   );
 
-  const code = searchParams?.code;
+  const code = searchParams.code;
   if (!code) {
     return invalidJsx;
   }

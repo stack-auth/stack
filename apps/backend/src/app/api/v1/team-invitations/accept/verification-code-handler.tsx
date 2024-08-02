@@ -6,6 +6,7 @@ import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
+import { teamsCrudHandlers } from "../../teams/crud";
 
 export const teamInvitationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -27,7 +28,10 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
   }).required(),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupObject({
+      team_display_name: yupString().required(),
+    }).required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({
@@ -41,6 +45,11 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, {}, data, body, user) {
+    const team = await teamsCrudHandlers.adminRead({
+      project,
+      team_id: data.team_id,
+    });
+
     await teamMembershipsCrudHandlers.adminCreate({
       project,
       team_id: data.team_id,
@@ -50,7 +59,10 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
 
     return {
       statusCode: 200,
-      bodyType: "success",
+      bodyType: "json",
+      body: {
+        team_display_name: team.display_name,
+      }
     };
   },
 });

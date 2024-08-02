@@ -2,7 +2,7 @@ import { ensureUserHasTeamPermission } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { teamInvitationCodeHandler } from "../verify/verification-code-handler";
+import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {

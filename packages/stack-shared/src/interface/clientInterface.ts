@@ -522,6 +522,33 @@ export class StackClientInterface {
     }
   }
 
+  async acceptTeamInvitation(options: {
+    code: string,
+    session: InternalSession,
+    onlyVerifyCode: boolean,
+  }): Promise<Result<{ team_display_name: string }, KnownErrors["VerificationCodeError"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      options.onlyVerifyCode ? "/team-invitations/verify" : "/team-invitations/accept",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code: options.code,
+        }),
+      },
+      options.session,
+      [KnownErrors.VerificationCodeError]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(await res.data.json());
+    }
+  }
+
   async signInWithCredential(
     email: string,
     password: string,
