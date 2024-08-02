@@ -19,6 +19,16 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 <img alt="Stack Setup" src=".github/assets/create-project.gif" height="328" width="400" />
 </div>
 
+## How is this different from `X`?
+
+Ask yourself about `X`:
+
+- Is `X` open-source?
+- Is `X` developer-friendly, well-documented, and lets you get started in minutes?
+- Besides authentication, does `X` also do authorization and user management (which you'll inevitably need; eg. multi-tenancy with teams/organizations, role-based access control, password authentication, user dashboard, analytics integration)?
+
+If you answered "no" to any of these questions, that's how Stack Auth is different from `X`.
+
 ## ✨ Features
 
 | | |
