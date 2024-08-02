@@ -79,6 +79,8 @@ Have your own? Happy to feature it if you create a PR or message us on [Discord]
 
 ### Examples
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
+- [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/main/examples/demo)
+- [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/main/examples/e-commerce)
 
 ## 🏗️ Development & Contribution
 
