@@ -36,7 +36,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## How is this different from `X`?
+## How is this different from X?
 
 Ask yourself about `X`:
 
