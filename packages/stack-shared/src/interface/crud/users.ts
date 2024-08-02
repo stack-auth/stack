@@ -31,6 +31,35 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable(),
   }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
+  auth_methods: fieldSchema.yupArray(fieldSchema.yupUnion(
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().equals(['password']).required(),
+      identifier: fieldSchema.yupString(),
+    }).required(),
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().equals(['otp']).required(),
+      communication_channel: fieldSchema.yupObject({
+        type: fieldSchema.yupString().equals(['email', 'phone']).required(),
+        value: fieldSchema.yupString().required(),
+      }).required(),
+    }).required(),
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().equals(['oauth']).required(),
+      provider: fieldSchema.yupObject({
+        type: fieldSchema.yupString().required(),
+        provider_user_id: fieldSchema.yupString().required(),
+      }).required(),
+    }).required(),
+  )).required(),
+  connected_accounts: fieldSchema.yupArray(fieldSchema.yupUnion(
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().equals(['oauth']).required(),
+      provider: fieldSchema.yupObject({
+        type: fieldSchema.yupString().required(),
+        provider_user_id: fieldSchema.yupString().required(),
+      }).required(),
+    }).required(),
+  )).required(),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();

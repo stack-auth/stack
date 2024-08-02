@@ -45,6 +45,8 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
       account_id: a.providerAccountId,
       email: a.email,
     })),
+    auth_methods: [],
+    connected_accounts: [],
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
   };

@@ -222,10 +222,14 @@ model ProjectUser {
   projectUserRefreshTokens         ProjectUserRefreshToken[]
   projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
   projectUserOAuthAccounts         ProjectUserOAuthAccount[]
-  projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
-  projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
-  projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
   teamMembers                      TeamMember[]
+
+  // @deprecated
+  projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
+  // @deprecated
+  projectUserPasswordResetCode     ProjectUserPasswordResetCode[]
+  // @deprecated
+  projectUserMagicLinkCode         ProjectUserMagicLinkCode[]
 
   primaryEmail         String?
   primaryEmailVerified Boolean
