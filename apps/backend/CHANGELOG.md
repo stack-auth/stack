@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.15
+  - @stackframe/stack-shared@2.5.15
+
 ## 2.5.14
 
 ### Patch Changes
