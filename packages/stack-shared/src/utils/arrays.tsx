@@ -81,3 +81,7 @@ export function shuffle<T>(arr: readonly T[]): T[] {
 export function outerProduct<T, U>(arr1: readonly T[], arr2: readonly U[]): [T, U][] {
   return arr1.flatMap((item1) => arr2.map((item2) => [item1, item2] as [T, U]));
 }
+
+export function unique<T>(arr: readonly T[]): T[] {
+  return [...new Set(arr)];
+}
