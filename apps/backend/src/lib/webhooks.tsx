@@ -22,7 +22,7 @@ async function sendWebhooks(options: {
       // TODO next-release: remove this
       console.warn("[no action required] Svix bug: 409 error when creating application. Remove this warning when Svix fixes this.");
     }
-    throw e;
+    console.warn("Error creating application in Svix", e);
   }
   await svix.message.create(options.projectId, {
     eventType: options.type,
