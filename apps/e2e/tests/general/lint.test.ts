@@ -2,10 +2,10 @@ import { exec } from "child_process";
 import { describe } from "vitest";
 import { it } from "../helpers";
 
-describe("`pnpm run typecheck`", () => {
+describe("`pnpm run lint`", () => {
   it("completes successfully", async ({ expect }) => {
     const [error, stdout, stderr] = await new Promise<[Error | null, string, string]>((resolve) => {
-      exec("pnpm run typecheck", (error, stdout, stderr) => {
+      exec("pnpm run lint", (error, stdout, stderr) => {
         resolve([error, stdout, stderr]);
       });
     });
