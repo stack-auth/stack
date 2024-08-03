@@ -16,7 +16,7 @@ async function sendWebhooks(options: {
 
   try {
     await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
-  } catch (e) {
+  } catch (e: any) {
     if (e.message.includes("409")) {
       // This is a Svix bug; they are working on fixing it
       // TODO next-release: remove this
