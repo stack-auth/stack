@@ -32,13 +32,19 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     }).required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+    const team = await teamsCrudHandlers.adminRead({
+      project: createOptions.project,
+      team_id: createOptions.data.team_id,
+    });
+
     await sendEmailFromTemplate({
       project: createOptions.project,
       user: sendOptions.user,
       email: createOptions.method.email,
-      templateType: "email_verification",
+      templateType: "team_invitation",
       extraVariables: {
-        emailVerificationLink: codeObj.link.toString(),
+        teamInvitationLink: codeObj.link.toString(),
+        teamDisplayName: team.display_name,
       },
     });
   },

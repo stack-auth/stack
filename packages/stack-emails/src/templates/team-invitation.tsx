@@ -62,7 +62,7 @@ export const teamInvitationTemplate: TEditorConfiguration = {
         "fullWidth": false,
         "size": "medium",
         "text": "Join team",
-        "url": "{{ emailVerificationLink }}"
+        "url": "{{ teamInvitationLink }}"
       }
     }
   },
