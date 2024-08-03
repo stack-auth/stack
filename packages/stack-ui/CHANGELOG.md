@@ -1,5 +1,11 @@
 # @stackframe/stack-ui
 
+## 2.5.16
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.5.16
+
 ## 2.5.15
 
 ### Patch Changes
