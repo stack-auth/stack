@@ -538,10 +538,11 @@ export class StackClientInterface {
   async sendTeamInvitation(options: {
     email: string,
     teamId: string,
+    callbackUrl: string,
     session: InternalSession | null,
   }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      "/team-invitations/send",
+      "/team-invitations/send-code",
       {
         method: "POST",
         headers: {
@@ -550,6 +551,7 @@ export class StackClientInterface {
         body: JSON.stringify({
           email: options.email,
           team_id: options.teamId,
+          callback_url: options.callbackUrl,
         }),
       },
       options.session,

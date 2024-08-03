@@ -69,6 +69,7 @@ export type HandlerUrls = {
   oauthCallback: string,
   magicLinkCallback: string,
   accountSettings: string,
+  teamInvitation: string,
   error: string,
 }
 
@@ -100,6 +101,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     home: home,
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
+    teamInvitation: `${handler}/team-invitation`,
     ...filterUndefined(partial),
   };
 }
@@ -696,7 +698,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: crud.profile_image_url,
 
       async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({ teamId: crud.id, email: options.email, session: app._getSession() });
+        return await app._interface.sendTeamInvitation({
+          teamId: crud.id,
+          email: options.email,
+          session: app._getSession(),
+          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+        });
       }
     };
   }
@@ -949,6 +956,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignOut(options?: RedirectToOptions) { return await this._redirectToHandler("afterSignOut", options); }
   async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
+  async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -1540,6 +1548,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           teamId: crud.id,
           email: options.email,
           session: null,
+          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
         });
       },
     };

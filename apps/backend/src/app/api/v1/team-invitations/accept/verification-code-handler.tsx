@@ -1,11 +1,9 @@
-import * as yup from "yup";
-import { prismaClient } from "@/prisma-client";
+import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
-import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
 import { teamsCrudHandlers } from "../../teams/crud";
 
 export const teamInvitationCodeHandler = createVerificationCodeHandler({

@@ -460,6 +460,7 @@ enum EmailTemplateType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
   MAGIC_LINK
+  TEAM_INVITATION
 }
 
 model EmailTemplate {
