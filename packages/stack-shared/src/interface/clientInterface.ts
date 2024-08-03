@@ -535,6 +535,34 @@ export class StackClientInterface {
     }
   }
 
+  async sendTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    session: InternalSession | null,
+  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/team-invitations/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+        }),
+      },
+      options.session,
+      [KnownErrors.TeamPermissionRequired]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
+    }
+  }
+
   async acceptTeamInvitation(options: {
     code: string,
     session: InternalSession,
@@ -813,7 +841,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/team-permissions?team_id=${options.teamId}?user_id=me&recursive=${options.recursive}`,
+      `/team-permissions?team_id=${options.teamId}&user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );

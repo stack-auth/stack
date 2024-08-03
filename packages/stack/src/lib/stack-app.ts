@@ -689,10 +689,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read']): Team {
+    const app = this;
     return {
       id: crud.id,
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
+
+      async inviteUser(options: { email: string }) {
+        return await app._interface.sendTeamInvitation({ teamId: crud.id, email: options.email, session: app._getSession() });
+      }
     };
   }
 
@@ -1301,7 +1306,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, string, boolean],
     TeamPermissionsCrud['Server']['Read'][]
   >(async ([teamId, userId, recursive]) => {
-    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
+    return await this._interface.listServerTeamPermissions({ teamId, userId, recursive }, null);
   });
   private readonly _serverUserOAuthConnectionAccessTokensCache = createCache<[string, string, string], { accessToken: string } | null>(
     async ([userId, providerId, scope]) => {
@@ -1529,6 +1534,13 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           userId,
         });
         await app._serverTeamUsersCache.refresh([crud.id]);
+      },
+      async inviteUser(options: { email: string }) {
+        return await app._interface.sendTeamInvitation({
+          teamId: crud.id,
+          email: options.email,
+          session: null,
+        });
       },
     };
   }
@@ -2415,6 +2427,8 @@ export type Team = {
   id: string,
   displayName: string,
   profileImageUrl: string | null,
+
+  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
 };
 
 export type TeamCreateOptions = {
@@ -2438,6 +2452,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
+  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 
