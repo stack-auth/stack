@@ -190,6 +190,10 @@ export const profileImageUrlSchema = yupString().meta({ openapiField: { descript
 export const signedUpAtMillisSchema = yupNumber().meta({ openapiField: { description: _signedUpAtMillisDescription, exampleValue: 1630000000000 } });
 export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
+export const userOAuthProviderSchema = yupObject({
+  type: yupString().required(),
+  provider_user_id: yupString().required(),
+});
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });

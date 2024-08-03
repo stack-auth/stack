@@ -51,21 +51,15 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
     }).required(),
     fieldSchema.yupObject({
       type: fieldSchema.yupString().oneOf(['oauth']).required(),
-      provider: fieldSchema.yupObject({
-        type: fieldSchema.yupString().required(),
-        provider_user_id: fieldSchema.yupString().required(),
-      }).required(),
+      provider: fieldSchema.userOAuthProviderSchema.required(),
     }).required(),
-  )).required(),
+  )).required().meta({ openapiField: { description: 'A list of authentication methods available for this user to sign in with', exampleValue: [ { "contact_channel": { "email": "john.doe@gmail.com", "type": "email", }, "type": "otp", } ] } }),
   connected_accounts: fieldSchema.yupArray(fieldSchema.yupUnion(
     fieldSchema.yupObject({
       type: fieldSchema.yupString().oneOf(['oauth']).required(),
-      provider: fieldSchema.yupObject({
-        type: fieldSchema.yupString().required(),
-        provider_user_id: fieldSchema.yupString().required(),
-      }).required(),
+      provider: fieldSchema.userOAuthProviderSchema.required(),
     }).required(),
-  )).required(),
+  )).required().meta({ openapiField: { description: 'A list of connected accounts to this user', exampleValue: [ { "provider": { "provider_user_id": "12345", "type": "google", }, "type": "oauth", } ] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();
