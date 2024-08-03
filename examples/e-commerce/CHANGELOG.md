@@ -1,5 +1,19 @@
 # @stackframe/e-commerce-demo
 
+## 2.5.16
+
+### Patch Changes
+
+- @stackframe/stack@2.5.16
+
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack@2.5.15
+
 ## 2.5.14
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { findLastIndex } from "./arrays";
+import { findLastIndex, unique } from "./arrays";
 import { StackAssertionError } from "./errors";
 import { filterUndefined } from "./objects";
 
@@ -301,7 +301,14 @@ function nicifyPropertyString(str: string) {
 }
 
 function getNicifiableKeys(value: Nicifiable | object) {
-  return ("getNicifiableKeys" in value ? value.getNicifiableKeys?.bind(value) : null)?.() ?? Object.keys(value).sort();
+  const overridden = ("getNicifiableKeys" in value ? value.getNicifiableKeys?.bind(value) : null)?.();
+  if (overridden != null) return overridden;
+  const keys = Object.keys(value).sort();
+  if (value instanceof Error) {
+    if (value.cause) keys.unshift("cause");
+    keys.unshift("message", "stack");
+  }
+  return unique(keys);
 }
 
 function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {

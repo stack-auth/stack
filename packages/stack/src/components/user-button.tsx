@@ -14,12 +14,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
-    <DropdownMenuItem
-      onClick={() => runAsynchronouslyWithAlert(props.onClick)}
-      className="flex gap-2 items-center"
-    >
-      {props.icon}
-      <Typography>{props.text}</Typography>
+    <DropdownMenuItem onClick={() => runAsynchronouslyWithAlert(props.onClick)}>
+      <div className="flex gap-2 items-center">
+        {props.icon}
+        <Typography>{props.text}</Typography>
+      </div>
     </DropdownMenuItem>
   );
 }
