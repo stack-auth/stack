@@ -82,7 +82,7 @@ function EditPermissionDialog(props: {
       const promises = permissions.map(p => {
         if (values.permissions.includes(p.id)) {
           return props.user.grantPermission(props.team, p.id);
-        } else {
+        } else if (props.user.permissions.includes(p.id)) {
           return props.user.revokePermission(props.team, p.id);
         }
       });
