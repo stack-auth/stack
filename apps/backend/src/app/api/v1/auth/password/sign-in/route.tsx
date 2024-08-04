@@ -1,8 +1,8 @@
-import { createAuthTokens, generateAccessToken } from "@/lib/tokens";
+import { createAuthTokens } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 

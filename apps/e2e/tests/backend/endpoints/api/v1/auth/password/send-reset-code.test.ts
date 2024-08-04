@@ -1,5 +1,5 @@
 import { it, localRedirectUrl } from "../../../../../../helpers";
-import { backendContext, Auth, niceBackendFetch } from "../../../../../backend-helpers";
+import { Auth, backendContext, niceBackendFetch } from "../../../../../backend-helpers";
 
 it("should send a password reset code per e-mail", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
@@ -16,7 +16,7 @@ it("should send a password reset code per e-mail", async ({ expect }) => {
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
-      "body": { "success": true },
+      "body": { "success": "maybe, only if user with e-mail exists" },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -38,7 +38,7 @@ it("should send a password reset code per e-mail", async ({ expect }) => {
   `);
 });
 
-it("should not send a password reset code to an e-mail that hasn't signed up", async ({ expect }) => {
+it("should not send a password reset code to an e-mail that hasn't signed up, but should return 200 regardless", async ({ expect }) => {
   const mailbox = backendContext.value.mailbox;
   const response = await niceBackendFetch("/api/v1/auth/password/send-reset-code", {
     method: "POST",
@@ -50,15 +50,9 @@ it("should not send a password reset code to an e-mail that hasn't signed up", a
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
-      "body": {
-        "code": "EMAIL_NOT_ASSOCIATED_WITH_USER",
-        "error": "The e-mail is not associated with a user that could log in with that e-mail.",
-      },
-      "headers": Headers {
-        "x-stack-known-error": "EMAIL_NOT_ASSOCIATED_WITH_USER",
-        <some fields may have been hidden>,
-      },
+      "status": 200,
+      "body": { "success": "maybe, only if user with e-mail exists" },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
   expect(await backendContext.value.mailbox.fetchMessages({ noBody: true })).toMatchInlineSnapshot(`[]`);
@@ -79,7 +73,7 @@ it("should send a password reset code even if the user signed up with magic link
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
-      "body": { "success": true },
+      "body": { "success": "maybe, only if user with e-mail exists" },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

@@ -1,13 +1,11 @@
 "use client";
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingSwitch } from "@/components/settings";
-import Typography from "@/components/ui/typography";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { PermissionListField } from "@/components/permission-field";
+import { SettingCard, SettingSwitch } from "@/components/settings";
+import { Badge, Button, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 function CreateDialog(props: {
   trigger: React.ReactNode,

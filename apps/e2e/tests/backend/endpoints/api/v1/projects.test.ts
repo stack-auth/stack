@@ -132,7 +132,7 @@ it("updates the project domains configuration", async ({ expect }) => {
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       domains: [{
-        domain: 'https://domain.com',
+        domain: 'https://trusted-domain.stack-test.example.com',
         handler_path: '/handler'
       }]
     },
@@ -147,7 +147,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "credential_enabled": true,
           "domains": [
             {
-              "domain": "https://domain.com",
+              "domain": "https://trusted-domain.stack-test.example.com",
               "handler_path": "/handler",
             },
           ],
@@ -174,11 +174,11 @@ it("updates the project domains configuration", async ({ expect }) => {
     config: {
       domains: [
         {
-          domain: 'https://domain2.com',
+          domain: 'https://trusted-domain2.stack-test.example.com',
           handler_path: '/handler'
         },
         {
-          domain: 'https://domain3.com',
+          domain: 'https://trusted-domain3.stack-test.example.com',
           handler_path: '/handler2'
         }
       ]
@@ -194,11 +194,11 @@ it("updates the project domains configuration", async ({ expect }) => {
           "credential_enabled": true,
           "domains": [
             {
-              "domain": "https://domain2.com",
+              "domain": "https://trusted-domain2.stack-test.example.com",
               "handler_path": "/handler",
             },
             {
-              "domain": "https://domain3.com",
+              "domain": "https://trusted-domain3.stack-test.example.com",
               "handler_path": "/handler2",
             },
           ],

@@ -1,6 +1,5 @@
+import { Label, ToggleGroup, ToggleGroupItem } from "@stackframe/stack-ui";
 import React from "react";
-import { Label } from "../../../../../../components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "../../../../../../components/ui/toggle-group";
 
 export function SingleToggleGroup(props: {
   label: React.ReactNode,

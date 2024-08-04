@@ -1,13 +1,12 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerTeam, ServerUser } from '@stackframe/stack';
+import { ActionDialog, SimpleTooltip } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
-import { ActionDialog } from "../action-dialog";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
-import { SimpleTooltip } from "../simple-tooltip";
 import { ActionCell, BadgeCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
@@ -83,7 +82,7 @@ function EditPermissionDialog(props: {
       const promises = permissions.map(p => {
         if (values.permissions.includes(p.id)) {
           return props.user.grantPermission(props.team, p.id);
-        } else {
+        } else if (props.user.permissions.includes(p.id)) {
           return props.user.revokePermission(props.team, p.id);
         }
       });
@@ -118,14 +117,18 @@ function Actions(
         onSubmit={() => setUpdateCounter(c => c + 1)}
       />
       <ActionCell
-        items={[{
-          item: "Edit permissions",
-          onClick: () => setIsEditModalOpen(true),
-        }]}
-        dangerItems={[{
-          item: "Remove from team",
-          onClick: () => setIsRemoveModalOpen(true),
-        }]}
+        items={[
+          {
+            item: "Edit permissions",
+            onClick: () => setIsEditModalOpen(true),
+          },
+          '-',
+          {
+            item: "Remove from team",
+            danger: true,
+            onClick: () => setIsRemoveModalOpen(true),
+          }
+        ]}
       />
     </>
   );

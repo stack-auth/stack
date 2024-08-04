@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FONT_FAMILIES } from '../../../../../documents/blocks/helpers/font-family';
 
 import {
+  Label,
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
-  SelectValue,
-} from "../../../../../../components/ui/select";
-import { Label } from '../../../../../../components/ui/label';
+  SelectValue
+} from "@stackframe/stack-ui";
 
 const OPTIONS = FONT_FAMILIES.map((option) => (
   <SelectItem key={option.key} value={option.key} style={{ fontFamily: option.value }}>

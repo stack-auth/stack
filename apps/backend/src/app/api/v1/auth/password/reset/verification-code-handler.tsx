@@ -23,7 +23,7 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
       tags: ["Password"],
     },
   },
-  type: VerificationCodeType.ONE_TIME_PASSWORD,
+  type: VerificationCodeType.PASSWORD_RESET,
   data: yupObject({
     user_id: yupString().required(),
   }),

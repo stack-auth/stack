@@ -1,5 +1,68 @@
 # demo-app
 
+## 2.5.16
+
+### Patch Changes
+
+- @stackframe/stack@2.5.16
+- @stackframe/stack-shared@2.5.16
+- @stackframe/stack-ui@2.5.16
+
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.15
+  - @stackframe/stack-ui@2.5.15
+  - @stackframe/stack@2.5.15
+
+## 2.5.14
+
+### Patch Changes
+
+- added oauth token table
+  - @stackframe/stack@2.5.14
+  - @stackframe/stack-shared@2.5.14
+  - @stackframe/stack-ui@2.5.14
+
+## 2.5.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.13
+  - @stackframe/stack@2.5.13
+  - @stackframe/stack-ui@2.5.13
+
+## 2.5.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.12
+  - @stackframe/stack@2.5.12
+  - @stackframe/stack-ui@2.5.12
+
+## 2.5.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.11
+  - @stackframe/stack-shared@2.5.11
+  - @stackframe/stack-ui@2.5.11
+
+## 2.5.10
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.10
+  - @stackframe/stack@2.5.10
+  - @stackframe/stack-ui@2.5.10
+
 ## 2.5.9
 
 ### Patch Changes

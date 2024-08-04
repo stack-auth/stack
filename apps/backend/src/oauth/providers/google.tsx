@@ -1,7 +1,6 @@
-import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class GoogleProvider extends OAuthBaseProvider {
   private constructor(
@@ -26,14 +25,12 @@ export class GoogleProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const rawUserInfo = await this.oauthClient.userinfo(tokenSet);
+    const rawUserInfo = await this.oauthClient.userinfo(tokenSet.accessToken);
     return validateUserInfo({
       accountId: rawUserInfo.sub,
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
       profileImageUrl: rawUserInfo.picture,
-      accessToken: tokenSet.access_token,
-      refreshToken: tokenSet.refresh_token,
     });
   }
 }

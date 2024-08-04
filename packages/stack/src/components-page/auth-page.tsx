@@ -16,10 +16,12 @@ import { useEffect } from 'react';
 export function AuthPage({
   fullPage=false,
   type,
+  automaticRedirect,
   mockProject,
 }: {
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
+  automaticRedirect?: boolean,
   mockProject?: {
     config: {
       credentialEnabled: boolean,
@@ -36,10 +38,12 @@ export function AuthPage({
   const project = mockProject || projectFromHook;
 
   useEffect(() => {
-    if (user && !mockProject) {
-      runAsynchronously(type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
+    if (automaticRedirect) {
+      if (user && !mockProject) {
+        runAsynchronously(type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
+      }
     }
-  }, [user, mockProject, stackApp]);
+  }, [user, mockProject, stackApp, automaticRedirect]);
 
   if (user && !mockProject) {
     return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
@@ -68,7 +72,7 @@ export function AuthPage({
             <Typography>
               {"Already have an account? "}
               <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
-                runAsynchronously(stackApp.redirectToSignUp());
+                runAsynchronously(stackApp.redirectToSignIn());
                 e.preventDefault();
               }}>
                 Sign in

@@ -1,6 +1,6 @@
 import { StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { constructRedirectUrl } from "../utils/url";
 import { getVerifierAndState, saveVerifierAndState } from "./cookie";
@@ -64,6 +64,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
     if (!originalUrl.searchParams.has(param)) {
+      captureError("consumeOAuthCallbackQueryParams", new Error(`Missing required query parameter on OAuth callback: ${param}`));
       return null;
     }
   }
@@ -71,6 +72,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   if (expectedState !== originalUrl.searchParams.get("state")) {
     // If the state doesn't match, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
+    captureError("consumeOAuthCallbackQueryParams", new Error(`Invalid OAuth callback state: Was this meant for someone else, or did cookies fail?`));
     return null;
   }
 

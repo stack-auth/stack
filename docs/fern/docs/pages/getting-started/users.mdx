@@ -3,7 +3,7 @@ slug: getting-started/users
 subtitle: Reading and writing user information, and protecting pages
 ---
 
-In [the last guide](./setup.mdx), we initialized Stack. This created new files containing a `StackServerApp` and `StackProvider`. In this section, we will show you how to utilize those for accessing and modifying the current user information on Server Components and Client Components, respectively.
+You will inevitably build custom components that access the user in one way or another. In this section, we will take a closer look at the functions and hooks that let you do this.
 
 ## Client Component basics
 
@@ -59,13 +59,18 @@ Middleware can be used whenever it is easy to tell whether a page should be prot
   <Tab title="Middleware">
     ```tsx title="middleware.tsx"
     export async function middleware(request: NextRequest) {
-      // You can add your own route protection logic here
       const user = await stackServerApp.getUser();
       if (!user) {
         return NextResponse.redirect(new URL('/handler/sign-in', request.url));
       }
       return NextResponse.next();
     }
+
+    export const config = {
+      // You can add your own route protection logic here
+      // Make sure not to protect the root URL, as it would prevent users from accessing static Next.js files or Stack's /handler path
+      matcher: '/protected/:path*',
+    };
     ```
   </Tab>
 
@@ -161,7 +166,7 @@ console.log(user.serverMetadata);
 
 ## Signing out
 
-You can sign out the user by redirecting them to `/handler/sign-out` or simply by calling `user.signOut()`. They will be redirected to the URL [configured as `afterSignOut` in the `StackServerApp`](/docs/api-documentation/app).
+You can sign out the user by redirecting them to `/handler/sign-out` or simply by calling `user.signOut()`. They will be redirected to the URL [configured as `afterSignOut` in the `StackServerApp`](/sdk/stack-app).
 
 <Tabs>
   <Tab title="user.signOut()">

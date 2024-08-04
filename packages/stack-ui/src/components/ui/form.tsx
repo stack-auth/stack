@@ -1,6 +1,8 @@
-import React from "react";
+'use client';
+
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
+import React from "react";
 import {
   Controller,
   ControllerProps,
@@ -10,9 +12,9 @@ import {
   useFormContext,
 } from "react-hook-form";
 
-import { cn } from "../../lib/utils";
-import { Label, SpanLabel } from "./label";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { cn } from "../../lib/utils";
+import { SpanLabel } from "./label";
 
 const Form = FormProvider;
 
@@ -164,12 +166,7 @@ const FormMessage = React.forwardRef<
 FormMessage.displayName = "FormMessage";
 
 export {
-  useFormField,
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
+  Form, FormControl,
+  FormDescription, FormField, FormItem,
+  FormLabel, FormMessage, useFormField
 };

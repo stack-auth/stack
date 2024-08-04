@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input";
+import { Input } from "@stackframe/stack-ui";
 import { Table } from "@tanstack/react-table";
 
 export function SearchToolbarItem<TData>(props: { table: Table<TData>, keyName: string, placeholder: string }) {

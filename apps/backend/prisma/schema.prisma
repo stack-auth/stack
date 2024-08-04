@@ -250,9 +250,10 @@ model ProjectUserOAuthAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
-  projectUser    ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  oauthTokens    OAuthToken[]
+  providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
+  projectUser      ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  oauthTokens      OAuthToken[]
+  oauthAccessToken OAuthAccessToken[]
 
   email String?
 
@@ -273,6 +274,23 @@ model OAuthToken {
 
   refreshToken String
   scopes       String[]
+}
+
+model OAuthAccessToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  projectId             String
+  oAuthProviderConfigId String
+  providerAccountId     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oAuthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId], onDelete: Cascade)
+
+  accessToken String
+  scopes      String[]
+  expiresAt   DateTime
 }
 
 model OAuthOuterInfo {
@@ -346,6 +364,7 @@ model VerificationCode {
 
 enum VerificationCodeType {
   ONE_TIME_PASSWORD
+  PASSWORD_RESET
   CONTACT_CHANNEL_VERIFICATION
 }
 
@@ -517,6 +536,7 @@ enum ProxiedOAuthProviderType {
   FACEBOOK
   GOOGLE
   MICROSOFT
+  SPOTIFY
 }
 
 model StandardOAuthProviderConfig {

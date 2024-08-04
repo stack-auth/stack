@@ -1,16 +1,8 @@
 "use client";
-import { Control, FieldValues, Path } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "./ui/calendar";
-import { CalendarIcon } from "@radix-ui/react-icons";
-import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Textarea } from "./ui/textarea";
+import { Button, Calendar, Checkbox, FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, Switch, Textarea } from "@stackframe/stack-ui";
+import { CalendarIcon } from "lucide-react";
+import { Control, FieldValues, Path } from "react-hook-form";
 
 
 export function FieldLabel(props: {

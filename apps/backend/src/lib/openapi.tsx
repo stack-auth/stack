@@ -1,5 +1,7 @@
 import { SmartRouteHandler } from '@/route-handlers/smart-route-handler';
 import { CrudlOperation, EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
+import { WebhookEvent } from '@stackframe/stack-shared/dist/interface/webhooks';
+import { yupNumber, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { StackAssertionError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
 import { typedEntries, typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
@@ -34,6 +36,37 @@ export function parseOpenAPI(options: {
         .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
         .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
     ),
+  };
+}
+
+export function parseWebhookOpenAPI(options: {
+  webhooks: readonly WebhookEvent<any>[],
+}) {
+  return {
+    openapi: '3.1.0',
+    info: {
+      title: 'Stack Webhooks API',
+      version: '1.0.0',
+    },
+    webhooks: options.webhooks.reduce((acc, webhook) => {
+      return {
+        ...acc,
+        [webhook.type]: {
+          post: {
+            ...parseOverload({
+              metadata: webhook.metadata,
+              method: 'POST',
+              path: webhook.type,
+              requestBodyDesc: undefinedIfMixed(webhook.schema.describe()) || yupObject().describe(),
+              responseTypeDesc: yupString().oneOf(['json']).describe(),
+              statusCodeDesc: yupNumber().oneOf([200]).describe(),
+            }),
+            operationId: webhook.type,
+            summary: webhook.type,
+          }
+        },
+      };
+    }, {}),
   };
 }
 

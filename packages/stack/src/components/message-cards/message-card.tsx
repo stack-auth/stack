@@ -18,11 +18,11 @@ export function MessageCard(
 ) {
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div style={{ textAlign: 'center' }}>
-        <Typography type='h3' className="mb-6">{props.title}</Typography>
+      <div className="text-center stack-scope flex flex-col gap-4">
+        <Typography type='h3'>{props.title}</Typography>
         {props.children}
         {(props.primaryButtonText || props.secondaryButtonText) && (
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: 20 }}>
+          <div className="flex justify-center gap-4 my-5">
             {props.secondaryButtonText && (
               <Button variant="secondary" onClick={props.secondaryAction}>
                 {props.secondaryButtonText}

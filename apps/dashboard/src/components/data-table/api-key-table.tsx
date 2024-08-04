@@ -1,8 +1,8 @@
 'use client';
 import { ApiKey } from '@stackframe/stack';
+import { ActionDialog } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { ActionDialog } from "../action-dialog";
 import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
 import { DataTableColumnHeader } from "./elements/column-header";
 import { DataTable } from "./elements/data-table";
@@ -55,8 +55,9 @@ function Actions({ row }: { row: Row<ExtendedApiKey> }) {
       <RevokeDialog apiKey={row.original} open={isRevokeModalOpen} onOpenChange={setIsRevokeModalOpen} />
       <ActionCell
         invisible={row.original.status !== 'valid'}
-        dangerItems={[{
+        items={[{
           item: "Revoke",
+          danger: true,
           onClick: () => setIsRevokeModalOpen(true),
         }]}
       />

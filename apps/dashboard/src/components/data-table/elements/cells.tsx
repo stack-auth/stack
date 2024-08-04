@@ -1,19 +1,10 @@
 
 'use client';
-import React, { useEffect, useRef, useState } from "react";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@stackframe/stack-ui";
+import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { SimpleTooltip } from "@/components/simple-tooltip";
+import { SimpleTooltip } from "@stackframe/stack-ui";
 
 export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
   const textRef = useRef<HTMLDivElement>(null);
@@ -79,10 +70,6 @@ type ActionItem = '-' | {
 
 export function ActionCell(props: {
   items?: ActionItem[],
-  /**
-   * @deprecated use `items: [{ danger: true }]` instead
-   */
-  dangerItems?: ActionItem[],
   invisible?: boolean,
 }) {
   return (
@@ -107,16 +94,6 @@ export function ActionCell(props: {
             {item.item}
           </DropdownMenuItem>
         ))}
-        {props.items && props.dangerItems && <DropdownMenuSeparator />}
-        <div className="text-destructive">
-          {props.dangerItems?.map((item, index) => item === '-' ? (
-            <DropdownMenuSeparator key={index} />
-          ) : (
-            <DropdownMenuItem key={index} onClick={item.onClick}>
-              {item.item}
-            </DropdownMenuItem>
-          ))}
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

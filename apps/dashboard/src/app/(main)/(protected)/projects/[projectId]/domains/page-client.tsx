@@ -1,15 +1,11 @@
 "use client";
-import { ActionDialog } from "@/components/action-dialog";
 import { ActionCell } from "@/components/data-table/elements/cells";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Typography from "@/components/ui/typography";
 import { DomainConfigJson } from "@/temporary-types";
 import { AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -48,7 +44,7 @@ function EditDialog(props: {
         .filter((_, i) => props.type === 'update' && i !== props.editIndex)
         .map(({ domain }) => domain), "Domain already exists")
       .required()
-      .label("Origin (protocol + domain)")
+      .label("Origin (starts with https:// or http://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),
@@ -132,12 +128,48 @@ function DeleteDialog(props: {
       cancelButton
     >
       <Typography>
-        Do you really want to remove <b>{props.domain}</b> from the allow list ?
-      </Typography>
-      <Typography>
-        Your project will no longer be able to receive callbacks from this domain.
+        Do you really want to remove <b>{props.domain}</b> from the allow list? Your project will no longer be able to receive callbacks from this domain.
       </Typography>
     </ActionDialog>
+  );
+}
+
+function ActionMenu(props: {
+  domains: DomainConfigJson[],
+  project: AdminProject,
+  editIndex: number,
+  targetDomain: string,
+  defaultHandlerPath: string,
+}) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+
+  return (
+    <>
+      <EditDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        domains={props.domains}
+        project={props.project}
+        type="update"
+        editIndex={props.editIndex}
+        defaultDomain={props.targetDomain}
+        defaultHandlerPath={props.defaultHandlerPath}
+      />
+      <DeleteDialog
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        domain={props.targetDomain}
+        project={props.project}
+      />
+      <ActionCell
+        items={[
+          { item: "Edit", onClick: () => setIsEditModalOpen(true) },
+          '-',
+          { item: "Delete", onClick: () => setIsDeleteModalOpen(true), danger: true }
+        ]}
+      />
+    </>
   );
 }
 
@@ -145,8 +177,7 @@ export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const domains = project.config.domains;
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+
 
   return (
     <PageLayout title="Domains and Handler">
@@ -178,25 +209,12 @@ export default function PageClient() {
                     <TableCell>{domain}</TableCell>
                     <TableCell>{handlerPath}</TableCell>
                     <TableCell className="flex justify-end gap-4">
-                      <EditDialog
-                        open={isEditModalOpen}
-                        onOpenChange={setIsEditModalOpen}
+                      <ActionMenu
                         domains={domains}
                         project={project}
-                        type="update"
                         editIndex={i}
-                        defaultDomain={domain}
+                        targetDomain={domain}
                         defaultHandlerPath={handlerPath}
-                      />
-                      <DeleteDialog
-                        open={isDeleteModalOpen}
-                        onOpenChange={setIsDeleteModalOpen}
-                        domain={domain}
-                        project={project}
-                      />
-                      <ActionCell
-                        items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
-                        dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
                       />
                     </TableCell>
                   </TableRow>

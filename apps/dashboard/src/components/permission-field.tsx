@@ -1,9 +1,8 @@
 import { FieldLabel } from "@/components/form-fields";
-import { Checkbox } from "@/components/ui/checkbox";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ServerTeam, AdminTeamPermissionDefinition, ServerUser } from "@stackframe/stack";
+import { AdminTeamPermissionDefinition, ServerTeam, ServerUser } from "@stackframe/stack";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { Checkbox, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@stackframe/stack-ui";
 import { useEffect, useState } from "react";
 import { Control, FieldValues, Path } from "react-hook-form";
 
