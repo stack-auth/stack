@@ -786,7 +786,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/team-permissions?team_id=${options.teamId}?user_id=me&recursive=${options.recursive}`,
+      `/team-permissions?team_id=${options.teamId}&user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );

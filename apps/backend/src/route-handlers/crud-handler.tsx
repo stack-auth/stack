@@ -196,9 +196,7 @@ export function createCrudHandlers<
               }),
               response: yupObject({
                 statusCode: yupNumber().oneOf([crudOperation === "Create" ? 201 : 200]).required(),
-                headers: yupObject({
-                  location: yupArray(yupString().required()).default([]),
-                }),
+                headers: yupObject({}),
                 bodyType: yupString().oneOf([crudOperation === "Delete" ? "success" : "json"]).required(),
                 body: accessSchemas.output,
               }),
@@ -214,9 +212,7 @@ export function createCrudHandlers<
 
                 return {
                   statusCode: crudOperation === "Create" ? 201 : 200,
-                  headers: {
-                    location: crudOperation === "Create" ? [req.url] : [],
-                  },
+                  headers: {},
                   bodyType: crudOperation === "Delete" ? "success" : "json",
                   body: result,
                 };

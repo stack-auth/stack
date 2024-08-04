@@ -18,6 +18,10 @@ const configuration: Configuration  = {
       `http://localhost:8102/api/v1/auth/oauth/callback/${providerId}`,
     ],
   })),
+  ttl: {
+    // we make sessions short so it asks us for our login again after a minute, instead of automatically logging us in with the already-logged-in session
+    Session: 60,
+  },
 };
 
 const oidc = new Provider(`http://localhost:${port}`, configuration);

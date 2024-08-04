@@ -253,6 +253,9 @@ export function nicify(
           return `[${resValues.join(", ")}]`;
         }
       }
+      if (value instanceof URL) {
+        return `URL(${JSON.stringify(value.toString())})`;
+      }
 
       const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";

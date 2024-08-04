@@ -2,6 +2,7 @@ import { Issuer, generators, CallbackParamsType, Client, TokenSet as OIDCTokenSe
 import { OAuthUserInfo } from "../utils";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export type TokenSet = {
   accessToken: string,
@@ -111,8 +112,15 @@ export abstract class OAuthBaseProvider {
     };
     try {
       tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.error === "invalid_grant") {
+        // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
+        // to catch the case where our own client is not properly implemented, we capture the error here
+        captureError("inner-oauth-callback", error);
+        throw new KnownErrors.InvalidAuthorizationCode();
+      }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
+
     }
 
     tokenSet = processTokenSet(tokenSet);
