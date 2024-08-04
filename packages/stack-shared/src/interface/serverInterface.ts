@@ -109,7 +109,7 @@ export class StackServerInterface extends StackClientInterface {
       teamId?: string,
       recursive: boolean,
     },
-    session: InternalSession
+    session: InternalSession | null,
   ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       "/team-permissions?" + new URLSearchParams(filterUndefined({
@@ -278,22 +278,6 @@ export class StackServerInterface extends StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
     };
-  }
-
-  async listServerTeamMemberPermissions(
-    options: {
-      teamId: string,
-      userId: string,
-      recursive: boolean,
-    }
-  ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest(
-      `/team-permissions?team_id=${options.teamId}&user_id=${options.userId}&recursive=${options.recursive}`,
-      {},
-      null
-    );
-    const result = await response.json() as TeamPermissionsCrud['Server']['List'];
-    return result.items;
   }
 
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {

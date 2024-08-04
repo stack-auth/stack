@@ -3,11 +3,11 @@ import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-h
 
 async function signInAndCreateTeam() {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  backendContext.set({ mailbox: createMailbox() });
 
+  backendContext.set({ mailbox: createMailbox() });
   const { userId: userId2 } = await Auth.Otp.signIn();
-  backendContext.set({ mailbox: createMailbox() });
 
+  backendContext.set({ mailbox: createMailbox() });
   const { userId: userId3 } = await Auth.Otp.signIn();
 
   // update names of users

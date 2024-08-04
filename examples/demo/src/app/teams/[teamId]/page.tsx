@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
 import { ProfileImageUpload } from "./profile-image-upload";
+import TeamInvitation from "./team-invitation";
 
 export default async function Page({ params }: { params: { teamId: string } }) {
   const team = await stackServerApp.getTeam(params.teamId);
@@ -56,5 +57,6 @@ export default async function Page({ params }: { params: { teamId: string } }) {
     <div className="mb-10"></div>
 
     <TeamActions teamId={team.id} />
+    <TeamInvitation teamId={team.id} />
   </div>;
 }
