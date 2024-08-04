@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -74,6 +74,9 @@ jobs:
 
       - name: Wait on Inbucket
         run: npx wait-on tcp:localhost:2500
+
+      - name: Wait on Svix
+        run: npx wait-on tcp:localhost:8113
 
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
