@@ -28,7 +28,13 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["json"]).required(),
+    body: yupObject({}).required(),
+  }),
+  detailsResponse: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
     body: yupObject({
+      team_id: yupString().required(),
       team_display_name: yupString().required(),
     }).required(),
   }),
@@ -60,18 +66,22 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       },
     });
 
-    if (oldMembership) {
-      return;
+    if (!oldMembership) {
+      await teamMembershipsCrudHandlers.adminCreate({
+        project,
+        team_id: data.team_id,
+        user_id: user.id,
+        data: {},
+      });
     }
 
-    await teamMembershipsCrudHandlers.adminCreate({
-      project,
-      team_id: data.team_id,
-      user_id: user.id,
-      data: {},
-    });
+    return {
+      statusCode: 200,
+      bodyType: "json",
+      body: {}
+    };
   },
-  async getResponse(project, {}, data) {
+  async details(project, {}, data, body, user) {
     const team = await teamsCrudHandlers.adminRead({
       project,
       team_id: data.team_id,
@@ -81,8 +91,9 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
+        team_id: team.id,
         team_display_name: team.display_name,
-      }
+      },
     };
-  },
+  }
 });

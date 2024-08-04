@@ -456,4 +456,53 @@ export namespace Team {
       teamId: response.body.id,
     };
   }
+
+  export async function sendInvitation(receiveMailbox: Mailbox) {
+    const response = await niceBackendFetch("/api/v1/team-invitations/send", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: receiveMailbox.emailAddress,
+        team_id: "123",
+        callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const messages = await receiveMailbox.fetchMessages({ noBody: true });
+    const subjects = messages.map((message) => message.subject);
+    expect(subjects).toContain("You have been invited to join a team at Stack Dashboard");
+    return {
+      sendTeamInvitationResponse: response,
+    };
+  }
+
+  export async function acceptInvitation() {
+    const mailbox = backendContext.value.mailbox;
+    const messages = await mailbox.fetchMessages();
+    const message = messages.findLast((message) => message.subject === "You have been invited to join a team at Stack Dashboard") ?? throwErr("Team invitation message not found");
+    const acceptUrl = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[0] ?? throwErr("Accept URL not found");
+    const response = await niceBackendFetch("/api/v1/team-invitations/accept", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        accept_url: acceptUrl,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    return {
+      acceptTeamInvitationResponse: response,
+    };
+  }
 }
