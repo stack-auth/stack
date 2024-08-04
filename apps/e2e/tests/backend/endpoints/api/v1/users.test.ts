@@ -76,8 +76,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
@@ -104,8 +114,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
@@ -177,8 +197,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
@@ -204,8 +234,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": { "key": "value" },
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
@@ -299,8 +339,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
@@ -326,8 +376,18 @@ describe("with client access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
@@ -413,8 +473,18 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
@@ -445,8 +515,18 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
@@ -497,8 +577,18 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
@@ -540,8 +630,18 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
@@ -564,8 +664,18 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
           "auth_with_email": true,
           "client_metadata": null,
+          "connected_accounts": [],
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",

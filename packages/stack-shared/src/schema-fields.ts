@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { StackAssertionError } from "./utils/errors";
 import { allProviders } from "./utils/oauth";
 import { isUuid } from "./utils/uuids";
 
@@ -66,6 +67,30 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   return object.default(undefined) as any as typeof object;
 }
 /* eslint-enable no-restricted-syntax */
+
+export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<yup.InferType<T[number]>> {
+  if (args.length === 0) throw new Error('yupUnion must have at least one schema');
+
+  const [first] = args;
+  const firstDesc = first.describe();
+  for (const schema of args) {
+    const desc = schema.describe();
+    if (desc.type !== firstDesc.type) throw new StackAssertionError(`yupUnion must have schemas of the same type (got: ${firstDesc.type} and ${desc.type})`, { first, schema, firstDesc, desc });
+  }
+
+  return yupMixed().required().test('is-one-of', 'Invalid value', async (value, context) => {
+    const errors = [];
+    for (const schema of args) {
+      try {
+        await schema.validate(value, context.options);
+        return true;
+      } catch (e) {
+        errors.push(e);
+      }
+    }
+    throw new AggregateError(errors, 'Invalid value; must be one of the provided schemas');
+  });
+}
 
 // Common
 export const adaptSchema = yupMixed<StackAdaptSentinel>();
@@ -165,6 +190,10 @@ export const profileImageUrlSchema = yupString().meta({ openapiField: { descript
 export const signedUpAtMillisSchema = yupNumber().meta({ openapiField: { description: _signedUpAtMillisDescription, exampleValue: 1630000000000 } });
 export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
+export const userOAuthProviderSchema = yupObject({
+  type: yupString().required(),
+  provider_user_id: yupString().required(),
+});
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });

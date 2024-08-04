@@ -115,6 +115,7 @@ export namespace Auth {
       headers: expect.anything(),
       body: expect.anything(),
     });
+    return response;
   }
 
   export async function expectToBeSignedOut() {

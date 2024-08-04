@@ -17,7 +17,22 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  await Auth.expectToBeSignedIn();
+  const response = await Auth.expectToBeSignedIn();
+  expect(response.body.auth_methods).toMatchInlineSnapshot(`
+    [
+      {
+        "identifier": "<stripped UUID>@stack-generated.example.com",
+        "type": "password",
+      },
+      {
+        "contact_channel": {
+          "email": "<stripped UUID>@stack-generated.example.com",
+          "type": "email",
+        },
+        "type": "otp",
+      },
+    ]
+  `);
 });
 
 it("should not allow signing in with an e-mail that never signed up", async ({ expect }) => {

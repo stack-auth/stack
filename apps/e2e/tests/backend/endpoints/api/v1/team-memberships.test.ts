@@ -65,8 +65,18 @@ it("creates a team and manage users on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
@@ -80,8 +90,18 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
@@ -125,8 +145,18 @@ it("creates a team and manage users on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
