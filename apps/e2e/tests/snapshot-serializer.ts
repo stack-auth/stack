@@ -1,6 +1,7 @@
-import { SnapshotSerializer } from "vitest";
-import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import { SnapshotSerializer } from "vitest";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -22,11 +23,10 @@ const hideHeaders = [
   "x-frame-options",
   "content-encoding",
   "etag",
-  "location",
   "x-stack-request-id",
-];
+] as const;
 
-const stripHeaders: string[] = [];
+const stripHeaders = [] as const;
 
 const stripFields = [
   "access_token",
@@ -39,9 +39,20 @@ const stripFields = [
   "publishable_client_key",
   "secret_server_key",
   "super_secret_admin_key",
-];
+] as const;
 
-function addAll<T>(set: Set<T>, values: T[]) {
+const keyedCookieNamePrefixes = [
+  "stack-oauth-inner-",
+] as const;
+
+const stripUrlQueryParams = [
+  "redirect_uri",
+  "state",
+  "code",
+  "code_challenge",
+] as const;
+
+function addAll<T>(set: Set<T>, values: readonly T[]) {
   for (const value of values) {
     set.add(value);
   }
@@ -68,11 +79,51 @@ const snapshotSerializer: SnapshotSerializer = {
           if (newValue !== value) return nicify(newValue, options);
         }
 
+        // Strip URL query params
+        if (typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) {
+          const url = new URL(value);
+          for (const param of stripUrlQueryParams) {
+            if (url.searchParams.has(param)) {
+              url.searchParams.set(param, "<stripped-query-param>");
+            }
+          }
+          let newValue = url.toString();
+          if (value.endsWith("/") !== newValue.endsWith("/")) {
+            if (value.endsWith("/")) {
+              newValue += "/";
+            } else {
+              newValue = newValue.slice(0, -1);
+            }
+          }
+          if (newValue !== value) return nicify(newValue, options);
+        }
+
         // Strip headers
         if (options?.parent?.value instanceof Headers) {
+          if (typeof value !== "string") {
+            throw new StackAssertionError("Headers should only contain string values");
+          }
           const headerName = options.keyInParent?.toString().toLowerCase();
           if (typedIncludes(stripHeaders, headerName)) {
             return `<stripped header '${headerName}'>`;
+          }
+          if (headerName === "set-cookie") {
+            const partsStrings = value.split(";").map((part) => part.trim());
+            let cookieName = partsStrings[0].split("=")[0];
+            if (keyedCookieNamePrefixes.some((prefix) => cookieName.startsWith(prefix))) {
+              cookieName = `${keyedCookieNamePrefixes}<stripped cookie name key>`;
+            }
+            const cookieValue = partsStrings[0].split("=")[1];
+            const parts = new Map(partsStrings.map((part) => {
+              const [key, value] = part.split("=");
+              return [key, value];
+            }));
+            const expiresDate = new Date(parts.get("Expires") ?? "2002-01-01");
+            if (expiresDate.getTime() < new Date("2001-01-01").getTime()) {
+              return `<deleting cookie '${cookieName}' at path '${parts.get("Path") ?? "/"}'>`;
+            } else {
+              return `<setting cookie ${JSON.stringify(cookieName)} at path ${JSON.stringify(parts.get("Path") ?? "/")} to ${JSON.stringify(cookieValue)}>`;
+            }
           }
         }
 

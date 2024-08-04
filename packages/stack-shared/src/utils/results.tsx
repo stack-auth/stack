@@ -25,6 +25,7 @@ export type AsyncResult<T, E = unknown, P = void> =
 
 export const Result = {
   fromThrowing,
+  fromThrowingAsync,
   fromPromise: promiseToResult,
   ok<T>(data: T): Result<T, never> & { status: "ok" } {
     return {
@@ -91,6 +92,14 @@ async function promiseToResult<T>(promise: Promise<T>): Promise<Result<T>> {
 function fromThrowing<T>(fn: () => T): Result<T, unknown> {
   try {
     return Result.ok(fn());
+  } catch (error) {
+    return Result.error(error);
+  }
+}
+
+async function fromThrowingAsync<T>(fn: () => Promise<T>): Promise<Result<T, unknown>> {
+  try {
+    return Result.ok(await fn());
   } catch (error) {
     return Result.error(error);
   }

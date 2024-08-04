@@ -5,7 +5,7 @@ import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { cookies } from "next/headers";
@@ -30,13 +30,13 @@ export const GET = createSmartRouteHandler({
       type: yupString().oneOf(["authenticate", "link"]).default("authenticate"),
       token: yupString().default(""),
       provider_scope: yupString().optional(),
-      error_redirect_url: yupString().optional(),
+      error_redirect_url: urlSchema.optional(),
       after_callback_redirect_url: yupString().optional(),
 
       // oauth parameters
       client_id: yupString().required(),
       client_secret: yupString().required(),
-      redirect_uri: yupString().required(),
+      redirect_uri: urlSchema.required(),
       scope: yupString().required(),
       state: yupString().required(),
       grant_type: yupString().oneOf(["authorization_code"]).required(),
@@ -58,7 +58,7 @@ export const GET = createSmartRouteHandler({
     }
 
     if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {
-      throw new KnownErrors.ApiKeyNotFound();
+      throw new KnownErrors.InvalidPublishableClientKey(query.client_id);
     }
 
     const provider = project.config.oauth_providers.find((p) => p.id === params.provider_id);

@@ -66,13 +66,13 @@ export class StackClientInterface {
       }
     });
     const prodDashboard = await tryRequest(async () => {
-      const res = await fetch("https://app.stackframe.com/health");
+      const res = await fetch("https://app.stack-auth.com/health");
       if (!res.ok) {
         throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
       }
     });
     const prodBackend = await tryRequest(async () => {
-      const res = await fetch("https://api.stackframe.com/health");
+      const res = await fetch("https://api.stack-auth.com/health");
       if (!res.ok) {
         throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
       }
@@ -84,6 +84,35 @@ export class StackClientInterface {
       prodDashboard,
       prodBackend,
     };
+  }
+
+  protected async _networkRetry<T>(cb: () => Promise<Result<T, any>>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
+    const retriedResult = await Result.retry(
+      cb,
+      5,
+      { exponentialDelayBase: 1000 },
+    );
+
+    // try to diagnose the error for the user
+    if (retriedResult.status === "error") {
+      if (!navigator.onLine) {
+        throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
+      }
+      throw new Error(deindent`
+        Stack is unable to connect to the server. Please check your internet connection and try again.
+        
+        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
+
+        ${retriedResult.error}
+        
+        ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
+      `, { cause: retriedResult.error });
+    }
+    return retriedResult.data;
+  }
+
+  protected async _networkRetryException<T>(cb: () => Promise<T>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
+    return await this._networkRetry(async () => await Result.fromThrowingAsync(cb), session, requestType);
   }
 
   public async fetchNewAccessToken(refreshToken: RefreshToken) {
@@ -103,10 +132,12 @@ export class StackClientInterface {
       token_endpoint_auth_method: 'client_secret_post',
     };
 
-    const rawResponse = await oauth.refreshTokenGrantRequest(
-      as,
-      client,
-      refreshToken.token,
+    const rawResponse = await this._networkRetryException(
+      async () => await oauth.refreshTokenGrantRequest(
+        as,
+        client,
+        refreshToken.token,
+      )
     );
     const response = await this._processResponse(rawResponse);
 
@@ -147,29 +178,11 @@ export class StackClientInterface {
     });
 
 
-    const retriedResult = await Result.retry(
+    return await this._networkRetry(
       () => this.sendClientRequestInner(path, requestOptions, session!, requestType),
-      5,
-      { exponentialDelayBase: 1000 },
+      session,
+      requestType,
     );
-
-    // try to diagnose the error for the user
-    if (retriedResult.status === "error") {
-      if (!navigator.onLine) {
-        throw new Error("Failed to send Stack request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
-      }
-      throw new Error(deindent`
-        Stack is unable to connect to the server. Please check your internet connection and try again.
-        
-        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
-
-        ${retriedResult.error}
-        
-        ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
-      `, { cause: retriedResult.error });
-    }
-
-    return retriedResult.data;
   }
 
   public createSession(options: Omit<ConstructorParameters<typeof InternalSession>[0], "refreshAccessTokenCallback">): InternalSession {
@@ -286,7 +299,7 @@ export class StackClientInterface {
     } catch (e) {
       if (e instanceof TypeError) {
         // Network error, retry
-        console.log("Stack detected a network error, retrying.", e);
+        console.warn(`Stack detected a network error while fetching ${url}, retrying.`, e, { url });
         return Result.error(e);
       }
       throw e;
@@ -689,7 +702,9 @@ export class StackClientInterface {
       client_secret: this.options.publishableClientKey,
       token_endpoint_auth_method: 'client_secret_post',
     };
-    const params = oauth.validateAuthResponse(as, client, options.oauthParams, options.state);
+    const params = await this._networkRetryException(
+      async () => oauth.validateAuthResponse(as, client, options.oauthParams, options.state),
+    );
     if (oauth.isOAuth2Error(params)) {
       throw new StackAssertionError("Error validating outer OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
@@ -771,7 +786,7 @@ export class StackClientInterface {
     session: InternalSession
   ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      `/team-permissions?team_id=${options.teamId}?user_id=me&recursive=${options.recursive}`,
+      `/team-permissions?team_id=${options.teamId}&user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );

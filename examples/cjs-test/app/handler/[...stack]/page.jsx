@@ -1,7 +1,7 @@
-import { StackHandler } from "@stackframe/stack";
+const { StackHandler } = require("@stackframe/stack");
 const { stackServerApp } = require("../../../stack");
 
-function Handler(props: any) {
+function Handler(props) {
   return <StackHandler fullPage app={stackServerApp} {...props} />;
 }
 

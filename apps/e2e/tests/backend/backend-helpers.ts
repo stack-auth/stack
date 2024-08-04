@@ -2,7 +2,7 @@ import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, niceFetch } from "../helpers";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
@@ -60,7 +60,7 @@ function expectSnakeCase(obj: unknown, path: string): void {
   }
 }
 
-export async function niceBackendFetch(url: string, options?: Omit<NiceRequestInit, "body" | "headers"> & {
+export async function niceBackendFetch(url: string | URL, options?: Omit<NiceRequestInit, "body" | "headers"> & {
   accessType?: null | "client" | "server" | "admin",
   body?: unknown,
   headers?: Record<string, string | undefined>,
@@ -70,7 +70,10 @@ export async function niceBackendFetch(url: string, options?: Omit<NiceRequestIn
     expectSnakeCase(body, "req.body");
   }
   const { projectKeys, userAuth } = backendContext.value;
-  const res = await niceFetch(new URL(url, STACK_BACKEND_BASE_URL), {
+  const fullUrl = new URL(url, STACK_BACKEND_BASE_URL);
+  if (fullUrl.origin !== new URL(STACK_BACKEND_BASE_URL).origin) throw new StackAssertionError(`Invalid niceBackendFetch origin: ${fullUrl.origin}`);
+  if (fullUrl.protocol !== new URL(STACK_BACKEND_BASE_URL).protocol) throw new StackAssertionError(`Invalid niceBackendFetch protocol: ${fullUrl.protocol}`);
+  const res = await niceFetch(fullUrl, {
     ...otherOptions,
     ...body !== undefined ? { body: JSON.stringify(body) } : {},
     headers: filterUndefined({
@@ -286,6 +289,153 @@ export namespace Auth {
       return {
         signInResponse: response,
         userId: response.body.user_id,
+      };
+    }
+  }
+
+  export namespace OAuth {
+    export async function getAuthorizeQuery() {
+      const projectKeys = backendContext.value.projectKeys;
+      if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
+
+      return {
+        client_id: projectKeys.projectId,
+        client_secret: projectKeys.publishableClientKey ?? throwErr("No publishable client key found in the backend context"),
+        redirect_uri: localRedirectUrl,
+        scope: "legacy",
+        response_type: "code",
+        state: "this-is-some-state",
+        grant_type: "authorization_code",
+        code_challenge: "some-code-challenge",
+        code_challenge_method: "plain",
+      };
+    }
+
+    export async function authorize(options?: { redirectUrl: string }) {
+      const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
+        redirect: "manual",
+        query: {
+          ...await Auth.OAuth.getAuthorizeQuery(),
+          ...filterUndefined({
+            redirect_uri: options?.redirectUrl ?? undefined,
+          }),
+        },
+      });
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
+      expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
+      return {
+        authorizeResponse: response,
+      };
+    }
+
+    export async function getInnerCallbackUrl(options?: { authorizeResponse: NiceResponse }) {
+      options ??= await Auth.OAuth.authorize();
+      const providerPassword = generateSecureRandomString();
+      const authLocation = new URL(options.authorizeResponse.headers.get("location")!);
+      const redirectResponse1 = await niceFetch(authLocation, {
+        redirect: "manual",
+      });
+      expect(redirectResponse1).toEqual({
+        status: 303,
+        headers: expect.any(Headers),
+        body: expect.any(String),
+      });
+      const signInInteractionLocation = new URL(redirectResponse1.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse1 }), authLocation);
+      const signInInteractionCookies = updateCookiesFromResponse("", redirectResponse1);
+      const response1 = await niceFetch(signInInteractionLocation, {
+        method: "POST",
+        redirect: "manual",
+        body: new URLSearchParams({
+          prompt: "login",
+          login: backendContext.value.mailbox.emailAddress,
+          password: providerPassword,
+        }),
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          cookie: signInInteractionCookies,
+        },
+      });
+      expect(response1).toEqual({
+        status: 303,
+        headers: expect.any(Headers),
+        body: expect.any(ArrayBuffer),
+      });
+      const redirectResponse2 = await niceFetch(new URL(response1.headers.get("location") ?? throwErr("missing redirect location", { response1 }), signInInteractionLocation), {
+        redirect: "manual",
+        headers: {
+          cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
+        },
+      });
+      expect(redirectResponse2).toEqual({
+        status: 303,
+        headers: expect.any(Headers),
+        body: expect.any(String),
+      });
+      const authorizeInteractionLocation = new URL(redirectResponse2.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse2 }), authLocation);
+      const authorizeInteractionCookies = updateCookiesFromResponse(signInInteractionCookies, redirectResponse2);
+      const response2 = await niceFetch(authorizeInteractionLocation, {
+        method: "POST",
+        redirect: "manual",
+        body: new URLSearchParams({
+          prompt: "consent",
+        }),
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          cookie: authorizeInteractionCookies,
+        },
+      });
+      expect(response2).toEqual({
+        status: 303,
+        headers: expect.any(Headers),
+        body: expect.any(ArrayBuffer),
+      });
+      const redirectResponse3 = await niceFetch(new URL(response2.headers.get("location") ?? throwErr("missing redirect location", { response2 }), authLocation), {
+        redirect: "manual",
+        headers: {
+          cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
+        },
+      });
+      expect(redirectResponse3).toEqual({
+        status: 303,
+        headers: expect.any(Headers),
+        body: expect.any(String),
+      });
+      const innerCallbackUrl = new URL(redirectResponse3.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse3 }));
+      expect(innerCallbackUrl.origin).toBe("http://localhost:8102");
+      expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/facebook");
+      return {
+        ...options,
+        innerCallbackUrl,
+      };
+    }
+
+    export async function getAuthorizationCode(options?: { innerCallbackUrl: URL, authorizeResponse: NiceResponse }) {
+      options ??= await Auth.OAuth.getInnerCallbackUrl();
+      const cookie = updateCookiesFromResponse("", options.authorizeResponse);
+      const response = await niceBackendFetch(options.innerCallbackUrl.toString(), {
+        redirect: "manual",
+        headers: {
+          cookie,
+        },
+      });
+      expect(response).toEqual({
+        status: 302,
+        headers: expect.any(Headers),
+        body: {},
+      });
+      const outerCallbackUrl = new URL(response.headers.get("location") ?? throwErr("missing redirect location", { response }));
+      expect(outerCallbackUrl.origin).toBe(new URL(localRedirectUrl).origin);
+      expect(outerCallbackUrl.pathname).toBe(new URL(localRedirectUrl).pathname);
+      expect(Object.fromEntries(outerCallbackUrl.searchParams.entries())).toEqual({
+        code: expect.any(String),
+        state: "this-is-some-state",
+      });
+
+      return {
+        callbackResponse: response,
+        outerCallbackUrl,
+        authorizationCode: outerCallbackUrl.searchParams.get("code")!,
       };
     }
   }
