@@ -1,5 +1,6 @@
 import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -49,6 +50,20 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, {}, data, body, user) {
+    const oldMembership = await prismaClient.teamMember.findUnique({
+      where: {
+        projectId_projectUserId_teamId: {
+          projectId: project.id,
+          projectUserId: user.id,
+          teamId: data.team_id,
+        },
+      },
+    });
+
+    if (oldMembership) {
+      return;
+    }
+
     await teamMembershipsCrudHandlers.adminCreate({
       project,
       team_id: data.team_id,

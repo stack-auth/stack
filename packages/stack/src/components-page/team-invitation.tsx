@@ -1,10 +1,11 @@
 'use client';
 
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { Typography } from "@stackframe/stack-ui";
+import { Button, Typography } from "@stackframe/stack-ui";
 import React from "react";
-import { StackClientApp, useStackApp, useUser } from "..";
+import { MessageCard, StackClientApp, useStackApp, useUser } from "..";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 
 const cachedVerifyInvitation = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyTeamInvitationCode(code);
@@ -16,11 +17,16 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
 
   if (!user) {
     return (
-      <MaybeFullPage fullPage={fullPage}>
-        <div className="text-center mb-6 stack-scope">
-          <Typography type='h2'>Join </Typography>
-        </div>
-      </MaybeFullPage>
+      <MessageCard
+        title="Team invitation"
+        fullPage={fullPage}
+        primaryButtonText="Go to sign in"
+        primaryAction={() => stackApp.redirectToSignIn()}
+        secondaryButtonText="Cancel"
+        secondaryAction={() => stackApp.redirectToHome()}
+      >
+        <Typography>Sign in or create an account to join the team.</Typography>
+      </MessageCard>
     );
   }
 
@@ -28,19 +34,25 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
 
   if (verificationResult.status === 'error') {
     return (
-      <MaybeFullPage fullPage={fullPage}>
-        <div className="text-center mb-6 stack-scope">
-          <Typography type='h2'>Invalid Invitation</Typography>
-        </div>
-      </MaybeFullPage>
+      <MessageCard
+        title="Invalid Invitation"
+        fullPage={fullPage}
+        primaryButtonText="Go to home"
+        primaryAction={() => stackApp.redirectToHome()}
+      />
     );
   }
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6 stack-scope">
-        <Typography type='h2'>{verificationResult.data.teamDisplayName}</Typography>
-      </div>
-    </MaybeFullPage>
+    <MessageCard
+      title="Team invitation"
+      fullPage={fullPage}
+      primaryButtonText="Join"
+      primaryAction={() => runAsynchronouslyWithAlert(stackApp.acceptTeamInvitation(searchParams.code || ''))}
+      secondaryButtonText="Ignore"
+      secondaryAction={() => stackApp.redirectToHome()}
+    >
+      <Typography>You are invited to join {verificationResult.data.teamDisplayName}</Typography>
+    </MessageCard>
   );
 };
