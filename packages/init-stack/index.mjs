@@ -81,7 +81,8 @@ async function main() {
       `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
     );
   }
-  if (!packageJson.dependencies["next"].includes("14")) {
+  const nextPackageJsonVersion = packageJson.dependencies["next"];
+  if (!nextPackageJsonVersion.includes("14") && nextPackageJsonVersion !== "latest") {
     throw new UserError(
       `The project at ${projectPath} is using an unsupported version of Next.js (found ${packageJson.dependencies["next"]}).\n\nOnly Next.js 14 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
     );
