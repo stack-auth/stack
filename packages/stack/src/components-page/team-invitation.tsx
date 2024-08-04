@@ -12,10 +12,21 @@ const cachedVerifyInvitation = cacheFunction(async (stackApp: StackClientApp<tru
   return await stackApp.verifyTeamInvitationCode(code);
 });
 
-function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<string, string>, data: { teamDisplayName: string } }) {
+const cachedGetInvitationDetails = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
+  return await stackApp.getTeamInvitationDetails(code);
+});
+
+function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<string, string> }) {
   const stackApp = useStackApp();
   const [success, setSuccess] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const details = React.use(cachedGetInvitationDetails(stackApp, props.searchParams.code || ''));
+
+  if (errorMessage || details.status === 'error') {
+    return (
+      <PredefinedMessageCard type="unknownError" fullPage={props.fullPage} />
+    );
+  }
 
   if (success) {
     return (
@@ -25,16 +36,11 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
         primaryButtonText="Go to home"
         primaryAction={() => stackApp.redirectToHome()}
       >
-        <Typography>You have successfully joined {props.data.teamDisplayName}</Typography>
+        <Typography>You have successfully joined {details.data.teamDisplayName}</Typography>
       </MessageCard>
     );
   }
 
-  if (errorMessage) {
-    return (
-      <PredefinedMessageCard type="unknownError" fullPage={props.fullPage} />
-    );
-  }
 
   return (
     <MessageCard
@@ -52,7 +58,7 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
       secondaryButtonText="Ignore"
       secondaryAction={() => stackApp.redirectToHome()}
     >
-      <Typography>You are invited to join {props.data.teamDisplayName}</Typography>
+      <Typography>You are invited to join {details.data.teamDisplayName}</Typography>
     </MessageCard>
   );
 }
@@ -114,5 +120,5 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
     }
   }
 
-  return <TeamInvitationInner fullPage={fullPage} searchParams={searchParams} data={verificationResult.data} />;
+  return <TeamInvitationInner fullPage={fullPage} searchParams={searchParams} />;
 };

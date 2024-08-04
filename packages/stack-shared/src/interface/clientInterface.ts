@@ -565,13 +565,17 @@ export class StackClientInterface {
     }
   }
 
-  async acceptTeamInvitation(options: {
+  async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
     code: string,
     session: InternalSession,
-    onlyVerifyCode: boolean,
-  }): Promise<Result<{ team_display_name: string }, KnownErrors["VerificationCodeError"]>> {
+    type: T,
+  }): Promise<Result<T extends 'details' ? { team_display_name: string } : undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      options.onlyVerifyCode ? "/team-invitations/accept/check-code" : "/team-invitations/accept",
+      options.type === 'check' ?
+        "/team-invitations/accept/check-code" :
+        options.type === 'details' ?
+          "/team-invitations/accept/details" :
+          "/team-invitations/accept",
       {
         method: "POST",
         headers: {

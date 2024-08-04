@@ -979,15 +979,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.verifyPasswordResetCode(code);
   }
 
-  async verifyTeamInvitationCode(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
+  async verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const result = await this._interface.acceptTeamInvitation({
-      onlyVerifyCode: true,
+      type: 'check',
       code,
       session: this._getSession(),
     });
 
     if (result.status === 'ok') {
-      return Result.ok({ teamDisplayName: result.data.team_display_name });
+      return Result.ok(undefined);
     } else {
       return Result.error(result.error);
     }
@@ -995,13 +995,27 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const result = await this._interface.acceptTeamInvitation({
+      type: 'use',
       code,
-      onlyVerifyCode: false,
       session: this._getSession(),
     });
 
     if (result.status === 'ok') {
       return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+  async getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      type: 'details',
+      code,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok({ teamDisplayName: result.data.team_display_name });
     } else {
       return Result.error(result.error);
     }
@@ -2556,8 +2570,9 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
-    verifyTeamInvitationCode(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
+    verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
 
