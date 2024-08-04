@@ -1,8 +1,8 @@
-import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { ProxiedOAuthProviderType, StandardOAuthProviderType, TeamMemberDirectPermission } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
+import { TeamSystemPermission, isTeamSystemPermission, listUserTeamPermissions, teamSystemPermissionStringToDBType } from "./permissions";
 import { PrismaTransaction } from "./types";
 
 
@@ -104,6 +104,67 @@ export async function ensureUserHasTeamPermission(
     throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
   }
 }
+
+export async function ensureUserTeamPermissionExist(
+  tx: PrismaTransaction,
+  options: {
+    project: ProjectsCrud["Admin"]["Read"],
+    teamId: string,
+    userId: string,
+    permissionId: string,
+  }
+) {
+  let teamMemberDirectPermission: TeamMemberDirectPermission | null = null;
+  if (isTeamSystemPermission(options.permissionId)) {
+    teamMemberDirectPermission = await tx.teamMemberDirectPermission.findUnique({
+      where: {
+        projectId_projectUserId_teamId_systemPermission: {
+          projectId: options.project.id,
+          projectUserId: options.userId,
+          teamId: options.teamId,
+          systemPermission: teamSystemPermissionStringToDBType(options.permissionId),
+        }
+      },
+    });
+  } else {
+    const teamSpecificPermission = await tx.permission.findUnique({
+      where: {
+        projectId_teamId_queryableId: {
+          projectId: options.project.id,
+          teamId: options.teamId,
+          queryableId: options.permissionId,
+        },
+      }
+    });
+    const anyTeamPermission = await tx.permission.findUnique({
+      where: {
+        projectConfigId_queryableId: {
+          projectConfigId: options.project.config.id,
+          queryableId: options.permissionId,
+        },
+      }
+    });
+
+    const permission = teamSpecificPermission || anyTeamPermission;
+    if (!permission) throw new KnownErrors.PermissionNotFound(options.permissionId);
+
+    teamMemberDirectPermission = await tx.teamMemberDirectPermission.findUnique({
+      where: {
+        projectId_projectUserId_teamId_permissionDbId: {
+          projectId: options.project.id,
+          projectUserId: options.userId,
+          teamId: options.teamId,
+          permissionDbId: permission.dbId,
+        }
+      },
+    });
+  }
+
+  if (!teamMemberDirectPermission) {
+    throw new KnownErrors.UserTeamPermissionNotFound(options.teamId, options.userId, options.permissionId);
+  }
+}
+
 
 export async function ensureUserExist(
   tx: PrismaTransaction,
