@@ -128,7 +128,7 @@ it("creates sessions that expire", async ({ expect }) => {
   backendContext.set({ userAuth: { accessToken: undefined, refreshToken: res2.body.refresh_token } });
   await Auth.expectToBeSignedOut();
 }, {
-  // we wanna retry this, because in development mode, often the first time is slow due to server compilation
+  // we wanna retry this, because in development mode, often the first time is slow due to compilation
   retry: 1,
 });
 
