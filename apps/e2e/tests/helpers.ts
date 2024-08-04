@@ -5,7 +5,7 @@ import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
-import { beforeEach, onTestFinished, test as vitestTest } from "vitest";
+import { afterEach, beforeEach, test as vitestTest } from "vitest";
 
 export const test: typeof vitestTest = vitestTest.extend({});
 export const it: typeof vitestTest = test;
@@ -14,6 +14,7 @@ export class Context<R, T> {
   // we want to retain order in which the values were set instead of the order in which the beforeEach callback was called, so we keep a Map and a Set together here
   private _values = new Map<string, T>();
   private _yetToReduce = new Set<string>();
+  private _deleteOnFinish = new Set<string>();
 
   private _reduced: R | undefined;
   private _withStorage: AsyncLocalStorage<T[]> = new AsyncLocalStorage();
@@ -32,16 +33,19 @@ export class Context<R, T> {
       if (this._yetToReduce.size > 0) {
         throw new StackAssertionError("Something went wrong; _yetToReduce should be empty here.");
       }
-
-      // we use onTestFinished instead of afterEach so that afterEach calls can still use the context
-      onTestFinished(async () => {
-        if (this._withStorage.getStore()) {
-          throw new StackAssertionError("Test finished before _withStorage was cleaned up! This should not happen.");
-        }
-        this._isInTest = false;
-        this._reduced = undefined;
-        this._yetToReduce.clear();
-      });
+    });
+    afterEach(async () => {
+      if (this._withStorage.getStore()) {
+        throw new StackAssertionError("Test finished before _withStorage was cleaned up! This should not happen.");
+      }
+      this._isInTest = false;
+      this._reduced = undefined;
+      for (const key of this._deleteOnFinish) {
+        this._yetToReduce.delete(key);
+      }
+      if (this._yetToReduce.size > 0) {
+        throw new StackAssertionError("Something went wrong; _yetToReduce should be empty here.");
+      }
     });
   }
 
@@ -57,14 +61,20 @@ export class Context<R, T> {
     this._values.set(randomId, value);
     const before = () => {
       if (this._yetToReduce.has(randomId)) {
-        throw new StackAssertionError("beforeEach was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
+        throw new StackAssertionError("Value setter was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
       }
       this._yetToReduce.add(randomId);
     };
     if (this._isInTest) {
       before();
+      this._deleteOnFinish.add(randomId);
     } else {
-      beforeEach(before);
+      beforeEach(async () => {
+        before();
+      });
+      afterEach(() => {
+        this._yetToReduce.delete(randomId);
+      });
     }
   }
 
@@ -94,6 +104,26 @@ function getEnvVar(name: string): string {
   return value;
 }
 
+export function updateCookie(cookieString: string, cookieName: string, cookieValue: string) {
+  const cookies = cookieString.split(";").map((cookie) => cookie.trim()).filter((cookie) => cookie.length > 0);
+  const newCookie = `${cookieName}=${cookieValue}`;
+  const cookieIndex = cookies.findIndex((cookie) => cookie.startsWith(`${cookieName}=`));
+  if (cookieIndex === -1) {
+    return `${cookieString}; ${newCookie}`;
+  }
+  cookies[cookieIndex] = newCookie;
+  return cookies.join("; ");
+}
+
+export function updateCookiesFromResponse(cookieString: string, update: NiceResponse) {
+  const setCookies = update.headers.getSetCookie();
+  for (const setCookie of setCookies) {
+    const [cookieName, cookieValue] = setCookie.split(";")[0].split("=");
+    cookieString = updateCookie(cookieString, cookieName, cookieValue);
+  }
+  return cookieString;
+}
+
 export class NiceResponse implements Nicifiable {
   constructor(
     public readonly status: number,
@@ -105,7 +135,7 @@ export class NiceResponse implements Nicifiable {
     // reorder the keys for nicer printing
     return [
       "status",
-      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] :  ["body"],
+      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] : ["body"],
       "headers",
     ];
   }

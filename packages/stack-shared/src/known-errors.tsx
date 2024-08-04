@@ -1075,6 +1075,16 @@ const InvalidStandardOAuthProviderId = createKnownErrorConstructor(
   (json) => [json.provider_id] as const,
 );
 
+const InvalidAuthorizationCode = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_AUTHORIZATION_CODE",
+  () => [
+    400,
+    "The given authorization code is invalid.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1161,6 +1171,7 @@ export const KnownErrors = {
   UserTeamPermissionNotFound,
   InvalidSharedOAuthProviderId,
   InvalidStandardOAuthProviderId,
+  InvalidAuthorizationCode,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

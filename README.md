@@ -19,6 +19,35 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 <img alt="Stack Setup" src=".github/assets/create-project.gif" height="328" width="400" />
 </div>
 
+## Table of contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [How is this different from X?](#how-is-this-different-from-x)
+- [✨ Features](#-features)
+- [📦 Installation & Setup](#-installation--setup)
+- [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
+  - [Templates](#templates)
+  - [Examples](#examples)
+- [🏗️ Development & Contribution](#-development--contribution)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Database migrations](#database-migrations)
+- [❤️ Contributors](#-contributors)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## How is this different from X?
+
+Ask yourself about `X`:
+
+- Is `X` open-source?
+- Is `X` developer-friendly, well-documented, and lets you get started in minutes?
+- Besides authentication, does `X` also do authorization and user management (see feature list below)?
+
+If you answered "no" to any of these questions, then that's how Stack Auth is different from `X`.
+
 ## ✨ Features
 
 | | |
@@ -43,8 +72,15 @@ Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) 
 
 ## 🌱 Some community projects built with Stack
 
+Have your own? Happy to feature it if you create a PR or message us on [Discord](https://discord.stack-auth.com).
+
+### Templates
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
+
+### Examples
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
+- [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/demo)
+- [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/e-commerce)
 
 ## 🏗️ Development & Contribution
 
@@ -108,7 +144,7 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
-## Contributors
+## ❤️ Contributors
 
 Thanks to the amazing community who built Stack:
 

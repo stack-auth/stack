@@ -11,10 +11,19 @@ async function sendWebhooks(options: {
   data: any,
 }) {
   const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
-  const server = getEnvVariable("STACK_SVIX_SERVER_URL", undefined);
+  const server = getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined;
   const svix = new Svix(apiKey, { serverUrl: server });
 
-  await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
+  try {
+    await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
+  } catch (e: any) {
+    if (e.message.includes("409")) {
+      // This is a Svix bug; they are working on fixing it
+      // TODO next-release: remove this
+      console.warn("[no action required] Svix bug: 409 error when creating application. Remove this warning when Svix fixes this.");
+    }
+    console.warn("Error creating application in Svix", e);
+  }
   await svix.message.create(options.projectId, {
     eventType: options.type,
     payload: {
