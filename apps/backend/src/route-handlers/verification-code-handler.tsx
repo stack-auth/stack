@@ -393,6 +393,6 @@ export function createVerificationCodeHandler<
     },
     postHandler: createHandler('post'),
     checkHandler: createHandler('check'),
-    detailsHandler: (options.metadata?.details ? createHandler('details') : undefined) as any,
+    detailsHandler: (options.detailsResponse ? createHandler('details') : undefined) as any,
   };
 }
