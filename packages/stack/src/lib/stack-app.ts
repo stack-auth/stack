@@ -979,7 +979,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.verifyPasswordResetCode(code);
   }
 
-  async verifyTeamInvitation(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
+  async verifyTeamInvitationCode(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
     const result = await this._interface.acceptTeamInvitation({
       onlyVerifyCode: true,
       code,
@@ -2556,7 +2556,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
-    verifyTeamInvitation(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
+    verifyTeamInvitationCode(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,

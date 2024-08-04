@@ -571,7 +571,7 @@ export class StackClientInterface {
     onlyVerifyCode: boolean,
   }): Promise<Result<{ team_display_name: string }, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      options.onlyVerifyCode ? "/team-invitations/verify" : "/team-invitations/accept",
+      options.onlyVerifyCode ? "/team-invitations/accept/check-code" : "/team-invitations/accept",
       {
         method: "POST",
         headers: {

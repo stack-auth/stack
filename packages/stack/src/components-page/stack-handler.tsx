@@ -1,18 +1,17 @@
-import { SignUp } from "./sign-up";
-import { SignIn } from "./sign-in";
+import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
-import { EmailVerification } from "./email-verification";
 import { AuthPage, StackServerApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
-import { SignOut } from "./sign-out";
-import { ForgotPassword } from "./forgot-password";
-import { OAuthCallback } from "./oauth-callback";
 import { AccountSettings } from "./account-settings";
-import { MagicLinkCallback } from "./magic-link-callback";
+import { EmailVerification } from "./email-verification";
 import { ErrorPage } from "./error-page";
+import { ForgotPassword } from "./forgot-password";
+import { MagicLinkCallback } from "./magic-link-callback";
+import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
-import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
+import { SignOut } from "./sign-out";
+import { TeamInvitation } from "./team-invitation";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -60,6 +59,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     oauthCallback: 'oauth-callback',
     accountSettings: 'account-settings',
     magicLinkCallback: 'magic-link-callback',
+    teamInvitation: 'team-invitation',
     error: 'error',
   };
 
@@ -100,6 +100,10 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
+    }
+    case availablePaths.teamInvitation: {
+      redirectIfNotHandler('teamInvitation');
+      return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
     }
     case availablePaths.error: {
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;

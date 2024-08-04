@@ -62,7 +62,8 @@ export function createVerificationCodeHandler<
     createOptions: CreateCodeOptions<Data>,
     sendOptions: SendCodeExtraOptions,
   ) => Promise<void>,
-  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody, user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined): Promise<Response>,
+  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody, user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined): Promise<void>,
+  getResponse(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody, user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined): Promise<Response>,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions> {
   const createHandler = (verifyOnly: boolean) => createSmartRouteHandler({
     metadata: verifyOnly ? options.metadata?.check : options.metadata?.post,
@@ -77,13 +78,7 @@ export function createVerificationCodeHandler<
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       }).concat((verifyOnly ? undefined : options.requestBody) as undefined ?? yupObject({})).required(),
     }),
-    response: verifyOnly ? yupObject({
-      statusCode: yupNumber().oneOf([200]).required(),
-      bodyType: yupString().oneOf(["json"]).required(),
-      body: yupObject({
-        "is_code_valid": yupBoolean().oneOf([true]).required(),
-      }).required(),
-    }).required() as yup.ObjectSchema<any> : options.response,
+    response: options.response,
     async handler({ body: { code, ...requestBody }, auth }) {
       const verificationCode = await prismaClient.verificationCode.findUnique({
         where: {
@@ -102,15 +97,9 @@ export function createVerificationCodeHandler<
         strict: true,
       });
 
-      if (verifyOnly) {
-        return {
-          statusCode: 200,
-          bodyType: "json",
-          body: {
-            is_code_valid: true,
-          },
-        };
-      } else {
+      const params = [auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any] as const;
+
+      if (!verifyOnly) {
         await prismaClient.verificationCode.update({
           where: {
             projectId_code: {
@@ -123,8 +112,10 @@ export function createVerificationCodeHandler<
           },
         });
 
-        return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any);
+        await options.handler(...params);
       }
+
+      return await options.getResponse(...params);
     },
   });
 

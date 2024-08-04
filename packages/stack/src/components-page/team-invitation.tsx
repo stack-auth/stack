@@ -7,7 +7,7 @@ import { StackClientApp, useStackApp, useUser } from "..";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 
 const cachedVerifyInvitation = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
-  return await stackApp.verifyTeamInvitation(code);
+  return await stackApp.verifyTeamInvitationCode(code);
 });
 
 export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {

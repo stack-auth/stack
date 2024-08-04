@@ -49,16 +49,17 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, {}, data, body, user) {
-    const team = await teamsCrudHandlers.adminRead({
-      project,
-      team_id: data.team_id,
-    });
-
     await teamMembershipsCrudHandlers.adminCreate({
       project,
       team_id: data.team_id,
       user_id: user.id,
       data: {},
+    });
+  },
+  async getResponse(project, {}, data) {
+    const team = await teamsCrudHandlers.adminRead({
+      project,
+      team_id: data.team_id,
     });
 
     return {
