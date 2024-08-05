@@ -5,7 +5,7 @@ instances:
       github:
         owner: stack-auth
         repo: stack
-        branch: dev
+        branch: dev/docs
 title: Stack Auth Documentation
 js: ./custom-script.js
 
