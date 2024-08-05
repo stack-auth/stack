@@ -72,7 +72,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   if (expectedState !== originalUrl.searchParams.get("state")) {
     // If the state doesn't match, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
-    captureError("consumeOAuthCallbackQueryParams", new Error(`Invalid OAuth callback state: Was this meant for someone else, or did cookies fail?`));
+    captureError("consumeOAuthCallbackQueryParams", new Error(`Invalid OAuth callback state: Are you using another OAuth authentication with the same callback URL as Stack, or did your cookies reset?`));
     return null;
   }
 
