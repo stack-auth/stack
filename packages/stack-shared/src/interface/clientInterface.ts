@@ -299,7 +299,6 @@ export class StackClientInterface {
     } catch (e) {
       if (e instanceof TypeError) {
         // Network error, retry
-        console.warn(`Stack detected a network error while fetching ${url}, retrying.`, e, { url });
         return Result.error(e);
       }
       throw e;
