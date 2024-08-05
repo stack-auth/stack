@@ -132,6 +132,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onUpdate: async ({ auth, data, params }) => {
     const db = await prismaClient.$transaction(async (tx) => {
+      await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+
       if (data.selected_team_id !== undefined) {
         if (data.selected_team_id !== null) {
           await ensureTeamMembershipExist(tx, {
@@ -165,11 +167,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
           });
         }
-      }
-
-      // If the selected_team_id is present and we reach here that means user does exist. Hence, we have this check.
-      if (!data.selected_team_id) {
-        await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
       }
 
       const db = await tx.projectUser.update({
