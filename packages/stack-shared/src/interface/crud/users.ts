@@ -25,12 +25,41 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   profile_image_url: fieldSchema.profileImageUrlSchema.nullable().defined(),
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
   has_password: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
-  auth_with_email: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  /**
+   * @deprecated
+   */
+  auth_with_email: fieldSchema.yupBoolean().required().meta({ openapiField: { hidden: true, description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  /**
+   * @deprecated
+   */
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
     id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable(),
-  }).required()).required().meta({ openapiField: { description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
+  }).required()).required().meta({ openapiField: { hidden: true, description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
+  auth_methods: fieldSchema.yupArray(fieldSchema.yupUnion(
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().oneOf(['password']).required(),
+      identifier: fieldSchema.yupString().required(),
+    }).required(),
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().oneOf(['otp']).required(),
+      contact_channel: fieldSchema.yupObject({
+        type: fieldSchema.yupString().oneOf(['email']).required(),
+        email: fieldSchema.yupString().required(),
+      }).required(),
+    }).required(),
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().oneOf(['oauth']).required(),
+      provider: fieldSchema.userOAuthProviderSchema.required(),
+    }).required(),
+  )).required().meta({ openapiField: { description: 'A list of authentication methods available for this user to sign in with', exampleValue: [ { "contact_channel": { "email": "john.doe@gmail.com", "type": "email", }, "type": "otp", } ] } }),
+  connected_accounts: fieldSchema.yupArray(fieldSchema.yupUnion(
+    fieldSchema.yupObject({
+      type: fieldSchema.yupString().oneOf(['oauth']).required(),
+      provider: fieldSchema.userOAuthProviderSchema.required(),
+    }).required(),
+  )).required().meta({ openapiField: { description: 'A list of connected accounts to this user', exampleValue: [ { "provider": { "provider_user_id": "12345", "type": "google", }, "type": "oauth", } ] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();

@@ -299,7 +299,6 @@ export class StackClientInterface {
     } catch (e) {
       if (e instanceof TypeError) {
         // Network error, retry
-        console.warn(`Stack detected a network error while fetching ${url}, retrying.`, e, { url });
         return Result.error(e);
       }
       throw e;
@@ -532,6 +531,67 @@ export class StackClientInterface {
 
     if (res.status === "error") {
       return res.error;
+    }
+  }
+
+  async sendTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+    session: InternalSession | null,
+  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
+      },
+      options.session,
+      [KnownErrors.TeamPermissionRequired]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
+    }
+  }
+
+  async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
+    code: string,
+    session: InternalSession,
+    type: T,
+  }): Promise<Result<T extends 'details' ? { team_display_name: string } : undefined, KnownErrors["VerificationCodeError"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      options.type === 'check' ?
+        "/team-invitations/accept/check-code" :
+        options.type === 'details' ?
+          "/team-invitations/accept/details" :
+          "/team-invitations/accept",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code: options.code,
+        }),
+      },
+      options.session,
+      [KnownErrors.VerificationCodeError]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(await res.data.json());
     }
   }
 

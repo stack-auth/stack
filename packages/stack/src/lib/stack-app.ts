@@ -69,6 +69,7 @@ export type HandlerUrls = {
   oauthCallback: string,
   magicLinkCallback: string,
   accountSettings: string,
+  teamInvitation: string,
   error: string,
 }
 
@@ -100,6 +101,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     home: home,
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
+    teamInvitation: `${handler}/team-invitation`,
     ...filterUndefined(partial),
   };
 }
@@ -689,10 +691,20 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read']): Team {
+    const app = this;
     return {
       id: crud.id,
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
+
+      async inviteUser(options: { email: string }) {
+        return await app._interface.sendTeamInvitation({
+          teamId: crud.id,
+          email: options.email,
+          session: app._getSession(),
+          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+        });
+      }
     };
   }
 
@@ -944,6 +956,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAfterSignOut(options?: RedirectToOptions) { return await this._redirectToHandler("afterSignOut", options); }
   async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
+  async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -964,6 +977,48 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
     return await this._interface.verifyPasswordResetCode(code);
+  }
+
+  async verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      type: 'check',
+      code,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+  async acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      type: 'use',
+      code,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+  async getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>> {
+    const result = await this._interface.acceptTeamInvitation({
+      type: 'details',
+      code,
+      session: this._getSession(),
+    });
+
+    if (result.status === 'ok') {
+      return Result.ok({ teamDisplayName: result.data.team_display_name });
+    } else {
+      return Result.error(result.error);
+    }
   }
 
   async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
@@ -1273,7 +1328,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     [string, string, boolean],
     TeamPermissionsCrud['Server']['Read'][]
   >(async ([teamId, userId, recursive]) => {
-    return await this._interface.listServerTeamMemberPermissions({ teamId, userId, recursive });
+    return await this._interface.listServerTeamPermissions({ teamId, userId, recursive }, null);
   });
   private readonly _serverUserOAuthConnectionAccessTokensCache = createCache<[string, string, string], { accessToken: string } | null>(
     async ([userId, providerId, scope]) => {
@@ -1501,6 +1556,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           userId,
         });
         await app._serverTeamUsersCache.refresh([crud.id]);
+      },
+      async inviteUser(options: { email: string }) {
+        return await app._interface.sendTeamInvitation({
+          teamId: crud.id,
+          email: options.email,
+          session: null,
+          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+        });
       },
     };
   }
@@ -2387,6 +2450,8 @@ export type Team = {
   id: string,
   displayName: string,
   profileImageUrl: string | null,
+
+  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
 };
 
 export type TeamCreateOptions = {
@@ -2410,6 +2475,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
+  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 
@@ -2504,6 +2570,9 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
     signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
 

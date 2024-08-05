@@ -23,6 +23,8 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "auth_with_email",
   "oauth_providers",
   "selected_team_id",
+  "auth_methods",
+  "connected_accounts",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),
 })).nullable().defined(); // TODO: next-release: make required

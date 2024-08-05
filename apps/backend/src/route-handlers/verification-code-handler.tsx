@@ -3,7 +3,7 @@ import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteH
 import { SmartResponse } from "./smart-response";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { prismaClient } from "@/prisma-client";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
@@ -11,6 +11,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { SmartRequest } from "./smart-request";
 import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 type Method = {
   email: string,
@@ -30,11 +31,12 @@ type CodeObject = {
   expiresAt: Date,
 };
 
-type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}> = {
+type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, HasDetails extends boolean> = {
   createCode<CallbackUrl extends string | URL>(options: CreateCodeOptions<Data, CallbackUrl>): Promise<CodeObject>,
   sendCode(options: CreateCodeOptions<Data>, sendOptions: SendCodeExtraOptions): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
   checkHandler: SmartRouteHandler<any, any, any>,
+  detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
 };
 
 /**
@@ -44,42 +46,65 @@ export function createVerificationCodeHandler<
   Data,
   RequestBody extends {} & DeepPartial<SmartRequest["body"]>,
   Response extends SmartResponse,
+  DetailsResponse extends SmartResponse | undefined,
+  UserRequired extends boolean,
   SendCodeExtraOptions extends {},
 >(options: {
   metadata?: {
     post?: SmartRouteHandlerOverloadMetadata,
     check?: SmartRouteHandlerOverloadMetadata,
+    details?: SmartRouteHandlerOverloadMetadata,
   },
   type: VerificationCodeType,
   data: yup.Schema<Data>,
   requestBody?: yup.ObjectSchema<RequestBody>,
+  userRequired?: UserRequired,
+  detailsResponse?: yup.Schema<DetailsResponse>,
   response: yup.Schema<Response>,
-  send: (
+  send(
     codeObject: CodeObject,
     createOptions: CreateCodeOptions<Data>,
     sendOptions: SendCodeExtraOptions,
-  ) => Promise<void>,
-  handler(project: ProjectsCrud["Admin"]["Read"], method: Method, data: Data, body: RequestBody): Promise<Response>,
-}): VerificationCodeHandler<Data, SendCodeExtraOptions> {
-  const createHandler = (verifyOnly: boolean) => createSmartRouteHandler({
-    metadata: verifyOnly ? options.metadata?.check : options.metadata?.post,
+  ): Promise<void>,
+  handler(
+    project: ProjectsCrud["Admin"]["Read"],
+    method: Method,
+    data: Data,
+    body: RequestBody,
+    user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
+  ): Promise<Response>,
+  details?: DetailsResponse extends SmartResponse ? ((
+    project: ProjectsCrud["Admin"]["Read"],
+    method: Method,
+    data: Data,
+    body: RequestBody,
+    user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
+  ) => Promise<DetailsResponse>) : undefined,
+}): VerificationCodeHandler<Data, SendCodeExtraOptions, DetailsResponse extends SmartResponse ? true : false> {
+  const createHandler = (type: 'post' | 'check' | 'details') => createSmartRouteHandler({
+    metadata: options.metadata?.[type],
     request: yupObject({
       auth: yupObject({
         project: adaptSchema.required(),
+        user: options.userRequired ? adaptSchema.required() : adaptSchema,
       }).required(),
       body: yupObject({
         code: yupString().required(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      }).concat((verifyOnly ? undefined : options.requestBody) as undefined ?? yupObject({})).required(),
+      }).concat((type === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
     }),
-    response: verifyOnly ? yupObject({
-      statusCode: yupNumber().oneOf([200]).required(),
-      bodyType: yupString().oneOf(["json"]).required(),
-      body: yupObject({
-        "is_code_valid": yupBoolean().oneOf([true]).required(),
-      }).required(),
-    }).required() as yup.ObjectSchema<any> : options.response,
+    response: type === 'check' ?
+      yupObject({
+        statusCode: yupNumber().oneOf([200]).required(),
+        bodyType: yupString().oneOf(["json"]).required(),
+        body: yupObject({
+          "is_code_valid": yupBoolean().oneOf([true]).required(),
+        }).required(),
+      }).required() as yup.ObjectSchema<any> :
+      type === 'details' ?
+        options.detailsResponse || throwErr('detailsResponse is required') :
+        options.response,
     async handler({ body: { code, ...requestBody }, auth }) {
       const verificationCode = await prismaClient.verificationCode.findUnique({
         where: {
@@ -98,28 +123,34 @@ export function createVerificationCodeHandler<
         strict: true,
       });
 
-      if (verifyOnly) {
-        return {
-          statusCode: 200,
-          bodyType: "json",
-          body: {
-            is_code_valid: true,
-          },
-        };
-      } else {
-        await prismaClient.verificationCode.update({
-          where: {
-            projectId_code: {
-              projectId: auth.project.id,
-              code,
+      switch (type) {
+        case 'post': {
+          await prismaClient.verificationCode.update({
+            where: {
+              projectId_code: {
+                projectId: auth.project.id,
+                code,
+              },
             },
-          },
-          data: {
-            usedAt: new Date(),
-          },
-        });
+            data: {
+              usedAt: new Date(),
+            },
+          });
 
-        return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any);
+          return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any);
+        }
+        case 'check': {
+          return {
+            statusCode: 200,
+            bodyType: "json",
+            body: {
+              is_code_valid: true,
+            },
+          };
+        }
+        case 'details': {
+          return await options.details?.(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any) as any;
+        }
       }
     },
   });
@@ -166,7 +197,8 @@ export function createVerificationCodeHandler<
       const codeObj = await this.createCode(createOptions);
       await options.send(codeObj, createOptions, sendOptions);
     },
-    postHandler: createHandler(false),
-    checkHandler: createHandler(true),
+    postHandler: createHandler('post'),
+    checkHandler: createHandler('check'),
+    detailsHandler: (options.detailsResponse ? createHandler('details') : undefined) as any,
   };
 }

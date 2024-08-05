@@ -115,6 +115,7 @@ export namespace Auth {
       headers: expect.anything(),
       body: expect.anything(),
     });
+    return response;
   }
 
   export async function expectToBeSignedOut() {
@@ -604,6 +605,46 @@ export namespace Team {
     return {
       createTeamResponse: response,
       teamId: response.body.id,
+    };
+  }
+
+  export async function sendInvitation(receiveMailbox: Mailbox, teamId: string) {
+    const response = await niceBackendFetch("/api/v1/team-invitations/send-code", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: receiveMailbox.emailAddress,
+        team_id: teamId,
+        callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+
+    return {
+      sendTeamInvitationResponse: response,
+    };
+  }
+
+  export async function acceptInvitation() {
+    const mailbox = backendContext.value.mailbox;
+    const messages = await mailbox.fetchMessages();
+    const message = messages.findLast((message) => message.subject.includes("join")) ?? throwErr("Team invitation message not found");
+    const code = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Team invitation code not found");
+    const response = await niceBackendFetch("/api/v1/team-invitations/accept", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        code,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {},
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    return {
+      acceptTeamInvitationResponse: response,
     };
   }
 }

@@ -4,16 +4,20 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
-import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
 import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 
 const fullInclude = {
-  projectUserOAuthAccounts: true,
+  projectUserOAuthAccounts: {
+    include: {
+      providerConfig: true,
+    },
+  },
   teamMembers: {
     include: {
       team: true,
@@ -22,13 +26,51 @@ const fullInclude = {
       isSelected: BooleanTrue.TRUE,
     },
   },
-};
+} satisfies Prisma.ProjectUserInclude;
 
-const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof fullInclude}>) => {
+const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof fullInclude}>): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
+
+  if (prisma.passwordHash && !prisma.authWithEmail) {
+    captureError("prismaToCrud", new StackAssertionError("User has password but authWithEmail is false; this is an assertion error that should never happen", { prisma }));
+  }
+  if (prisma.authWithEmail && !prisma.primaryEmail) {
+    captureError("prismaToCrud", new StackAssertionError("User has authWithEmail but no primary email; this is an assertion error that should never happen", { prisma }));
+  }
+  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = [
+    ...prisma.passwordHash ? [{
+      type: 'password',
+      identifier: prisma.primaryEmail ?? "",
+    }] as const : [],
+    ...prisma.authWithEmail ? [{
+      type: 'otp',
+      contact_channel: {
+        type: 'email',
+        email: prisma.primaryEmail ?? "",
+      },
+    }] as const : [],
+    ...prisma.projectUserOAuthAccounts.map((a) => ({
+      type: 'oauth',
+      provider: {
+        type: a.oauthProviderConfigId,
+        provider_user_id: a.providerAccountId,
+      },
+    } as const)),
+  ] as const;
+
+  const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = [
+    ...prisma.projectUserOAuthAccounts.map((a) => ({
+      type: 'oauth',
+      provider: {
+        type: a.oauthProviderConfigId,
+        provider_user_id: a.providerAccountId,
+      },
+    } as const)),
+  ];
+
   return {
     id: prisma.projectUserId,
     display_name: prisma.displayName || null,
@@ -38,7 +80,6 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
     signed_up_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
     server_metadata: prisma.serverMetadata,
-    auth_method: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
     has_password: !!prisma.passwordHash,
     auth_with_email: prisma.authWithEmail,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
@@ -46,6 +87,8 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
       account_id: a.providerAccountId,
       email: a.email,
     })),
+    auth_methods: authMethods,
+    connected_accounts: connectedAccounts,
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
   };

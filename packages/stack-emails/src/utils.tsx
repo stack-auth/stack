@@ -10,6 +10,7 @@ import * as Handlebars from 'handlebars/dist/handlebars.js';
 import _ from 'lodash';
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { teamInvitationTemplate } from "./templates/team-invitation";
 
 
 // TODO remove this one
@@ -74,6 +75,18 @@ export const EMAIL_TEMPLATES_METADATA = {
       ...userVars,
       ...projectVars,
       { name: 'magicLink', label: 'Magic Link', defined: true, example: '<magic link>' },
+    ],
+  } satisfies EmailTemplateMetadata,
+  'team_invitation': {
+    label: "Team Invitation",
+    description: "Will be sent to the user when they are invited to a team",
+    defaultContent: teamInvitationTemplate,
+    defaultSubject: "You have been invited to join {{ teamDisplayName }}",
+    variables: [
+      ...userVars,
+      ...projectVars,
+      { name: 'teamDisplayName', label: 'Team Display Name', defined: true, example: 'My Team' },
+      { name: 'teamInvitationLink', label: 'Team Invitation Link', defined: true, example: '<team invitation link>' },
     ],
   } satisfies EmailTemplateMetadata,
 } as const;
