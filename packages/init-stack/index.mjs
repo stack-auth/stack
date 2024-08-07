@@ -196,7 +196,7 @@ async function main() {
     {
       type: "confirm",
       name: "ready",
-      message: `Found a Next.js project at ${projectPath}. Ready to install Stack?`,
+      message: `Found a Next.js project at ${projectPath} — ready to install Stack?`,
       default: true,
     },
   ]);
