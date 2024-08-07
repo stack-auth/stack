@@ -685,7 +685,7 @@ export class StackClientInterface {
     return {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
-      newUser: result.new_user,
+      newUser: result.is_new_user,
     };
   }
 
@@ -782,8 +782,8 @@ export class StackClientInterface {
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
     return {
-      newUser: result.newUser as boolean,
-      afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
+      newUser: result.is_new_user as boolean,
+      afterCallbackRedirectUrl: result.after_callback_redirect_url as string | undefined,
       accessToken: result.access_token,
       refreshToken: result.refresh_token ?? throwErr("Refresh token not found in outer OAuth response"),
     };
