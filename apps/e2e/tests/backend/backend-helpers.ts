@@ -1,6 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { camelCaseToSnakeCase } from "@stackframe/stack-shared/dist/utils/strings";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -52,7 +53,7 @@ function expectSnakeCase(obj: unknown, path: string): void {
     }
   } else {
     for (const [key, value] of Object.entries(obj)) {
-      if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_")) {
+      if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
         throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
       }
       expectSnakeCase(value, `${path}.${key}`);
@@ -436,6 +437,58 @@ export namespace Auth {
         callbackResponse: response,
         outerCallbackUrl,
         authorizationCode: outerCallbackUrl.searchParams.get("code")!,
+      };
+    }
+
+    export async function signIn() {
+      const getAuthorizationCodeResult = await Auth.OAuth.getAuthorizationCode();
+
+      const projectKeys = backendContext.value.projectKeys;
+      if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
+
+      const tokenResponse = await niceBackendFetch("/api/v1/auth/oauth/token", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          client_id: projectKeys.projectId,
+          client_secret: projectKeys.publishableClientKey ?? throwErr("No publishable client key found in the backend context"),
+          code: getAuthorizationCodeResult.authorizationCode,
+          redirect_uri: localRedirectUrl,
+          code_verifier: "some-code-challenge",
+          grant_type: "authorization_code",
+        },
+      });
+      expect(tokenResponse).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": {
+            "access_token": <stripped field 'access_token'>,
+            "afterCallbackRedirectUrl": null,
+            "after_callback_redirect_url": null,
+            "expires_in": 3599,
+            "is_new_user": true,
+            "newUser": true,
+            "refresh_token": <stripped field 'refresh_token'>,
+            "scope": "legacy",
+            "token_type": "Bearer",
+          },
+          "headers": Headers {
+            "pragma": "no-cache",
+            <some fields may have been hidden>,
+          },
+        }
+      `);
+
+      backendContext.set({
+        userAuth: {
+          accessToken: tokenResponse.body.access_token,
+          refreshToken: tokenResponse.body.refresh_token,
+        },
+      });
+
+      return {
+        ...getAuthorizationCodeResult,
+        tokenResponse,
       };
     }
   }

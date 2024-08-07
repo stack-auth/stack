@@ -104,9 +104,19 @@ export class OAuthModel implements AuthorizationCodeModel {
     token.client = client;
     token.user = user;
     return {
-      ...token,
+      accessToken: token.accessToken,
+      accessTokenExpiresAt: token.accessTokenExpiresAt,
+      refreshToken: token.refreshToken,
+      refreshTokenExpiresAt: token.refreshTokenExpiresAt,
+      scope: token.scope,
+      client: token.client,
+      user: token.user,
+
+      // TODO remove deprecated camelCase properties
       newUser: user.newUser,
+      is_new_user: user.newUser,
       afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
+      after_callback_redirect_url: user.afterCallbackRedirectUrl,
     };
   }
 
