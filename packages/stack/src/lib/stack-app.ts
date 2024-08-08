@@ -1568,6 +1568,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  async createUser(options: ServerUserCreateOptions): Promise<ServerUser> {
+    const crud = await this._interface.createServerUser(serverUserCreateOptionsToCrud(options));
+    await this._refreshUsers();
+    return this._serverUserFromCrud(crud);
+  }
+
 
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>;
@@ -2236,6 +2242,23 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
 }
 
 
+type ServerUserCreateOptions = {
+  primaryEmail: string,
+  password: string,
+  displayName?: string,
+  primaryEmailVerified?: boolean,
+}
+function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersCrud["Server"]["Create"] {
+  return {
+    primary_email: options.primaryEmail,
+    password: options.password,
+    primary_email_auth_enabled: true,
+    display_name: options.displayName,
+    primary_email_verified: options.primaryEmailVerified,
+  };
+}
+
+
 type _______________PROJECT_______________ = never;  // this is a marker for VSCode's outline view
 
 export type Project = {
@@ -2615,6 +2638,8 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
      * @deprecated use `getUser()` instead
      */
     getServerUser(): Promise<ProjectCurrentServerUser<ProjectId> | null>,
+
+    createUser(options: ServerUserCreateOptions): Promise<ServerUser>,
 
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>,
