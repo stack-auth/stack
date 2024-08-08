@@ -72,6 +72,21 @@ export class StackServerInterface extends StackClientInterface {
     }
   }
 
+  async createServerUser(data: UsersCrud['Server']['Create']): Promise<UsersCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      "/users",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
   async getServerUserByToken(session: InternalSession): Promise<CurrentUserCrud['Server']['Read'] | null> {
     const responseOrError = await this.sendServerRequestAndCatchKnownError(
       "/users/me",
