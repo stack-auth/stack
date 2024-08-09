@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExist, ensureUserExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
+import { ensureTeamExist, ensureTeamMembershipExists, ensureUserExist, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
@@ -45,14 +45,15 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
           throw new StatusError(StatusError.BadRequest, 'team_id is required for access type client');
         }
 
-        await ensureTeamMembershipExist(tx, { projectId: auth.project.id, teamId: query.team_id, userId: currentUserId });
+        await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: query.team_id, userId: currentUserId });
 
         if (userId !== currentUserId) {
-          await ensureUserHasTeamPermission(tx, {
+          await ensureUserTeamPermissionExists(tx, {
             project: auth.project,
             teamId: query.team_id,
             userId: currentUserId,
             permissionId: '$read_members',
+            errorType: 'required',
           });
         }
       } else {
@@ -87,15 +88,16 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
       const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
 
       if (auth.type === 'client' && userId !== auth.user?.id) {
-        await ensureUserHasTeamPermission(tx, {
+        await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr("Client must be authenticated"),
           permissionId: '$read_members',
+          errorType: 'required',
         });
       }
 
-      await ensureTeamMembershipExist(tx, { projectId: auth.project.id, teamId: params.team_id, userId: userId });
+      await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: params.team_id, userId: userId });
 
       const db = await tx.teamMember.findUnique({
         where: {
@@ -124,7 +126,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         throw new StatusError(StatusError.Forbidden, 'Cannot update another user\'s profile');
       }
 
-      await ensureTeamMembershipExist(tx, {
+      await ensureTeamMembershipExists(tx, {
         projectId: auth.project.id,
         teamId: params.team_id,
         userId,
