@@ -1,9 +1,9 @@
 'use client';
 
-import { Container } from "@stackframe/stack-ui";
+import { Container, EditableText } from "@stackframe/stack-ui";
 import { Contact, Info, Users } from "lucide-react";
+import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
-import { MessageCard, useUser } from "..";
 
 export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   const user = useUser({ or: 'redirect' });
@@ -15,7 +15,7 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
 
   const inner = <SidebarLayout
     items={[
-      { title: 'General', content: <GeneralSettings/>, icon: Info },
+      { title: 'General', content: <GeneralSettings team={team}/>, icon: Info },
       { title: 'My Profile', content: 'Profile content', icon: Contact },
       { title: 'Members', content: 'Members content', icon: Users },
     ]}
@@ -33,10 +33,8 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   }
 }
 
-function GeneralSettings() {
+function GeneralSettings(props: { team: Team }) {
   return (
-    <div className="border rounded-md p-2">
-      asdf
-    </div>
+    <EditableText value="Team Name" onSave={() => {}}/>
   );
 }
