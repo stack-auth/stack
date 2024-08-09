@@ -5,6 +5,7 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSch
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -54,6 +55,7 @@ export const POST = createSmartRouteHandler({
           primary_email: email,
           primary_email_verified: false,
         },
+        allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });
       userObj = {
         projectUserId: createdUser.id,

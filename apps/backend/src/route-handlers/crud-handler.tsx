@@ -73,6 +73,7 @@ type CrudHandlerDirectByAccess<
     & {
       project: ProjectsCrud["Admin"]["Read"],
       user?: UsersCrud["Admin"]["Read"],
+      allowedErrorTypes?: (new (...args: any) => any)[],
     }
     & ({} extends yup.InferType<QS> ? {} : { query: yup.InferType<QS> })
     & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
@@ -231,11 +232,12 @@ export function createCrudHandlers<
           ...[...aat].map(([accessType, { invoke }]) => (
             [
               `${accessType}${crudOperation}`,
-              async ({ user, project, data, query, ...params }: yup.InferType<PS> & {
+              async ({ user, project, data, query, allowedErrorTypes, ...params }: yup.InferType<PS> & {
                 query?: yup.InferType<QS>,
                 project: ProjectsCrud["Admin"]["Read"],
                 user?: UsersCrud["Admin"]["Read"],
                 data: any,
+                allowedErrorTypes?: (new (...args: any) => any)[],
               }) => {
                 try {
                   return await invoke({
@@ -249,6 +251,9 @@ export function createCrudHandlers<
                     },
                   });
                 } catch (error) {
+                  if (allowedErrorTypes?.some((a) => error instanceof a)) {
+                    throw error;
+                  }
                   throw new CrudHandlerInvocationError(error);
                 }
               },
