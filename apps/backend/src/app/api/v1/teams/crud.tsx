@@ -137,6 +137,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           permissionId: "$delete_team",
         });
       }
+      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       await tx.team.delete({
         where: {

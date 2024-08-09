@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
+import { ensureTeamExist, ensureTeamMembershipExist, ensureTeamMembershipDoesNotExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -107,6 +107,12 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
           permissionId: "$remove_members",
         });
       }
+
+      await ensureTeamMembershipExist(tx, {
+        projectId: auth.project.id,
+        teamId: params.team_id,
+        userId,
+      });
 
       await tx.teamMember.delete({
         where: {

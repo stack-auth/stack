@@ -1,3 +1,4 @@
+import { ensureTeamMembershipExist, ensureUserExist } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -174,7 +175,17 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onUpdate: async ({ auth, data, params }) => {
     const db = await prismaClient.$transaction(async (tx) => {
+      await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+
       if (data.selected_team_id !== undefined) {
+        if (data.selected_team_id !== null) {
+          await ensureTeamMembershipExist(tx, {
+            projectId: auth.project.id,
+            teamId: data.selected_team_id,
+            userId: params.user_id,
+          });
+        }
+
         await tx.teamMember.updateMany({
           where: {
             projectId: auth.project.id,
@@ -234,14 +245,18 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.projectUser.delete({
-      where: {
-        projectId_projectUserId: {
-          projectId: auth.project.id,
-          projectUserId: params.user_id,
+    await prismaClient.$transaction(async (tx) => {
+      await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+
+      await tx.projectUser.delete({
+        where: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+          },
         },
-      },
-      include: fullInclude,
+        include: fullInclude,
+      });
     });
 
     await sendUserDeletedWebhook({

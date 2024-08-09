@@ -2,7 +2,7 @@ import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/cli
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
+import { listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
 
 
@@ -83,7 +83,7 @@ export async function ensureUserHasTeamPermission(
     project: ProjectsCrud["Admin"]["Read"],
     teamId: string,
     userId: string,
-    permissionId: TeamSystemPermission,
+    permissionId: string,
   }
 ) {
   await ensureTeamMembershipExist(tx, {
