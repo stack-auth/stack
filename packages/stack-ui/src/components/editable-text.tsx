@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react";
 import { Button, Input, Typography } from "..";
 import { Edit } from "lucide-react";

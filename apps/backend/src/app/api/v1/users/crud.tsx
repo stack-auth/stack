@@ -11,7 +11,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
 import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 
-const fullInclude = {
+export const userFullInclude = {
   projectUserOAuthAccounts: {
     include: {
       providerConfig: true,
@@ -27,7 +27,7 @@ const fullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
-const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof fullInclude}>): UsersCrud["Admin"]["Read"] => {
+export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
@@ -108,14 +108,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           projectUserId: params.user_id,
         },
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     if (!db) {
       throw new KnownErrors.UserNotFound();
     }
 
-    return prismaToCrud(db);
+    return userPrismaToCrud(db);
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -129,11 +129,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           },
         } : {},
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     return {
-      items: db.map(prismaToCrud),
+      items: db.map(userPrismaToCrud),
       is_paginated: false,
     };
   },
@@ -160,10 +160,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           }
         } : undefined,
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
 
     await sendUserCreatedWebhook({
       projectId: auth.project.id,
@@ -218,13 +218,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
         },
-        include: fullInclude,
+        include: userFullInclude,
       });
 
       return db;
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,
@@ -241,7 +241,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           projectUserId: params.user_id,
         },
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     await sendUserDeletedWebhook({

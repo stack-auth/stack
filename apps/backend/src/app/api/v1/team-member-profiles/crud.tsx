@@ -8,8 +8,9 @@ import { teamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { userFullInclude, userPrismaToCrud } from "../users/crud";
 
-const fullInclude = { projectUser: true };
+const fullInclude = { projectUser: { include: userFullInclude } };
 
 function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof fullInclude }>) {
   return {
@@ -17,6 +18,7 @@ function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof full
     user_id: prisma.projectUserId,
     display_name: prisma.displayName ?? prisma.projectUser.displayName,
     profile_image_url: prisma.profileImageUrl ?? prisma.projectUser.profileImageUrl,
+    user: userPrismaToCrud(prisma.projectUser),
   };
 }
 

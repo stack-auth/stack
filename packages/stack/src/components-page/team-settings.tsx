@@ -54,3 +54,6 @@ function ProfileSettings(props: { team: Team }) {
     </>
   );
 }
+
+function MembersSettings(props: { team: Team }) {
+}
