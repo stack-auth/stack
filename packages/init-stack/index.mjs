@@ -48,16 +48,16 @@ const commandsExecuted = [];
 async function main() {
   console.log();
   console.log(`
-       ██████            
-   ██████████████        
-████████████████████     
+       ██████
+   ██████████████
+████████████████████
 ████████████████████                WELCOME TO
 █████████████████        ╔═╗╔╦╗╔═╗╔═╗╦╔═  ┌─┐┬ ┬┌┬┐┬ ┬
 █████████████            ╚═╗ ║ ╠═╣║  ╠╩╗  ├─┤│ │ │ ├─┤
 █████████████   ████     ╚═╝ ╩ ╩ ╩╚═╝╩ ╩  ┴ ┴└─┘ ┴ ┴ ┴
-   █████████████████     
-       ██████     ██     
-████            ████     
+   █████████████████
+       ██████     ██
+████            ████
    █████    █████
        ██████
   `);
@@ -432,13 +432,16 @@ async function getPackageManager() {
   const yarnLock = fs.existsSync(path.join(projectPath, "yarn.lock"));
   const pnpmLock = fs.existsSync(path.join(projectPath, "pnpm-lock.yaml"));
   const npmLock = fs.existsSync(path.join(projectPath, "package-lock.json"));
+  const bunLock = fs.existsSync(path.join(projectPath, "bun.lockb"));
 
-  if (yarnLock && !pnpmLock && !npmLock) {
+  if (yarnLock && !pnpmLock && !npmLock && !bunLock) {
     return "yarn";
-  } else if (!yarnLock && pnpmLock && !npmLock) {
+  } else if (!yarnLock && pnpmLock && !npmLock && !bunLock) {
     return "pnpm";
-  } else if (!yarnLock && !pnpmLock && npmLock) {
+  } else if (!yarnLock && !pnpmLock && npmLock && !bunLock) {
     return "npm";
+  } else if (!yarnLock && !pnpmLock && !npmLock && bunLock) {
+    return "bun";
   }
 
   const answers = await inquirer.prompt([
@@ -446,7 +449,7 @@ async function getPackageManager() {
       type: "list",
       name: "packageManager",
       message: "Which package manager are you using for this project?",
-      choices: ["npm", "yarn", "pnpm"],
+      choices: ["npm", "yarn", "pnpm", "bun"],
     },
   ]);
   return answers.packageManager;
