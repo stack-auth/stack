@@ -1034,6 +1034,21 @@ const TeamPermissionRequired = createKnownErrorConstructor(
   (json) => [json.team_id, json.user_id, json.permission_id] as const,
 );
 
+const TeamPermissionNotFound = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_PERMISSION_NOT_FOUND",
+  (teamId, userId, permissionId) => [
+    401,
+    `User ${userId} does not have permission ${permissionId} in team ${teamId}.`,
+    {
+      team_id: teamId,
+      user_id: userId,
+      permission_id: permissionId,
+    },
+  ] as const,
+  (json) => [json.team_id, json.user_id, json.permission_id] as const,
+);
+
 const InvalidSharedOAuthProviderId = createKnownErrorConstructor(
   KnownError,
   "INVALID_SHARED_OAUTH_PROVIDER_ID",
@@ -1156,6 +1171,7 @@ export const KnownErrors = {
   InvalidSharedOAuthProviderId,
   InvalidStandardOAuthProviderId,
   InvalidAuthorizationCode,
+  TeamPermissionNotFound,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

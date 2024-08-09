@@ -1,4 +1,4 @@
-import { ensureUserHasTeamPermission } from "@/lib/request-checks";
+import { ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
@@ -30,11 +30,12 @@ export const POST = createSmartRouteHandler({
   async handler({ auth, body }) {
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === "client") {
-        await ensureUserHasTeamPermission(tx, {
+        await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           userId: auth.user.id,
           teamId: body.team_id,
-          permissionId: "$invite_members"
+          permissionId: "$invite_members",
+          errorType: 'required',
         });
       }
     });
