@@ -53,7 +53,7 @@ Here's an example. To retrieve the current user, simply call:
 ```tsx
 export function MyComponent() {
   const user = useUser({ or: "redirect" });
-  return <div>{user ? `Hi, ${user.displayName}` : 'You are not logged in'}</div>;
+  return <div>{`Hi, ${user.displayName}`}</div>;
 }
 ```
 
