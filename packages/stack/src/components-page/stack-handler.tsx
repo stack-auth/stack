@@ -12,6 +12,7 @@ import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
+import { TeamSettings } from "./team-settings";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -64,6 +65,20 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   };
 
   const path = stack.join('/');
+
+  if (/team-settings\/[a-zA-Z0-9-]+/.test(path)) {
+    const teamId = path.split('/')[1];
+    const user = await app.getUser();
+    const team = await user?.getTeam(teamId);
+
+    if (!team) {
+      return notFound();
+    }
+
+    return <TeamSettings fullPage={fullPage} teamId={teamId} />;
+  }
+
+
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
