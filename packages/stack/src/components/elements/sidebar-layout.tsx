@@ -6,6 +6,7 @@ import React, { ReactNode } from 'react';
 
 type Item = {
   title: React.ReactNode,
+  description?: React.ReactNode,
   icon?: LucideIcon,
   content: React.ReactNode,
 }
@@ -33,7 +34,7 @@ export function SidebarLayout(props: { items: Item[], title?: ReactNode }) {
 
   return (
     <div className="stack-scope flex">
-      <div className="flex w-[200px] border-r flex-col p-2 items-stretch gap-2">
+      <div className="flex w-[200px] border-r flex-col items-stretch gap-2 p-2">
         {props.title && <div className='mb-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
@@ -47,8 +48,11 @@ export function SidebarLayout(props: { items: Item[], title?: ReactNode }) {
           />
         ))}
       </div>
-      <div className="flex-1 flex flex-col gap-4 p-2">
-        <Typography type='h4'>{currentItem.title}</Typography>
+      <div className="flex-1 flex flex-col gap-4 py-2 px-4">
+        <div>
+          <Typography type='h4'>{currentItem.title}</Typography>
+          {currentItem.description && <Typography variant='secondary' type='label'>{currentItem.description}</Typography>}
+        </div>
         <div className='flex-1 gap-2'>
           {currentItem.content}
         </div>
