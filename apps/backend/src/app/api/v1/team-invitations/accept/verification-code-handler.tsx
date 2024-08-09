@@ -6,6 +6,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamsCrudHandlers } from "../../teams/crud";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const teamInvitationCodeHandler = createVerificationCodeHandler({
   metadata: {

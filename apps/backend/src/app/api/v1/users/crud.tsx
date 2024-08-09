@@ -5,11 +5,12 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
 import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -40,7 +41,7 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
     captureError("prismaToCrud", new StackAssertionError("User has authWithEmail but no primary email; this is an assertion error that should never happen", { prisma }));
   }
   const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = [
-    ...prisma.passwordHash ? [{
+    ...prisma.authWithEmail && prisma.passwordHash ? [{
       type: 'password',
       identifier: prisma.primaryEmail ?? "",
     }] as const : [],
@@ -138,6 +139,28 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     };
   },
   onCreate: async ({ auth, data }) => {
+    if (!data.primary_email && data.primary_email_auth_enabled) {
+      throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
+    }
+    if (!data.primary_email_auth_enabled && data.password) {
+      throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
+    }
+    if (data.primary_email_auth_enabled) {
+      // TODO: make this a transaction
+      const users = await prismaClient.projectUser.findMany({
+        where: {
+          projectId: auth.project.id,
+          primaryEmail: data.primary_email,
+          authWithEmail: true,
+        },
+      });
+
+      if (users.length > 0) {
+        throw new KnownErrors.UserEmailAlreadyExists();
+      }
+    }
+
+
     const db = await prismaClient.projectUser.create({
       data: {
         projectId: auth.project.id,

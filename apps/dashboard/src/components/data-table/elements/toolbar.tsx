@@ -2,8 +2,10 @@
 
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Button } from "@stackframe/stack-ui";
-import { Table } from "@tanstack/react-table";
+import { Cell, Table } from "@tanstack/react-table";
 import { DataTableViewOptions } from "./view-options";
+import { DownloadIcon } from "lucide-react";
+import { mkConfig, generateCsv, download } from 'export-to-csv';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>,
@@ -19,7 +21,7 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         {toolbarRender?.(table)}
         {(isFiltered || isSorted) && (
           <Button
@@ -35,7 +37,54 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <div className="flex-1" />
+      <div className="flex items-center gap-2 flex-wrap">
+        <DataTableViewOptions table={table} />
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto hidden h-8 lg:flex"
+          onClick={() => {
+            const csvConfig = mkConfig({
+              fieldSeparator: ',',
+              filename: 'data',
+              decimalSeparator: '.',
+              useKeysAsHeaders: true,
+            });
+
+            const renderCellValue = (cell: Cell<TData, unknown>) => {
+              const rendered = cell.renderValue();
+              if (rendered === null) {
+                return undefined;
+              }
+              if (['string', 'number', 'boolean', 'undefined'].includes(typeof rendered)) {
+                return rendered;
+              }
+              if (rendered instanceof Date) {
+                return rendered.toISOString();
+              }
+              if (typeof rendered === 'object') {
+                return JSON.stringify(rendered);
+              }
+            };
+
+
+            const rowModel = table.getCoreRowModel();
+            const rows = rowModel.rows.map(row => Object.fromEntries(row.getAllCells().map(c => [c.column.id, renderCellValue(c)]).filter(([_, v]) => v !== undefined)));
+            console.log(table.getAllColumns());
+            if (rows.length === 0) {
+              alert("No data to export");
+              return;
+            }
+            console.log(rows);
+            const csv = generateCsv(csvConfig)(rows as any);
+            download(csvConfig)(csv);
+          }}
+        >
+          <DownloadIcon className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
+      </div>
     </div>
   );
 }
