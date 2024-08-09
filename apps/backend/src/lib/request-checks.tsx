@@ -2,7 +2,7 @@ import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/cli
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
+import { listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
 
 
@@ -24,7 +24,7 @@ async function _getTeamMembership(
   });
 }
 
-export async function ensureTeamMembershipExist(
+export async function ensureTeamMembershipExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
@@ -77,16 +77,17 @@ export async function ensureTeamExist(
   }
 }
 
-export async function ensureUserHasTeamPermission(
+export async function ensureUserTeamPermissionExists(
   tx: PrismaTransaction,
   options: {
     project: ProjectsCrud["Admin"]["Read"],
     teamId: string,
     userId: string,
-    permissionId: TeamSystemPermission,
+    permissionId: string,
+    errorType: 'required' | 'not-exist',
   }
 ) {
-  await ensureTeamMembershipExist(tx, {
+  await ensureTeamMembershipExists(tx, {
     projectId: options.project.id,
     teamId: options.teamId,
     userId: options.userId,
@@ -101,7 +102,11 @@ export async function ensureUserHasTeamPermission(
   });
 
   if (result.length === 0) {
-    throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
+    if (options.errorType === 'not-exist') {
+      throw new KnownErrors.TeamPermissionNotFound(options.teamId, options.userId, options.permissionId);
+    } else {
+      throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
+    }
   }
 }
 

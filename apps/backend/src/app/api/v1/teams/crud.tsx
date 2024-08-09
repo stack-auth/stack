@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
+import { ensureTeamExist, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -66,7 +66,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onRead: async ({ params, auth }) => {
     const db = await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        await ensureTeamMembershipExist(tx, {
+        await ensureTeamMembershipExists(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr('auth.user is null'),
@@ -94,11 +94,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onUpdate: async ({ params, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        await ensureUserHasTeamPermission(tx, {
+        await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr('auth.user is null'),
           permissionId: "$update_team",
+          errorType: 'required',
         });
       }
 
@@ -130,13 +131,15 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onDelete: async ({ params, auth }) => {
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === 'client') {
-        await ensureUserHasTeamPermission(tx, {
+        await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr('auth.user is null'),
           permissionId: "$delete_team",
+          errorType: 'required',
         });
       }
+      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       await tx.team.delete({
         where: {
