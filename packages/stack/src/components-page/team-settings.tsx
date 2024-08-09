@@ -5,7 +5,7 @@ import { Contact, Info, Settings, Users } from "lucide-react";
 import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
 
-export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
+function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   const user = useUser({ or: 'redirect' });
   const team = user.useTeam(props.teamId);
 
