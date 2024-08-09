@@ -4,6 +4,7 @@ import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/proje
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { TeamSystemPermission, listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 
 async function _getTeamMembership(
@@ -142,4 +143,12 @@ export function ensureStandardProvider(
     throw new KnownErrors.InvalidStandardOAuthProviderId(providerId);
   }
   return providerId as any;
+}
+
+export function ensureClientUserAuthenticated(
+  auth: { user: UsersCrud["Admin"]["Read"] | null, type: 'client' | 'server' | 'admin' }
+) {
+  if (auth.type === 'client' && !auth.user) {
+    throw new KnownErrors.UserAuthenticationRequired();
+  }
 }
