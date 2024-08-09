@@ -13,10 +13,12 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
     return <MessageCard title='Team not found' />;
   }
 
+  const readMemberPermission = user.usePermission(team, '$read_member');
+
   const inner = <SidebarLayout
     items={[
       { title: 'My Profile', content: <ProfileSettings team={team}/>, icon: Contact, description: `Your profile in the team "${team.displayName}"` },
-      { title: 'Members', content: 'Members content', icon: Users },
+      ...readMemberPermission ? [{ title: 'Members', content: <MembersSettings team={team}/>, icon: Users }] : [],
       { title: 'Settings', content: <GeneralSettings team={team} />, icon: Settings },
     ]}
     title='Team Settings'
@@ -56,4 +58,24 @@ function ProfileSettings(props: { team: Team }) {
 }
 
 function MembersSettings(props: { team: Team }) {
+  const users = props.team.useUsers();
+
+  return (
+    <>
+      <div>
+        <Label>Members</Label>
+        <div className='flex gap-2'>
+          {users.map(user => (
+            <div key={user.id} className='flex gap-2 items-center'>
+              <div className='flex gap-2 items-center'>
+                <img src={user.teamProfile.profileImageUrl || undefined} className='w-8 h-8 rounded-full'/>
+                <div>{user.teamProfile.displayName}</div>
+              </div>
+              <button className='btn btn-danger btn-sm'>Remove</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
 }

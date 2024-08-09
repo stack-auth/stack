@@ -127,7 +127,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
       await ensureTeamMembershipExist(tx, {
         projectId: auth.project.id,
         teamId: params.team_id,
-        userId: auth.user?.id ?? throwErr("Client must be authenticated"),
+        userId,
       });
 
       const db = await tx.teamMember.update({
