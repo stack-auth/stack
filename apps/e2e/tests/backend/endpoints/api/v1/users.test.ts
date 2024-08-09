@@ -1,3 +1,4 @@
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
@@ -324,7 +325,33 @@ describe("with client access", () => {
     `);
   });
 
-  it.todo("should not be able to create own user");
+  it("should not be able to create a user", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "client",
+      method: "POST",
+      body: {},
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INSUFFICIENT_ACCESS_TYPE",
+          "details": {
+            "actual_access_type": "client",
+            "allowed_access_types": [
+              "server",
+              "admin",
+            ],
+          },
+          "error": "The x-stack-access-type header must be 'server' or 'admin', but was 'client'.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 
   it("updating own display name to the empty string should set it to null", async ({ expect }) => {
     await Auth.Otp.signIn();
@@ -607,7 +634,418 @@ describe("with server access", () => {
     expect(response.body.primary_email).toEqual(backendContext.value.mailbox.emailAddress);
   });
 
-  it.todo("should not be able to create a user");
+  it("should be able to create a user", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {},
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [],
+          "auth_with_email": false,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": null,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to create a user with email auth enabled", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        display_name: "John Dough",
+        server_metadata: "test",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": "John Dough",
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": "test",
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to create a user with a password and sign in with it", async ({ expect }) => {
+    const password = generateSecureRandomString();
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
+            },
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const signInResponse = await Auth.Password.signInWithEmail({ password });
+    expect(signInResponse.signInResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user without primary email but with email auth enabled", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email_auth_enabled: true,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "primary_email_auth_enabled cannot be true without primary_email",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user with password but email auth disabled", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        password: "shouldn't work",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "password cannot be set without primary_email_auth_enabled",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user with email auth enabled if the email already exists with email auth enabled", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const response2 = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "USER_EMAIL_ALREADY_EXISTS",
+          "error": "User already exists.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should be able to create a user with email auth enabled if the email already exists but without email auth enabled", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [],
+          "auth_with_email": false,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const password = generateSecureRandomString();
+    const response2 = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password: password,
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
+            },
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const signInResponse = await Auth.Password.signInWithEmail({ password });
+    expect(signInResponse.signInResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to create a user with email auth disabled even if the email already exists with email auth enabled", async ({ expect }) => {
+    const password = generateSecureRandomString();
+    const response2 = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password: password,
+      },
+    });
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
+            },
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_methods": [],
+          "auth_with_email": false,
+          "client_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const signInResponse = await Auth.Password.signInWithEmail({ password });
+    expect(signInResponse.signInResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
 
   it("should be able to update a user", async ({ expect }) => {
     await Auth.Otp.signIn();

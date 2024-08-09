@@ -45,19 +45,6 @@ export const POST = createSmartRouteHandler({
       throw passwordError;
     }
 
-    // TODO: make this a transaction
-    const users = await prismaClient.projectUser.findMany({
-      where: {
-        projectId: project.id,
-        primaryEmail: email,
-        authWithEmail: true,
-      },
-    });
-
-    if (users.length > 0) {
-      throw new KnownErrors.UserEmailAlreadyExists();
-    }
-
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {
@@ -66,6 +53,7 @@ export const POST = createSmartRouteHandler({
         primary_email_verified: false,
         password,
       },
+      allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
     await contactChannelVerificationCodeHandler.sendCode({
