@@ -69,7 +69,7 @@ export function DataTableToolbar<TData>({
             };
 
 
-            const rowModel = table.getRowModel();
+            const rowModel = table.getCoreRowModel();
             const rows = rowModel.rows.map(row => Object.fromEntries(row.getAllCells().map(c => [c.column.id, renderCellValue(c)]).filter(([_, v]) => v !== undefined)));
             console.log(table.getAllColumns());
             if (rows.length === 0) {
