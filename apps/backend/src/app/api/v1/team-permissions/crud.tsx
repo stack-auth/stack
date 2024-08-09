@@ -1,5 +1,5 @@
 import { grantTeamPermission, listUserTeamPermissions, revokeTeamPermission } from "@/lib/permissions";
-import { ensureTeamMembershipExist, ensureUserHasTeamPermission } from "@/lib/request-checks";
+import { ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
@@ -22,7 +22,7 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
   }),
   async onCreate({ auth, params }) {
     return await prismaClient.$transaction(async (tx) => {
-      await ensureTeamMembershipExist(tx, { projectId: auth.project.id, teamId: params.team_id, userId: params.user_id });
+      await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: params.team_id, userId: params.user_id });
 
       return await grantTeamPermission(tx, {
         project: auth.project,
@@ -34,11 +34,12 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
   },
   async onDelete({ auth, params }) {
     return await prismaClient.$transaction(async (tx) => {
-      await ensureUserHasTeamPermission(tx, {
+      await ensureUserTeamPermissionExists(tx, {
         project: auth.project,
         teamId: params.team_id,
         userId: params.user_id,
-        permissionId: params.permission_id
+        permissionId: params.permission_id,
+        errorType: 'not-exist',
       });
 
       return await revokeTeamPermission(tx, {

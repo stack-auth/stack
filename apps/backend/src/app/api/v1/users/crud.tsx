@@ -1,4 +1,4 @@
-import { ensureTeamMembershipExist, ensureUserExist } from "@/lib/request-checks";
+import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -179,7 +179,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       if (data.selected_team_id !== undefined) {
         if (data.selected_team_id !== null) {
-          await ensureTeamMembershipExist(tx, {
+          await ensureTeamMembershipExists(tx, {
             projectId: auth.project.id,
             teamId: data.selected_team_id,
             userId: params.user_id,
