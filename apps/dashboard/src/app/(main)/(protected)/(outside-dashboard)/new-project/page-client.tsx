@@ -34,6 +34,7 @@ export default function PageClient () {
   const mockProject = {
     id: "id",
     config: {
+      signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
       oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook"].includes(method)).map(provider => ({ id: provider })),

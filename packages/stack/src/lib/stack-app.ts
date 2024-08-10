@@ -10,6 +10,7 @@ import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
+import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
@@ -674,6 +675,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _clientProjectFromCrud(crud: ProjectsCrud['Client']['Read']): Project {
     return {
       id: crud.id,
+      displayName: crud.display_name,
       config: {
         signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
@@ -753,6 +755,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       emailAuthEnabled: crud.auth_with_email,
       oauthProviders: crud.oauth_providers,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
+      isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
         return crud;
       }
@@ -831,17 +834,17 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
         return (await this.getPermission(scope, permissionId)) !== null;
       },
-      update(update) {
-        return app._updateClientUser(update, session);
+      async update(update) {
+        return await app._updateClientUser(update, session);
       },
-      sendVerificationEmail() {
+      async sendVerificationEmail() {
         if (!crud?.primary_email) {
           throw new StackAssertionError("User does not have a primary email");
         }
-        return app._sendVerificationEmail(crud.primary_email, session);
+        return await app._sendVerificationEmail(crud.primary_email, session);
       },
-      updatePassword(options: { oldPassword: string, newPassword: string}) {
-        return app._updatePassword(options, session);
+      async updatePassword(options: { oldPassword: string, newPassword: string}) {
+        return await app._updatePassword(options, session);
       },
     };
   }
@@ -1105,10 +1108,37 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
+    // TODO next-release remove
+    __experimental_mfa?: boolean,
   }): Promise<KnownErrors["EmailPasswordMismatch"] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
-    const result = await this._interface.signInWithCredential(options.email, options.password, session);
+    let result;
+    try {
+      result = await this._interface.signInWithCredential(options.email, options.password, session);
+    } catch (e) {
+      // TODO next-release remove
+      if (options.__experimental_mfa && e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
+        const otp = prompt('Please enter the six-digit TOTP code from your authenticator app.');
+        try {
+          if (!otp) {
+            throw new KnownErrors.InvalidTotpCode();
+          }
+          result = await this._interface.totpMfa(
+            (e.details as any)?.attempt_code ?? throwErr("attempt code missing"),
+            otp,
+            session
+          );
+        } catch (e) {
+          if (e instanceof KnownErrors.InvalidTotpCode) {
+            return e as any; // hack
+          }
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    }
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
       return await this.redirectToAfterSignIn({ replace: true });
@@ -2124,7 +2154,12 @@ type BaseUser = {
    * Whether the user has a password set.
    */
   readonly hasPassword: boolean,
+  /**
+   * @deprecated
+   */
   readonly oauthProviders: readonly { id: string }[],
+
+  readonly isMultiFactorRequired: boolean,
 
   /**
    * A shorthand method to update multiple fields of the user at once.
@@ -2174,13 +2209,14 @@ type UserUpdateOptions = {
   displayName?: string,
   clientMetadata?: ReadonlyJson,
   selectedTeamId?: string | null,
+  totpMultiFactorSecret?: Uint8Array | null,
 }
-
 function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
   return {
     display_name: options.displayName,
     client_metadata: options.clientMetadata,
     selected_team_id: options.selectedTeamId,
+    totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
   };
 }
 
@@ -2240,6 +2276,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     primary_email_verified: options.primaryEmailVerified,
     password: options.password,
+    totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
   };
 }
 
@@ -2265,6 +2302,7 @@ type _______________PROJECT_______________ = never;  // this is a marker for VSC
 
 export type Project = {
   readonly id: string,
+  readonly displayName: string,
   readonly config: ProjectConfig,
 };
 

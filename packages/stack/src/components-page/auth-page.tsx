@@ -24,6 +24,7 @@ export function AuthPage({
   automaticRedirect?: boolean,
   mockProject?: {
     config: {
+      signUpEnabled: boolean,
       credentialEnabled: boolean,
       magicLinkEnabled: boolean,
       oauthProviders: {
@@ -49,6 +50,10 @@ export function AuthPage({
     return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
+  if (type === 'sign-up' && !project.config.signUpEnabled) {
+    return <PredefinedMessageCard type='signUpDisabled' fullPage={fullPage} />;
+  }
+
   const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
   return (
@@ -59,15 +64,17 @@ export function AuthPage({
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
           </Typography>
           {type === 'sign-in' ? (
-            <Typography>
-              {"Don't have an account? "}
-              <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
-                runAsynchronously(stackApp.redirectToSignUp());
-                e.preventDefault();
-              }}>
-                Sign up
-              </StyledLink>
-            </Typography>
+            project.config.signUpEnabled && (
+              <Typography>
+                {"Don't have an account? "}
+                <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
+                  runAsynchronously(stackApp.redirectToSignUp());
+                  e.preventDefault();
+                }}>
+                  Sign up
+                </StyledLink>
+              </Typography>
+            )
           ) : (
             <Typography>
               {"Already have an account? "}

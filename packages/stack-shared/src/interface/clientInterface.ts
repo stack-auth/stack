@@ -595,6 +595,30 @@ export class StackClientInterface {
     }
   }
 
+  async totpMfa(
+    attemptCode: string,
+    totp: string,
+    session: InternalSession
+  ) {
+    const res = await this.sendClientRequest("/auth/mfa/sign-in", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        code: attemptCode,
+        type: "totp",
+        totp: totp,
+      }),
+    }, session);
+
+    const result = await res.json();
+    return {
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+    };
+  }
+
   async signInWithCredential(
     email: string,
     password: string,
