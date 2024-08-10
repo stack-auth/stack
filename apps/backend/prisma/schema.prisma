@@ -40,6 +40,7 @@ model ProjectConfig {
   updatedAt DateTime @updatedAt
 
   allowLocalhost    Boolean
+  signUpEnabled     Boolean @default(true)
   credentialEnabled Boolean
   magicLinkEnabled  Boolean
 

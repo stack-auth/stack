@@ -99,6 +99,7 @@ export function projectPrismaToCrud(
     config: {
       id: prisma.config.id,
       allow_localhost: prisma.config.allowLocalhost,
+      sign_up_enabled: prisma.config.signUpEnabled,
       credential_enabled: prisma.config.credentialEnabled,
       magic_link_enabled: prisma.config.magicLinkEnabled,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,

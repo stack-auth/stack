@@ -4,6 +4,7 @@ import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch } from "./providers";
+import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -12,7 +13,10 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
-      <SettingCard title="Email Authentication" description="Email address based sign in.">
+      <SettingCard>
+        <CardSubtitle>
+          Email-based
+        </CardSubtitle>
         <SettingSwitch
           label="Email password authentication"
           checked={project.config.credentialEnabled}
@@ -35,9 +39,9 @@ export default function PageClient() {
             });
           }}
         />
-      </SettingCard>
-
-      <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
+        <CardSubtitle className="mt-2">
+          SSO (OAuth)
+        </CardSubtitle>
         {allProviders.map((id) => {
           const provider = oauthProviders.find((provider) => provider.id === id);
           return <ProviderSettingSwitch
@@ -56,6 +60,20 @@ export default function PageClient() {
             }}
           />;
         })}
+      </SettingCard>
+      <SettingCard title="Settings">
+        <SettingSwitch
+          label="Allow everyone to create accounts"
+          checked={project.config.signUpEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                signUpEnabled: checked,
+              },
+            });
+          }}
+          hint="When disabled, only users with an existing account can sign in. You can still create new accounts manually on the dashboard."
+        />
       </SettingCard>
     </PageLayout>
   );

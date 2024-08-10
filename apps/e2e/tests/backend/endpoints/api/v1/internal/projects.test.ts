@@ -57,7 +57,7 @@ it("lists all current projects (empty list)", async ({ expect }) => {
 it("creates a new project", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectClientKeys });
   await Auth.Otp.signIn();
-  const result = await Project.createAndSetAdmin({
+  const result = await Project.createAndGetAdminToken({
     display_name: "Test Project",
   });
   expect(result.createProjectResponse).toMatchInlineSnapshot(`
@@ -74,6 +74,7 @@ it("creates a new project", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -98,6 +99,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
     is_production_mode: true,
     config: {
       allow_localhost: false,
+      sign_up_enabled: false,
       credential_enabled: false,
       magic_link_enabled: true,
     },
@@ -107,15 +109,16 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "status": 201,
       "body": {
         "config": {
-          "allow_localhost": true,
+          "allow_localhost": false,
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": true,
           "oauth_providers": [],
+          "sign_up_enabled": false,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -177,6 +180,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -214,6 +218,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -265,6 +270,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -318,6 +324,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -354,6 +361,7 @@ it("lists the current projects after creating a new project", async ({ expect })
               "id": "<stripped UUID>",
               "magic_link_enabled": false,
               "oauth_providers": [],
+              "sign_up_enabled": true,
               "team_creator_default_permissions": [{ "id": "admin" }],
               "team_member_default_permissions": [{ "id": "member" }],
             },

@@ -45,6 +45,10 @@ export const POST = createSmartRouteHandler({
       throw passwordError;
     }
 
+    if (!project.config.sign_up_enabled) {
+      throw new KnownErrors.SignUpNotEnabled();
+    }
+
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {

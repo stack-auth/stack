@@ -131,7 +131,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
-  if (adminAccessToken) {
+  if (adminAccessToken !== null) {
     const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
     switch (reason) {
       case null: {
