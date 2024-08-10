@@ -458,7 +458,7 @@ it("updates the project email configuration", async ({ expect }) => {
   `);
 });
 
-it("updates the project email configuration with the wrong parameters", async ({ expect }) => {
+it("updates the project email configuration with invalid parameters", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
@@ -466,7 +466,7 @@ it("updates the project email configuration with the wrong parameters", async ({
       email_config: {
         type: "shared",
         client_id: "client_id",
-      },
+      } as any,
     },
   });
   expect(response1).toMatchInlineSnapshot(`
