@@ -1,12 +1,10 @@
-import * as yup from "yup";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { prismaClient } from "@/prisma-client";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { createAuthTokens } from "@/lib/tokens";
+import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
-import { signInResponseSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
