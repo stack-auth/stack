@@ -45,6 +45,10 @@ export const POST = createSmartRouteHandler({
 
     const userPrisma = usersPrisma.length > 0 ? usersPrisma[0] : null;
     const isNewUser = !userPrisma;
+    if (isNewUser && !project.config.sign_up_enabled) {
+      throw new KnownErrors.SignUpNotEnabled();
+    }
+
     let userObj: Pick<NonNullable<typeof userPrisma>, "projectUserId" | "displayName" | "primaryEmail"> | null = userPrisma;
     if (!userObj) {
       // TODO this should be in the same transaction as the read above

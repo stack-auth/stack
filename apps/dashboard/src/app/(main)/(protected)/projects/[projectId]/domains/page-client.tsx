@@ -238,12 +238,10 @@ export default function PageClient() {
             });
           }}
           label="Allow all localhost callbacks for development"
+          hint={<>
+            When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
+          </>}
         />
-
-
-        <Typography variant="secondary" type="footnote">
-          When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
-        </Typography>
       </SettingCard>
     </PageLayout>
   );

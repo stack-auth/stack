@@ -186,7 +186,7 @@ export function ProviderSettingSwitch(props: Props) {
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
             {isShared && enabled &&
-              <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
+              <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
             }

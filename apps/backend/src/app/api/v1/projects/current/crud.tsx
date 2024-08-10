@@ -253,6 +253,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           isProductionMode: data.is_production_mode,
           config: {
             update: {
+              signUpEnabled: data.config?.sign_up_enabled,
               credentialEnabled: data.config?.credential_enabled,
               magicLinkEnabled: data.config?.magic_link_enabled,
               allowLocalhost: data.config?.allow_localhost,

@@ -247,7 +247,10 @@ export const GET = createSmartRouteHandler({
 
               // ========================== sign up user ==========================
 
-              const newAccount = await usersCrudHandlers.serverCreate({
+              if (!project.config.sign_up_enabled) {
+                throw new KnownErrors.SignUpNotEnabled();
+              }
+              const newAccount = await usersCrudHandlers.adminCreate({
                 project,
                 data: {
                   display_name: userInfo.displayName,
@@ -260,7 +263,7 @@ export const GET = createSmartRouteHandler({
                     account_id: userInfo.accountId,
                     email: userInfo.email,
                   }],
-                }
+                },
               });
               await storeTokens();
               return {

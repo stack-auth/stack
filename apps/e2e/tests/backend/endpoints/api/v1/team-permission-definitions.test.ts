@@ -6,7 +6,7 @@ it("lists all the team permissions", async ({ expect }) => {
   backendContext.set({
     projectKeys: InternalProjectKeys,
   });
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   const response = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "admin",
@@ -74,7 +74,7 @@ it("lists all the team permissions", async ({ expect }) => {
 
 it("creates, updates, and delete a new team permission", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   const response1 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "admin",

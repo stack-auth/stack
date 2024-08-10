@@ -1,6 +1,6 @@
 
 import { it, updateCookiesFromResponse } from "../../../../../../helpers";
-import { Auth, niceBackendFetch } from "../../../../../backend-helpers";
+import { ApiKey, Auth, Project, niceBackendFetch } from "../../../../../backend-helpers";
 
 it("should return outer authorization code when inner callback url is valid", async ({ expect }) => {
   const response = await Auth.OAuth.getAuthorizationCode();
@@ -28,6 +28,33 @@ it("should fail when inner callback has invalid provider ID", async ({ expect })
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         "x-stack-known-error": "INVALID_AUTHORIZATION_CODE",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("should fail when account is new and sign ups are disabled", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { sign_up_enabled: false, oauth_providers: [ { id: "facebook", type: "shared", enabled: true } ] } });
+  await ApiKey.createAndSetProjectKeys();
+  const getInnerCallbackUrlResponse = await Auth.OAuth.getInnerCallbackUrl();
+  const cookie = updateCookiesFromResponse("", getInnerCallbackUrlResponse.authorizeResponse);
+  const response = await niceBackendFetch(getInnerCallbackUrlResponse.innerCallbackUrl, {
+    redirect: "manual",
+    headers: {
+      cookie,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SIGN_UP_NOT_ENABLED",
+        "error": "Creation of new accounts is not enabled for this project. Please ask the project owner to enable it.",
+      },
+      "headers": Headers {
+        "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
+        "x-stack-known-error": "SIGN_UP_NOT_ENABLED",
         <some fields may have been hidden>,
       },
     }

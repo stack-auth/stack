@@ -2,7 +2,7 @@
 import { useRouter } from "@/components/router";
 import { useFromNow } from '@/hooks/use-from-now';
 import { AdminProject } from '@stackframe/stack';
-import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
 
 export function ProjectCard({ project }: { project: AdminProject }) {
   const createdAt = useFromNow(project.createdAt);
@@ -14,7 +14,7 @@ export function ProjectCard({ project }: { project: AdminProject }) {
         <CardTitle className="normal-case">{project.displayName}</CardTitle>
         <CardDescription>{project.description}</CardDescription>
       </CardHeader>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between mt-2">
         <Typography type='label' variant='secondary'>
           {project.userCount} users
         </Typography>

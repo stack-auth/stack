@@ -1,7 +1,7 @@
+import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { camelCaseToSnakeCase } from "@stackframe/stack-shared/dist/utils/strings";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -31,6 +31,7 @@ export type ProjectKeys = "no-project" | {
   publishableClientKey?: string,
   secretServerKey?: string,
   superSecretAdminKey?: string,
+  adminAccessToken?: string,
 };
 
 export const InternalProjectKeys = {
@@ -85,6 +86,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
         "x-stack-publishable-client-key": projectKeys.publishableClientKey,
         "x-stack-secret-server-key": projectKeys.secretServerKey,
         "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
+        'x-stack-admin-access-token': projectKeys.adminAccessToken,
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
@@ -185,7 +187,7 @@ export namespace Auth {
       const mailbox = backendContext.value.mailbox;
       const sendSignInCodeRes = await sendSignInCode();
       const messages = await mailbox.fetchMessages();
-      const message = messages.findLast((message) => message.subject === "Sign in to Stack Dashboard") ?? throwErr("Sign-in code message not found");
+      const message = messages.findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
       const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
       const response = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
         method: "POST",
@@ -582,8 +584,8 @@ export namespace ApiKey {
     };
   }
 
-  export async function createAndSetProjectKeys(adminAccessToken: string, body?: any) {
-    const res = await ApiKey.create(adminAccessToken, body);
+  export async function createAndSetProjectKeys(adminAccessToken?: string, body?: any) {
+    const res = await ApiKey.create(adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")), body);
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
   }
@@ -599,13 +601,19 @@ export namespace Project {
         ...body,
       },
     });
+    expect(response).toMatchObject({
+      status: 201,
+      body: {
+        id: expect.any(String),
+      },
+    });
     return {
       createProjectResponse: response,
-      projectId: response.body.id,
+      projectId: response.body.id as string,
     };
   }
 
-  export async function updateCurrent(adminAccessToken: string, body: any) {
+  export async function updateCurrent(adminAccessToken: string, body: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
     const response = await niceBackendFetch(`/api/v1/projects/current`, {
       accessType: "admin",
       method: "PATCH",
@@ -620,19 +628,19 @@ export namespace Project {
     };
   }
 
-  export async function createAndSetAdmin(body?: any) {
+  export async function createAndGetAdminToken(body?: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
     backendContext.set({
       projectKeys: InternalProjectKeys,
     });
     await Auth.Otp.signIn();
-    const { projectId, createProjectResponse } = await Project.create(body);
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
-
     expect(adminAccessToken).toBeDefined();
+    const { projectId, createProjectResponse } = await Project.create(body);
 
+    const createResult = await Project.create(body);
     backendContext.set({
       projectKeys: {
-        projectId,
+        projectId: createResult.projectId,
       },
       userAuth: null,
     });
@@ -642,6 +650,17 @@ export namespace Project {
       adminAccessToken: adminAccessToken!,
       createProjectResponse,
     };
+  }
+
+  export async function createAndSwitch(body?: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
+    const createResult = await Project.createAndGetAdminToken(body);
+    backendContext.set({
+      projectKeys: {
+        projectId: createResult.projectId,
+        adminAccessToken: createResult.adminAccessToken,
+      },
+    });
+    return createResult;
   }
 }
 
