@@ -289,6 +289,7 @@ function MfaSection() {
               }}
               placeholder="123456"
               maxLength={6}
+              disabled={isLoading}
             />
             {isMaybeWrong && mfaCode.length === 6 && (
               <Typography variant="destructive">Incorrect code. Please try again.</Typography>
