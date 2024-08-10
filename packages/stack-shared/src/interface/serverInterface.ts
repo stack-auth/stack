@@ -124,7 +124,7 @@ export class StackServerInterface extends StackClientInterface {
       teamId: string,
     },
   ): Promise<TeamMemberProfilesCrud['Server']['Read'][]> {
-    const response = await this.sendClientRequest(
+    const response = await this.sendServerRequest(
       "/team-member-profiles?team_id=" + options.teamId,
       {},
       null,
