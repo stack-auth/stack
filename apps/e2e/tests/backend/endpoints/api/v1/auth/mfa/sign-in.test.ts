@@ -129,7 +129,7 @@ it("should reject invalid totp codes", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "INVALID_TOTP_CODE",
-        "error": "The given TOTP code is invalid. Please try again.",
+        "error": "The TOTP code is invalid. Please try again.",
       },
       "headers": Headers {
         "x-stack-known-error": "INVALID_TOTP_CODE",

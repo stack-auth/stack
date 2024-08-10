@@ -30,6 +30,7 @@
     "openapi",
     "posthog",
     "Proxied",
+    "qrcode",
     "reqs",
     "stackframe",
     "Svix",

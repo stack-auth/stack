@@ -1015,7 +1015,7 @@ const MultiFactorAuthenticationRequired = createKnownErrorConstructor(
   "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
   (attemptCode: string) => [
     400,
-    "Multi-factor authentication is required for this user.",
+    `Multi-factor authentication is required for this user.`,
     {
       attempt_code: attemptCode,
     },
@@ -1028,7 +1028,7 @@ const InvalidTotpCode = createKnownErrorConstructor(
   "INVALID_TOTP_CODE",
   () => [
     400,
-    "The given TOTP code is invalid. Please try again.",
+    "The TOTP code is invalid. Please try again.",
   ] as const,
   () => [] as const,
 );

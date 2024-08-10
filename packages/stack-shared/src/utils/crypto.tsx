@@ -2,7 +2,7 @@ import { encodeBase32 } from "./bytes";
 import { StackAssertionError } from "./errors";
 import { globalVar } from "./globals";
 
-export function generateRandomValues(array: Uint8Array) {
+export function generateRandomValues(array: Uint8Array): typeof array {
   if (!globalVar.crypto) {
     throw new StackAssertionError("Crypto API is not available in this environment. Are you using an old browser?");
   }

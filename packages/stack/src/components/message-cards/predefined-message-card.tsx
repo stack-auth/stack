@@ -8,7 +8,7 @@ export function PredefinedMessageCard({
   type,
   fullPage=false,
 }: {
-  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError',
+  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError' | 'signUpDisabled',
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
@@ -33,6 +33,14 @@ export function PredefinedMessageCard({
       title = "You are not currently signed in.";
       primaryAction = () => stackApp.redirectToSignIn();
       primaryButton = "Sign in";
+      break;
+    }
+    case 'signUpDisabled': {
+      title = "Sign up for new users is not enabled at the moment.";
+      primaryAction = () => stackApp.redirectToHome();
+      secondaryAction = () => stackApp.redirectToSignIn();
+      primaryButton = "Go to home";
+      secondaryButton = "Sign in";
       break;
     }
     case 'emailSent': {
