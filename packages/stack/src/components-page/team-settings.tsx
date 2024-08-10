@@ -1,11 +1,12 @@
 'use client';
 
-import { Container, EditableText, Label, SimpleTooltip } from "@stackframe/stack-ui";
+import { Container, EditableText, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { Contact, Info, Settings, Users } from "lucide-react";
 import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
+import { UserAvatar } from "../components/elements/user-avatar";
 
-function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
+export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   const user = useUser({ or: 'redirect' });
   const team = user.useTeam(props.teamId);
 
@@ -13,7 +14,7 @@ function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
     return <MessageCard title='Team not found' />;
   }
 
-  const readMemberPermission = user.usePermission(team, '$read_member');
+  const readMemberPermission = user.usePermission(team, '$read_members');
 
   const inner = <SidebarLayout
     items={[
@@ -63,18 +64,30 @@ function MembersSettings(props: { team: Team }) {
   return (
     <>
       <div>
-        <Label>Members</Label>
-        <div className='flex gap-2'>
-          {users.map(user => (
-            <div key={user.id} className='flex gap-2 items-center'>
-              <div className='flex gap-2 items-center'>
-                <img src={user.teamProfile.profileImageUrl || undefined} className='w-8 h-8 rounded-full'/>
-                <div>{user.teamProfile.displayName}</div>
-              </div>
-              <button className='btn btn-danger btn-sm'>Remove</button>
-            </div>
-          ))}
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">User</TableHead>
+              <TableHead className="w-[200px]">Name</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map(({ id, teamProfile }, i) => (
+              <TableRow key={id}>
+                <TableCell>
+                  <UserAvatar user={teamProfile}/>
+                </TableCell>
+                <TableCell>
+                  <Typography>{teamProfile.displayName}</Typography>
+                </TableCell>
+                <TableCell>
+                  <button className='btn btn-danger btn-sm'>Remove</button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </>
   );
