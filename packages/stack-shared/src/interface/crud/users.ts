@@ -12,6 +12,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
   primary_email_auth_enabled: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email can be used to sign into this user's account", exampleValue: true } }),
   password: fieldSchema.yupString().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists).', exampleValue: 'password' } }),
+  totp_secret_base64: fieldSchema.base64Schema.nullable().meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } }),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
@@ -29,6 +30,10 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
    * @deprecated
    */
   auth_with_email: fieldSchema.yupBoolean().required().meta({ openapiField: { hidden: true, description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  /**
+   * @deprecated
+   */
+  requires_totp_mfa: fieldSchema.yupBoolean().required().meta({ openapiField: { hidden: true, description: 'Whether the user is required to use TOTP MFA to sign in', exampleValue: false } }),
   /**
    * @deprecated
    */

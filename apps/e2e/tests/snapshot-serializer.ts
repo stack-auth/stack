@@ -39,6 +39,7 @@ const stripFields = [
   "publishable_client_key",
   "secret_server_key",
   "super_secret_admin_key",
+  "attempt_code",
 ] as const;
 
 const keyedCookieNamePrefixes = [

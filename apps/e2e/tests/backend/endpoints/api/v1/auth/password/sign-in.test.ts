@@ -83,3 +83,32 @@ it("should not allow signing in with an incorrect password", async ({ expect }) 
     }
   `);
 });
+
+it("should not allow signing in when MFA is required", async ({ expect }) => {
+  const res = await Auth.Password.signUpWithEmail();
+  await Auth.Mfa.setupTotpMfa();
+  await Auth.signOut();
+
+  const response = await niceBackendFetch("/api/v1/auth/password/sign-in", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: backendContext.value.mailbox.emailAddress,
+      password: res.password,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+        "details": { "attempt_code": <stripped field 'attempt_code'> },
+        "error": "Multi-factor authentication is required for this user.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});

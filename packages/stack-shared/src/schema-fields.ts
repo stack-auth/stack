@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { isBase64 } from "./utils/bytes";
 import { StackAssertionError } from "./utils/errors";
 import { allProviders } from "./utils/oauth";
 import { isUuid } from "./utils/uuids";
@@ -130,6 +131,10 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
   }
 });
 export const emailSchema = yupString().email();
+export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
+  if (value == null) return true;
+  return isBase64(value);
+});
 
 // Request auth
 export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);

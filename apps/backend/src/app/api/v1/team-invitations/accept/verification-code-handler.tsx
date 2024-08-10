@@ -26,6 +26,9 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
   data: yupObject({
     team_id: yupString().required(),
   }).required(),
+  method: yupObject({
+    email: yupString().email().required(),
+  }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["json"]).required(),

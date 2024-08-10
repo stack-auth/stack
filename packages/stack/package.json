@@ -47,6 +47,7 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.378.0",
     "oauth4webapi": "^2.10.3",
+    "oslo": "^1.2.1",
     "react-hook-form": "^7.51.4",
     "rimraf": "^5.0.5",
     "server-only": "^0.0.1",

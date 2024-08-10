@@ -23,6 +23,9 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
   data: yupObject({
     user_id: yupString().required(),
   }).required(),
+  method: yupObject({
+    email: yupString().email().required(),
+  }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),

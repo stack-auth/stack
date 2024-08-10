@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stackframe/stack-shared": "workspace:*",
     "dotenv": "^16.4.5",
-    "@stackframe/stack-shared": "workspace:*"
-  },
-  "devDependencies": {}
+    "oslo": "^1.2.1"
+  }
 }

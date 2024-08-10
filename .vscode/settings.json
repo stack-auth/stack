@@ -33,6 +33,7 @@
     "reqs",
     "stackframe",
     "Svix",
+    "totp",
     "typecheck",
     "typehack",
     "Uncapitalize",

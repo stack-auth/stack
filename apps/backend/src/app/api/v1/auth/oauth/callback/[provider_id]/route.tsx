@@ -14,6 +14,7 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
+import { createMfaRequiredError } from "../../../mfa/sign-in/verification-code-handler";
 
 const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
@@ -231,46 +232,73 @@ export const GET = createSmartRouteHandler({
                   newUser: false,
                   afterCallbackRedirectUrl,
                 };
-              }
+              } else {
 
-              // ========================== sign in user ==========================
+                // ========================== sign in user ==========================
 
-              if (oldAccount) {
+                if (oldAccount) {
+                  await storeTokens();
+
+                  const projectUser = await prismaClient.projectUser.findUniqueOrThrow({
+                    where: {
+                      projectId_projectUserId: {
+                        projectId: outerInfo.projectId,
+                        projectUserId: oldAccount.projectUserId,
+                      },
+                    },
+                  });
+
+                  if (projectUser.requiresTotpMfa) {
+                    throw await createMfaRequiredError({
+                      project,
+                      userId: projectUser.projectUserId,
+                      isNewUser: false,
+                    });
+                  }
+
+                  return {
+                    id: oldAccount.projectUserId,
+                    newUser: false,
+                    afterCallbackRedirectUrl,
+                  };
+                }
+
+                // ========================== sign up user ==========================
+
+                if (!project.config.sign_up_enabled) {
+                  throw new KnownErrors.SignUpNotEnabled();
+                }
+                const newAccount = await usersCrudHandlers.adminCreate({
+                  project,
+                  data: {
+                    display_name: userInfo.displayName,
+                    profile_image_url: userInfo.profileImageUrl || undefined,
+                    primary_email: userInfo.email,
+                    primary_email_verified: false, // TODO: check if email is verified with the provider
+                    primary_email_auth_enabled: false,
+                    oauth_providers: [{
+                      id: provider.id,
+                      account_id: userInfo.accountId,
+                      email: userInfo.email,
+                    }],
+                  },
+                });
+
+                if (newAccount.requires_totp_mfa) {
+                  throw await createMfaRequiredError({
+                    project,
+                    userId: newAccount.id,
+                    isNewUser: true,
+                  });
+                }
+
                 await storeTokens();
-
                 return {
-                  id: oldAccount.projectUserId,
-                  newUser: false,
+                  id: newAccount.id,
+                  newUser: true,
                   afterCallbackRedirectUrl,
                 };
               }
-
-              // ========================== sign up user ==========================
-
-              if (!project.config.sign_up_enabled) {
-                throw new KnownErrors.SignUpNotEnabled();
-              }
-              const newAccount = await usersCrudHandlers.adminCreate({
-                project,
-                data: {
-                  display_name: userInfo.displayName,
-                  profile_image_url: userInfo.profileImageUrl || undefined,
-                  primary_email: userInfo.email,
-                  primary_email_verified: false, // TODO: check if email is verified with the provider
-                  primary_email_auth_enabled: false,
-                  oauth_providers: [{
-                    id: provider.id,
-                    account_id: userInfo.accountId,
-                    email: userInfo.email,
-                  }],
-                },
-              });
-              await storeTokens();
-              return {
-                id: newAccount.id,
-                newUser: true,
-                afterCallbackRedirectUrl,
-              };
             }
           }
         }

@@ -8,6 +8,7 @@ import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -72,6 +73,14 @@ export const POST = createSmartRouteHandler({
     }, {
       user: createdUser,
     });
+
+    if (createdUser.requires_totp_mfa) {
+      throw await createMfaRequiredError({
+        project,
+        isNewUser: true,
+        userId: createdUser.id,
+      });
+    }
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
