@@ -1,10 +1,11 @@
 'use client';
 
-import { Container, EditableText, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
-import { Contact, Info, Settings, Users } from "lucide-react";
+import { ActionCell, ActionDialog, Container, EditableText, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { Contact, Settings, Users } from "lucide-react";
 import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
 import { UserAvatar } from "../components/elements/user-avatar";
+import { useState } from "react";
 
 export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   const user = useUser({ or: 'redirect' });
@@ -58,8 +59,35 @@ function ProfileSettings(props: { team: Team }) {
   );
 }
 
+function RemoveMemberDialog(props: {
+  open?: boolean,
+  onOpenChange?: (open: boolean) => void,
+}) {
+  return (
+    <ActionDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title="Delete domain"
+      danger
+      okButton={{
+        label: "Delete",
+        onClick: async () => {
+        }
+      }}
+      cancelButton
+    >
+      <Typography>
+        Do you really want to remove from the team?
+      </Typography>
+    </ActionDialog>
+  );
+}
+
 function MembersSettings(props: { team: Team }) {
   const users = props.team.useUsers();
+  const user = useUser({ or: 'redirect' });
+  const removeMemberPermission = user.usePermission(props.team, '$remove_members');
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
 
   return (
     <>
@@ -69,7 +97,7 @@ function MembersSettings(props: { team: Team }) {
             <TableRow>
               <TableHead className="w-[100px]">User</TableHead>
               <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -81,9 +109,12 @@ function MembersSettings(props: { team: Team }) {
                 <TableCell>
                   <Typography>{teamProfile.displayName}</Typography>
                 </TableCell>
-                <TableCell>
-                  <button className='btn btn-danger btn-sm'>Remove</button>
-                </TableCell>
+                {removeMemberPermission && <TableCell>
+                  <ActionCell items={[
+                    { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
+                  ]}/>
+                  <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
+                </TableCell>}
               </TableRow>
             ))}
           </TableBody>
