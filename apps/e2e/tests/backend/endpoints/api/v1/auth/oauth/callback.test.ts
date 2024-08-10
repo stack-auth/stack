@@ -149,3 +149,33 @@ it("should fail if an untrusted redirect URL is provided", async ({ expect }) =>
     }
   `);
 });
+
+it("should fail when MFA is required", async ({ expect }) => {
+  await Auth.OAuth.signIn();
+  await Auth.Mfa.setupTotpMfa();
+  await Auth.signOut();
+
+  const getInnerCallbackUrlResponse = await Auth.OAuth.getInnerCallbackUrl();
+  const cookie = updateCookiesFromResponse("", getInnerCallbackUrlResponse.authorizeResponse);
+  const response = await niceBackendFetch(getInnerCallbackUrlResponse.innerCallbackUrl, {
+    redirect: "manual",
+    headers: {
+      cookie,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+        "details": { "attempt_code": <stripped field 'attempt_code'> },
+        "error": "Multi-factor authentication is required for this user.",
+      },
+      "headers": Headers {
+        "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
+        "x-stack-known-error": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});

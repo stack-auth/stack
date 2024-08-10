@@ -12,6 +12,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
 import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { decodeBase64, encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 
 const fullInclude = {
   projectUserOAuthAccounts: {
@@ -83,6 +84,7 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
     server_metadata: prisma.serverMetadata,
     has_password: !!prisma.passwordHash,
     auth_with_email: prisma.authWithEmail,
+    requires_totp_mfa: prisma.requiresTotpMfa,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
       id: a.oauthProviderConfigId,
       account_id: a.providerAccountId,
@@ -183,6 +185,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             }))
           }
         } : undefined,
+        totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
       },
       include: fullInclude,
     });
@@ -251,6 +254,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           authWithEmail: data.primary_email_auth_enabled,
           passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
+          requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
+          totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
         include: fullInclude,
       });

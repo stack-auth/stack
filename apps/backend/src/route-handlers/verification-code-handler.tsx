@@ -13,11 +13,7 @@ import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
-type Method = {
-  email: string,
-};
-
-type CreateCodeOptions<Data, CallbackUrl extends string | URL = string | URL> = {
+type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = {
   project: ProjectsCrud["Admin"]["Read"],
   method: Method,
   expiresInMs?: number,
@@ -25,15 +21,15 @@ type CreateCodeOptions<Data, CallbackUrl extends string | URL = string | URL> = 
   callbackUrl: CallbackUrl,
 };
 
-type CodeObject = {
+type CodeObject<CallbackUrl extends string | URL | undefined> = {
   code: string,
-  link: URL,
+  link: CallbackUrl extends string | URL ? URL : undefined,
   expiresAt: Date,
 };
 
-type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, HasDetails extends boolean> = {
-  createCode<CallbackUrl extends string | URL>(options: CreateCodeOptions<Data, CallbackUrl>): Promise<CodeObject>,
-  sendCode(options: CreateCodeOptions<Data>, sendOptions: SendCodeExtraOptions): Promise<void>,
+type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, HasDetails extends boolean, Method extends {}> = {
+  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl>): Promise<CodeObject<CallbackUrl>>,
+  sendCode(options: CreateCodeOptions<Data, Method, string | URL>, sendOptions: SendCodeExtraOptions): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
   checkHandler: SmartRouteHandler<any, any, any>,
   detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
@@ -49,6 +45,7 @@ export function createVerificationCodeHandler<
   DetailsResponse extends SmartResponse | undefined,
   UserRequired extends boolean,
   SendCodeExtraOptions extends {},
+  Method extends {},
 >(options: {
   metadata?: {
     post?: SmartRouteHandlerOverloadMetadata,
@@ -57,14 +54,22 @@ export function createVerificationCodeHandler<
   },
   type: VerificationCodeType,
   data: yup.Schema<Data>,
+  method: yup.Schema<Method>,
   requestBody?: yup.ObjectSchema<RequestBody>,
   userRequired?: UserRequired,
   detailsResponse?: yup.Schema<DetailsResponse>,
   response: yup.Schema<Response>,
-  send(
-    codeObject: CodeObject,
-    createOptions: CreateCodeOptions<Data>,
+  send?(
+    codeObject: CodeObject<string | URL>,
+    createOptions: CreateCodeOptions<Data, Method, string | URL>,
     sendOptions: SendCodeExtraOptions,
+  ): Promise<void>,
+  validate?(
+    project: ProjectsCrud["Admin"]["Read"],
+    method: Method,
+    data: Data,
+    body: RequestBody,
+    user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
   ): Promise<void>,
   handler(
     project: ProjectsCrud["Admin"]["Read"],
@@ -80,7 +85,7 @@ export function createVerificationCodeHandler<
     body: RequestBody,
     user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
   ) => Promise<DetailsResponse>) : undefined,
-}): VerificationCodeHandler<Data, SendCodeExtraOptions, DetailsResponse extends SmartResponse ? true : false> {
+}): VerificationCodeHandler<Data, SendCodeExtraOptions, DetailsResponse extends SmartResponse ? true : false, Method> {
   const createHandler = (type: 'post' | 'check' | 'details') => createSmartRouteHandler({
     metadata: options.metadata?.[type],
     request: yupObject({
@@ -119,9 +124,16 @@ export function createVerificationCodeHandler<
       if (verificationCode.expiresAt < new Date()) throw new KnownErrors.VerificationCodeExpired();
       if (verificationCode.usedAt) throw new KnownErrors.VerificationCodeAlreadyUsed();
 
+      const validatedMethod = await options.method.validate(verificationCode.method, {
+        strict: true,
+      });
       const validatedData = await options.data.validate(verificationCode.data, {
         strict: true,
       });
+
+      if (options.validate) {
+        await options.validate(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any);
+      }
 
       switch (type) {
         case 'post': {
@@ -137,7 +149,7 @@ export function createVerificationCodeHandler<
             },
           });
 
-          return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any);
+          return await options.handler(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any);
         }
         case 'check': {
           return {
@@ -149,7 +161,7 @@ export function createVerificationCodeHandler<
           };
         }
         case 'details': {
-          return await options.details?.(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any) as any;
+          return await options.details?.(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any) as any;
         }
       }
     },
@@ -157,15 +169,11 @@ export function createVerificationCodeHandler<
 
   return {
     async createCode({ project, method, data, callbackUrl, expiresInMs }) {
-      if (!method.email) {
-        throw new StackAssertionError("No method specified");
-      }
-
       const validatedData = await options.data.validate(data, {
         strict: true,
       });
 
-      if (!validateRedirectUrl(
+      if (callbackUrl !== undefined && !validateRedirectUrl(
         callbackUrl,
         project.config.domains,
         project.config.allow_localhost,
@@ -178,15 +186,18 @@ export function createVerificationCodeHandler<
           projectId: project.id,
           type: options.type,
           code: generateSecureRandomString(),
-          redirectUrl: callbackUrl.toString(),
+          redirectUrl: callbackUrl?.toString(),
           expiresAt: new Date(Date.now() + (expiresInMs ?? 1000 * 60 * 60 * 24 * 7)),  // default: expire after 7 days
           data: validatedData as any,
-          email: method.email,
+          method: method,
         }
       });
 
-      const link = new URL(callbackUrl);
-      link.searchParams.set('code', verificationCodePrisma.code);
+      let link;
+      if (callbackUrl !== undefined) {
+        link = new URL(callbackUrl);
+        link.searchParams.set('code', verificationCodePrisma.code);
+      }
 
       return {
         code: verificationCodePrisma.code,
@@ -195,6 +206,9 @@ export function createVerificationCodeHandler<
     },
     async sendCode(createOptions, sendOptions) {
       const codeObj = await this.createCode(createOptions);
+      if (!options.send) {
+        throw new StackAssertionError("Cannot use sendCode on this verification code handler because it doesn't have a send function");
+      }
       await options.send(codeObj, createOptions, sendOptions);
     },
     postHandler: createHandler('post'),

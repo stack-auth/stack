@@ -1,8 +1,6 @@
 import { yupObject, yupString, yupNumber, yupBoolean } from "@stackframe/stack-shared/dist/schema-fields";
 import { prismaClient } from "@/prisma-client";
-import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
-import { signInResponseSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { sendEmailFromTemplate } from "@/lib/emails";
@@ -26,6 +24,9 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
   type: VerificationCodeType.PASSWORD_RESET,
   data: yupObject({
     user_id: yupString().required(),
+  }),
+  method: yupObject({
+    email: yupString().email().required(),
   }),
   requestBody: yupObject({
     password: yupString().required(),

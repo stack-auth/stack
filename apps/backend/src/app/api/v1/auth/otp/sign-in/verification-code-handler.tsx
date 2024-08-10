@@ -7,6 +7,8 @@ import { signInResponseSchema } from "@stackframe/stack-shared/dist/schema-field
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -25,6 +27,9 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   data: yupObject({
     user_id: yupString().required(),
     is_new_user: yupBoolean().required(),
+  }),
+  method: yupObject({
+    email: yupString().email().required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
@@ -45,6 +50,22 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, { email }, data) {
+    const projectUserBefore = await prismaClient.projectUser.findUniqueOrThrow({
+      where: {
+        projectId_projectUserId: {
+          projectId: project.id,
+          projectUserId: data.user_id,
+        },
+      },
+    });
+    if (projectUserBefore.requiresTotpMfa) {
+      throw await createMfaRequiredError({
+        project,
+        isNewUser: data.is_new_user,
+        userId: projectUserBefore.projectUserId,
+      });
+    }
+
     const projectUser = await prismaClient.projectUser.update({
       where: {
         projectId_projectUserId: {
