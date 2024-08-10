@@ -40,7 +40,6 @@
     "canvas-confetti": "^1.9.2",
     "clsx": "^2.0.0",
     "dotenv-cli": "^7.3.0",
-    "export-to-csv": "^1.3.0",
     "geist": "^1",
     "jose": "^5.2.2",
     "lucide-react": "^0.378.0",

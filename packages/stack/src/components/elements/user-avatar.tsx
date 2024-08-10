@@ -8,7 +8,7 @@ export function UserAvatar(props: {
     profileImageUrl?: string | null,
     displayName?: string | null,
     primaryEmail?: string | null,
-  },
+  } | null,
 }) {
   const user = props.user;
   return (

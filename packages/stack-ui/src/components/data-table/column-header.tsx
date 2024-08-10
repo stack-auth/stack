@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "../..";
 import { ArrowDownIcon, ArrowUpIcon, EyeNoneIcon } from "@radix-ui/react-icons";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@stackframe/stack-ui";
 import { Column } from "@tanstack/react-table";

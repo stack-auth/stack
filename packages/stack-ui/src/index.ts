@@ -3,6 +3,7 @@ export * from "./components/action-dialog";
 export * from "./components/browser-frame";
 export * from "./components/copy-button";
 export * from "./components/copy-field";
+export * from "./components/data-table";
 export * from "./components/editable-text";
 export * from "./components/simple-tooltip";
 export * from "./components/ui/accordion";

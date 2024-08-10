@@ -1,11 +1,10 @@
 "use client";
-import { ActionCell } from "@/components/data-table/elements/cells";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { DomainConfigJson } from "@/temporary-types";
 import { AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
