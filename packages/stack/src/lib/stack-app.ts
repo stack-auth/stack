@@ -675,6 +675,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       id: crud.id,
       config: {
+        signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
@@ -1788,6 +1789,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       isProductionMode: data.is_production_mode,
       config: {
         id: data.config.id,
+        signUpEnabled: data.config.sign_up_enabled,
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
         allowLocalhost: data.config.allow_localhost,
@@ -2324,6 +2326,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
           sender_email: options.config.emailConfig.senderEmail,
         }
       ),
+      sign_up_enabled: options.config?.signUpEnabled,
       credential_enabled: options.config?.credentialEnabled,
       magic_link_enabled: options.config?.magicLinkEnabled,
       allow_localhost: options.config?.allowLocalhost,
@@ -2347,6 +2350,7 @@ function adminProjectCreateOptionsToCrud(options: AdminProjectCreateOptions): In
 type _______________PROJECT_CONFIG_______________ = never;  // this is a marker for VSCode's outline view
 
 export type ProjectConfig = {
+  readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
@@ -2357,6 +2361,7 @@ export type OAuthProviderConfig = {
 };
 
 export type AdminProjectConfig = {
+  readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly allowLocalhost: boolean,
@@ -2407,6 +2412,7 @@ export type AdminProjectConfigUpdateOptions = {
     handlerPath: string,
   }[],
   oauthProviders?: AdminOAuthProviderConfig[],
+  signUpEnabled?: boolean,
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
   allowLocalhost?: boolean,

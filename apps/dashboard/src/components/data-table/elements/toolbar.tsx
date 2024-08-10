@@ -71,12 +71,10 @@ export function DataTableToolbar<TData>({
 
             const rowModel = table.getCoreRowModel();
             const rows = rowModel.rows.map(row => Object.fromEntries(row.getAllCells().map(c => [c.column.id, renderCellValue(c)]).filter(([_, v]) => v !== undefined)));
-            console.log(table.getAllColumns());
             if (rows.length === 0) {
               alert("No data to export");
               return;
             }
-            console.log(rows);
             const csv = generateCsv(csvConfig)(rows as any);
             download(csvConfig)(csv);
           }}

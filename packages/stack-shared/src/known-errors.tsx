@@ -661,6 +661,16 @@ const ProjectNotFound = createKnownErrorConstructor(
   (json: any) => [json.project_id] as const,
 );
 
+const SignUpNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "SIGN_UP_NOT_ENABLED",
+  () => [
+    400,
+    "Creation of new accounts is not enabled for this project. Please ask the project owner to enable it.",
+  ] as const,
+  () => [] as const,
+);
+
 const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
   KnownError,
   "PASSWORD_AUTHENTICATION_NOT_ENABLED",
@@ -1135,6 +1145,7 @@ export const KnownErrors = {
   UserNotFound,
   ApiKeyNotFound,
   ProjectNotFound,
+  SignUpNotEnabled,
   PasswordAuthenticationNotEnabled,
   EmailPasswordMismatch,
   RedirectUrlNotWhitelisted,

@@ -41,6 +41,7 @@ it("gets current project (internal)", async ({ expect }) => {
             { "id": "microsoft" },
           ],
           "magic_link_enabled": true,
+          "sign_up_enabled": true,
         },
         "display_name": "Stack Dashboard",
         "id": "internal",
@@ -52,7 +53,7 @@ it("gets current project (internal)", async ({ expect }) => {
 
 it("creates and updates the basic project information of a project", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
     display_name: "Updated Project",
     description: "Updated description",
@@ -72,6 +73,7 @@ it("creates and updates the basic project information of a project", async ({ ex
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -89,10 +91,11 @@ it("creates and updates the basic project information of a project", async ({ ex
 
 it("updates the basic project configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
     config: {
       allow_localhost: false,
+      sign_up_enabled: false,
       credential_enabled: false,
       magic_link_enabled: true,
     },
@@ -111,6 +114,7 @@ it("updates the basic project configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": true,
           "oauth_providers": [],
+          "sign_up_enabled": false,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -128,7 +132,7 @@ it("updates the basic project configuration", async ({ expect }) => {
 
 it("updates the project domains configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       domains: [{
@@ -156,6 +160,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -207,6 +212,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -224,7 +230,7 @@ it("updates the project domains configuration", async ({ expect }) => {
 
 it("updates the project email configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       email_config: {
@@ -260,6 +266,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -310,6 +317,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -346,6 +354,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -382,6 +391,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -432,6 +442,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -449,7 +460,7 @@ it("updates the project email configuration", async ({ expect }) => {
 
 it("updates the project email configuration with the wrong parameters", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       email_config: {
@@ -500,7 +511,7 @@ it("updates the project email configuration with the wrong parameters", async ({
 
 it("updates the project oauth configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   // create google oauth provider with shared type
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
@@ -531,6 +542,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -575,6 +587,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -623,6 +636,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "standard",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -700,6 +714,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -756,6 +771,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },

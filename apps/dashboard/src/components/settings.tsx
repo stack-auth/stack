@@ -1,6 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, useToast } from "@stackframe/stack-ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, Typography, useToast } from "@stackframe/stack-ui";
 import { Settings } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
@@ -8,7 +8,7 @@ import * as yup from "yup";
 
 
 export function SettingCard(props: {
-  title: string,
+  title?: string,
   description?: string,
   actions?: React.ReactNode,
   children?: React.ReactNode,
@@ -16,10 +16,12 @@ export function SettingCard(props: {
 }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
-        {props.description && <CardDescription>{props.description}</CardDescription>}
-      </CardHeader>
+      {(props.title || props.description) && (
+        <CardHeader>
+          {props.title && <CardTitle>{props.title}</CardTitle>}
+          {props.description && <CardDescription>{props.description}</CardDescription>}
+        </CardHeader>
+      )}
 
       <CardContent className="flex flex-col gap-4">
         {props.accordion ?
@@ -45,6 +47,7 @@ export function SettingCard(props: {
 
 export function SettingSwitch(props: {
   label: string | React.ReactNode,
+  hint?: string | React.ReactNode,
   checked?: boolean,
   disabled?: boolean,
   onCheckedChange: (checked: boolean) => void | Promise<void>,
@@ -62,15 +65,18 @@ export function SettingSwitch(props: {
   };
 
   return (
-    <div className="flex items-center">
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        disabled={props.disabled}
-      />
-      <Label className='px-2' htmlFor={id}>{props.label}</Label>
-      {showActions && props.actions}
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center">
+        <Switch
+          id={id}
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+          disabled={props.disabled}
+        />
+        <Label className='px-2' htmlFor={id}>{props.label}</Label>
+        {showActions && props.actions}
+      </div>
+      {props.hint && <Typography variant="secondary" type="footnote">{props.hint}</Typography>}
     </div>
   );
 }

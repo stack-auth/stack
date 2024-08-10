@@ -126,7 +126,7 @@ describe("with admin access to a non-internal project", () => {
   });
 
   it("creates, list, updates, revokes api keys", async ({ expect }) => {
-    const { adminAccessToken } = await Project.createAndSetAdmin();
+    const { adminAccessToken } = await Project.createAndGetAdminToken();
     const { createApiKeyResponse: response1 } = await ApiKey.create(adminAccessToken);
     expect(response1).toMatchInlineSnapshot(`
       NiceResponse {

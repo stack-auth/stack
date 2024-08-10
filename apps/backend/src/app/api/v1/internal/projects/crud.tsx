@@ -31,13 +31,14 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           id: generateUuid(),
           displayName: data.display_name,
           description: data.description,
-          isProductionMode: data.is_production_mode || false,
+          isProductionMode: data.is_production_mode ?? false,
           config: {
             create: {
-              credentialEnabled: data.config?.credential_enabled || true,
-              magicLinkEnabled: data.config?.magic_link_enabled || false,
-              allowLocalhost: data.config?.allow_localhost || true,
-              createTeamOnSignUp: data.config?.create_team_on_sign_up || false,
+              signUpEnabled: data.config?.sign_up_enabled ?? true,
+              credentialEnabled: data.config?.credential_enabled ?? true,
+              magicLinkEnabled: data.config?.magic_link_enabled ?? false,
+              allowLocalhost: data.config?.allow_localhost ?? true,
+              createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
               domains: data.config?.domains ? {
                 create: data.config.domains.map(item => ({
                   domain: item.domain,

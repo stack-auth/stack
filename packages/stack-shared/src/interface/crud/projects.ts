@@ -46,6 +46,7 @@ export const projectsCrudServerReadSchema = yupObject({
   config: yupObject({
     id: schemaFields.projectConfigIdSchema.required(),
     allow_localhost: schemaFields.projectAllowLocalhostSchema.required(),
+    sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
@@ -62,6 +63,7 @@ export const projectsCrudClientReadSchema = yupObject({
   id: schemaFields.projectIdSchema.required(),
   display_name: schemaFields.projectDisplayNameSchema.required(),
   config: yupObject({
+    sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
@@ -74,6 +76,7 @@ export const projectsCrudServerUpdateSchema = yupObject({
   description: schemaFields.projectDescriptionSchema.optional(),
   is_production_mode: schemaFields.projectIsProductionModeSchema.optional(),
   config: yupObject({
+    sign_up_enabled: schemaFields.projectSignUpEnabledSchema.optional(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.optional(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.optional(),
     allow_localhost: schemaFields.projectAllowLocalhostSchema.optional(),
