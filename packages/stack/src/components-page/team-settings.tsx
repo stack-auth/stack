@@ -16,12 +16,13 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   }
 
   const readMemberPermission = user.usePermission(team, '$read_members');
+  const updateTeamPermission = user.usePermission(team, '$update_team');
 
   const inner = <SidebarLayout
     items={[
       { title: 'My Profile', content: <ProfileSettings team={team}/>, icon: Contact, description: `Your profile in the team "${team.displayName}"` },
       ...readMemberPermission ? [{ title: 'Members', content: <MembersSettings team={team}/>, icon: Users }] : [],
-      { title: 'Settings', content: <GeneralSettings team={team} />, icon: Settings },
+      ...updateTeamPermission ? [{ title: 'Settings', content: <GeneralSettings team={team} />, icon: Settings }] : [],
     ]}
     title='Team Settings'
   />;
@@ -53,22 +54,18 @@ function GeneralSettings(props: { team: Team }) {
 
 function ProfileSettings(props: { team: Team }) {
   return (
-    <>
-      <Separator/>
-
-      <div className="flex flex-col mt-4">
+    <div className="flex flex-col gap-8 mt-8">
+      <div className="flex flex-col">
         <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
         <EditableText value={props.team.displayName} onSave={() => {}}/>
       </div>
 
-      <Separator/>
-
-      <div className="flex flex-col gap-2 mt-4">
+      <div className="flex flex-col gap-2">
         <div>
           <Button variant='secondary' onClick={() => {}}>Leave team</Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

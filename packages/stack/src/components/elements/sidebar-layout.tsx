@@ -18,7 +18,7 @@ export function SidebarNavItem(props: { item: Item, selected: boolean, onClick: 
       size='sm'
       className={cn(
         props.selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+        "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
       )}
       onClick={props.onClick}
     >
@@ -53,7 +53,7 @@ export function SidebarLayout(props: { items: Item[], title?: ReactNode }) {
           <Typography type='h4'>{currentItem.title}</Typography>
           {currentItem.description && <Typography variant='secondary' type='label'>{currentItem.description}</Typography>}
         </div>
-        <div className='flex-1 gap-2'>
+        <div className='flex-1'>
           {currentItem.content}
         </div>
       </div>
