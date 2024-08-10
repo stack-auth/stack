@@ -47,7 +47,6 @@ export function createVerificationCodeHandler<
   RequestBody extends {} & DeepPartial<SmartRequest["body"]>,
   Response extends SmartResponse,
   DetailsResponse extends SmartResponse | undefined,
-  UserRequired extends boolean,
   SendCodeExtraOptions extends {},
 >(options: {
   metadata?: {
@@ -58,7 +57,6 @@ export function createVerificationCodeHandler<
   type: VerificationCodeType,
   data: yup.Schema<Data>,
   requestBody?: yup.ObjectSchema<RequestBody>,
-  userRequired?: UserRequired,
   detailsResponse?: yup.Schema<DetailsResponse>,
   response: yup.Schema<Response>,
   send(
@@ -71,14 +69,14 @@ export function createVerificationCodeHandler<
     method: Method,
     data: Data,
     body: RequestBody,
-    user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
+    user: UsersCrud["Admin"]["Read"] | undefined,
   ): Promise<Response>,
   details?: DetailsResponse extends SmartResponse ? ((
     project: ProjectsCrud["Admin"]["Read"],
     method: Method,
     data: Data,
     body: RequestBody,
-    user: UserRequired extends true ? UsersCrud["Admin"]["Read"] : undefined
+    user: UsersCrud["Admin"]["Read"] | undefined,
   ) => Promise<DetailsResponse>) : undefined,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions, DetailsResponse extends SmartResponse ? true : false> {
   const createHandler = (type: 'post' | 'check' | 'details') => createSmartRouteHandler({
@@ -86,7 +84,7 @@ export function createVerificationCodeHandler<
     request: yupObject({
       auth: yupObject({
         project: adaptSchema.required(),
-        user: options.userRequired ? adaptSchema.required() : adaptSchema,
+        user: adaptSchema,
       }).required(),
       body: yupObject({
         code: yupString().required(),
@@ -137,7 +135,7 @@ export function createVerificationCodeHandler<
             },
           });
 
-          return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any);
+          return await options.handler(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user);
         }
         case 'check': {
           return {
@@ -149,7 +147,7 @@ export function createVerificationCodeHandler<
           };
         }
         case 'details': {
-          return await options.details?.(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user as any) as any;
+          return await options.details?.(auth.project, { email: verificationCode.email }, validatedData as any, requestBody as any, auth.user) as any;
         }
       }
     },

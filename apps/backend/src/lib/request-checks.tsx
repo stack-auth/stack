@@ -149,11 +149,3 @@ export function ensureStandardProvider(
   }
   return providerId as any;
 }
-
-export function ensureClientUserAuthenticated(
-  auth: { user: UsersCrud["Admin"]["Read"] | null, type: 'client' | 'server' | 'admin' }
-) {
-  if (auth.type === 'client' && !auth.user) {
-    throw new KnownErrors.UserAuthenticationRequired();
-  }
-}

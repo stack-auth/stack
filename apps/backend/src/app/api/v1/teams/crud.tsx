@@ -30,6 +30,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     team_id: yupString().uuid().required(),
   }),
   onCreate: async ({ query, auth, data }) => {
+    if (auth.type === 'client' && !auth.user) {
+      throw new KnownErrors.UserAuthenticationRequired();
+    }
+
     const db = await prismaClient.$transaction(async (tx) => {
       const db = await tx.team.create({
         data: {
@@ -69,7 +73,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureTeamMembershipExists(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
         });
       }
 
@@ -97,7 +101,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$update_team",
           errorType: 'required',
         });
@@ -134,7 +138,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$delete_team",
           errorType: 'required',
         });
@@ -160,8 +164,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   },
   onList: async ({ query, auth }) => {
     const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
-    if (auth.type === 'client' && userId !== auth.user?.id) {
-      throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+
+      if (userId !== currentUserId) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
+      }
     }
 
     const db = await prismaClient.team.findMany({

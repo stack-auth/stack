@@ -39,7 +39,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         // - list users in their own team if they have the $read_members permission
         // - list their own profile
 
-        const currentUserId = auth.user?.id ?? throwErr("Client must be authenticated");
+        const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
 
         if (!query.team_id) {
           throw new StatusError(StatusError.BadRequest, 'team_id is required for access type client');
@@ -87,14 +87,17 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
     return await prismaClient.$transaction(async (tx) => {
       const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
 
-      if (auth.type === 'client' && userId !== auth.user?.id) {
-        await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
-          teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr("Client must be authenticated"),
-          permissionId: '$read_members',
-          errorType: 'required',
-        });
+      if (auth.type === 'client') {
+        const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+        if (userId !== currentUserId) {
+          await ensureUserTeamPermissionExists(tx, {
+            project: auth.project,
+            teamId: params.team_id,
+            userId: currentUserId,
+            permissionId: '$read_members',
+            errorType: 'required',
+          });
+        }
       }
 
       await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: params.team_id, userId: userId });
@@ -122,8 +125,11 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
     return await prismaClient.$transaction(async (tx) => {
       const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
 
-      if (auth.type === 'client' && userId !== auth.user?.id) {
-        throw new StatusError(StatusError.Forbidden, 'Cannot update another user\'s profile');
+      if (auth.type === 'client') {
+        const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+        if (userId !== currentUserId) {
+          throw new StatusError(StatusError.Forbidden, 'Cannot update another user\'s profile');
+        }
       }
 
       await ensureTeamMembershipExists(tx, {

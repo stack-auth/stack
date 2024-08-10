@@ -1,4 +1,5 @@
 import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
+import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -10,8 +11,6 @@ import { StackAssertionError, StatusError, captureError, throwErr } from "@stack
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
-import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {

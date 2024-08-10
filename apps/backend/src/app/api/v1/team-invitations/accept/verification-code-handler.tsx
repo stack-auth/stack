@@ -21,7 +21,6 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       tags: ["Teams"],
     },
   },
-  userRequired: true,
   type: VerificationCodeType.TEAM_INVITATION,
   data: yupObject({
     team_id: yupString().required(),
@@ -57,6 +56,8 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, {}, data, body, user) {
+    if (!user) throw new KnownErrors.UserAuthenticationRequired();
+
     const oldMembership = await prismaClient.teamMember.findUnique({
       where: {
         projectId_projectUserId_teamId: {
@@ -83,6 +84,8 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     };
   },
   async details(project, {}, data, body, user) {
+    if (!user) throw new KnownErrors.UserAuthenticationRequired();
+
     const team = await teamsCrudHandlers.adminRead({
       project,
       team_id: data.team_id,
