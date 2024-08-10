@@ -1,6 +1,6 @@
 'use client';
 
-import { ActionCell, ActionDialog, Container, EditableText, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Button, Container, EditableText, Label, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { Contact, Settings, Users } from "lucide-react";
 import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
@@ -38,12 +38,15 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
 }
 
 function GeneralSettings(props: { team: Team }) {
+  const user = useUser({ or: 'redirect' });
+  const updateTeamPermission = user.usePermission(props.team, '$update_team');
+
   return (
     <>
-      <div>
+      {updateTeamPermission && <div>
         <Label>Team display name</Label>
         <EditableText value={props.team.displayName} onSave={() => {}}/>
-      </div>
+      </div>}
     </>
   );
 }
@@ -51,9 +54,19 @@ function GeneralSettings(props: { team: Team }) {
 function ProfileSettings(props: { team: Team }) {
   return (
     <>
-      <div>
+      <Separator/>
+
+      <div className="flex flex-col mt-4">
         <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
         <EditableText value={props.team.displayName} onSave={() => {}}/>
+      </div>
+
+      <Separator/>
+
+      <div className="flex flex-col gap-2 mt-4">
+        <div>
+          <Button variant='secondary' onClick={() => {}}>Leave team</Button>
+        </div>
       </div>
     </>
   );
