@@ -2,7 +2,7 @@
 
 import { ActionCell, ActionDialog, Button, Container, EditableText, Input, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { Contact, Info, Settings, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MessageCard, Team, useStackApp, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
 import { UserAvatar } from "../components/elements/user-avatar";
@@ -21,7 +21,7 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
       { title: 'My Profile', content: profileSettings({ team }), icon: Contact, description: `Your profile in the team "${team.displayName}"` },
       { title: 'Members', content: membersSettings({ team }), icon: Users },
       { title: 'Team Info', content: managementSettings({ team }), icon: Info },
-      { title: 'Settings', content: userSettings({ team }), icon: Settings },
+      // { title: 'Settings', content: userSettings({ team }), icon: Settings },
     ].filter(({ content }) => content as any)}
     title='Team Settings'
   />;
@@ -125,12 +125,19 @@ function membersSettings(props: { team: Team }) {
   const readMemberPermission = user.usePermission(props.team, '$read_members');
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
   const [email, setEmail] = useState('');
+  const [invited, setInvited] = useState(false);
 
   if (!readMemberPermission && !inviteMemberPermission) {
     return null;
   }
 
   const users = props.team.useUsers();
+
+  useEffect(() => {
+    if (invited && email) {
+      setInvited(false);
+    }
+  }, [email]);
 
   return (
     <>
@@ -142,8 +149,11 @@ function membersSettings(props: { team: Team }) {
               <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
               <Button onClick={async () => {
                 await props.team.inviteUser({ email });
+                setEmail('');
+                setInvited(true);
               }}>Invite</Button>
             </div>
+            {invited && <Typography type='label' variant='secondary'>User invited.</Typography>}
           </div>}
         {readMemberPermission &&
         <div>
@@ -153,7 +163,7 @@ function membersSettings(props: { team: Team }) {
               <TableRow>
                 <TableHead className="w-[100px]">User</TableHead>
                 <TableHead className="w-[200px]">Name</TableHead>
-                {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>}
+                {/* {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>} */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -165,12 +175,12 @@ function membersSettings(props: { team: Team }) {
                   <TableCell>
                     <Typography>{teamProfile.displayName}</Typography>
                   </TableCell>
-                  {removeMemberPermission && <TableCell>
+                  {/* {removeMemberPermission && <TableCell>
                     <ActionCell items={[
                       { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
                     ]}/>
                     <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
-                  </TableCell>}
+                  </TableCell>} */}
                 </TableRow>
               ))}
             </TableBody>
