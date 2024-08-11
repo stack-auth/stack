@@ -63,16 +63,16 @@ export default function PageClient() {
       </SettingCard>
       <SettingCard title="Settings">
         <SettingSwitch
-          label="Allow everyone to create accounts"
-          checked={project.config.signUpEnabled}
+          label="Disable sign ups, only allow sign ins from existing users"
+          checked={!project.config.signUpEnabled}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
-                signUpEnabled: checked,
+                signUpEnabled: !checked,
               },
             });
           }}
-          hint="When disabled, only users with an existing account can sign in. You can still create new accounts manually on the dashboard."
+          hint="Admins (like you) can still create new accounts manually by clicking 'Create User' on the Users page of the dashboard."
         />
       </SettingCard>
     </PageLayout>

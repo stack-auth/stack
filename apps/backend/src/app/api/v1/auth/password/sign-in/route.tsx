@@ -5,6 +5,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -54,6 +55,14 @@ export const POST = createSmartRouteHandler({
 
     if (!user) {
       throw new StackAssertionError("This should never happen (the comparePassword call should've already caused this to fail)");
+    }
+
+    if (user.requiresTotpMfa) {
+      throw await createMfaRequiredError({
+        project,
+        isNewUser: false,
+        userId: user.projectUserId,
+      });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({

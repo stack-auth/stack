@@ -65,6 +65,7 @@ describe("with grant_type === 'authorization_code'", async () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,

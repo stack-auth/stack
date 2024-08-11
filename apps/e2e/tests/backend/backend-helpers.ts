@@ -1,4 +1,5 @@
 import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
@@ -491,6 +492,28 @@ export namespace Auth {
       return {
         ...getAuthorizationCodeResult,
         tokenResponse,
+      };
+    }
+  }
+
+  export namespace Mfa {
+    export async function setupTotpMfa() {
+      const totpSecretBytes = crypto.getRandomValues(new Uint8Array(20));
+      const totpSecretBase64 = encodeBase64(totpSecretBytes);
+      const response = await niceBackendFetch("/api/v1/users/me", {
+        accessType: "client",
+        method: "PATCH",
+        body: {
+          totp_secret_base64: totpSecretBase64,
+        },
+      });
+      expect(response).toMatchObject({
+        status: 200,
+      });
+
+      return {
+        setupTotpMfaResponse: response,
+        totpSecret: totpSecretBytes,
       };
     }
   }

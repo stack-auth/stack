@@ -64,7 +64,7 @@
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": []
     },
     "codegen": {
       "cache": false
@@ -73,7 +73,7 @@
       "cache": false
     },
     "typecheck": {
-      "cache": false
+      "dependsOn": []
     },
     "generate-docs": {
       "cache": false

@@ -96,6 +96,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -134,6 +135,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -217,6 +219,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -254,6 +257,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -353,7 +357,7 @@ describe("with client access", () => {
     `);
   });
 
-  it("updating own display name to the empty string should set it to null", async ({ expect }) => {
+  it("should set own display name to null when set to the empty string", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response1 = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
@@ -385,6 +389,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -422,6 +427,7 @@ describe("with client access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
@@ -430,6 +436,45 @@ describe("with client access", () => {
       }
     `);
   });
+
+  it("should be able to update totp_secret_base64 to valid base64", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const secret = generateSecureRandomString(32);
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        totp_secret_base64: "ZXhhbXBsZSB2YWx1ZQ==",
+      },
+    });
+    expect(response.status).toEqual(200);
+  });
+
+  it("should not be able to update totp_secret_base64 to invalid base64", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        totp_secret_base64: "not-valid-base64",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
 
   it("should not be able to list users", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/users", {
@@ -519,6 +564,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -561,6 +607,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -623,6 +670,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -655,6 +703,7 @@ describe("with server access", () => {
           "primary_email": null,
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -699,6 +748,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": "test",
@@ -747,6 +797,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -836,6 +887,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -890,6 +942,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -935,6 +988,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -995,6 +1049,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -1025,6 +1080,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": null,
@@ -1087,6 +1143,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": { "key": "value" },
@@ -1121,6 +1178,7 @@ describe("with server access", () => {
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
+          "requires_totp_mfa": false,
           "selected_team": null,
           "selected_team_id": null,
           "server_metadata": { "key": "value" },

@@ -1,6 +1,7 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
+import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -1009,6 +1010,29 @@ const OAuthProviderNotFoundOrNotEnabled = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const MultiFactorAuthenticationRequired = createKnownErrorConstructor(
+  KnownError,
+  "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+  (attemptCode: string) => [
+    400,
+    `Multi-factor authentication is required for this user.`,
+    {
+      attempt_code: attemptCode,
+    },
+  ] as const,
+  (json) => [json.attempt_code] as const,
+);
+
+const InvalidTotpCode = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_TOTP_CODE",
+  () => [
+    400,
+    "The TOTP code is invalid. Please try again.",
+  ] as const,
+  () => [] as const,
+);
+
 const UserAuthenticationRequired = createKnownErrorConstructor(
   KnownError,
   "USER_AUTHENTICATION_REQUIRED",
@@ -1176,6 +1200,8 @@ export const KnownErrors = {
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
   OAuthProviderNotFoundOrNotEnabled,
+  MultiFactorAuthenticationRequired,
+  InvalidTotpCode,
   UserAuthenticationRequired,
   TeamMembershipAlreadyExists,
   TeamPermissionRequired,

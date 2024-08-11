@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.5.18
+
+### Patch Changes
+
+- Multi-factor authentication
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.18
+  - @stackframe/stack-shared@2.5.18
+  - @stackframe/stack-ui@2.5.18
+  - @stackframe/stack@2.5.18
+
 ## 2.5.17
 
 ### Patch Changes

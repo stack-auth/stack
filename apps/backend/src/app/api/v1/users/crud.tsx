@@ -7,6 +7,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
@@ -82,6 +83,7 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
     server_metadata: prisma.serverMetadata,
     has_password: !!prisma.passwordHash,
     auth_with_email: prisma.authWithEmail,
+    requires_totp_mfa: prisma.requiresTotpMfa,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
       id: a.oauthProviderConfigId,
       account_id: a.providerAccountId,
@@ -182,6 +184,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             }))
           }
         } : undefined,
+        totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
       },
       include: userFullInclude,
     });
@@ -250,6 +253,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           authWithEmail: data.primary_email_auth_enabled,
           passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
+          requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
+          totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
         include: userFullInclude,
       });
