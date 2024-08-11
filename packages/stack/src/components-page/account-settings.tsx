@@ -1,20 +1,47 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { CurrentUser, Project, useStackApp, useUser } from '..';
-import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
-import { UserAvatar } from '../components/elements/user-avatar';
-import { useState } from 'react';
-import { FormWarningText } from '../components/elements/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography, cn } from '@stackframe/stack-ui';
+import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import { runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography } from '@stackframe/stack-ui';
+import { Contact, Settings, Shield, ShieldCheck } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
-import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
-import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
-import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { set } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { CurrentUser, Project, useStackApp, useUser } from '..';
+import { FormWarningText } from '../components/elements/form-warning';
+import { SidebarLayout } from '../components/elements/sidebar-layout';
+import { UserAvatar } from '../components/elements/user-avatar';
+
+export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+  const user = useUser({ or: 'redirect' });
+
+  const inner = <SidebarLayout
+    items={[
+      { title: 'My Profile', content: <ProfileSection/>, icon: Contact },
+      { title: 'Security', content: <div>
+        <EmailVerificationSection />
+        <PasswordSection />
+        <MfaSection />
+      </div>, icon: ShieldCheck },
+      { title: 'Settings', content: <SignOutSection />, icon: Settings },
+    ].filter(({ content }) => content as any)}
+    title='Team Settings'
+  />;
+
+  if (fullPage) {
+    return (
+      <Container size={800} className='stack-scope'>
+        {inner}
+      </Container>
+    );
+  } else {
+    return inner;
+  }
+}
+
 
 function SettingSection(props: {
   title: string,
@@ -320,36 +347,4 @@ function SignOutSection() {
     >
     </SettingSection>
   );
-}
-
-export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
-  const user = useUser();
-  if (!user) {
-    return <PredefinedMessageCard type='signedOut' fullPage={fullPage} />;
-  }
-
-  const inner = (
-    <div className={cn(fullPage ? 'p-4' : '', 'flex flex-col gap-4')}>
-      <div>
-        <Typography type='h2'>Account Settings</Typography>
-        <Typography variant='secondary' type='label'>Manage your account</Typography>
-      </div>
-
-      <ProfileSection />
-      <EmailVerificationSection />
-      <PasswordSection />
-      <MfaSection />
-      <SignOutSection />
-    </div>
-  );
-
-  if (fullPage) {
-    return (
-      <Container size={600} className='stack-scope'>
-        {inner}
-      </Container>
-    );
-  } else {
-    return inner;
-  }
 }

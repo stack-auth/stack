@@ -46,7 +46,7 @@ function DesktopLayout(props: { items: Item[], title?: ReactNode }) {
   const currentItem = props.items[selectedIndex];
 
   return (
-    <div className="stack-scope flex items-stretch p-2">
+    <div className="stack-scope flex p-2 w-full">
       <div className="flex w-[200px] border-r flex-col items-stretch gap-2 p-2">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
