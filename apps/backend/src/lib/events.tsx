@@ -4,6 +4,7 @@ import * as yup from "yup";
 import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { prismaClient } from "@/prisma-client";
+import posthog from "posthog-js";
 
 type EventType = {
   id: string,
@@ -124,7 +125,7 @@ export async function logEvent<T extends EventType[]>(
   }
 
 
-  // log event
+  // log event in DB
   await prismaClient.event.create({
     data: {
       systemEventTypeIds: [...allEventTypes].map(eventType => eventType.id),
@@ -134,4 +135,15 @@ export async function logEvent<T extends EventType[]>(
       eventEndedAt: timeRange.end,
     },
   });
+
+  // log event in PostHog
+  for (const eventType of allEventTypes) {
+    const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
+    posthog.capture(postHogEventName, {
+      data,
+      isWide,
+      eventStartedAt: timeRange.start,
+      eventEndedAt: timeRange.end,
+    });
+  }
 }
