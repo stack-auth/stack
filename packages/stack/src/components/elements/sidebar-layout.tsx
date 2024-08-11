@@ -49,7 +49,7 @@ export function SidebarLayout(props: { items: Item[], title?: ReactNode }) {
         ))}
       </div>
       <div className="flex-1 flex flex-col gap-4 py-2 px-4">
-        <div>
+        <div className='mb-4'>
           <Typography type='h4'>{currentItem.title}</Typography>
           {currentItem.description && <Typography variant='secondary' type='label'>{currentItem.description}</Typography>}
         </div>

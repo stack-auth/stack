@@ -1,11 +1,11 @@
 'use client';
 
-import { ActionCell, ActionDialog, Button, Container, EditableText, Label, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
-import { Contact, Settings, Users } from "lucide-react";
+import { ActionCell, ActionDialog, Button, Container, EditableText, Input, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { Contact, Info, Settings, Users } from "lucide-react";
+import { useState } from "react";
 import { MessageCard, Team, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
 import { UserAvatar } from "../components/elements/user-avatar";
-import { useState } from "react";
 
 export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   const user = useUser({ or: 'redirect' });
@@ -15,15 +15,14 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
     return <MessageCard title='Team not found' />;
   }
 
-  const readMemberPermission = user.usePermission(team, '$read_members');
-  const updateTeamPermission = user.usePermission(team, '$update_team');
 
   const inner = <SidebarLayout
     items={[
-      { title: 'My Profile', content: <ProfileSettings team={team}/>, icon: Contact, description: `Your profile in the team "${team.displayName}"` },
-      ...readMemberPermission ? [{ title: 'Members', content: <MembersSettings team={team}/>, icon: Users }] : [],
-      ...updateTeamPermission ? [{ title: 'Settings', content: <GeneralSettings team={team} />, icon: Settings }] : [],
-    ]}
+      { title: 'My Profile', content: profileSettings({ team }), icon: Contact, description: `Your profile in the team "${team.displayName}"` },
+      { title: 'Members', content: membersSettings({ team }), icon: Users },
+      { title: 'Team Info', content: managementSettings({ team }), icon: Info },
+      { title: 'Settings', content: userSettings({ team }), icon: Settings },
+    ].filter(({ content }) => content as any)}
     title='Team Settings'
   />;
 
@@ -38,32 +37,40 @@ export function TeamSettings(props: { fullPage?: boolean, teamId: string }) {
   }
 }
 
-function GeneralSettings(props: { team: Team }) {
+function managementSettings(props: { team: Team }) {
   const user = useUser({ or: 'redirect' });
   const updateTeamPermission = user.usePermission(props.team, '$update_team');
 
+  if (!updateTeamPermission) {
+    return null;
+  }
+
   return (
     <>
-      {updateTeamPermission && <div>
+      <div>
         <Label>Team display name</Label>
         <EditableText value={props.team.displayName} onSave={() => {}}/>
-      </div>}
+      </div>
     </>
   );
 }
 
-function ProfileSettings(props: { team: Team }) {
+function profileSettings(props: { team: Team }) {
   return (
-    <div className="flex flex-col gap-8 mt-8">
+    <div className="flex flex-col">
       <div className="flex flex-col">
         <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
         <EditableText value={props.team.displayName} onSave={() => {}}/>
       </div>
+    </div>
+  );
+}
 
-      <div className="flex flex-col gap-2">
-        <div>
-          <Button variant='secondary' onClick={() => {}}>Leave team</Button>
-        </div>
+function userSettings(props: { team: Team }) {
+  return (
+    <div>
+      <div>
+        <Button variant='secondary' onClick={() => {}}>Leave team</Button>
       </div>
     </div>
   );
@@ -93,42 +100,61 @@ function RemoveMemberDialog(props: {
   );
 }
 
-function MembersSettings(props: { team: Team }) {
-  const users = props.team.useUsers();
+function membersSettings(props: { team: Team }) {
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const user = useUser({ or: 'redirect' });
   const removeMemberPermission = user.usePermission(props.team, '$remove_members');
-  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const readMemberPermission = user.usePermission(props.team, '$read_members');
+  const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
+
+  if (!readMemberPermission && !inviteMemberPermission) {
+    return null;
+  }
+
+  const users = props.team.useUsers();
 
   return (
     <>
-      <div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">User</TableHead>
-              <TableHead className="w-[200px]">Name</TableHead>
-              {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map(({ id, teamProfile }, i) => (
-              <TableRow key={id}>
-                <TableCell>
-                  <UserAvatar user={teamProfile}/>
-                </TableCell>
-                <TableCell>
-                  <Typography>{teamProfile.displayName}</Typography>
-                </TableCell>
-                {removeMemberPermission && <TableCell>
-                  <ActionCell items={[
-                    { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
-                  ]}/>
-                  <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
-                </TableCell>}
+      <div className="flex flex-col gap-8">
+        {inviteMemberPermission &&
+          <div>
+            <Label>Invite user to team</Label>
+            <div className="flex flex-col gap-2 md:flex-row">
+              <Input placeholder="Email" />
+              <Button onClick={() => {}}>Invite</Button>
+            </div>
+          </div>}
+        {readMemberPermission &&
+        <div>
+          <Label>Members</Label>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">User</TableHead>
+                <TableHead className="w-[200px]">Name</TableHead>
+                {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {users.map(({ id, teamProfile }, i) => (
+                <TableRow key={id}>
+                  <TableCell>
+                    <UserAvatar user={teamProfile}/>
+                  </TableCell>
+                  <TableCell>
+                    <Typography>{teamProfile.displayName}</Typography>
+                  </TableCell>
+                  {removeMemberPermission && <TableCell>
+                    <ActionCell items={[
+                      { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
+                    ]}/>
+                    <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
+                  </TableCell>}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>}
       </div>
     </>
   );
