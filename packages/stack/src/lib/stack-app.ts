@@ -1858,6 +1858,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         signUpEnabled: data.config.sign_up_enabled,
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
+        clientTeamCreationEnabled: data.config.client_team_creation_enabled,
         allowLocalhost: data.config.allow_localhost,
         oauthProviders: data.config.oauth_providers.map((p) => ((p.type === 'shared' ? {
           id: p.id,
@@ -2435,9 +2436,11 @@ export type OAuthProviderConfig = {
 };
 
 export type AdminProjectConfig = {
+  readonly id: string,
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly clientTeamCreationEnabled: boolean,
   readonly allowLocalhost: boolean,
   readonly oauthProviders: AdminOAuthProviderConfig[],
   readonly emailConfig?: AdminEmailConfig,
@@ -2445,7 +2448,7 @@ export type AdminProjectConfig = {
   readonly createTeamOnSignUp: boolean,
   readonly teamCreatorDefaultPermissions: AdminTeamPermission[],
   readonly teamMemberDefaultPermissions: AdminTeamPermission[],
-} & OAuthProviderConfig;
+};
 
 export type AdminEmailConfig = (
   {
@@ -2489,6 +2492,7 @@ export type AdminProjectConfigUpdateOptions = {
   signUpEnabled?: boolean,
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
+  clientTeamCreationEnabled?: boolean,
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
   emailConfig?: AdminEmailConfig,

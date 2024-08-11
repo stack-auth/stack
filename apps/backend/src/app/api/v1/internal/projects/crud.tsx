@@ -39,6 +39,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               magicLinkEnabled: data.config?.magic_link_enabled ?? false,
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
+              clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,
               domains: data.config?.domains ? {
                 create: data.config.domains.map(item => ({
                   domain: item.domain,

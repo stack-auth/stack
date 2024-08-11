@@ -34,6 +34,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       throw new KnownErrors.UserAuthenticationRequired();
     }
 
+    if (auth.type === 'client' && !auth.project.config.client_team_creation_enabled) {
+      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
+    }
+
     const db = await prismaClient.$transaction(async (tx) => {
       const db = await tx.team.create({
         data: {

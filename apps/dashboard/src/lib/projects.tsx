@@ -182,6 +182,7 @@ export async function createProject(
             credentialEnabled: !!projectOptions.config?.credentialEnabled,
             magicLinkEnabled: !!projectOptions.config?.magicLinkEnabled,
             createTeamOnSignUp: !!projectOptions.config?.createTeamOnSignUp,
+            clientTeamCreationEnabled: false,
             emailServiceConfig: {
               create: {
                 proxiedEmailServiceConfig: {

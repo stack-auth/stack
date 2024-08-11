@@ -39,12 +39,12 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost    Boolean
-  signUpEnabled     Boolean @default(true)
-  credentialEnabled Boolean
-  magicLinkEnabled  Boolean
-
-  createTeamOnSignUp Boolean
+  allowLocalhost            Boolean
+  signUpEnabled             Boolean @default(true)
+  credentialEnabled         Boolean
+  magicLinkEnabled          Boolean
+  createTeamOnSignUp        Boolean
+  clientTeamCreationEnabled Boolean
 
   projects             Project[]
   oauthProviderConfigs OAuthProviderConfig[]

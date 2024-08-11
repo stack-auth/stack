@@ -60,6 +60,7 @@ async function seed() {
             credentialEnabled: true,
             magicLinkEnabled: true,
             createTeamOnSignUp: false,
+            clientTeamCreationEnabled: true,
           },
         },
       },
