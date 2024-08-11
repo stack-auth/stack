@@ -315,13 +315,14 @@ export namespace Auth {
       };
     }
 
-    export async function authorize(options?: { redirectUrl: string }) {
+    export async function authorize(options?: { redirectUrl?: string, errorRedirectUrl?: string }) {
       const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
         redirect: "manual",
         query: {
           ...await Auth.OAuth.getAuthorizeQuery(),
           ...filterUndefined({
             redirect_uri: options?.redirectUrl ?? undefined,
+            error_redirect_uri: options?.errorRedirectUrl ?? undefined,
           }),
         },
       });

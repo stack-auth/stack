@@ -247,11 +247,6 @@ function PasswordSection() {
 
 function MfaSection() {
   const project = useStackApp().useProject();
-  if (project.config.oauthProviders.length !== 0 || project.config.magicLinkEnabled) {
-    // TODO next-release support MFA for OAuth and magic link
-    return null;
-  }
-
   const user = useUser({ or: "throw" });
   const [generatedSecret, setGeneratedSecret] = useState<Uint8Array | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);

@@ -49,15 +49,17 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
     ({ path }) => `${path} contains unknown properties`,
     (value: any, context) => {
       if (context.options.context?.noUnknownPathPrefixes?.some((prefix: string) => context.path.startsWith(prefix))) {
-        const availableKeys = new Set(Object.keys(context.schema.fields));
-        const unknownKeys = Object.keys(value ?? {}).filter(key => !availableKeys.has(key));
-        if (unknownKeys.length > 0) {
-          // TODO "did you mean XYZ"
-          return context.createError({
-            message: `${context.path} contains unknown properties: ${unknownKeys.join(', ')}`,
-            path: context.path,
-            params: { unknownKeys },
-          });
+        if (context.schema.spec.noUnknown !== false) {
+          const availableKeys = new Set(Object.keys(context.schema.fields));
+          const unknownKeys = Object.keys(value ?? {}).filter(key => !availableKeys.has(key));
+          if (unknownKeys.length > 0) {
+            // TODO "did you mean XYZ"
+            return context.createError({
+              message: `${context.path} contains unknown properties: ${unknownKeys.join(', ')}`,
+              path: context.path,
+              params: { unknownKeys },
+            });
+          }
         }
       }
       return true;
