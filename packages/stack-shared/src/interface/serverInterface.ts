@@ -133,6 +133,20 @@ export class StackServerInterface extends StackClientInterface {
     return result.items;
   }
 
+  async getServerTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      null,
+    );
+    return await response.json();
+  }
+
   async listServerTeamPermissions(
     options: {
       userId?: string,

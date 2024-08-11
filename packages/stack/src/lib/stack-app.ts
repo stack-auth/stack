@@ -328,6 +328,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._interface.listTeamMemberProfiles({ teamId }, session);
     }
   );
+  private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
+    async (session, [teamId]) => {
+      return this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
+    }
+  );
 
   protected async _getUserOAuthConnectionCacheFn(options: {
     getUser: () => Promise<CurrentUserCrud['Client']['Read'] | null>,
@@ -791,6 +796,25 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _editableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
+    const app = this;
+    return {
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
+      async update(update: { displayName?: string, profileImageUrl?: string }) {
+        await app._interface.updateTeamMemberProfile({
+          teamId: crud.team_id,
+          userId: crud.user_id,
+          profile: {
+            display_name: update.displayName,
+            profile_image_url: update.profileImageUrl,
+          },
+        }, app._getSession());
+        await app._teamMemberProfilesCache.refresh([app._getSession(), crud.team_id]);
+      }
+    };
+  }
+
   protected _createUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
     const app = this;
     async function getConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
@@ -875,6 +899,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
         return await app._updatePassword(options, session);
       },
+      async getTeamProfile(team: Team) {
+        const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
+        return app._editableTeamProfileFromCrud(result);
+      },
+      useTeamProfile(team: Team) {
+        const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
+        return app._editableTeamProfileFromCrud(result);
+      }
     };
   }
 
@@ -1454,11 +1486,28 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._interface.listServerTeamMemberProfiles({ teamId });
     }
   );
+  private readonly _serverUserTeamProfileCache = createCache<[string, string], TeamMemberProfilesCrud['Client']['Read']>(
+    async ([teamId, userId]) => {
+      return this._interface.getServerTeamMemberProfile({ teamId, userId });
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
     await this._refreshUsers();
     return result;
+  }
+
+  protected _serverEditableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
+    const app = this;
+    const clientProfile = this._editableTeamProfileFromCrud(crud);
+    return {
+      ...clientProfile,
+      async update(update: { displayName?: string, profileImageUrl?: string }) {
+        await clientProfile.update(update);
+        await app._serverUserTeamProfileCache.refresh([crud.team_id, crud.user_id]);
+      }
+    };
   }
 
   constructor(options:
@@ -1603,6 +1652,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
         return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
+      },
+      async getTeamProfile(team: Team) {
+        const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
+        return app._serverEditableTeamProfileFromCrud(result);
+      },
+      useTeamProfile(team: Team) {
+        const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
+        return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
       },
     };
   }
@@ -2266,6 +2323,9 @@ type UserExtra = {
   hasPermission(scope: Team, permissionId: string): Promise<boolean>,
   setSelectedTeam(team: Team | null): Promise<void>,
   createTeam(data: TeamCreateOptions): Promise<Team>,
+
+  getTeamProfile(team: Team): Promise<EditableTeamMemberProfile>,
+  useTeamProfile(team: Team): EditableTeamMemberProfile,
 }
 & AsyncStoreProperty<"team", [id: string], Team | null, false>
 & AsyncStoreProperty<"teams", [], Team[], true>
@@ -2600,6 +2660,15 @@ type ___________client_team = never;  // this is a marker for VSCode's outline v
 export type TeamMemberProfile = {
   displayName: string | null,
   profileImageUrl: string | null,
+}
+
+type TeamMemberProfileUpdateOptions = {
+  displayName?: string,
+  profileImageUrl?: string | null,
+};
+
+export type EditableTeamMemberProfile = TeamMemberProfile & {
+  update(update: TeamMemberProfileUpdateOptions): Promise<void>,
 }
 
 export type TeamUser = {

@@ -7,6 +7,7 @@ import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
+import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
@@ -869,17 +870,57 @@ export class StackClientInterface {
 
   async listTeamMemberProfiles(
     options: {
-      teamId: string,
+      teamId?: string,
+      userId?: string,
     },
     session: InternalSession,
   ): Promise<TeamMemberProfilesCrud['Client']['Read'][]> {
     const response = await this.sendClientRequest(
-      "/team-member-profiles?team_id=" + options.teamId,
+      "/team-member-profiles?" + new URLSearchParams(filterUndefined({
+        team_id: options.teamId,
+        user_id: options.userId,
+      })),
       {},
       session,
     );
     const result = await response.json() as TeamMemberProfilesCrud['Client']['List'];
     return result.items;
+  }
+
+  async getTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      session,
+    );
+    return await response.json();
+  }
+
+  async updateTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+      profile: TeamMemberProfilesCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      session,
+    );
   }
 
   async listCurrentUserTeamPermissions(
