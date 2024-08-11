@@ -13,6 +13,7 @@ import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
 import { TeamSettings } from "./team-settings";
+import { TeamCreation } from "./team-creation";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
@@ -61,6 +62,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     accountSettings: 'account-settings',
     magicLinkCallback: 'magic-link-callback',
     teamInvitation: 'team-invitation',
+    teamCreation: 'team-creation',
     error: 'error',
   };
 
@@ -119,6 +121,10 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
       return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
+    }
+    case availablePaths.teamCreation: {
+      redirectIfNotHandler('teamCreation');
+      return <TeamCreation fullPage={fullPage} />;
     }
     case availablePaths.error: {
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
