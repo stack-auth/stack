@@ -616,6 +616,7 @@ export class StackClientInterface {
     return {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
+      newUser: result.is_new_user,
     };
   }
 
@@ -802,6 +803,9 @@ export class StackClientInterface {
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
+      if ("code" in result && result.code === "MULTI_FACTOR_AUTHENTICATION_REQUIRED") {
+        throw new KnownErrors.MultiFactorAuthenticationRequired((result as any).details.attempt_code);
+      }
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }

@@ -648,6 +648,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _signInToAccountWithTokens(tokens: { accessToken: string | null, refreshToken: string }) {
+    if (!("accessToken" in tokens) || !("refreshToken" in tokens)) {
+      throw new StackAssertionError("Invalid tokens object; can't sign in with this", { tokens });
+    }
     const tokenStore = this._getOrCreateTokenStore();
     tokenStore.set(tokens);
   }
@@ -1105,39 +1108,54 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     );
   }
 
+  /**
+   * @deprecated
+   * TODO remove
+   */
+  protected async _experimentalMfa(error: KnownErrors['MultiFactorAuthenticationRequired'], session: InternalSession) {
+    const otp = prompt('Please enter the six-digit TOTP code from your authenticator app.');
+    if (!otp) {
+      throw new KnownErrors.InvalidTotpCode();
+    }
+
+    return await this._interface.totpMfa(
+      (error.details as any)?.attempt_code ?? throwErr("attempt code missing"),
+      otp,
+      session
+    );
+  }
+
+  /**
+   * @deprecated
+   * TODO remove
+   */
+  protected async _catchMfaRequiredError<T>(callback: () => Promise<T>) {
+    try {
+      return await callback();
+    } catch (e) {
+      if (e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
+        return await this._experimentalMfa(e, this._getSession());
+      }
+      throw e;
+    }
+  }
+
   async signInWithCredential(options: {
     email: string,
     password: string,
-    // TODO next-release remove
-    __experimental_mfa?: boolean,
-  }): Promise<KnownErrors["EmailPasswordMismatch"] | void> {
+  }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     let result;
     try {
-      result = await this._interface.signInWithCredential(options.email, options.password, session);
+      result = await this._catchMfaRequiredError(async () => {
+        return await this._interface.signInWithCredential(options.email, options.password, session);
+      });
     } catch (e) {
-      // TODO next-release remove
-      if (options.__experimental_mfa && e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
-        const otp = prompt('Please enter the six-digit TOTP code from your authenticator app.');
-        try {
-          if (!otp) {
-            throw new KnownErrors.InvalidTotpCode();
-          }
-          result = await this._interface.totpMfa(
-            (e.details as any)?.attempt_code ?? throwErr("attempt code missing"),
-            otp,
-            session
-          );
-        } catch (e) {
-          if (e instanceof KnownErrors.InvalidTotpCode) {
-            return e as any; // hack
-          }
-          throw e;
-        }
-      } else {
-        throw e;
+      if (e instanceof KnownErrors.InvalidTotpCode) {
+        return e;
       }
+      throw e;
     }
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
@@ -1166,9 +1184,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return result;
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
+  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] |  void> {
     this._ensurePersistentTokenStore();
-    const result = await this._interface.signInWithMagicLink(code);
+    let result;
+    try {
+      result = await this._catchMfaRequiredError(async () => {
+        return await this._interface.signInWithMagicLink(code);
+      });
+    } catch (e) {
+      if (e instanceof KnownErrors.InvalidTotpCode) {
+        return e;
+      }
+      throw e;
+    }
     if (result instanceof KnownError) {
       return result;
     }
@@ -1182,10 +1210,23 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
-    const result = await callOAuthCallback(this._interface, this.urls.oauthCallback);
+    let result;
+    try {
+      result = await this._catchMfaRequiredError(async () => {
+        return await callOAuthCallback(this._interface, this.urls.oauthCallback);
+      });
+    } catch (e) {
+      if (e instanceof KnownErrors.InvalidTotpCode) {
+        alert("Invalid TOTP code. Please try signing in again.");
+      }
+      throw e;
+    }
     if (result) {
+      console.log("OAuth callback result", result);
       await this._signInToAccountWithTokens(result);
-      if (result.afterCallbackRedirectUrl) {
+      // TODO fix afterCallbackRedirectUrl for MFA (currently not passed because /mfa/sign-in doesn't return it)
+      // or just get rid of afterCallbackRedirectUrl entirely tbh
+      if ("afterCallbackRedirectUrl" in result && result.afterCallbackRedirectUrl) {
         await _redirectTo(result.afterCallbackRedirectUrl, { replace: true });
         return true;
       } else if (result.newUser) {
@@ -2630,7 +2671,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | void>,
+    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
     signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
@@ -2641,7 +2682,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
-    signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] | void>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,

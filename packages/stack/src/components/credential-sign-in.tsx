@@ -31,9 +31,6 @@ export function CredentialSignIn() {
       const error = await app.signInWithCredential({
         email,
         password,
-
-        // TODO next-release remove
-        ...{ __experimental_mfa: true },
       });
       setError('email', { type: 'manual', message: error?.message });
     } finally {
