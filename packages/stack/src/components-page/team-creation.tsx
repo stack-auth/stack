@@ -31,7 +31,7 @@ export function TeamCreation(props: { fullPage?: boolean }) {
     setLoading(true);
 
     try {
-      const error = await user.createTeam({
+      const team = await user.createTeam({
         displayName: data.displayName,
       });
     } finally {
