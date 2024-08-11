@@ -9,7 +9,7 @@ export default async function MyTeams() {
 
 
   return (
-    <div className='flex-col'>
+    <div className='flex-col w-64'>
       <SelectedTeamSwitcher />
       <CreateTeam />
 
