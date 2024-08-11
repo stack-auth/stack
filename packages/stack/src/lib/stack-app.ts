@@ -330,7 +330,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   );
   private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
     async (session, [teamId]) => {
-      return this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
+      return await this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
     }
   );
 
@@ -865,6 +865,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const crud = await app._interface.createTeamForCurrentUser(teamCreateOptionsToCrud(data), session);
         await app._currentUserTeamsCache.refresh([session]);
         return app._clientTeamFromCrud(crud);
+      },
+      async leaveTeam(team: Team) {
+        await app._interface.leaveTeam(team.id, session);
+        await app._currentUserTeamsCache.refresh([session]);
+        await app._currentUserTeamProfileCache.invalidate([session, team.id]);
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
         const recursive = options?.recursive ?? true;
@@ -1488,7 +1493,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   );
   private readonly _serverUserTeamProfileCache = createCache<[string, string], TeamMemberProfilesCrud['Client']['Read']>(
     async ([teamId, userId]) => {
-      return this._interface.getServerTeamMemberProfile({ teamId, userId });
+      return await this._interface.getServerTeamMemberProfile({ teamId, userId });
     }
   );
 
@@ -1622,6 +1627,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), app._getSession());
         await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
+      },
+      leaveTeam: async (team: Team) => {
+        await app._interface.leaveServerTeam({ teamId: team.id, userId: crud.id });
+        await app._serverTeamsCache.refresh([undefined]);
+        await app._serverTeamMemberProfilesCache.invalidate([team.id]);
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
         const recursive = options?.recursive ?? true;
@@ -2323,6 +2333,7 @@ type UserExtra = {
   hasPermission(scope: Team, permissionId: string): Promise<boolean>,
   setSelectedTeam(team: Team | null): Promise<void>,
   createTeam(data: TeamCreateOptions): Promise<Team>,
+  leaveTeam(team: Team): Promise<void>,
 
   getTeamProfile(team: Team): Promise<EditableTeamMemberProfile>,
   useTeamProfile(team: Team): EditableTeamMemberProfile,

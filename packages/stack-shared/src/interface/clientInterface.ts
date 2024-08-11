@@ -902,6 +902,23 @@ export class StackClientInterface {
     return await response.json();
   }
 
+  async leaveTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${teamId}/me`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      session,
+    );
+  }
+
   async updateTeamMemberProfile(
     options: {
       teamId: string,

@@ -324,6 +324,25 @@ export class StackServerInterface extends StackClientInterface {
     };
   }
 
+  async leaveServerTeam(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${options.teamId}/${options.userId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
+  }
+
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
       `/team-permissions/${teamId}/${userId}/${permissionId}`,

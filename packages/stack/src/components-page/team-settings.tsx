@@ -74,10 +74,16 @@ function profileSettings(props: { team: Team }) {
 }
 
 function userSettings(props: { team: Team }) {
+  const user = useUser({ or: 'redirect' });
   return (
     <div>
       <div>
-        <Button variant='secondary' onClick={() => {}}>Leave team</Button>
+        <Button
+          variant='secondary'
+          onClick={async () => await user.leaveTeam(props.team)}
+        >
+          Leave team
+        </Button>
       </div>
     </div>
   );
