@@ -688,6 +688,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
+        clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
           id: p.id,
         })),
@@ -2406,6 +2407,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       magic_link_enabled: options.config?.magicLinkEnabled,
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
+      client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
     },
@@ -2428,6 +2430,7 @@ export type ProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly clientTeamCreationEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
 };
 

@@ -123,6 +123,11 @@ export default async function StackHandler<HasTokenStore extends boolean>({
       return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
     }
     case availablePaths.teamCreation: {
+      const project = await app.getProject();
+      if (!project.config.clientTeamCreationEnabled) {
+        return notFound();
+      }
+
       redirectIfNotHandler('teamCreation');
       return <TeamCreation fullPage={fullPage} />;
     }

@@ -7,7 +7,7 @@ import { Button, Input, Label, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useUser } from "..";
+import { MessageCard, useStackApp, useUser } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 
@@ -19,8 +19,13 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
+  const project = useStackApp().useProject();
   const user = useUser({ or: 'redirect' });
   const [loading, setLoading] = useState(false);
+
+  if (!project.config.clientTeamCreationEnabled) {
+    return <MessageCard title='Team creation is not enabled' />;
+  }
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
     setLoading(true);

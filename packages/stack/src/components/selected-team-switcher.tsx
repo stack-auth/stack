@@ -43,6 +43,7 @@ function TeamIcon(props: { team: Team }) {
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const app = useStackApp();
   const user = useUser();
+  const project = app.useProject();
   const router = useRouter();
   const selectedTeam = user?.selectedTeam || props.selectedTeam;
   const rawTeams = user?.useTeams();
@@ -111,17 +112,18 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
             <SelectLabel>No teams yet</SelectLabel>
           </SelectGroup>}
 
-        <SelectSeparator/>
-
-        <div>
-          <Button
-            onClick={() => router.push(app.urls.teamCreation)}
-            className="w-full"
-            variant='ghost'
-          >
-            <PlusCircle className="mr-2 h-4 w-4"/> Create a team
-          </Button>
-        </div>
+        {project.config.clientTeamCreationEnabled && <>
+          <SelectSeparator/>
+          <div>
+            <Button
+              onClick={() => router.push(app.urls.teamCreation)}
+              className="w-full"
+              variant='ghost'
+            >
+              <PlusCircle className="mr-2 h-4 w-4"/> Create a team
+            </Button>
+          </div>
+        </>}
       </SelectContent>
     </Select>
   );

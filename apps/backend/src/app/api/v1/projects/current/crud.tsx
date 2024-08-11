@@ -256,6 +256,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               signUpEnabled: data.config?.sign_up_enabled,
               credentialEnabled: data.config?.credential_enabled,
               magicLinkEnabled: data.config?.magic_link_enabled,
+              clientTeamCreationEnabled: data.config?.client_team_creation_enabled,
               allowLocalhost: data.config?.allow_localhost,
               createTeamOnSignUp: data.config?.create_team_on_sign_up,
               domains: data.config?.domains ? {
