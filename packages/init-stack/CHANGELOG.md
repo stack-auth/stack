@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.5.18
+
+### Patch Changes
+
+- Multi-factor authentication
+
 ## 2.5.17
 
 ## 2.5.16

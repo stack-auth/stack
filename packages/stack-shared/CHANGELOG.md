@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.18
+
+### Patch Changes
+
+- Multi-factor authentication
+  - @stackframe/stack-sc@2.5.18
+
 ## 2.5.17
 
 ### Patch Changes
