@@ -106,6 +106,7 @@ function membersSettings(props: { team: Team }) {
   const removeMemberPermission = user.usePermission(props.team, '$remove_members');
   const readMemberPermission = user.usePermission(props.team, '$read_members');
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
+  const [email, setEmail] = useState('');
 
   if (!readMemberPermission && !inviteMemberPermission) {
     return null;
@@ -118,10 +119,12 @@ function membersSettings(props: { team: Team }) {
       <div className="flex flex-col gap-8">
         {inviteMemberPermission &&
           <div>
-            <Label>Invite user to team</Label>
+            <Label>Invite a user to team</Label>
             <div className="flex flex-col gap-2 md:flex-row">
-              <Input placeholder="Email" />
-              <Button onClick={() => {}}>Invite</Button>
+              <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+              <Button onClick={async () => {
+                await props.team.inviteUser({ email });
+              }}>Invite</Button>
             </div>
           </div>}
         {readMemberPermission &&
