@@ -21,7 +21,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const inner = <SidebarLayout
     items={[
       { title: 'My Profile', content: <ProfileSection/>, icon: Contact },
-      { title: 'Security', content: <div>
+      { title: 'Security', content: <div className='flex flex-col gap-4'>
         <EmailVerificationSection />
         <PasswordSection />
         <MfaSection />
