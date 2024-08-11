@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { Team, useStackApp, useUser } from "..";
 import Image from "next/image";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Settings } from "lucide-react";
 
 type SelectedTeamSwitcherProps = {
   urlMap?: (team: Team) => string,
@@ -78,7 +78,14 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
       </SelectTrigger>
       <SelectContent className="stack-scope">
         {user?.selectedTeam && <SelectGroup>
-          <SelectLabel>Current team</SelectLabel>
+          <SelectLabel>
+            <div className="flex items-center justify-between">
+              Current team
+              <Button variant='ghost' size='icon' className="h-6 w-6">
+                <Settings className="h-4 w-4"/>
+              </Button>
+            </div>
+          </SelectLabel>
           <SelectItem value={user.selectedTeam.id}>
             <div className="flex items-center">
               <TeamIcon team={user.selectedTeam} />
