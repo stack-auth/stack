@@ -56,11 +56,18 @@ function managementSettings(props: { team: Team }) {
 }
 
 function profileSettings(props: { team: Team }) {
+  const user = useUser({ or: 'redirect' });
+  const profile = user.useTeamProfile(props.team);
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-col">
         <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
-        <EditableText value={props.team.displayName} onSave={() => {}}/>
+        <EditableText
+          value={profile.displayName || ''}
+          onSave={async (newDisplayName) => {
+            await profile.update({ displayName: newDisplayName });
+          }}/>
       </div>
     </div>
   );

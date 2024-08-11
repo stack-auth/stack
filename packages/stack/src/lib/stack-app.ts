@@ -810,7 +810,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
             profile_image_url: update.profileImageUrl,
           },
         }, app._getSession());
-        await app._teamMemberProfilesCache.refresh([app._getSession(), crud.team_id]);
+        await app._currentUserTeamProfileCache.refresh([app._getSession(), crud.team_id]);
       }
     };
   }

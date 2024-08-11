@@ -78,11 +78,11 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         <SelectValue placeholder="Select team"/>
       </SelectTrigger>
       <SelectContent className="stack-scope">
-        {user?.selectedTeam && <SelectGroup>
+        {user?.selectedTeam ? <SelectGroup>
           <SelectLabel>
             <div className="flex items-center justify-between">
               Current team
-              <Button variant='ghost' size='icon' className="h-6 w-6">
+              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.handler}/team-settings/${user.selectedTeam?.id}`)}>
                 <Settings className="h-4 w-4"/>
               </Button>
             </div>
@@ -93,7 +93,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
               <Typography>{user.selectedTeam.displayName}</Typography>
             </div>
           </SelectItem>
-        </SelectGroup>}
+        </SelectGroup> : undefined}
 
         {teams?.length ?
           <SelectGroup>
