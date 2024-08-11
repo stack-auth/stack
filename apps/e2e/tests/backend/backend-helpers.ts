@@ -691,7 +691,7 @@ export namespace Project {
 export namespace Team {
   export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
     const response = await niceBackendFetch("/api/v1/teams?add_current_user=true", {
-      accessType: options.accessType ?? "client",
+      accessType: options.accessType ?? "server",
       method: "POST",
       body: {
         display_name: body?.display_name || 'New Team',

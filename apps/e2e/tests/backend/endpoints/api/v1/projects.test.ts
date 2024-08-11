@@ -33,6 +33,7 @@ it("gets current project (internal)", async ({ expect }) => {
       "status": 200,
       "body": {
         "config": {
+          "client_team_creation_enabled": true,
           "credential_enabled": true,
           "enabled_oauth_providers": [
             { "id": "facebook" },
@@ -65,6 +66,7 @@ it("creates and updates the basic project information of a project", async ({ ex
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -106,6 +108,7 @@ it("updates the basic project configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": false,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
@@ -147,6 +150,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -195,6 +199,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -250,6 +255,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -301,6 +307,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -346,6 +353,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -383,6 +391,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -426,6 +435,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -528,6 +538,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -573,6 +584,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -620,6 +632,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -692,6 +705,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -752,6 +766,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
