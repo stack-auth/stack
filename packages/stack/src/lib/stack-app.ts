@@ -868,8 +868,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async leaveTeam(team: Team) {
         await app._interface.leaveTeam(team.id, session);
-        await app._currentUserTeamsCache.refresh([session]);
-        await app._currentUserTeamProfileCache.invalidate([session, team.id]);
+        // TODO: refresh cache
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
         const recursive = options?.recursive ?? true;
@@ -1630,8 +1629,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       leaveTeam: async (team: Team) => {
         await app._interface.leaveServerTeam({ teamId: team.id, userId: crud.id });
-        await app._serverTeamsCache.refresh([undefined]);
-        await app._serverTeamMemberProfilesCache.invalidate([team.id]);
+        // TODO: refresh cache
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
         const recursive = options?.recursive ?? true;

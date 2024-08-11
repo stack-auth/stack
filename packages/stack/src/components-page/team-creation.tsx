@@ -10,6 +10,7 @@ import * as yup from "yup";
 import { MessageCard, useStackApp, useUser } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
+import { useRouter } from "next/navigation";
 
 const schema = yupObject({
   displayName: yupString().required('Please enter a team name'),
@@ -19,9 +20,11 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
-  const project = useStackApp().useProject();
+  const app = useStackApp();
+  const project = app.useProject();
   const user = useUser({ or: 'redirect' });
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   if (!project.config.clientTeamCreationEnabled) {
     return <MessageCard title='Team creation is not enabled' />;
@@ -31,9 +34,8 @@ export function TeamCreation(props: { fullPage?: boolean }) {
     setLoading(true);
 
     try {
-      const team = await user.createTeam({
-        displayName: data.displayName,
-      });
+      const team = await user.createTeam({ displayName: data.displayName });
+      router.push(`${app.urls.handler}/team-settings/${team.id}`);
     } finally {
       setLoading(false);
     }

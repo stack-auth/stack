@@ -3,7 +3,7 @@
 import { ActionCell, ActionDialog, Button, Container, EditableText, Input, Label, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { Contact, Info, Settings, Users } from "lucide-react";
 import { useState } from "react";
-import { MessageCard, Team, useUser } from "..";
+import { MessageCard, Team, useStackApp, useUser } from "..";
 import { SidebarLayout } from "../components/elements/sidebar-layout";
 import { UserAvatar } from "../components/elements/user-avatar";
 
@@ -74,13 +74,18 @@ function profileSettings(props: { team: Team }) {
 }
 
 function userSettings(props: { team: Team }) {
+  const app = useStackApp();
   const user = useUser({ or: 'redirect' });
+
   return (
     <div>
       <div>
         <Button
           variant='secondary'
-          onClick={async () => await user.leaveTeam(props.team)}
+          onClick={async () => {
+            await user.leaveTeam(props.team);
+            await app.redirectToHome();
+          }}
         >
           Leave team
         </Button>
