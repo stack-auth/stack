@@ -1629,14 +1629,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
         });
       },
-      async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({
-          teamId: crud.id,
-          email: options.email,
-          session: null,
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
-        });
-      },
     };
   }
 
@@ -2318,23 +2310,6 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     primary_email_verified: options.primaryEmailVerified,
     password: options.password,
     totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
-  };
-}
-
-
-type ServerUserCreateOptions = {
-  primaryEmail: string,
-  password: string,
-  displayName?: string,
-  primaryEmailVerified?: boolean,
-}
-function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersCrud["Server"]["Create"] {
-  return {
-    primary_email: options.primaryEmail,
-    password: options.password,
-    primary_email_auth_enabled: true,
-    display_name: options.displayName,
-    primary_email_verified: options.primaryEmailVerified,
   };
 }
 
