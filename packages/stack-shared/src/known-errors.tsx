@@ -400,7 +400,7 @@ const InvalidProjectForAdminAccessToken = createKnownErrorConstructor(
   "INVALID_PROJECT_FOR_ADMIN_ACCESS_TOKEN",
   () => [
     401,
-    "Admin access token not valid for this project.",
+    "Admin access tokens must be created on the internal project.",
   ] as const,
   () => [] as const,
 );

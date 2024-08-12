@@ -193,7 +193,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       case "not-admin": {
         throw new KnownErrors.AdminAccessTokenIsNotAdmin();
       }
-      case "wrong-project-id": {
+      case "wrong-token-project-id": {
         throw new KnownErrors.InvalidProjectForAdminAccessToken();
       }
       case "access-token-expired": {
@@ -226,12 +226,15 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         projectAccessType = "key";
         break;
       }
+      default: {
+        throw new StackAssertionError(`Unexpected request type: ${requestType}. We should've filtered this earlier`);
+      }
     }
   }
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new StackAssertionError("Project not found; this should only happen if the project was deleted and the access token is still valid", { projectId });
+    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project", { projectId });
   }
 
   let user = null;

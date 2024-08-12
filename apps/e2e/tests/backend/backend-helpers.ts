@@ -574,7 +574,7 @@ export namespace ContactChannels {
 }
 
 export namespace ApiKey {
-  export async function create(adminAccessToken: string, body?: any) {
+  export async function create(adminAccessToken?: string, body?: any) {
     const oldProjectKeys = backendContext.value.projectKeys;
     if (oldProjectKeys === 'no-project') {
       throw new Error("Cannot set API key context without a project");
@@ -592,7 +592,7 @@ export namespace ApiKey {
         ...body,
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
+        'x-stack-admin-access-token': adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")),
       }
     });
     expect(response.status).equals(200);
@@ -609,7 +609,7 @@ export namespace ApiKey {
   }
 
   export async function createAndSetProjectKeys(adminAccessToken?: string, body?: any) {
-    const res = await ApiKey.create(adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")), body);
+    const res = await ApiKey.create(adminAccessToken, body);
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
   }

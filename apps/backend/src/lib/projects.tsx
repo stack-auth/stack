@@ -150,7 +150,7 @@ export function projectPrismaToCrud(
   };
 }
 
-export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-project-id" | "not-admin" | null> {
+export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
   if (!adminAccessToken) {
     return "unparsable-access-token";
   }
@@ -167,7 +167,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
   }
   const { userId, projectId: accessTokenProjectId } = decoded;
   if (accessTokenProjectId !== "internal") {
-    return "wrong-project-id";
+    return "wrong-token-project-id";
   }
 
   let user;
@@ -186,6 +186,12 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
 
   const allProjects = listManagedProjectIds(user);
   if (!allProjects.includes(projectId)) {
+    return "not-admin";
+  }
+
+  const project = await getProject(projectId);
+  if (!project) {
+    // this happens if the project is still in the user's managedProjectIds, but has since been deleted
     return "not-admin";
   }
 
