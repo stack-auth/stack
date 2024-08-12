@@ -205,4 +205,14 @@ export class StackAdminInterface extends StackServerInterface {
     );
     return await response.json();
   }
+
+  async deleteProject(): Promise<void> {
+    await this.sendAdminRequest(
+      "/projects/current",
+      {
+        method: "DELETE",
+      },
+      null,
+    );
+  }
 }
