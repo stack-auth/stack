@@ -81,7 +81,6 @@ it("lists all the teams the current user has on the server", async ({ expect }) 
   `);
 });
 
-
 it("creates a team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { createTeamResponse: response } = await Team.create();
@@ -116,7 +115,7 @@ it("creates a team on the server", async ({ expect }) => {
   `);
 });
 
-it("gets a specific team", async ({ expect }) => {
+it("gets a specific team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { createTeamResponse: response, teamId } = await Team.create();
   expect(response).toMatchInlineSnapshot(`
@@ -142,6 +141,35 @@ it("gets a specific team", async ({ expect }) => {
         "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("gets a specific team that the user is not part of on the client", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { createTeamResponse: response, teamId } = await Team.create();
+
+  backendContext.set({
+    mailbox: createMailbox()
+  });
+  await Auth.Otp.signIn();
+
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 404,
+      "body": {
+        "code": "TEAM_MEMBERSHIP_NOT_FOUND",
+        "details": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "error": "User <stripped UUID> is not found in team <stripped UUID>.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "TEAM_MEMBERSHIP_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
@@ -231,6 +259,38 @@ it("updates a team on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "My Updated Team",
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "display_name": "My Updated Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should not update a team without permission on the client", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
   // Does not have permission to update a team
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "client",
@@ -255,32 +315,6 @@ it("updates a team on the client", async ({ expect }) => {
         "x-stack-known-error": "TEAM_PERMISSION_REQUIRED",
         <some fields may have been hidden>,
       },
-    }
-  `);
-
-  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
-    accessType: "server",
-    method: "POST",
-    body: {},
-  });
-
-  // Has permission to update a team
-  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
-    accessType: "client",
-    method: "PATCH",
-    body: {
-      display_name: "My Updated Team",
-    },
-  });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "display_name": "My Updated Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-      },
-      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
@@ -333,6 +367,34 @@ it("deletes a team on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
+  // grant permission to delete a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$delete_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to delete a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "DELETE",
+    body: {
+      display_name: "My Updated Team",
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should not update a team without permission on the client", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
   // Does not have permission to delete a team
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "client",
@@ -357,28 +419,6 @@ it("deletes a team on the client", async ({ expect }) => {
         "x-stack-known-error": "TEAM_PERMISSION_REQUIRED",
         <some fields may have been hidden>,
       },
-    }
-  `);
-
-  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$delete_team`, {
-    accessType: "server",
-    method: "POST",
-    body: {},
-  });
-
-  // Has permission to delete a team
-  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
-    accessType: "client",
-    method: "DELETE",
-    body: {
-      display_name: "My Updated Team",
-    },
-  });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": { "success": true },
-      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });
