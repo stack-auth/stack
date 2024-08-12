@@ -1,8 +1,12 @@
 
+export const metadata = {
+  title: "Dashboard - Stack Template",
+};
+
 export default function Home() {
   return (
     <main className="">
-      landing page
+      dashboard
     </main>
   );
 }
