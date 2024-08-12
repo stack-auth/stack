@@ -231,7 +231,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project");
+    throw new StackAssertionError("Project not found; this should only happen if the project was deleted and the access token is still valid", { projectId });
   }
 
   let user = null;

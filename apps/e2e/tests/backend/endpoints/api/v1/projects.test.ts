@@ -2,7 +2,7 @@ import { it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
-it("should not have have access to the project", async ({ expect }) => {
+it("should not have have access to the project without project keys", async ({ expect }) => {
   backendContext.set({
     projectKeys: 'no-project'
   });
@@ -798,6 +798,133 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "user_count": 0,
       },
       "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("deletes a project with admin access", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("deletes a project with server access", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "server",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "INSUFFICIENT_ACCESS_TYPE",
+        "details": {
+          "actual_access_type": "server",
+          "allowed_access_types": ["admin"],
+        },
+        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("deletes a project with users, teams, and permissions", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Create a user
+  const userResponse = await niceBackendFetch(`/api/v1/users`, {
+    accessType: "server",
+    method: "POST",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    },
+    body: {
+      primary_email: "test@test.com",
+      password: "testing",
+      primary_email_auth_enabled: true,
+    }
+  });
+  expect(userResponse.status).toBe(201);
+
+  // Create a team
+  const teamResponse = await niceBackendFetch(`/api/v1/teams`, {
+    accessType: "server",
+    method: "POST",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    },
+    body: {
+      display_name: "Test Team",
+    }
+  });
+  expect(teamResponse.status).toBe(201);
+
+  // create a team permission
+  const teamPermissionResponse = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
+    accessType: "admin",
+    method: "POST",
+    body: {
+      id: 'p1'
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
+  });
+  expect(teamPermissionResponse.status).toBe(201);
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "server",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "INSUFFICIENT_ACCESS_TYPE",
+        "details": {
+          "actual_access_type": "server",
+          "allowed_access_types": ["admin"],
+        },
+        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
