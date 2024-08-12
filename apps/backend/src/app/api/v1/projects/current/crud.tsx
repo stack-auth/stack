@@ -278,4 +278,26 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
   onRead: async ({ auth }) => {
     return auth.project;
   },
+  onDelete: async ({ auth }) => {
+    await prismaClient.$transaction(async (tx) => {
+      const configs = await tx.projectConfig.findMany({
+        where: {
+          id: auth.project.config.id
+        },
+        include: {
+          projects: true
+        }
+      });
+
+      if (configs.length !== 1) {
+        throw new StatusError(StatusError.NotFound, 'Project config not found');
+      }
+
+      await tx.projectConfig.delete({
+        where: {
+          id: auth.project.config.id
+        },
+      });
+    });
+  }
 }));

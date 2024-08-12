@@ -2,7 +2,7 @@
 import { InputField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
-import { Alert, Typography } from "@stackframe/stack-ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
@@ -85,11 +85,37 @@ export default function PageClient() {
           </>
         )}
       />
-      <DeleteProject
-        id={project.id}
-        name={project.displayName}
-        user={project.userCount}
-      />
+
+      <SettingCard
+        title="Danger Zone"
+        description="Be careful with the options in this section. They can have irreversible effects."
+      >
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="item-1">
+            <AccordionTrigger>Delete project</AccordionTrigger>
+            <AccordionContent>
+              <ActionDialog
+                trigger={<Button variant="destructive">Delete Project</Button>}
+                title="Delete domain"
+                danger
+                okButton={{
+                  label: "Delete Project",
+                  onClick: async () => {
+                    await project.delete();
+                    await stackAdminApp.redirectToHome();
+                  }
+                }}
+                cancelButton
+                confirmText="I understand this action is IRREVERSIBLE and will delete ALL associated data."
+              >
+                <Typography>
+                  {`Are you sure that you want to delete the project with name "${project.displayName}" and ID "${project.id}"? This action is irreversible and will delete all associated data (including users, teams, API keys, project configs, etc.).`}
+                </Typography>
+              </ActionDialog>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </SettingCard>
     </PageLayout>
   );
 }

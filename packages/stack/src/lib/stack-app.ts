@@ -2003,7 +2003,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         await app._interface.updateProject(adminProjectUpdateOptionsToCrud(update));
         await onRefresh();
       },
-
+      async delete() {
+        await app._interface.deleteProject();
+      },
       async getProductionModeErrors() {
         return getProductionModeErrors(data);
       },
@@ -2464,6 +2466,7 @@ export type AdminProject = {
   readonly config: AdminProjectConfig,
 
   update(this: AdminProject, update: AdminProjectUpdateOptions): Promise<void>,
+  delete(this: AdminProject): Promise<void>,
 
   getProductionModeErrors(this: AdminProject): Promise<ProductionModeError[]>,
   useProductionModeErrors(this: AdminProject): ProductionModeError[],
@@ -2479,7 +2482,7 @@ export type AdminProjectUpdateOptions = {
   isProductionMode?: boolean,
   config?: AdminProjectConfigUpdateOptions,
 };
-function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): ProjectsCrud["Server"]["Update"] {
+function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): ProjectsCrud["Admin"]["Update"] {
   return {
     display_name: options.displayName,
     description: options.description,
