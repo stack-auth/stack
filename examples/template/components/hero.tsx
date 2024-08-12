@@ -14,7 +14,7 @@ export function Hero(props: {
   secondaryCtaLink: string,
 }) {
   return (
-    <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-64">
+    <section className="space-y-6 py-32 md:py-48">
     <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
       <Link
         href={props.capsuleLink}
@@ -23,16 +23,17 @@ export function Hero(props: {
       >
         {props.capsuleText}
       </Link>
-      <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
+      <h1 className="font-heading text-3xl sm:text-5xl lg:text-7xl">
         {props.title}
       </h1>
       <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
         {props.subtitle}
       </p>
-      <div className="space-x-4">
+      <div className="flex gap-4 flex-wrap justify-center">
         <Link href={props.primaryCtaLink} className={cn(buttonVariants({ size: "lg" }))}>
           {props.primaryCtaText}
         </Link>
+
         <Link
           href={props.secondaryCtaLink}
           target="_blank"

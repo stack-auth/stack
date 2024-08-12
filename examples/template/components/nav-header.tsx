@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useSelectedLayoutSegment } from "next/navigation"
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { buttonVariants } from "./ui/button"
 
 interface MainNavProps {
   items?: {
@@ -14,7 +15,7 @@ interface MainNavProps {
   children?: React.ReactNode
 }
 
-export function NavHeader({ items, children }: MainNavProps) {
+export function DesktopItems({ items, children }: MainNavProps) {
   const segment = useSelectedLayoutSegment()
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false)
 
@@ -22,7 +23,7 @@ export function NavHeader({ items, children }: MainNavProps) {
     <div className="flex gap-6 md:gap-10">
       <Link href="/" className="hidden items-center space-x-2 md:flex">
         <span className="hidden font-bold sm:inline-block">
-          test
+          Stack Template
         </span>
       </Link>
       {items?.length ? (
@@ -46,4 +47,22 @@ export function NavHeader({ items, children }: MainNavProps) {
       ) : null}
     </div>
   )
+}
+
+export function NavHeader({ items }: MainNavProps) {
+  return (
+    <header className="container z-40 bg-background">
+      <div className="flex h-20 items-center justify-between py-6">
+        <DesktopItems items={items} />
+        <nav>
+          <Link
+            href="/login"
+            className={cn(buttonVariants({ variant: "secondary" }), "px-4")}
+          >
+            Login
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
 }
