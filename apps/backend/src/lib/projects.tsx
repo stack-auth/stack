@@ -103,6 +103,7 @@ export function projectPrismaToCrud(
       credential_enabled: prisma.config.credentialEnabled,
       magic_link_enabled: prisma.config.magicLinkEnabled,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
+      client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       domains: prisma.config.domains
         .map((domain) => ({
           domain: domain.domain,

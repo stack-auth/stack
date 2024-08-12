@@ -1,4 +1,5 @@
 import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
+import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -6,15 +7,13 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud } from "../teams/crud";
-import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { decodeBase64, encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 
-const fullInclude = {
+export const userFullInclude = {
   projectUserOAuthAccounts: {
     include: {
       providerConfig: true,
@@ -30,7 +29,7 @@ const fullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
-const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof fullInclude}>): UsersCrud["Admin"]["Read"] => {
+export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
@@ -112,14 +111,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           projectUserId: params.user_id,
         },
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     if (!db) {
       throw new KnownErrors.UserNotFound();
     }
 
-    return prismaToCrud(db);
+    return userPrismaToCrud(db);
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -133,11 +132,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           },
         } : {},
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     return {
-      items: db.map(prismaToCrud),
+      items: db.map(userPrismaToCrud),
       is_paginated: false,
     };
   },
@@ -187,10 +186,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         } : undefined,
         totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
 
     await sendUserCreatedWebhook({
       projectId: auth.project.id,
@@ -257,13 +256,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
           totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
-        include: fullInclude,
+        include: userFullInclude,
       });
 
       return db;
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,
@@ -283,7 +282,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             projectUserId: params.user_id,
           },
         },
-        include: fullInclude,
+        include: userFullInclude,
       });
     });
 

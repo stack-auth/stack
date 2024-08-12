@@ -6,6 +6,7 @@ import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-ke
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { TeamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/crud/team-member-profiles";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -71,6 +72,7 @@ export type HandlerUrls = {
   magicLinkCallback: string,
   accountSettings: string,
   teamInvitation: string,
+  teamCreation: string,
   error: string,
 }
 
@@ -103,6 +105,7 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
     teamInvitation: `${handler}/team-invitation`,
+    teamCreation: `${handler}/team-creation`,
     ...filterUndefined(partial),
   };
 }
@@ -318,6 +321,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         redirect,
         session,
       });
+    }
+  );
+  private readonly _teamMemberProfilesCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read'][]>(
+    async (session, [teamId]) => {
+      return await this._interface.listTeamMemberProfiles({ teamId }, session);
+    }
+  );
+  private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
+    async (session, [teamId]) => {
+      return await this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
     }
   );
 
@@ -683,6 +696,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
+        clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
           id: p.id,
         })),
@@ -696,13 +710,22 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _clientTeamUserFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): TeamUser {
+    return {
+      id: crud.user_id,
+      teamProfile: {
+        displayName: crud.display_name,
+        profileImageUrl: crud.profile_image_url,
+      }
+    };
+  }
+
   protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read']): Team {
     const app = this;
     return {
       id: crud.id,
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
-
       async inviteUser(options: { email: string }) {
         return await app._interface.sendTeamInvitation({
           teamId: crud.id,
@@ -710,7 +733,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           session: app._getSession(),
           callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
         });
-      }
+      },
+      async listUsers() {
+        const result = await app._teamMemberProfilesCache.getOrWait([app._getSession(), crud.id], "write-only");
+        return result.map((crud) => app._clientTeamUserFromCrud(crud));
+      },
+      useUsers() {
+        const result = useAsyncCache(app._teamMemberProfilesCache, [app._getSession(), crud.id], "team.useUsers()");
+        return result.map((crud) => app._clientTeamUserFromCrud(crud));
+      },
     };
   }
 
@@ -761,6 +792,25 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
         return crud;
+      }
+    };
+  }
+
+  protected _editableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
+    const app = this;
+    return {
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
+      async update(update: { displayName?: string, profileImageUrl?: string }) {
+        await app._interface.updateTeamMemberProfile({
+          teamId: crud.team_id,
+          userId: crud.user_id,
+          profile: {
+            display_name: update.displayName,
+            profile_image_url: update.profileImageUrl,
+          },
+        }, app._getSession());
+        await app._currentUserTeamProfileCache.refresh([app._getSession(), crud.team_id]);
       }
     };
   }
@@ -816,6 +866,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._currentUserTeamsCache.refresh([session]);
         return app._clientTeamFromCrud(crud);
       },
+      async leaveTeam(team: Team) {
+        await app._interface.leaveTeam(team.id, session);
+        // TODO: refresh cache
+      },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
         const recursive = options?.recursive ?? true;
         const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only");
@@ -849,6 +903,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
         return await app._updatePassword(options, session);
       },
+      async getTeamProfile(team: Team) {
+        const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
+        return app._editableTeamProfileFromCrud(result);
+      },
+      useTeamProfile(team: Team) {
+        const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
+        return app._editableTeamProfileFromCrud(result);
+      }
     };
   }
 
@@ -964,6 +1026,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
+  async redirectToTeamCreation(options?: RedirectToOptions) { return await this._redirectToHandler("teamCreation", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -1390,12 +1453,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamsCache = createCache<[string | undefined], TeamsCrud['Server']['Read'][]>(async ([userId]) => {
     return await this._interface.listServerTeams({ userId });
   });
-  private readonly _serverTeamUsersCache = createCache<
-    string[],
-    UsersCrud['Server']['Read'][]
-  >(async ([teamId]) => {
-    return await this._interface.listServerTeamUsers(teamId);
-  });
   private readonly _serverTeamUserPermissionsCache = createCache<
     [string, string, boolean],
     TeamPermissionsCrud['Server']['Read'][]
@@ -1428,11 +1485,33 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     }
   );
+  private readonly _serverTeamMemberProfilesCache = createCache<[string], TeamMemberProfilesCrud['Server']['Read'][]>(
+    async ([teamId]) => {
+      return await this._interface.listServerTeamMemberProfiles({ teamId });
+    }
+  );
+  private readonly _serverUserTeamProfileCache = createCache<[string, string], TeamMemberProfilesCrud['Client']['Read']>(
+    async ([teamId, userId]) => {
+      return await this._interface.getServerTeamMemberProfile({ teamId, userId });
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
     await this._refreshUsers();
     return result;
+  }
+
+  protected _serverEditableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
+    const app = this;
+    const clientProfile = this._editableTeamProfileFromCrud(crud);
+    return {
+      ...clientProfile,
+      async update(update: { displayName?: string, profileImageUrl?: string }) {
+        await clientProfile.update(update);
+        await app._serverUserTeamProfileCache.refresh([crud.team_id, crud.user_id]);
+      }
+    };
   }
 
   constructor(options:
@@ -1548,6 +1627,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
       },
+      leaveTeam: async (team: Team) => {
+        await app._interface.leaveServerTeam({ teamId: team.id, userId: crud.id });
+        // TODO: refresh cache
+      },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
         const recursive = options?.recursive ?? true;
         const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only");
@@ -1578,6 +1661,24 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
         return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
       },
+      async getTeamProfile(team: Team) {
+        const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
+        return app._serverEditableTeamProfileFromCrud(result);
+      },
+      useTeamProfile(team: Team) {
+        const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
+        return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
+      },
+    };
+  }
+
+  protected _serverTeamUserFromCrud(crud: TeamMemberProfilesCrud["Server"]["Read"]): ServerTeamUser {
+    return {
+      ...this._serverUserFromCrud(crud.user),
+      teamProfile: {
+        displayName: crud.display_name,
+        profileImageUrl: crud.profile_image_url,
+      },
     };
   }
 
@@ -1600,9 +1701,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
       createdAt: new Date(crud.created_at_millis),
-      async listUsers() {
-        return (await app._interface.listServerTeamUsers(crud.id)).map((u) => app._serverUserFromCrud(u));
-      },
       async update(update: Partial<ServerTeamUpdateOptions>) {
         await app._interface.updateServerTeam(crud.id, serverTeamUpdateOptionsToCrud(update));
         await app._serverTeamsCache.refresh([undefined]);
@@ -1611,23 +1709,27 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._interface.deleteServerTeam(crud.id);
         await app._serverTeamsCache.refresh([undefined]);
       },
+      async listUsers() {
+        const result = await app._serverTeamMemberProfilesCache.getOrWait([crud.id], "write-only");
+        return result.map(u => app._serverTeamUserFromCrud(u));
+      },
       useUsers() {
-        const result = useAsyncCache(app._serverTeamUsersCache, [crud.id], "team.useUsers()");
-        return useMemo(() => result.map((u) => app._serverUserFromCrud(u)), [result]);
+        const result = useAsyncCache(app._serverTeamMemberProfilesCache, [crud.id], "team.useUsers()");
+        return useMemo(() => result.map(u => app._serverTeamUserFromCrud(u)), [result]);
       },
       async addUser(userId) {
         await app._interface.addServerUserToTeam({
           teamId: crud.id,
           userId,
         });
-        await app._serverTeamUsersCache.refresh([crud.id]);
+        await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
       async removeUser(userId) {
         await app._interface.removeServerUserFromTeam({
           teamId: crud.id,
           userId,
         });
-        await app._serverTeamUsersCache.refresh([crud.id]);
+        await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
       async inviteUser(options: { email: string }) {
         return await app._interface.sendTeamInvitation({
@@ -1863,6 +1965,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         signUpEnabled: data.config.sign_up_enabled,
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
+        clientTeamCreationEnabled: data.config.client_team_creation_enabled,
         allowLocalhost: data.config.allow_localhost,
         oauthProviders: data.config.oauth_providers.map((p) => ((p.type === 'shared' ? {
           id: p.id,
@@ -2228,6 +2331,10 @@ type UserExtra = {
   hasPermission(scope: Team, permissionId: string): Promise<boolean>,
   setSelectedTeam(team: Team | null): Promise<void>,
   createTeam(data: TeamCreateOptions): Promise<Team>,
+  leaveTeam(team: Team): Promise<void>,
+
+  getTeamProfile(team: Team): Promise<EditableTeamMemberProfile>,
+  useTeamProfile(team: Team): EditableTeamMemberProfile,
 }
 & AsyncStoreProperty<"team", [id: string], Team | null, false>
 & AsyncStoreProperty<"teams", [], Team[], true>
@@ -2410,6 +2517,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       magic_link_enabled: options.config?.magicLinkEnabled,
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
+      client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
     },
@@ -2432,6 +2540,7 @@ export type ProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly clientTeamCreationEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
 };
 
@@ -2440,9 +2549,11 @@ export type OAuthProviderConfig = {
 };
 
 export type AdminProjectConfig = {
+  readonly id: string,
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly clientTeamCreationEnabled: boolean,
   readonly allowLocalhost: boolean,
   readonly oauthProviders: AdminOAuthProviderConfig[],
   readonly emailConfig?: AdminEmailConfig,
@@ -2450,7 +2561,7 @@ export type AdminProjectConfig = {
   readonly createTeamOnSignUp: boolean,
   readonly teamCreatorDefaultPermissions: AdminTeamPermission[],
   readonly teamMemberDefaultPermissions: AdminTeamPermission[],
-} & OAuthProviderConfig;
+};
 
 export type AdminEmailConfig = (
   {
@@ -2494,6 +2605,7 @@ export type AdminProjectConfigUpdateOptions = {
   signUpEnabled?: boolean,
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
+  clientTeamCreationEnabled?: boolean,
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
   emailConfig?: AdminEmailConfig,
@@ -2554,12 +2666,33 @@ function apiKeyCreateOptionsToCrud(options: ApiKeyCreateOptions): ApiKeyCreateCr
 type _______________TEAM_______________ = never;  // this is a marker for VSCode's outline view
 type ___________client_team = never;  // this is a marker for VSCode's outline view
 
+export type TeamMemberProfile = {
+  displayName: string | null,
+  profileImageUrl: string | null,
+}
+
+type TeamMemberProfileUpdateOptions = {
+  displayName?: string,
+  profileImageUrl?: string | null,
+};
+
+export type EditableTeamMemberProfile = TeamMemberProfile & {
+  update(update: TeamMemberProfileUpdateOptions): Promise<void>,
+}
+
+export type TeamUser = {
+  id: string,
+  teamProfile: TeamMemberProfile,
+}
+
 export type Team = {
   id: string,
   displayName: string,
   profileImageUrl: string | null,
 
   inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
+  listUsers(): Promise<TeamUser[]>,
+  useUsers(): TeamUser[],
 };
 
 export type TeamCreateOptions = {
@@ -2575,10 +2708,15 @@ function teamCreateOptionsToCrud(options: TeamCreateOptions): TeamsCrud["Client"
 
 type ___________server_team = never;  // this is a marker for VSCode's outline view
 
+export type ServerTeamMemberProfile = TeamMemberProfile;
+
+export type ServerTeamUser = ServerUser & {
+  teamProfile: ServerTeamMemberProfile,
+}
 
 export type ServerTeam = {
   createdAt: Date,
-  listUsers(): Promise<ServerUser[]>,
+  listUsers(): Promise<ServerTeamUser[]>,
   useUsers(): ServerUser[],
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,

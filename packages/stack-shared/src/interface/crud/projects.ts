@@ -49,6 +49,7 @@ export const projectsCrudServerReadSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
     domains: yupArray(domainSchema.required()).required(),
@@ -66,6 +67,7 @@ export const projectsCrudClientReadSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
   }).required(),
 }).required();
@@ -79,6 +81,7 @@ export const projectsCrudServerUpdateSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.optional(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.optional(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.optional(),
+    client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.optional(),
     allow_localhost: schemaFields.projectAllowLocalhostSchema.optional(),
     email_config: emailConfigSchema.optional().default(undefined),
     domains: yupArray(domainSchema.required()).optional().default(undefined),

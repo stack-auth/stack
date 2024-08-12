@@ -1,6 +1,5 @@
 "use client";
 
-import { ActionCell } from "@/components/data-table/elements/cells";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
@@ -10,7 +9,7 @@ import { AdminProject } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";

@@ -7,11 +7,13 @@ import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
+import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
 
@@ -864,6 +866,78 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamMemberProfiles(
+    options: {
+      teamId?: string,
+      userId?: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-member-profiles?" + new URLSearchParams(filterUndefined({
+        team_id: options.teamId,
+        user_id: options.userId,
+      })),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Client']['List'];
+    return result.items;
+  }
+
+  async getTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      session,
+    );
+    return await response.json();
+  }
+
+  async leaveTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${teamId}/me`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      session,
+    );
+  }
+
+  async updateTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+      profile: TeamMemberProfilesCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      session,
+    );
   }
 
   async listCurrentUserTeamPermissions(

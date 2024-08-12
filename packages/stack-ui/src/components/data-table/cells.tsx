@@ -1,10 +1,8 @@
 
 'use client';
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Avatar, AvatarImage, Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@stackframe/stack-ui";
 import React, { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import { SimpleTooltip } from "@stackframe/stack-ui";
+import { SimpleTooltip, cn, Avatar, AvatarImage, Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../..";
 
 export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
   const textRef = useRef<HTMLDivElement>(null);

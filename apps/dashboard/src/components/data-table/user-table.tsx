@@ -4,18 +4,12 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionDialog, CopyField, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
-import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { SearchToolbarItem } from "./elements/toolbar-items";
-import { arrayFilterFn, standardFilterFn } from "./elements/utils";
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],

@@ -89,6 +89,7 @@ it("creates a team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
@@ -122,6 +123,7 @@ it("gets a specific team", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
@@ -158,6 +160,7 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
     NiceResponse {
       "status": 201,
       "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
@@ -195,6 +198,7 @@ it("should not be allowed to get a team that the user is not part of on the clie
     NiceResponse {
       "status": 201,
       "body": {
+        "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,

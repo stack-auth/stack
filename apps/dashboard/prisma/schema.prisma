@@ -39,12 +39,12 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost    Boolean
-  signUpEnabled     Boolean @default(true)
-  credentialEnabled Boolean
-  magicLinkEnabled  Boolean
-
-  createTeamOnSignUp Boolean
+  allowLocalhost            Boolean
+  signUpEnabled             Boolean @default(true)
+  credentialEnabled         Boolean
+  magicLinkEnabled          Boolean
+  createTeamOnSignUp        Boolean
+  clientTeamCreationEnabled Boolean
 
   projects             Project[]
   oauthProviderConfigs OAuthProviderConfig[]
@@ -219,11 +219,11 @@ model ProjectUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project                          Project                            @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
-  projectUserRefreshTokens         ProjectUserRefreshToken[]
-  projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
-  projectUserOAuthAccounts         ProjectUserOAuthAccount[]
-  teamMembers                      TeamMember[]
+  project                       Project                        @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
+  projectUserRefreshTokens      ProjectUserRefreshToken[]
+  projectUserAuthorizationCodes ProjectUserAuthorizationCode[]
+  projectUserOAuthAccounts      ProjectUserOAuthAccount[]
+  teamMembers                   TeamMember[]
 
   // @deprecated
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
@@ -239,8 +239,8 @@ model ProjectUser {
   passwordHash         String?
   authWithEmail        Boolean
 
-  requiresTotpMfa      Boolean @default(false)
-  totpSecret           Bytes?
+  requiresTotpMfa Boolean @default(false)
+  totpSecret      Bytes?
 
   serverMetadata Json?
   clientMetadata Json?
@@ -362,9 +362,7 @@ model VerificationCode {
   usedAt      DateTime?
   redirectUrl String?
 
-  // @deprecated in favor of method (TODO next-release; this is no longer used)
-  email       String @default("")
-  method      Json
+  method Json @default("null")
 
   data Json
 

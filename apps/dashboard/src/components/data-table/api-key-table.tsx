@@ -1,14 +1,8 @@
 'use client';
 import { ApiKey } from '@stackframe/stack';
-import { ActionDialog } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, TextCell, standardFilterFn } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { SearchToolbarItem } from "./elements/toolbar-items";
-import { standardFilterFn } from "./elements/utils";
 
 type ExtendedApiKey = ApiKey & {
   status: 'valid' | 'expired' | 'revoked',
