@@ -1,4 +1,4 @@
-import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { emailTemplateTypes } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import PageClient from "./page-client";
 import { notFound } from "next/navigation";
 

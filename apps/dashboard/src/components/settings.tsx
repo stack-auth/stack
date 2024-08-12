@@ -1,29 +1,14 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "./ui/switch";
-import { Settings } from "lucide-react";
-import { Button } from "./ui/button";
-import React, { useEffect, useId, useRef, useState } from "react";
-import { Label } from "./ui/label";
-import { DelayedInput, Input } from "./ui/input";
-import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Accordion } from "@radix-ui/react-accordion";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { FieldValues, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Form } from "./ui/form";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, Typography, useToast } from "@stackframe/stack-ui";
+import { Settings } from "lucide-react";
+import React, { useEffect, useId, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useToast } from "./ui/use-toast";
 
 
 export function SettingCard(props: {
-  title: string,
+  title?: string,
   description?: string,
   actions?: React.ReactNode,
   children?: React.ReactNode,
@@ -31,13 +16,15 @@ export function SettingCard(props: {
 }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
-        {props.description && <CardDescription>{props.description}</CardDescription>}
-      </CardHeader>
+      {(props.title || props.description) && (
+        <CardHeader>
+          {props.title && <CardTitle>{props.title}</CardTitle>}
+          {props.description && <CardDescription>{props.description}</CardDescription>}
+        </CardHeader>
+      )}
 
       <CardContent className="flex flex-col gap-4">
-        {props.accordion ? 
+        {props.accordion ?
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>{props.accordion}</AccordionTrigger>
@@ -60,6 +47,7 @@ export function SettingCard(props: {
 
 export function SettingSwitch(props: {
   label: string | React.ReactNode,
+  hint?: string | React.ReactNode,
   checked?: boolean,
   disabled?: boolean,
   onCheckedChange: (checked: boolean) => void | Promise<void>,
@@ -77,15 +65,18 @@ export function SettingSwitch(props: {
   };
 
   return (
-    <div className="flex items-center">
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        disabled={props.disabled}
-      />
-      <Label className='px-2' htmlFor={id}>{props.label}</Label>
-      {showActions && props.actions}
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center">
+        <Switch
+          id={id}
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+          disabled={props.disabled}
+        />
+        <Label className='px-2' htmlFor={id}>{props.label}</Label>
+        {showActions && props.actions}
+      </div>
+      {props.hint && <Typography variant="secondary" type="footnote">{props.hint}</Typography>}
     </div>
   );
 }

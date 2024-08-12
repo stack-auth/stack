@@ -1,8 +1,8 @@
+import { Popover, PopoverContent, PopoverTrigger } from '@stackframe/stack-ui';
 import React from 'react';
 import { TEditorBlock } from '../../../../editor/core';
 import BlockButton from './block-button';
 import { BUTTONS } from './buttons';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../../../../components/ui/popover';
 
 type BlocksMenuProps = {
   trigger: React.ReactNode,

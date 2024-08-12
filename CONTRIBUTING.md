@@ -2,15 +2,19 @@
 
 Welcome to Stack Auth!
 
-Due to the nature of authentication, this may not be the easiest project to contribute to, so if you are looking for projects to help gain programming experience, we may not be a great match. However, the easiest way to help is by contributing to our documentation and creating examples & guides. This way, you can share your knowledge and expertise with everyone else, and it's a great way to understand Stack Auth from the inside before contributing code changes. It is also a great way for us to assess your skills and understand where you could best help the project.
-
-If you're interested, please join [our Discord](https://discord.stack-auth.com) and get in touch.
+Due to the nature of authentication, this may not be the easiest project to contribute to, so if you are looking for projects to help gain programming experience, we may not be a great match. If you're looking for projects for beginners, check out [Awesome First PR Opportunities](https://github.com/MunGell/awesome-for-beginners).
 
 # Note: We are not currently hiring.
 
-## First time contributors
+## How to contribute
 
-If you would like to contribute to the project, you can start by looking at the issues labeled as [good first issue](https://github.com/stack-auth/stack/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
+If you think Stack Auth is a good fit for you, follow these steps:
+
+1. Join [our Discord](https://discord.stack-auth.com)
+2. [Use Stack Auth](https://docs.stack-auth.com/getting-started/setup). The best way to understand the project is to use it. Build an application on top of Stack Auth, and post it on GitHub or write a blog post about how you built it. This also lets us assess your skills and understand where you could best help the project.
+3. Give us feedback on Discord or GitHub; let us know where you got stuck, and which things you wish were easier. (We appreciate contributions most when they solve problems the authors encountered themselves in real usage.)
+4. Contribute to the [documentation](https://docs.stack-auth.com) and create examples & guides. This way, you can share your knowledge and expertise with everyone else who's just getting started.
+5. Only then, start contributing to the codebase. Coordinate with us on Discord beforehand to ensure we are not working on the same thing already, and to make sure a task is not more difficult than it seems.
 
 
 ## Security & bug bounties
@@ -23,7 +27,9 @@ For any security-related concerns & bug bounties, please email us at [security@s
 Please make sure to:
 
 - Install ESLint in your IDE and follow the code format of the code base (e.g., spaces around `=`, semicolons at the end, etc.).
-- Run `pnpm typecheck`, `pnpm lint`, and `pnpm build`. `pnpm prisma migrate dev` All of them should pass.
-- Create only one DB migration file per PR.
+  - If you are using VSCode, select "Show Recommended Extensions" from the command palette (`Ctrl+Shift+P`) to install the recommended extensions.
+- Run `pnpm run test`. All tests should pass.
+- If you changed the Prisma schema, make sure you've created a migration file. Create only one DB migration file per PR.
+- If you changed the API, make sure you have added endpoint tests in `apps/e2e`.
 - Ensure all dependencies are in the correct `package.json` files.
-- Ensure the PR is ready for review. If you want to discuss WIP code, make it a draft.
+- Ensure the PR is ready for review. If you want to discuss WIP code, mark it as a draft.

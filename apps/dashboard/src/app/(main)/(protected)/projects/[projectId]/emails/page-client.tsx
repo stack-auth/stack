@@ -1,33 +1,27 @@
 "use client";
 
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingText } from "@/components/settings";
-import * as yup from "yup";
-import { InputField, SelectField } from "@/components/form-fields";
-import { SimpleTooltip } from "@/components/simple-tooltip";
-import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/form-dialog";
-import { EmailConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { Project } from "@stackframe/stack";
-import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
-import { Card } from "@/components/ui/card";
-import Typography from "@/components/ui/typography";
-import { ActionCell } from "@/components/data-table/elements/cells";
+import { InputField, SelectField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
-import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
+import { SettingCard, SettingText } from "@/components/settings";
+import { EmailConfigJson } from "@/temporary-types";
+import { AdminProject } from "@stackframe/stack";
+import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
+import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
+import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
-import { validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
-import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { ActionDialog } from "@/components/action-dialog";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const emailConfig = project.evaluatedConfig.emailConfig;
+  const project = stackAdminApp.useProject();
+  const emailConfig = project.config.emailConfig;
   const emailTemplates = stackAdminApp.useEmailTemplates();
   const router = useRouter();
-  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("EMAIL_VERIFICATION");
+  const [resetTemplateType, setResetTemplateType] = useState<EmailTemplateType>("email_verification");
   const [resetTemplateDialogOpen, setResetTemplateDialogOpen] = useState(false);
 
   return (
@@ -39,8 +33,8 @@ export default function PageClient() {
       >
         <SettingText label="Server">
           <div className="flex items-center gap-2">
-            { emailConfig?.type === 'standard' ? 
-              'Custom SMTP server' : 
+            { emailConfig?.type === 'standard' ?
+              'Custom SMTP server' :
               <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" type='info' /></>
             }
           </div>
@@ -64,9 +58,10 @@ export default function PageClient() {
               </div>
               <div className="flex-grow flex justify-start items-end gap-2">
                 <Button variant='secondary' onClick={() => router.push('emails/templates/' + template.type)}>Edit Template</Button>
-                {!template.default && <ActionCell
-                  dangerItems={[{
+                {!template.isDefault && <ActionCell
+                  items={[{
                     item: 'Reset to Default',
+                    danger: true,
                     onClick: () => {
                       setResetTemplateType(template.type);
                       setResetTemplateDialogOpen(true);
@@ -80,9 +75,9 @@ export default function PageClient() {
         ))}
       </SettingCard>
 
-      <ResetEmailTemplateDialog 
-        templateType={resetTemplateType} 
-        open={resetTemplateDialogOpen} 
+      <ResetEmailTemplateDialog
+        templateType={resetTemplateType}
+        open={resetTemplateDialogOpen}
         onClose={() => setResetTemplateDialogOpen(false)}
       />
     </PageLayout>
@@ -90,7 +85,7 @@ export default function PageClient() {
 }
 
 function EmailPreview(props: { content: any, type: EmailTemplateType }) {
-  const project = useAdminApp().useProjectAdmin();
+  const project = useAdminApp().useProject();
   const [valid, document] = useMemo(() => {
     const valid = validateEmailTemplateContent(props.content);
     if (!valid) return [false, null];
@@ -120,7 +115,7 @@ function EmailPreview(props: { content: any, type: EmailTemplateType }) {
 }
 
 function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
-  const project = useAdminApp().useProjectAdmin();
+  const project = useAdminApp().useProject();
   const subject = useMemo(() => {
     const metadata = convertEmailTemplateMetadataExampleValues(EMAIL_TEMPLATES_METADATA[props.type], project.displayName);
     return convertEmailSubjectVariables(props.subject, metadata.variables);
@@ -136,15 +131,15 @@ function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string)
   });
 }
 
-const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: Project) => {
+const getDefaultValues = (emailConfig: EmailConfigJson | undefined, project: AdminProject) => {
   if (!emailConfig) {
     return { type: 'shared', senderName: project.displayName } as const;
   } else if (emailConfig.type === 'shared') {
     return { type: 'shared' } as const;
   } else {
-    return { 
-      type: 'standard', 
-      senderName: emailConfig.senderName, 
+    return {
+      type: 'standard',
+      senderName: emailConfig.senderName,
       host: emailConfig.host,
       port: emailConfig.port,
       username: emailConfig.username,
@@ -168,41 +163,41 @@ function EditEmailServerDialog(props: {
   trigger: React.ReactNode,
 }) {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
+  const project = stackAdminApp.useProject();
 
   return <FormDialog
     trigger={props.trigger}
     title="Edit Email Server"
     formSchema={emailServerSchema}
-    defaultValues={getDefaultValues(project.evaluatedConfig.emailConfig, project)}
+    defaultValues={getDefaultValues(project.config.emailConfig, project)}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       if (values.type === 'shared') {
-        await project.update({ 
+        await project.update({
           config: {
-            emailConfig: { type: 'shared' } 
-          } 
+            emailConfig: { type: 'shared' }
+          }
         });
       } else {
-        await project.update({ 
-          config: { 
-            emailConfig: { 
-              type: 'standard', 
-              senderName: values.senderName!, 
+        await project.update({
+          config: {
+            emailConfig: {
+              type: 'standard',
+              senderName: values.senderName!,
               host: values.host!,
               port: values.port!,
               username: values.username!,
               password: values.password!,
               senderEmail: values.senderEmail!,
-            } 
-          } 
+            }
+          }
         });
       }
     }}
     cancelButton
     render={(form) => (
       <>
-        <SelectField 
+        <SelectField
           label="Email server"
           name="type"
           control={form.control}
@@ -220,7 +215,7 @@ function EditEmailServerDialog(props: {
             { label: "Sender Email", name: "senderEmail", type: 'email' },
             { label: "Sender Name", name: "senderName", type: 'text' },
           ] as const).map((field) => (
-            <InputField 
+            <InputField
               key={field.name}
               label={field.label}
               name={field.name}
@@ -246,8 +241,8 @@ function ResetEmailTemplateDialog(props: {
     open={props.open}
     onClose={props.onClose}
     title="Reset Email Template"
-    okButton={{ 
-      label: "Reset", 
+    okButton={{
+      label: "Reset",
       onClick: async () => { await stackAdminApp.resetEmailTemplate(props.templateType); }
     }}
     confirmText="I understand this cannot be undone"

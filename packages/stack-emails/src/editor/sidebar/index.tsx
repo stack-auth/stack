@@ -1,15 +1,14 @@
+import { Button, Tabs, TabsList, TabsTrigger } from '@stackframe/stack-ui';
+import { cn } from '../../utils';
+import { TEditorConfiguration } from '../documents/editor/core';
 import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab, useSubject } from '../documents/editor/editor-context';
 import ConfigurationPanel from './configuration-panel';
 import SettingsPanel from './settings-panel';
-import { cn } from '../../utils';
 import VariablesPanel from './variables-panel';
-import { Button } from '../../components/ui/button';
-import { TEditorConfiguration } from '../documents/editor/core';
-import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 
 export default function InspectorDrawer(props: {
   edited: boolean,
-  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>, 
+  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>,
   onCancel?: () => void | Promise<void>,
 }){
   const inspectorDrawerOpen = useInspectorDrawerOpen();

@@ -1,41 +1,50 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import * as yup from "yup";
-import { emailTemplateTypes } from "../serverInterface";
-import { yupJson } from "../../utils/yup";
+import { jsonSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
 
-export const emailTemplateServerReadSchema = yup.object({
-  type: yup.string().oneOf(emailTemplateTypes).required(),
-  subject: yup.string().required(),
-  content: yupJson.required(),
+export type EmailTemplateType = typeof emailTemplateTypes[number];
+export const emailTemplateTypes = ['email_verification', 'password_reset', 'magic_link', 'team_invitation'] as const;
+
+export const emailTemplateAdminReadSchema = yupObject({
+  type: yupString().oneOf(emailTemplateTypes).required(),
+  subject: yupString().required(),
+  content: jsonSchema.required(),
+  is_default: yupBoolean().required(),
 }).required();
 
-export const emailTemplateCrudServerUpdateSchema = yup.object({
-  content: yupJson.required(),
-  subject: yup.string().required(),
+export const emailTemplateCrudAdminUpdateSchema = yupObject({
+  content: jsonSchema.nonNullable().optional(),
+  subject: yupString().optional(),
 }).required();
 
-const serverDeleteSchema = yup.mixed();
+export const emailTemplateCrudAdminDeleteSchema = yupMixed();
+
+export const emailTemplateCrudAdminCreateSchema = yupObject({
+  type: yupString().oneOf(emailTemplateTypes).required(),
+  content: jsonSchema.required(),
+  subject: yupString().required(),
+}).required();
 
 export const emailTemplateCrud = createCrud({
-  serverReadSchema: emailTemplateServerReadSchema,
-  serverUpdateSchema: emailTemplateCrudServerUpdateSchema,
-  serverDeleteSchema,
+  adminReadSchema: emailTemplateAdminReadSchema,
+  adminUpdateSchema: emailTemplateCrudAdminUpdateSchema,
+  adminCreateSchema: emailTemplateCrudAdminCreateSchema,
+  adminDeleteSchema: emailTemplateCrudAdminDeleteSchema,
+  docs: {
+    adminRead: {
+      hidden: true,
+    },
+    adminCreate: {
+      hidden: true,
+    },
+    adminUpdate: {
+      hidden: true,
+    },
+    adminDelete: {
+      hidden: true,
+    },
+    adminList: {
+      hidden: true,
+    }
+  }
 });
 export type EmailTemplateCrud = CrudTypeOf<typeof emailTemplateCrud>;
-
-export const listEmailTemplatesReadSchema = yup.array().of(
-  emailTemplateServerReadSchema.concat(yup.object({
-    default: yup.boolean().required(),
-  }))
-).required();
-
-export const emailTemplateCrudServerCreateSchema = yup.object({
-  type: yup.string().oneOf(emailTemplateTypes).required(),
-  content: yupJson.required(),
-}).required();
-
-export const listEmailTemplatesCrud = createCrud({
-  serverReadSchema: listEmailTemplatesReadSchema,
-});
-
-export type ListEmailTemplatesCrud = CrudTypeOf<typeof listEmailTemplatesCrud>;

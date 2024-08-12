@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { Label } from '@stackframe/stack-ui';
+import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
-import { Label } from '../../../../../../components/ui/label';
 
 type SliderInputProps = {
   label: string,

@@ -1,5 +1,5 @@
+import { Button } from '@stackframe/stack-ui';
 import React from 'react';
-import { Button } from '../../../../../../components/ui/button';
 
 type BlockMenuButtonProps = {
   label: string,

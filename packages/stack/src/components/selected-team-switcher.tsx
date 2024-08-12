@@ -1,18 +1,22 @@
 'use client';
-import { Team, useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
 import {
+  Button,
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
-  Typography,
+  Typography
 } from "@stackframe/stack-ui";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { Team, useStackApp, useUser } from "..";
+import Image from "next/image";
+import { PlusCircle, Settings } from "lucide-react";
 
 type SelectedTeamSwitcherProps = {
   urlMap?: (team: Team) => string,
@@ -20,16 +24,26 @@ type SelectedTeamSwitcherProps = {
   noUpdateSelectedTeam?: boolean,
 };
 
-function TeamIcon(props: { displayName: string }) {
-  return (
-    <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
-      <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
-    </div>
-  );
+function TeamIcon(props: { team: Team }) {
+  if (props.team.profileImageUrl) {
+    return (
+      <div className="w-6 h-6 mr-2 rounded bg-gray-200 overflow-hidden">
+        <Image src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
+        <Typography>{props.team.displayName.slice(0, 1).toUpperCase()}</Typography>
+      </div>
+    );
+  }
 }
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+  const app = useStackApp();
   const user = useUser();
+  const project = app.useProject();
   const router = useRouter();
   const selectedTeam = user?.selectedTeam || props.selectedTeam;
   const rawTeams = user?.useTeams();
@@ -42,7 +56,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   }, [props.noUpdateSelectedTeam, props.selectedTeam]);
 
   return (
-    <Select 
+    <Select
       value={selectedTeam?.id}
       onValueChange={(value) => {
         runAsynchronouslyWithAlert(async () => {
@@ -64,20 +78,52 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         <SelectValue placeholder="Select team"/>
       </SelectTrigger>
       <SelectContent className="stack-scope">
-        {teams && teams.map(team => (
-          <SelectItem value={team.id} key={team.id}>
+        {user?.selectedTeam ? <SelectGroup>
+          <SelectLabel>
+            <div className="flex items-center justify-between">
+              Current team
+              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.handler}/team-settings/${user.selectedTeam?.id}`)}>
+                <Settings className="h-4 w-4"/>
+              </Button>
+            </div>
+          </SelectLabel>
+          <SelectItem value={user.selectedTeam.id}>
             <div className="flex items-center">
-              <TeamIcon displayName={team.displayName} />
-              <Typography>{team.displayName}</Typography>
+              <TeamIcon team={user.selectedTeam} />
+              <Typography>{user.selectedTeam.displayName}</Typography>
             </div>
           </SelectItem>
-        ))}
+        </SelectGroup> : undefined}
 
-        {teams?.length === 0 && (
+        {teams?.length ?
           <SelectGroup>
-            <SelectLabel>No teams</SelectLabel>
-          </SelectGroup>
-        )}
+            <SelectLabel>Other teams</SelectLabel>
+            {teams.filter(team => team.id !== user?.selectedTeam?.id)
+              .map(team => (
+                <SelectItem value={team.id} key={team.id}>
+                  <div className="flex items-center">
+                    <TeamIcon team={team} />
+                    <Typography>{team.displayName}</Typography>
+                  </div>
+                </SelectItem>
+              ))}
+          </SelectGroup> :
+          <SelectGroup>
+            <SelectLabel>No teams yet</SelectLabel>
+          </SelectGroup>}
+
+        {project.config.clientTeamCreationEnabled && <>
+          <SelectSeparator/>
+          <div>
+            <Button
+              onClick={() => router.push(app.urls.teamCreation)}
+              className="w-full"
+              variant='ghost'
+            >
+              <PlusCircle className="mr-2 h-4 w-4"/> Create a team
+            </Button>
+          </div>
+        </>}
       </SelectContent>
     </Select>
   );

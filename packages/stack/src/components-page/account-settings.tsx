@@ -1,22 +1,56 @@
 'use client';
 
-import React from 'react';
-import { useUser } from '..';
-import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
-import { UserAvatar } from '../components/elements/user-avatar';
-import { useState } from 'react';
-import { FormWarningText } from '../components/elements/form-warning';
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography, cn } from '@stackframe/stack-ui';
+import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
+import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import { runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography } from '@stackframe/stack-ui';
+import { Contact, Settings, Shield, ShieldCheck } from 'lucide-react';
+import { TOTPController, createTOTPKeyURI } from "oslo/otp";
+import * as QRCode from 'qrcode';
+import React, { useEffect, useState } from 'react';
+import { CurrentUser, Project, useStackApp, useUser } from '..';
+import { FormWarningText } from '../components/elements/form-warning';
+import { SidebarLayout } from '../components/elements/sidebar-layout';
+import { UserAvatar } from '../components/elements/user-avatar';
+
+export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+  const user = useUser({ or: 'redirect' });
+
+  const inner = <SidebarLayout
+    items={[
+      { title: 'My Profile', content: <ProfileSection/>, icon: Contact },
+      { title: 'Security', content: <div className='flex flex-col gap-4'>
+        <EmailVerificationSection />
+        <PasswordSection />
+        <MfaSection />
+      </div>, icon: ShieldCheck },
+      { title: 'Settings', content: <SignOutSection />, icon: Settings },
+    ].filter(({ content }) => content as any)}
+    title='Team Settings'
+  />;
+
+  if (fullPage) {
+    return (
+      <Container size={800} className='stack-scope'>
+        {inner}
+      </Container>
+    );
+  } else {
+    return inner;
+  }
+}
+
 
 function SettingSection(props: {
-  title: string, 
-  desc: string, 
-  buttonText?: string, 
+  title: string,
+  desc: string,
+  buttonText?: string,
   buttonDisabled?: boolean,
   onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
   buttonVariant?: 'default' | 'secondary',
-  children?: React.ReactNode, 
+  children?: React.ReactNode,
 }) {
   return (
     <Card>
@@ -47,8 +81,8 @@ function SettingSection(props: {
 }
 
 function ProfileSection() {
-  const user = useUser();
-  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user?.displayName || '' });
+  const user = useUser()!;
+  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user.displayName || '' });
   const [changed, setChanged] = useState(false);
 
   return (
@@ -58,15 +92,15 @@ function ProfileSection() {
       buttonDisabled={!changed}
       buttonText='Save'
       onButtonClick={async () => {
-        await user?.update(userInfo);
+        await user.update(userInfo);
         setChanged(false);
       }}
     >
       <div className='flex gap-4 items-center'>
         <UserAvatar user={user} size={50}/>
         <div className='flex flex-col'>
-          <Typography>{user?.displayName}</Typography>
-          <Typography variant='secondary' type='label'>{user?.primaryEmail}</Typography>
+          <Typography>{user.displayName}</Typography>
+          <Typography variant='secondary' type='label'>{user.primaryEmail}</Typography>
         </div>
       </div>
 
@@ -95,9 +129,9 @@ function EmailVerificationSection() {
       desc='We want to make sure that you own the email address.'
       buttonDisabled={emailSent}
       buttonText={
-        !user?.primaryEmailVerified ? 
-          emailSent ? 
-            'Email sent!' : 
+        !user?.primaryEmailVerified ?
+          emailSent ?
+            'Email sent!' :
             'Send Email'
           : undefined
       }
@@ -106,21 +140,24 @@ function EmailVerificationSection() {
         setEmailSent(true);
       }}
     >
-      {user?.primaryEmailVerified ? 
-        <Typography variant='success'>Your email has been verified</Typography> :
-        <Typography variant='destructive'>Your email has not been verified</Typography>}
+      {user?.primaryEmailVerified ?
+        <Typography variant='success'>Your email has been verified.</Typography> :
+        <Typography variant='destructive'>Your email has not been verified.</Typography>}
     </SettingSection>
   );
 }
 
 function PasswordSection() {
-  const user = useUser();
+  const user = useUser({ or: "throw" });
   const [oldPassword, setOldPassword] = useState<string>('');
   const [oldPasswordError, setOldPasswordError] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [newPasswordError, setNewPasswordError] = useState<string>('');
+  const [repeatNewPassword, setRepeatNewPassword] = useState<string>('');
+  const [repeatNewPasswordError, setRepeatNewPasswordError] = useState<string>('');
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
-  if (!user?.hasPassword) {
+  if (!user.hasPassword) {
     return null;
   }
 
@@ -128,37 +165,52 @@ function PasswordSection() {
     <SettingSection
       title='Password'
       desc='Change your password here.'
-      buttonDisabled={!oldPassword || !newPassword}
-      buttonText='Save'
+      buttonDisabled={passwordChanged || (!oldPassword && !newPassword && !repeatNewPassword)}
+      buttonText={passwordChanged ? "Password changed!" : 'Update Password'}
       onButtonClick={async () => {
-        if (oldPassword && newPassword) {
+        setOldPasswordError('');
+        setNewPasswordError('');
+        setRepeatNewPasswordError('');
+        if (!oldPassword) {
+          setOldPasswordError('Please enter your old password');
+          return;
+        } else if (!newPassword) {
+          setNewPasswordError('Please enter a new password');
+          return;
+        } else if (!repeatNewPassword) {
+            setRepeatNewPasswordError('Please repeat your new password');
+            return;
+        } else {
           const errorMessage = getPasswordError(newPassword);
           if (errorMessage) {
             setNewPasswordError(errorMessage.message);
           } else {
+            if (newPassword !== repeatNewPassword) {
+              setRepeatNewPasswordError('Passwords do not match');
+              return;
+            }
             const errorCode = await user.updatePassword({ oldPassword, newPassword });
             if (errorCode) {
               setOldPasswordError('Incorrect password');
             } else {
               setOldPassword('');
               setNewPassword('');
+              setRepeatNewPassword('');
+              setPasswordChanged(true);
             }
           }
-        } else if (oldPassword && !newPassword) {
-          setNewPasswordError('Please enter a new password');
-        } else if (newPassword && !oldPassword) {
-          setOldPasswordError('Please enter your old password');
         }
       }}
     >
       <div className='flex flex-col'>
         <Label htmlFor='old-password' className='mb-1'>Old Password</Label>
         <PasswordInput
-          id='old-password' 
-          value={oldPassword} 
+          id='old-password'
+          value={oldPassword}
           onChange={(e) => {
             setOldPassword(e.target.value);
             setOldPasswordError('');
+            setPasswordChanged(false);
           }}
         />
         <FormWarningText text={oldPasswordError} />
@@ -166,60 +218,128 @@ function PasswordSection() {
       <div className='flex flex-col'>
         <Label htmlFor='new-password' className='mb-1'>New Password</Label>
         <PasswordInput
-          id='new-password' 
-          value={newPassword} 
+          id='new-password'
+          value={newPassword}
           onChange={(e) => {
             setNewPassword(e.target.value);
             setNewPasswordError('');
+            setPasswordChanged(false);
           }}
         />
         <FormWarningText text={newPasswordError} />
+      </div>
+      <div className='flex flex-col'>
+        <Label htmlFor='repeat-new-password' className='mb-1'>Repeat New Password</Label>
+        <PasswordInput
+          id='repeat-new-password'
+          value={repeatNewPassword}
+          onChange={(e) => {
+            setRepeatNewPassword(e.target.value);
+            setRepeatNewPasswordError('');
+            setPasswordChanged(false);
+          }}
+        />
+        <FormWarningText text={repeatNewPasswordError} />
       </div>
     </SettingSection>
   );
 }
 
+function MfaSection() {
+  const project = useStackApp().useProject();
+  const user = useUser({ or: "throw" });
+  const [generatedSecret, setGeneratedSecret] = useState<Uint8Array | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState<string>("");
+  const [isMaybeWrong, setIsMaybeWrong] = useState(false);
+  const isEnabled = user.isMultiFactorRequired;
+
+  const [handleSubmit, isLoading] = useAsyncCallback(async () => {
+    await user.update({
+      totpMultiFactorSecret: generatedSecret,
+    });
+    setGeneratedSecret(null);
+    setQrCodeUrl(null);
+    setMfaCode("");
+  }, [generatedSecret, user]);
+
+  useEffect(() => {
+    setIsMaybeWrong(false);
+    runAsynchronouslyWithAlert(async () => {
+      if (generatedSecret && await new TOTPController().verify(mfaCode, generatedSecret)) {
+        await handleSubmit();
+      }
+      setIsMaybeWrong(true);
+    });
+  }, [mfaCode, generatedSecret, handleSubmit]);
+
+  return (
+    <SettingSection
+      title='Multi-factor Authentication'
+      desc='Secure your account with an additional layer of security.'
+      buttonVariant='secondary'
+      buttonText={isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
+      onButtonClick={async () => {
+        if (isEnabled) {
+          await user.update({
+            totpMultiFactorSecret: null,
+          });
+        } else if (!generatedSecret) {
+          const secret = generateRandomValues(new Uint8Array(20));
+          setQrCodeUrl(await generateTotpQrCode(project, user, secret));
+          setGeneratedSecret(secret);
+        } else {
+          setGeneratedSecret(null);
+          setQrCodeUrl(null);
+          setMfaCode("");
+        }
+      }}
+    >
+      {isEnabled ? (
+        <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
+      ) : (
+        generatedSecret ? (
+          <div className='flex flex-col gap-4 items-center'>
+            <Typography>Scan this QR code with your authenticator app:</Typography>
+            <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
+            <Typography>Then, enter your six-digit MFA code:</Typography>
+            <Input
+              value={mfaCode}
+              onChange={(e) => {
+                setIsMaybeWrong(false);
+                setMfaCode(e.target.value);
+              }}
+              placeholder="123456"
+              maxLength={6}
+              disabled={isLoading}
+            />
+            {isMaybeWrong && mfaCode.length === 6 && (
+              <Typography variant="destructive">Incorrect code. Please try again.</Typography>
+            )}
+          </div>
+        ) : (
+          <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
+        )
+      )}
+    </SettingSection>
+  );
+}
+
+async function generateTotpQrCode(project: Project, user: CurrentUser, secret: Uint8Array) {
+  const uri = createTOTPKeyURI(project.displayName, user.primaryEmail ?? user.id, secret);
+  return await QRCode.toDataURL(uri) as any;
+}
+
 function SignOutSection() {
-  const user = useUser();
+  const user = useUser({ or: "throw" });
   return (
     <SettingSection
       title='Sign out'
       desc='Sign out of your account on this device.'
       buttonVariant='secondary'
       buttonText='Sign Out'
-      onButtonClick={() => user?.signOut()}
+      onButtonClick={() => user.signOut()}
     >
     </SettingSection>
   );
-}
-
-export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
-  const user = useUser();
-  if (!user) {
-    return <PredefinedMessageCard type='signedOut' fullPage={fullPage} />;
-  }
-
-  const inner = (
-    <div className={cn(fullPage ? 'p-4' : '', 'flex flex-col gap-4')}>
-      <div>
-        <Typography type='h2'>Account Settings</Typography>
-        <Typography variant='secondary' type='label'>Manage your account</Typography>
-      </div>
-      
-      <ProfileSection />
-      <EmailVerificationSection />
-      <PasswordSection />
-      <SignOutSection />
-    </div>
-  );
-
-  if (fullPage) {
-    return (
-      <Container size={600} className='stack-scope'>
-        {inner}
-      </Container>
-    );
-  } else {
-    return inner;
-  }
 }

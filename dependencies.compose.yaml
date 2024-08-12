@@ -1,4 +1,6 @@
 services:
+  # ================= stack =================
+
   db:
     image: postgres:latest
     environment:
@@ -9,6 +11,7 @@ services:
       - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
   inbucket:
     image: inbucket/inbucket:latest
     ports:
@@ -18,7 +21,44 @@ services:
     volumes:
       - inbucket-data:/data
 
+  # ================= svix =================
+
+  svix-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: svix
+    volumes:
+      - svix-postgres-data:/var/lib/postgresql/data
+    
+  svix-redis:
+    image: docker.io/redis:7-alpine
+    command: --save 60 500 --appendonly yes --appendfsync everysec
+    volumes:
+      - svix-redis-data:/data
+
+  svix-server:
+    image: svix/svix-server
+    environment:
+      WAIT_FOR: 'true'
+      SVIX_REDIS_DSN: redis://svix-redis:6379
+      SVIX_DB_DSN: postgres://postgres:password@svix-db:5432/svix
+      SVIX_CACHE_TYPE: memory
+      SVIX_JWT_SECRET: secret
+      SVIX_LOG_LEVEL: trace
+      SVIX_QUEUE_TYPE: redis
+    ports:
+      - 8113:8071
+    depends_on:
+    - svix-redis
+    - svix-db
+
+# ================= volumes =================
+
 volumes:
   postgres-data:
   inbucket-data:
+  svix-redis-data:
+  svix-postgres-data:
 

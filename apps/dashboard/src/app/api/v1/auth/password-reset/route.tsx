@@ -43,7 +43,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   if (!password) {
     throw new StatusError(StatusError.BadRequest, "Password is required when onlyVerify is false");
   }
-  
+
   await prismaClient.projectUser.update({
     where: {
       projectId_projectUserId: {

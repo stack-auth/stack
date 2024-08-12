@@ -1,13 +1,13 @@
-import { StackClientInterface } from "@stackframe/stack-shared";
-import { saveVerifierAndState, getVerifierAndState } from "./cookie";
-import { constructRedirectUrl } from "../utils/url";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { constructRedirectUrl } from "../utils/url";
+import { getVerifierAndState, saveVerifierAndState } from "./cookie";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
-  options: { 
+  options: {
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
@@ -30,7 +30,7 @@ export async function signInWithOAuth(
 
 export async function addNewOAuthProviderOrScope(
   iface: StackClientInterface,
-  options: { 
+  options: {
     provider: string,
     redirectUrl: string,
     errorRedirectUrl: string,
@@ -56,7 +56,7 @@ export async function addNewOAuthProviderOrScope(
 
 /**
  * Checks if the current URL has the query parameters for an OAuth callback, and if so, removes them.
- * 
+ *
  * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
 function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
@@ -64,6 +64,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
     if (!originalUrl.searchParams.has(param)) {
+      captureError("consumeOAuthCallbackQueryParams", new Error(`Missing required query parameter on OAuth callback: ${param}`));
       return null;
     }
   }
@@ -71,6 +72,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   if (expectedState !== originalUrl.searchParams.get("state")) {
     // If the state doesn't match, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
+    captureError("consumeOAuthCallbackQueryParams", new Error(`Invalid OAuth callback state: Are you using another OAuth authentication with the same callback URL as Stack, or did your cookies reset?`));
     return null;
   }
 
@@ -88,7 +90,7 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   // prevent an unnecessary reload
   window.history.replaceState({}, "", newUrl.toString());
 
-  return originalUrl; 
+  return originalUrl;
 }
 
 export async function callOAuthCallback(
@@ -115,6 +117,9 @@ export async function callOAuthCallback(
       state,
     });
   } catch (e) {
+    if (e instanceof KnownError) {
+      throw e;
+    }
     throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });
   }
 }

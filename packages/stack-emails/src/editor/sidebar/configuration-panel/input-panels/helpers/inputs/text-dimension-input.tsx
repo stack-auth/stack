@@ -1,4 +1,4 @@
-import { Input } from '../../../../../../components/ui/input';
+import { Input } from '@stackframe/stack-ui';
 import React from 'react';
 
 type TextDimensionInputProps = {

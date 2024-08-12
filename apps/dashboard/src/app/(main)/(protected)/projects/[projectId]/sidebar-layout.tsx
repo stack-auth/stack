@@ -1,8 +1,27 @@
 'use client';
 
+import { Link } from "@/components/link";
+import { ProjectSwitcher } from "@/components/project-switcher";
+import { cn } from "@/lib/utils";
+import { AdminProject, UserButton, useUser } from "@stackframe/stack";
+import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  Typography,
+  buttonVariants
+} from "@stackframe/stack-ui";
 import {
   Book,
   KeyRound,
+  Link as LinkIcon,
   LockKeyhole,
   LucideIcon,
   Mail,
@@ -12,28 +31,12 @@ import {
   ShieldEllipsis,
   User,
   Users,
+  Webhook,
 } from "lucide-react";
-import { Link as LinkIcon } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Project, UserButton, useUser } from "@stackframe/stack";
+import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { ProjectSwitcher } from "@/components/project-switcher";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import Typography from "@/components/ui/typography";
-import { useTheme } from "next-themes";
 import { useAdminApp } from "./use-admin-app";
-import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
-import { Link } from "@/components/link";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }
 
@@ -138,6 +141,31 @@ const navigationItems: (Label | Item | Hidden)[] = [
     regex: /^\/projects\/[^\/]+\/emails$/,
     icon: Mail,
     type: 'item'
+  },
+  {
+    name: "Webhooks",
+    href: "/webhooks",
+    regex: /^\/projects\/[^\/]+\/webhooks$/,
+    icon: Webhook,
+    type: 'item'
+  },
+  {
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/webhooks\/([^\/]+)$/);
+      let href;
+      if (match) {
+        href = `/teams/${match[1]}`;
+      } else {
+        href = "";
+      }
+
+      return [
+        { item: "Webhooks", href: "/webhooks" },
+        { item: "Endpoint", href },
+      ];
+    },
+    regex: /^\/projects\/[^\/]+\/webhooks\/[^\/]+$/,
+    type: 'hidden',
   },
   {
     name: (pathname: string) => {
@@ -248,11 +276,11 @@ function SidebarContent({ projectId, onNavigate }: { projectId: string, onNaviga
   );
 }
 
-function HeaderBreadcrumb({ 
+function HeaderBreadcrumb({
   mobile,
-  projectId 
-}: { 
-  projectId: string, 
+  projectId
+}: {
+  projectId: string,
   mobile?: boolean,
 }) {
   const pathname = usePathname();
@@ -288,7 +316,7 @@ function HeaderBreadcrumb({
     }));
   }, [pathname, projectId]);
 
-  const selectedProject: Project | undefined = useMemo(() => {
+  const selectedProject: AdminProject | undefined = useMemo(() => {
     return projects.find((project) => project.id === projectId);
   }, [projectId, projects]);
 

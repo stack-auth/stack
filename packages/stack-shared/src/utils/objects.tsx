@@ -5,10 +5,10 @@ export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T
 
 /**
  * Assumes both objects are primitives, arrays, or non-function plain objects, and compares them deeply.
- * 
+ *
  * Note that since they are assumed to be plain objects, this function does not compare prototypes.
  */
-export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {
+export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUndefinedValues?: boolean } = {}): obj2 is T {
   if (typeof obj1 !== typeof obj2) return false;
   if (obj1 === obj2) return true;
 
@@ -19,13 +19,17 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown): obj2 is T {
       if (Array.isArray(obj1) || Array.isArray(obj2)) {
         if (!Array.isArray(obj1) || !Array.isArray(obj2)) return false;
         if (obj1.length !== obj2.length) return false;
-        return obj1.every((v, i) => deepPlainEquals(v, obj2[i]));
+        return obj1.every((v, i) => deepPlainEquals(v, obj2[i], options));
       }
 
-      const keys1 = Object.keys(obj1);
-      const keys2 = Object.keys(obj2);
-      if (keys1.length !== keys2.length) return false;
-      return keys1.every((k) => k in (obj2 as any) && deepPlainEquals((obj1 as any)[k], (obj2 as any)[k]));
+      const entries1 = Object.entries(obj1).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      const entries2 = Object.entries(obj2).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      if (entries1.length !== entries2.length) return false;
+      return entries1.every(([k, v1]) => {
+        const e2 = entries2.find(([k2]) => k === k2);
+        if (!e2) return false;
+        return deepPlainEquals(v1, e2[1], options);
+      });
     }
     case 'undefined':
     case 'string':
@@ -53,14 +57,14 @@ export function deepPlainClone<T>(obj: T): T {
 export function deepPlainSnakeCaseToCamelCase(snakeCaseObj: any): any {
   if (typeof snakeCaseObj === 'function') throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
   if (typeof snakeCaseObj !== 'object' || !snakeCaseObj) return snakeCaseObj;
-  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(deepPlainSnakeCaseToCamelCase);
+  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(o => deepPlainSnakeCaseToCamelCase(o));
   return Object.fromEntries(Object.entries(snakeCaseObj).map(([k, v]) => [snakeCaseToCamelCase(k), deepPlainSnakeCaseToCamelCase(v)]));
 }
 
 export function deepPlainCamelCaseToSnakeCase(camelCaseObj: any): any {
   if (typeof camelCaseObj === 'function') throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
   if (typeof camelCaseObj !== 'object' || !camelCaseObj) return camelCaseObj;
-  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(deepPlainCamelCaseToSnakeCase);
+  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(o => deepPlainCamelCaseToSnakeCase(o));
   return Object.fromEntries(Object.entries(camelCaseObj).map(([k, v]) => [camelCaseToSnakeCase(k), deepPlainCamelCaseToSnakeCase(v)]));
 }
 
@@ -102,4 +106,8 @@ export function pick<T extends {}, K extends keyof T>(obj: T, keys: K[]): Pick<T
 
 export function omit<T extends {}, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   return Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k as K))) as any;
+}
+
+export function split<T extends {}, K extends keyof T>(obj: T, keys: K[]): [Pick<T, K>, Omit<T, K>] {
+  return [pick(obj, keys), omit(obj, keys)];
 }

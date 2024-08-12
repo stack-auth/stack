@@ -27,8 +27,8 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
     },
-    body: { 
-      emailVerificationRedirectUrl 
+    body: {
+      emailVerificationRedirectUrl
     },
   } = await deprecatedParseRequest(req, postSchema);
 
@@ -56,7 +56,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       },
     },
   });
-  
+
   if (!user) {
     throw new StatusError(StatusError.NotFound);
   }

@@ -1,7 +1,5 @@
-import { Input } from '../../../../../../components/ui/input';
-import { Label } from '../../../../../../components/ui/label';
-import { Textarea } from '../../../../../../components/ui/textarea';
-import React, { useState } from 'react';
+import { Input, Label, Textarea } from '@stackframe/stack-ui';
+import { useState } from 'react';
 
 type Props = {
   label: string,

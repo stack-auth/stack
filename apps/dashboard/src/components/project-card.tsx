@@ -1,11 +1,10 @@
 'use client';
-import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard } from './ui/card';
-import { Project } from '@stackframe/stack';
-import { useFromNow } from '@/hooks/use-from-now';
 import { useRouter } from "@/components/router";
-import Typography from './ui/typography';
+import { useFromNow } from '@/hooks/use-from-now';
+import { AdminProject } from '@stackframe/stack';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project }: { project: AdminProject }) {
   const createdAt = useFromNow(project.createdAt);
   const router = useRouter();
 
@@ -15,7 +14,7 @@ export function ProjectCard({ project }: { project: Project }) {
         <CardTitle className="normal-case">{project.displayName}</CardTitle>
         <CardDescription>{project.description}</CardDescription>
       </CardHeader>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between mt-2">
         <Typography type='label' variant='secondary'>
           {project.userCount} users
         </Typography>

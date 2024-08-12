@@ -1,11 +1,11 @@
 "use client";
-import React from "react";
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
 import { TeamTable } from "@/components/data-table/team-table";
-import { Button } from "@/components/ui/button";
 import { SmartFormDialog } from "@/components/form-dialog";
+import { Button } from "@stackframe/stack-ui";
+import React from "react";
 import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 type CreateDialogProps = {
   open: boolean,
@@ -17,7 +17,7 @@ export default function PageClient() {
   const teams = stackAdminApp.useTeams();
 
   const [createTeamsOpen, setCreateTeamsOpen] = React.useState(false);
- 
+
   return (
     <PageLayout
       title="Teams"
@@ -37,7 +37,7 @@ export default function PageClient() {
 
 function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const stackAdminApp = useAdminApp();
- 
+
 
   const formSchema = yup.object({
     displayName: yup.string().required().label("Display Name"),

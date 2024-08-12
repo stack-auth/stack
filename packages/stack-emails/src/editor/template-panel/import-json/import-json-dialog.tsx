@@ -1,10 +1,7 @@
+import { ActionDialog, Textarea, Typography, useToast } from '@stackframe/stack-ui';
 import React, { useState } from 'react';
 import { resetDocument } from '../../documents/editor/editor-context';
 import validateJsonStringValue from './validateJsonStringValue';
-import { ActionDialog } from '../../../components/action-dialog';
-import Typography from '../../../components/ui/typography';
-import { Textarea } from '../../../components/ui/textarea';
-import { useToast } from '../../../components/ui/use-toast';
 
 type ImportJsonDialogProps = {
   onClose: () => void,

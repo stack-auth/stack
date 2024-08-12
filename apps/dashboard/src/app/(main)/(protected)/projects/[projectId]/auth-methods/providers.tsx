@@ -1,38 +1,21 @@
 "use client";
-import * as yup from "yup";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { useState } from "react";
-import {
-  SharedProvider,
-  sharedProviders,
-  standardProviders,
-  toSharedProvider,
-  toStandardProvider,
-} from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { SettingIconButton, SettingSwitch } from "@/components/settings";
-import { Badge } from "@/components/ui/badge";
-import { ActionDialog } from "@/components/action-dialog";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import Typography from "@/components/ui/typography";
-import { InputField, SwitchField } from "@/components/form-fields";
 import { FormDialog } from "@/components/form-dialog";
-import { SimpleTooltip } from "@/components/simple-tooltip";
-import { InlineCode } from "@/components/ui/inline-code";
-import { Label } from "@/components/ui/label";
-
-/**
- * All the different types of OAuth providers that can be created.
- */
-export const availableProviders = standardProviders;
-export type ProviderType = typeof availableProviders[number];
+import { InputField, SwitchField } from "@/components/form-fields";
+import { SettingIconButton, SettingSwitch } from "@/components/settings";
+import { AdminProject } from "@stackframe/stack";
+import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { ActionDialog, Badge, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { useState } from "react";
+import * as yup from "yup";
 
 type Props = {
-  id: ProviderType,
-  provider?: OAuthProviderConfigJson,
-  updateProvider: (provider: OAuthProviderConfigJson) => Promise<void>,
+  id: string,
+  provider?: AdminProject['config']['oauthProviders'][number],
+  updateProvider: (provider: AdminProject['config']['oauthProviders'][number]) => Promise<void>,
 };
 
-function toTitle(id: ProviderType) {
+function toTitle(id: string) {
   return {
     github: "GitHub",
     google: "Google",
@@ -56,28 +39,31 @@ export const providerFormSchema = yup.object({
       then: (schema) => schema.required(),
       otherwise: (schema) => schema.optional()
     }),
+  facebookConfigId: yup.string().optional(),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
 
-export function ProviderSettingDialog(props: Props) {
-  const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
-  const defaultValues = { 
-    shared: isShared, 
-    clientId: (props.provider as any)?.clientId ?? "", 
+export function ProviderSettingDialog(props: Props & { open: boolean, onClose: () => void }) {
+  const hasSharedKeys = sharedProviders.includes(props.id as any);
+  const defaultValues = {
+    shared: props.provider ? (props.provider.type === 'shared') : hasSharedKeys,
+    clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
+    facebookConfigId: (props.provider as any)?.facebookConfigId ?? "",
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
     if (values.shared) {
-      await props.updateProvider({ id: props.id, type: toSharedProvider(props.id), enabled: true });
+      await props.updateProvider({ id: props.id, type: 'shared', enabled: true });
     } else {
       await props.updateProvider({
         id: props.id,
-        type: toStandardProvider(props.id),
+        type: 'standard',
         enabled: true,
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
+        facebookConfigId: values.facebookConfigId,
       });
     }
   };
@@ -87,27 +73,32 @@ export function ProviderSettingDialog(props: Props) {
       defaultValues={defaultValues}
       formSchema={providerFormSchema}
       onSubmit={onSubmit}
-      trigger={<SettingIconButton />}
+      open={props.open}
+      onClose={props.onClose}
       title={`${toTitle(props.id)} OAuth provider`}
       cancelButton
       okButton={{ label: 'Save' }}
       render={(form) => (
         <>
-          <SwitchField
-            control={form.control}
-            name="shared"
-            label="Shared keys"
-          />
-
-          {form.watch("shared") ? 
+          {hasSharedKeys ?
+            <SwitchField
+              control={form.control}
+              name="shared"
+              label="Shared keys"
+            /> :
             <Typography variant="secondary" type="footnote">
-            Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
+              This OAuth provider does not support shared keys
+            </Typography>}
+
+          {form.watch("shared") ?
+            <Typography variant="secondary" type="footnote">
+              Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
             </Typography> :
             <div className="flex flex-col gap-2">
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/callback/${props.provider?.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.provider?.id}`}</InlineCode>
               </Typography>
             </div>}
 
@@ -128,6 +119,15 @@ export function ProviderSettingDialog(props: Props) {
                 placeholder="Client Secret"
                 required
               />
+
+              {props.id === 'facebook' && (
+                <InputField
+                  control={form.control}
+                  name="facebookConfigId"
+                  label="Configuration ID (only required for Facebook Business)"
+                  placeholder="Facebook Config ID"
+                />
+              )}
             </>
           )}
         </>
@@ -136,11 +136,11 @@ export function ProviderSettingDialog(props: Props) {
   );
 }
 
-export function TurnOffProviderDialog(props: { 
-  open: boolean, 
+export function TurnOffProviderDialog(props: {
+  open: boolean,
   onClose: () => void,
   onConfirm: () => void,
-  providerId: ProviderType,
+  providerId: string,
 }) {
   return (
     <ActionDialog
@@ -166,15 +166,16 @@ export function TurnOffProviderDialog(props: {
 
 export function ProviderSettingSwitch(props: Props) {
   const enabled = !!props.provider?.enabled;
-  const isShared = sharedProviders.includes(props.provider?.type as SharedProvider);
+  const isShared = props.provider?.type === 'shared';
   const [TurnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+  const [ProviderSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
 
   const updateProvider = async (checked: boolean) => {
     await props.updateProvider({
       id: props.id,
-      type: toSharedProvider(props.id),
+      type: 'shared',
       ...props.provider,
-      enabled: checked 
+      enabled: checked
     });
   };
 
@@ -184,8 +185,8 @@ export function ProviderSettingSwitch(props: Props) {
         label={
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
-            {isShared && enabled && 
-              <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
+            {isShared && enabled &&
+              <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
             }
@@ -197,21 +198,21 @@ export function ProviderSettingSwitch(props: Props) {
             setTurnOffProviderDialogOpen(true);
             return;
           } else {
-            await updateProvider(checked);
+            setProviderSettingDialogOpen(true);
           }
         }}
-        actions={
-          <ProviderSettingDialog {...props} />
-        }
+        actions={<SettingIconButton onClick={() => setProviderSettingDialogOpen(true)} />}
         onlyShowActionsWhenChecked
       />
-      
-      <TurnOffProviderDialog 
+
+      <TurnOffProviderDialog
         open={TurnOffProviderDialogOpen}
         onClose={() => setTurnOffProviderDialogOpen(false)}
         providerId={props.id}
         onConfirm={() => runAsynchronously(updateProvider(false))}
       />
+
+      <ProviderSettingDialog {...props} open={ProviderSettingDialogOpen} onClose={() => setProviderSettingDialogOpen(false)} />
     </>
   );
 }

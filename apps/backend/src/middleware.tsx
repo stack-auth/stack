@@ -6,11 +6,12 @@ import type { NextRequest } from 'next/server';
 const corsAllowedRequestHeaders = [
   // General
   'content-type',
+  'authorization',  // used for OAuth basic authentication
   'x-stack-project-id',
   'x-stack-override-error-status',
   'x-stack-random-nonce',  // used to forcefully disable some caches
   'x-stack-client-version',
-  
+
   // Project auth
   'x-stack-access-type',
   'x-stack-publishable-client-key',
@@ -21,6 +22,10 @@ const corsAllowedRequestHeaders = [
   // User auth
   'x-stack-refresh-token',
   'x-stack-access-token',
+
+  // Sentry
+  'baggage',
+  'sentry-trace',
 ];
 
 const corsAllowedResponseHeaders = [
@@ -28,24 +33,22 @@ const corsAllowedResponseHeaders = [
   'x-stack-actual-status',
   'x-stack-known-error',
 ];
- 
+
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url);
   const isApiRequest = url.pathname.startsWith('/api/');
 
   // default headers
-  const responseInit: ResponseInit = {
+  const responseInit: ResponseInit | undefined = isApiRequest ? {
     headers: {
       // CORS headers
-      ...!isApiRequest ? {} : {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
-        "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
-      },
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
+      "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
     },
-  };
+  } : undefined;
 
   // we want to allow preflight requests to pass through
   // even if the API route does not implement OPTIONS
@@ -55,7 +58,7 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next(responseInit);
 }
- 
+
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: '/:path*',

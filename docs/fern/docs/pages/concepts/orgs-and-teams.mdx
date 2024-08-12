@@ -1,0 +1,78 @@
+---
+slug: concepts/orgs-and-teams
+subtitle: Manage teams and team members
+---
+
+Teams are a structured way to group users and manage their permissions. Users can belong to multiple teams at the same time, so they can represent departments, B2B customers, or projects.
+
+## Creating a team
+
+To create a team and add/remove users, use the `createTeam` function on `stackServerApp`:
+
+```tsx
+const team = await stackServerApp.createTeam({
+  displayName: 'New Team',
+});
+await team.update({
+  displayName: 'New Team Name',
+});
+
+// you can retrieve the team by its ID:
+const sameTeam = await stackServerApp.getTeam(team.id);
+// or list all teams that exist on the entire app:
+const allTeams = await stackServerApp.listTeams();
+```
+
+## Managing users
+
+You can add, remove and list users on a [`ServerTeam`](/concepts/stack-app#client-vs-server):
+
+```tsx
+const allUsers = await team.listUsers();
+await team.addUser(user);
+await team.removeUser(user);
+```
+
+## Retrieving a user's teams
+
+You can list all teams that a user is a member of with the `listTeams` or `useTeams` functions, or get a specific one with `getTeam` or `useTeam`. This works on clients and servers.
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx
+    const user = useUser({ or: 'redirect' });
+    const allTeams = user.useTeams();
+    const someTeam = user.useTeam('some-team-id'); // may be null if the user is not a member of this team
+
+    return (
+      <div>
+        {allTeams.map(team => (
+          <div key={team.id}>{team.displayName}</div>
+        ))}
+      </div>
+      <div>
+        {someTeam ? team.displayName : 'Not a member of this team'}
+      </div>
+    );
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx
+    const user = await stackServerApp.getUser({ or: 'redirect' });
+    const allTeams = await user.listTeams();
+    const someTeam = await user.getTeam('some-team-id'); // may be null if the user is not a member of this team
+
+    return (
+      <div>
+        {allTeams.map(team => (
+          <div key={team.id}>{team.displayName}</div>
+        ))}
+      </div>
+      <div>
+        {someTeam ? team.displayName : 'Not a member of this team'}
+      </div>
+    );
+    ```
+  </Tab>
+</Tabs>

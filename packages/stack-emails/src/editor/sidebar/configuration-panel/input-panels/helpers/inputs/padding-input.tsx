@@ -1,7 +1,7 @@
+import { Label } from '@stackframe/stack-ui';
+import { ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine, ArrowUpFromLine } from 'lucide-react';
 import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
-import { Label } from '../../../../../../components/ui/label';
-import { AlignEndHorizontal, AlignEndVertical, AlignStartHorizontal, AlignStartVertical, ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine, ArrowUpFromLine } from 'lucide-react';
 
 type TPaddingValue = {
   top: number,

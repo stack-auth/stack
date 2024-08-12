@@ -3,7 +3,7 @@ import { serverUserInclude } from "@/lib/users";
 import { createPrismaCrudHandlers } from "@/route-handlers/prisma-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { usersCrud } from "@stackframe/stack-shared/dist/interface/crud-deprecated/users";
 
 export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUser", {
   metadataMap: {
@@ -60,7 +60,7 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       primaryEmailVerified: crud.primaryEmailVerified,
     };
   },
-  prismaToCrud: async (prisma, { auth }) => {    
+  prismaToCrud: async (prisma, { auth }) => {
     const rawSelectedTeam = prisma.teamMembers.filter(m => m.isSelected)[0]?.team;
     return {
       projectId: prisma.projectId,
@@ -75,7 +75,11 @@ export const usersCrudHandlers = createPrismaCrudHandlers(usersCrud, "projectUse
       authMethod: prisma.passwordHash ? 'credential' as const : 'oauth' as const, // not used anymore, for backwards compatibility
       hasPassword: !!prisma.passwordHash,
       authWithEmail: prisma.authWithEmail,
-      oauthProviders: prisma.projectUserOAuthAccounts.map((a) => a.oauthProviderConfigId),
+      oauthProviders: prisma.projectUserOAuthAccounts.map((a) => ({
+        providerId: a.oauthProviderConfigId,
+        email: "some-sentinel-email@test.example.com",
+        accountId: "some-account-id-that-is-not-actually-real",
+      })),
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       selectedTeamId: rawSelectedTeam?.teamId ?? null,
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

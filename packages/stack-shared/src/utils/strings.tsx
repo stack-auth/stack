@@ -1,3 +1,4 @@
+import { findLastIndex, unique } from "./arrays";
 import { StackAssertionError } from "./errors";
 import { filterUndefined } from "./objects";
 
@@ -15,7 +16,7 @@ export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
 
 /**
  * Returns all whitespace character at the start of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespacePrefix(s: string): string {
@@ -24,7 +25,7 @@ export function getWhitespacePrefix(s: string): string {
 
 /**
  * Returns all whitespace character at the end of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespaceSuffix(s: string): string {
@@ -33,7 +34,7 @@ export function getWhitespaceSuffix(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the start removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesStart(s: string): string {
@@ -44,18 +45,18 @@ export function trimEmptyLinesStart(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the end removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesEnd(s: string): string {
   const lines = s.split("\n");
-  const lastNonEmptyLineIndex = lines.findLastIndex((line) => line.trim() !== "");
+  const lastNonEmptyLineIndex = findLastIndex(lines, (line) => line.trim() !== "");
   return lines.slice(0, lastNonEmptyLineIndex + 1).join("\n");
 }
 
 /**
  * Returns a string with all empty or whitespace-only lines trimmed at the start and end.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimLines(s: string): string {
@@ -64,7 +65,7 @@ export function trimLines(s: string): string {
 
 /**
  * A template literal tag that returns the same string as the template literal without a tag.
- * 
+ *
  * Useful for implementing your own template literal tags.
  */
 export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: any[]): string {
@@ -123,10 +124,12 @@ export function mergeScopeStrings(...scopes: string[]): string {
 
 
 export function snakeCaseToCamelCase(snakeCase: string): string {
+  if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
   return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
 export function camelCaseToSnakeCase(camelCase: string): string {
+  if (camelCase.match(/_/)) return camelCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
   return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
@@ -250,6 +253,9 @@ export function nicify(
           return `[${resValues.join(", ")}]`;
         }
       }
+      if (value instanceof URL) {
+        return `URL(${JSON.stringify(value.toString())})`;
+      }
 
       const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
@@ -298,7 +304,14 @@ function nicifyPropertyString(str: string) {
 }
 
 function getNicifiableKeys(value: Nicifiable | object) {
-  return ("getNicifiableKeys" in value ? value.getNicifiableKeys : null)?.() ?? Object.keys(value).sort();
+  const overridden = ("getNicifiableKeys" in value ? value.getNicifiableKeys?.bind(value) : null)?.();
+  if (overridden != null) return overridden;
+  const keys = Object.keys(value).sort();
+  if (value instanceof Error) {
+    if (value.cause) keys.unshift("cause");
+    keys.unshift("message", "stack");
+  }
+  return unique(keys);
 }
 
 function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {
@@ -316,4 +329,4 @@ function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown
 
 function getNicifiedObjectExtraLines(value: Nicifiable | object) {
   return ("getNicifiedObjectExtraLines" in value ? value.getNicifiedObjectExtraLines : null)?.() ?? [];
-} 
+}

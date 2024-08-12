@@ -11,8 +11,8 @@ import {
   listUserServerTeams,
   listUserTeams,
 } from "@/lib/teams";
-import { ServerTeamJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
-import { TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { ServerTeamJson } from "@/temporary-types";
+import { TeamJson } from "@/temporary-types";
 
 
 const getSchema = yup.object({

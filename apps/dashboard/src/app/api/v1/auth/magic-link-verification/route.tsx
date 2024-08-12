@@ -35,7 +35,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   if (codeRecord.usedAt) {
     throw new KnownErrors.VerificationCodeAlreadyUsed();
   }
-  
+
   await prismaClient.projectUser.update({
     where: {
       projectId_projectUserId: {
@@ -57,7 +57,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     },
   });
 
-  const { refreshToken, accessToken } = await createAuthTokens({ 
+  const { refreshToken, accessToken } = await createAuthTokens({
     projectId: codeRecord.projectId,
     projectUserId: codeRecord.projectUserId,
   });

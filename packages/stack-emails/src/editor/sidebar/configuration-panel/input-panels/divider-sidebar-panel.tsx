@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { MoveVertical } from 'lucide-react';
+import { useState } from 'react';
 import { DividerProps, DividerPropsDefaults, DividerPropsSchema } from '../../../blocks/block-divider';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import ColorInput from './helpers/inputs/color-input';
 import SliderInput from './helpers/inputs/slider-input';
 import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
-import { MoveVertical } from 'lucide-react';
 
 type DividerSidebarPanelProps = {
   data: DividerProps,

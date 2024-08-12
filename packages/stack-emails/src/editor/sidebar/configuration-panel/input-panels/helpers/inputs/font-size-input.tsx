@@ -1,7 +1,7 @@
+import { Label } from '@stackframe/stack-ui';
+import { Text } from 'lucide-react';
 import { useState } from 'react';
 import RawSliderInput from './raw/raw-slider-input';
-import { Label } from '../../../../../../components/ui/label';
-import { Text } from 'lucide-react';
 
 type Props = {
   label: string,

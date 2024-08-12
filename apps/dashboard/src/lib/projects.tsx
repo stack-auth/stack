@@ -1,15 +1,13 @@
-import * as yup from "yup";
-import { KnownErrors, OAuthProviderConfigJson, ProjectJson, ServerUserJson } from "@stackframe/stack-shared";
-import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
+import { EmailConfigJson, OAuthProviderConfigJson, OAuthProviderUpdateOptions, ProjectJson, ProjectUpdateOptions, ServerUserJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@/temporary-types";
+import { Prisma, ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import * as yup from "yup";
+import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
 import { getServerUser } from "./users";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { EmailConfigJson, SharedProvider, StandardProvider, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { OAuthProviderUpdateOptions, ProjectUpdateOptions } from "@stackframe/stack-shared/dist/interface/adminInterface";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { fullPermissionInclude, isTeamSystemPermission, listServerPermissionDefinitions, serverPermissionDefinitionJsonFromDbType, serverPermissionDefinitionJsonFromTeamSystemDbType, teamDBTypeToSystemPermissionString, teamPermissionIdSchema, teamSystemPermissionStringToDBType } from "./permissions";
-
 
 function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
   return ({
@@ -18,7 +16,7 @@ function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
     "shared-facebook": "FACEBOOK",
     "shared-microsoft": "MICROSOFT",
     "shared-spotify": "SPOTIFY",
-  } as const)[type];
+  } as any)[type];
 }
 
 function toDBStandardProvider(type: StandardProvider): StandardOAuthProviderType {
@@ -184,6 +182,7 @@ export async function createProject(
             credentialEnabled: !!projectOptions.config?.credentialEnabled,
             magicLinkEnabled: !!projectOptions.config?.magicLinkEnabled,
             createTeamOnSignUp: !!projectOptions.config?.createTeamOnSignUp,
+            clientTeamCreationEnabled: false,
             emailServiceConfig: {
               create: {
                 proxiedEmailServiceConfig: {
@@ -212,7 +211,7 @@ export async function createProject(
         isDefaultTeamMemberPermission: true,
       },
     });
-    
+
     await tx.permission.create({
       data: {
         projectId: project.id,
@@ -346,7 +345,7 @@ async function _createOAuthConfigUpdateTransactions(
   }
   const oldProviders = project.config.oauthProviderConfigs;
   const providerMap = new Map(oldProviders.map((provider) => [
-    provider.id, 
+    provider.id,
     {
       providerUpdate: oauthProvidersUpdate.find((p) => p.id === provider.id) ?? throwErr(`Missing provider update for provider '${provider.id}'`),
       oldProvider: provider,
@@ -354,7 +353,7 @@ async function _createOAuthConfigUpdateTransactions(
   ]));
 
   const newProviders = oauthProvidersUpdate.map((providerUpdate) => ({
-    id: providerUpdate.id, 
+    id: providerUpdate.id,
     update: providerUpdate
   })).filter(({ id }) => !providerMap.has(id));
 
@@ -407,7 +406,7 @@ async function _createOAuthConfigUpdateTransactions(
       },
     }));
   }
-    
+
   // Create new providers
   for (const provider of newProviders) {
     let providerConfigData;
@@ -556,7 +555,7 @@ async function _createDefaultPermissionsUpdateTransactions(
       if (!creatorPerms.every((id) => permissions.some((perm) => perm.id === id))) {
         throw new StatusError(StatusError.BadRequest, "Invalid team default permission ids");
       }
-    
+
       const systemPerms = creatorPerms
         .filter(isTeamSystemPermission)
         .map(teamSystemPermissionStringToDBType);
@@ -567,7 +566,7 @@ async function _createDefaultPermissionsUpdateTransactions(
           [param.dbSystemName]: systemPerms,
         },
       }));
-      
+
       // Remove existing default permissions
       transactions.push(prismaClient.permission.updateMany({
         where: {
@@ -642,25 +641,25 @@ export async function updateProject(
 
   transaction.push(prismaClient.projectConfig.update({
     where: { id: project.config.id },
-    data: { 
+    data: {
       credentialEnabled: options.config?.credentialEnabled,
       magicLinkEnabled: options.config?.magicLinkEnabled,
       allowLocalhost: options.config?.allowLocalhost,
       createTeamOnSignUp: options.config?.createTeamOnSignUp,
     },
   }));
-  
+
   transaction.push(prismaClient.project.update({
     where: { id: projectId },
-    data: { 
+    data: {
       displayName: options.displayName,
       description: options.description,
-      isProductionMode: options.isProductionMode 
+      isProductionMode: options.isProductionMode
     },
   }));
 
   await prismaClient.$transaction(transaction);
-  
+
   const updatedProject = await prismaClient.project.findUnique({
     where: { id: projectId },
     include: fullProjectInclude, // Ensure you have defined this include object correctly elsewhere
@@ -827,7 +826,7 @@ export const projectSchemaToUpdateOptions = (
           if (!provider.clientSecret) {
             throw new StatusError(StatusError.BadRequest, "Missing clientSecret");
           }
-            
+
           return {
             id: provider.id,
             enabled: provider.enabled,

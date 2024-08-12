@@ -4,12 +4,12 @@ import { Container } from "@stackframe/stack-ui";
 import React, { useId } from "react";
 import { SsrScript } from "./ssr-layout-effect";
 
-export function MaybeFullPage({ 
-  children, 
+export function MaybeFullPage({
+  children,
   fullPage=true
-}: { 
-  children: React.ReactNode, 
-  fullPage?: boolean, 
+}: {
+  children: React.ReactNode,
+  fullPage?: boolean,
 }) {
   const uniqueId = useId();
   const id = `stack-card-frame-${uniqueId}`;
@@ -27,14 +27,14 @@ export function MaybeFullPage({
   if (fullPage) {
     return (
       <>
-        <div 
+        <div
           id={id}
           suppressHydrationWarning
-          style={{ 
+          style={{
             minHeight: '100vh',
             alignSelf: 'stretch',
-            display: 'flex', 
-            alignItems: 'center', 
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
           }}
           className="stack-scope"
@@ -51,5 +51,5 @@ export function MaybeFullPage({
       {children}
     </>;
   }
-  
+
 }

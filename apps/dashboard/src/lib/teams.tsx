@@ -1,6 +1,6 @@
 import { prismaClient } from "@/prisma-client";
-import { TeamCustomizableJson, TeamJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { TeamCustomizableJson, TeamJson } from "@/temporary-types";
+import { ServerTeamCustomizableJson, ServerTeamJson, ServerTeamMemberJson } from "@/temporary-types";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Prisma } from "@prisma/client";
 import { getServerUserFromDbType } from "./users";
@@ -32,6 +32,7 @@ export async function listUserTeams(projectId: string, userId: string): Promise<
   return members.map((member) => ({
     id: member.teamId,
     displayName: member.team.displayName,
+    profileImageUrl: member.team.profileImageUrl || undefined,
     createdAtMillis: member.team.createdAt.getTime(),
   }));
 }
@@ -50,6 +51,7 @@ export async function listTeams(projectId: string): Promise<TeamJson[]> {
   return result.map(team => ({
     id: team.teamId,
     displayName: team.displayName,
+    profileImageUrl: team.profileImageUrl || undefined,
     createdAtMillis: team.createdAt.getTime(),
   }));
 }
@@ -104,6 +106,7 @@ export async function createTeam(projectId: string, team: TeamCustomizableJson):
   return {
     id: result.teamId,
     displayName: result.displayName,
+    profileImageUrl: result.profileImageUrl || undefined,
     createdAtMillis: result.createdAt.getTime(),
   };
 }
@@ -174,7 +177,7 @@ async function grantDefaultTeamPermissions(options: { projectId: string, teamId:
     throw new StackAssertionError("Project not found");
   }
 
-  const permissionIds = options.type === 'creator' ? 
+  const permissionIds = options.type === 'creator' ?
     project.evaluatedConfig.teamCreatorDefaultPermissions.map(x => x.id) :
     project.evaluatedConfig.teamMemberDefaultPermissions.map(x => x.id);
 

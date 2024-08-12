@@ -1,6 +1,4 @@
-import React from 'react';
-import { Slider } from '../../../../../../../components/ui/slider'; // Assuming ShadCN has a Slider component
-import Typography from '../../../../../../../components/ui/typography';
+import { Slider, Typography } from '@stackframe/stack-ui';
 
 type SliderInputProps = {
   iconLabel: JSX.Element,

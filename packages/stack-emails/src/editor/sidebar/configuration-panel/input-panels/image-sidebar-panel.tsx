@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import { ImageProps, ImagePropsSchema } from '../../../blocks/block-image';
 import BaseSidebarPanel from './helpers/base-sidebar-panel';
 import TextDimensionInput from './helpers/inputs/text-dimension-input';
@@ -59,7 +58,7 @@ export default function ImageSidebarPanel({ data, setData }: ImageSidebarPanelPr
           onChange={(height) => updateData({ ...data, props: { ...data.props, height } })}
         />
       </div>
-      
+
       <MultiStylePropertyPanel
         names={['backgroundColor', 'textAlign', 'padding']}
         value={data.style}

@@ -1,31 +1,32 @@
-import '../polyfills';
-import './globals.css';
-import React from 'react';
-import type { Metadata } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from "geist/font/mono";
-import { Analytics } from "@vercel/analytics/react";
-import { Inter as FontSans } from "next/font/google";
-import { StyleLink } from '@/components/style-link';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { stackServerApp } from '@/stack';
-import { StackProvider, StackTheme } from '@stackframe/stack';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
+import { StyleLink } from '@/components/style-link';
+import { ThemeProvider } from '@/components/theme-provider';
+import { cn } from '@/lib/utils';
+import { stackServerApp } from '@/stack';
+import { StackProvider, StackTheme } from '@stackframe/stack';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { Toaster } from '@stackframe/stack-ui';
+import { Analytics } from "@vercel/analytics/react";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from 'geist/font/sans';
+import type { Metadata } from 'next';
+import { Inter as FontSans } from "next/font/google";
+import React from 'react';
+import '../polyfills';
+import { ClientPolyfill } from './client-polyfill';
+import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL || ''),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
   title: {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
   },
   description: 'Stack Auth is the fastest way to add authentication to your web app.',
-  openGraph:{
-    images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
+  openGraph: {
+    images: [`${process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED}/open-graph-image.png`]
   }
 };
 
@@ -64,7 +65,7 @@ export default function RootLayout({
         })}
       </head>
       <CSPostHogProvider>
-        <body 
+        <body
           className={cn(
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
@@ -75,6 +76,7 @@ export default function RootLayout({
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
               <StackTheme>
+                <ClientPolyfill />
                 <RouterProvider>
                   <UserIdentity />
                   {children}

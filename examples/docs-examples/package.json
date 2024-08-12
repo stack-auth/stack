@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/docs-examples",
-  "version": "2.5.0",
+  "version": "2.5.18",
   "description": "",
   "private": true,
   "scripts": {
@@ -21,8 +21,7 @@
     "next-themes": "^0.2.1",
     "react": "^18.2",
     "react-dom": "^18",
-    "react-icons": "^5.0.1",
-    "styled-components": "^6.1.8"
+    "react-icons": "^5.0.1"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

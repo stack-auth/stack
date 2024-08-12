@@ -1,18 +1,11 @@
 "use client";
-import { useAdminApp } from "../use-admin-app";
-import { PageLayout } from "../page-layout";
-import {
-  FormSettingCard,
-  SettingCard,
-  SettingInput,
-  SettingSwitch,
-} from "@/components/settings";
-import { Alert } from "@/components/ui/alert";
-import { StyledLink } from "@/components/link";
-import * as yup from "yup";
 import { InputField } from "@/components/form-fields";
-import Typography from "@/components/ui/typography";
-import DeleteProject from "@/components/project-setting/delete-project";
+import { StyledLink } from "@/components/link";
+import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
+import { Alert, Typography } from "@stackframe/stack-ui";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
 const projectInformationSchema = yup.object().shape({
   displayName: yup.string().required(),
@@ -21,9 +14,9 @@ const projectInformationSchema = yup.object().shape({
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const productionModeErrors = project.getProductionModeErrors();
-  console.log(project.userCount);
+  const project = stackAdminApp.useProject();
+  const productionModeErrors = project.useProductionModeErrors();
+
   return (
     <PageLayout title="Project Settings" description="Manage your project">
       <SettingCard
@@ -52,12 +45,8 @@ export default function PageClient() {
             following issues:
             <ul className="mt-2 list-disc pl-5">
               {productionModeErrors.map((error) => (
-                <li key={error.errorMessage}>
-                  {error.errorMessage} (
-                  <StyledLink href={error.fixUrlRelative}>
-                    show configuration
-                  </StyledLink>
-                  )
+                <li key={error.message}>
+                  {error.message} (<StyledLink href={error.relativeFixUrl}>show configuration</StyledLink>)
                 </li>
               ))}
             </ul>
@@ -67,7 +56,10 @@ export default function PageClient() {
 
       <FormSettingCard
         title="Project Information"
-        defaultValues={project}
+        defaultValues={{
+          displayName: project.displayName,
+          description: project.description || undefined,
+        }}
         formSchema={projectInformationSchema}
         onSubmit={async (values) => {
           await project.update(values);

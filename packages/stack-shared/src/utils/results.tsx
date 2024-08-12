@@ -25,6 +25,7 @@ export type AsyncResult<T, E = unknown, P = void> =
 
 export const Result = {
   fromThrowing,
+  fromThrowingAsync,
   fromPromise: promiseToResult,
   ok<T>(data: T): Result<T, never> & { status: "ok" } {
     return {
@@ -96,6 +97,14 @@ function fromThrowing<T>(fn: () => T): Result<T, unknown> {
   }
 }
 
+async function fromThrowingAsync<T>(fn: () => Promise<T>): Promise<Result<T, unknown>> {
+  try {
+    return Result.ok(await fn());
+  } catch (error) {
+    return Result.error(error);
+  }
+}
+
 function mapResult<T, U, E = unknown, P = unknown>(result: Result<T, E>, fn: (data: T) => U): Result<U, E>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P> {
@@ -114,15 +123,20 @@ function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>,
 
 class RetryError extends AggregateError {
   constructor(public readonly errors: unknown[]) {
+    const strings = errors.map(e => String(e));
+    const isAllSame = strings.length > 1 && strings.every(s => s === strings[0]);
     super(
       errors,
       deindent`
       Error after retrying ${errors.length} times.
       
-      ${errors.map((e, i) => deindent`
-        Attempt ${i + 1}:
-          ${e}
-      `).join("\n\n")}
+      ${isAllSame ? deindent`
+        Attempts 1-${errors.length}:
+          ${errors[0]}
+      ` : errors.map((e, i) => deindent`
+          Attempt ${i + 1}:
+            ${e}
+        `).join("\n\n")}
       `,
       { cause: errors[errors.length - 1] }
     );
@@ -133,6 +147,7 @@ class RetryError extends AggregateError {
     return this.errors.length;
   }
 }
+RetryError.prototype.name = "RetryError";
 
 async function retry<T>(
   fn: () => Result<T> | Promise<Result<T>>,

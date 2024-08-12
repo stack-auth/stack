@@ -109,7 +109,7 @@ function getRoundedCorners(props: ButtonProps['props']) {
     case 'pill': {
       return 64;
     }
-    case 'rounded': 
+    case 'rounded':
     default: {
       return 4;
     }
@@ -128,7 +128,7 @@ function getButtonSizePadding(props: ButtonProps['props']) {
     case 'large': {
       return [16, 32] as const;
     }
-    case 'medium': 
+    case 'medium':
     default: {
       return [12, 20] as const;
     }

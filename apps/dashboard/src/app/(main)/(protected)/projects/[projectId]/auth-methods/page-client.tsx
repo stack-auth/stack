@@ -1,21 +1,25 @@
 "use client";
-import { useAdminApp } from "../use-admin-app";
-import { ProviderSettingSwitch, availableProviders } from "./providers";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
-import { PageLayout } from "../page-layout";
 import { SettingCard, SettingSwitch } from "@/components/settings";
+import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
+import { ProviderSettingSwitch } from "./providers";
+import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const oauthProviders = project.evaluatedConfig.oauthProviders;
+  const project = stackAdminApp.useProject();
+  const oauthProviders = project.config.oauthProviders;
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
-      <SettingCard title="Email Authentication" description="Email address based sign in.">
+      <SettingCard>
+        <CardSubtitle>
+          Email-based
+        </CardSubtitle>
         <SettingSwitch
           label="Email password authentication"
-          checked={project.evaluatedConfig.credentialEnabled}
+          checked={project.config.credentialEnabled}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
@@ -26,7 +30,7 @@ export default function PageClient() {
         />
         <SettingSwitch
           label="Magic link (email with login link)"
-          checked={project.evaluatedConfig.magicLinkEnabled}
+          checked={project.config.magicLinkEnabled}
           onCheckedChange={async (checked) => {
             await project.update({
               config: {
@@ -35,16 +39,16 @@ export default function PageClient() {
             });
           }}
         />
-      </SettingCard>
-
-      <SettingCard title="OAuth Providers" description={`The "Sign in with XYZ" buttons on your app.`}>
-        {availableProviders.map((id) => {
+        <CardSubtitle className="mt-2">
+          SSO (OAuth)
+        </CardSubtitle>
+        {allProviders.map((id) => {
           const provider = oauthProviders.find((provider) => provider.id === id);
-          return <ProviderSettingSwitch 
-            key={id} 
-            id={id} 
+          return <ProviderSettingSwitch
+            key={id}
+            id={id}
             provider={provider}
-            updateProvider={async (provider: OAuthProviderConfigJson) => {
+            updateProvider={async (provider) => {
               const alreadyExist = oauthProviders.some((p) => p.id === id);
               const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
               if (!alreadyExist) {
@@ -55,7 +59,21 @@ export default function PageClient() {
               });
             }}
           />;
-        })}      
+        })}
+      </SettingCard>
+      <SettingCard title="Settings">
+        <SettingSwitch
+          label="Disable sign ups, only allow sign ins from existing users"
+          checked={!project.config.signUpEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                signUpEnabled: !checked,
+              },
+            });
+          }}
+          hint="Admins (like you) can still create new accounts manually by clicking 'Create User' on the Users page of the dashboard."
+        />
       </SettingCard>
     </PageLayout>
   );
