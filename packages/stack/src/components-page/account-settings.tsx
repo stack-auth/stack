@@ -39,7 +39,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         type: 'item',
         icon: ShieldCheck,
         content: (
-          <div className='flex flex-col gap-4'>
+          <div className='flex flex-col gap-8'>
             <EmailVerificationSection />
             <PasswordSection />
             <MfaSection />
@@ -69,9 +69,6 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         icon: CirclePlus,
         type: 'item',
         content: <TeamCreation />,
-        onClick: () => {
-          console.log('adsf');
-        }
       }
     ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
     title='Account Settings'
@@ -127,68 +124,46 @@ function SettingSection(props: {
 }
 
 function ProfileSection() {
-  const user = useUser()!;
-  const [userInfo, setUserInfo] = useState<{ displayName: string }>({ displayName: user.displayName || '' });
-  const [changed, setChanged] = useState(false);
+  const user = useUser({ or: 'redirect' });
 
   return (
-    <SettingSection
-      title='Profile'
-      buttonDisabled={!changed}
-      buttonText='Save'
-      onButtonClick={async () => {
-        await user.update(userInfo);
-        setChanged(false);
-      }}
-    >
-      <div className='flex gap-4 items-center'>
-        <UserAvatar user={user} size={50}/>
-        <div className='flex flex-col'>
-          <Typography>{user.displayName}</Typography>
-          <Typography variant='secondary' type='label'>{user.primaryEmail}</Typography>
-        </div>
+    <div>
+      <div>
+        <Label>Display name</Label>
+        <EditableText value={user.displayName || ''} onSave={async (newDisplayName) => {
+          await user.update({ displayName: newDisplayName });
+        }}/>
       </div>
-
-      <div className='flex flex-col'>
-        <Label htmlFor='display-name' className='mb-1'>Display Name</Label>
-        <Input
-          id='display-name'
-          value={userInfo.displayName}
-          onChange={(e) => {
-            setUserInfo((i) => ({...i, displayName: e.target.value }));
-            setChanged(true);
-          }}
-        />
-      </div>
-    </SettingSection>
+    </div>
   );
 }
 
 function EmailVerificationSection() {
-  const user = useUser();
+  const user = useUser({ or: 'redirect' });
   const [emailSent, setEmailSent] = useState(false);
 
   return (
-    <SettingSection
-      title='Email Verification'
-      desc='We want to make sure that you own the email address.'
-      buttonDisabled={emailSent}
-      buttonText={
-        !user?.primaryEmailVerified ?
-          emailSent ?
-            'Email sent!' :
-            'Send Email'
-          : undefined
-      }
-      onButtonClick={async () => {
-        await user?.sendVerificationEmail();
-        setEmailSent(true);
-      }}
-    >
-      {user?.primaryEmailVerified ?
-        <Typography variant='success'>Your email has been verified.</Typography> :
-        <Typography variant='destructive'>Your email has not been verified.</Typography>}
-    </SettingSection>
+    <>
+      <div>
+        <Label>Email Verification</Label>
+        {user.primaryEmailVerified ? (
+          <Typography variant='success'>Your email has been verified.</Typography>
+        ) : (
+          <Typography variant='destructive'>Your email has not been verified.</Typography>
+        )}
+        <div className='flex mt-4'>
+          <Button
+            disabled={emailSent}
+            onClick={async () => {
+              await user.sendVerificationEmail();
+            setEmailSent(true);
+            }}
+          >
+            {emailSent ? 'Email sent!' : 'Send Verification Email'}
+          </Button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -319,54 +294,113 @@ function MfaSection() {
   }, [mfaCode, generatedSecret, handleSubmit]);
 
   return (
-    <SettingSection
-      title='Multi-factor Authentication'
-      desc='Secure your account with an additional layer of security.'
-      buttonVariant='secondary'
-      buttonText={isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
-      onButtonClick={async () => {
-        if (isEnabled) {
-          await user.update({
-            totpMultiFactorSecret: null,
-          });
-        } else if (!generatedSecret) {
-          const secret = generateRandomValues(new Uint8Array(20));
-          setQrCodeUrl(await generateTotpQrCode(project, user, secret));
-          setGeneratedSecret(secret);
-        } else {
-          setGeneratedSecret(null);
-          setQrCodeUrl(null);
-          setMfaCode("");
-        }
-      }}
-    >
-      {isEnabled ? (
-        <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
-      ) : (
-        generatedSecret ? (
-          <div className='flex flex-col gap-4 items-center'>
-            <Typography>Scan this QR code with your authenticator app:</Typography>
-            <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
-            <Typography>Then, enter your six-digit MFA code:</Typography>
-            <Input
-              value={mfaCode}
-              onChange={(e) => {
+  //   <SettingSection
+  //     title='Multi-factor Authentication'
+  //     desc='Secure your account with an additional layer of security.'
+  //     buttonVariant='secondary'
+  //     buttonText={isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
+  //     onButtonClick={async () => {
+  //       if (isEnabled) {
+  //         await user.update({
+  //           totpMultiFactorSecret: null,
+  //         });
+  //       } else if (!generatedSecret) {
+  //         const secret = generateRandomValues(new Uint8Array(20));
+  //         setQrCodeUrl(await generateTotpQrCode(project, user, secret));
+  //         setGeneratedSecret(secret);
+  //       } else {
+  //         setGeneratedSecret(null);
+  //         setQrCodeUrl(null);
+  //         setMfaCode("");
+  //       }
+  //     }}
+  //   >
+  //     {isEnabled ? (
+  //       <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
+  //     ) : (
+  //       generatedSecret ? (
+  //         <div className='flex flex-col gap-4 items-center'>
+  //           <Typography>Scan this QR code with your authenticator app:</Typography>
+  //           <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
+  //           <Typography>Then, enter your six-digit MFA code:</Typography>
+  //           <Input
+  //             value={mfaCode}
+  //             onChange={(e) => {
+  //               setIsMaybeWrong(false);
+  //               setMfaCode(e.target.value);
+  //             }}
+  //             placeholder="123456"
+  //             maxLength={6}
+  //             disabled={isLoading}
+  //           />
+  //           {isMaybeWrong && mfaCode.length === 6 && (
+  //             <Typography variant="destructive">Incorrect code. Please try again.</Typography>
+  //           )}
+  //         </div>
+  //       ) : (
+  //         <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
+  //       )
+  //     )}
+  //   </SettingSection>
+  // );
+
+    // new design without setting section
+    <div>
+      <div>
+        <Label>Multi-factor Authentication</Label>
+
+        <div>
+          {isEnabled ? (
+            <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
+          ) : (
+            generatedSecret ? (
+              <div className='flex flex-col gap-4 items-center'>
+                <Typography>Scan this QR code with your authenticator app:</Typography>
+                <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
+                <Typography>Then, enter your six-digit MFA code:</Typography>
+                <Input
+                  value={mfaCode}
+                  onChange={(e) => {
                 setIsMaybeWrong(false);
                 setMfaCode(e.target.value);
-              }}
-              placeholder="123456"
-              maxLength={6}
-              disabled={isLoading}
-            />
-            {isMaybeWrong && mfaCode.length === 6 && (
-              <Typography variant="destructive">Incorrect code. Please try again.</Typography>
-            )}
-          </div>
-        ) : (
-          <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
-        )
-      )}
-    </SettingSection>
+                  }}
+                  placeholder="123456"
+                  maxLength={6}
+                  disabled={isLoading}
+                />
+                {isMaybeWrong && mfaCode.length === 6 && (
+                  <Typography variant="destructive">Incorrect code. Please try again.</Typography>
+                )}
+              </div>
+            ) : (
+              <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
+            )
+          )}
+
+          <Button
+            className="mt-4"
+            variant={isEnabled ? 'secondary' : 'default'}
+            onClick={async () => {
+              if (isEnabled) {
+                await user.update({
+                  totpMultiFactorSecret: null,
+                });
+              } else if (!generatedSecret) {
+                const secret = generateRandomValues(new Uint8Array(20));
+                setQrCodeUrl(await generateTotpQrCode(project, user, secret));
+                setGeneratedSecret(secret);
+              } else {
+                setGeneratedSecret(null);
+                setQrCodeUrl(null);
+                setMfaCode("");
+              }
+            }}
+          >
+            {isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -378,14 +412,16 @@ async function generateTotpQrCode(project: Project, user: CurrentUser, secret: U
 function SignOutSection() {
   const user = useUser({ or: "throw" });
   return (
-    <SettingSection
-      title='Sign out'
-      desc='Sign out of your account on this device.'
-      buttonVariant='secondary'
-      buttonText='Sign Out'
-      onButtonClick={() => user.signOut()}
-    >
-    </SettingSection>
+    <div className='flex flex-col gap-2'>
+      <div>
+        <Button
+          variant='secondary'
+          onClick={() => user.signOut()}
+        >
+          Sign Out
+        </Button>
+      </div>
+    </div>
   );
 }
 

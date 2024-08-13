@@ -11,7 +11,6 @@ export type SidebarItem = {
   icon?: LucideIcon,
   content?: React.ReactNode,
   contentTitle?: React.ReactNode,
-  onClick?: () => void,
 }
 
 export function SidebarNavItem(props: { item: SidebarItem, selected: boolean, onClick: () => void }) {
@@ -51,7 +50,6 @@ function Items(props: { items: SidebarItem[], setSelectedIndex: (index: number) 
         key={index}
         item={item}
         onClick={() => {
-          item.onClick?.();
           props.setSelectedIndex(index);
         }}
         selected={false}
