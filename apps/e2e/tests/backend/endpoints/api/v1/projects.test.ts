@@ -1,4 +1,4 @@
-import { it } from "../../../../helpers";
+import { createMailbox, it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
@@ -24,9 +24,7 @@ it("should not have have access to the project without project keys", async ({ e
 });
 
 it("gets current project (internal)", async ({ expect }) => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
+  backendContext.set({ projectKeys: InternalProjectKeys });
   const response = await niceBackendFetch("/api/v1/projects/current", { accessType: "client" });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
@@ -927,4 +925,83 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
       },
     }
   `);
+});
+
+it("makes sure user have the correct managed project ID after project creation", async ({ expect }) => {
+  const { userId } =  await Auth.Otp.signIn();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { projectId } = await Project.createAndGetAdminToken();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+
+  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds = userResponse.body.server_metadata.managedProjectIds;
+  expect(projectIds.length).toBe(1);
+  expect(projectIds[0]).toBe(projectId);
+});
+
+it("makes sure user don't have managed project ID after project deletion", async ({ expect }) => {
+  const { userId } =  await Auth.Otp.signIn();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+
+  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds = userResponse.body.server_metadata.managedProjectIds;
+  expect(projectIds.length).toBe(0);
+});
+
+it("makes sure other users are not affected by project deletion", async ({ expect }) => {
+  const { userId: userId1 } =  await Auth.Otp.signIn();
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { projectId } = await Project.createAndGetAdminToken();
+
+  backendContext.set({ mailbox: createMailbox(), projectKeys: InternalProjectKeys });
+  await Auth.Otp.signIn();
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const userResponse1 = await niceBackendFetch(`/api/v1/users/${userId1}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds1 = userResponse1.body.server_metadata.managedProjectIds;
+  expect(projectIds1.length).toBe(1);
+  expect(projectIds1[0]).toBe(projectId);
 });

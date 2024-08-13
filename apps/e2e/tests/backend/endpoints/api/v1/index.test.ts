@@ -138,9 +138,7 @@ describe("with project keys that don't match the project ID", async () => {
 });
 
 describe("with internal project ID", async () => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
+  backendContext.set({ projectKeys: InternalProjectKeys });
 
   it("should not have server access without server API key", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1", {
