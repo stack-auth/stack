@@ -1,20 +1,26 @@
 'use client';
 
+import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
+import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { Contact, Settings, ShieldCheck } from 'lucide-react';
+import { CirclePlus, Contact, Settings, ShieldCheck } from 'lucide-react';
+import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import React, { useEffect, useState } from 'react';
-import { CurrentUser, Project, Team, useStackApp, useUser } from '..';
+import { useForm } from 'react-hook-form';
+import * as yup from "yup";
+import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
 import { TeamIcon } from '../components/team-icon';
+
 
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser({ or: 'redirect' });
@@ -57,7 +63,16 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         </div>,
         type: 'item',
         content: <TeamSection team={team}/>,
-      } as const))
+      } as const)),
+      {
+        title: 'Create a team',
+        icon: CirclePlus,
+        type: 'item',
+        content: <TeamCreation />,
+        onClick: () => {
+          console.log('adsf');
+        }
+      }
     ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
     title='Account Settings'
   />;
@@ -76,7 +91,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
 
 function SettingSection(props: {
   title: string,
-  desc: string,
+  desc?: string,
   buttonText?: string,
   buttonDisabled?: boolean,
   onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
@@ -119,7 +134,6 @@ function ProfileSection() {
   return (
     <SettingSection
       title='Profile'
-      desc='Your profile information'
       buttonDisabled={!changed}
       buttonText='Save'
       onButtonClick={async () => {
@@ -376,13 +390,47 @@ function SignOutSection() {
 }
 
 function TeamSection(props: { team: Team }) {
-  return (<div>
-    {managementSettings(props)}
+  return (<div className="flex flex-col gap-8">
     {profileSettings(props)}
+    {managementSettings(props)}
     {membersSettings(props)}
+    {userSettings(props)}
   </div>);
 }
 
+function userSettings(props: { team: Team }) {
+  const app = useStackApp();
+  const user = useUser({ or: 'redirect' });
+  const [leaving, setLeaving] = useState(false);
+
+  return (
+    <div className='flex flex-col gap-2'>
+      <div>
+        { !leaving ?
+          <Button
+            variant='secondary'
+            onClick={async () => setLeaving(true)}
+          >
+          Leave team
+          </Button> :
+          <div className=''>
+            <Typography variant='destructive'>Are you sure you want to leave the team?</Typography>
+            <div className='flex gap-2'>
+              <Button variant='destructive' onClick={async () => {
+                await user.leaveTeam(props.team);
+                window.location.reload();
+              }}>
+                Leave
+              </Button>
+              <Button variant='secondary' onClick={() => setLeaving(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>}
+      </div>
+    </div>
+  );
+}
 
 function managementSettings(props: { team: Team }) {
   const user = useUser({ or: 'redirect' });
@@ -409,7 +457,7 @@ function profileSettings(props: { team: Team }) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-col">
-        <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
+        <Label className="flex gap-2">User display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
         <EditableText
           value={profile.displayName || ''}
           onSave={async (newDisplayName) => {
@@ -491,5 +539,66 @@ function membersSettings(props: { team: Team }) {
         </div>}
       </div>
     </>
+  );
+}
+
+function TeamCreationSection(props: { team: Team }) {
+  return (
+    <div>
+      <Label>Team display name</Label>
+      <EditableText value={props.team.displayName} onSave={() => {}}/>
+    </div>
+  );
+}
+
+const schema = yupObject({
+  displayName: yupString().required('Please enter a team name'),
+});
+
+export function TeamCreation(props: { fullPage?: boolean }) {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema)
+  });
+  const app = useStackApp();
+  const project = app.useProject();
+  const user = useUser({ or: 'redirect' });
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  if (!project.config.clientTeamCreationEnabled) {
+    return <MessageCard title='Team creation is not enabled' />;
+  }
+
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    setLoading(true);
+
+    try {
+      const team = await user.createTeam({ displayName: data.displayName });
+    } finally {
+      setLoading(false);
+    }
+
+    window.location.reload();
+  };
+
+  return (
+    <div className='stack-scope flex flex-col items-stretch'>
+      <SettingSection
+        title="Create a new team"
+        buttonDisabled={loading}
+        buttonText="Create"
+        onButtonClick={handleSubmit(onSubmit)}
+      >
+        <div className="flex flex-col">
+          <Label htmlFor="email" className="mb-1">Display name</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register('displayName')}
+          />
+        </div>
+        <FormWarningText text={errors.displayName?.message?.toString()} />
+      </SettingSection>
+    </div>
   );
 }
