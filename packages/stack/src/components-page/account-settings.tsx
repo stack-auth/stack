@@ -5,35 +5,66 @@ import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, Input, Label, PasswordInput, Typography } from '@stackframe/stack-ui';
-import { Contact, Settings, Shield, ShieldCheck } from 'lucide-react';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Contact, Settings, ShieldCheck } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import React, { useEffect, useState } from 'react';
-import { CurrentUser, Project, useStackApp, useUser } from '..';
+import { CurrentUser, Project, Team, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
+import { TeamIcon } from '../components/team-icon';
 
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser({ or: 'redirect' });
+  const teams = user.useTeams();
 
   const inner = <SidebarLayout
-    items={[
-      { title: 'My Profile', content: <ProfileSection/>, icon: Contact },
-      { title: 'Security', content: <div className='flex flex-col gap-4'>
-        <EmailVerificationSection />
-        <PasswordSection />
-        <MfaSection />
-      </div>, icon: ShieldCheck },
-      { title: 'Settings', content: <SignOutSection />, icon: Settings },
-    ].filter(({ content }) => content as any)}
-    title='Team Settings'
+    items={([
+      {
+        title: 'My Profile',
+        type: 'item',
+        content: <ProfileSection/>,
+        icon: Contact,
+      },
+      {
+        title: 'Security',
+        type: 'item',
+        icon: ShieldCheck,
+        content: (
+          <div className='flex flex-col gap-4'>
+            <EmailVerificationSection />
+            <PasswordSection />
+            <MfaSection />
+          </div>
+        ),
+      },
+      {
+        title: 'Settings',
+        type: 'item',
+        content: <SignOutSection />,
+        icon: Settings
+      },
+      {
+        title: 'Teams',
+        type: 'divider',
+      },
+      ...teams.map(team => ({
+        title: <div className='flex gap-2 items-center'>
+          <TeamIcon team={team}/>
+          {team.displayName}
+        </div>,
+        type: 'item',
+        content: <TeamSection team={team}/>,
+      } as const))
+    ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
+    title='Account Settings'
   />;
 
   if (fullPage) {
     return (
-      <Container size={800} className='stack-scope'>
+      <Container size={1000} className='stack-scope'>
         {inner}
       </Container>
     );
@@ -341,5 +372,124 @@ function SignOutSection() {
       onButtonClick={() => user.signOut()}
     >
     </SettingSection>
+  );
+}
+
+function TeamSection(props: { team: Team }) {
+  return (<div>
+    {managementSettings(props)}
+    {profileSettings(props)}
+    {membersSettings(props)}
+  </div>);
+}
+
+
+function managementSettings(props: { team: Team }) {
+  const user = useUser({ or: 'redirect' });
+  const updateTeamPermission = user.usePermission(props.team, '$update_team');
+
+  if (!updateTeamPermission) {
+    return null;
+  }
+
+  return (
+    <>
+      <div>
+        <Label>Team display name</Label>
+        <EditableText value={props.team.displayName} onSave={() => {}}/>
+      </div>
+    </>
+  );
+}
+
+function profileSettings(props: { team: Team }) {
+  const user = useUser({ or: 'redirect' });
+  const profile = user.useTeamProfile(props.team);
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex flex-col">
+        <Label className="flex gap-2">Display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
+        <EditableText
+          value={profile.displayName || ''}
+          onSave={async (newDisplayName) => {
+            await profile.update({ displayName: newDisplayName });
+          }}/>
+      </div>
+    </div>
+  );
+}
+
+
+function membersSettings(props: { team: Team }) {
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const user = useUser({ or: 'redirect' });
+  const removeMemberPermission = user.usePermission(props.team, '$remove_members');
+  const readMemberPermission = user.usePermission(props.team, '$read_members');
+  const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
+  const [email, setEmail] = useState('');
+  const [invited, setInvited] = useState(false);
+
+  if (!readMemberPermission && !inviteMemberPermission) {
+    return null;
+  }
+
+  const users = props.team.useUsers();
+
+  useEffect(() => {
+    if (invited && email) {
+      setInvited(false);
+    }
+  }, [email]);
+
+  return (
+    <>
+      <div className="flex flex-col gap-8">
+        {inviteMemberPermission &&
+          <div>
+            <Label>Invite a user to team</Label>
+            <div className="flex flex-col gap-2 md:flex-row">
+              <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+              <Button onClick={async () => {
+                await props.team.inviteUser({ email });
+                setEmail('');
+                setInvited(true);
+              }}>Invite</Button>
+            </div>
+            {invited && <Typography type='label' variant='secondary'>User invited.</Typography>}
+          </div>}
+        {readMemberPermission &&
+        <div>
+          <Label>Members</Label>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">User</TableHead>
+                <TableHead className="w-[200px]">Name</TableHead>
+                {/* {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>} */}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map(({ id, teamProfile }, i) => (
+                <TableRow key={id}>
+                  <TableCell>
+                    <UserAvatar user={teamProfile}/>
+                  </TableCell>
+                  <TableCell>
+                    <Typography>{teamProfile.displayName}</Typography>
+                  </TableCell>
+                  {/* {removeMemberPermission && <TableCell>
+                    <ActionCell items={[
+                      { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
+                    ]}/>
+                    <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
+                  </TableCell>} */}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>}
+      </div>
+    </>
   );
 }
