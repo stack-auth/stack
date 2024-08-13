@@ -298,6 +298,38 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           id: auth.project.config.id
         },
       });
+
+      // delete managed ids from users
+      const users = await tx.projectUser.findMany({
+        where: {
+          projectId: 'internal',
+          serverMetadata: {
+            path: ['managedProjectIds'],
+            array_contains: auth.project.id
+          }
+        }
+      });
+
+      for (const user of users) {
+        const updatedManagedProjectIds = (user.serverMetadata as any).managedProjectIds.filter(
+          (id: any) => id !== auth.project.id
+        ) as string[];
+
+        await tx.projectUser.update({
+          where: {
+            projectId_projectUserId: {
+              projectId: 'internal',
+              projectUserId: user.projectUserId
+            }
+          },
+          data: {
+            serverMetadata: {
+              ...user.serverMetadata as any,
+              managedProjectIds: updatedManagedProjectIds,
+            }
+          }
+        });
+      }
     });
   }
 }));

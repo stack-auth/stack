@@ -58,6 +58,7 @@ function expectSnakeCase(obj: unknown, path: string): void {
       if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
         throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
       }
+      if (key === "client_metadata" || key === "server_metadata") continue;
       expectSnakeCase(value, `${path}.${key}`);
     }
   }
@@ -661,10 +662,9 @@ export namespace Project {
     expect(adminAccessToken).toBeDefined();
     const { projectId, createProjectResponse } = await Project.create(body);
 
-    const createResult = await Project.create(body);
     backendContext.set({
       projectKeys: {
-        projectId: createResult.projectId,
+        projectId,
       },
       userAuth: null,
     });
