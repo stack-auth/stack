@@ -66,7 +66,15 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         </div>,
         type: 'item',
         subpath: `/teams/${team.id}`,
-        content: <TeamSection team={team}/>,
+        content: (
+          <div className="flex flex-col gap-8">
+            <ProfileSettings team={team}/>
+            <ManagementSettings team={team}/>
+            <MemberInvitation team={team}/>
+            <MembersSettings team={team}/>
+            <UserSettings team={team}/>
+          </div>
+        ),
       } as const)),
       ...project.config.clientTeamCreationEnabled ? [{
         title: 'Create a team',
@@ -135,33 +143,32 @@ function EmailVerificationSection() {
   );
 }
 
+const passwordSchema = yupObject({
+  oldPassword: yupString().required('Please enter your old password'),
+  newPassword: yupString().required('Please enter your password').test({
+    name: 'is-valid-password',
+    test: (value, ctx) => {
+      const error = getPasswordError(value);
+      if (error) {
+        return ctx.createError({ message: error.message });
+      } else {
+        return true;
+      }
+    }
+  }),
+  newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], 'Passwords do not match').required('Please repeat your password')
+});
 
 function PasswordSection() {
-  const schema = yupObject({
-    oldPassword: yupString().required('Please enter your old password'),
-    newPassword: yupString().required('Please enter your password').test({
-      name: 'is-valid-password',
-      test: (value, ctx) => {
-        const error = getPasswordError(value);
-        if (error) {
-          return ctx.createError({ message: error.message });
-        } else {
-          return true;
-        }
-      }
-    }),
-    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], 'Passwords do not match').required('Please repeat your password')
-  });
-
   const user = useUser({ or: "throw" });
   const [changingPassword, setChangingPassword] = useState(false);
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(passwordSchema)
   });
   const [alreadyReset, setAlreadyReset] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+  const onSubmit = async (data: yup.InferType<typeof passwordSchema>) => {
     setLoading(true);
     try {
       const { oldPassword, newPassword } = data;
@@ -355,16 +362,7 @@ function SignOutSection() {
   );
 }
 
-function TeamSection(props: { team: Team }) {
-  return (<div className="flex flex-col gap-8">
-    {profileSettings(props)}
-    {managementSettings(props)}
-    {membersSettings(props)}
-    {userSettings(props)}
-  </div>);
-}
-
-function userSettings(props: { team: Team }) {
+function UserSettings(props: { team: Team }) {
   const app = useStackApp();
   const user = useUser({ or: 'redirect' });
   const [leaving, setLeaving] = useState(false);
@@ -398,7 +396,7 @@ function userSettings(props: { team: Team }) {
   );
 }
 
-function managementSettings(props: { team: Team }) {
+function ManagementSettings(props: { team: Team }) {
   const user = useUser({ or: 'redirect' });
   const updateTeamPermission = user.usePermission(props.team, '$update_team');
 
@@ -416,7 +414,7 @@ function managementSettings(props: { team: Team }) {
   );
 }
 
-function profileSettings(props: { team: Team }) {
+function ProfileSettings(props: { team: Team }) {
   const user = useUser({ or: 'redirect' });
   const profile = user.useTeamProfile(props.team);
 
@@ -434,15 +432,68 @@ function profileSettings(props: { team: Team }) {
   );
 }
 
+const invitationSchema = yupObject({
+  email: yupString().email().required('Please enter an email address'),
+});
 
-function membersSettings(props: { team: Team }) {
-  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+function MemberInvitation(props: { team: Team }) {
+  const project = useStackApp().useProject();
+
+  if (!project.config.clientTeamCreationEnabled) {
+    return null;
+  }
+
+  const { register, handleSubmit, formState: { errors }, watch } = useForm({
+    resolver: yupResolver(invitationSchema)
+  });
+  const [loading, setLoading] = useState(false);
+  const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
+
+  const onSubmit = async (data: yup.InferType<typeof invitationSchema>) => {
+    setLoading(true);
+
+    try {
+      await props.team.inviteUser({ email: data.email });
+      setInvitedEmail(data.email);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setInvitedEmail(null);
+  }, [watch('email')]);
+
+  return (
+    <div>
+      <Label>Invite a user to team</Label>
+      <form
+        onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+        noValidate
+      >
+        <div className="flex flex-col gap-4 md:flex-row">
+          <div>
+            <Input
+              placeholder="Email"
+              {...register('email')}
+            />
+          </div>
+          <Button type="submit" loading={loading}>
+            Invite User
+          </Button>
+        </div>
+        <FormWarningText text={errors.email?.message?.toString()} />
+        {invitedEmail && <Typography type='label' variant='secondary'>Invited {invitedEmail}</Typography>}
+      </form>
+    </div>
+  );
+}
+
+
+function MembersSettings(props: { team: Team }) {
   const user = useUser({ or: 'redirect' });
-  const removeMemberPermission = user.usePermission(props.team, '$remove_members');
   const readMemberPermission = user.usePermission(props.team, '$read_members');
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
-  const [email, setEmail] = useState('');
-  const [invited, setInvited] = useState(false);
 
   if (!readMemberPermission && !inviteMemberPermission) {
     return null;
@@ -450,82 +501,44 @@ function membersSettings(props: { team: Team }) {
 
   const users = props.team.useUsers();
 
-  useEffect(() => {
-    if (invited && email) {
-      setInvited(false);
-    }
-  }, [email]);
+  if (!readMemberPermission) {
+    return null;
+  }
 
-  return (
-    <>
-      <div className="flex flex-col gap-8">
-        {inviteMemberPermission &&
-          <div>
-            <Label>Invite a user to team</Label>
-            <div className="flex flex-col gap-4 md:flex-row">
-              <div>
-                <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
-              </div>
-              <Button onClick={async () => {
-                await props.team.inviteUser({ email });
-                setEmail('');
-                setInvited(true);
-              }}>Invite User</Button>
-            </div>
-            {invited && <Typography type='label' variant='secondary'>User invited.</Typography>}
-          </div>}
-        {readMemberPermission &&
-        <div>
-          <Label>Members</Label>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">User</TableHead>
-                <TableHead className="w-[200px]">Name</TableHead>
-                {/* {removeMemberPermission && <TableHead className="w-[100px]">Actions</TableHead>} */}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map(({ id, teamProfile }, i) => (
-                <TableRow key={id}>
-                  <TableCell>
-                    <UserAvatar user={teamProfile}/>
-                  </TableCell>
-                  <TableCell>
-                    <Typography>{teamProfile.displayName}</Typography>
-                  </TableCell>
-                  {/* {removeMemberPermission && <TableCell>
-                    <ActionCell items={[
-                      { item: 'Remove', onClick: () => setRemoveModalOpen(true), danger: true },
-                    ]}/>
-                    <RemoveMemberDialog open={removeModalOpen} onOpenChange={setRemoveModalOpen} />
-                  </TableCell>} */}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>}
-      </div>
-    </>
-  );
-}
-
-function TeamCreationSection(props: { team: Team }) {
   return (
     <div>
-      <Label>Team display name</Label>
-      <EditableText value={props.team.displayName} onSave={() => {}}/>
+      <Label>Members</Label>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">User</TableHead>
+            <TableHead className="w-[200px]">Name</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map(({ id, teamProfile }, i) => (
+            <TableRow key={id}>
+              <TableCell>
+                <UserAvatar user={teamProfile}/>
+              </TableCell>
+              <TableCell>
+                <Typography>{teamProfile.displayName}</Typography>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
 
-const schema = yupObject({
+const teamCreationSchema = yupObject({
   displayName: yupString().required('Please enter a team name'),
 });
 
-export function TeamCreation(props: { fullPage?: boolean }) {
+export function TeamCreation() {
   const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(teamCreationSchema)
   });
   const app = useStackApp();
   const project = app.useProject();
@@ -536,7 +549,7 @@ export function TeamCreation(props: { fullPage?: boolean }) {
     return <MessageCard title='Team creation is not enabled' />;
   }
 
-  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+  const onSubmit = async (data: yup.InferType<typeof teamCreationSchema>) => {
     setLoading(true);
 
     try {

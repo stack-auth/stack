@@ -57,7 +57,7 @@ function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: n
         {item.icon && <item.icon className="mr-2 h-4 w-4" />}
         {item.title}
       </Button> :
-      <Typography key={index} type='label' variant='secondary'>
+      <Typography key={index}>
         {item.title}
       </Typography>
   ));
