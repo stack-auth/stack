@@ -16,6 +16,26 @@ interface NavProps {
   }[];
 }
 
+function AuthButtons() {
+  return (
+    <>
+      <Link
+        href="/login"
+        className={cn(buttonVariants({ variant: "secondary" }), "px-4")}
+      >
+        Sign In
+      </Link>
+
+      <Link
+        href="/login"
+        className={cn(buttonVariants({ variant: "default" }), "px-4")}
+      >
+        Sign Up
+      </Link>
+    </>
+  );
+}
+
 function MobileItems(props: NavProps) {
   return (
     <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 animate-in slide-in-from-bottom-80 md:hidden">
@@ -33,6 +53,10 @@ function MobileItems(props: NavProps) {
               {item.title}
             </Link>
           ))}
+          
+          <div className="flex flex-col gap-2 mt-4">
+            <AuthButtons />
+          </div>
         </nav>
       </div>
     </div>
@@ -92,13 +116,8 @@ export function NavHeader(props: NavProps) {
           {showMobileMenu && props.items && <MobileItems items={props.items} />}
         </div>
 
-        <nav>
-          <Link
-            href="/login"
-            className={cn(buttonVariants({ variant: "secondary" }), "px-4")}
-          >
-            Login
-          </Link>
+        <nav className="gap-4 items-center hidden md:flex">
+          <AuthButtons />
         </nav>
       </div>
     </header>

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
 import { StackProvider, StackTheme } from "@stackframe/stack";
-import { stackServerApp } from "../stack";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { stackServerApp } from "../stack";
 import "./globals.css";
+import { Provider } from "./provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}><StackProvider app={stackServerApp}><StackTheme>{children}</StackTheme></StackProvider></body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <Provider>
+          <StackProvider app={stackServerApp}>
+            <StackTheme>{children}</StackTheme>
+          </StackProvider>
+        </Provider>
+      </body>
     </html>
   );
 }
