@@ -230,10 +230,9 @@ function PasswordSection() {
                   setChangingPassword(true);
                 }}
               >
-            Change Password
+                Change Password
               </Button> :
               <form
-                className=""
                 onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
                 noValidate
               >
