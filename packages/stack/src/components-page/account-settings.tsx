@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
@@ -31,13 +31,15 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
       {
         title: 'My Profile',
         type: 'item',
-        content: <ProfileSection/>,
+        subpath: '/profile',
         icon: Contact,
+        content: <ProfileSection/>,
       },
       {
         title: 'Security',
         type: 'item',
         icon: ShieldCheck,
+        subpath: '/security',
         content: (
           <div className='flex flex-col gap-8'>
             <EmailVerificationSection />
@@ -48,9 +50,10 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
       },
       {
         title: 'Settings',
+        subpath: '/settings',
         type: 'item',
+        icon: Settings,
         content: <SignOutSection />,
-        icon: Settings
       },
       {
         title: 'Teams',
@@ -62,16 +65,19 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
           {team.displayName}
         </div>,
         type: 'item',
+        subpath: `/teams/${team.id}`,
         content: <TeamSection team={team}/>,
       } as const)),
       {
         title: 'Create a team',
         icon: CirclePlus,
         type: 'item',
+        subpath: '/team-creation',
         content: <TeamCreation />,
       }
     ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
     title='Account Settings'
+    basePath='/handler/account-settings'
   />;
 
   if (fullPage) {
