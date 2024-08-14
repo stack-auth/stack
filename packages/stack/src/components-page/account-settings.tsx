@@ -25,6 +25,7 @@ import { TeamIcon } from '../components/team-icon';
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
+  const project = useStackApp().useProject();
 
   const inner = <SidebarLayout
     items={([
@@ -55,10 +56,10 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         icon: Settings,
         content: <SignOutSection />,
       },
-      {
+      ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
         title: 'Teams',
         type: 'divider',
-      },
+      }] : [],
       ...teams.map(team => ({
         title: <div className='flex gap-2 items-center'>
           <TeamIcon team={team}/>
@@ -68,13 +69,13 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         subpath: `/teams/${team.id}`,
         content: <TeamSection team={team}/>,
       } as const)),
-      {
+      ...project.config.clientTeamCreationEnabled ? [{
         title: 'Create a team',
         icon: CirclePlus,
         type: 'item',
         subpath: '/team-creation',
         content: <TeamCreation />,
-      }
+      }] : [],
     ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
     title='Account Settings'
     basePath='/handler/account-settings'
@@ -89,44 +90,6 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   } else {
     return inner;
   }
-}
-
-
-function SettingSection(props: {
-  title: string,
-  desc?: string,
-  buttonText?: string,
-  buttonDisabled?: boolean,
-  onButtonClick?: React.ComponentProps<typeof Button>["onClick"],
-  buttonVariant?: 'default' | 'secondary',
-  children?: React.ReactNode,
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <div>
-          <Typography type='h4'>{props.title}</Typography>
-          <Typography type='label' variant='secondary'>{props.desc}</Typography>
-        </div>
-      </CardHeader>
-      {props.children && <CardContent>
-        <div className='flex flex-col gap-4'>
-          {props.children}
-        </div>
-      </CardContent>}
-      {props.buttonText && <CardFooter>
-        <div className='flex justify-end w-full'>
-          <Button
-            disabled={props.buttonDisabled}
-            onClick={props.onButtonClick}
-            variant={props.buttonVariant}
-          >
-            {props.buttonText}
-          </Button>
-        </div>
-      </CardFooter>}
-    </Card>
-  );
 }
 
 function ProfileSection() {
@@ -569,7 +532,6 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   const project = app.useProject();
   const user = useUser({ or: 'redirect' });
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   if (!project.config.clientTeamCreationEnabled) {
     return <MessageCard title='Team creation is not enabled' />;
@@ -589,23 +551,6 @@ export function TeamCreation(props: { fullPage?: boolean }) {
 
   return (
     <div className='stack-scope flex flex-col items-stretch'>
-      {/* <SettingSection
-        title="Create a new team"
-        buttonDisabled={loading}
-        buttonText="Create"
-        onButtonClick={handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col">
-          <Label htmlFor="email" className="mb-1">Display name</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register('displayName')}
-          />
-        </div>
-        <FormWarningText text={errors.displayName?.message?.toString()} />
-      </SettingSection> */}
-
       <div className="mb-6">
         <form
           className="flex flex-col items-stretch stack-scope"
