@@ -7,6 +7,8 @@ import { useSelectedLayoutSegment } from "next/navigation";
 import * as React from "react";
 import { Logo } from "./logo";
 import { Button, buttonVariants } from "./ui/button";
+import { ColorModeSwitcher } from "./color-mode-switcher";
+import { useStackApp, useUser } from "@stackframe/stack";
 
 interface NavProps {
   items?: {
@@ -17,23 +19,37 @@ interface NavProps {
 }
 
 function AuthButtons() {
-  return (
-    <>
-      <Link
-        href="/login"
-        className={cn(buttonVariants({ variant: "secondary" }), "px-4")}
-      >
-        Sign In
-      </Link>
+  const app = useStackApp();
+  const user = useUser();
 
+  if (user) {
+    return (
       <Link
-        href="/login"
-        className={cn(buttonVariants({ variant: "default" }), "px-4")}
+        href="/dashboard"
+        className={buttonVariants({ variant: "default" })}
       >
-        Sign Up
+        Dashboard
       </Link>
-    </>
-  );
+    );
+  } else {
+    return (
+      <>
+        <Link
+          href={app.urls.signIn}
+          className={buttonVariants({ variant: "secondary" })}
+        >
+          Sign In
+        </Link>
+
+        <Link
+          href={app.urls.signUp}
+          className={buttonVariants({ variant: "default" })}
+        >
+          Sign Up
+        </Link>
+      </>
+    );
+  }
 }
 
 function MobileItems(props: NavProps) {
@@ -53,7 +69,7 @@ function MobileItems(props: NavProps) {
               {item.title}
             </Link>
           ))}
-          
+
           <div className="flex flex-col gap-2 mt-4">
             <AuthButtons />
           </div>
@@ -116,9 +132,12 @@ export function NavHeader(props: NavProps) {
           {showMobileMenu && props.items && <MobileItems items={props.items} />}
         </div>
 
-        <nav className="gap-4 items-center hidden md:flex">
-          <AuthButtons />
-        </nav>
+        <div className="flex gap-4 items-center">
+          <ColorModeSwitcher />
+          <nav className="gap-4 items-center hidden md:flex">
+            <AuthButtons />
+          </nav>
+        </div>
       </div>
     </header>
   );
