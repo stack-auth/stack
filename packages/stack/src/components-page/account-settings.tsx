@@ -6,8 +6,8 @@ import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-
 import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
-import { runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
+import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
@@ -167,101 +167,115 @@ function EmailVerificationSection() {
   );
 }
 
+
 function PasswordSection() {
+  const schema = yupObject({
+    oldPassword: yupString().required('Please enter your old password'),
+    newPassword: yupString().required('Please enter your password').test({
+      name: 'is-valid-password',
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
+      }
+    }),
+    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], 'Passwords do not match').required('Please repeat your password')
+  });
+
   const user = useUser({ or: "throw" });
-  const [oldPassword, setOldPassword] = useState<string>('');
-  const [oldPasswordError, setOldPasswordError] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [newPasswordError, setNewPasswordError] = useState<string>('');
-  const [repeatNewPassword, setRepeatNewPassword] = useState<string>('');
-  const [repeatNewPasswordError, setRepeatNewPasswordError] = useState<string>('');
-  const [passwordChanged, setPasswordChanged] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
+    resolver: yupResolver(schema)
+  });
+  const [alreadyReset, setAlreadyReset] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
+    setLoading(true);
+    try {
+      const { oldPassword, newPassword } = data;
+      const error = await user.updatePassword({ oldPassword, newPassword });
+      if (error) {
+        setError('oldPassword', { type: 'manual', message: 'Incorrect password' });
+      } else {
+        reset();
+        setAlreadyReset(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerPassword = register('newPassword');
+  const registerPasswordRepeat = register('newPasswordRepeat');
 
   if (!user.hasPassword) {
     return null;
   }
 
   return (
-    <SettingSection
-      title='Password'
-      desc='Change your password here.'
-      buttonDisabled={passwordChanged || (!oldPassword && !newPassword && !repeatNewPassword)}
-      buttonText={passwordChanged ? "Password changed!" : 'Update Password'}
-      onButtonClick={async () => {
-        setOldPasswordError('');
-        setNewPasswordError('');
-        setRepeatNewPasswordError('');
-        if (!oldPassword) {
-          setOldPasswordError('Please enter your old password');
-          return;
-        } else if (!newPassword) {
-          setNewPasswordError('Please enter a new password');
-          return;
-        } else if (!repeatNewPassword) {
-            setRepeatNewPasswordError('Please repeat your new password');
-            return;
-        } else {
-          const errorMessage = getPasswordError(newPassword);
-          if (errorMessage) {
-            setNewPasswordError(errorMessage.message);
-          } else {
-            if (newPassword !== repeatNewPassword) {
-              setRepeatNewPasswordError('Passwords do not match');
-              return;
-            }
-            const errorCode = await user.updatePassword({ oldPassword, newPassword });
-            if (errorCode) {
-              setOldPasswordError('Incorrect password');
-            } else {
-              setOldPassword('');
-              setNewPassword('');
-              setRepeatNewPassword('');
-              setPasswordChanged(true);
-            }
-          }
+    <div>
+      <Label>Change password</Label>
+      <div>
+        {
+          alreadyReset ?
+            <Typography variant='success'>Password changed successfully!</Typography> :
+            !changingPassword ?
+              <Button
+                variant='secondary'
+                onClick={async () => {
+                  setChangingPassword(true);
+                }}
+              >
+            Change Password
+              </Button> :
+              <form
+                className=""
+                onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+                noValidate
+              >
+                <Label htmlFor="old-password" className="mb-1">Old password</Label>
+                <Input
+                  id="old-password"
+                  type="password"
+                  {...register('oldPassword')}
+                />
+                <FormWarningText text={errors.oldPassword?.message?.toString()} />
+
+                <Label htmlFor="new-password" className="mt-4 mb-1">Password</Label>
+                <PasswordInput
+                  id="new-password"
+                  {...registerPassword}
+                  onChange={(e) => {
+                    clearErrors('newPassword');
+                    clearErrors('newPasswordRepeat');
+                    runAsynchronously(registerPassword.onChange(e));
+                  }}
+                />
+                <FormWarningText text={errors.newPassword?.message?.toString()} />
+
+                <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat password</Label>
+                <PasswordInput
+                  id="repeat-password"
+                  {...registerPasswordRepeat}
+                  onChange={(e) => {
+                    clearErrors('newPassword');
+                    clearErrors('newPasswordRepeat');
+                    runAsynchronously(registerPasswordRepeat.onChange(e));
+                  }}
+                />
+                <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
+
+                <Button type="submit" className="mt-6" loading={loading}>
+                  Change Password
+                </Button>
+              </form>
         }
-      }}
-    >
-      <div className='flex flex-col'>
-        <Label htmlFor='old-password' className='mb-1'>Old Password</Label>
-        <PasswordInput
-          id='old-password'
-          value={oldPassword}
-          onChange={(e) => {
-            setOldPassword(e.target.value);
-            setOldPasswordError('');
-            setPasswordChanged(false);
-          }}
-        />
-        <FormWarningText text={oldPasswordError} />
       </div>
-      <div className='flex flex-col'>
-        <Label htmlFor='new-password' className='mb-1'>New Password</Label>
-        <PasswordInput
-          id='new-password'
-          value={newPassword}
-          onChange={(e) => {
-            setNewPassword(e.target.value);
-            setNewPasswordError('');
-            setPasswordChanged(false);
-          }}
-        />
-        <FormWarningText text={newPasswordError} />
-      </div>
-      <div className='flex flex-col'>
-        <Label htmlFor='repeat-new-password' className='mb-1'>Repeat New Password</Label>
-        <PasswordInput
-          id='repeat-new-password'
-          value={repeatNewPassword}
-          onChange={(e) => {
-            setRepeatNewPassword(e.target.value);
-            setRepeatNewPasswordError('');
-            setPasswordChanged(false);
-          }}
-        />
-        <FormWarningText text={repeatNewPasswordError} />
-      </div>
-    </SettingSection>
+    </div>
   );
 }
 
@@ -294,57 +308,6 @@ function MfaSection() {
   }, [mfaCode, generatedSecret, handleSubmit]);
 
   return (
-  //   <SettingSection
-  //     title='Multi-factor Authentication'
-  //     desc='Secure your account with an additional layer of security.'
-  //     buttonVariant='secondary'
-  //     buttonText={isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
-  //     onButtonClick={async () => {
-  //       if (isEnabled) {
-  //         await user.update({
-  //           totpMultiFactorSecret: null,
-  //         });
-  //       } else if (!generatedSecret) {
-  //         const secret = generateRandomValues(new Uint8Array(20));
-  //         setQrCodeUrl(await generateTotpQrCode(project, user, secret));
-  //         setGeneratedSecret(secret);
-  //       } else {
-  //         setGeneratedSecret(null);
-  //         setQrCodeUrl(null);
-  //         setMfaCode("");
-  //       }
-  //     }}
-  //   >
-  //     {isEnabled ? (
-  //       <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
-  //     ) : (
-  //       generatedSecret ? (
-  //         <div className='flex flex-col gap-4 items-center'>
-  //           <Typography>Scan this QR code with your authenticator app:</Typography>
-  //           <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
-  //           <Typography>Then, enter your six-digit MFA code:</Typography>
-  //           <Input
-  //             value={mfaCode}
-  //             onChange={(e) => {
-  //               setIsMaybeWrong(false);
-  //               setMfaCode(e.target.value);
-  //             }}
-  //             placeholder="123456"
-  //             maxLength={6}
-  //             disabled={isLoading}
-  //           />
-  //           {isMaybeWrong && mfaCode.length === 6 && (
-  //             <Typography variant="destructive">Incorrect code. Please try again.</Typography>
-  //           )}
-  //         </div>
-  //       ) : (
-  //         <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
-  //       )
-  //     )}
-  //   </SettingSection>
-  // );
-
-    // new design without setting section
     <div>
       <div>
         <Label>Multi-factor Authentication</Label>
@@ -532,13 +495,15 @@ function membersSettings(props: { team: Team }) {
         {inviteMemberPermission &&
           <div>
             <Label>Invite a user to team</Label>
-            <div className="flex flex-col gap-2 md:flex-row">
-              <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+            <div className="flex flex-col gap-4 md:flex-row">
+              <div>
+                <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+              </div>
               <Button onClick={async () => {
                 await props.team.inviteUser({ email });
                 setEmail('');
                 setInvited(true);
-              }}>Invite</Button>
+              }}>Invite User</Button>
             </div>
             {invited && <Typography type='label' variant='secondary'>User invited.</Typography>}
           </div>}
@@ -619,7 +584,7 @@ export function TeamCreation(props: { fullPage?: boolean }) {
 
   return (
     <div className='stack-scope flex flex-col items-stretch'>
-      <SettingSection
+      {/* <SettingSection
         title="Create a new team"
         buttonDisabled={loading}
         buttonText="Create"
@@ -634,7 +599,31 @@ export function TeamCreation(props: { fullPage?: boolean }) {
           />
         </div>
         <FormWarningText text={errors.displayName?.message?.toString()} />
-      </SettingSection>
+      </SettingSection> */}
+
+      <div className="mb-6">
+        <form
+          className="flex flex-col items-stretch stack-scope"
+          onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+          noValidate
+        >
+          <div className="flex items-end gap-4">
+            <div>
+              <Label htmlFor="email" className="mb-1">Display name</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register('displayName')}
+              />
+            </div>
+            <FormWarningText text={errors.displayName?.message?.toString()} />
+
+            <Button type="submit" className="mt-6" loading={loading}>
+              Create
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
