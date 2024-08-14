@@ -940,6 +940,26 @@ export class StackClientInterface {
     );
   }
 
+  async updateTeam(
+    options: {
+      teamId: string,
+      data: TeamsCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/teams/${options.teamId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.data),
+      },
+      session,
+    );
+  }
+
   async listCurrentUserTeamPermissions(
     options: {
       teamId: string,

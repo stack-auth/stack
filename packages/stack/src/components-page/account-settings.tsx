@@ -408,7 +408,10 @@ function ManagementSettings(props: { team: Team }) {
     <>
       <div>
         <Label>Team display name</Label>
-        <EditableText value={props.team.displayName} onSave={() => {}}/>
+        <EditableText
+          value={props.team.displayName}
+          onSave={async (newDisplayName) => await props.team.update({ displayName: newDisplayName })}
+        />
       </div>
     </>
   );
@@ -557,8 +560,6 @@ export function TeamCreation() {
     } finally {
       setLoading(false);
     }
-
-    window.location.reload();
   };
 
   return (
