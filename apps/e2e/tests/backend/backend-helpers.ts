@@ -58,6 +58,7 @@ function expectSnakeCase(obj: unknown, path: string): void {
       if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
         throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
       }
+      if (key === "client_metadata" || key === "server_metadata") continue;
       expectSnakeCase(value, `${path}.${key}`);
     }
   }
@@ -574,7 +575,7 @@ export namespace ContactChannels {
 }
 
 export namespace ApiKey {
-  export async function create(adminAccessToken: string, body?: any) {
+  export async function create(adminAccessToken?: string, body?: any) {
     const oldProjectKeys = backendContext.value.projectKeys;
     if (oldProjectKeys === 'no-project') {
       throw new Error("Cannot set API key context without a project");
@@ -592,7 +593,7 @@ export namespace ApiKey {
         ...body,
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
+        'x-stack-admin-access-token': adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")),
       }
     });
     expect(response.status).equals(200);
@@ -609,7 +610,7 @@ export namespace ApiKey {
   }
 
   export async function createAndSetProjectKeys(adminAccessToken?: string, body?: any) {
-    const res = await ApiKey.create(adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")), body);
+    const res = await ApiKey.create(adminAccessToken, body);
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
   }
@@ -661,10 +662,9 @@ export namespace Project {
     expect(adminAccessToken).toBeDefined();
     const { projectId, createProjectResponse } = await Project.create(body);
 
-    const createResult = await Project.create(body);
     backendContext.set({
       projectKeys: {
-        projectId: createResult.projectId,
+        projectId,
       },
       userAuth: null,
     });

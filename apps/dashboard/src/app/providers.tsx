@@ -10,6 +10,8 @@ if (typeof window !== 'undefined') {
     posthog.init(postHogKey, {
       api_host: "/consume",
       ui_host: "https://eu.i.posthog.com",
+      capture_pageview: false,
+      capture_pageleave: true,
     });
   }
 }

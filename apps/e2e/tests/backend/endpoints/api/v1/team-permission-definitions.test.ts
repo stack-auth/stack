@@ -3,9 +3,7 @@ import { InternalProjectKeys, Project, backendContext, niceBackendFetch } from "
 
 
 it("lists all the team permissions", async ({ expect }) => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
+  backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   const response = await niceBackendFetch(`/api/v1/team-permission-definitions`, {

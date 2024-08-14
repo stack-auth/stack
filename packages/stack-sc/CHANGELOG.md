@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+
 ## 2.5.18
 
 ## 2.5.17

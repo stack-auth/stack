@@ -1,5 +1,13 @@
 # e2e-tests
 
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.19
+
 ## 2.5.18
 
 ### Patch Changes

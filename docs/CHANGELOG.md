@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+
 ## 2.5.18
 
 ### Patch Changes

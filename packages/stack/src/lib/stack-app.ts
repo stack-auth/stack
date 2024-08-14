@@ -72,7 +72,6 @@ export type HandlerUrls = {
   magicLinkCallback: string,
   accountSettings: string,
   teamInvitation: string,
-  teamCreation: string,
   error: string,
 }
 
@@ -105,7 +104,6 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
     teamInvitation: `${handler}/team-invitation`,
-    teamCreation: `${handler}/team-creation`,
     ...filterUndefined(partial),
   };
 }
@@ -742,6 +740,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = useAsyncCache(app._teamMemberProfilesCache, [app._getSession(), crud.id], "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
+      async update(data: TeamUpdateOptions){
+        await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, app._getSession());
+        await app._currentUserTeamsCache.refresh([app._getSession()]);
+      }
     };
   }
 
@@ -1026,7 +1028,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
-  async redirectToTeamCreation(options?: RedirectToOptions) { return await this._redirectToHandler("teamCreation", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -2696,7 +2697,19 @@ export type Team = {
   inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
+  update(update: TeamUpdateOptions): Promise<void>,
 };
+
+export type TeamUpdateOptions = {
+  displayName?: string,
+  profileImageUrl?: string | null,
+};
+function teamUpdateOptionsToCrud(options: TeamUpdateOptions): TeamsCrud["Client"]["Update"] {
+  return {
+    display_name: options.displayName,
+    profile_image_url: options.profileImageUrl
+  };
+}
 
 export type TeamCreateOptions = {
   displayName: string,

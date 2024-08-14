@@ -1,5 +1,13 @@
 # cjs-test
 
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack@2.5.19
+
 ## 2.5.18
 
 ### Patch Changes
