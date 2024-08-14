@@ -28,6 +28,8 @@
     "nicify",
     "oidc",
     "openapi",
+    "pageleave",
+    "pageview",
     "posthog",
     "Proxied",
     "qrcode",
