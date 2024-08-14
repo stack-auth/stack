@@ -7,12 +7,11 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, Card, CardContent, CardFooter, CardHeader, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Button, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, Settings, ShieldCheck } from 'lucide-react';
-import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
@@ -59,7 +58,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
       ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
         title: 'Teams',
         type: 'divider',
-      }] : [],
+      }] as const : [],
       ...teams.map(team => ({
         title: <div className='flex gap-2 items-center'>
           <TeamIcon team={team}/>
@@ -75,7 +74,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         type: 'item',
         subpath: '/team-creation',
         content: <TeamCreation />,
-      }] : [],
+      }] as const : [],
     ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
     title='Account Settings'
     basePath='/handler/account-settings'

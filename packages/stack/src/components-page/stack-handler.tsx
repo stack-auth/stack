@@ -60,7 +60,6 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     oauthCallback: 'oauth-callback',
     magicLinkCallback: 'magic-link-callback',
     teamInvitation: 'team-invitation',
-    teamCreation: 'team-creation',
     error: 'error',
   };
 
@@ -107,15 +106,6 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
       return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
-    }
-    case availablePaths.teamCreation: {
-      const project = await app.getProject();
-      if (!project.config.clientTeamCreationEnabled) {
-        return notFound();
-      }
-
-      redirectIfNotHandler('teamCreation');
-      return <TeamCreation fullPage={fullPage} />;
     }
     case availablePaths.error: {
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
