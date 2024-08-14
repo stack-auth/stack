@@ -18,6 +18,7 @@ import {
 import { Button, buttonVariants } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { ColorModeSwitcher } from "./color-mode-switcher";
+import { Separator } from "./ui/separator";
 
 type BreadcrumbItem = { item: React.ReactNode; href: string };
 
@@ -28,12 +29,11 @@ type Item = {
   type: "item";
 };
 
-type Label = {
-  name: React.ReactNode;
-  type: "label";
+type Sep = {
+  type: "separator";
 };
 
-export type SidebarItem = Item | Label;
+export type SidebarItem = Item | Sep;
 
 function NavItem({
   item,
@@ -58,7 +58,7 @@ function NavItem({
       onClick={onClick}
       prefetch={true}
     >
-      <item.icon className="mr-2 h-4 w-4" />
+      <item.icon className="mr-2 h-5 w-5" />
       {item.name}
     </Link>
   );
@@ -75,14 +75,9 @@ function SidebarContent(props: {
       <div className="h-14 border-b flex items-center px-2 shrink-0">asdf</div>
       <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
         {props.items.map((item, index) => {
-          if (item.type === "label") {
+          if (item.type === "separator") {
             return (
-              <p
-                key={index}
-                className="pl-2 mt-3 mb-1 text-zinc-500 dark:text-zinc-400"
-              >
-                {item.name}
-              </p>
+              <Separator key={index}/>
             );
           } else if (item.type === "item") {
             return (

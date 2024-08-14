@@ -6,10 +6,6 @@ import { ShieldEllipsis, User, Users } from "lucide-react";
 const navigationItems: SidebarItem[] = [
   {
     name: "Users",
-    type: "label",
-  },
-  {
-    name: "Users",
     href: "/users",
     icon: User,
     type: "item",
@@ -21,8 +17,7 @@ const navigationItems: SidebarItem[] = [
     type: "item",
   },
   {
-    name: "Teams",
-    type: "label",
+    type: 'separator'
   },
   {
     name: "Teams",
