@@ -6,6 +6,7 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { prismaClient } from "@/prisma-client";
 import withPostHog from "@/analytics";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 
 type EventType = {
   id: string,
@@ -145,6 +146,9 @@ export async function logEvent<T extends EventType[]>(
       posthog.capture({
         event: postHogEventName,
         distinctId,
+        groups: filterUndefined({
+          projectId: typeof data === "object" && data && "projectId" in data ? (data.projectId as string) : undefined,
+        }),
         timestamp: timeRange.end,
         properties: {
           data,
