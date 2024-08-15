@@ -8,7 +8,6 @@ import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
-import { DiscordProvider } from "@/oauth/providers/discord";
 
 const _providers = {
   github: GithubProvider,
@@ -16,7 +15,6 @@ const _providers = {
   facebook: FacebookProvider,
   microsoft: MicrosoftProvider,
   spotify: SpotifyProvider,
-  discord: DiscordProvider,
 } as const;
 
 const _getEnvForProvider = (provider: keyof typeof _providers) => {

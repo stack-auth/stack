@@ -16,7 +16,6 @@ function toDBSharedProvider(type: SharedProvider): ProxiedOAuthProviderType {
     "shared-facebook": "FACEBOOK",
     "shared-microsoft": "MICROSOFT",
     "shared-spotify": "SPOTIFY",
-    "shared-discord": "DISCORD",
   } as any)[type];
 }
 
@@ -27,7 +26,6 @@ function toDBStandardProvider(type: StandardProvider): StandardOAuthProviderType
     "google": "GOOGLE",
     "microsoft": "MICROSOFT",
     "spotify": "SPOTIFY",
-    "discord": "DISCORD",
   } as const)[type];
 }
 
@@ -38,7 +36,6 @@ function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
     "FACEBOOK": "shared-facebook",
     "MICROSOFT": "shared-microsoft",
     "SPOTIFY": "shared-spotify",
-    "DISCORD": "shared-discord",
   } as const)[type];
 }
 
@@ -49,7 +46,6 @@ function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvid
     "GOOGLE": "google",
     "MICROSOFT": "microsoft",
     "SPOTIFY": "spotify",
-    "DISCORD": "discord",
   } as const)[type];
 }
 

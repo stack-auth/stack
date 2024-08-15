@@ -218,24 +218,22 @@ export type ServerUserUpdateJson = UserUpdateJson & {
   primaryEmailVerified?: boolean,
 }
 
-export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify" | "shared-discord";
+export type SharedProvider = "shared-github" | "shared-google" | "shared-facebook" | "shared-microsoft" | "shared-spotify";
 export const sharedProviders = [
   "shared-github",
   "shared-google",
   "shared-facebook",
   "shared-microsoft",
   "shared-spotify",
-  "shared-discord",
 ] as const;
 
-export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify" | "discord";
+export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify";
 export const standardProviders = [
   "github",
   "facebook",
   "google",
   "microsoft",
   "spotify",
-  "discord",
 ] as const;
 
 export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {
