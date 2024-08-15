@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import { useUser } from "@stackframe/stack";
+import { useRouter } from "next/navigation";
 
 export function PageClient() {
+  const router = useRouter();
   const user = useUser({ or: "redirect" });
   const teams = user.useTeams();
   const [teamDisplayName, setTeamDisplayName] = React.useState("");
@@ -45,6 +47,8 @@ export function PageClient() {
         </div>
       </div>
     );
+  } else if (user.selectedTeam) {
+    router.push(`/dashboard/${user.selectedTeam.id}`);
   }
 
   return null;
