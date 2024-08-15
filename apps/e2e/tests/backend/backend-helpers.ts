@@ -179,7 +179,8 @@ export namespace Auth {
       `);
       const messages = await mailbox.fetchMessages({ noBody: true });
       const subjects = messages.map((message) => message.subject);
-      expect(subjects).toContain("Sign in to Stack Dashboard");
+      const containsSubstring = subjects.some(str => str.includes("Sign in to"));
+      expect(containsSubstring).toBe(true);
       return {
         sendSignInCodeResponse: response,
       };

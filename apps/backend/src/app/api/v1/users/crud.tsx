@@ -11,7 +11,8 @@ import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { teamPrismaToCrud } from "../teams/crud";
+import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
+import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -190,6 +191,24 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
     const result = userPrismaToCrud(db);
+
+    if (auth.project.config.create_team_on_sign_up) {
+      await teamsCrudHandlers.adminCreate({
+        data: {
+          display_name: data.display_name ?
+            `${data.display_name}'s Team` :
+            data.primary_email ?
+              `${data.primary_email}'s Team` :
+              "Personal Team"
+        },
+        query: {
+          add_current_user: "true",
+        },
+        project: auth.project,
+        user: result,
+      });
+    }
+
 
     await sendUserCreatedWebhook({
       projectId: auth.project.id,

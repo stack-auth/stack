@@ -1,5 +1,5 @@
 import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -447,6 +447,51 @@ it("deletes a team on the server", async ({ expect }) => {
       "body": {
         "is_paginated": false,
         "items": [],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("enables create team on sign up", async ({ expect }) => {
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const response = await niceBackendFetch("/api/v1/projects/current", {
+    accessType: "admin",
+    method: "PATCH",
+    body: {
+      config: {
+        create_team_on_sign_up: true,
+        magic_link_enabled: true,
+      }
+    },
+    headers: {
+      "x-stack-admin-access-token": adminAccessToken,
+    },
+  });
+
+  expect(response.body.config.create_team_on_sign_up).toBe(true);
+
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
+
+  backendContext.set({
+    mailbox: createMailbox()
+  });
+  await Auth.Otp.signIn();
+
+  const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "<stripped UUID>@stack-generated.example.com's Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+          },
+        ],
       },
       "headers": Headers { <some fields may have been hidden> },
     }
