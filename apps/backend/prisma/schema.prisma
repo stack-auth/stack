@@ -548,6 +548,7 @@ enum ProxiedOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  DISCORD
 }
 
 model StandardOAuthProviderConfig {
@@ -574,6 +575,7 @@ enum StandardOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  DISCORD
 }
 
 //#endregion

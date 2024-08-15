@@ -10,6 +10,7 @@ import { GoogleProvider } from "./providers/google";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
 import { MockProvider } from "./providers/mock";
+import { DiscordProvider } from "@/oauth/providers/discord";
 
 const _providers = {
   github: GithubProvider,
@@ -17,6 +18,7 @@ const _providers = {
   facebook: FacebookProvider,
   microsoft: MicrosoftProvider,
   spotify: SpotifyProvider,
+  discord: DiscordProvider,
 } as const;
 
 const mockProvider = MockProvider;
