@@ -7,8 +7,8 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, Container, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, Settings, ShieldCheck } from 'lucide-react';
+import { Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { CirclePlus, Contact, LogOut, ShieldCheck } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
+import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
 import { TeamIcon } from '../components/team-icon';
@@ -49,10 +50,10 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         ),
       },
       {
-        title: 'Settings',
-        subpath: '/settings',
+        title: 'Sign Out',
+        subpath: '/sign-out',
         type: 'item',
-        icon: Settings,
+        icon: LogOut,
         content: <SignOutSection />,
       },
       ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
@@ -88,15 +89,11 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
     basePath='/handler/account-settings'
   />;
 
-  if (fullPage) {
-    return (
-      <Container size={1000} className='stack-scope'>
-        {inner}
-      </Container>
-    );
-  } else {
-    return inner;
-  }
+  return (
+    <MaybeFullPage fullPage={fullPage} size={800} fullVertical containerClassName="sm:border-r sm:border-l">
+      {inner}
+    </MaybeFullPage>
+  );
 }
 
 function ProfileSection() {
@@ -118,6 +115,10 @@ function EmailVerificationSection() {
   const user = useUser({ or: 'redirect' });
   const [emailSent, setEmailSent] = useState(false);
 
+  if (!user.primaryEmail) {
+    return null;
+  }
+
   return (
     <>
       <div>
@@ -125,19 +126,22 @@ function EmailVerificationSection() {
         {user.primaryEmailVerified ? (
           <Typography variant='success'>Your email has been verified.</Typography>
         ) : (
-          <Typography variant='destructive'>Your email has not been verified.</Typography>
+          <>
+            <Typography variant='destructive'>Your email has not been verified.</Typography>
+            <div className='flex mt-4'>
+              <Button
+                disabled={emailSent}
+                onClick={async () => {
+                  await user.sendVerificationEmail();
+                  setEmailSent(true);
+                }}
+              >
+                {emailSent ? 'Email sent!' : 'Send Verification Email'}
+              </Button>
+            </div>
+          </>
         )}
-        <div className='flex mt-4'>
-          <Button
-            disabled={emailSent}
-            onClick={async () => {
-              await user.sendVerificationEmail();
-            setEmailSent(true);
-            }}
-          >
-            {emailSent ? 'Email sent!' : 'Send Verification Email'}
-          </Button>
-        </div>
+
       </div>
     </>
   );
