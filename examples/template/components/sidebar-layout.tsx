@@ -15,12 +15,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
-import { Button, buttonVariants } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { ColorModeSwitcher } from "./color-mode-switcher";
+import { buttonVariants } from "./ui/button";
 import { Separator } from "./ui/separator";
-
-type BreadcrumbItem = { item: React.ReactNode; href: string };
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 type Item = {
   name: React.ReactNode;
@@ -67,25 +64,28 @@ function NavItem({
 function SidebarContent(props: {
   onNavigate?: () => void;
   items: SidebarItem[];
+  sidebarTop?: React.ReactNode;
 }) {
   const path = usePathname();
+  const segment = useSelectedLayoutSegment();
+  const basePath = path.split("/").at(-1) === segment ? path : path.split("/").slice(0, -1).join("/");
 
   return (
     <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 border-b flex items-center px-2 shrink-0">asdf</div>
-      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
+      <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0">
+        {props.sidebarTop}
+      </div>
+      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto border-t">
         {props.items.map((item, index) => {
           if (item.type === "separator") {
-            return (
-              <Separator key={index}/>
-            );
+            return <Separator key={index} />;
           } else if (item.type === "item") {
             return (
               <div key={index} className="flex px-2">
                 <NavItem
                   item={item}
                   onClick={props.onNavigate}
-                  href={path.split("/").slice(0, -1).join("/") + item.href}
+                  href={basePath + item.href}
                 />
               </div>
             );
@@ -127,6 +127,7 @@ export default function SidebarLayout(props: {
   children?: React.ReactNode;
   baseBreadcrumb?: HeaderBreadcrumbItem[];
   items: SidebarItem[];
+  sidebarTop?: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
@@ -134,7 +135,7 @@ export default function SidebarLayout(props: {
   return (
     <div className="w-full flex">
       <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
-        <SidebarContent items={props.items} />
+        <SidebarContent items={props.items} sidebarTop={props.sidebarTop} />
       </div>
       <div className="flex flex-col flex-grow w-0">
         <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
@@ -154,6 +155,7 @@ export default function SidebarLayout(props: {
                 <SidebarContent
                   onNavigate={() => setSidebarOpen(false)}
                   items={props.items}
+                  sidebarTop={props.sidebarTop}
                 />
               </SheetContent>
             </Sheet>
