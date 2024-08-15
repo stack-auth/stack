@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+
 ## 2.5.19
 
 ### Patch Changes
