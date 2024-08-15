@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.20
+  - @stackframe/stack-shared@2.5.20
+
 ## 2.5.19
 
 ### Patch Changes

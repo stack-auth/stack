@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+  - @stackframe/stack-sc@2.5.20
+
 ## 2.5.19
 
 ### Patch Changes

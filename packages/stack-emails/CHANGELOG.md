@@ -1,5 +1,14 @@
 # @stackframe/stack-emails
 
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.20
+  - @stackframe/stack-ui@2.5.20
+
 ## 2.5.19
 
 ### Patch Changes
