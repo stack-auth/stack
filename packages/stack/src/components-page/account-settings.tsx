@@ -27,72 +27,68 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const teams = user.useTeams();
   const project = useStackApp().useProject();
 
-  const inner = <SidebarLayout
-    items={([
-      {
-        title: 'My Profile',
-        type: 'item',
-        subpath: '/profile',
-        icon: Contact,
-        content: <ProfileSection/>,
-      },
-      {
-        title: 'Security',
-        type: 'item',
-        icon: ShieldCheck,
-        subpath: '/security',
-        content: (
-          <div className='flex flex-col gap-8'>
-            <EmailVerificationSection />
-            <PasswordSection />
-            <MfaSection />
-          </div>
-        ),
-      },
-      {
-        title: 'Sign Out',
-        subpath: '/sign-out',
-        type: 'item',
-        icon: LogOut,
-        content: <SignOutSection />,
-      },
-      ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
-        title: 'Teams',
-        type: 'divider',
-      }] as const : [],
-      ...teams.map(team => ({
-        title: <div className='flex gap-2 items-center'>
-          <TeamIcon team={team}/>
-          {team.displayName}
-        </div>,
-        type: 'item',
-        subpath: `/teams/${team.id}`,
-        content: (
-          <div className="flex flex-col gap-8">
-            <ProfileSettings team={team}/>
-            <ManagementSettings team={team}/>
-            <MemberInvitation team={team}/>
-            <MembersSettings team={team}/>
-            <UserSettings team={team}/>
-          </div>
-        ),
-      } as const)),
-      ...project.config.clientTeamCreationEnabled ? [{
-        title: 'Create a team',
-        icon: CirclePlus,
-        type: 'item',
-        subpath: '/team-creation',
-        content: <TeamCreation />,
-      }] as const : [],
-    ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
-    title='Account Settings'
-    basePath='/handler/account-settings'
-  />;
-
   return (
-    <MaybeFullPage fullPage={fullPage} size={800} fullVertical containerClassName="sm:border-r sm:border-l">
-      {inner}
-    </MaybeFullPage>
+    <SidebarLayout
+      items={([
+        {
+          title: 'My Profile',
+          type: 'item',
+          subpath: '/profile',
+          icon: Contact,
+          content: <ProfileSection/>,
+        },
+        {
+          title: 'Security',
+          type: 'item',
+          icon: ShieldCheck,
+          subpath: '/security',
+          content: (
+            <div className='flex flex-col gap-8'>
+              <EmailVerificationSection />
+              <PasswordSection />
+              <MfaSection />
+            </div>
+          ),
+        },
+        {
+          title: 'Sign Out',
+          subpath: '/sign-out',
+          type: 'item',
+          icon: LogOut,
+          content: <SignOutSection />,
+        },
+        ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
+          title: 'Teams',
+          type: 'divider',
+        }] as const : [],
+        ...teams.map(team => ({
+          title: <div className='flex gap-2 items-center'>
+            <TeamIcon team={team}/>
+            {team.displayName}
+          </div>,
+          type: 'item',
+          subpath: `/teams/${team.id}`,
+          content: (
+            <div className="flex flex-col gap-8">
+              <ProfileSettings team={team}/>
+              <ManagementSettings team={team}/>
+              <MemberInvitation team={team}/>
+              <MembersSettings team={team}/>
+              <UserSettings team={team}/>
+            </div>
+          ),
+        } as const)),
+        ...project.config.clientTeamCreationEnabled ? [{
+          title: 'Create a team',
+          icon: CirclePlus,
+          type: 'item',
+          subpath: '/team-creation',
+          content: <TeamCreation />,
+        }] as const : [],
+      ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
+      title='Account Settings'
+      basePath='/handler/account-settings'
+    />
   );
 }
 
