@@ -2,7 +2,7 @@
 
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
 import { SelectedTeamSwitcher, useUser } from "@stackframe/stack";
-import { Globe, ShieldEllipsis, User, Users, BarChart4, Columns3, Locate, ShoppingBag, BadgePercent, Settings } from "lucide-react";
+import { BadgePercent, BarChart4, Columns3, Globe, Locate, Settings2, ShoppingBag, ShoppingCart, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 const navigationItems: SidebarItem[] = [
@@ -15,6 +15,12 @@ const navigationItems: SidebarItem[] = [
   {
     type: 'label',
     name: 'Management',
+  },
+  {
+    name: "Products",
+    href: "/products",
+    icon: ShoppingBag,
+    type: "item",
   },
   {
     name: "People",
@@ -47,7 +53,7 @@ const navigationItems: SidebarItem[] = [
   {
     name: "Orders",
     href: "/orders",
-    icon: ShoppingBag,
+    icon: ShoppingCart,
     type: "item",
   },
   {
@@ -63,7 +69,7 @@ const navigationItems: SidebarItem[] = [
   {
     name: "Configuration",
     href: "/configuration",
-    icon: Settings,
+    icon: Settings2,
     type: "item",
   },
 ];
