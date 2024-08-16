@@ -30,7 +30,12 @@ type Sep = {
   type: "separator";
 };
 
-export type SidebarItem = Item | Sep;
+type Label = {
+  name: React.ReactNode;
+  type: "label";
+};
+
+export type SidebarItem = Item | Sep | Label;
 
 function NavItem({
   item,
@@ -75,10 +80,10 @@ function SidebarContent(props: {
       <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0 border-b">
         {props.sidebarTop}
       </div>
-      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
+      <div className="flex flex-grow flex-col gap-2 pt-4 overflow-y-auto">
         {props.items.map((item, index) => {
           if (item.type === "separator") {
-            return <Separator key={index} />;
+            return <Separator key={index} className="my-2" />;
           } else if (item.type === "item") {
             return (
               <div key={index} className="flex px-2">
@@ -87,6 +92,14 @@ function SidebarContent(props: {
                   onClick={props.onNavigate}
                   href={basePath + item.href}
                 />
+              </div>
+            );
+          } else {
+            return (
+              <div key={index} className="flex my-2">
+                <div className="flex-grow justify-start text-sm font-medium text-zinc-500 px-2">
+                  {item.name}
+                </div>
               </div>
             );
           }
