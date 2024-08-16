@@ -89,11 +89,12 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
     basePath='/handler/account-settings'
   />;
 
-  return (
-    <MaybeFullPage fullPage={fullPage} size={800} fullVertical containerClassName="sm:border-r sm:border-l">
-      {inner}
-    </MaybeFullPage>
-  );
+  // return (
+  //   <MaybeFullPage fullPage={fullPage} size={800} fullVertical containerClassName="sm:border-r sm:border-l">
+  //     {inner}
+  //   </MaybeFullPage>
+  // );
+  return inner;
 }
 
 function ProfileSection() {

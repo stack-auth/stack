@@ -25,10 +25,10 @@ export function SidebarLayout(props: { items: SidebarItem[], title?: ReactNode, 
 
   return (
     <>
-      <div className={cn("hidden sm:flex h-full", props.className)}>
+      <div className={cn("hidden sm:flex stack-scope h-full", props.className)}>
         <DesktopLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
       </div>
-      <div className={cn("sm:hidden h-full", props.className)}>
+      <div className={cn("sm:hidden stack-scope h-full", props.className)}>
         <MobileLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
       </div>
     </>
@@ -70,7 +70,7 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
   return (
     <div className="stack-scope flex w-full h-full">
       <div className="flex w-[200px] border-r flex-col items-stretch gap-2 p-2">
-        {props.title && <div className='mb-2'>
+        {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
