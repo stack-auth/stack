@@ -1,9 +1,9 @@
-import { NavHeader } from "@/components/nav-header"
+import { LandingPageHeader } from "@/components/landing-page-header"
 
 export default function Layout(props: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <NavHeader 
+      <LandingPageHeader 
         items={[
           { title: "Home", href: "/" },
           { title: "About", href: "/about" },

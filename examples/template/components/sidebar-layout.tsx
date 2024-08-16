@@ -72,10 +72,10 @@ function SidebarContent(props: {
 
   return (
     <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0">
+      <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0 border-b">
         {props.sidebarTop}
       </div>
-      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto border-t">
+      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
         {props.items.map((item, index) => {
           if (item.type === "separator") {
             return <Separator key={index} />;

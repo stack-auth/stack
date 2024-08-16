@@ -103,7 +103,7 @@ function DesktopItems(props: NavProps) {
   );
 }
 
-export function NavHeader(props: NavProps) {
+export function LandingPageHeader(props: NavProps) {
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
 
   return (
