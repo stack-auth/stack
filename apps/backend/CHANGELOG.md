@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.21
+  - @stackframe/stack-emails@2.5.21
+
 ## 2.5.20
 
 ### Patch Changes

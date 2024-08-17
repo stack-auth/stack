@@ -1,5 +1,13 @@
 # @stackframe/oauth-mock-server
 
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.21
+
 ## 2.5.20
 
 ### Patch Changes

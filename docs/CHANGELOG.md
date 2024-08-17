@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+
 ## 2.5.20
 
 ### Patch Changes
