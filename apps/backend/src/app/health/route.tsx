@@ -2,13 +2,6 @@ import { prismaClient } from "@/prisma-client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { NextRequest } from "next/server";
 
-const responseHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Expose-Headers": "*",
-};
-
 export async function GET(req: NextRequest) {
   if (req.nextUrl.searchParams.get("db")) {
     const project = await prismaClient.project.findFirst({});
@@ -21,6 +14,11 @@ export async function GET(req: NextRequest) {
   return Response.json({
     status: "ok",
   }, {
-    headers: responseHeaders,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*",
+      "Access-Control-Expose-Headers": "*",
+    }
   });
 }
