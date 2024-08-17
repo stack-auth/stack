@@ -42,7 +42,7 @@ const corsAllowedResponseHeaders = [
 export async function middleware(request: NextRequest) {
   const delay = +getEnvVariable('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS', '0');
   if (delay) {
-    if (getNodeEnvironment() !== 'development') {
+    if (getNodeEnvironment().includes('production')) {
       throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS is only allowed in development');
     }
     if (!request.headers.get('x-stack-disable-artificial-development-delay')) {
