@@ -37,7 +37,7 @@ function EditDialog(props: {
       ),
     }),
     domain: urlSchema
-      .matches(/^https?:\/\//, "Origin must start with http:// or https://")
+      .matches(/^https:\/\//, "Origin must start with https://")
       .url("Domain must be a valid URL")
       .notOneOf(
         props.domains
@@ -46,7 +46,7 @@ function EditDialog(props: {
         "Domain already exists"
       )
       .required()
-      .label("Origin (starts with https:// or http://)")
+      .label("Origin (starts with https://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),
