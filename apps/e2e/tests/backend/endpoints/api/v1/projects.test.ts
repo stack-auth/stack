@@ -231,6 +231,30 @@ it("updates the project domains configuration", async ({ expect }) => {
   `);
 });
 
+it("is not allowed to have two identical domains", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
+    config: {
+      domains: [{
+        domain: 'https://trusted-domain.stack-test.example.com',
+        handler_path: '/handler'
+      },
+      {
+        domain: 'https://trusted-domain.stack-test.example.com',
+        handler_path: '/handler2'
+      }]
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "Duplicated domain found",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("updates the project email configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
