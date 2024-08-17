@@ -40,6 +40,10 @@ function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
 }
 
 function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
+  if (type === 'DISCORD') {
+    throwErr("Discord is not a standard provider");
+  }
+
   return ({
     "GITHUB": "github",
     "FACEBOOK": "facebook",
