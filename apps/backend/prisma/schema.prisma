@@ -574,6 +574,7 @@ enum StandardOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  DISCORD
 }
 
 //#endregion
