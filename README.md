@@ -145,7 +145,7 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
-### Architecture diagram
+### Architecture overview
 
 ```mermaid
   graph TB
