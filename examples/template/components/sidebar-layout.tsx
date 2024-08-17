@@ -5,7 +5,7 @@ import { UserButton } from "@stackframe/stack";
 import { LucideIcon, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname, useSelectedLayoutSegment } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Breadcrumb,
@@ -18,6 +18,11 @@ import {
 import { buttonVariants } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+
+function useSegment(basePath: string) {
+  const path = usePathname();
+  return '/' + path.slice(basePath.length, path.length);
+}
 
 type Item = {
   name: React.ReactNode;
@@ -37,31 +42,27 @@ type Label = {
 
 export type SidebarItem = Item | Sep | Label;
 
-function NavItem({
-  item,
-  href,
-  onClick,
-}: {
+function NavItem(props: {
   item: Item;
-  href: string;
   onClick?: () => void;
+  basePath: string;
 }) {
-  const segment = useSelectedLayoutSegment();
-  const selected = segment === href;
+  const segment = useSegment(props.basePath);
+  const selected = segment === props.item.href;
 
   return (
     <Link
-      href={href}
+      href={props.basePath + props.item.href}
       className={cn(
         buttonVariants({ variant: "ghost", size: "sm" }),
         selected && "bg-muted",
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2"
       )}
-      onClick={onClick}
+      onClick={props.onClick}
       prefetch={true}
     >
-      <item.icon className="mr-2 h-5 w-5" />
-      {item.name}
+      <props.item.icon className="mr-2 h-5 w-5" />
+      {props.item.name}
     </Link>
   );
 }
@@ -70,9 +71,10 @@ function SidebarContent(props: {
   onNavigate?: () => void;
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
+  basePath: string;
 }) {
   const path = usePathname();
-  const segment = useSelectedLayoutSegment();
+  const segment = useSegment(props.basePath);
   const basePath = path.split("/").at(-1) === segment ? path : path.split("/").slice(0, -1).join("/");
 
   return (
@@ -90,7 +92,7 @@ function SidebarContent(props: {
                 <NavItem
                   item={item}
                   onClick={props.onNavigate}
-                  href={basePath + item.href}
+                  basePath={props.basePath}
                 />
               </div>
             );
@@ -113,8 +115,8 @@ function SidebarContent(props: {
 
 export type HeaderBreadcrumbItem = { title: string; href: string };
 
-function HeaderBreadcrumb(props: { baseBreadcrumb?: HeaderBreadcrumbItem[] }) {
-  const segment = useSelectedLayoutSegment();
+function HeaderBreadcrumb(props: { baseBreadcrumb?: HeaderBreadcrumbItem[], basePath: string }) {
+  const segments = useSegment(props.basePath);
 
   return (
     <Breadcrumb>
@@ -129,7 +131,7 @@ function HeaderBreadcrumb(props: { baseBreadcrumb?: HeaderBreadcrumbItem[] }) {
         ))}
 
         <BreadcrumbItem>
-          <BreadcrumbPage>{segment}</BreadcrumbPage>
+          <BreadcrumbPage>{segments[0]}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
@@ -141,6 +143,7 @@ export default function SidebarLayout(props: {
   baseBreadcrumb?: HeaderBreadcrumbItem[];
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
+  basePath: string;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
@@ -148,12 +151,12 @@ export default function SidebarLayout(props: {
   return (
     <div className="w-full flex">
       <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
-        <SidebarContent items={props.items} sidebarTop={props.sidebarTop} />
+        <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
       </div>
       <div className="flex flex-col flex-grow w-0">
         <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
           <div className="hidden md:flex">
-            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} />
+            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} />
           </div>
 
           <div className="flex md:hidden items-center">
@@ -169,12 +172,13 @@ export default function SidebarLayout(props: {
                   onNavigate={() => setSidebarOpen(false)}
                   items={props.items}
                   sidebarTop={props.sidebarTop}
+                  basePath={props.basePath}
                 />
               </SheetContent>
             </Sheet>
 
             <div className="ml-4 flex md:hidden">
-              <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} />
+              <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} />
             </div>
           </div>
 

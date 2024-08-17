@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 const navigationItems: SidebarItem[] = [
   {
     name: "Overview",
-    href: "/overview",
+    href: "/",
     icon: Globe,
     type: "item",
   },
@@ -88,6 +88,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   return (
     <SidebarLayout 
       items={navigationItems}
+      basePath={`/dashboard/${team.id}`}
       sidebarTop={<SelectedTeamSwitcher 
         selectedTeam={team}
         urlMap={(team) => `/dashboard/${team.id}`}
