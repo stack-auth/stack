@@ -37,7 +37,7 @@ export default function PageClient () {
       signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
-      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook", "discord"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
+      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
 
@@ -51,7 +51,7 @@ export default function PageClient () {
         config: {
           credentialEnabled: values.signInMethods.includes("credential"),
           magicLinkEnabled: values.signInMethods.includes("magicLink"),
-          oauthProviders: (["google", "facebook", "github", "microsoft", "discord"] as const).map(provider => ({
+          oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
             id: provider,
             enabled: values.signInMethods.includes(provider),
             type: 'shared'
@@ -89,7 +89,6 @@ export default function PageClient () {
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },
                   { value: "facebook", label: "Facebook" },
-                  { value: "discord", label: "Discord" },
                 ]}
               />
 
