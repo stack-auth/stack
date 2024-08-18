@@ -245,6 +245,14 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
       // ======================= update the rest =======================
 
+      // check domain uniqueness
+      if (data.config?.domains) {
+        const domains = data.config.domains.map((item) => item.domain);
+        if (new Set(domains).size !== domains.length) {
+          throw new StatusError(StatusError.BadRequest, 'Duplicated domain found');
+        }
+      }
+
       return await tx.project.update({
         where: { id: auth.project.id },
         data: {

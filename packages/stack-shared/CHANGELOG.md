@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+  - @stackframe/stack-sc@2.5.21
+
 ## 2.5.20
 
 ### Patch Changes

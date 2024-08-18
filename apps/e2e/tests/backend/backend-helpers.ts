@@ -92,6 +92,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
+      "x-stack-disable-artificial-development-delay": "yes",
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
