@@ -21,7 +21,8 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 function useSegment(basePath: string) {
   const path = usePathname();
-  return '/' + path.slice(basePath.length, path.length);
+  const result = path.slice(basePath.length, path.length);
+  return result ? result : "/";
 }
 
 type Item = {
@@ -75,7 +76,6 @@ function SidebarContent(props: {
 }) {
   const path = usePathname();
   const segment = useSegment(props.basePath);
-  const basePath = path.split("/").at(-1) === segment ? path : path.split("/").slice(0, -1).join("/");
 
   return (
     <div className="flex flex-col h-full items-stretch">
@@ -115,8 +115,11 @@ function SidebarContent(props: {
 
 export type HeaderBreadcrumbItem = { title: string; href: string };
 
-function HeaderBreadcrumb(props: { baseBreadcrumb?: HeaderBreadcrumbItem[], basePath: string }) {
-  const segments = useSegment(props.basePath);
+function HeaderBreadcrumb(props: { items: SidebarItem[], baseBreadcrumb?: HeaderBreadcrumbItem[], basePath: string }) {
+  const segment = useSegment(props.basePath);
+  console.log(segment)
+  const item = props.items.find((item) => item.type === 'item' && item.href === segment);
+  const title: string | undefined = (item as any)?.name
 
   return (
     <Breadcrumb>
@@ -131,7 +134,7 @@ function HeaderBreadcrumb(props: { baseBreadcrumb?: HeaderBreadcrumbItem[], base
         ))}
 
         <BreadcrumbItem>
-          <BreadcrumbPage>{segments[0]}</BreadcrumbPage>
+          <BreadcrumbPage>{title}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
@@ -154,9 +157,9 @@ export default function SidebarLayout(props: {
         <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
       </div>
       <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
+        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
           <div className="hidden md:flex">
-            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} />
+            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
           </div>
 
           <div className="flex md:hidden items-center">
@@ -178,7 +181,7 @@ export default function SidebarLayout(props: {
             </Sheet>
 
             <div className="ml-4 flex md:hidden">
-              <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} />
+              <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
             </div>
           </div>
 

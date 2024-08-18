@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { RecentSales } from "@/components/overview/recent-sales";
+import { RecentSales } from "@/app/dashboard/[teamId]/(overview)/recent-sales";
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Overview from "./page";
+import { Graph } from "./graph";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                 <CardTitle>Overview</CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
-                {/* <Overview /> */}
+                <Graph />
               </CardContent>
             </Card>
             <Card className="col-span-3">
