@@ -19,7 +19,7 @@ export type ExtendedServerUser = ServerUser & {
 function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
       <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
