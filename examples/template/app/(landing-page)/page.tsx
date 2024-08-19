@@ -18,6 +18,7 @@ export default async function IndexPage() {
         secondaryCtaLink="#"
       />
 
+      <div id='features' />
       <FeatureGrid
         title="Features"
         subtitle="This project is an experiment to see how a modern app, with features like auth, subscriptions, API routes, and static pages would work in Next.js 13 app dir."
@@ -44,6 +45,7 @@ export default async function IndexPage() {
         ]}
       />
 
+      <div id='pricing' />
       <PricingGrid
         title="Pricing"
         subtitle="Choose a plan that works for you."

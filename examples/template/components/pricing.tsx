@@ -77,7 +77,7 @@ export function PricingGrid(props: {
         </p>
       </div>
 
-      <div className="mx-auto grid justify-center gap-4 md:max-w-5xl md:grid-cols-3">
+      <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-5xl md:grid-cols-3">
         {props.items.map((item, index) => (
           <PricingCard key={index} {...item} />
         ))}
