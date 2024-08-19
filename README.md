@@ -76,6 +76,7 @@ Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) 
 Have your own? Happy to feature it if you create a PR or message us on [Discord](https://discord.stack-auth.com).
 
 ### Templates
+- [Stack Template by Stack Team](https://github.com/stack-auth/stack-template)
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
 
 ### Examples
