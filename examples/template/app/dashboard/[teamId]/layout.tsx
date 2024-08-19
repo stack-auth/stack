@@ -93,6 +93,10 @@ export default function Layout(props: { children: React.ReactNode }) {
         selectedTeam={team}
         urlMap={(team) => `/dashboard/${team.id}`}
       />}
+      baseBreadcrumb={[{
+        title: team.displayName,
+        href: `/dashboard/${team.id}`,
+      }]}
     >
       {props.children}
     </SidebarLayout>

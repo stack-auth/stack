@@ -1,5 +1,7 @@
-import { FeatureGrid } from "@/components/feature-grid";
+import { FeatureGrid } from "@/components/features";
 import { Hero } from "@/components/hero";
+import { PricingGrid } from "@/components/pricing";
+import { stackServerApp } from "@/stack";
 import { ShieldCheck, Users } from "lucide-react";
 
 export default async function IndexPage() {
@@ -38,6 +40,38 @@ export default async function IndexPage() {
             icon: <Users className="h-12 w-12" />,
             title: "Multi-tenancy",
             description: "Teams and permissions out of the box.",
+          },
+        ]}
+      />
+
+      <PricingGrid
+        title="Pricing"
+        subtitle="Choose a plan that works for you."
+        items={[
+          {
+            title: "Basic",
+            price: "Free",
+            description: "Perfect for individuals and small projects",
+            features: ["Full source code", "100% Open-source", "Community support", "Free forever", "No credit card required"],
+            buttonText: "Get Started",
+            buttonHref: stackServerApp.urls.signUp,
+          },
+          {
+            title: "Pro",
+            price: "$0.00",
+            description: "Ideal for growing teams and businesses",
+            features: ["Full source code", "100% Open-source", "Community support", "Free forever", "No credit card required"],
+            buttonText: "Upgrade to Pro",
+            isPopular: true,
+            buttonHref: stackServerApp.urls.signUp,
+          },
+          {
+            title: "Enterprise",
+            price: "Still Free",
+            description: "For large organizations",
+            features: ["Full source code", "100% Open-source", "Community support", "Free forever", "No credit card required"],
+            buttonText: "Contact Us",
+            buttonHref: stackServerApp.urls.signUp,
           },
         ]}
       />
