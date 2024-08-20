@@ -538,6 +538,74 @@ describe("with client access", () => {
     `);
   });
 
+  it("should be able to update own client metadata", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        client_metadata: { key: "value" },
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": { "key": "value" },
+          "client_read_only_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to update own client read-only metadata", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        client_read_only_metadata: { key: "value" },
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: client_read_only_metadata" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: client_read_only_metadata",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it.todo("should be able to set selected team id, updating the selected team object");
 });
 
@@ -1246,4 +1314,50 @@ describe("with server access", () => {
     `);
   });
 
+  it("should be able to update all metadata fields", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        client_metadata: { key: "client value" },
+        client_read_only_metadata: { key: "client read only value" },
+        server_metadata: { key: "server value" },
+      },
+    });
+
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": { "key": "client value" },
+          "client_read_only_metadata": { "key": "client read only value" },
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": { "key": "server value" },
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
 });
