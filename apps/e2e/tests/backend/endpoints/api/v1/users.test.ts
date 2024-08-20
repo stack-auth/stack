@@ -481,7 +481,6 @@ describe("with client access", () => {
     `);
   });
 
-
   it("should not be able to list users", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/users", {
       accessType: "client",

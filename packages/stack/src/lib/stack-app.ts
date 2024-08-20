@@ -787,6 +787,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: crud.profile_image_url,
       signedUpAt: new Date(crud.signed_up_at_millis),
       clientMetadata: crud.client_metadata,
+      clientReadOnlyMetadata: crud.client_read_only_metadata,
       hasPassword: crud.has_password,
       emailAuthEnabled: crud.auth_with_email,
       oauthProviders: crud.oauth_providers,
@@ -1597,6 +1598,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async setClientMetadata(metadata: Record<string, any>) {
         return await this.update({ clientMetadata: metadata });
       },
+      async setClientReadOnlyMetadata(metadata: Record<string, any>) {
+        return await this.update({ clientReadOnlyMetadata: metadata });
+      },
       async setServerMetadata(metadata: Record<string, any>) {
         return await this.update({ serverMetadata: metadata });
       },
@@ -2292,6 +2296,7 @@ type BaseUser = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: any,
+  readonly clientReadOnlyMetadata: any,
 
   /**
    * Whether the primary e-mail can be used for authentication.
@@ -2379,6 +2384,7 @@ type ServerBaseUser = {
 
   readonly serverMetadata: any,
   setServerMetadata(metadata: any): Promise<void>,
+  setClientReadOnlyMetadata(metadata: any): Promise<void>,
 
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
@@ -2414,6 +2420,7 @@ type ServerUserUpdateOptions = {
   primaryEmail?: string,
   primaryEmailVerified?: boolean,
   primaryEmailAuthEnabled?: boolean,
+  clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
   password?: string,
 } & UserUpdateOptions;
@@ -2422,6 +2429,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     display_name: options.displayName,
     primary_email: options.primaryEmail,
     client_metadata: options.clientMetadata,
+    client_read_only_metadata: options.clientReadOnlyMetadata,
     server_metadata: options.serverMetadata,
     selected_team_id: options.selectedTeamId,
     primary_email_auth_enabled: options.primaryEmailAuthEnabled,
