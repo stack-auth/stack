@@ -199,5 +199,5 @@ Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
 Thanks to the amazing community who built Stack:
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" />
+  <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" width="100%" />
 </a>
