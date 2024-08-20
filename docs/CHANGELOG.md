@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.22
+
+### Patch Changes
+
+- Team metadata
+
 ## 2.5.21
 
 ### Patch Changes
