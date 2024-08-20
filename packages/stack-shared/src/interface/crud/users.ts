@@ -7,6 +7,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   display_name: fieldSchema.userDisplayNameSchema.optional(),
   profile_image_url: fieldSchema.profileImageUrlSchema.optional(),
   client_metadata: fieldSchema.userClientMetadataSchema.optional(),
+  client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema.optional(),
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
@@ -66,6 +67,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
     }).required(),
   )).required().meta({ openapiField: { hidden: true, description: 'A list of connected accounts to this user', exampleValue: [ { "provider": { "provider_user_id": "12345", "type": "google", }, "type": "oauth", } ] } }),
   client_metadata: fieldSchema.userClientMetadataSchema,
+  client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
 }).required();
 

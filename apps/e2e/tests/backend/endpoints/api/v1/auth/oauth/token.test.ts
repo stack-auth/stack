@@ -45,6 +45,7 @@ describe("with grant_type === 'authorization_code'", async () => {
           ],
           "auth_with_email": false,
           "client_metadata": null,
+          "client_read_only_metadata": null,
           "connected_accounts": [
             {
               "provider": {
