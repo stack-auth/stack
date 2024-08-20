@@ -18,6 +18,7 @@ import { ClientPolyfill } from './client-polyfill';
 import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
 import dynamic from 'next/dynamic';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
@@ -79,6 +80,7 @@ export default function RootLayout({
         >
           <Analytics />
           <PageView />
+          <SpeedInsights />
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
               <StackTheme>
