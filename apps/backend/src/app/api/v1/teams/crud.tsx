@@ -19,6 +19,7 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
     profile_image_url: prisma.profileImageUrl,
     created_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
+    client_read_only_metadata: prisma.clientReadOnlyMetadata,
     server_metadata: prisma.serverMetadata,
   };
 }
@@ -47,6 +48,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           projectId: auth.project.id,
           profileImageUrl: data.profile_image_url,
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         },
       });
@@ -129,6 +131,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           displayName: data.display_name,
           profileImageUrl: data.profile_image_url,
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         },
       });

@@ -12,7 +12,6 @@ import { StackAssertionError, StatusError, captureError, throwErr } from "@stack
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
-import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -81,6 +80,7 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
     profile_image_url: prisma.profileImageUrl,
     signed_up_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
+    client_read_only_metadata: prisma.clientReadOnlyMetadata,
     server_metadata: prisma.serverMetadata,
     has_password: !!prisma.passwordHash,
     auth_with_email: prisma.authWithEmail,
@@ -169,6 +169,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         projectId: auth.project.id,
         displayName: data.display_name === undefined ? undefined : (data.display_name || null),
         clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+        clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
         serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified ?? false,
@@ -266,6 +267,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         data: {
           displayName: data.display_name === undefined ? undefined : (data.display_name || null),
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
           primaryEmail: data.primary_email,
           primaryEmailVerified: data.primary_email_verified ?? (data.primary_email !== undefined ? false : undefined),
