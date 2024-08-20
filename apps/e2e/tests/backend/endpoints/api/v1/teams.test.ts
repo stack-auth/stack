@@ -88,10 +88,13 @@ it("creates a team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -105,10 +108,13 @@ it("creates a team on the server", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -122,10 +128,13 @@ it("gets a specific team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -136,6 +145,8 @@ it("gets a specific team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
@@ -188,10 +199,13 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -202,10 +216,13 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -226,10 +243,13 @@ it("should not be allowed to get a team that the user is not part of on the clie
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -278,7 +298,45 @@ it("updates a team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "display_name": "My Updated Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("updates team client metadata on the client", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      client_metadata: {
+        test: "test-value"
+      },
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": { "test": "test-value" },
+        "client_read_only_metadata": null,
+        "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
       },
@@ -334,10 +392,13 @@ it("updates a team on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "My Updated Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -351,10 +412,13 @@ it("updates a team on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "My Updated Team",
             "id": "<stripped UUID>",
             "profile_image_url": null,
+            "server_metadata": null,
           },
         ],
       },
@@ -486,10 +550,13 @@ it("enables create team on sign up", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "<stripped UUID>@stack-generated.example.com's Team",
             "id": "<stripped UUID>",
             "profile_image_url": null,
+            "server_metadata": null,
           },
         ],
       },
