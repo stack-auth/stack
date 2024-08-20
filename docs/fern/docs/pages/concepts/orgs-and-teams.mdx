@@ -7,7 +7,9 @@ Teams provide a structured way to group users and manage their permissions. User
 
 The server can perform all operations on a team, but the client can only carry out some actions if the user has the necessary permissions. This applies to all actions that can be performed on a server/client-side `User` object and a `Team` object.
 
-## Permissions 
+## Concepts
+
+### Team permissions 
 
 If you attempt to perform an action without the necessary team permissions, the function will throw an error. Always check if the user has the required permission before performing any action. Learn more about permissions [here](permissions.mdx).
 
@@ -29,6 +31,12 @@ if (!hasPermission) {
 
 // Perform action
 ```
+
+### Team profile
+
+A user can have a different profile for each team they belong to (Note this is different to the user's personal profile). This profile contains information like `displayName` and `profileImageUrl`. The team profile can be left empty and it will automatically take the user's personal profile information.
+
+The team profile is visible to all the other users in the team that have the `$read_members` permission. 
 
 ## Retrieving a user's teams
 
@@ -145,7 +153,7 @@ On the client, the current user must have the `$read_members` permission in the 
           <div key={user.id}>{user.teamProfile.displayName}</div>
         ))}
       </div>
-    )
+    );
     ```
   </Tab>
 
@@ -165,6 +173,37 @@ On the client, the current user must have the `$read_members` permission in the 
         ))}
       </div>
     );
+    ```
+  </Tab>
+</Tabs>
+
+## Get current user's team profile
+
+You can get the current user's team profile with the `getTeamProfile` or `useTeamProfile` function on the `User` object. This function returns the team profile for the team with the given ID.
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx
+    const user = useUser({ or: 'redirect' });
+    const team = user.useTeam('some-team-id');
+
+    // ... make sure the team exists
+
+    const teamProfile = user.useTeamProfile(team);
+
+    return <div>Name: {teamProfile.displayName}</div>;
+    ```
+  </Tab>
+  <Tab title="Server Component">
+    ```tsx
+    const user = await stackServerApp.getUser({ or: 'redirect' });
+    const team = await user.getTeam('some-team-id');
+
+    // ... make sure the team exists
+
+    const teamProfile = await user.getTeamProfile(team);
+
+    return <div>Name: {teamProfile.displayName}</div>;
     ```
   </Tab>
 </Tabs>
