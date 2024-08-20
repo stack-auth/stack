@@ -5,33 +5,11 @@ subtitle: Manage teams and team members
 
 Teams are a structured way to group users and manage their permissions. Users can belong to multiple teams at the same time, so they can represent departments, B2B customers, or projects.
 
-## Creating a team
+The server can perform all the operations on a team, but the client can only perform some actions if the user has the corresponding permissions. This applies to all the actions that can be performed on a server/client side `User` object and a `Team` object. 
 
-To create a team and add/remove users, use the `createTeam` function on `stackServerApp`:
-
-```tsx
-const team = await stackServerApp.createTeam({
-  displayName: 'New Team',
-});
-await team.update({
-  displayName: 'New Team Name',
-});
-
-// you can retrieve the team by its ID:
-const sameTeam = await stackServerApp.getTeam(team.id);
-// or list all teams that exist on the entire app:
-const allTeams = await stackServerApp.listTeams();
-```
-
-## Managing users
-
-You can add, remove and list users on a [`ServerTeam`](/concepts/stack-app#client-vs-server):
-
-```tsx
-const allUsers = await team.listUsers();
-await team.addUser(user);
-await team.removeUser(user);
-```
+<Note>
+If you try to perform an action that the user does not have the team permission to, the function will through an error. You should always check if the user has the permission before performing the action. Learn more about permissions [here](permissions.mdx).
+</Note>
 
 ## Retrieving a user's teams
 
@@ -76,3 +54,94 @@ You can list all teams that a user is a member of with the `listTeams` or `useTe
     ```
   </Tab>
 </Tabs>
+
+## Creating a team
+
+To create a team and add/remove users, `createTeam` function on the `User` object. The user will be added to the team with the team creator permissions.
+
+On the client side, this requires the "client side team creation" switch be enabled on the stack dashboard.
+
+```jsx
+const team = await user.createTeam({
+  displayName: 'New Team',
+});
+```
+
+If you want to create a team on the server without a user, you can use the `createTeam` function on the `ServerApp` object:
+
+```jsx
+const team = await stackServerApp.createTeam({
+  displayName: 'New Team',
+});
+```
+
+## Updating a team
+
+You can update the team with the `update` function on the `Team` object.
+
+On the clinet, the user must have the `$update_team` permission in the team to perform this action. You should always check if the user has the permission before updating the team.
+
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx
+    const user = useUser({ or: 'redirect' });
+    const team = user.useTeam('some-team-id');
+    const hasPermission = user.hasPermission(team, '$update_team');
+
+    if (!hasPermission) {
+      return <div>You don't have permission to update this team</div>;
+    }
+
+    return (
+      <button onClick={async () => {
+        await team.update({
+          displayName: 'New Team Name',
+        });
+      }}>
+        Update Team
+      </button>
+    )
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx
+    const user = await stackServerApp.getUser({ or: 'redirect' });
+    const team = await user.getTeam('some-team-id');
+    
+    await team.update({
+      displayName: 'New Team Name',
+    });
+    ```
+  </Tab>
+</Tabs>
+
+
+
+```
+    // Note that this won't add the current user to the team
+    
+    await team.update({
+      displayName: 'New Team Name',
+    });
+
+    // manually add a user to the team
+    await team.addUser(user.id);
+
+    // you can retrieve the team by its ID:
+    const sameTeam = await stackServerApp.getTeam(team.id);
+    // or list all teams that exist on the entire app:
+    const allTeams = await stackServerApp.listTeams();
+```
+
+## Managing users
+
+You can add, remove and list users on a [`ServerTeam`](/concepts/stack-app#client-vs-server):
+
+```tsx
+const allUsers = await team.listUsers();
+await team.addUser(user);
+await team.removeUser(user);
+```
+
