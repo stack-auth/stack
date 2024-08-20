@@ -79,7 +79,7 @@ const team = await stackServerApp.createTeam({
 
 You can update the team with the `update` function on the `Team` object.
 
-On the clinet, the user must have the `$update_team` permission in the team to perform this action. You should always check if the user has the permission before updating the team.
+On the clinet, the user must have the `$update_team` permission in the team to perform this action.
 
 
 <Tabs>
@@ -87,6 +87,11 @@ On the clinet, the user must have the `$update_team` permission in the team to p
     ```tsx
     const user = useUser({ or: 'redirect' });
     const team = user.useTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
+
     const hasPermission = user.hasPermission(team, '$update_team');
 
     if (!hasPermission) {
@@ -109,6 +114,10 @@ On the clinet, the user must have the `$update_team` permission in the team to p
     ```tsx
     const user = await stackServerApp.getUser({ or: 'redirect' });
     const team = await user.getTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
     
     await team.update({
       displayName: 'New Team Name',
@@ -117,31 +126,159 @@ On the clinet, the user must have the `$update_team` permission in the team to p
   </Tab>
 </Tabs>
 
+## Custom team metadata
 
+You can store custom metadata on a team object (similar to the user object). The metadata can ba any JSON object.
 
-```
-    // Note that this won't add the current user to the team
-    
-    await team.update({
-      displayName: 'New Team Name',
-    });
-
-    // manually add a user to the team
-    await team.addUser(user.id);
-
-    // you can retrieve the team by its ID:
-    const sameTeam = await stackServerApp.getTeam(team.id);
-    // or list all teams that exist on the entire app:
-    const allTeams = await stackServerApp.listTeams();
-```
-
-## Managing users
-
-You can add, remove and list users on a [`ServerTeam`](/concepts/stack-app#client-vs-server):
+`clientMetadata`: Can be read and updated on the client side and server side.
+`serverMetadata`: Can only be read and updated on the server side.
+`clientReadOnlyMetadata`: Can be read on the client side and server side, but can only be updated on the server side.
 
 ```tsx
-const allUsers = await team.listUsers();
+await team.update({
+  clientMetadata: {
+    customField: 'value',
+  },
+});
+
+console.log(team.clientMetadata.customField); // 'value'
+```
+
+## List users in a team
+
+You can list all users in a team with the `listUsers` function on the `Team` object.
+
+On the client, the current user must have the `$read_members` permission in the team to perform this action.
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx
+    const user = useUser({ or: 'redirect' });
+    const team = user.useTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
+
+    const hasPermission = user.hasPermission(team, '$read_members');
+
+    if (!hasPermission) {
+      return <div>You don't have permission to read members of this team</div>;
+    }
+
+    const users = team.useUsers();
+
+    return (
+      <div>
+        {users.map(user => (
+          <div key={user.id}>{user.displayName}</div>
+        ))}
+      </div>
+    )
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx
+    const user = await stackServerApp.getUser({ or: 'redirect' });
+    const team = await user.getTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
+
+    const users = await team.listUsers();
+    
+    return (
+      <div>
+        {users.map(user => (
+          <div key={user.id}>{user.displayName}</div>
+        ))}
+      </div>
+    )
+    ```
+  </Tab>
+</Tabs>
+
+## Invite a user to a team
+
+You can invite a user to a team with the `inviteUser` function on the `Team` object. The user will receive an email with a link to join the team.
+
+On the client side, the current user must have the `$invite_members` permission in the team to perform this action.
+
+```tsx
+await team.inviteUser({ email: 'example@email.com' });
+```
+
+## Add a user to a team
+
+If you want to add a user to a team without sending an email, you can use the `addUser` function on the `ServerTeam` object. This function can only be called on the server side.
+
+```tsx
 await team.addUser(user);
+```
+
+## Remove a user from a team
+
+You can remove a user from a team with the `removeUser` function on the `Team` object.
+
+On the client side, the current user must have the `$remove_members` permission in the team to perform this action.
+
+```tsx
 await team.removeUser(user);
 ```
 
+## Leave the current team
+
+All users can leave the current team without any permissions required.
+
+```tsx
+const team = await user.getTeam('some-team-id');
+await user.leaveTeam(team);
+```
+
+## Delete a team
+
+You can delete a team with the `delete` function on the `Team` object.
+
+On the client side, the current user must have the `$delete_team` permission in the team to perform this action.
+
+<Tabs>
+  <Tab title="Client Component">
+    ```tsx
+    const user = useUser({ or: 'redirect' });
+    const team = user.useTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
+
+    const hasPermission = user.hasPermission(team, '$delete_team');
+
+    if (!hasPermission) {
+      return <div>You don't have permission to delete this team</div>;
+    }
+
+    return (
+      <button onClick={async () => {
+        await team.delete();
+      }}>
+        Delete Team
+      </button>
+    )
+    ```
+  </Tab>
+
+  <Tab title="Server Component">
+    ```tsx
+    const user = await stackServerApp.getUser({ or: 'redirect' });
+    const team = await user.getTeam('some-team-id');
+
+    if (!team) {
+      return <div>Team not found</div>;
+    }
+
+    await team.delete();
+    ```
+  </Tab>
+</Tabs>
