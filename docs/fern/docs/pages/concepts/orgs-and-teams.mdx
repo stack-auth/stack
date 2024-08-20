@@ -19,7 +19,7 @@ Here is an example of how to check if a user has a specific permission on the cl
 const user = useUser({ or: 'redirect' });
 const team = user.useTeam('some-team-id');
 
-if (!team) return {
+if (!team) {
   return <div>Team not found</div>;
 }
 
@@ -133,7 +133,7 @@ console.log(team.clientMetadata.customField); // 'value'
 
 ## List users in a team
 
-You can list all users in a team with the `listUsers` function on the `Team` object. Note that if you want to display the user's team profile, you need to get it with `user.teamProfile`.
+You can list all users in a team with the `listUsers` function or the `useUsers` hook on the `Team` object. Note that if you want to get the team profile, you need to get it with `user.teamProfile`.
 
 On the client, the current user must have the `$read_members` permission in the team to perform this action.
 
@@ -184,26 +184,12 @@ You can get the current user's team profile with the `getTeamProfile` or `useTea
 <Tabs>
   <Tab title="Client Component">
     ```tsx
-    const user = useUser({ or: 'redirect' });
-    const team = user.useTeam('some-team-id');
-
-    // ... make sure the team exists
-
     const teamProfile = user.useTeamProfile(team);
-
-    return <div>Name: {teamProfile.displayName}</div>;
     ```
   </Tab>
   <Tab title="Server Component">
     ```tsx
-    const user = await stackServerApp.getUser({ or: 'redirect' });
-    const team = await user.getTeam('some-team-id');
-
-    // ... make sure the team exists
-
     const teamProfile = await user.getTeamProfile(team);
-
-    return <div>Name: {teamProfile.displayName}</div>;
     ```
   </Tab>
 </Tabs>
