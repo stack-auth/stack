@@ -23,13 +23,13 @@ if (!team) {
   return <div>Team not found</div>;
 }
 
-const hasPermission = user.usePermission(team, '$some_permission');
+const hasPermission = user.usePermission(team, '$invite_members');
 
 if (!hasPermission) {
   return <div>No permission</div>;
 }
 
-// Perform action
+// Perform corresponding action like inviting a user
 ```
 
 ### Team profile
@@ -141,7 +141,7 @@ On the client, the current user must have the `$read_members` permission in the 
   <Tab title="Client Component">
     ```tsx
     // ... retrieve the team and ensure user has the necessary permissions
-    
+
     const users = team.useUsers();
 
     return (
