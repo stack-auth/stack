@@ -192,11 +192,13 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
-    cell: ({ row }) => <TextCell size={120}>{row.original.displayName}</TextCell>,
+    cell: ({ row }) =>  <TextCell size={120}><span className={row.original.displayName === null ? 'text-slate-400' : ''}>{row.original.displayName ?? '–'}</span></TextCell>,
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "primaryEmail",
@@ -206,12 +208,14 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    filterFn: standardFilterFn
+    filterFn: standardFilterFn,
+    enableGlobalFilter: false,
   },
 ] satisfies ColumnDef<T>[];
 
