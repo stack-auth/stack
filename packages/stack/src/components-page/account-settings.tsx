@@ -440,9 +440,10 @@ const invitationSchema = yupObject({
 });
 
 function MemberInvitation(props: { team: Team }) {
-  const project = useStackApp().useProject();
+  const user = useUser({ or: 'redirect' });
+  const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
 
-  if (!project.config.clientTeamCreationEnabled) {
+  if (!inviteMemberPermission) {
     return null;
   }
 
