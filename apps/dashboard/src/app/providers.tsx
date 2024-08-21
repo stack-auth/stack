@@ -41,6 +41,6 @@ function UserIdentityInner() {
       posthog.resetGroups();
       setLastUserId(null);
     }
-  }, [user, lastUserId]);
+  }, [app, user, lastUserId]);
   return null;
 }

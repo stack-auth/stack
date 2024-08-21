@@ -2,7 +2,7 @@ import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-sha
 import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
 import * as yup from "yup";
 import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { prismaClient } from "@/prisma-client";
 import withPostHog from "@/analytics";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -147,7 +147,7 @@ export async function logEvent<T extends EventType[]>(
         event: postHogEventName,
         distinctId,
         groups: filterUndefined({
-          projectId: typeof data === "object" && data && "projectId" in data ? (data.projectId as string) : undefined,
+          projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
         }),
         timestamp: timeRange.end,
         properties: {
