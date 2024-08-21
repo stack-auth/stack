@@ -171,3 +171,4 @@ logo:
   light: ./docs/assets/logo-light-mode.svg
   dark: ./docs/assets/logo-dark-mode.svg
   height: 28
+  href: https://stack-auth.com
