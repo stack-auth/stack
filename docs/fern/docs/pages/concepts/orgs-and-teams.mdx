@@ -203,7 +203,7 @@ await team.inviteUser(email);
 If you want to add a user to a team without sending an email, use the `addUser` function on the `ServerTeam` object. This function can only be called on the server side.
 
 ```tsx
-await team.addUser(user);
+await team.addUser(user.id);
 ```
 
 ## Removing a user from a team
@@ -213,7 +213,7 @@ You can remove a user from a team with the `removeUser` function on the `Team` o
 On the client side, the current user must have the `$remove_members` permission to perform this action.
 
 ```tsx
-await team.removeUser(user);
+await team.removeUser(user.id);
 ```
 
 ## Leaving a team
