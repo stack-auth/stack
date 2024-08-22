@@ -31,7 +31,7 @@ model Project {
 }
 
 // Contains all the configuration for a project.
-// 
+//
 // More specifically, "configuration" is what we call those settings that only depend on environment variables and overrides between different deployments.
 model ProjectConfig {
   id String @id @default(uuid()) @db.Uuid
@@ -548,6 +548,7 @@ enum ProxiedOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  GITLAB
 }
 
 model StandardOAuthProviderConfig {
@@ -574,6 +575,7 @@ enum StandardOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  GITLAB
 }
 
 //#endregion
