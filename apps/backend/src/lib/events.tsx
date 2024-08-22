@@ -2,9 +2,11 @@ import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-sha
 import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
 import * as yup from "yup";
 import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { prismaClient } from "@/prisma-client";
-import posthog from "posthog-js";
+import withPostHog from "@/analytics";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 
 type EventType = {
   id: string,
@@ -137,13 +139,24 @@ export async function logEvent<T extends EventType[]>(
   });
 
   // log event in PostHog
-  for (const eventType of allEventTypes) {
-    const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
-    posthog.capture(postHogEventName, {
-      data,
-      isWide,
-      eventStartedAt: timeRange.start,
-      eventEndedAt: timeRange.end,
-    });
-  }
+  await withPostHog(async posthog => {
+    const distinctId = typeof data === "object" && data && "userId" in data ? (data.userId as string) : `backend-anon-${generateUuid()}`;
+    for (const eventType of allEventTypes) {
+      const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
+      posthog.capture({
+        event: postHogEventName,
+        distinctId,
+        groups: filterUndefined({
+          projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
+        }),
+        timestamp: timeRange.end,
+        properties: {
+          data,
+          is_wide: isWide,
+          event_started_at: timeRange.start,
+          event_ended_at: timeRange.end,
+        },
+      });
+    }
+  });
 }

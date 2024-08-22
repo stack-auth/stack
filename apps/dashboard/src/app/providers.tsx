@@ -1,5 +1,5 @@
 'use client';
-import { useUser } from '@stackframe/stack';
+import { useStackApp, useUser } from '@stackframe/stack';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { Suspense, useEffect, useState } from 'react';
@@ -10,6 +10,8 @@ if (typeof window !== 'undefined') {
     posthog.init(postHogKey, {
       api_host: "/consume",
       ui_host: "https://eu.i.posthog.com",
+      capture_pageview: false,
+      capture_pageleave: true,
     });
   }
 }
@@ -23,6 +25,7 @@ export function UserIdentity() {
 
 function UserIdentityInner() {
   const [lastUserId, setLastUserId] = useState<string | null>(null);
+  const app = useStackApp();
   const user = useUser();
 
   useEffect(() => {
@@ -31,11 +34,13 @@ function UserIdentityInner() {
         primaryEmail: user.primaryEmail,
         displayName: user.displayName ?? user.primaryEmail ?? user.id,
       });
+      posthog.group("projectId", app.projectId);
       setLastUserId(user.id);
     } else if (!user && lastUserId) {
       posthog.reset();
+      posthog.resetGroups();
       setLastUserId(null);
     }
-  }, [user, lastUserId]);
+  }, [app, user, lastUserId]);
   return null;
 }

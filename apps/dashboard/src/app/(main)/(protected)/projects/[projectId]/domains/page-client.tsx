@@ -37,13 +37,16 @@ function EditDialog(props: {
       ),
     }),
     domain: urlSchema
-      .matches(/^https?:\/\//, "Origin must start with http:// or https://")
+      .matches(/^https:\/\//, "Origin must start with https://")
       .url("Domain must be a valid URL")
-      .notOneOf(props.domains
-        .filter((_, i) => props.type === 'update' && i !== props.editIndex)
-        .map(({ domain }) => domain), "Domain already exists")
+      .notOneOf(
+        props.domains
+          .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
+          .map(({ domain }) => domain),
+        "Domain already exists"
+      )
       .required()
-      .label("Origin (starts with https:// or http://)")
+      .label("Origin (starts with https://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),

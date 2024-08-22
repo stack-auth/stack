@@ -1,97 +1,106 @@
 'use client';
 
 import { Button, Typography, cn } from '@stackframe/stack-ui';
-import { ArrowLeft, LucideIcon, XIcon } from 'lucide-react';
+import { LucideIcon, XIcon } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
-type Item = {
+export type SidebarItem = {
   title: React.ReactNode,
+  type: 'item' | 'divider',
   description?: React.ReactNode,
+  subpath?: string,
   icon?: LucideIcon,
-  content: React.ReactNode,
+  content?: React.ReactNode,
+  contentTitle?: React.ReactNode,
 }
 
-export function SidebarNavItem(props: { item: Item, selected: boolean, onClick: () => void }) {
-  return (
-    <Button
-      variant='ghost'
-      size='sm'
-      className={cn(
-        props.selected && "bg-muted",
-        "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
-      )}
-      onClick={props.onClick}
-    >
-      {props.item.icon && <props.item.icon className="mr-2 h-4 w-4" />}
-      {props.item.title}
-    </Button>
-  );
-}
+export function SidebarLayout(props: { items: SidebarItem[], title?: ReactNode, basePath: string, className?: string }) {
+  const pathname = usePathname();
+  const selectedIndex = props.items.findIndex(item => item.subpath && (props.basePath + item.subpath === pathname));
+  const router = useRouter();
+  if (pathname !== props.basePath && selectedIndex === -1) {
+    router.push(props.basePath);
+  }
 
-export function SidebarLayout(props: { items: Item[], title?: ReactNode }) {
   return (
     <>
-      <div className="hidden sm:flex">
-        <DesktopLayout items={props.items} title={props.title} />
+      <div className={cn("hidden sm:flex stack-scope h-full", props.className)}>
+        <DesktopLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
       </div>
-      <div className="sm:hidden">
-        <MobileLayout items={props.items} title={props.title} />
+      <div className={cn("sm:hidden stack-scope h-full", props.className)}>
+        <MobileLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
       </div>
     </>
   );
 }
 
-function DesktopLayout(props: { items: Item[], title?: ReactNode }) {
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const currentItem = props.items[selectedIndex];
+function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: number }) {
+  const router = useRouter();
+
+  return props.items.map((item, index) => (
+    item.type === 'item' ?
+      <Button
+        key={index}
+        variant='ghost'
+        size='sm'
+        className={cn(
+          props.selectedIndex === index && "bg-muted",
+          "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+        )}
+        onClick={() => {
+          if (item.subpath) {
+            router.push(props.basePath + item.subpath);
+          }
+        }}
+      >
+        {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+        {item.title}
+      </Button> :
+      <Typography key={index}>
+        {item.title}
+      </Typography>
+  ));
+
+}
+
+function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number, basePath: string }) {
+  const selectedItem = props.items[props.selectedIndex === -1 ? 0 : props.selectedIndex];
 
   return (
-    <div className="stack-scope flex p-2 w-full">
+    <div className="stack-scope flex w-full h-full">
       <div className="flex w-[200px] border-r flex-col items-stretch gap-2 p-2">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
-        {props.items.map((item, index) => (
-          <SidebarNavItem
-            key={index}
-            item={item}
-            onClick={() => setSelectedIndex(index)}
-            selected={index === selectedIndex}
-          />
-        ))}
+        <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
       </div>
       <div className="flex-1 flex flex-col gap-4 py-2 px-4">
         <div className='mb-4'>
-          <Typography type='h4'>{currentItem.title}</Typography>
-          {currentItem.description && <Typography variant='secondary' type='label'>{currentItem.description}</Typography>}
+          <Typography type='h4'>{selectedItem.title}</Typography>
+          {selectedItem.description && <Typography variant='secondary' type='label'>{selectedItem.description}</Typography>}
         </div>
         <div className='flex-1'>
-          {currentItem.content}
+          {selectedItem.content}
         </div>
       </div>
     </div>
   );
 }
 
-function MobileLayout(props: { items: Item[], title?: ReactNode }) {
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number, basePath: string }) {
+  const selectedItem = props.items[props.selectedIndex];
+  const router = useRouter();
 
-  if (selectedIndex === null) {
+  if (props.selectedIndex === -1) {
     return (
       <div className="flex flex-col gap-2 p-2">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
-        {props.items.map((item, index) => (
-          <SidebarNavItem
-            key={index}
-            item={item}
-            onClick={() => setSelectedIndex(index)}
-            selected={false}
-          />
-        ))}
+        <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
       </div>
     );
   } else {
@@ -99,15 +108,17 @@ function MobileLayout(props: { items: Item[], title?: ReactNode }) {
       <div className="flex-1 flex flex-col gap-4 py-2 px-4">
         <div className='flex flex-col'>
           <div className='flex justify-between'>
-            <Typography type='h4'>{props.items[selectedIndex].title}</Typography>
-            <Button variant='ghost' size='icon' onClick={() => setSelectedIndex(null)}>
+            <Typography type='h4'>{selectedItem.title}</Typography>
+            <Button variant='ghost' size='icon' onClick={() => {
+              router.push(props.basePath);
+            }}>
               <XIcon className='h-5 w-5' />
             </Button>
           </div>
-          {props.items[selectedIndex].description && <Typography variant='secondary' type='label'>{props.items[selectedIndex].description}</Typography>}
+          {selectedItem.description && <Typography variant='secondary' type='label'>{selectedItem.description}</Typography>}
         </div>
         <div className='flex-1'>
-          {props.items[selectedIndex].content}
+          {selectedItem.content}
         </div>
       </div>
     );

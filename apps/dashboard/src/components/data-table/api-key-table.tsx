@@ -11,7 +11,7 @@ type ExtendedApiKey = ApiKey & {
 function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="description" placeholder="Filter by description" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
       <DataTableFacetedFilter
         column={table.getColumn("status")}
         title="Status"
@@ -72,13 +72,15 @@ const columns: ColumnDef<ExtendedApiKey>[] =  [
     filterFn: standardFilterFn,
   },
   {
-    accessorKey: "clientKey",
+    id: "clientKey",
+    accessorFn: (row) => row.publishableClientKey?.lastFour,
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Client Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.publishableClientKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
-    accessorKey: "serverKey",
+    id: "serverKey",
+    accessorFn: (row) => row.secretServerKey?.lastFour,
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Server Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.secretServerKey?.lastFour}</TextCell>,
     enableSorting: false,

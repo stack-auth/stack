@@ -185,7 +185,7 @@ export function renderEmailTemplate(
   const component = (
     <Html>
       <Head />
-      <Preview>{subject}</Preview>
+      <Preview>{mergedSubject}</Preview>
       <Body>
         <Reader document={mergedTemplate} rootBlockId='root' />
       </Body>

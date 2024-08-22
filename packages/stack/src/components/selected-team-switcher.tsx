@@ -12,33 +12,17 @@ import {
   SelectValue,
   Typography
 } from "@stackframe/stack-ui";
+import { PlusCircle, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { Team, useStackApp, useUser } from "..";
-import Image from "next/image";
-import { PlusCircle, Settings } from "lucide-react";
+import { TeamIcon } from "./team-icon";
 
 type SelectedTeamSwitcherProps = {
   urlMap?: (team: Team) => string,
   selectedTeam?: Team,
   noUpdateSelectedTeam?: boolean,
 };
-
-function TeamIcon(props: { team: Team }) {
-  if (props.team.profileImageUrl) {
-    return (
-      <div className="w-6 h-6 mr-2 rounded bg-gray-200 overflow-hidden">
-        <Image src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
-      </div>
-    );
-  } else {
-    return (
-      <div className="flex items-center justify-center w-6 h-6 mr-2 rounded bg-gray-200">
-        <Typography>{props.team.displayName.slice(0, 1).toUpperCase()}</Typography>
-      </div>
-    );
-  }
-}
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const app = useStackApp();
@@ -82,13 +66,13 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           <SelectLabel>
             <div className="flex items-center justify-between">
               Current team
-              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.handler}/team-settings/${user.selectedTeam?.id}`)}>
+              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
                 <Settings className="h-4 w-4"/>
               </Button>
             </div>
           </SelectLabel>
           <SelectItem value={user.selectedTeam.id}>
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <TeamIcon team={user.selectedTeam} />
               <Typography>{user.selectedTeam.displayName}</Typography>
             </div>
@@ -101,7 +85,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
             {teams.filter(team => team.id !== user?.selectedTeam?.id)
               .map(team => (
                 <SelectItem value={team.id} key={team.id}>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <TeamIcon team={team} />
                     <Typography>{team.displayName}</Typography>
                   </div>
@@ -116,7 +100,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           <SelectSeparator/>
           <div>
             <Button
-              onClick={() => router.push(app.urls.teamCreation)}
+              onClick={() => router.push(`${app.urls.accountSettings}/team-creation`)}
               className="w-full"
               variant='ghost'
             >

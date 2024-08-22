@@ -1,5 +1,5 @@
 import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -88,10 +88,13 @@ it("creates a team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -105,10 +108,13 @@ it("creates a team on the server", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -122,10 +128,13 @@ it("gets a specific team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -136,6 +145,8 @@ it("gets a specific team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
@@ -188,10 +199,13 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -202,10 +216,13 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -226,10 +243,13 @@ it("should not be allowed to get a team that the user is not part of on the clie
     NiceResponse {
       "status": 201,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "New Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
+        "server_metadata": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -278,11 +298,86 @@ it("updates a team on the client", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "display_name": "My Updated Team",
         "id": "<stripped UUID>",
         "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("updates team client metadata on the client", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      client_metadata: {
+        test: "test-value"
+      },
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": { "test": "test-value" },
+        "client_read_only_metadata": null,
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should not be able to update team client read only metadata on the client", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      client_read_only_metadata: {
+        test: "test-value"
+      },
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/teams/<stripped UUID>:\\n  - body contains unknown properties: client_read_only_metadata" },
+        "error": "Request validation failed on PATCH /api/v1/teams/<stripped UUID>:\\n  - body contains unknown properties: client_read_only_metadata",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
@@ -328,16 +423,23 @@ it("updates a team on the server", async ({ expect }) => {
     method: "PATCH",
     body: {
       display_name: "My Updated Team",
+      profile_image_url: "https://example.com/image.jpg",
+      server_metadata: {
+        "test": "test-value"
+      },
     },
   });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
       "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "My Updated Team",
         "id": "<stripped UUID>",
-        "profile_image_url": null,
+        "profile_image_url": "https://example.com/image.jpg",
+        "server_metadata": { "test": "test-value" },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -351,12 +453,61 @@ it("updates a team on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "My Updated Team",
             "id": "<stripped UUID>",
-            "profile_image_url": null,
+            "profile_image_url": "https://example.com/image.jpg",
+            "server_metadata": { "test": "test-value" },
           },
         ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("updates team client read only metadata on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create({ accessType: "server" });
+
+  const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "server",
+    method: "PATCH",
+    body: {
+      client_read_only_metadata: {
+        test: "test-value"
+      },
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": { "test": "test-value" },
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+        "server_metadata": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // check on the client
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": { "test": "test-value" },
+        "display_name": "New Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -447,6 +598,54 @@ it("deletes a team on the server", async ({ expect }) => {
       "body": {
         "is_paginated": false,
         "items": [],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("enables create team on sign up", async ({ expect }) => {
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const response = await niceBackendFetch("/api/v1/projects/current", {
+    accessType: "admin",
+    method: "PATCH",
+    body: {
+      config: {
+        create_team_on_sign_up: true,
+        magic_link_enabled: true,
+      }
+    },
+    headers: {
+      "x-stack-admin-access-token": adminAccessToken,
+    },
+  });
+
+  expect(response.body.config.create_team_on_sign_up).toBe(true);
+
+  await ApiKey.createAndSetProjectKeys(adminAccessToken);
+
+  backendContext.set({
+    mailbox: createMailbox()
+  });
+  await Auth.Otp.signIn();
+
+  const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "<stripped UUID>@stack-generated.example.com's Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+        ],
       },
       "headers": Headers { <some fields may have been hidden> },
     }
