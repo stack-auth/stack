@@ -174,12 +174,14 @@ async function checkAuthData(
     primaryEmail?: string | null,
     primaryEmailVerified?: boolean,
     primaryEmailAuthEnabled?: boolean,
-    authWithEmail?: boolean,
     passwordHash?: string | null,
   }
 ) {
   if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
     throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
+  }
+  if (!data.primaryEmail && data.primaryEmailVerified) {
+    throw new StatusError(400, "primary_email_verified cannot be true without primary_email");
   }
   if (!data.primaryEmailAuthEnabled && data.passwordHash) {
     throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
@@ -254,7 +256,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified,
         primaryEmailAuthEnabled: data.primary_email_auth_enabled,
-        authWithEmail: data.primary_email_auth_enabled,
         passwordHash: data.password && await hashPassword(data.password),
       });
 
@@ -411,15 +412,190 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         }
       }
 
+      const oldUser = await tx.projectUser.findUnique({
+        where: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+          },
+        },
+        include: userFullInclude,
+      });
+
+      if (!oldUser) {
+        throw new StackAssertionError("User not found");
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const primaryEmailContactChannel = oldUser.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
+      const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod && m.otpAuthMethod.contactChannel.id === primaryEmailContactChannel?.id)?.otpAuthMethod;
+      const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod && m.passwordAuthMethod.identifier === primaryEmailContactChannel?.value)?.passwordAuthMethod;
+
       await checkAuthData(tx, {
         projectId: auth.project.id,
-        oldPrimaryEmail: data.primary_email,
-        primaryEmail: data.primary_email,
-        primaryEmailVerified: data.primary_email_verified,
-        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
-        authWithEmail: data.primary_email_auth_enabled,
-        passwordHash: data.password == null ? data.password : await hashPassword(data.password),
+        oldPrimaryEmail: primaryEmailContactChannel?.value,
+        primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
+        primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
+        primaryEmailAuthEnabled: !!otpAuth || data.primary_email_auth_enabled,
+        passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
+
+      if (data.primary_email) {
+        await tx.contactChannel.upsert({
+          where: {
+            projectId_projectUserId_type_value: {
+              projectId: auth.project.id,
+              projectUserId: params.user_id,
+              type: 'EMAIL',
+              value: data.primary_email,
+            },
+          },
+          create: {
+            projectConfigId: auth.project.config.id,
+            projectUserId: params.user_id,
+            projectId: auth.project.id,
+            type: 'EMAIL' as const,
+            value: data.primary_email,
+            isVerified: false,
+            isPrimary: "TRUE",
+          },
+          update: {
+            value: data.primary_email,
+          }
+        });
+
+        if (passwordAuth) {
+          await tx.passwordAuthMethod.update({
+            where: {
+              projectId_authMethodId: {
+                projectId: auth.project.id,
+                authMethodId: passwordAuth.authMethodId,
+              },
+            },
+            data: {
+              identifier: data.primary_email,
+            }
+          });
+        }
+      }
+
+      if (data.primary_email_verified !== undefined) {
+        await tx.contactChannel.update({
+          where: {
+            projectId_projectUserId_type_isPrimary: {
+              projectId: auth.project.id,
+              projectUserId: params.user_id,
+              type: 'EMAIL',
+              isPrimary: "TRUE",
+            },
+          },
+          data: {
+            isVerified: data.primary_email_verified,
+          },
+        });
+      }
+
+      if (data.primary_email_auth_enabled !== undefined) {
+        if (data.primary_email_auth_enabled) {
+          if (!otpAuth) {
+            const primaryEmailChannel = await tx.contactChannel.findFirst({
+              where: {
+                projectId: auth.project.id,
+                projectUserId: params.user_id,
+                type: 'EMAIL',
+                isPrimary: "TRUE",
+              }
+            });
+
+            if (!primaryEmailChannel) {
+              throw new StackAssertionError("primary_email_auth_enabled is true but primary_email is not set");
+            }
+
+            await tx.authMethod.create({
+              data: {
+                projectId: auth.project.id,
+                projectConfigId: auth.project.config.id,
+                projectUserId: params.user_id,
+                otpAuthMethod: {
+                  create: {
+                    projectUserId: params.user_id,
+                    contactChannelId: primaryEmailChannel.id,
+                  }
+                }
+              }
+            });
+          }
+        } else {
+          if (otpAuth) {
+            await tx.authMethod.delete({
+              where: {
+                projectId_id: {
+                  projectId: auth.project.id,
+                  id: otpAuth.authMethodId,
+                },
+              },
+            });
+          }
+        }
+      }
+
+      if (data.password !== undefined) {
+        if (data.password === null) {
+          if (passwordAuth) {
+            await tx.authMethod.delete({
+              where: {
+                projectId_id: {
+                  projectId: auth.project.id,
+                  id: passwordAuth.authMethodId,
+                },
+              },
+            });
+          }
+        } else {
+          if (passwordAuth) {
+            await tx.passwordAuthMethod.update({
+              where: {
+                projectId_authMethodId: {
+                  projectId: auth.project.id,
+                  authMethodId: passwordAuth.authMethodId,
+                },
+              },
+              data: {
+                passwordHash: await hashPassword(data.password),
+              },
+            });
+          } else {
+            const primaryEmailChannel = await tx.contactChannel.findFirst({
+              where: {
+                projectId: auth.project.id,
+                projectUserId: params.user_id,
+                type: 'EMAIL',
+                isPrimary: "TRUE",
+              }
+            });
+
+            if (!primaryEmailChannel) {
+              throw new StackAssertionError("password is set but primary_email is not set");
+            }
+
+            await tx.authMethod.create({
+              data: {
+                projectId: auth.project.id,
+                projectConfigId: auth.project.config.id,
+                projectUserId: params.user_id,
+                passwordAuthMethod: {
+                  create: {
+                    identifier: primaryEmailChannel.value,
+                    passwordHash: await hashPassword(data.password),
+                    type: 'EMAIL',
+                    projectUserId: params.user_id,
+                  }
+                }
+              }
+            });
+          }
+        }
+      }
 
       const db = await tx.projectUser.update({
         where: {
@@ -433,10 +609,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
-          // primaryEmail: data.primary_email,
-          // primaryEmailVerified: data.primary_email_verified ?? (data.primary_email !== undefined ? false : undefined),
-          // authWithEmail: data.primary_email_auth_enabled,
-          // passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
           requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
           totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
