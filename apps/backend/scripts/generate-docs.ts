@@ -4,13 +4,14 @@ import { webhookEvents } from '@stackframe/stack-shared/dist/interface/webhooks'
 import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
 import fs from 'fs';
 import { glob } from 'glob';
+import path from 'path';
 import yaml from 'yaml';
 
 async function main() {
   console.log("Started docs schema generator");
 
   for (const audience of ['client', 'server', 'admin'] as const) {
-    const filePathPrefix = "src/app/api/v1";
+    const filePathPrefix = path.resolve(process.platform === "win32" ? "apps/src/app/api/v1" : "src/app/api/v1");
     const importPathPrefix = "@/app/api/v1";
     const filePaths = [...await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}")];
     const openAPISchema = yaml.stringify(parseOpenAPI({

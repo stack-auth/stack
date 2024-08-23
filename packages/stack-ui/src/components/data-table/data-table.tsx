@@ -11,6 +11,7 @@ import {
 import {
   ColumnDef,
   ColumnFiltersState,
+  GlobalFiltering,
   SortingState,
   Table as TableType,
   VisibilityState,
@@ -26,6 +27,7 @@ import {
 import React from "react";
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
+import { ColumnFilter } from "@tanstack/react-table";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[],
@@ -45,7 +47,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const table = useReactTable({
+  const table: TableType<TData> = useReactTable({
     data,
     columns,
     state: {
@@ -59,12 +61,14 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    getColumnCanGlobalFilter: (c) => c.columnDef.enableGlobalFilter ?? GlobalFiltering.getDefaultOptions!(table).getColumnCanGlobalFilter!(c),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    autoResetAll: false,
   });
 
   return (

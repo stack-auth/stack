@@ -1,15 +1,21 @@
 "use client";
 
-import { Container } from "@stackframe/stack-ui";
+import { Container, cn } from "@stackframe/stack-ui";
 import React, { useId } from "react";
 import { SsrScript } from "./ssr-layout-effect";
 
 export function MaybeFullPage({
   children,
-  fullPage=true
+  fullPage=true,
+  size=380,
+  fullVertical=false,
+  containerClassName,
 }: {
   children: React.ReactNode,
   fullPage?: boolean,
+  size?: number,
+  fullVertical?: boolean,
+  containerClassName?: string,
 }) {
   const uniqueId = useId();
   const id = `stack-card-frame-${uniqueId}`;
@@ -34,12 +40,12 @@ export function MaybeFullPage({
             minHeight: '100vh',
             alignSelf: 'stretch',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: fullVertical ? 'stretch' : 'center',
             justifyContent: 'center',
           }}
           className="stack-scope"
         >
-          <Container size={380} style={{ padding: '1rem 1rem' }}>
+          <Container size={size} className={cn(fullVertical ? undefined : 'p-4', containerClassName)}>
             {children}
           </Container>
         </div>

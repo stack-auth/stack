@@ -92,6 +92,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
+      "x-stack-disable-artificial-development-delay": "yes",
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
@@ -179,7 +180,8 @@ export namespace Auth {
       `);
       const messages = await mailbox.fetchMessages({ noBody: true });
       const subjects = messages.map((message) => message.subject);
-      expect(subjects).toContain("Sign in to Stack Dashboard");
+      const containsSubstring = subjects.some(str => str.includes("Sign in to"));
+      expect(containsSubstring).toBe(true);
       return {
         sendSignInCodeResponse: response,
       };

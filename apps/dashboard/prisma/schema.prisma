@@ -93,8 +93,11 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  displayName     String
-  profileImageUrl String?
+  displayName            String
+  profileImageUrl        String?
+  clientMetadata         Json?
+  clientReadOnlyMetadata Json?
+  serverMetadata         Json?
 
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   permissions Permission[]
@@ -242,8 +245,9 @@ model ProjectUser {
   requiresTotpMfa Boolean @default(false)
   totpSecret      Bytes?
 
-  serverMetadata Json?
-  clientMetadata Json?
+  clientMetadata         Json?
+  clientReadOnlyMetadata Json?
+  serverMetadata         Json?
 
   @@id([projectId, projectUserId])
 }
@@ -575,6 +579,7 @@ enum StandardOAuthProviderType {
   MICROSOFT
   SPOTIFY
   GITLAB
+  DISCORD
 }
 
 //#endregion

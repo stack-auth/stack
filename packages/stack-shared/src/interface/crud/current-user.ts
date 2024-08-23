@@ -18,6 +18,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "primary_email_verified",
   "display_name",
   "client_metadata",
+  "client_read_only_metadata",
   "profile_image_url",
   "signed_up_at_millis",
   "has_password",

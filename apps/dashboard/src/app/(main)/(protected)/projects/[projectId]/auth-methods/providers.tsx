@@ -22,6 +22,7 @@ function toTitle(id: string) {
     facebook: "Facebook",
     microsoft: "Microsoft",
     spotify: "Spotify",
+    discord: "Discord",
   }[id];
 }
 
@@ -98,7 +99,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.provider?.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
               </Typography>
             </div>}
 

@@ -17,6 +17,8 @@ import '../polyfills';
 import { ClientPolyfill } from './client-polyfill';
 import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
+import dynamic from 'next/dynamic';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
@@ -40,6 +42,10 @@ type TagConfigJson = {
   attributes: { [key: string]: string },
   innerHTML?: string,
 };
+
+const PageView = dynamic(() => import('./pageview'), {
+  ssr: false,
+});
 
 export default function RootLayout({
   children,
@@ -73,6 +79,8 @@ export default function RootLayout({
           suppressHydrationWarning
         >
           <Analytics />
+          <PageView />
+          <SpeedInsights />
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
               <StackTheme>

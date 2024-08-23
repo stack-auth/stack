@@ -67,10 +67,13 @@ it("invites a user to a team", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "New Team",
             "id": "<stripped UUID>",
             "profile_image_url": null,
+            "server_metadata": null,
           },
         ],
       },

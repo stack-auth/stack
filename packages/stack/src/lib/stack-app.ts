@@ -72,7 +72,6 @@ export type HandlerUrls = {
   magicLinkCallback: string,
   accountSettings: string,
   teamInvitation: string,
-  teamCreation: string,
   error: string,
 }
 
@@ -105,7 +104,6 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
     accountSettings: `${handler}/account-settings`,
     error: `${handler}/error`,
     teamInvitation: `${handler}/team-invitation`,
-    teamCreation: `${handler}/team-creation`,
     ...filterUndefined(partial),
   };
 }
@@ -742,6 +740,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = useAsyncCache(app._teamMemberProfilesCache, [app._getSession(), crud.id], "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
+      async update(data: TeamUpdateOptions){
+        await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, app._getSession());
+        await app._currentUserTeamsCache.refresh([app._getSession()]);
+      }
     };
   }
 
@@ -785,6 +787,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: crud.profile_image_url,
       signedUpAt: new Date(crud.signed_up_at_millis),
       clientMetadata: crud.client_metadata,
+      clientReadOnlyMetadata: crud.client_read_only_metadata,
       hasPassword: crud.has_password,
       emailAuthEnabled: crud.auth_with_email,
       oauthProviders: crud.oauth_providers,
@@ -1026,7 +1029,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToAccountSettings(options?: RedirectToOptions) { return await this._redirectToHandler("accountSettings", options); }
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
-  async redirectToTeamCreation(options?: RedirectToOptions) { return await this._redirectToHandler("teamCreation", options); }
 
   async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
@@ -1595,6 +1597,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async setClientMetadata(metadata: Record<string, any>) {
         return await this.update({ clientMetadata: metadata });
+      },
+      async setClientReadOnlyMetadata(metadata: Record<string, any>) {
+        return await this.update({ clientReadOnlyMetadata: metadata });
       },
       async setServerMetadata(metadata: Record<string, any>) {
         return await this.update({ serverMetadata: metadata });
@@ -2291,6 +2296,7 @@ type BaseUser = {
   readonly signedUpAt: Date,
 
   readonly clientMetadata: any,
+  readonly clientReadOnlyMetadata: any,
 
   /**
    * Whether the primary e-mail can be used for authentication.
@@ -2378,6 +2384,7 @@ type ServerBaseUser = {
 
   readonly serverMetadata: any,
   setServerMetadata(metadata: any): Promise<void>,
+  setClientReadOnlyMetadata(metadata: any): Promise<void>,
 
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
@@ -2413,6 +2420,7 @@ type ServerUserUpdateOptions = {
   primaryEmail?: string,
   primaryEmailVerified?: boolean,
   primaryEmailAuthEnabled?: boolean,
+  clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
   password?: string,
 } & UserUpdateOptions;
@@ -2421,6 +2429,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     display_name: options.displayName,
     primary_email: options.primaryEmail,
     client_metadata: options.clientMetadata,
+    client_read_only_metadata: options.clientReadOnlyMetadata,
     server_metadata: options.serverMetadata,
     selected_team_id: options.selectedTeamId,
     primary_email_auth_enabled: options.primaryEmailAuthEnabled,
@@ -2696,7 +2705,19 @@ export type Team = {
   inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
+  update(update: TeamUpdateOptions): Promise<void>,
 };
+
+export type TeamUpdateOptions = {
+  displayName?: string,
+  profileImageUrl?: string | null,
+};
+function teamUpdateOptionsToCrud(options: TeamUpdateOptions): TeamsCrud["Client"]["Update"] {
+  return {
+    display_name: options.displayName,
+    profile_image_url: options.profileImageUrl
+  };
+}
 
 export type TeamCreateOptions = {
   displayName: string,
