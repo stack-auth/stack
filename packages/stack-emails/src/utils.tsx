@@ -21,6 +21,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
+  // TODO: rename this to userEmail
   { name: 'userPrimaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com' },
 ] as const;
 

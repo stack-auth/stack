@@ -32,24 +32,30 @@ export const POST = createSmartRouteHandler({
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
-    const usersPrisma = await prismaClient.projectUser.findMany({
+    const authMethod = await prismaClient.otpAuthMethod.findUnique({
       where: {
-        projectId: project.id,
-        primaryEmail: email,
-        authWithEmail: true,
+        projectId_contactChannelType_contactChannelValue: {
+          projectId: project.id,
+          contactChannelType: "EMAIL",
+          contactChannelValue: email,
+        }
       },
+      include: {
+        projectUser: true,
+        contactChannel: true,
+      }
     });
-    if (usersPrisma.length > 1) {
-      throw new StackAssertionError(`Multiple users found in the database with the same primary email ${email}, and all with e-mail sign-in allowed. This should never happen (only non-email/OAuth accounts are allowed to share the same primaryEmail).`);
-    }
 
-    const userPrisma = usersPrisma.length > 0 ? usersPrisma[0] : null;
-    const isNewUser = !userPrisma;
+    const isNewUser = !authMethod;
     if (isNewUser && !project.config.sign_up_enabled) {
       throw new KnownErrors.SignUpNotEnabled();
     }
 
-    let userObj: Pick<NonNullable<typeof userPrisma>, "projectUserId" | "displayName" | "primaryEmail"> | null = userPrisma;
+    let userObj: { projectUserId: string, displayName: string | null } | null = authMethod ? {
+      projectUserId: authMethod.projectUser.projectUserId,
+      displayName: authMethod.projectUser.displayName,
+    } : null;
+
     if (!userObj) {
       // TODO this should be in the same transaction as the read above
       const createdUser = await usersCrudHandlers.adminCreate({
@@ -61,10 +67,10 @@ export const POST = createSmartRouteHandler({
         },
         allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });
+
       userObj = {
         projectUserId: createdUser.id,
         displayName: createdUser.display_name,
-        primaryEmail: createdUser.primary_email,
       };
     }
 
@@ -87,7 +93,7 @@ export const POST = createSmartRouteHandler({
       templateType: "magic_link",
       extraVariables: {
         userDisplayName: userObj.displayName,
-        userPrimaryEmail: userObj.primaryEmail,
+        userPrimaryEmail: email,
         magicLink: link.toString(),
       },
     });

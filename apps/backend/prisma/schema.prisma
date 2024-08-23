@@ -498,20 +498,22 @@ model AuthMethod {
 }
 
 model OtpAuthMethod {
-  projectId        String
-  authMethodId     String @db.Uuid
-  contactChannelId String @db.Uuid
-  projectUserId    String @db.Uuid
+  projectId           String
+  authMethodId        String             @db.Uuid
+  contactChannelValue String
+  contactChannelType  ContactChannelType
+  projectUserId       String             @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contactChannel ContactChannel @relation(fields: [projectId, contactChannelId], references: [projectId, id])
-  authMethod     AuthMethod     @relation(fields: [projectId, authMethodId], references: [projectId, id])
+  contactChannel ContactChannel @relation(fields: [projectId, projectUserId, contactChannelType, contactChannelValue], references: [projectId, projectUserId, type, value], onDelete: Cascade)
+  authMethod     AuthMethod     @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser    ProjectUser    @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
-  @@unique([projectId, contactChannelId])
+  // each contact channel value of each type can only be used once per project as an otp method
+  @@unique([projectId, contactChannelType, contactChannelValue])
 }
 
 model PasswordAuthMethod {
@@ -527,7 +529,7 @@ model PasswordAuthMethod {
   identifier   String
   passwordHash String
 
-  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id])
+  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
@@ -547,10 +549,10 @@ model OAuthAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authMethod          AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id])
+  authMethod          AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   oauthAccount        ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
   projectUser         ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectId, oauthProviderConfigId], references: [projectConfigId, id])
+  oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
 }
