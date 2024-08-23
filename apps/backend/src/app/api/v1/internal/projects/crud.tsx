@@ -60,7 +60,6 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               oauthProviderConfigs: data.config?.oauth_providers ? {
                 create: data.config.oauth_providers.map(item => ({
                   id: item.id,
-                  enabled: item.enabled,
                   proxiedOAuthConfig: item.type === "shared" ? {
                     create: {
                       type: typedToUppercase(ensureSharedProvider(item.id)),
@@ -103,6 +102,21 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           }
         },
         include: fullProjectInclude,
+      });
+
+      // all oauth providers are created as auth methods for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          authMethodConfigs: data.config?.oauth_providers ? {
+            create: project.config.oauthProviderConfigs.map(item => ({
+              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+              oauthProviderConfigId: item.id,
+            }))
+          } : undefined,
+        }
       });
 
       await tx.permission.create({
