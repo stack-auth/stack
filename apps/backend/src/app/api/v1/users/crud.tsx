@@ -440,45 +440,78 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
 
-      if (data.primary_email) {
-        await tx.contactChannel.upsert({
-          where: {
-            projectId_projectUserId_type_value: {
-              projectId: auth.project.id,
-              projectUserId: params.user_id,
-              type: 'EMAIL',
-              value: data.primary_email,
-            },
-          },
-          create: {
-            projectConfigId: auth.project.config.id,
-            projectUserId: params.user_id,
-            projectId: auth.project.id,
-            type: 'EMAIL' as const,
-            value: data.primary_email,
-            isVerified: false,
-            isPrimary: "TRUE",
-          },
-          update: {
-            value: data.primary_email,
-          }
-        });
-
-        if (passwordAuth) {
-          await tx.passwordAuthMethod.update({
+      // if there is a new primary email
+      // - create a new primary email contact channel if it doesn't exist
+      // - update the primary email contact channel if it exists
+      // - update the password auth method if it exists
+      // if the primary email is null
+      // - delete the primary email contact channel if it exists (note that this will also delete the related auth methods)
+      // - delete the password auth method if it exists
+      if (data.primary_email !== undefined) {
+        if (data.primary_email === null) {
+          await tx.contactChannel.delete({
             where: {
-              projectId_authMethodId: {
+              projectId_projectUserId_type_isPrimary: {
                 projectId: auth.project.id,
-                authMethodId: passwordAuth.authMethodId,
+                projectUserId: params.user_id,
+                type: 'EMAIL',
+                isPrimary: "TRUE",
               },
             },
-            data: {
-              identifier: data.primary_email,
+          });
+
+          if (passwordAuth) {
+            await tx.authMethod.delete({
+              where: {
+                projectId_id: {
+                  projectId: auth.project.id,
+                  id: passwordAuth.authMethodId,
+                },
+              },
+            });
+          }
+        } else {
+          await tx.contactChannel.upsert({
+            where: {
+              projectId_projectUserId_type_value: {
+                projectId: auth.project.id,
+                projectUserId: params.user_id,
+                type: 'EMAIL',
+                value: data.primary_email,
+              },
+            },
+            create: {
+              projectConfigId: auth.project.config.id,
+              projectUserId: params.user_id,
+              projectId: auth.project.id,
+              type: 'EMAIL' as const,
+              value: data.primary_email,
+              isVerified: false,
+              isPrimary: "TRUE",
+            },
+            update: {
+              value: data.primary_email,
             }
           });
+
+          if (passwordAuth) {
+            await tx.passwordAuthMethod.update({
+              where: {
+                projectId_authMethodId: {
+                  projectId: auth.project.id,
+                  authMethodId: passwordAuth.authMethodId,
+                },
+              },
+              data: {
+                identifier: data.primary_email,
+              }
+            });
+          }
         }
       }
 
+      // if there is a new primary email verified
+      // - update the primary email contact channel if it exists
       if (data.primary_email_verified !== undefined) {
         await tx.contactChannel.update({
           where: {
@@ -495,6 +528,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
+      // if primary email auth is true
+      // - create a new otp auth method if it doesn't exist
+      // if primary email auth is false
+      // - delete the otp auth method if it exists
       if (data.primary_email_auth_enabled !== undefined) {
         if (data.primary_email_auth_enabled) {
           if (!otpAuth) {
@@ -539,6 +576,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         }
       }
 
+      // if there is a new password
+      // - update the password auth method if it exists
+      // if the password is null
+      // - delete the password auth method if it exists
       if (data.password !== undefined) {
         if (data.password === null) {
           if (passwordAuth) {
