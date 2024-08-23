@@ -1,8 +1,7 @@
 "use client";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { DomainConfigJson } from "@/temporary-types";
-import { AdminProject } from "@stackframe/stack";
+import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
@@ -14,7 +13,7 @@ function EditDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
-  domains: DomainConfigJson[],
+  domains: AdminDomainConfig[],
   project: AdminProject,
   type: 'update' | 'create',
 } & (
@@ -137,7 +136,7 @@ function DeleteDialog(props: {
 }
 
 function ActionMenu(props: {
-  domains: DomainConfigJson[],
+  domains: AdminDomainConfig[],
   project: AdminProject,
   editIndex: number,
   targetDomain: string,
