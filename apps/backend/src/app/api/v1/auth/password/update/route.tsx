@@ -2,7 +2,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
@@ -22,12 +22,15 @@ export const POST = createSmartRouteHandler({
       old_password: yupString().required(),
       new_password: yupString().required(),
     }).required(),
+    headers: yupObject({
+      "x-stack-refresh-token": yupTuple([yupString().optional()]).optional(),
+    }).required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password } }, fullReq) {
+  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
@@ -64,6 +67,19 @@ export const POST = createSmartRouteHandler({
         },
         data: {
           passwordHash: await hashPassword(new_password),
+        },
+      });
+
+      // reset all other refresh tokens
+      await tx.projectUserRefreshToken.deleteMany({
+        where: {
+          projectId: project.id,
+          projectUserId: user.id,
+          ...refreshToken ? {
+            NOT: {
+              refreshToken: refreshToken[0],
+            },
+          } : {},
         },
       });
     });
