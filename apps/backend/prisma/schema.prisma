@@ -241,6 +241,7 @@ model ProjectUser {
   connectedAccounts             ConnectedAccount[]
   passwordAuthMethod            PasswordAuthMethod[]
   otpAuthMethod                 OtpAuthMethod[]
+  oauthAuthMethod               OAuthAuthMethod[]
 
   @@id([projectId, projectUserId])
 }
@@ -267,6 +268,7 @@ model ProjectUserOAuthAccount {
   oauthTokens      OAuthToken[]
   oauthAccessToken OAuthAccessToken[]
   connectedAccount ConnectedAccount?
+  OAuthAuthMethod  OAuthAuthMethod[]
 
   @@id([projectId, oauthProviderConfigId, providerAccountId])
 }
@@ -534,15 +536,19 @@ model PasswordAuthMethod {
 
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.
 model OAuthAuthMethod {
-  projectId        String
-  authMethodId     String @db.Uuid
-  contactChannelId String @db.Uuid
+  projectId             String
+  authMethodId          String @db.Uuid
+  contactChannelId      String @db.Uuid
+  oauthProviderConfigId String
+  providerAccountId     String
+  projectUserId         String @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authMethod AuthMethod @relation(fields: [projectId, authMethodId], references: [projectId, id])
-  // oauthAccount   ProjectUserOAuthAccount
+  authMethod   AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id])
+  oauthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+  projectUser  ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
 }
