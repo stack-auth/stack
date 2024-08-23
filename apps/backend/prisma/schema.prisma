@@ -300,8 +300,8 @@ model ContactChannel {
   otpAuthMethod OtpAuthMethod[]
 
   @@id([projectId, id])
-  // each user can only have one primary contact channel
-  @@unique([projectId, projectUserId, isPrimary])
+  // each user have one primary contact channel of each type (this should be enfoced to be exactly one on the application level)
+  @@unique([projectId, projectUserId, type, isPrimary])
   // value must be unique per user per type
   @@unique([projectId, projectUserId, type, value])
 }

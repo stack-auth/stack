@@ -13,6 +13,7 @@ import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { PrismaTransaction } from "@/lib/types";
 
 const oauthProviderConfigInclude = {
   proxiedOAuthConfig: true,
@@ -165,6 +166,43 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
   };
 };
 
+async function checkAuthData(
+  tx: PrismaTransaction,
+  data: {
+    projectId: string,
+    oldPrimaryEmail?: string | null,
+    primaryEmail?: string | null,
+    primaryEmailVerified?: boolean,
+    primaryEmailAuthEnabled?: boolean,
+    authWithEmail?: boolean,
+    passwordHash?: string | null,
+  }
+) {
+  if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
+    throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
+  }
+  if (!data.primaryEmailAuthEnabled && data.passwordHash) {
+    throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
+  }
+  if (data.primaryEmailAuthEnabled) {
+    if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
+      const otp = await tx.otpAuthMethod.findFirst({
+        where: {
+          projectId: data.projectId,
+          contactChannel: {
+            type: 'EMAIL',
+            value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+          },
+        }
+      });
+
+      if (otp) {
+        throw new KnownErrors.UserEmailAlreadyExists();
+      }
+    }
+  }
+}
+
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
@@ -211,27 +249,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onCreate: async ({ auth, data }) => {
     const result = await prismaClient.$transaction(async (tx) => {
-      if (!data.primary_email && data.primary_email_auth_enabled) {
-        throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
-      }
-      if (!data.primary_email_auth_enabled && data.password) {
-        throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
-      }
-      if (data.primary_email_auth_enabled) {
-        const otp = await tx.otpAuthMethod.findFirst({
-          where: {
-            projectId: auth.project.id,
-            contactChannel: {
-              type: 'EMAIL',
-              value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
-            },
-          }
-        });
-
-        if (otp) {
-          throw new KnownErrors.UserEmailAlreadyExists();
-        }
-      }
+      await checkAuthData(tx, {
+        projectId: auth.project.id,
+        primaryEmail: data.primary_email,
+        primaryEmailVerified: data.primary_email_verified,
+        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
+        authWithEmail: data.primary_email_auth_enabled,
+        passwordHash: data.password && await hashPassword(data.password),
+      });
 
       const newUser = await tx.projectUser.create({
         data: {
@@ -240,10 +265,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
-          // primaryEmail: data.primary_email,
-          // primaryEmailVerified: data.primary_email_verified ?? false,
-          // authWithEmail: data.primary_email_auth_enabled ?? false,
-          // passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
           projectUserOAuthAccounts: data.oauth_providers ? {
             createMany: {
@@ -269,6 +290,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             type: 'EMAIL' as const,
             value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
             isVerified: data.primary_email_verified ?? false,
+            isPrimary: "TRUE",
           }
         });
 
@@ -351,7 +373,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onUpdate: async ({ auth, data, params }) => {
-    const db = await prismaClient.$transaction(async (tx) => {
+    const result = await prismaClient.$transaction(async (tx) => {
       await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
 
       if (data.selected_team_id !== undefined) {
@@ -389,6 +411,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         }
       }
 
+      await checkAuthData(tx, {
+        projectId: auth.project.id,
+        oldPrimaryEmail: data.primary_email,
+        primaryEmail: data.primary_email,
+        primaryEmailVerified: data.primary_email_verified,
+        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
+        authWithEmail: data.primary_email_auth_enabled,
+        passwordHash: data.password == null ? data.password : await hashPassword(data.password),
+      });
+
       const db = await tx.projectUser.update({
         where: {
           projectId_projectUserId: {
@@ -401,10 +433,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
-          primaryEmail: data.primary_email,
-          primaryEmailVerified: data.primary_email_verified ?? (data.primary_email !== undefined ? false : undefined),
-          authWithEmail: data.primary_email_auth_enabled,
-          passwordHash: data.password == null ? data.password : await hashPassword(data.password),
+          // primaryEmail: data.primary_email,
+          // primaryEmailVerified: data.primary_email_verified ?? (data.primary_email !== undefined ? false : undefined),
+          // authWithEmail: data.primary_email_auth_enabled,
+          // passwordHash: data.password == null ? data.password : await hashPassword(data.password),
           profileImageUrl: data.profile_image_url,
           requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
           totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
@@ -412,10 +444,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         include: userFullInclude,
       });
 
-      return db;
+      return userPrismaToCrud(db);
     });
-
-    const result = userPrismaToCrud(db);
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,
