@@ -273,6 +273,7 @@ model ProjectUserOAuthAccount {
 
 enum ContactChannelType {
   EMAIL
+  // PHONE
 }
 
 model ContactChannel {
@@ -296,6 +297,8 @@ model ContactChannel {
   @@id([projectId, id])
   // each user can only have one primary contact channel
   @@unique([projectId, projectUserId, isPrimary])
+  // value must be unique per user per type
+  @@unique([projectId, projectUserId, type, value])
 }
 
 model ConnectedAccountConfig {
