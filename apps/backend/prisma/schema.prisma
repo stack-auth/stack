@@ -226,10 +226,11 @@ model ProjectUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profileImageUrl String?
-  displayName     String?
-  serverMetadata  Json?
-  clientMetadata  Json?
+  profileImageUrl        String?
+  displayName            String?
+  serverMetadata         Json?
+  clientReadOnlyMetadata Json?
+  clientMetadata         Json?
 
   project                       Project                        @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
   projectUserRefreshTokens      ProjectUserRefreshToken[]
@@ -287,10 +288,10 @@ model ContactChannel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  type      ContactChannelType
-  isPrimary BooleanTrue?
-  verified  Boolean
-  value     String
+  type       ContactChannelType
+  isPrimary  BooleanTrue?
+  isVerified Boolean
+  value      String
 
   project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectUser   ProjectUser     @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
