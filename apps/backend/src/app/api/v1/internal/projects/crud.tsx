@@ -119,6 +119,21 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
         }
       });
 
+      // all standard oauth providers are created as connected accounts for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          connectedAccountConfigs: data.config?.oauth_providers ? {
+            create: project.config.oauthProviderConfigs.map(item => ({
+              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+              oauthProviderConfigId: item.id,
+            })),
+          } : undefined,
+        }
+      });
+
       await tx.permission.create({
         data: {
           projectId: project.id,
