@@ -172,14 +172,18 @@ export namespace Auth {
   /**
    * Valid session & valid access token: OK
    * Valid session & invalid access token: Error
-   * Invalid session & valid access token: OK
+   * Invalid session & valid access token: Error
    * Invalid session & invalid access token: Error
+   *
+   * (see comment in the function for rationale, and why "invalid refresh token but valid access token" is not
+   * considered "signed in")
    */
   export async function expectToBeSignedIn() {
-    // there is a world where we would consider "session is valid BUT access token is not" to be "signed in"
-    // however, it's better to be strict and throw an error regardless
+    // there is a world where we would accept either access token OR session to be "signed in", instead of both
+    // however, it's better to be strict and throw an error if either is invalid; this helps catch bugs
+    // if you really want to check only one of them, use expectSessionToBeValid or expectAccessTokenToBeValid
     // for more information, see the comment in expectToBeSignedOut
-
+    await Auth.expectAccessTokenToBeValid();
     await Auth.expectSessionToBeValid();
   }
 
