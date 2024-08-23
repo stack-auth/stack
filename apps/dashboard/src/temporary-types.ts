@@ -227,13 +227,14 @@ export const sharedProviders = [
   "shared-spotify",
 ] as const;
 
-export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify";
+export type StandardProvider = "github" | "facebook" | "google" | "microsoft" | "spotify" | "gitlab";
 export const standardProviders = [
   "github",
   "facebook",
   "google",
   "microsoft",
   "spotify",
+  "gitlab"
 ] as const;
 
 export function toStandardProvider(provider: SharedProvider | StandardProvider): StandardProvider {

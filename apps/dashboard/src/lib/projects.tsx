@@ -26,6 +26,7 @@ function toDBStandardProvider(type: StandardProvider): StandardOAuthProviderType
     "google": "GOOGLE",
     "microsoft": "MICROSOFT",
     "spotify": "SPOTIFY",
+    "gitlab": "GITLAB"
   } as const)[type];
 }
 
@@ -46,6 +47,7 @@ function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvid
     "GOOGLE": "google",
     "MICROSOFT": "microsoft",
     "SPOTIFY": "spotify",
+    "GITLAB": "gitlab"
   } as const)[type];
 }
 

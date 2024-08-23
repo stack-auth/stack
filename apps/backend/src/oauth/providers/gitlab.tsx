@@ -9,7 +9,7 @@ export class GitlabProvider extends OAuthBaseProvider {
     super(...args);
   }
 
-  static async create(options: { clientId: string; clientSecret: string }) {
+  static async create(options: { clientId: string, clientSecret: string }) {
     return new GitlabProvider(
       ...(await OAuthBaseProvider.createConstructorArgs({
         issuer: "https://gitlab.com",
@@ -29,7 +29,7 @@ export class GitlabProvider extends OAuthBaseProvider {
     const rawUserInfo = await this.oauthClient.userinfo(tokenSet.accessToken);
     return validateUserInfo({
       accountId: rawUserInfo.id?.toString(),
-      displayName: rawUserInfo.name ?? rawUserInfo.username,
+      displayName: rawUserInfo.name || rawUserInfo.username as any,
       email: rawUserInfo.email,
       profileImageUrl: rawUserInfo.avatar_url as any,
     });
