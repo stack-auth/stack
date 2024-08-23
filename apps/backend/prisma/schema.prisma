@@ -231,6 +231,8 @@ model ProjectUser {
   serverMetadata         Json?
   clientReadOnlyMetadata Json?
   clientMetadata         Json?
+  requiresTotpMfa        Boolean @default(false)
+  totpSecret             Bytes?
 
   project                       Project                        @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
   projectUserRefreshTokens      ProjectUserRefreshToken[]
