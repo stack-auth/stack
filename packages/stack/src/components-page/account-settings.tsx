@@ -25,7 +25,8 @@ import { TeamIcon } from '../components/team-icon';
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
   const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
-  const project = useStackApp().useProject();
+  const stackApp = useStackApp();
+  const project = stackApp.useProject();
 
   return (
     <SidebarLayout
@@ -87,7 +88,7 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
         }] as const : [],
       ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
       title='Account Settings'
-      basePath='/handler/account-settings'
+      basePath={stackApp.urls.accountSettings}
     />
   );
 }
