@@ -43,6 +43,10 @@ function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvid
   if (type === 'DISCORD') {
     throwErr("Discord is not a standard provider");
   }
+  
+  if (type === 'GITLAB') {
+    throwErr("Gitlab is not a standard provider");
+  }
 
   return ({
     "GITHUB": "github",
