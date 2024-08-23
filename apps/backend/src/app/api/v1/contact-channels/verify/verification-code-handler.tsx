@@ -42,17 +42,18 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     });
   },
   async handler(project, { email }, data) {
-    const updatedPrismaUser = await prismaClient.projectUser.update({
+    await prismaClient.contactChannel.update({
       where: {
-        projectId_projectUserId: {
+        projectId_projectUserId_type_value: {
           projectId: project.id,
           projectUserId: data.user_id,
+          type: "EMAIL",
+          value: email,
         },
-        primaryEmail: email,
       },
       data: {
-        primaryEmailVerified: true,
-      },
+        isVerified: true,
+      }
     });
 
     return {
