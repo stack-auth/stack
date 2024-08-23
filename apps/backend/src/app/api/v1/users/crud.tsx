@@ -12,12 +12,43 @@ import { StackAssertionError, StatusError, captureError, throwErr } from "@stack
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+
+const oauthProviderConfigInclude = {
+  proxiedOAuthConfig: true,
+  standardOAuthConfig: true,
+} as const;
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
     include: {
       providerConfig: true,
     },
+  },
+  contactChannels: true,
+  authMethods: {
+    include: {
+      passwordAuthMethod: true,
+      oauthAuthMethod: {
+        include: {
+          oauthProviderConfig: {
+            include: oauthProviderConfigInclude,
+          }
+        }
+      },
+      otpAuthMethod: {
+        include: {
+          contactChannel: true,
+        }
+      }
+    }
+  },
+  connectedAccounts: {
+    include: {
+      oauthProviderConfig: {
+        include: oauthProviderConfigInclude,
+      }
+    }
   },
   teamMembers: {
     include: {
@@ -29,61 +60,98 @@ export const userFullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
+export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}>) => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (channel.type !== 'EMAIL') {
+    throw new StackAssertionError("Only email channels are supported");
+  }
+
+  return {
+    type: 'email',
+    email: channel.value,
+  };
+};
+
+export const oauthProviderConfigToCrud = (config: Prisma.OAuthProviderConfigGetPayload<{ include: typeof oauthProviderConfigInclude }>) => {
+  let type;
+  if (config.proxiedOAuthConfig) {
+    type = config.proxiedOAuthConfig.type;
+  } else if (config.standardOAuthConfig) {
+    type = config.standardOAuthConfig.type;
+  } else {
+    throw new StackAssertionError(`OAuthProviderConfig ${config.id} violates the union constraint`, config);
+  }
+
+  return {
+    id: config.id,
+    type: typedToLowercase(type),
+  } as const;
+};
+
 export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
 
-  if (prisma.passwordHash && !prisma.authWithEmail) {
-    captureError("prismaToCrud", new StackAssertionError("User has password but authWithEmail is false; this is an assertion error that should never happen", { prisma }));
-  }
-  if (prisma.authWithEmail && !prisma.primaryEmail) {
-    captureError("prismaToCrud", new StackAssertionError("User has authWithEmail but no primary email; this is an assertion error that should never happen", { prisma }));
-  }
-  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = [
-    ...prisma.authWithEmail && prisma.passwordHash ? [{
-      type: 'password',
-      identifier: prisma.primaryEmail ?? "",
-    }] as const : [],
-    ...prisma.authWithEmail ? [{
-      type: 'otp',
-      contact_channel: {
-        type: 'email',
-        email: prisma.primaryEmail ?? "",
-      },
-    }] as const : [],
-    ...prisma.projectUserOAuthAccounts.map((a) => ({
-      type: 'oauth',
-      provider: {
-        type: a.oauthProviderConfigId,
-        provider_user_id: a.providerAccountId,
-      },
-    } as const)),
-  ] as const;
+  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods.map((m) => {
+    if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
+      throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
+    }
 
-  const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = [
-    ...prisma.projectUserOAuthAccounts.map((a) => ({
+    if (m.passwordAuthMethod) {
+      return {
+        type: 'password',
+        identifier: m.passwordAuthMethod.identifier,
+      };
+    } else if (m.otpAuthMethod) {
+      return {
+        type: 'otp',
+        contact_channel: {
+          type: 'email',
+          email: m.otpAuthMethod.contactChannel.value,
+        },
+      };
+    } else if (m.oauthAuthMethod) {
+      return {
+        type: 'oauth',
+        provider: {
+          ...oauthProviderConfigToCrud(m.oauthAuthMethod.oauthProviderConfig),
+          provider_user_id: m.oauthAuthMethod.providerAccountId,
+        },
+      };
+    } else {
+      throw new StackAssertionError("AuthMethod has no auth methods", m);
+    }
+  });
+
+  const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = prisma.connectedAccounts.map((a) => {
+    return {
       type: 'oauth',
       provider: {
-        type: a.oauthProviderConfigId,
-        provider_user_id: a.providerAccountId,
+        ...oauthProviderConfigToCrud(a.oauthProviderConfig),
+        provider_user_id: a.oauthAccountId,
       },
-    } as const)),
-  ];
+    };
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
+  const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
+  const otpAuth = prisma.authMethods.find((m) => m.otpAuthMethod);
 
   return {
     id: prisma.projectUserId,
     display_name: prisma.displayName || null,
-    primary_email: prisma.primaryEmail,
-    primary_email_verified: prisma.primaryEmailVerified,
+    primary_email: primaryEmailContactChannel?.value || null,
+    primary_email_verified: primaryEmailContactChannel?.isVerified || false,
     profile_image_url: prisma.profileImageUrl,
     signed_up_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
     client_read_only_metadata: prisma.clientReadOnlyMetadata,
     server_metadata: prisma.serverMetadata,
-    has_password: !!prisma.passwordHash,
-    auth_with_email: prisma.authWithEmail,
+    has_password: !!passwordAuth,
+    auth_with_email: !!passwordAuth || !!otpAuth,
     requires_totp_mfa: prisma.requiresTotpMfa,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
       id: a.oauthProviderConfigId,
@@ -142,56 +210,120 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     };
   },
   onCreate: async ({ auth, data }) => {
-    if (!data.primary_email && data.primary_email_auth_enabled) {
-      throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
-    }
-    if (!data.primary_email_auth_enabled && data.password) {
-      throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
-    }
-    if (data.primary_email_auth_enabled) {
-      // TODO: make this a transaction
-      const users = await prismaClient.projectUser.findMany({
-        where: {
+    const result = await prismaClient.$transaction(async (tx) => {
+      if (!data.primary_email && data.primary_email_auth_enabled) {
+        throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
+      }
+      if (!data.primary_email_auth_enabled && data.password) {
+        throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
+      }
+      if (data.primary_email_auth_enabled) {
+        const otp = await tx.otpAuthMethod.findFirst({
+          where: {
+            projectId: auth.project.id,
+            contactChannel: {
+              type: 'EMAIL',
+              value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+            },
+          }
+        });
+
+        if (otp) {
+          throw new KnownErrors.UserEmailAlreadyExists();
+        }
+      }
+
+      const newUser = await tx.projectUser.create({
+        data: {
           projectId: auth.project.id,
-          primaryEmail: data.primary_email,
-          authWithEmail: true,
+          displayName: data.display_name === undefined ? undefined : (data.display_name || null),
+          clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
+          serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
+          // primaryEmail: data.primary_email,
+          // primaryEmailVerified: data.primary_email_verified ?? false,
+          // authWithEmail: data.primary_email_auth_enabled ?? false,
+          // passwordHash: data.password == null ? data.password : await hashPassword(data.password),
+          profileImageUrl: data.profile_image_url,
+          projectUserOAuthAccounts: data.oauth_providers ? {
+            createMany: {
+              data: data.oauth_providers.map((provider) => ({
+                projectConfigId: auth.project.config.id,
+                oauthProviderConfigId: provider.id,
+                providerAccountId: provider.account_id,
+                email: provider.email,
+              }))
+            }
+          } : undefined,
+          totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
+        include: userFullInclude,
       });
 
-      if (users.length > 0) {
-        throw new KnownErrors.UserEmailAlreadyExists();
-      }
-    }
-
-
-    const db = await prismaClient.projectUser.create({
-      data: {
-        projectId: auth.project.id,
-        displayName: data.display_name === undefined ? undefined : (data.display_name || null),
-        clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
-        clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
-        serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
-        primaryEmail: data.primary_email,
-        primaryEmailVerified: data.primary_email_verified ?? false,
-        authWithEmail: data.primary_email_auth_enabled ?? false,
-        passwordHash: data.password == null ? data.password : await hashPassword(data.password),
-        profileImageUrl: data.profile_image_url,
-        projectUserOAuthAccounts: data.oauth_providers ? {
-          createMany: {
-            data: data.oauth_providers.map((provider) => ({
-              projectConfigId: auth.project.config.id,
-              oauthProviderConfigId: provider.id,
-              providerAccountId: provider.account_id,
-              email: provider.email,
-            }))
+      if (data.primary_email) {
+        const contactChannel = await tx.contactChannel.create({
+          data: {
+            projectConfigId: auth.project.config.id,
+            projectUserId: newUser.projectUserId,
+            projectId: auth.project.id,
+            type: 'EMAIL' as const,
+            value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+            isVerified: data.primary_email_verified ?? false,
           }
-        } : undefined,
-        totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
-      },
-      include: userFullInclude,
+        });
+
+        if (data.primary_email_auth_enabled) {
+          await tx.authMethod.create({
+            data: {
+              projectId: auth.project.id,
+              projectConfigId: auth.project.config.id,
+              projectUserId: newUser.projectUserId,
+              otpAuthMethod: {
+                create: {
+                  projectUserId: newUser.projectUserId,
+                  contactChannelId: contactChannel.id,
+                }
+              }
+            }
+          });
+        }
+
+        if (data.password) {
+          await tx.authMethod.create({
+            data: {
+              projectId: auth.project.id,
+              projectConfigId: auth.project.config.id,
+              projectUserId: newUser.projectUserId,
+              passwordAuthMethod: {
+                create: {
+                  identifier: data.primary_email || throwErr("password is set but primary_email is not"),
+                  passwordHash: await hashPassword(data.password),
+                  type: 'EMAIL',
+                  projectUserId: newUser.projectUserId,
+                }
+              }
+            }
+          });
+        }
+      }
+
+      const user = await tx.projectUser.findUnique({
+        where: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: newUser.projectUserId,
+          },
+        },
+        include: userFullInclude,
+      });
+
+      if (!user) {
+        throw new StackAssertionError("User was created but not found", newUser);
+      }
+
+      return userPrismaToCrud(user);
     });
 
-    const result = userPrismaToCrud(db);
 
     if (auth.project.config.create_team_on_sign_up) {
       await teamsCrudHandlers.adminCreate({

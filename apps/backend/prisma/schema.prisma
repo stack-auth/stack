@@ -359,9 +359,9 @@ model AuthMethodConfig {
   enabled Boolean @default(true)
 
   // exactly one of xyzConfig should be set
-  otpConfig      OtpAuthMethodConfig?
-  oauthConfig    OAuthProviderConfig?
-  passwordConfig PasswordAuthMethodConfig?
+  otpConfig           OtpAuthMethodConfig?
+  oauthProviderConfig OAuthProviderConfig?
+  passwordConfig      PasswordAuthMethodConfig?
 
   projectConfig ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   authMethods   AuthMethod[]
@@ -424,6 +424,7 @@ model OAuthProviderConfig {
   projectConfig            ProjectConfig             @relation(fields: [projectConfigId], references: [id])
   projectUserOAuthAccounts ProjectUserOAuthAccount[]
   connectedAccounts        ConnectedAccount[]
+  oauthAuthMethod          OAuthAuthMethod[]
 
   @@id([projectConfigId, id])
   @@unique([projectConfigId, authMethodConfigId])
@@ -488,9 +489,9 @@ model AuthMethod {
   updatedAt DateTime @updatedAt
 
   // exactly one of the xyzAuthMethods should be set
-  otpAuthMethods      OtpAuthMethod?
-  passwordAuthMethods PasswordAuthMethod?
-  oauthAuthMethods    OAuthAuthMethod?
+  otpAuthMethod      OtpAuthMethod?
+  passwordAuthMethod PasswordAuthMethod?
+  oauthAuthMethod    OAuthAuthMethod?
 
   project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectUser      ProjectUser      @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
@@ -549,9 +550,10 @@ model OAuthAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authMethod   AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id])
-  oauthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
-  projectUser  ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod          AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id])
+  oauthAccount        ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+  projectUser         ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectId, oauthProviderConfigId], references: [projectConfigId, id])
 
   @@id([projectId, authMethodId])
 }

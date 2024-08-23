@@ -202,7 +202,8 @@ export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { descri
 export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userOAuthProviderSchema = yupObject({
-  type: yupString().required(),
+  id: yupString().required(),
+  type: yupString().oneOf(allProviders).required(),
   provider_user_id: yupString().required(),
 });
 
