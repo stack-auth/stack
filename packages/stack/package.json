@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.5.23",
+  "version": "2.5.24",
   "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
