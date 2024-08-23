@@ -1757,28 +1757,34 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>;
-  async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null> {
-    // TODO this code is duplicated from the client app; fix that
-    this._ensurePersistentTokenStore(options?.tokenStore);
-    const session = this._getSession(options?.tokenStore);
-    const crud = await this._currentServerUserCache.getOrWait([session], "write-only");
+  async getUser(id: string): Promise<ServerUser | null>;
+  async getUser(options?: string | GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | ServerUser | null> {
+    if (typeof options === "string") {
+      const allUsers = await this.listUsers();
+      return allUsers.find((u) => u.id === options) ?? null;
+    } else {
+      // TODO this code is duplicated from the client app; fix that
+      this._ensurePersistentTokenStore(options?.tokenStore);
+      const session = this._getSession(options?.tokenStore);
+      const crud = await this._currentServerUserCache.getOrWait([session], "write-only");
 
-    if (crud === null) {
-      switch (options?.or) {
-        case 'redirect': {
-          await this.redirectToSignIn({ replace: true });
-          break;
-        }
-        case 'throw': {
-          throw new Error("User is not signed in but getUser was called with { or: 'throw' }");
-        }
-        default: {
-          return null;
+      if (crud === null) {
+        switch (options?.or) {
+          case 'redirect': {
+            await this.redirectToSignIn({ replace: true });
+            break;
+          }
+          case 'throw': {
+            throw new Error("User is not signed in but getUser was called with { or: 'throw' }");
+          }
+          default: {
+            return null;
+          }
         }
       }
-    }
 
-    return crud && this._currentUserFromCrud(crud, session);
+      return crud && this._currentUserFromCrud(crud, session);
+    }
   }
 
   async getServerUser(): Promise<ProjectCurrentServerUser<ProjectId> | null> {
@@ -1794,34 +1800,40 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>;
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>;
   useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null;
-  useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null {
-    // TODO this code is duplicated from the client app; fix that
-    this._ensurePersistentTokenStore(options?.tokenStore);
+  useUser(id: string): ServerUser | null;
+  useUser(options?: GetUserOptions<HasTokenStore> | string): ProjectCurrentServerUser<ProjectId> | ServerUser | null {
+    if (typeof options === "string") {
+      const users = this.useUsers();
+      return users.find((u) => u.id === options) ?? null;
+    } else {
+      // TODO this code is duplicated from the client app; fix that
+      this._ensurePersistentTokenStore(options?.tokenStore);
 
-    const router = NextNavigation.useRouter();
-    const session = this._getSession(options?.tokenStore);
-    const crud = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
+      const router = NextNavigation.useRouter();
+      const session = this._getSession(options?.tokenStore);
+      const crud = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
 
-    if (crud === null) {
-      switch (options?.or) {
-        case 'redirect': {
-          runAsynchronously(this.redirectToSignIn({ replace: true }));
-          suspend();
-          throw new StackAssertionError("suspend should never return");
-        }
-        case 'throw': {
-          throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
-        }
-        case undefined:
-        case "return-null": {
-          // do nothing
+      if (crud === null) {
+        switch (options?.or) {
+          case 'redirect': {
+            runAsynchronously(this.redirectToSignIn({ replace: true }));
+            suspend();
+            throw new StackAssertionError("suspend should never return");
+          }
+          case 'throw': {
+            throw new Error("User is not signed in but useUser was called with { or: 'throw' }");
+          }
+          case undefined:
+          case "return-null": {
+            // do nothing
+          }
         }
       }
-    }
 
-    return useMemo(() => {
-      return crud && this._currentUserFromCrud(crud, session);
-    }, [crud, session, options?.or]);
+      return useMemo(() => {
+        return crud && this._currentUserFromCrud(crud, session);
+      }, [crud, session, options?.or]);
+    }
   }
 
   useUserById(userId: string): ServerUser | null {
@@ -2895,6 +2907,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
   }
+  & AsyncStoreProperty<"user", [id: string], ServerUser | null, false>
   & AsyncStoreProperty<"users", [], ServerUser[], true>
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
