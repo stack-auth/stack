@@ -2,9 +2,9 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -19,6 +19,7 @@ export const POST = createSmartRouteHandler({
       user: adaptSchema.required(),
     }).required(),
     body: yupObject({
+      auth_method_id: yupString().optional(),
       old_password: yupString().required(),
       new_password: yupString().required(),
     }).required(),
@@ -30,7 +31,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
+  async handler({ auth: { project, user }, body: { old_password, new_password, auth_method_id }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
@@ -41,28 +42,34 @@ export const POST = createSmartRouteHandler({
     }
 
     await prismaClient.$transaction(async (tx) => {
-      const prismaUser = await tx.projectUser.findUnique({
+      const authMethods = await tx.passwordAuthMethod.findMany({
         where: {
-          projectId_projectUserId: {
-            projectId: project.id,
-            projectUserId: user.id,
-          },
+          projectId: project.id,
+          projectUserId: user.id,
         },
       });
-      if (!prismaUser) {
-        throw new StackAssertionError("User not found in password update; it was probably deleted after the request started. We should put more thoughts into the transactions here");
+
+      let authMethod;
+      if (authMethods.length > 1) {
+        if (!auth_method_id) {
+          throw new StatusError(StatusError.BadRequest, "auth_method_id is required when there are multiple password auth methods. If you see this error on the client, please upgrade your client to the latest version.");
+        }
+        authMethod = authMethods.find((x) => x.authMethodId === auth_method_id);
+
+        if (!authMethod) {
+          throw new StatusError(StatusError.NotFound, "Auth method not found");
+        }
+      } else if (authMethods.length === 1) {
+        authMethod = authMethods[0];
+      } else {
+        throw new StatusError(StatusError.NotFound, "Auth method not found");
       }
-      if (!prismaUser.passwordHash) {
-        throw new KnownErrors.UserDoesNotHavePassword();
-      }
-      if (!await comparePassword(old_password, prismaUser.passwordHash)) {
-        throw new KnownErrors.PasswordConfirmationMismatch();
-      }
-      await tx.projectUser.update({
+
+      await tx.passwordAuthMethod.update({
         where: {
-          projectId_projectUserId: {
+          projectId_authMethodId: {
             projectId: project.id,
-            projectUserId: user.id,
+            authMethodId: authMethod.authMethodId,
           },
         },
         data: {
