@@ -1,5 +1,13 @@
 # @stackframe/oauth-mock-server
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.25
+
 ## 2.5.24
 
 ### Patch Changes

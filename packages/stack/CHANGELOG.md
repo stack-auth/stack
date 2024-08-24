@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.25
+  - @stackframe/stack-ui@2.5.25
+  - @stackframe/stack-sc@2.5.25
+
 ## 2.5.24
 
 ### Patch Changes

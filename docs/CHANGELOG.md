@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+
 ## 2.5.24
 
 ## 2.5.23
