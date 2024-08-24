@@ -1,4 +1,4 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { fullOAuthProviderConfigInclude, usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
@@ -6,14 +6,9 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-
-export const fullOAuthProviderConfigInclude = {
-  proxiedOAuthConfig: true,
-  standardOAuthConfig: true,
-} as const;
 
 export const fullProjectInclude = {
   config: {
@@ -59,8 +54,8 @@ export const fullProjectInclude = {
     },
   },
 } as const satisfies Prisma.ProjectInclude;
-type FullProjectInclude = typeof fullProjectInclude;
-export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
+
+export type ProjectDB = Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }> & {
   config: {
     oauthProviderConfigs: (Prisma.OAuthProviderConfigGetPayload<
       typeof fullProjectInclude.config.include.oauthProviderConfigs

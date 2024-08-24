@@ -1,4 +1,5 @@
 import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
+import { PrismaTransaction } from "@/lib/types";
 import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -8,13 +9,16 @@ import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/cu
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { PrismaTransaction } from "@/lib/types";
-import { fullOAuthProviderConfigInclude } from "@/lib/projects";
+import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
+
+export const fullOAuthProviderConfigInclude = {
+  proxiedOAuthConfig: true,
+  standardOAuthConfig: true,
+} as const satisfies Prisma.OAuthProviderConfigInclude;
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
