@@ -332,6 +332,73 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         }
       }
 
+      // ======================= update password auth method =======================
+      const passwordAuth = await tx.passwordAuthMethodConfig.findFirst({
+        where: {
+          projectConfigId: oldProject.config.id,
+          type: "EMAIL",
+        },
+      });
+      if (data.config?.credential_enabled) {
+        if (!passwordAuth) {
+          await tx.authMethodConfig.create({
+            data: {
+              projectConfigId: oldProject.config.id,
+              enabled: true,
+              passwordConfig: {
+                create: {
+                  type: "EMAIL",
+                },
+              },
+            },
+          });
+        }
+      } else {
+        if (passwordAuth) {
+          await tx.authMethodConfig.delete({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: oldProject.config.id,
+                id: passwordAuth.authMethodConfigId,
+              },
+            },
+          });
+        }
+      }
+
+      // ======================= update OTP auth method =======================
+      const otpAuth = await tx.otpAuthMethodConfig.findFirst({
+        where: {
+          projectConfigId: oldProject.config.id,
+        },
+      });
+      if (data.config?.magic_link_enabled) {
+        if (!otpAuth) {
+          await tx.authMethodConfig.create({
+            data: {
+              projectConfigId: oldProject.config.id,
+              enabled: true,
+              otpConfig: {
+                create: {
+                  contactChannelType: "EMAIL",
+                },
+              },
+            },
+          });
+        }
+      } else {
+        if (otpAuth) {
+          await tx.authMethodConfig.delete({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: oldProject.config.id,
+                id: otpAuth.authMethodConfigId,
+              },
+            },
+          });
+        }
+      }
+
       // ======================= update the rest =======================
 
       // check domain uniqueness
@@ -351,8 +418,6 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           config: {
             update: {
               signUpEnabled: data.config?.sign_up_enabled,
-              credentialEnabled: data.config?.credential_enabled,
-              magicLinkEnabled: data.config?.magic_link_enabled,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled,
               allowLocalhost: data.config?.allow_localhost,
               createTeamOnSignUp: data.config?.create_team_on_sign_up,
