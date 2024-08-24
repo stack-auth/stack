@@ -6,10 +6,14 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+
+export const fullOAuthProviderConfigInclude = {
+  proxiedOAuthConfig: true,
+  standardOAuthConfig: true,
+} as const;
 
 export const fullProjectInclude = {
   config: {
@@ -28,6 +32,22 @@ export const fullProjectInclude = {
       },
       permissions: {
         include: fullPermissionInclude,
+      },
+      authMethodConfigs: {
+        include: {
+          oauthProviderConfig: {
+            include: fullOAuthProviderConfigInclude,
+          },
+          otpConfig: true,
+          passwordConfig: true,
+        }
+      },
+      connectedAccountConfigs: {
+        include: {
+          oauthConfig: {
+            include: fullOAuthProviderConfigInclude,
+          },
+        }
       },
       domains: true,
     },
@@ -60,35 +80,33 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }
 export function projectPrismaToCrud(
   prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
 ): ProjectsCrud["Admin"]["Read"] {
-  const oauthProviders = prisma.config.oauthProviderConfigs
-    .flatMap((provider): {
-      id: ProviderType,
-      enabled: boolean,
-      type: 'standard' | 'shared',
-      client_id?: string,
-      client_secret?: string ,
-      facebook_config_id?: string,
-    }[] => {
-      if (provider.proxiedOAuthConfig) {
-        return [{
-          id: typedToLowercase(provider.proxiedOAuthConfig.type),
-          enabled: provider.enabled,
-          type: 'shared',
-        }];
-      } else if (provider.standardOAuthConfig) {
-        return [{
-          id: typedToLowercase(provider.standardOAuthConfig.type),
-          enabled: provider.enabled,
-          type: 'standard',
-          client_id: provider.standardOAuthConfig.clientId,
-          client_secret: provider.standardOAuthConfig.clientSecret,
-          facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
-        }];
-      } else {
-        throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
+  const oauthProviders = prisma.config.authMethodConfigs
+    .map((config) => {
+      if (config.oauthProviderConfig) {
+        const providerConfig = config.oauthProviderConfig;
+        if (providerConfig.proxiedOAuthConfig) {
+          return {
+            id: typedToLowercase(providerConfig.proxiedOAuthConfig.type),
+            enabled: config.enabled,
+            type: "shared",
+          } as const;
+        } else if (providerConfig.standardOAuthConfig) {
+          return {
+            id: typedToLowercase(providerConfig.standardOAuthConfig.type),
+            enabled: config.enabled,
+            type: "standard",
+            client_id: providerConfig.standardOAuthConfig.clientId,
+            client_secret: providerConfig.standardOAuthConfig.clientSecret,
+            facebook_config_id: providerConfig.standardOAuthConfig.facebookConfigId ?? undefined,
+          } as const;
+        } else {
+          throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
+        }
       }
     })
+    .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
     .sort((a, b) => a.id.localeCompare(b.id));
+
   return {
     id: prisma.id,
     display_name: prisma.displayName,

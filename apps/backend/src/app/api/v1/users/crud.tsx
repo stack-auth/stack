@@ -14,11 +14,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { PrismaTransaction } from "@/lib/types";
-
-const oauthProviderConfigInclude = {
-  proxiedOAuthConfig: true,
-  standardOAuthConfig: true,
-} as const;
+import { fullOAuthProviderConfigInclude } from "@/lib/projects";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -33,7 +29,7 @@ export const userFullInclude = {
       oauthAuthMethod: {
         include: {
           oauthProviderConfig: {
-            include: oauthProviderConfigInclude,
+            include: fullOAuthProviderConfigInclude,
           }
         }
       },
@@ -47,7 +43,7 @@ export const userFullInclude = {
   connectedAccounts: {
     include: {
       oauthProviderConfig: {
-        include: oauthProviderConfigInclude,
+        include: fullOAuthProviderConfigInclude,
       }
     }
   },
@@ -73,7 +69,7 @@ export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}
   };
 };
 
-export const oauthProviderConfigToCrud = (config: Prisma.OAuthProviderConfigGetPayload<{ include: typeof oauthProviderConfigInclude }>) => {
+export const oauthProviderConfigToCrud = (config: Prisma.OAuthProviderConfigGetPayload<{ include: typeof fullOAuthProviderConfigInclude }>) => {
   let type;
   if (config.proxiedOAuthConfig) {
     type = config.proxiedOAuthConfig.type;
