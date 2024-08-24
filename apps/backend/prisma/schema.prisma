@@ -537,6 +537,7 @@ model PasswordAuthMethod {
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.
 model OAuthAuthMethod {
   projectId             String
+  projectConfigId       String @db.Uuid
   authMethodId          String @db.Uuid
   contactChannelId      String @db.Uuid
   oauthProviderConfigId String
@@ -549,7 +550,7 @@ model OAuthAuthMethod {
   authMethod          AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   oauthAccount        ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
   projectUser         ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
+  oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
 }
