@@ -51,13 +51,29 @@ async function seed() {
               })),
             },
             authMethodConfigs: {
-              create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
-                oauthProviderConfig: {
-                  connect: {
-                    id,
+              create: [
+                {
+                  otpConfig: {
+                    create: {
+                      contactChannelType: 'EMAIL',
+                    }
                   }
-                }
-              })),
+                },
+                {
+                  passwordConfig: {
+                    create: {
+                      type: 'EMAIL',
+                    }
+                  }
+                },
+                ...(['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
+                  oauthProviderConfig: {
+                    connect: {
+                      id,
+                    }
+                  }
+                }))
+              ],
             },
             emailServiceConfig: {
               create: {
@@ -66,8 +82,6 @@ async function seed() {
                 }
               }
             },
-            credentialEnabled: true,
-            magicLinkEnabled: true,
             createTeamOnSignUp: false,
             clientTeamCreationEnabled: true,
           },
