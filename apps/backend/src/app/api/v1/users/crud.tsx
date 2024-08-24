@@ -300,7 +300,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               otpAuthMethod: {
                 create: {
                   projectUserId: newUser.projectUserId,
-                  contactChannelId: contactChannel.id,
+                  contactChannelType: contactChannel.type,
+                  contactChannelValue: contactChannel.value,
                 }
               }
             }
@@ -552,7 +553,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 otpAuthMethod: {
                   create: {
                     projectUserId: params.user_id,
-                    contactChannelId: primaryEmailChannel.id,
+                    contactChannelType: primaryEmailChannel.type,
+                    contactChannelValue: primaryEmailChannel.value,
                   }
                 }
               }
