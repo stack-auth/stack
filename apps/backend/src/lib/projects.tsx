@@ -107,6 +107,9 @@ export function projectPrismaToCrud(
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
     .sort((a, b) => a.id.localeCompare(b.id));
 
+  const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig);
+  const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig);
+
   return {
     id: prisma.id,
     display_name: prisma.displayName,
@@ -118,8 +121,8 @@ export function projectPrismaToCrud(
       id: prisma.config.id,
       allow_localhost: prisma.config.allowLocalhost,
       sign_up_enabled: prisma.config.signUpEnabled,
-      credential_enabled: prisma.config.credentialEnabled,
-      magic_link_enabled: prisma.config.magicLinkEnabled,
+      credential_enabled: !!passwordAuth,
+      magic_link_enabled: !!otpAuth,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       domains: prisma.config.domains
