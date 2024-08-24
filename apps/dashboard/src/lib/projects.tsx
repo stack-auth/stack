@@ -40,8 +40,8 @@ function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
 }
 
 function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
-  if (type === 'DISCORD') {
-    throwErr("Discord is not a standard provider");
+  if (type === 'DISCORD' || type === "GITLAB") {
+    throwErr("Legacy provider does not support discord and gitlab");
   }
 
   return ({
