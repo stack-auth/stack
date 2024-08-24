@@ -44,8 +44,6 @@ model ProjectConfig {
 
   allowLocalhost            Boolean
   signUpEnabled             Boolean @default(true)
-  credentialEnabled         Boolean
-  magicLinkEnabled          Boolean
   createTeamOnSignUp        Boolean
   clientTeamCreationEnabled Boolean
 
