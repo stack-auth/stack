@@ -6,6 +6,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -47,38 +48,48 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, { email }, data) {
-    const projectUserBefore = await prismaClient.projectUser.findUniqueOrThrow({
+    const authMethod = await prismaClient.otpAuthMethod.findUnique({
       where: {
-        projectId_projectUserId: {
+        projectId_contactChannelType_contactChannelValue: {
           projectId: project.id,
-          projectUserId: data.user_id,
+          contactChannelType: "EMAIL",
+          contactChannelValue: email,
         },
       },
+      include: {
+        projectUser: true,
+      }
     });
-    if (projectUserBefore.requiresTotpMfa) {
+
+    if (!authMethod) {
+      throw new StackAssertionError("authMethod not found");
+    }
+
+    if (authMethod.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
         project,
         isNewUser: data.is_new_user,
-        userId: projectUserBefore.projectUserId,
+        userId: authMethod.projectUserId,
       });
     }
 
-    const projectUser = await prismaClient.projectUser.update({
+    await prismaClient.contactChannel.update({
       where: {
-        projectId_projectUserId: {
+        projectId_projectUserId_type_value: {
           projectId: project.id,
-          projectUserId: data.user_id,
-        },
-        primaryEmail: email,
+          projectUserId: authMethod.projectUserId,
+          type: "EMAIL",
+          value: email,
+        }
       },
       data: {
-        primaryEmailVerified: true,
+        isVerified: true,
       },
     });
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
-      projectUserId: projectUser.projectUserId,
+      projectUserId: authMethod.projectUserId,
     });
 
     return {
