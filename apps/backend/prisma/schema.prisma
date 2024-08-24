@@ -313,9 +313,9 @@ model ConnectedAccountConfig {
   enabled Boolean @default(true)
 
   // this should never be null
-  oauthConfig       OAuthProviderConfig?
-  projectConfig     ProjectConfig        @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
-  connectedAccounts ConnectedAccount[]
+  oauthProviderConfig OAuthProviderConfig?
+  projectConfig       ProjectConfig        @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
+  connectedAccounts   ConnectedAccount[]
 
   @@id([projectConfigId, id])
 }

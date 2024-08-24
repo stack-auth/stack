@@ -44,7 +44,7 @@ export const fullProjectInclude = {
       },
       connectedAccountConfigs: {
         include: {
-          oauthConfig: {
+          oauthProviderConfig: {
             include: fullOAuthProviderConfigInclude,
           },
         }

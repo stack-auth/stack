@@ -134,7 +134,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       // loop though all the items from crud.config.oauth_providers
       // create the config if it is not already in the DB
       // update the config if it is already in the DB
-      // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
+      // update/create all auth methods and connected account configs
 
       const oldProviders = oldProject.config.oauth_providers;
       const oauthProviderUpdates = data.config?.oauth_providers;
@@ -160,7 +160,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
         // Update existing proxied/standard providers
         for (const [id, { providerUpdate, oldProvider }] of providerMap) {
-        // remove existing provider configs
+          // remove existing provider configs
           switch (oldProvider.type) {
             case 'shared': {
               await tx.proxiedOAuthProviderConfig.deleteMany({
@@ -202,7 +202,6 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           await tx.oAuthProviderConfig.update({
             where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
             data: {
-              enabled: providerUpdate.enabled,
               ...providerConfigUpdate,
             },
           });
@@ -236,10 +235,100 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             data: {
               id: provider.id,
               projectConfigId: oldProject.config.id,
-              enabled: provider.update.enabled,
               ...providerConfigData,
             },
           });
+        }
+
+        // Update/create auth methods and connected account configs
+        const providers = await tx.oAuthProviderConfig.findMany({
+          where: {
+            projectConfigId: oldProject.config.id,
+          },
+          include: {
+            standardOAuthConfig: true,
+            proxiedOAuthConfig: true,
+          }
+        });
+        for (const provider of providers) {
+          const enabled = oauthProviderUpdates.find((p) => p.id === provider.id)?.enabled ?? false;
+
+          const authMethod = await tx.authMethodConfig.findFirst({
+            where: {
+              projectConfigId: oldProject.config.id,
+              oauthProviderConfig: {
+                id: provider.id,
+              },
+            }
+          });
+
+          if (!authMethod) {
+            await tx.authMethodConfig.create({
+              data: {
+                projectConfigId: oldProject.config.id,
+                enabled,
+                oauthProviderConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      projectConfigId: oldProject.config.id,
+                      id: provider.id,
+                    }
+                  }
+                }
+              },
+            });
+          } else {
+            await tx.authMethodConfig.update({
+              where: {
+                projectConfigId_id: {
+                  projectConfigId: oldProject.config.id,
+                  id: provider.id,
+                }
+              },
+              data: {
+                enabled,
+              },
+            });
+          }
+
+          const connectedAccount = await tx.connectedAccountConfig.findFirst({
+            where: {
+              projectConfigId: oldProject.config.id,
+              oauthProviderConfig: {
+                id: provider.id,
+              },
+            }
+          });
+
+          if (!connectedAccount) {
+            if (provider.standardOAuthConfig) {
+              await tx.connectedAccountConfig.create({
+                data: {
+                  projectConfigId: oldProject.config.id,
+                  oauthProviderConfig: {
+                    connect: {
+                      projectConfigId_id: {
+                        projectConfigId: oldProject.config.id,
+                        id: provider.id,
+                      }
+                    }
+                  }
+                },
+              });
+            }
+          } else {
+            await tx.connectedAccountConfig.update({
+              where: {
+                projectConfigId_id: {
+                  projectConfigId: oldProject.config.id,
+                  id: provider.id,
+                }
+              },
+              data: {
+                enabled: provider.standardOAuthConfig ? enabled : false,
+              },
+            });
+          }
         }
       }
 
