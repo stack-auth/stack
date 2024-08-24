@@ -46,8 +46,6 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           config: {
             create: {
               signUpEnabled: data.config?.sign_up_enabled ?? true,
-              credentialEnabled: data.config?.credential_enabled ?? true,
-              magicLinkEnabled: data.config?.magic_link_enabled ?? false,
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,
@@ -110,12 +108,26 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           id: project.config.id,
         },
         data: {
-          authMethodConfigs: data.config?.oauth_providers ? {
-            create: project.config.oauthProviderConfigs.map(item => ({
-              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
-              oauthProviderConfigId: item.id,
-            }))
-          } : undefined,
+          authMethodConfigs: {
+            create: [
+              ...data.config?.oauth_providers ? project.config.oauthProviderConfigs.map(item => ({
+                enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+                oauthProviderConfigId: item.id,
+              })) : [],
+              ...data.config?.magic_link_enabled ? [{
+                enabled: true,
+                magicLinkConfig: {
+                  create: {}
+                },
+              }] : [],
+              ...data.config?.credential_enabled ? [{
+                enabled: true,
+                passwordConfig: {
+                  create: {}
+                },
+              }] : [],
+            ]
+          }
         }
       });
 
