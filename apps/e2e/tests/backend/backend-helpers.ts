@@ -114,31 +114,94 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 
 
 export namespace Auth {
-  export async function expectToBeSignedIn() {
-    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: OK
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectSessionToBeValid() {
+    const response = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", { method: "POST", accessType: "client" });
+    if (response.status !== 200) {
+      throw new StackAssertionError("Expected session to be valid, but was actually invalid.", { response });
+    }
     expect(response).toEqual({
       status: 200,
-      headers: expect.anything(),
-      body: expect.anything(),
+      headers: expect.objectContaining({}),
+      body: expect.objectContaining({}),
     });
-    return response;
   }
 
-  export async function expectToBeSignedOut() {
+  /**
+   * Valid session & valid access token: Error
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: OK
+   */
+  export async function expectSessionToBeInvalid() {
+    const response = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", { method: "POST", accessType: "client" });
+    expect(response.status).not.toEqual(200);
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectAccessTokenToBeInvalid() {
     const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 400,
-        "body": {
-          "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-          "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-          <some fields may have been hidden>,
-        },
-      }
-    `);
+    if (response.status === 200) {
+      throw new StackAssertionError("Expected access token to be invalid, but was actually valid.", { response });
+    }
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectAccessTokenToBeValid() {
+    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+    if (response.status !== 200) {
+      throw new StackAssertionError("Expected access token to be valid, but was actually invalid.", { response });
+    }
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: Error
+   *
+   * (see comment in the function for rationale, and why "invalid refresh token but valid access token" is not
+   * considered "signed in")
+   */
+  export async function expectToBeSignedIn() {
+    // there is a world where we would accept either access token OR session to be "signed in", instead of both
+    // however, it's better to be strict and throw an error if either is invalid; this helps catch bugs
+    // if you really want to check only one of them, use expectSessionToBeValid or expectAccessTokenToBeValid
+    // for more information, see the comment in expectToBeSignedOut
+    await Auth.expectAccessTokenToBeValid();
+    await Auth.expectSessionToBeValid();
+  }
+
+  /**
+   * Valid session & valid access token: Error
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: OK
+   */
+  export async function expectToBeSignedOut() {
+    await Auth.expectAccessTokenToBeInvalid();
+
+    // usually, when we mean "signed out" we mean "both access token AND session are invalid"; we'd rather be strict
+    // so, we additionally check the session
+    // this has the weird side effect that expectToBeSignedIn (which is also strict, checking that access token AND
+    // session are valid) may throw, even if expectToBeSignedOut also throws
+    // if you run into something like that in your tests, use expectSessionToBeInvalid instead
+    await Auth.expectSessionToBeInvalid();
   }
 
   export async function signOut() {

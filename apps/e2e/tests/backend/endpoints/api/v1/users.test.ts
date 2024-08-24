@@ -1275,6 +1275,109 @@ describe("with server access", () => {
     `);
   });
 
+  it("should be able to update own user", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response1 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        display_name: "John Doe",
+        server_metadata: { key: "value" },
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "connected_accounts": [],
+          "display_name": "John Doe",
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": { "key": "value" },
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to update a user's password, signing them out, and sign in with it again", async ({ expect }) => {
+    const password = "this-is-some-password";
+    await Auth.Otp.signIn();
+    const response1 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        password,
+      },
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_methods": [
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
+            },
+            {
+              "contact_channel": {
+                "email": "<stripped UUID>@stack-generated.example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    backendContext.set({
+      userAuth: {
+        ...backendContext.value.userAuth,
+        accessToken: undefined,
+      },
+    });
+    await Auth.expectToBeSignedOut();
+    await Auth.Password.signInWithEmail({ password });
+    await Auth.expectToBeSignedIn();
+  });
+
   it("should be able to delete a user", async ({ expect }) => {
     await Auth.Otp.signIn();
     const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {

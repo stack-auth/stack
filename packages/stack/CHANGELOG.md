@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.5.24
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.24
+  - @stackframe/stack-ui@2.5.24
+  - @stackframe/stack-sc@2.5.24
+
 ## 2.5.23
 
 ### Patch Changes

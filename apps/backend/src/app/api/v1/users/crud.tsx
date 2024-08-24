@@ -653,6 +653,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         include: userFullInclude,
       });
 
+      // if user password changed, reset all refresh tokens
+      if (data.password !== undefined) {
+        await prismaClient.projectUserRefreshToken.deleteMany({
+          where: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+          },
+        });
+      }
+
       return userPrismaToCrud(db);
     });
 
