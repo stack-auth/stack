@@ -4,7 +4,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -63,6 +63,10 @@ export const POST = createSmartRouteHandler({
         authMethod = authMethods[0];
       } else {
         throw new KnownErrors.UserDoesNotHavePassword();
+      }
+
+      if (!await comparePassword(old_password, authMethod.passwordHash)) {
+        throw new KnownErrors.PasswordConfirmationMismatch();
       }
 
       await tx.passwordAuthMethod.update({
