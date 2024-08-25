@@ -62,7 +62,7 @@ export const POST = createSmartRouteHandler({
       } else if (authMethods.length === 1) {
         authMethod = authMethods[0];
       } else {
-        throw new StatusError(StatusError.NotFound, "Auth method not found");
+        throw new KnownErrors.UserDoesNotHavePassword();
       }
 
       await tx.passwordAuthMethod.update({

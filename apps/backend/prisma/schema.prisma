@@ -268,7 +268,7 @@ model ProjectUserOAuthAccount {
   oauthTokens      OAuthToken[]
   oauthAccessToken OAuthAccessToken[]
   connectedAccount ConnectedAccount?
-  OAuthAuthMethod  OAuthAuthMethod[]
+  oauthAuthMethod  OAuthAuthMethod?
 
   @@id([projectId, oauthProviderConfigId, providerAccountId])
 }
@@ -327,20 +327,19 @@ model ConnectedAccount {
   connectedAccountConfigId String @db.Uuid
   projectUserId            String @db.Uuid
   oauthProviderConfigId    String
-  oauthAccountId           String
+  providerAccountId        String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  oauthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, oauthAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
-
-  project                Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectUser            ProjectUser            @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  connectedAccountConfig ConnectedAccountConfig @relation(fields: [projectConfigId, connectedAccountConfigId], references: [projectConfigId, id], onDelete: Cascade)
-  oauthProviderConfig    OAuthProviderConfig    @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
+  oauthAccount           ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
+  project                Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectUser            ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  connectedAccountConfig ConnectedAccountConfig  @relation(fields: [projectConfigId, connectedAccountConfigId], references: [projectConfigId, id], onDelete: Cascade)
+  oauthProviderConfig    OAuthProviderConfig     @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([projectId, id])
-  @@unique([projectId, oauthProviderConfigId, oauthAccountId])
+  @@unique([projectId, oauthProviderConfigId, providerAccountId])
 }
 
 model AuthMethodConfig {
@@ -554,6 +553,7 @@ model OAuthAuthMethod {
   oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
+  @@unique([projectId, oauthProviderConfigId, providerAccountId])
 }
 
 enum StandardOAuthProviderType {
