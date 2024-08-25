@@ -321,7 +321,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               where: {
                 projectConfigId_id: {
                   projectConfigId: oldProject.config.id,
-                  id: provider.id,
+                  id: connectedAccount.id,
                 }
               },
               data: {
