@@ -101,36 +101,38 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
 
-  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods.map((m) => {
-    if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
-      throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
-    }
+  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods
+    .sort((a, b) => a.authMethodId.localeCompare(b.authMethodId))
+    .map((m) => {
+      if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
+        throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
+      }
 
-    if (m.passwordAuthMethod) {
-      return {
-        type: 'password',
-        identifier: m.passwordAuthMethod.identifier,
-      };
-    } else if (m.otpAuthMethod) {
-      return {
-        type: 'otp',
-        contact_channel: {
-          type: 'email',
-          email: m.otpAuthMethod.contactChannel.value,
-        },
-      };
-    } else if (m.oauthAuthMethod) {
-      return {
-        type: 'oauth',
-        provider: {
-          ...oauthProviderConfigToCrud(m.oauthAuthMethod.oauthProviderConfig),
-          provider_user_id: m.oauthAuthMethod.providerAccountId,
-        },
-      };
-    } else {
-      throw new StackAssertionError("AuthMethod has no auth methods", m);
-    }
-  });
+      if (m.passwordAuthMethod) {
+        return {
+          type: 'password',
+          identifier: m.passwordAuthMethod.identifier,
+        };
+      } else if (m.otpAuthMethod) {
+        return {
+          type: 'otp',
+          contact_channel: {
+            type: 'email',
+            email: m.otpAuthMethod.contactChannel.value,
+          },
+        };
+      } else if (m.oauthAuthMethod) {
+        return {
+          type: 'oauth',
+          provider: {
+            ...oauthProviderConfigToCrud(m.oauthAuthMethod.oauthProviderConfig),
+            provider_user_id: m.oauthAuthMethod.providerAccountId,
+          },
+        };
+      } else {
+        throw new StackAssertionError("AuthMethod has no auth methods", m);
+      }
+    });
 
   const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = prisma.connectedAccounts.map((a) => {
     return {
