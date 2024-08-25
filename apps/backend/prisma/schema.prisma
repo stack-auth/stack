@@ -267,6 +267,8 @@ model ProjectUserOAuthAccount {
   projectUser      ProjectUser?        @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
   oauthTokens      OAuthToken[]
   oauthAccessToken OAuthAccessToken[]
+
+  // At lease one of the authMethod or connectedAccount should be set.
   connectedAccount ConnectedAccount?
   oauthAuthMethod  OAuthAuthMethod?
 
@@ -539,7 +541,6 @@ model OAuthAuthMethod {
   projectId             String
   projectConfigId       String @db.Uuid
   authMethodId          String @db.Uuid
-  contactChannelId      String @db.Uuid
   oauthProviderConfigId String
   providerAccountId     String
   projectUserId         String @db.Uuid

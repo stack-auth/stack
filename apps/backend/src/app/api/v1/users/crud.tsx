@@ -139,7 +139,7 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
       type: 'oauth',
       provider: {
         ...oauthProviderConfigToCrud(a.oauthProviderConfig),
-        provider_user_id: a.oauthAccountId,
+        provider_user_id: a.providerAccountId,
       },
     };
   });
@@ -317,20 +317,84 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
           profileImageUrl: data.profile_image_url,
-          projectUserOAuthAccounts: data.oauth_providers ? {
-            createMany: {
-              data: data.oauth_providers.map((provider) => ({
-                projectConfigId: auth.project.config.id,
-                oauthProviderConfigId: provider.id,
-                providerAccountId: provider.account_id,
-                email: provider.email,
-              }))
-            }
-          } : undefined,
           totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
         include: userFullInclude,
       });
+
+      if (data.oauth_providers) {
+        // TODO: include this in the project
+        const authMethodConfigs = await tx.authMethodConfig.findMany({
+          where: {
+            projectConfigId: auth.project.config.id,
+            oauthProviderConfig: {
+              isNot: null,
+            }
+          },
+          include: {
+            oauthProviderConfig: true,
+          }
+        });
+        const connectedAccountConfigs = await tx.connectedAccountConfig.findMany({
+          where: {
+            projectConfigId: auth.project.config.id,
+            oauthProviderConfig: {
+              isNot: null,
+            }
+          },
+          include: {
+            oauthProviderConfig: true,
+          }
+        });
+
+        // create many does not support nested create, so we have to use loop
+        for (const provider of data.oauth_providers) {
+          const connectedAccountConfig = connectedAccountConfigs.find((c) => c.oauthProviderConfig?.id === provider.id);
+          const authMethodConfig = authMethodConfigs.find((c) => c.oauthProviderConfig?.id === provider.id);
+
+          let authMethod;
+          if (authMethodConfig) {
+            authMethod = await tx.authMethod.create({
+              data: {
+                projectId: auth.project.id,
+                projectUserId: newUser.projectUserId,
+                projectConfigId: auth.project.config.id,
+                authMethodConfigId: authMethodConfig.id,
+              }
+            });
+          }
+
+          await tx.projectUserOAuthAccount.create({
+            data: {
+              projectId: auth.project.id,
+              projectUserId: newUser.projectUserId,
+              projectConfigId: auth.project.config.id,
+              oauthProviderConfigId: provider.id,
+              providerAccountId: provider.account_id,
+              email: provider.email,
+              ...connectedAccountConfig ? {
+                connectedAccount: {
+                  create: {
+                    connectedAccountConfigId: connectedAccountConfig.id,
+                    projectUserId: newUser.projectUserId,
+                    projectConfigId: auth.project.config.id,
+                  }
+                }
+              } : {},
+              ...authMethodConfig ? {
+                oauthAuthMethod: {
+                  create: {
+                    projectUserId: newUser.projectUserId,
+                    projectConfigId: auth.project.config.id,
+                    authMethodId: authMethod?.id || throwErr("authMethodConfig is set but authMethod is not"),
+                  }
+                }
+              } : {},
+            }
+          });
+        }
+
+      }
 
       if (data.primary_email) {
         const contactChannel = await tx.contactChannel.create({
