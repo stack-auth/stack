@@ -39,9 +39,9 @@ export const POST = createSmartRouteHandler({
 
     const authMethod = await prismaClient.passwordAuthMethod.findUnique({
       where: {
-        projectId_type_identifier: {
+        projectId_identifierType_identifier: {
           projectId: project.id,
-          type: "EMAIL",
+          identifierType: "EMAIL",
           identifier: email,
         }
       },

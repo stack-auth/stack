@@ -336,7 +336,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       const passwordAuth = await tx.passwordAuthMethodConfig.findFirst({
         where: {
           projectConfigId: oldProject.config.id,
-          type: "EMAIL",
+          identifierType: "EMAIL",
         },
       });
       if (data.config?.credential_enabled) {
@@ -347,7 +347,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               enabled: true,
               passwordConfig: {
                 create: {
-                  type: "EMAIL",
+                  identifierType: "EMAIL",
                 },
               },
             },

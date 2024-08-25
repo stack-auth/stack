@@ -387,7 +387,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 create: {
                   identifier: data.primary_email || throwErr("password is set but primary_email is not"),
                   passwordHash: await hashPassword(data.password),
-                  type: 'EMAIL',
+                  identifierType: 'EMAIL',
                   projectUserId: newUser.projectUserId,
                 }
               }
@@ -701,7 +701,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                   create: {
                     identifier: primaryEmailChannel.value,
                     passwordHash: await hashPassword(data.password),
-                    type: 'EMAIL',
+                    identifierType: 'EMAIL',
                     projectUserId: params.user_id,
                   }
                 }

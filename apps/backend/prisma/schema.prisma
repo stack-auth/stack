@@ -377,7 +377,7 @@ model OtpAuthMethodConfig {
   @@id([projectConfigId, authMethodConfigId])
 }
 
-enum PasswordAuthMethodType {
+enum PasswordAuthMethodIdentifierType {
   EMAIL
   // USERNAME
 }
@@ -391,7 +391,7 @@ model PasswordAuthMethodConfig {
 
   authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
-  type PasswordAuthMethodType
+  identifierType PasswordAuthMethodIdentifierType
 
   @@id([projectConfigId, authMethodConfigId])
 }
@@ -522,17 +522,17 @@ model PasswordAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  type         PasswordAuthMethodType
+  identifierType PasswordAuthMethodIdentifierType
   // The identifier is the email or username, depending on the type.
-  identifier   String
-  passwordHash String
+  identifier     String
+  passwordHash   String
 
   authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
   // each identifier of each type can only occur once per project
-  @@unique([projectId, type, identifier])
+  @@unique([projectId, identifierType, identifier])
 }
 
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.
