@@ -1,4 +1,4 @@
-import { fullOAuthProviderConfigInclude, usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
@@ -31,7 +31,10 @@ export const fullProjectInclude = {
       authMethodConfigs: {
         include: {
           oauthProviderConfig: {
-            include: fullOAuthProviderConfigInclude,
+            include: {
+              proxiedOAuthConfig: true,
+              standardOAuthConfig: true,
+            },
           },
           otpConfig: true,
           passwordConfig: true,
@@ -40,7 +43,10 @@ export const fullProjectInclude = {
       connectedAccountConfigs: {
         include: {
           oauthProviderConfig: {
-            include: fullOAuthProviderConfigInclude,
+            include: {
+              proxiedOAuthConfig: true,
+              standardOAuthConfig: true,
+            },
           },
         }
       },
