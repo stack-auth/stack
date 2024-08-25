@@ -123,7 +123,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                   }
                 },
               }] : [],
-              ...data.config?.credential_enabled ? [{
+              ...(data.config?.credential_enabled ?? true) ? [{
                 enabled: true,
                 passwordConfig: {
                   create: {
