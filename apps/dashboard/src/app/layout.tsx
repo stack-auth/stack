@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
   },
-  description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.'
+  description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
   openGraph: {
     title : 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
