@@ -473,11 +473,12 @@ model StandardOAuthProviderConfig {
 }
 
 model AuthMethod {
-  projectId       String
-  id              String @default(uuid()) @db.Uuid
-  projectUserId   String @db.Uuid
-  authMethodId    String @default(uuid()) @db.Uuid
-  projectConfigId String @db.Uuid
+  projectId          String
+  id                 String @default(uuid()) @db.Uuid
+  projectUserId      String @db.Uuid
+  authMethodId       String @default(uuid()) @db.Uuid
+  authMethodConfigId String @db.Uuid
+  projectConfigId    String @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -489,7 +490,7 @@ model AuthMethod {
 
   project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectUser      ProjectUser      @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id], onDelete: Cascade)
+  authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([projectId, id])
 }

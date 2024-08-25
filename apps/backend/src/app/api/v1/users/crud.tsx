@@ -14,6 +14,7 @@ import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
+import { fullProjectInclude } from "@/lib/projects";
 
 export const fullOAuthProviderConfigInclude = {
   proxiedOAuthConfig: true,
@@ -205,6 +206,48 @@ async function checkAuthData(
   }
 }
 
+// TODO: retrieve in the project
+async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string) {
+  const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
+    where: {
+      projectConfigId: projectConfigId
+    },
+    include: {
+      authMethodConfig: true,
+    }
+  });
+
+  if (passwordConfig.length > 1) {
+    throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
+  }
+  if (passwordConfig.length === 0) {
+    throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+  }
+
+  return passwordConfig[0];
+}
+
+// TODO: retrieve in the project
+async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
+  const otpConfig = await tx.otpAuthMethodConfig.findMany({
+    where: {
+      projectConfigId: projectConfigId
+    },
+    include: {
+      authMethodConfig: true,
+    }
+  });
+
+  if (otpConfig.length > 1) {
+    throw new StackAssertionError("Multiple OTP auth methods found in the project", otpConfig);
+  }
+  if (otpConfig.length === 0) {
+    throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the project");
+  }
+
+  return otpConfig[0];
+}
+
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
@@ -296,11 +339,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
 
         if (data.primary_email_auth_enabled) {
+          const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+
           await tx.authMethod.create({
             data: {
               projectId: auth.project.id,
-              projectConfigId: auth.project.config.id,
               projectUserId: newUser.projectUserId,
+              projectConfigId: auth.project.config.id,
+              authMethodConfigId: otpConfig.authMethodConfigId,
               otpAuthMethod: {
                 create: {
                   projectUserId: newUser.projectUserId,
@@ -312,12 +358,31 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           });
         }
 
+        const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
+          where: {
+            projectConfigId: auth.project.config.id,
+          },
+          include: {
+            authMethodConfig: true,
+          }
+        });
+
+        if (passwordConfig.length === 0) {
+          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+        }
+        if (passwordConfig.length > 1) {
+          throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
+        }
+
         if (data.password) {
+          const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+
           await tx.authMethod.create({
             data: {
               projectId: auth.project.id,
               projectConfigId: auth.project.config.id,
               projectUserId: newUser.projectUserId,
+              authMethodConfigId: passwordConfig.authMethodConfigId,
               passwordAuthMethod: {
                 create: {
                   identifier: data.primary_email || throwErr("password is set but primary_email is not"),
@@ -549,11 +614,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               throw new StackAssertionError("primary_email_auth_enabled is true but primary_email is not set");
             }
 
+            const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+
             await tx.authMethod.create({
               data: {
                 projectId: auth.project.id,
                 projectConfigId: auth.project.config.id,
                 projectUserId: params.user_id,
+                authMethodConfigId: otpConfig.authMethodConfigId,
                 otpAuthMethod: {
                   create: {
                     projectUserId: params.user_id,
@@ -621,11 +689,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               throw new StackAssertionError("password is set but primary_email is not set");
             }
 
+            const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+
             await tx.authMethod.create({
               data: {
                 projectId: auth.project.id,
                 projectConfigId: auth.project.config.id,
                 projectUserId: params.user_id,
+                authMethodConfigId: passwordConfig.authMethodConfigId,
                 passwordAuthMethod: {
                   create: {
                     identifier: primaryEmailChannel.value,
