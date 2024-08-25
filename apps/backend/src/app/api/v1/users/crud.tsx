@@ -102,7 +102,7 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
   }
 
   const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods
-    .sort((a, b) => a.authMethodId.localeCompare(b.authMethodId))
+    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     .map((m) => {
       if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
         throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
