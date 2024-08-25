@@ -339,8 +339,8 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           identifierType: "EMAIL",
         },
       });
-      if (data.config?.credential_enabled) {
-        if (!passwordAuth) {
+      if (data.config?.credential_enabled !== undefined) {
+        if (data.config.credential_enabled && !passwordAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
@@ -352,9 +352,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        }
-      } else {
-        if (passwordAuth) {
+        } else if (!data.config.credential_enabled && passwordAuth) {
           await tx.authMethodConfig.delete({
             where: {
               projectConfigId_id: {
@@ -372,8 +370,8 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           projectConfigId: oldProject.config.id,
         },
       });
-      if (data.config?.magic_link_enabled) {
-        if (!otpAuth) {
+      if (data.config?.magic_link_enabled !== undefined) {
+        if (data.config.magic_link_enabled && !otpAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
@@ -385,9 +383,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        }
-      } else {
-        if (otpAuth) {
+        } else if (!data.config.magic_link_enabled && otpAuth) {
           await tx.authMethodConfig.delete({
             where: {
               projectConfigId_id: {
