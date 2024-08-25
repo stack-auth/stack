@@ -119,7 +119,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                 enabled: true,
                 otpConfig: {
                   create: {
-                    ContactChannelType: 'EMAIL',
+                    contactChannelType: 'EMAIL',
                   }
                 },
               }] : [],
@@ -127,7 +127,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                 enabled: true,
                 passwordConfig: {
                   create: {
-                    type: 'EMAIL',
+                    identifierType: 'EMAIL',
                   }
                 },
               }] : [],
