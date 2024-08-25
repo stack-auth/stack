@@ -145,7 +145,14 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           connectedAccountConfigs: data.config?.oauth_providers ? {
             create: project.config.oauthProviderConfigs.map(item => ({
               enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
-              oauthProviderConfigId: item.id,
+              oauthProviderConfig: {
+                connect: {
+                  projectConfigId_id: {
+                    projectConfigId: project.config.id,
+                    id: item.id,
+                  }
+                }
+              }
             })),
           } : undefined,
         }
