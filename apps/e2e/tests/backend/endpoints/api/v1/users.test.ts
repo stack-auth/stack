@@ -854,15 +854,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1048,15 +1048,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1110,15 +1110,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1336,15 +1336,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
