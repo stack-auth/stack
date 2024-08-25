@@ -880,7 +880,7 @@ it("deletes a project with server access", async ({ expect }) => {
 
 it("deletes a project with users, teams, and permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
 
   // Create a user
   const userResponse = await niceBackendFetch(`/api/v1/users`, {

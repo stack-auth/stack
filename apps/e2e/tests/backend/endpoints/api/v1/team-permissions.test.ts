@@ -45,7 +45,7 @@ it("is not allowed to grant non-existing permission to a user on the server", as
 
 it("can create a new permission and grant it to a user on the server", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
 
   // create a permission child
   await niceBackendFetch(`/api/v1/team-permission-definitions`, {
