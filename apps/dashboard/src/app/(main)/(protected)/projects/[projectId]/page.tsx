@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export function Page() {
-  redirect("users");
+export default function Page({ params }: { params: { projectId: string } }) {
+  redirect(`/projects/${params.projectId}/users`);
 }
