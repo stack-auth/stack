@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import Image from 'next/image';
 import { stackServerApp } from "src/stack";
 import TeamActions from "./team-actions";
 import { ProfileImageUpload } from "./profile-image-upload";
+import TeamInvitation from "./team-invitation";
 
 export default async function Page({ params }: { params: { teamId: string } }) {
   const team = await stackServerApp.getTeam(params.teamId);
@@ -10,7 +12,7 @@ export default async function Page({ params }: { params: { teamId: string } }) {
   }
   const user = await stackServerApp.getUser({ or: 'redirect' });
   const userTeams = await user.listTeams();
-  const members = await team.listMembers();
+  const members = await team.listUsers();
   const canReadContent = await user.hasPermission(team, 'read:content');
   const canReadSecret = await user.hasPermission(team, 'read:secret');
   const permissions = await user.listPermissions(team);
@@ -18,13 +20,17 @@ export default async function Page({ params }: { params: { teamId: string } }) {
   return <div>
     <h2>Team Name: {team.displayName}</h2>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={team.profileImageUrl} alt={'team profile image'} style={{ width: '100px', height: '100px' }} />
+    {team.profileImageUrl ? (
+      <Image src={team.profileImageUrl} alt={'team profile image'} style={{ width: '100px', height: '100px' }} />
+    ) : (
+      <p>[No profile image]</p>
+    )}
     <p>
-      {userTeams.some(t => t.id === team.id) ? 
+      {userTeams.some(t => t.id === team.id) ?
         <>
           (You are a member)
           <ProfileImageUpload teamId={team.id} />
-        </> : 
+        </> :
         '(You are not a member)'}
     </p>
 
@@ -43,7 +49,7 @@ export default async function Page({ params }: { params: { teamId: string } }) {
     <h3>Members</h3>
 
     {members.map((teamUser) => (
-      <div key={teamUser.userId}>
+      <div key={teamUser.id}>
         <p>- {teamUser.displayName || '[no name]'}</p>
       </div>
     ))}
@@ -51,5 +57,6 @@ export default async function Page({ params }: { params: { teamId: string } }) {
     <div className="mb-10"></div>
 
     <TeamActions teamId={team.id} />
+    <TeamInvitation teamId={team.id} />
   </div>;
 }

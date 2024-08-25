@@ -1,10 +1,10 @@
 'use client';
 
 import { UserButton } from "@stackframe/stack";
-import { Logo } from "./logo";
-import Typography from "./ui/typography";
+import { Typography } from "@stackframe/stack-ui";
 import { useTheme } from "next-themes";
 import { Link } from "./link";
+import { Logo } from "./logo";
 
 export function Navbar({ ...props }) {
   const { resolvedTheme, setTheme } = useTheme();

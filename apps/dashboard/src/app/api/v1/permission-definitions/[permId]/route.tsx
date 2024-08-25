@@ -46,7 +46,7 @@ export const PUT = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     }
 
     await updatePermissionDefinitions(
-      projectId, 
+      projectId,
       { type: "any-team" },
       options.params.permId,
       body
@@ -90,7 +90,7 @@ export const DELETE = deprecatedSmartRouteHandler(async (req: NextRequest, optio
     }
 
     await deletePermissionDefinition(
-      projectId, 
+      projectId,
       { type: "any-team" },
       options.params.permId
     );

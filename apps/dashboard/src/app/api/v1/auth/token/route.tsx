@@ -32,8 +32,8 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   const oauthResponse = new OAuthResponse();
   try {
     await oauthServer.token(
-      oauthRequest, 
-      oauthResponse, 
+      oauthRequest,
+      oauthResponse,
       {
         // note the `accessTokenLifetime` won't have any effect here because we set it in the `generateAccessToken` function
         refreshTokenLifetime: 60 * 60 * 24 * 365, // 1 year
@@ -42,10 +42,10 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     );
   } catch (e) {
     if (e instanceof InvalidGrantError) {
-      throw new KnownErrors.InvalidRefreshToken();
+      throw new KnownErrors.RefreshTokenNotFoundOrExpired();
     }
     if (e instanceof InvalidClientError) {
-      throw new KnownErrors.ProjectNotFound();
+      throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
     }
     throw e;
   }

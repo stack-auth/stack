@@ -118,7 +118,7 @@ export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchr
     {
       ...args[1],
       onError: error => {
-        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}`);
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}\n\n${error}`);
         args[1]?.onError?.(error);
       },
     },
@@ -224,7 +224,7 @@ export function rateLimited<T>(
       }
     }
     const nextFuncs = options.batchCalls ? queue.splice(0, queue.length) : [queue.shift()!];
-    
+
     const start = performance.now();
     const value = await Result.fromPromise(func());
     const end = performance.now();
@@ -236,7 +236,11 @@ export function rateLimited<T>(
     );
 
     for (const nextFunc of nextFuncs) {
-      value.status === "ok" ? nextFunc[0](value.data) : nextFunc[1](value.error);
+      if (value.status === "ok") {
+        nextFunc[0](value.data);
+      } else {
+        nextFunc[1](value.error);
+      }
     }
   };
 

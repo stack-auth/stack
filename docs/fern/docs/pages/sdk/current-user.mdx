@@ -1,5 +1,5 @@
 ---
-slug: user
+slug: sdk/user
 ---
 
 ## `CurrentUser` and `CurrentServerUser`
@@ -18,7 +18,7 @@ You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` 
 - `primaryEmailVerified` (boolean): Whether the primary email is verified.
 - `profileImageUrl` (string | null): The profile image URL of the user.
 - `signedUpAt` (Date): The Date when the user signed up.
-- `authWithEmail` (boolean): Whether the user has an email authentication method (magic link or password).
+- `emailAuthEnabled` (boolean): Whether the user has an email authentication method (magic link or password).
 - `hasPassword` (boolean): Whether the user has a password set.
 - `oauthProviders` (string[]): The list of OAuth provider ID s the user has connected.
 - `clientMetadata` (object): The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side.

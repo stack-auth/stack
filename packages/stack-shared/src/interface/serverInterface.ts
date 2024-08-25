@@ -1,49 +1,19 @@
-import { 
-  ClientInterfaceOptions, 
-  UserJson, 
-  StackClientInterface,
-  OrglikeJson,
-  UserUpdateJson,
-  PermissionDefinitionJson,
-  PermissionDefinitionScopeJson as PermissionDefinitionScopeJson,
-  TeamMemberJson,
-} from "./clientInterface";
+import { KnownErrors } from "../known-errors";
+import { AccessToken, InternalSession, RefreshToken } from "../sessions";
+import { StackAssertionError } from "../utils/errors";
+import { filterUndefined } from "../utils/objects";
 import { Result } from "../utils/results";
-import { ReadonlyJson } from "../utils/json";
-import { EmailTemplateCrud, ListEmailTemplatesCrud } from "./crud/email-templates";
-import { InternalSession } from "../sessions";
-
-export type ServerUserJson = UserJson & {
-  serverMetadata: ReadonlyJson,
-};
-
-export type ServerUserUpdateJson = UserUpdateJson & {
-  serverMetadata?: ReadonlyJson,
-  primaryEmail?: string | null,
-  primaryEmailVerified?: boolean,
-}
-
-export type ServerOrglikeCustomizableJson = Pick<ServerOrglikeJson, "displayName" | "profileImageUrl">;
-export type ServerOrglikeJson = OrglikeJson & {};
-
-export type ServerTeamCustomizableJson = ServerOrglikeCustomizableJson;
-export type ServerTeamJson = ServerOrglikeJson;
-
-export type ServerTeamMemberJson = TeamMemberJson & {
-  user: ServerUserJson,
-};
-
-export type ServerPermissionDefinitionCustomizableJson = {
-  readonly id: string,
-  readonly description?: string,
-  readonly scope: PermissionDefinitionScopeJson,
-  readonly containPermissionIds: string[],
-};
-
-export type ServerPermissionDefinitionJson = PermissionDefinitionJson & ServerPermissionDefinitionCustomizableJson & {
-  readonly __databaseUniqueId: string,
-  readonly scope: PermissionDefinitionScopeJson,
-};
+import {
+  ClientInterfaceOptions,
+  StackClientInterface
+} from "./clientInterface";
+import { CurrentUserCrud } from "./crud/current-user";
+import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
+import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
+import { TeamMembershipsCrud } from "./crud/team-memberships";
+import { TeamPermissionsCrud } from "./crud/team-permissions";
+import { TeamsCrud } from "./crud/teams";
+import { UsersCrud } from "./crud/users";
 
 export type ServerAuthApplicationOptions = (
   & ClientInterfaceOptions
@@ -56,9 +26,6 @@ export type ServerAuthApplicationOptions = (
     }
   )
 );
-
-export const emailTemplateTypes = ['EMAIL_VERIFICATION', 'PASSWORD_RESET', 'MAGIC_LINK'] as const;
-export type EmailTemplateType = typeof emailTemplateTypes[number];
 
 export class StackServerInterface extends StackClientInterface {
   constructor(public override options: ServerAuthApplicationOptions) {
@@ -80,121 +47,157 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async getServerUserByToken(session: InternalSession): Promise<Result<ServerUserJson>> {
-    const response = await this.sendServerRequest(
-      "/current-user?server=true",
-      {},
-      session,
-    );
-    const user: ServerUserJson | null = await response.json();
-    if (!user) return Result.error(new Error("Failed to get user"));
-    return Result.ok(user);
+  protected async sendServerRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
+    path: string,
+    requestOptions: RequestInit,
+    tokenStoreOrNull: InternalSession | null,
+    errorsToCatch: readonly E[],
+  ): Promise<Result<
+    Response & {
+      usedTokens: {
+        accessToken: AccessToken,
+        refreshToken: RefreshToken | null,
+      } | null,
+    },
+    InstanceType<E>
+  >> {
+    try {
+      return Result.ok(await this.sendServerRequest(path, requestOptions, tokenStoreOrNull));
+    } catch (e) {
+      for (const errorType of errorsToCatch) {
+        if (e instanceof errorType) {
+          return Result.error(e as InstanceType<E>);
+        }
+      }
+      throw e;
+    }
   }
 
-  async getServerUserById(userId: string): Promise<Result<ServerUserJson>> {
+  async createServerUser(data: UsersCrud['Server']['Create']): Promise<UsersCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/users/${userId}?server=true`,
+      "/users",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async getServerUserByToken(session: InternalSession): Promise<CurrentUserCrud['Server']['Read'] | null> {
+    const responseOrError = await this.sendServerRequestAndCatchKnownError(
+      "/users/me",
+      {},
+      session,
+      [KnownErrors.CannotGetOwnUserWithoutUser],
+    );
+    if (responseOrError.status === "error") {
+      if (responseOrError.error instanceof KnownErrors.CannotGetOwnUserWithoutUser) {
+        return null;
+      } else {
+        throw new StackAssertionError("Unexpected uncaught error", { cause: responseOrError.error });
+      }
+    }
+    const response = responseOrError.data;
+    const user: CurrentUserCrud['Server']['Read'] = await response.json();
+    if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
+    return user;
+  }
+
+  async getServerUserById(userId: string): Promise<Result<UsersCrud['Server']['Read']>> {
+    const response = await this.sendServerRequest(
+      `/users/${userId}`,
       {},
       null,
     );
-    const user: ServerUserJson | null = await response.json();
+    const user: CurrentUserCrud['Server']['Read'] | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
     return Result.ok(user);
   }
 
-  async listServerUserTeamPermissions(
+  async listServerTeamMemberProfiles(
     options: {
       teamId: string,
-      type: 'global' | 'team', 
-      direct: boolean, 
     },
-    session: InternalSession
-  ): Promise<ServerPermissionDefinitionJson[]> {
+  ): Promise<TeamMemberProfilesCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      `/current-user/teams/${options.teamId}/permissions?type=${options.type}&direct=${options.direct}&server=true`,
+      "/team-member-profiles?team_id=" + options.teamId,
+      {},
+      null,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Server']['List'];
+    return result.items;
+  }
+
+  async getServerTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      null,
+    );
+    return await response.json();
+  }
+
+  async listServerTeamPermissions(
+    options: {
+      userId?: string,
+      teamId?: string,
+      recursive: boolean,
+    },
+    session: InternalSession | null,
+  ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(
+      "/team-permissions?" + new URLSearchParams(filterUndefined({
+        user_id: options.userId,
+        team_id: options.teamId,
+        recursive: options.recursive.toString(),
+      })),
       {},
       session,
     );
-    const permissions: ServerPermissionDefinitionJson[] = await response.json();
-    return permissions;
+    const result = await response.json() as TeamPermissionsCrud['Server']['List'];
+    return result.items;
   }
 
-  async listServerUserTeams(session: InternalSession): Promise<ServerTeamJson[]> {
+  async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest("/users", {}, null);
+    const result = await response.json() as UsersCrud['Server']['List'];
+    return result.items;
+  }
+
+  async listServerTeams(options?: {
+    userId?: string,
+  }): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/current-user/teams?server=true",
+      "/teams?" + new URLSearchParams(filterUndefined({
+        user_id: options?.userId,
+      })),
       {},
-      session,
+      null
     );
-    const teams: ServerTeamJson[] = await response.json();
-    return teams;
+    const result = await response.json() as TeamsCrud['Server']['List'];
+    return result.items;
   }
 
-  async listPermissionDefinitions(): Promise<ServerPermissionDefinitionJson[]> {
-    const response = await this.sendServerRequest(`/permission-definitions?server=true`, {}, null);
-    return await response.json();
+  async listServerTeamUsers(teamId: string): Promise<UsersCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(`/users?team_id=${teamId}`, {}, null);
+    const result = await response.json() as UsersCrud['Server']['List'];
+    return result.items;
   }
 
-  async createPermissionDefinition(data: ServerPermissionDefinitionCustomizableJson): Promise<ServerPermissionDefinitionJson> {
+  /* when passing a session, the user will be added to the team */
+  async createServerTeam(data: TeamsCrud['Server']['Create'], session?: InternalSession): Promise<TeamsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      "/permission-definitions?server=true",
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          ...data,
-          scope: {
-            type: "any-team",
-          }
-        }),
-      },
-      null,
-    );
-    return await response.json();
-  }
-
-  async updatePermissionDefinition(permissionId: string, data: Partial<ServerPermissionDefinitionCustomizableJson>): Promise<void> {
-    await this.sendServerRequest(
-      `/permission-definitions/${permissionId}?server=true`,
-      {
-        method: "PUT",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-      null,
-    );
-  }
-
-  async deletePermissionDefinition(permissionId: string): Promise<void> {
-    await this.sendServerRequest(
-      `/permission-definitions/${permissionId}?server=true`,
-      { method: "DELETE" },
-      null,
-    );
-  }
-
-  async listServerUsers(): Promise<ServerUserJson[]> {
-    const response = await this.sendServerRequest("/users?server=true", {}, null);
-    return await response.json();
-  }
-
-  async listServerTeams(): Promise<ServerTeamJson[]> {
-    const response = await this.sendServerRequest("/teams?server=true", {}, null);
-    const json = await response.json();
-    return json;
-  }
-
-  async listServerTeamMembers(teamId: string): Promise<ServerTeamMemberJson[]> {
-    const response = await this.sendServerRequest(`/teams/${teamId}/users?server=true`, {}, null);
-    return await response.json();
-  }
-
-  async createServerTeam(data: ServerTeamCustomizableJson): Promise<ServerTeamJson> {
-    const response = await this.sendServerRequest(
-      "/teams?server=true",
+      "/teams",
       {
         method: "POST",
         headers: {
@@ -202,16 +205,16 @@ export class StackServerInterface extends StackClientInterface {
         },
         body: JSON.stringify(data),
       },
-      null,
+      session || null
     );
     return await response.json();
   }
-  
-  async updateServerTeam(teamId: string, data: Partial<ServerTeamCustomizableJson>): Promise<void> {
-    await this.sendServerRequest(
-      `/teams/${teamId}?server=true`,
+
+  async updateServerTeam(teamId: string, data: TeamsCrud['Server']['Update']): Promise<TeamsCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/teams/${teamId}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
@@ -219,22 +222,23 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
+    return await response.json();
   }
 
   async deleteServerTeam(teamId: string): Promise<void> {
     await this.sendServerRequest(
-      `/teams/${teamId}?server=true`,
+      `/teams/${teamId}`,
       { method: "DELETE" },
       null,
     );
   }
 
   async addServerUserToTeam(options: {
-    userId: string, 
+    userId: string,
     teamId: string,
-  }) {
-    await this.sendServerRequest(
-      `/teams/${options.teamId}/users/${options.userId}?server=true`,
+  }): Promise<TeamMembershipsCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "POST",
         headers: {
@@ -244,14 +248,15 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
+    return await response.json();
   }
 
   async removeServerUserFromTeam(options: {
-    userId: string, 
+    userId: string,
     teamId: string,
   }) {
     await this.sendServerRequest(
-      `/teams/${options.teamId}/users/${options.userId}?server=true`,
+      `/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "DELETE",
         headers: {
@@ -263,11 +268,11 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async setServerUserCustomizableData(userId: string, update: ServerUserUpdateJson) {
-    await this.sendServerRequest(
-      `/users/${userId}?server=true`,
+  async updateServerUser(userId: string, update: UsersCrud['Server']['Update']): Promise<UsersCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/users/${userId}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "content-type": "application/json",
         },
@@ -275,55 +280,58 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
-  }
-
-  async listServerTeamMemberPermissions(
-    options: {
-      teamId: string, 
-      userId: string, 
-      type: 'global' | 'team', 
-      direct: boolean,
-    }
-  ): Promise<ServerPermissionDefinitionJson[]> {
-    const response = await this.sendServerRequest(
-      `/teams/${options.teamId}/users/${options.userId}/permissions?server=true&type=${options.type}&direct=${options.direct}`, 
-      {}, 
-      null
-    );
     return await response.json();
   }
 
-  async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
-    await this.sendServerRequest(
-      `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
-      { 
+  async createServerProviderAccessToken(
+    userId: string,
+    provider: string,
+    scope: string,
+  ): Promise<ConnectedAccountAccessTokenCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/connected-accounts/${userId}/${provider}/access-token`,
+      {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ type }),
+        body: JSON.stringify({ scope }),
       },
       null,
     );
+    return await response.json();
   }
 
-  async revokeServerTeamUserPermission(teamId: string, userId: string, permissionId: string, type: 'global' | 'team') {
-    await this.sendServerRequest(
-      `/teams/${teamId}/users/${userId}/permissions/${permissionId}?server=true`,
-      { 
-        method: "DELETE",
+  async createServerUserSession(userId: string, expiresInMillis: number): Promise<{ accessToken: string, refreshToken: string }> {
+    const response = await this.sendServerRequest(
+      "/auth/sessions",
+      {
+        method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ type }),
+        body: JSON.stringify({
+          user_id: userId,
+          expires_in_millis: expiresInMillis,
+        }),
       },
       null,
     );
+    const result = await response.json();
+    return {
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+    };
   }
 
-  async deleteServerServerUser(userId: string) {
-    await this.sendServerRequest(
-      `/users/${userId}?server=true`,
+  async leaveServerTeam(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "DELETE",
         headers: {
@@ -335,49 +343,45 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
-  async listEmailTemplates(): Promise<ListEmailTemplatesCrud['Server']['Read']> {
-    const response = await this.sendServerRequest(`/email-templates?server=true`, {}, null);
-    return await response.json();
-  }
-
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Server']['Update']): Promise<void> {
+  async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
-      `/email-templates/${type}?server=true`,
-      {
-        method: "PUT",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-      null,
-    );
-  }
-
-  async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
-    await this.sendServerRequest(
-      `/email-templates/${type}?server=true`,
-      { method: "DELETE" },
-      null,
-    );
-  }
-
-  async createServerTeamForUser(
-    userId: string,
-    data: ServerTeamCustomizableJson,
-    session: InternalSession,
-  ): Promise<ServerTeamJson> {
-    const response = await this.sendClientRequest(
-      `/users/${userId}/teams?server=true`,
+      `/team-permissions/${teamId}/${userId}/${permissionId}`,
       {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({}),
       },
-      session,
+      null,
     );
-    return await response.json();
+  }
+
+  async revokeServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
+    await this.sendServerRequest(
+      `/team-permissions/${teamId}/${userId}/${permissionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
+  }
+
+  async deleteServerServerUser(userId: string) {
+    await this.sendServerRequest(
+      `/users/${userId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
   }
 }

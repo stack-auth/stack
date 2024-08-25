@@ -1,15 +1,48 @@
-import nodemailer from 'nodemailer';
-import { prismaClient } from '@/prisma-client';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { UserJson, ProjectJson } from '@stackframe/stack-shared';
-import { getEmailTemplateWithDefault } from '@/lib/email-templates';
-import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
-import { EmailTemplateType } from '@prisma/client';
-import { usersCrudHandlers } from '@/app/api/v1/users/crud';
+import { prismaClient } from '@/prisma-client';
+import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
+import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
+import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
 import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
+import nodemailer from 'nodemailer';
 
+export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
+  const project = await getProject(projectId);
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  const template = await prismaClient.emailTemplate.findUnique({
+    where: {
+      projectConfigId_type: {
+        projectConfigId: project.config.id,
+        type: typedToUppercase(type),
+      },
+    },
+  });
+
+  return template ? {
+    ...template,
+    content: template.content as TEditorConfiguration,
+  } : null;
+}
+
+export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
+  const template = await getEmailTemplate(projectId, type);
+  if (template) {
+    return template;
+  }
+  return {
+    type,
+    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
+    subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
+    default: true,
+  };
+}
 
 function getPortConfig(port: number | string) {
   let parsedPort = parseInt(port.toString());
@@ -61,29 +94,33 @@ export async function sendEmail({
 }
 
 export async function sendEmailFromTemplate(options: {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
+  user: UsersCrud["Admin"]["Read"] | null,
   email: string,
-  templateId: EmailTemplateType,
-  variables: Record<string, string | null>,
+  templateType: keyof typeof EMAIL_TEMPLATES_METADATA,
+  extraVariables: Record<string, string | null>,
 }) {
-  const template = await getEmailTemplateWithDefault(options.project.id, options.templateId);
+  const template = await getEmailTemplateWithDefault(options.project.id, options.templateType);
 
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, options.variables);
-  
+  const variables = filterUndefined({
+    projectDisplayName: options.project.display_name,
+    userDisplayName: options.user?.display_name || undefined,
+    userPrimaryEmail: options.user?.primary_email || undefined,
+    ...filterUndefined(options.extraVariables),
+  });
+  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
+
   await sendEmail({
     emailConfig: await getEmailConfig(options.project),
     to: options.email,
     subject,
     html,
     text,
-  });   
+  });
 }
 
-async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
-  const projectEmailConfig = project.evaluatedConfig.emailConfig;
-  if (!projectEmailConfig) {
-    throw new Error('Email service config not found. TODO: When can this even happen?');
-  }
+async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<EmailConfig> {
+  const projectEmailConfig = project.config.email_config;
 
   if (projectEmailConfig.type === 'shared') {
     return {
@@ -92,131 +129,23 @@ async function getEmailConfig(project: ProjectJson): Promise<EmailConfig> {
       username: getEnvVariable('STACK_EMAIL_USERNAME'),
       password: getEnvVariable('STACK_EMAIL_PASSWORD'),
       senderEmail: getEnvVariable('STACK_EMAIL_SENDER'),
-      senderName: project.displayName,
+      senderName: project.display_name,
       secure: getPortConfig(getEnvVariable('STACK_EMAIL_PORT')).secure,
       type: 'shared',
     };
   } else {
+    if (!projectEmailConfig.host || !projectEmailConfig.port || !projectEmailConfig.username || !projectEmailConfig.password || !projectEmailConfig.sender_email || !projectEmailConfig.sender_name) {
+      throw new StackAssertionError("Email config is not complete despite not being shared. This should never happen?", { projectId: project.id, emailConfig: projectEmailConfig });
+    }
     return {
       host: projectEmailConfig.host,
       port: projectEmailConfig.port,
       username: projectEmailConfig.username,
       password: projectEmailConfig.password,
-      senderEmail: projectEmailConfig.senderEmail,
-      senderName: projectEmailConfig.senderName,
+      senderEmail: projectEmailConfig.sender_email,
+      senderName: projectEmailConfig.sender_name,
       secure: getPortConfig(projectEmailConfig.port).secure,
       type: 'standard',
     };
   }
-}
-
-async function getDBInfo(projectId: string, projectUserId: string): Promise<{
-  emailConfig: EmailConfig,
-  project: ProjectJson,
-  projectUser: UsersCrud["Admin"]["Read"],
-}> {
-  const project = await getProject(projectId);
-
-  if (!project) {
-    throw new Error('Project not found');
-  }
-
-  const user = await usersCrudHandlers.adminRead({
-    project,
-    userId: projectUserId,
-  });
-
-  return {
-    emailConfig: await getEmailConfig(project),
-    project,
-    projectUser: user,
-  };
-}
-
-export async function sendVerificationEmail(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primary_email) {
-    throw Error('The user does not have a primary email');
-  }
-
-  if (projectUser.primary_email_verified) {
-    throw Error('Email already verified');
-  }
-
-  const verificationCode = await prismaClient.projectUserEmailVerificationCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // expires in 3 hours
-    }
-  });
-
-  const verificationUrl = new URL(redirectUrl);
-  verificationUrl.searchParams.append('code', verificationCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'EMAIL_VERIFICATION');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.display_name,
-    userPrimaryEmail: projectUser.primary_email,
-    projectDisplayName: project.displayName,
-    emailVerificationLink: verificationUrl.toString(),
-  };
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primary_email,
-    subject,
-    html,
-    text,
-  });
-}
-
-export async function sendPasswordResetEmail(
-  projectId: string,
-  projectUserId: string,
-  redirectUrl: string,
-) {
-  const { project, emailConfig, projectUser } = await getDBInfo(projectId, projectUserId);
-
-  if (!projectUser.primary_email) {
-    throw Error('The user does not have a primary email');
-  }
-
-  const resetCode = await prismaClient.projectUserPasswordResetCode.create({
-    data: {
-      projectId,
-      projectUserId,
-      code: generateSecureRandomString(),
-      redirectUrl,
-      expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // expires in 3 hours
-    }
-  });
-
-  const passwordResetUrl = new URL(redirectUrl);
-  passwordResetUrl.searchParams.append('code', resetCode.code);
-
-  const template = await getEmailTemplateWithDefault(projectId, 'PASSWORD_RESET');
-  const variables: Record<string, string | null> = {
-    userDisplayName: projectUser.display_name,
-    userPrimaryEmail: projectUser.primary_email,
-    projectDisplayName: project.displayName,
-    passwordResetLink: passwordResetUrl.toString(),
-  };
-  const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-
-  await sendEmail({
-    emailConfig,
-    to: projectUser.primary_email,
-    subject,
-    html,
-    text,
-  });
 }

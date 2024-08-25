@@ -1,11 +1,11 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { afterEach } from "node:test";
+import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
-import { beforeEach, onTestFinished, test as vitestTest } from "vitest";
+import { afterEach, beforeEach, test as vitestTest } from "vitest";
 
 export const test: typeof vitestTest = vitestTest.extend({});
 export const it: typeof vitestTest = test;
@@ -14,6 +14,7 @@ export class Context<R, T> {
   // we want to retain order in which the values were set instead of the order in which the beforeEach callback was called, so we keep a Map and a Set together here
   private _values = new Map<string, T>();
   private _yetToReduce = new Set<string>();
+  private _deleteOnFinish = new Set<string>();
 
   private _reduced: R | undefined;
   private _withStorage: AsyncLocalStorage<T[]> = new AsyncLocalStorage();
@@ -32,16 +33,19 @@ export class Context<R, T> {
       if (this._yetToReduce.size > 0) {
         throw new StackAssertionError("Something went wrong; _yetToReduce should be empty here.");
       }
-     
-      // we use onTestFinished instead of afterEach so that afterEach calls can still use the context
-      onTestFinished(async () => {
-        if (this._withStorage.getStore()) {
-          throw new StackAssertionError("Test finished before _withStorage was cleaned up! This should not happen.");
-        }
-        this._isInTest = false;
-        this._reduced = undefined;
-        this._yetToReduce.clear();
-      });
+    });
+    afterEach(async () => {
+      if (this._withStorage.getStore()) {
+        throw new StackAssertionError("Test finished before _withStorage was cleaned up! This should not happen.");
+      }
+      this._isInTest = false;
+      this._reduced = undefined;
+      for (const key of this._deleteOnFinish) {
+        this._yetToReduce.delete(key);
+      }
+      if (this._yetToReduce.size > 0) {
+        throw new StackAssertionError("Something went wrong; _yetToReduce should be empty here.");
+      }
     });
   }
 
@@ -57,14 +61,20 @@ export class Context<R, T> {
     this._values.set(randomId, value);
     const before = () => {
       if (this._yetToReduce.has(randomId)) {
-        throw new StackAssertionError("beforeEach was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
+        throw new StackAssertionError("Value setter was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
       }
       this._yetToReduce.add(randomId);
     };
     if (this._isInTest) {
       before();
+      this._deleteOnFinish.add(randomId);
     } else {
-      beforeEach(before);
+      beforeEach(async () => {
+        before();
+      });
+      afterEach(() => {
+        this._yetToReduce.delete(randomId);
+      });
     }
   }
 
@@ -94,6 +104,26 @@ function getEnvVar(name: string): string {
   return value;
 }
 
+export function updateCookie(cookieString: string, cookieName: string, cookieValue: string) {
+  const cookies = cookieString.split(";").map((cookie) => cookie.trim()).filter((cookie) => cookie.length > 0);
+  const newCookie = `${cookieName}=${cookieValue}`;
+  const cookieIndex = cookies.findIndex((cookie) => cookie.startsWith(`${cookieName}=`));
+  if (cookieIndex === -1) {
+    return `${cookieString}; ${newCookie}`;
+  }
+  cookies[cookieIndex] = newCookie;
+  return cookies.join("; ");
+}
+
+export function updateCookiesFromResponse(cookieString: string, update: NiceResponse) {
+  const setCookies = update.headers.getSetCookie();
+  for (const setCookie of setCookies) {
+    const [cookieName, cookieValue] = setCookie.split(";")[0].split("=");
+    cookieString = updateCookie(cookieString, cookieName, cookieValue);
+  }
+  return cookieString;
+}
+
 export class NiceResponse implements Nicifiable {
   constructor(
     public readonly status: number,
@@ -103,11 +133,25 @@ export class NiceResponse implements Nicifiable {
 
   getNicifiableKeys(): string[] {
     // reorder the keys for nicer printing
-    return ["status", "body", "headers"];
+    return [
+      "status",
+      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] : ["body"],
+      "headers",
+    ];
   }
 };
 
-export async function niceFetch(url: string | URL, options?: RequestInit): Promise<NiceResponse> {
+export type NiceRequestInit = RequestInit & {
+  query?: Record<string, string>,
+};
+
+export async function niceFetch(url: string | URL, options?: NiceRequestInit): Promise<NiceResponse> {
+  if (options?.query) {
+    url = new URL(url);
+    for (const [key, value] of Object.entries(options.query)) {
+      url.searchParams.append(key, value);
+    }
+  }
   const fetchRes = await fetch(url, options);
   let body;
   if (fetchRes.headers.get("content-type")?.includes("application/json")) {
@@ -120,10 +164,13 @@ export async function niceFetch(url: string | URL, options?: RequestInit): Promi
   return new NiceResponse(fetchRes.status, fetchRes.headers, body);
 }
 
+export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";
+export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callback-url([?#][A-Za-z0-9\-._~:\/?#\[\]@!$&\'()*+,;=]*)?/g;
 
-export const emailSuffix = "@generated.stack-test.example.com";
+const generatedEmailSuffix = "@stack-generated.example.com";
+export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
 
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { subjectOnly?: boolean }) => Promise<MailboxMessage[]> };
+export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
 export class MailboxMessage {
   declare public readonly subject: string;
   declare public readonly from: string;
@@ -148,8 +195,6 @@ export class MailboxMessage {
         "posix-millis",
         "header",
         "date",
-        "from",
-        "to",
         "mailbox",
         "id",
         "size",
@@ -160,11 +205,11 @@ export class MailboxMessage {
 }
 
 export function createMailbox(): Mailbox {
-  const mailboxName = generateSecureRandomString();
+  const mailboxName = randomUUID();
   const fullMessageCache = new Map<string, any>();
   return {
-    emailAddress: `${mailboxName}${emailSuffix}`,
-    async fetchMessages({ subjectOnly } = {}) {
+    emailAddress: `${mailboxName}${generatedEmailSuffix}`,
+    async fetchMessages({ noBody } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
       return await Promise.all((res.body as any[]).map(async (message) => {
         let fullMessage: any;
@@ -175,7 +220,7 @@ export function createMailbox(): Mailbox {
           fullMessage = fullMessageRes.body;
           fullMessageCache.set(message.id, fullMessage);
         }
-        const messagePart = subjectOnly ? { subject: fullMessage.subject } : fullMessage;
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
         return new MailboxMessage(messagePart);
       }));
     },

@@ -44,7 +44,7 @@ async function UserInfo() {
       </>}
       {!user && <>
         You are not logged in.<br />
-        <Link href="/handler/signin">Log in</Link>
+        <Link href="/handler/sign-in">Log in</Link>
       </>}
     </div>
   );
@@ -58,7 +58,7 @@ async function UserInfo() {
 
 async function UserInfo() {
   const user = await stackServerApp.getUser();
-  
+
   return (
     <div>
       {user && <>
@@ -69,7 +69,7 @@ async function UserInfo() {
       </>}
       {!user && <>
         You are not logged in.<br />
-        <Link href="/handler/signin">Log in</Link>
+        <Link href="/handler/sign-in">Log in</Link>
       </>}
     </div>
   );

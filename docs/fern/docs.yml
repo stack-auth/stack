@@ -1,7 +1,13 @@
 instances:
   - url: https://stack-auth.docs.buildwithfern.com
     custom-domain: docs.stack-auth.com
+    edit-this-page:
+      github:
+        owner: stack-auth
+        repo: stack
+        branch: dev/docs
 title: Stack Auth Documentation
+js: ./custom-script.js
 
 tabs:
   documentation:
@@ -20,39 +26,46 @@ tabs:
 navigation:
   - tab: documentation
     layout: 
-      - section: Get Started
+      - page: Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/overview.mdx
+      - page: FAQ
+        icon: fa-regular fa-circle-question
+        path: ./docs/pages/faq.mdx
+      - section: Getting Started
         contents:
-          - page: Overview
-            icon: fa-regular fa-globe
-            path: ./docs/pages/getting-started/overview.mdx
           - page: Installation & Setup
             icon: fa-regular fa-download
             path: ./docs/pages/getting-started/setup.mdx
+          - page: Components
+            icon: fa-regular fa-puzzle
+            path: ./docs/pages/getting-started/components.mdx
           - page: Users
             icon: fa-regular fa-address-book
             path: ./docs/pages/getting-started/users.mdx
-          # - page: Protecting Pages
-          #   icon: fa-regular fa-shield-check
-          #   path: ./docs/pages/getting-started/protecting-pages.mdx
           - page: Going to Production
             icon: fa-regular fa-rocket
             path: ./docs/pages/getting-started/production.mdx
       - section: Concepts
         contents:
-          # - page: Client vs. Server
-          #   icon: fa-regular fa-code-branch
-          - page: OAuth Providers
-            icon: fa-regular fa-key
+          - page: The StackApp Object
+            icon: fa-regular fa-folder-gear
+            path: ./docs/pages/concepts/stack-app.mdx
+          - page: Connected OAuth Accounts
+            icon: fa-regular fa-link
             path: ./docs/pages/concepts/oauth.mdx
           - page: Teams
             icon: fa-regular fa-users
-            path: ./docs/pages/concepts/teams.mdx
+            path: ./docs/pages/concepts/orgs-and-teams.mdx
           - page: Selecting a Team
             icon: fa-regular fa-exchange
             path: ./docs/pages/concepts/team-selection.mdx
-          - page: Permissions
+          - page: Permissions & RBAC
             icon: fa-regular fa-user-lock
             path: ./docs/pages/concepts/permissions.mdx
+          - page: Webhooks
+            icon: fa-regular fa-webhook
+            path: ./docs/pages/concepts/webhooks.mdx
           # - page: Local Development
           #   icon: fa-regular fa-laptop
       - section: Customization
@@ -77,6 +90,9 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
   - tab: sdk
     layout: 
+      - page: SDK Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/sdk/overview.mdx
       - section: Classes
         contents:
           - page: CurrentUser
@@ -102,12 +118,24 @@ navigation:
 
   - tab: api
     layout: 
+      - page: API Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/rest-api/auth.mdx
+      - page: Examples
+        icon: fa-regular fa-code
+        path: ./docs/pages/rest-api/examples.mdx
       - api: Client API Reference
         slug: client
         api-name: client
       - api: Server API Reference
         slug: server
         api-name: server
+      - api: Webhooks API Reference
+        slug: webhooks
+        api-name: webhooks
+      # - api: Admin API Reference
+      #   slug: admin
+      #   api-name: admin
 
 navbar-links:
   - type: secondary
@@ -143,3 +171,4 @@ logo:
   light: ./docs/assets/logo-light-mode.svg
   dark: ./docs/assets/logo-dark-mode.svg
   height: 28
+  href: https://stack-auth.com

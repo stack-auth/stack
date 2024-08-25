@@ -1,12 +1,12 @@
+import { Label } from '@stackframe/stack-ui';
 import { useState } from 'react';
-import { setDocument, setSubject, useDocument, useSubject } from '../documents/editor/editor-context';
 import EmailLayoutPropsSchema from '../documents/blocks/email-layout/email-layout-props-schema';
+import { setDocument, setSubject, useDocument, useSubject } from '../documents/editor/editor-context';
+import DownloadJson from '../template-panel/download-json';
+import ImportJson from '../template-panel/import-json';
 import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
 import ColorInput from './configuration-panel/input-panels/helpers/inputs/color-input';
 import { NullableFontFamily } from './configuration-panel/input-panels/helpers/inputs/font-family';
-import DownloadJson from '../template-panel/download-json';
-import ImportJson from '../template-panel/import-json';
-import { Label } from '../../components/ui/label';
 import TextInput from './configuration-panel/input-panels/helpers/inputs/text-input';
 
 export default function SettingsPanel() {

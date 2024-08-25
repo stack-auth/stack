@@ -1,4 +1,4 @@
-import { use } from "react";
+import React from "react";
 import { neverResolve } from "./promises";
 import { deindent } from "./strings";
 import { isBrowserLike } from "./env";
@@ -21,11 +21,11 @@ export function getNodeText(node: React.ReactNode): string {
 
 /**
  * Suspends the currently rendered component indefinitely. Will not unsuspend unless the component rerenders.
- * 
+ *
  * You can use this to translate older query- or AsyncResult-based code to new the Suspense system, for example: `if (query.isLoading) suspend();`
  */
 export function suspend(): never {
-  use(neverResolve());
+  React.use(neverResolve());
   throw new Error("Somehow a Promise that never resolves was resolved?");
 }
 

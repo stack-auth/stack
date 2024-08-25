@@ -1,9 +1,8 @@
+import { Tabs, TabsList, TabsTrigger } from '@stackframe/stack-ui';
+import { Monitor, Smartphone } from 'lucide-react';
 import EditorBlock from '../documents/editor/editor-block';
 import { setSelectedScreenSize, useSelectedScreenSize } from '../documents/editor/editor-context';
 import ToggleInspectorPanelButton from '../sidebar/toggle-inspector-panel-button';
-import { SimpleTooltip } from '../../components/simple-tooltip';
-import { Monitor, Smartphone } from 'lucide-react';
-import { TabsList, Tabs, TabsTrigger } from '../../components/ui/tabs';
 
 export default function TemplatePanel() {
   const selectedScreenSize = useSelectedScreenSize();
@@ -41,15 +40,11 @@ export default function TemplatePanel() {
             <Tabs value={selectedScreenSize}>
               <TabsList>
                 <TabsTrigger value='desktop' onClick={() => handleScreenSizeChange('desktop')}>
-                  <SimpleTooltip tooltip="Desktop view">
-                    <Monitor className='w-5 h-5' />
-                  </SimpleTooltip>
+                  <Monitor className='w-5 h-5' />
                 </TabsTrigger>
 
                 <TabsTrigger value='mobile' onClick={() => handleScreenSizeChange('mobile')}>
-                  <SimpleTooltip tooltip="Mobile view">
-                    <Smartphone className='w-5 h-5' />
-                  </SimpleTooltip>
+                  <Smartphone className='w-5 h-5' />
                 </TabsTrigger>
               </TabsList>
             </Tabs>

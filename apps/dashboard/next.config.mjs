@@ -70,6 +70,25 @@ const nextConfig = {
 
   poweredByHeader: false,
 
+  async rewrites() {
+    return [
+      {
+        source: "/consume/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/consume/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+      {
+        source: "/consume/decide",
+        destination: "https://eu.i.posthog.com/decide",
+      },
+    ];
+  },
+  skipTrailingSlashRedirect: true, 
+
+
   async headers() {
     return [
       {

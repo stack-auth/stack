@@ -1,30 +1,38 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { usersCrudServerReadSchema, usersCrudServerUpdateSchema, usersCrudServerDeleteSchema } from "./users";
+import { yupObject } from "../../schema-fields";
+import { teamsCrudClientReadSchema } from "./teams";
+import { usersCrudServerDeleteSchema, usersCrudServerReadSchema, usersCrudServerUpdateSchema } from "./users";
 
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "display_name",
   "client_metadata",
   "selected_team_id",
+  "totp_secret_base64",
 ]).required();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
 
 const clientReadSchema = usersCrudServerReadSchema.pick([
-  "project_id",
   "id",
   "primary_email",
   "primary_email_verified",
   "display_name",
   "client_metadata",
+  "client_read_only_metadata",
   "profile_image_url",
   "signed_up_at_millis",
   "has_password",
   "auth_with_email",
   "oauth_providers",
   "selected_team_id",
-  "selected_team",
-]).nullable().defined();
+  "auth_methods",
+  "connected_accounts",
+  "requires_totp_mfa",
+]).concat(yupObject({
+  selected_team: teamsCrudClientReadSchema.nullable().defined(),
+})).nullable().defined(); // TODO: next-release: make required
 
+// TODO: next-release: make required
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();
 
 const serverDeleteSchema = usersCrudServerDeleteSchema;

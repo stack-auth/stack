@@ -6,21 +6,49 @@ import { SsrScript } from "../components/elements/ssr-layout-effect";
 const script = () => {
   const attributes = ['data-joy-color-scheme', 'data-mui-color-scheme', 'data-theme', 'data-color-scheme', 'class'];
 
+  const getColorMode = (value: string) => {
+    if (value.includes('dark')) {
+      return 'dark';
+    }
+    if (value.includes('light')) {
+      return 'light';
+    }
+    return null;
+  };
+
+  const copyFromColorScheme = () => {
+    const colorScheme = getComputedStyle(document.documentElement).getPropertyValue('color-scheme');
+    if (colorScheme) {
+      const mode = getColorMode(colorScheme);
+      if (mode) {
+        document.documentElement.setAttribute('data-stack-theme', mode);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const copyFromAttributes = () => {
+    for (const attributeName of attributes) {
+      const colorTheme = document.documentElement.getAttribute(attributeName);
+      if (colorTheme) {
+        const mode = getColorMode(colorTheme);
+        if (mode) {
+          document.documentElement.setAttribute('data-stack-theme', mode);
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      for (const attributeName of attributes) {
-        if (mutation.attributeName === attributeName) {
-          const colorTheme = document.documentElement.getAttribute(attributeName);
-          if (!colorTheme) {
-            continue;
-          }
-          const darkMode = colorTheme.includes('dark');
-          const lightMode = colorTheme.includes('light');
-          if (!darkMode && !lightMode) {
-            continue;
-          }
-          document.documentElement.setAttribute('data-stack-theme', darkMode ? 'dark' : 'light');
-        }
+      if (copyFromColorScheme()) {
+        return;
+      }
+      if (mutation.attributeName && attributes.includes(mutation.attributeName)) {
+        copyFromAttributes();
       }
     });
   });
@@ -29,8 +57,13 @@ const script = () => {
     attributes: true,
     attributeFilter: attributes,
   });
+
+  // Initial check on page load
+  if (!copyFromColorScheme()) {
+    copyFromAttributes();
+  }
 };
 
-export function BrowserScript() {
-  return <SsrScript script={`(${script.toString()})()`}/>;
+export function BrowserScript(props : { nonce?: string }) {
+  return <SsrScript nonce={props.nonce} script={`(${script.toString()})()`}/>;
 }

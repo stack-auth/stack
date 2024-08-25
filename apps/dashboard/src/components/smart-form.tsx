@@ -1,12 +1,12 @@
 "use client";
 
-import * as yup from "yup";
-import { Form } from "./ui/form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
-import React, { useCallback, useMemo, useState } from "react";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { Form } from "@stackframe/stack-ui";
+import React, { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
 import { DateField, InputField } from "./form-fields";
 
 // Used for yup TS support
@@ -17,7 +17,7 @@ declare module 'yup' {
   }
 }
 
-export function SmartForm<S extends yup.ObjectSchema<any, any, any, any>>(props: {
+export function SmartForm<S extends yup.ObjectSchema<any>>(props: {
   formSchema: S,
   onSubmit: (values: yup.InferType<S>) => Promise<void>,
   formId?: string,

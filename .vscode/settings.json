@@ -6,4 +6,47 @@
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
+  "cSpell.words": [
+    "cjsx",
+    "codegen",
+    "Crudl",
+    "ctsx",
+    "deindent",
+    "Falsey",
+    "frontends",
+    "hookform",
+    "hostable",
+    "INBUCKET",
+    "midfix",
+    "Millis",
+    "mjsx",
+    "mtsx",
+    "nextjs",
+    "Nicifiable",
+    "nicification",
+    "nicified",
+    "nicify",
+    "oidc",
+    "openapi",
+    "pageleave",
+    "pageview",
+    "posthog",
+    "Proxied",
+    "qrcode",
+    "reqs",
+    "stackframe",
+    "Svix",
+    "totp",
+    "typecheck",
+    "typehack",
+    "Uncapitalize",
+    "Whitespaces",
+    "wolfgunblood"
+  ],
+  "[typescript]": {
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+      }
+  },
+  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|"
 }

@@ -1,7 +1,10 @@
 import { SmartRouteHandler } from '@/route-handlers/smart-route-handler';
-import { EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
-import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { CrudlOperation, EndpointDocumentation } from '@stackframe/stack-shared/dist/crud';
+import { WebhookEvent } from '@stackframe/stack-shared/dist/interface/webhooks';
+import { yupNumber, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { StackAssertionError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
+import { typedEntries, typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import * as yup from 'yup';
 
@@ -16,7 +19,7 @@ export function parseOpenAPI(options: {
       version: '1.0.0',
     },
     servers: [{
-      url: 'https://app.stack-auth.com/api/v1',
+      url: 'https://api.stack-auth.com/api/v1',
       description: 'Stack REST API',
     }],
     paths: Object.fromEntries(
@@ -30,8 +33,40 @@ export function parseOpenAPI(options: {
               .filter(([_, handler]) => handler !== undefined)
           )]
         ))
-        .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0),
+        .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
+        .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
     ),
+  };
+}
+
+export function parseWebhookOpenAPI(options: {
+  webhooks: readonly WebhookEvent<any>[],
+}) {
+  return {
+    openapi: '3.1.0',
+    info: {
+      title: 'Stack Webhooks API',
+      version: '1.0.0',
+    },
+    webhooks: options.webhooks.reduce((acc, webhook) => {
+      return {
+        ...acc,
+        [webhook.type]: {
+          post: {
+            ...parseOverload({
+              metadata: webhook.metadata,
+              method: 'POST',
+              path: webhook.type,
+              requestBodyDesc: undefinedIfMixed(webhook.schema.describe()) || yupObject().describe(),
+              responseTypeDesc: yupString().oneOf(['json']).describe(),
+              statusCodeDesc: yupNumber().oneOf([200]).describe(),
+            }),
+            operationId: webhook.type,
+            summary: webhook.type,
+          }
+        },
+      };
+    }, {}),
   };
 }
 
@@ -56,6 +91,14 @@ function isSchemaTupleDescription(value: yup.SchemaFieldDescription): value is y
   return value.type === 'tuple';
 }
 
+function isSchemaStringDescription(value: yup.SchemaFieldDescription): value is yup.SchemaDescription & { type: 'string' } {
+  return value.type === 'string';
+}
+
+function isSchemaNumberDescription(value: yup.SchemaFieldDescription): value is yup.SchemaDescription & { type: 'number' } {
+  return value.type === 'number';
+}
+
 function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescription, audience: 'client' | 'server' | 'admin') {
   const schemaAuth = requestDescribe.fields.auth;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- yup types are wrong and claim that fields always exist
@@ -65,9 +108,10 @@ function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescri
   const schemaAudience = schemaAuth.fields.type;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- same as above
   if (!schemaAudience) return true;
-  if ("oneOf" in schemaAudience) {
+  if ("oneOf" in schemaAudience && schemaAudience.oneOf.length > 0) {
     return schemaAudience.oneOf.includes(audience);
   }
+  return true;
 }
 
 
@@ -107,17 +151,24 @@ function parseRouteHandler(options: {
       path: options.path,
       pathDesc: undefinedIfMixed(requestDescribe.fields.params),
       parameterDesc: undefinedIfMixed(requestDescribe.fields.query),
+      headerDesc: undefinedIfMixed(requestDescribe.fields.headers),
       requestBodyDesc: undefinedIfMixed(requestDescribe.fields.body),
       responseDesc: undefinedIfMixed(responseDescribe.fields.body),
+      responseTypeDesc: undefinedIfMixed(responseDescribe.fields.bodyType) ?? throwErr('Response type must be defined and not mixed', { options, bodyTypeField: responseDescribe.fields.bodyType }),
+      statusCodeDesc: undefinedIfMixed(responseDescribe.fields.statusCode) ?? throwErr('Status code must be defined and not mixed', { options, statusCodeField: responseDescribe.fields.statusCode }),
     });
   }
 
   return result;
 }
 
-function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, items?: any } | undefined {
+function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | undefined {
   const meta = "meta" in field ? field.meta : {};
   if (meta?.openapiField?.hidden) {
+    return undefined;
+  }
+
+  if (meta?.openapiField?.onlyShowInOperations && !meta.openapiField.onlyShowInOperations.includes(crudOperation as any)) {
     return undefined;
   }
 
@@ -125,7 +176,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
     example: meta?.openapiField?.exampleValue,
     description: meta?.openapiField?.description,
   };
-  
+
   switch (field.type) {
     case 'string':
     case 'number':
@@ -136,10 +187,18 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
       return { type: 'object', ...openapiFieldExtra };
     }
     case 'object': {
-      return { type: 'object', ...openapiFieldExtra };
+      return {
+        type: 'object',
+        properties: typedFromEntries(typedEntries((field as any).fields)
+          .map(([key, field]) => [key, getFieldSchema(field, crudOperation)])),
+        required: typedEntries((field as any).fields)
+          .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field as any, crudOperation))
+          .map(([key]) => key),
+        ...openapiFieldExtra
+      };
     }
     case 'array': {
-      return { type: 'array', items: getFieldSchema((field as any).innerType), ...openapiFieldExtra };
+      return { type: 'array', items: getFieldSchema((field as any).innerType, crudOperation), ...openapiFieldExtra };
     }
     default: {
       throw new Error(`Unsupported field type: ${field.type}`);
@@ -147,7 +206,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription): { type: string, item
   }
 }
 
-function toParameters(description: yup.SchemaFieldDescription, path?: string) {
+function toParameters(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>, path?: string) {
   const pathParams: string[] = path ? path.match(/{[^}]+}/g) || [] : [];
   if (!isSchemaObjectDescription(description)) {
     throw new StackAssertionError('Parameters field must be an object schema', { actual: description });
@@ -155,57 +214,88 @@ function toParameters(description: yup.SchemaFieldDescription, path?: string) {
 
   return Object.entries(description.fields).map(([key, field]) => {
     if (path && !pathParams.includes(`{${key}}`)) {
-      return { schema: null };
+      return { schema: undefined };
     }
+
+    const meta = "meta" in field ? field.meta : {};
+    const schema = getFieldSchema(field, crudOperation);
     return {
       name: key,
       in: path ? 'path' : 'query',
-      schema: getFieldSchema(field as any),
-      required: !(field as any).optional && !(field as any).nullable,
+      schema,
+      description: meta?.openapiField?.description,
+      required: !(field as any).optional && !(field as any).nullable && schema,
     };
-  }).filter((x) => x.schema !== null);
+  }).filter((x) => x.schema !== undefined);
 }
 
-function toSchema(description: yup.SchemaFieldDescription): any {
+function toHeaderParameters(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
+  if (!isSchemaObjectDescription(description)) {
+    throw new StackAssertionError('Parameters field must be an object schema', { actual: description });
+  }
+
+  return Object.entries(description.fields).map(([key, tupleField]) => {
+    if (!isSchemaTupleDescription(tupleField)) {
+      throw new StackAssertionError('Header field must be a tuple schema', { actual: tupleField, key });
+    }
+    if (tupleField.innerType.length !== 1) {
+      throw new StackAssertionError('Header fields of length !== 1 not currently supported', { actual: tupleField, key });
+    }
+    const field = tupleField.innerType[0];
+    const meta = "meta" in field ? field.meta : {};
+    const schema = getFieldSchema(field, crudOperation);
+    return {
+      name: key,
+      in: 'header',
+      type: 'string',
+      schema,
+      description: meta?.openapiField?.description,
+      example: meta?.openapiField?.exampleValue,
+      required: !(field as any).optional && !(field as any).nullable && !!schema,
+    };
+  }).filter((x) => x.schema !== undefined);
+}
+
+function toSchema(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): any {
   if (isSchemaObjectDescription(description)) {
     return {
       type: 'object',
       properties: Object.fromEntries(Object.entries(description.fields).map(([key, field]) => {
-        return [key, getFieldSchema(field)];
+        return [key, getFieldSchema(field, crudOperation)];
       }, {}))
     };
   } else if (isSchemaArrayDescription(description)) {
     return {
       type: 'array',
-      items: toSchema(description.innerType),
+      items: toSchema(description.innerType, crudOperation),
     };
   } else {
-    throw new StackAssertionError(`Unsupported schema type: ${description.type}`, { actual: description });
+    throw new StackAssertionError(`Unsupported schema type in toSchema: ${description.type}`, { actual: description });
   }
 }
 
-function toRequired(description: yup.SchemaFieldDescription) {
+function toRequired(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
   let res: string[] = [];
   if (isSchemaObjectDescription(description)) {
     res = Object.entries(description.fields)
-      .filter(([_, field]) => !(field as any).optional && !(field as any).nullable)
+      .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field, crudOperation))
       .map(([key]) => key);
   } else if (isSchemaArrayDescription(description)) {
     res = [];
   } else {
-    throw new StackAssertionError(`Unsupported schema type: ${description.type}`, { actual: description });
+    throw new StackAssertionError(`Unsupported schema type in toRequired: ${description.type}`, { actual: description });
   }
   if (res.length === 0) return undefined;
   return res;
 }
 
-function toExamples(description: yup.SchemaFieldDescription) {
+function toExamples(description: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>) {
   if (!isSchemaObjectDescription(description)) {
     throw new StackAssertionError('Examples field must be an object schema', { actual: description });
   }
 
   return Object.entries(description.fields).reduce((acc, [key, field]) => {
-    const schema = getFieldSchema(field);
+    const schema = getFieldSchema(field, crudOperation);
     if (!schema) return acc;
     const example = "meta" in field ? field.meta?.openapiField?.exampleValue : undefined;
     return { ...acc, [key]: example };
@@ -218,18 +308,23 @@ export function parseOverload(options: {
   path: string,
   pathDesc?: yup.SchemaFieldDescription,
   parameterDesc?: yup.SchemaFieldDescription,
+  headerDesc?: yup.SchemaFieldDescription,
   requestBodyDesc?: yup.SchemaFieldDescription,
   responseDesc?: yup.SchemaFieldDescription,
+  responseTypeDesc: yup.SchemaFieldDescription,
+  statusCodeDesc: yup.SchemaFieldDescription,
 }) {
   const endpointDocumentation = options.metadata ?? {
     summary: `${options.method} ${options.path}`,
     description: `No documentation available for this endpoint.`,
   };
+  if (endpointDocumentation.hidden) {
+    return undefined;
+  }
 
-  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, options.path) : [];
-  const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc) : [];
-  const responseSchema = options.responseDesc ? toSchema(options.responseDesc) : {};
-  const responseRequired = options.responseDesc ? toRequired(options.responseDesc) : undefined;
+  const pathParameters = options.pathDesc ? toParameters(options.pathDesc, endpointDocumentation.crudOperation, options.path) : [];
+  const queryParameters = options.parameterDesc ? toParameters(options.parameterDesc, endpointDocumentation.crudOperation) : [];
+  const headerParameters = options.headerDesc ? toHeaderParameters(options.headerDesc, endpointDocumentation.crudOperation) : [];
 
   let requestBody;
   if (options.requestBodyDesc) {
@@ -238,33 +333,116 @@ export function parseOverload(options: {
       content: {
         'application/json': {
           schema: {
-            ...toSchema(options.requestBodyDesc),
-            required: toRequired(options.requestBodyDesc),
-            example: toExamples(options.requestBodyDesc),
+            ...toSchema(options.requestBodyDesc, endpointDocumentation.crudOperation),
+            required: toRequired(options.requestBodyDesc, endpointDocumentation.crudOperation),
+            example: toExamples(options.requestBodyDesc, endpointDocumentation.crudOperation),
           },
         },
       },
     };
   }
 
-  return {
+  const exRes = {
     summary: endpointDocumentation.summary,
     description: endpointDocumentation.description,
-    parameters: queryParameters.concat(pathParameters),
+    parameters: [...queryParameters, ...pathParameters, ...headerParameters],
     requestBody,
-    tags: endpointDocumentation.tags ?? ["Uncategorized"],
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': {
-            schema: {
-              ...responseSchema,
-              required: responseRequired,
+    tags: endpointDocumentation.tags ?? ["Others"],
+  } as const;
+
+  if (!isSchemaStringDescription(options.responseTypeDesc)) {
+    throw new StackAssertionError(`Expected response type to be a string`, { actual: options.responseTypeDesc, options });
+  }
+  if (options.responseTypeDesc.oneOf.length !== 1) {
+    throw new StackAssertionError(`Expected response type to have exactly one value`, { actual: options.responseTypeDesc, options });
+  }
+  const bodyType = options.responseTypeDesc.oneOf[0];
+
+  if (!isSchemaNumberDescription(options.statusCodeDesc)) {
+    throw new StackAssertionError('Expected status code to be a number', { actual: options.statusCodeDesc, options });
+  }
+  if (options.statusCodeDesc.oneOf.length !== 1) {
+    throw new StackAssertionError('Expected status code to have exactly one value', { actual: options.statusCodeDesc.oneOf, options });
+  }
+  const status = options.statusCodeDesc.oneOf[0] as number;
+
+  switch (bodyType) {
+    case 'json': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              'application/json': {
+                schema: {
+                  ...options.responseDesc ? toSchema(options.responseDesc, endpointDocumentation.crudOperation) : {},
+                  required: options.responseDesc ? toRequired(options.responseDesc, endpointDocumentation.crudOperation) : undefined,
+                },
+              },
             },
           },
         },
-      },
-    },
-  };
+      };
+    }
+    case 'text': {
+      if (!options.responseDesc || !isSchemaStringDescription(options.responseDesc)) {
+        throw new StackAssertionError('Expected response body of bodyType=="text" to be a string schema', { actual: options.responseDesc });
+      }
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              'text/plain': {
+                schema: {
+                  type: 'string',
+                  example: options.responseDesc.meta?.openapiField?.exampleValue,
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+    case 'success': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'Successful response',
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      description: "Always equal to true.",
+                      example: true,
+                    },
+                  },
+                  required: ["success"],
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+    case 'empty': {
+      return {
+        ...exRes,
+        responses: {
+          [status]: {
+            description: 'No content',
+          },
+        },
+      };
+    }
+    default: {
+      throw new StackAssertionError(`Unsupported body type: ${bodyType}`);
+    }
+  }
 }

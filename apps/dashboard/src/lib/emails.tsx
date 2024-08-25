@@ -3,7 +3,7 @@ import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getProject } from '@/lib/projects';
-import { UserJson, ProjectJson } from '@stackframe/stack-shared';
+import { UserJson, ProjectJson } from '@/temporary-types';
 import { getClientUser } from '@/lib/users';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
@@ -148,7 +148,7 @@ export async function sendVerificationEmail(
     emailVerificationLink: verificationUrl.toString(),
   };
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
+
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,
@@ -235,7 +235,7 @@ export async function sendMagicLink(
   };
 
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);
-  
+
   await sendEmail({
     emailConfig,
     to: projectUser.primaryEmail,

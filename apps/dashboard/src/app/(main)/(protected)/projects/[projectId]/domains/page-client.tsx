@@ -1,34 +1,28 @@
 "use client";
-import * as yup from "yup";
-import React, { useMemo } from "react";
-import { ActionDialog } from "@/components/action-dialog";
-import { Button } from "@/components/ui/button";
-import { Project } from "@stackframe/stack";
-import { DomainConfigJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { PageLayout } from "../page-layout";
-import { SettingCard, SettingSwitch } from "@/components/settings";
-import { useAdminApp } from "../use-admin-app";
-import { Alert } from "@/components/ui/alert";
 import { SmartFormDialog } from "@/components/form-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ActionCell } from "@/components/data-table/elements/cells";
-import Typography from "@/components/ui/typography";
+import { SettingCard, SettingSwitch } from "@/components/settings";
+import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import React from "react";
+import * as yup from "yup";
+import { PageLayout } from "../page-layout";
+import { useAdminApp } from "../use-admin-app";
 
-function EditDialog(props: { 
+function EditDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
-  domains: DomainConfigJson[],
-  project: Project,
+  domains: AdminDomainConfig[],
+  project: AdminProject,
   type: 'update' | 'create',
 } & (
-  { 
-    type: 'create', 
-  } | 
-  { 
-    type: 'update', 
-    editIndex: number, 
+  {
+    type: 'create',
+  } |
+  {
+    type: 'update',
+    editIndex: number,
     defaultDomain: string,
     defaultHandlerPath: string,
   }
@@ -42,21 +36,36 @@ function EditDialog(props: {
       ),
     }),
     domain: urlSchema
-      .matches(/^https?:\/\//, "Origin must start with http:// or https://")
+      .matches(/^https:\/\//, "Origin must start with https://")
       .url("Domain must be a valid URL")
-      .notOneOf(props.domains
-        .filter((_, i) => props.type === 'update' && i !== props.editIndex)
-        .map(({ domain }) => domain), "Domain already exists")
+      .notOneOf(
+        props.domains
+          .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
+          .map(({ domain }) => domain),
+        "Domain already exists"
+      )
       .required()
-      .label("Origin (protocol + domain)")
+      .label("Origin (starts with https://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
       .required()
-      .label("Handler path")
+      .label("Handler path (default: /handler)")
       .default(props.type === 'update' ? props.defaultHandlerPath : "/handler"),
+    description: yup.mixed().meta({
+      stackFormFieldRender: () => (
+        <>
+          <Typography variant="secondary" type="footnote">
+            Note that sub-domains are not automatically added. Create two domains like www.example.com and example.com if you want to allow both.
+          </Typography>
+          <Typography variant="secondary" type="footnote">
+            {"You don't need to change the handler path unless you updated the path to the StackHandler."}
+          </Typography>
+        </>
+      ),
+    }),
   });
 
   return <SmartFormDialog
@@ -99,7 +108,7 @@ function DeleteDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   domain: string,
-  project: Project,
+  project: AdminProject,
 }) {
   return (
     <ActionDialog
@@ -112,7 +121,7 @@ function DeleteDialog(props: {
         onClick: async () => {
           await props.project.update({
             config: {
-              domains: [...props.project.evaluatedConfig.domains].filter(({ domain }) => domain !== props.domain),
+              domains: [...props.project.config.domains].filter(({ domain }) => domain !== props.domain),
             }
           });
         }
@@ -120,25 +129,60 @@ function DeleteDialog(props: {
       cancelButton
     >
       <Typography>
-        Do you really want to remove <b>{props.domain}</b> from the allow list ?
-      </Typography>
-      <Typography>
-        Your project will no longer be able to receive callbacks from this domain.
+        Do you really want to remove <b>{props.domain}</b> from the allow list? Your project will no longer be able to receive callbacks from this domain.
       </Typography>
     </ActionDialog>
   );
 }
 
-export default function PageClient() {
-  const stackAdminApp = useAdminApp();
-  const project = stackAdminApp.useProjectAdmin();
-  const domains = project.evaluatedConfig.domains;
+function ActionMenu(props: {
+  domains: AdminDomainConfig[],
+  project: AdminProject,
+  editIndex: number,
+  targetDomain: string,
+  defaultHandlerPath: string,
+}) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   return (
+    <>
+      <EditDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        domains={props.domains}
+        project={props.project}
+        type="update"
+        editIndex={props.editIndex}
+        defaultDomain={props.targetDomain}
+        defaultHandlerPath={props.defaultHandlerPath}
+      />
+      <DeleteDialog
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        domain={props.targetDomain}
+        project={props.project}
+      />
+      <ActionCell
+        items={[
+          { item: "Edit", onClick: () => setIsEditModalOpen(true) },
+          '-',
+          { item: "Delete", onClick: () => setIsDeleteModalOpen(true), danger: true }
+        ]}
+      />
+    </>
+  );
+}
+
+export default function PageClient() {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+  const domains = project.config.domains;
+
+
+  return (
     <PageLayout title="Domains and Handler">
-      <SettingCard 
+      <SettingCard
         title="Trusted domains"
         description="Features that will redirect to your app, such as SSO and e-mail verification, will refuse to redirect to domains other than the ones listed here. Please make sure that you trust all domains listed here, as they can be used to access user data."
         actions={
@@ -166,25 +210,12 @@ export default function PageClient() {
                     <TableCell>{domain}</TableCell>
                     <TableCell>{handlerPath}</TableCell>
                     <TableCell className="flex justify-end gap-4">
-                      <EditDialog
-                        open={isEditModalOpen}
-                        onOpenChange={setIsEditModalOpen}
+                      <ActionMenu
                         domains={domains}
                         project={project}
-                        type="update"
                         editIndex={i}
-                        defaultDomain={domain}
+                        targetDomain={domain}
                         defaultHandlerPath={handlerPath}
-                      />
-                      <DeleteDialog
-                        open={isDeleteModalOpen}
-                        onOpenChange={setIsDeleteModalOpen}
-                        domain={domain}
-                        project={project}
-                      />
-                      <ActionCell 
-                        items={[{ item: "Edit", onClick: () => setIsEditModalOpen(true) }]}
-                        dangerItems={[{ item: "Delete", onClick: () => setIsDeleteModalOpen(true) }]}
                       />
                     </TableCell>
                   </TableRow>
@@ -201,19 +232,17 @@ export default function PageClient() {
 
       <SettingCard title="Development settings">
         <SettingSwitch
-          checked={project.evaluatedConfig.allowLocalhost}
+          checked={project.config.allowLocalhost}
           onCheckedChange={async (checked) => {
             await project.update({
               config: { allowLocalhost: checked },
             });
           }}
           label="Allow all localhost callbacks for development"
+          hint={<>
+            When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
+          </>}
         />
-
-        
-        <Typography variant="secondary" type="footnote">
-          When enabled, allow access from all localhost URLs by default. This makes development easier but <b>should be disabled in production.</b>
-        </Typography>
       </SettingCard>
     </PageLayout>
   );

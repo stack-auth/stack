@@ -34,7 +34,7 @@ export default function AddBlockButton({ onSelect, placeholder }: Props) {
     <div className='relative'>
       <BlocksPopover
         trigger={renderButton()}
-        onSelect={onSelect} 
+        onSelect={onSelect}
       />
     </div>
   );

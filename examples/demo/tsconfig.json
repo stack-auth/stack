@@ -1,7 +1,4 @@
 {
-  "compiler": {
-    "styledComponents": true,
-  },
   "compilerOptions": {
     "target": "esnext",
     "lib": [

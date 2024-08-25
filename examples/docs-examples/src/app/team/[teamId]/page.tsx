@@ -12,11 +12,11 @@ export default function TeamPage({ params }: { params: { teamId: string } }) {
 
   return (
     <div>
-      <SelectedTeamSwitcher 
-        urlMap={team => `/team/${team.id}`} 
+      <SelectedTeamSwitcher
+        urlMap={team => `/team/${team.id}`}
         selectedTeam={team}
       />
-      
+
       <p>Team Name: {team.displayName}</p>
       <p>You are a member of this team.</p>
     </div>

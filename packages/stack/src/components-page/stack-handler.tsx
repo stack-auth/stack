@@ -1,35 +1,30 @@
-import { SignUp } from "./sign-up";
-import { SignIn } from "./sign-in";
+import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
-import { EmailVerification } from "./email-verification";
-import { StackServerApp } from "..";
+import { AuthPage, StackServerApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
-import { SignOut } from "./sign-out";
-import { ForgotPassword } from "./forgot-password";
-import { OAuthCallback } from "./oauth-callback";
 import { AccountSettings } from "./account-settings";
-import { MagicLinkCallback } from "./magic-link-callback";
+import { EmailVerification } from "./email-verification";
 import { ErrorPage } from "./error-page";
+import { ForgotPassword } from "./forgot-password";
+import { MagicLinkCallback } from "./magic-link-callback";
+import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
+import { SignOut } from "./sign-out";
+import { TeamCreation } from "./team-creation";
+import { TeamInvitation } from "./team-invitation";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
   params: { stack } = {},
   searchParams = {},
-  // TODO set default to false like on the other components (may break old code)
-  fullPage = "deprecated-unset",
-}: { 
+  fullPage = false,
+}: {
   app: StackServerApp<HasTokenStore>,
-  params?: { stack?: string[] }, 
+  params?: { stack?: string[] },
   searchParams?: Record<string, string>,
-  fullPage?: boolean | "deprecated-unset",
+  fullPage?: boolean,
 }) {
-  if (fullPage === "deprecated-unset") {
-    console.warn("You are not passing `fullPage` to Stack's Handler. The default behaviour will soon change from `true` to `false`. Please update your Handler component in handler/[...stack]/page.tsx by adding the `fullPage` prop.");
-    fullPage = true;
-  }
-
   if (!stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>
@@ -42,65 +37,85 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     const url = app.urls[name];
     const handlerUrl = app.urls.handler;
 
-    if (url.startsWith(handlerUrl)) {
+    if (url !== handlerUrl && url.startsWith(handlerUrl + "/")) {
       // don't redirect if the url is a handler url
       return;
     }
 
-    redirect(url, RedirectType.replace);
-  }
-
-  async function redirectIfHasUser() {
-    const user = await app.getUser();
-    if (user) {
-      redirect(app.urls.afterSignIn);
+    const urlObj = new URL(url, "http://example.com");
+    for (const [key, value] of Object.entries(searchParams)) {
+      urlObj.searchParams.set(key, value);
     }
-  }
+
+    redirect(getRelativePart(urlObj), RedirectType.replace);
+  };
+
+  const availablePaths = {
+    signIn: 'sign-in',
+    signUp: 'sign-up',
+    emailVerification: 'email-verification',
+    passwordReset: 'password-reset',
+    forgotPassword: 'forgot-password',
+    signOut: 'sign-out',
+    oauthCallback: 'oauth-callback',
+    magicLinkCallback: 'magic-link-callback',
+    teamInvitation: 'team-invitation',
+    error: 'error',
+  };
 
   const path = stack.join('/');
+
+  if (path.startsWith('account-settings')) {
+    return <AccountSettings fullPage={fullPage} />;
+  }
+
+
   switch (path) {
-    case 'signin': {
+    case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      await redirectIfHasUser();
-      return <SignIn fullPage={fullPage} />;
+      return <AuthPage fullPage={fullPage} type='sign-in' automaticRedirect />;
     }
-    case 'signup': {
+    case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      await redirectIfHasUser();
-      return <SignUp fullPage={fullPage} />;
+      return <AuthPage fullPage={fullPage} type='sign-up' automaticRedirect />;
     }
-    case 'email-verification': {
+    case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
       return <EmailVerification searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'password-reset': {
+    case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
       return <PasswordReset searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'forgot-password': {
+    case availablePaths.forgotPassword: {
       redirectIfNotHandler('forgotPassword');
       return <ForgotPassword fullPage={fullPage} />;
     }
-    case 'signout': {
+    case availablePaths.signOut: {
       redirectIfNotHandler('signOut');
       return <SignOut fullPage={fullPage} />;
     }
-    case 'oauth-callback': {
+    case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
       return <OAuthCallback fullPage={fullPage} />;
     }
-    case 'account-settings': {
-      redirectIfNotHandler('accountSettings');
-      return <AccountSettings fullPage={fullPage} />;
-    }
-    case 'magic-link-callback': {
+    case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
     }
-    case 'error': {
+    case availablePaths.teamInvitation: {
+      redirectIfNotHandler('teamInvitation');
+      return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
+    }
+    case availablePaths.error: {
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
+      for (const [key, value] of Object.entries(availablePaths)) {
+        if (path === value.replaceAll('-', '')) {
+          redirect(`${app.urls.handler}/${value}`, RedirectType.replace);
+        }
+      }
       return notFound();
     }
   }

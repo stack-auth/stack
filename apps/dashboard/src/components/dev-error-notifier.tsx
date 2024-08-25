@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useToast } from "./ui/use-toast";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { useToast } from "@stackframe/stack-ui";
+import { useEffect } from "react";
 
 const neverNotify = [
   "Failed to fetch RSC payload",

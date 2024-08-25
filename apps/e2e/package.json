@@ -1,17 +1,18 @@
 {
   "name": "@stackframe/e2e-tests",
-  "version": "2.5.2",
+  "version": "2.5.25",
   "private": true,
   "type": "module",
   "scripts": {
     "test:watch": "vitest watch",
     "test": "vitest run",
     "lint": "eslint --ext .tsx,.ts .",
-    "clean": "rimraf dist && rimraf node_modules"
+    "clean": "rimraf dist && rimraf node_modules",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stackframe/stack-shared": "workspace:*",
     "dotenv": "^16.4.5",
-    "@stackframe/stack-shared": "workspace:*"
-  },
-  "devDependencies": {}
+    "oslo": "^1.2.1"
+  }
 }

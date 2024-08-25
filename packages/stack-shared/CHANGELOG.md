@@ -1,5 +1,164 @@
 # @stackframe/stack-shared
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+  - @stackframe/stack-sc@2.5.25
+
+## 2.5.24
+
+### Patch Changes
+
+- Various bugfixes
+  - @stackframe/stack-sc@2.5.24
+
+## 2.5.23
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.23
+
+## 2.5.22
+
+### Patch Changes
+
+- Team metadata
+  - @stackframe/stack-sc@2.5.22
+
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+  - @stackframe/stack-sc@2.5.21
+
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+  - @stackframe/stack-sc@2.5.20
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.19
+
+## 2.5.18
+
+### Patch Changes
+
+- Multi-factor authentication
+  - @stackframe/stack-sc@2.5.18
+
+## 2.5.17
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.5.17
+
+## 2.5.16
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.16
+
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.15
+
+## 2.5.14
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.14
+
+## 2.5.13
+
+### Patch Changes
+
+- Add server side get connected account
+  - @stackframe/stack-sc@2.5.13
+
+## 2.5.12
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.5.12
+
+## 2.5.11
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.11
+
+## 2.5.10
+
+### Patch Changes
+
+- Facebook Business support
+  - @stackframe/stack-sc@2.5.10
+
+## 2.5.9
+
+### Patch Changes
+
+- Impersonation
+  - @stackframe/stack-sc@2.5.9
+
+## 2.5.8
+
+### Patch Changes
+
+- Improved docs
+  - @stackframe/stack-sc@2.5.8
+
+## 2.5.7
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.7
+
+## 2.5.6
+
+### Patch Changes
+
+- Various bugfixes
+  - @stackframe/stack-sc@2.5.6
+
+## 2.5.5
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.5
+
+## 2.5.4
+
+### Patch Changes
+
+- Backend rework
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.4
+
+## 2.5.3
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.3
+
 ## 2.5.2
 
 ### Patch Changes

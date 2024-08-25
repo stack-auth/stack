@@ -5,19 +5,21 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import * as yup from "yup";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
+import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { CrudHandlerInvocationError } from "./crud-handler";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type SmartRequestAuth = {
-  project: ProjectJson,
+  project: ProjectsCrud["Admin"]["Read"],
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };
@@ -31,9 +33,9 @@ export type SmartRequest = {
   url: string,
   method: typeof allowedMethods[number],
   body: unknown,
-  headers: Record<string, string[]>,
-  query: Record<string, string>,
-  params: Record<string, string>,
+  headers: Record<string, string[] | undefined>,
+  query: Record<string, string | undefined>,
+  params: Record<string, string | undefined>,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
@@ -46,7 +48,9 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
   try {
     return await schema.validate(obj, {
       abortEarly: false,
-      stripUnknown: true,
+      context: {
+        noUnknownPathPrefixes: ["body", "query", "params"],
+      },
     });
   } catch (error) {
     if (error instanceof ReplaceFieldWithOwnUserId) {
@@ -80,12 +84,12 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
       return await validate(newObj, schema, req);
     } else if (error instanceof yup.ValidationError) {
       if (req === null) {
-        // we weren't called by a HTTP request, so it must be a logical error in a manual invokation
+        // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
         throw new StackAssertionError("Request validation failed", {}, { cause: error });
       } else {
         const inners = error.inner.length ? error.inner : [error];
         const description = schema.describe();
-        
+
         for (const inner of inners) {
           if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
             throw new KnownErrors.AccessTypeRequired();
@@ -161,7 +165,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   let requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
-  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin");
+  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
@@ -169,18 +173,11 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
-    // TODO in the future, when all clients have updated, throw KnownErrors.ProjectKeyWithoutRequestType instead of guessing
-    if (adminAccessToken || superSecretAdminKey) {
-      requestType = "admin";
-    } else if (secretServerKey) {
-      requestType = "server";
-    } else if (publishableClientKey) {
-      requestType = "client";
-    }
+    throw new KnownErrors.ProjectKeyWithoutAccessType();
   }
   if (!requestType) return null;
-  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidRequestType(requestType);
-  if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
+  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
+  if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {
@@ -196,7 +193,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       case "not-admin": {
         throw new KnownErrors.AdminAccessTokenIsNotAdmin();
       }
-      case "wrong-project-id": {
+      case "wrong-token-project-id": {
         throw new KnownErrors.InvalidProjectForAdminAccessToken();
       }
       case "access-token-expired": {
@@ -229,15 +226,15 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         projectAccessType = "key";
         break;
       }
+      default: {
+        throw new StackAssertionError(`Unexpected request type: ${requestType}. We should've filtered this earlier`);
+      }
     }
   }
 
-  let project = await updateProject(
-    projectId,
-    {},
-  );
+  const project = await getProject(projectId);
   if (!project) {
-    throw new KnownErrors.ProjectNotFound();
+    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project", { projectId });
   }
 
   let user = null;
@@ -249,10 +246,16 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    user = await usersCrudHandlers.adminRead({
-      project,
-      userId,
-    });
+    try {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: userId,
+      });
+    } catch (e) {
+      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
+        user = null;
+      }
+    }
   }
 
   return {
@@ -263,7 +266,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 }
 
 export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
-  const urlObject = new URL(req.url);  
+  const urlObject = new URL(req.url);
   return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),

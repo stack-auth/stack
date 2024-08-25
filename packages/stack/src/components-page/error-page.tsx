@@ -31,7 +31,7 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     // TODO: add "Connect a different account" button
     return (
       <MessageCard
-        title="Failed to connect account" 
+        title="Failed to connect account"
         fullPage={fullPage}
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
@@ -46,8 +46,8 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
   if (error instanceof KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection) {
     // TODO: add "Connect again" button
     return (
-      <MessageCard 
-        title="Failed to connect account" 
+      <MessageCard
+        title="Failed to connect account"
         fullPage={fullPage}
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}

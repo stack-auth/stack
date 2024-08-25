@@ -29,7 +29,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
       "x-stack-project-id": projectId,
       "x-stack-publishable-client-key": publishableClientKey,
     },
-    body: { 
+    body: {
       oldPassword,
       newPassword,
     },
@@ -69,7 +69,7 @@ const handler = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   }
 
   if (! await comparePassword(oldPassword, user.passwordHash)) {
-    throw new KnownErrors.PasswordMismatch();
+    throw new KnownErrors.PasswordConfirmationMismatch();
   }
 
   await prismaClient.projectUser.update({

@@ -9,14 +9,15 @@ import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
-import { KnownError, KnownErrors, ProjectJson } from "@stackframe/stack-shared";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared";
+import { ProjectJson } from "@/temporary-types";
 import { createTeamOnSignUp } from "@/lib/users";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { validateUrl } from "@/lib/utils";
 import { Project } from "@stackframe/stack";
 
-const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson, errorRedirectUrl?: string) => {
+const redirectOrThrowError = (error: KnownError, project: ProjectJson, errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateUrl(errorRedirectUrl, project.evaluatedConfig.domains, project.evaluatedConfig.allowLocalhost)) {
     throw error;
   }
@@ -32,7 +33,7 @@ const redirectOrThrowError = (error: KnownError, project: Project | ProjectJson,
 const getSchema = yup.object({
   query: yup.object({
     code: yup.string().required(),
-    state: yup.string().required(),  
+    state: yup.string().required(),
   })
 });
 
@@ -44,9 +45,9 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
 
   const providerId = options.params.provider;
 
-  const infoId = cookies().get("stack-oauth-" + state.slice(0, 8));
-  cookies().delete("stack-oauth-" + state.slice(0, 8));
-  
+  const infoId = cookies().get("stack-oauth-inner-" + state.slice(0, 8));
+  cookies().delete("stack-oauth-inner-" + state.slice(0, 8));
+
   if (!infoId) {
     throw new StatusError(StatusError.BadRequest, "stack-oauth cookie not found");
   }
@@ -137,7 +138,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
       return redirectOrThrowError(new KnownErrors.UserAlreadyConnectedToAnotherOAuthConnection(), project, errorRedirectUrl);
     }
   }
-  
+
   const oauthRequest = new OAuthRequest({
     headers: {},
     body: {},
@@ -224,7 +225,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                   },
                 });
               }
-              
+
               await storeRefreshToken();
               return {
                 id: projectUserId,
@@ -232,7 +233,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
                 afterCallbackRedirectUrl,
               };
             }
-            
+
             // ========================== sign in user ==========================
 
             if (oldAccount) {
@@ -287,7 +288,7 @@ export const GET = deprecatedSmartRouteHandler(async (req: NextRequest, options:
     if (error instanceof InvalidClientError) {
       if (error.message.includes("redirect_uri")) {
         throw new StatusError(
-          StatusError.BadRequest, 
+          StatusError.BadRequest,
           'Invalid redirect URL. This is probably caused by not setting up domains/handlers correctly in the Stack dashboard'
         );
       }
