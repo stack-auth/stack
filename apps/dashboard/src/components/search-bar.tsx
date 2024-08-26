@@ -1,7 +1,7 @@
 import React from "react";
 
+import { Input } from "@stackframe/stack-ui";
 import { Search } from "lucide-react";
-import { Input } from "./ui/input";
 
 export const SearchBar = React.forwardRef<
   HTMLInputElement,

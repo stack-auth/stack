@@ -1,20 +1,26 @@
-import { TokenSet } from "openid-client";
-import { OAuthBaseProvider } from "./base";
+import { OAuthBaseProvider, TokenSet } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
-  constructor(options: {
+  private constructor(
+    ...args: ConstructorParameters<typeof OAuthBaseProvider>
+  ) {
+    super(...args);
+  }
+
+  static async create(options: {
     clientId: string,
     clientSecret: string,
   }) {
-    super({
+    return new MicrosoftProvider(...await OAuthBaseProvider.createConstructorArgs({
       issuer: "https://login.microsoftonline.com",
       authorizationEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
       tokenEndpoint: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/microsoft",
+      redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/microsoft",
       baseScope: "User.Read",
       ...options,
-    });
+    }));
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
@@ -22,7 +28,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       'https://graph.microsoft.com/v1.0/me',
       {
         headers: {
-          Authorization: `Bearer ${tokenSet.access_token}`,
+          Authorization: `Bearer ${tokenSet.accessToken}`,
         },
       }
     ).then(res => res.json());
@@ -32,8 +38,6 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       displayName: rawUserInfo.displayName,
       email: rawUserInfo.mail || rawUserInfo.userPrincipalName,
       profileImageUrl: undefined, // Microsoft Graph API does not return profile image URL
-      accessToken: tokenSet.access_token,
-      refreshToken: tokenSet.refresh_token,
     });
   }
 }

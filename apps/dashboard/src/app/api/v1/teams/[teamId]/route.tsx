@@ -18,6 +18,7 @@ const putSchema = yup.object({
   }).required(),
   body: yup.object({
     displayName: yup.string(),
+    profileImageUrl: yup.string().optional().default(undefined),
   }).required(),
 });
 

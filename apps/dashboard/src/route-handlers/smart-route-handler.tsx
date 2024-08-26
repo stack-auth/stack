@@ -9,10 +9,14 @@ import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { MergeSmartRequest, SmartRequest, createLazyRequestParser } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 
 class InternalServerError extends StatusError {
-  constructor() {
-    super(StatusError.InternalServerError);
+  constructor(error: unknown) {
+    super(
+      StatusError.InternalServerError,
+      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}` : undefined,
+    );
   }
 }
 
@@ -41,7 +45,7 @@ function catchError(error: unknown): StatusError {
 
   if (error instanceof StatusError) return error;
   captureError(`route-handler`, error);
-  return new InternalServerError();
+  return new InternalServerError(error);
 }
 
 /**

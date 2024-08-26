@@ -26,6 +26,7 @@ const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
 	        onClick={() => setShowPassword((prev) => !prev)}
 	        disabled={props.disabled}
 	        aria-label={showPassword ? "Hide password" : "Show password"}
+	        tabIndex={-1}
 	      >
 	        {showPassword ? (
 	          <EyeIcon

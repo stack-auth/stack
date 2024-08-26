@@ -6,7 +6,7 @@ import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { checkApiKeySet, secretServerKeyHeaderSchema } from "@/lib/api-keys";
 import { isProjectAdmin } from "@/lib/projects";
 import { listServerTeamMembers } from "@/lib/teams";
-import { ServerTeamMemberJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { ServerTeamMemberJson } from "@/temporary-types";
 
 const getSchema = yup.object({
   query: yup.object({

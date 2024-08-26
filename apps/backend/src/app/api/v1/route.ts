@@ -1,20 +1,39 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { adaptSchema, projectIdSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
-import * as yup from "yup";
 
 export const GET = createSmartRouteHandler({
-  request: yup.object({
-    auth: yup.object({
-      type: yup.mixed(),
-      user: yup.mixed(),
-      project: yup.mixed(),
+  metadata: {
+    summary: "/api/v1",
+    description: "Returns a human-readable message with some useful information about the API.",
+    tags: [],
+  },
+  request: yupObject({
+    auth: yupObject({
+      type: adaptSchema,
+      user: adaptSchema,
+      project: adaptSchema,
     }).nullable(),
-    method: yup.string().oneOf(["GET"]).required(),
+    query: yupObject({
+      // No query parameters
+      // empty object means that it will fail if query parameters are given regardless
+    }),
+    headers: yupObject({
+      // we list all automatically parsed headers here so the documentation shows them
+      "X-Stack-Project-Id": yupTuple([projectIdSchema]),
+      "X-Stack-Access-Type": yupTuple([yupString().oneOf(["client", "server", "admin"])]),
+      "X-Stack-Access-Token": yupTuple([yupString()]),
+      "X-Stack-Refresh-Token": yupTuple([yupString()]),
+      "X-Stack-Publishable-Client-Key": yupTuple([yupString()]),
+      "X-Stack-Secret-Server-Key": yupTuple([yupString()]),
+      "X-Stack-Super-Secret-Admin-Key": yupTuple([yupString()]),
+    }),
+    method: yupString().oneOf(["GET"]).required(),
   }),
-  response: yup.object({
-    statusCode: yup.number().oneOf([200]).required(),
-    bodyType: yup.string().oneOf(["text"]).required(),
-    body: yup.string().required(),
+  response: yupObject({
+    statusCode: yupNumber().oneOf([200]).required(),
+    bodyType: yupString().oneOf(["text"]).required(),
+    body: yupString().required().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
   }),
   handler: async (req) => {
     return {
@@ -24,8 +43,8 @@ export const GET = createSmartRouteHandler({
         Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
 
         Authentication: ${!req.auth ? "None" : deindent` ${typedCapitalize(req.auth.type)}
-          Project: ${req.auth.project ? req.auth.project.id : "None"}
-          User: ${req.auth.user ? req.auth.user.primaryEmail ?? req.auth.user.id : "None"}
+          Project: ${req.auth.project.id}
+          User: ${req.auth.user ? req.auth.user.primary_email ?? req.auth.user.id : "None"}
         `}
       `,
     };

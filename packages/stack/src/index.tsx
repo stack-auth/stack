@@ -1,21 +1,8 @@
 export { default as StackProvider } from "./providers/stack-provider";
 export { useUser, useStackApp } from "./lib/hooks";
-export { StackClientApp, StackServerApp, StackAdminApp } from "./lib/stack-app";
 export { default as StackHandler } from "./components-page/stack-handler";
 export { StackTheme } from './providers/theme-provider';
-export type {
-  CurrentUser, 
-  Project, 
-  ServerUser as ServerUser, 
-  ApiKeySetFirstView, 
-  ApiKeySet, 
-  ServerTeam, 
-  Team, 
-  TeamMember,
-  ServerTeamMember,
-  ServerPermission as Permission,
-  ServerPermission,
-} from './lib/stack-app';
+export * from './lib/stack-app';
 
 export { SignIn } from "./components-page/sign-in";
 export { SignUp } from "./components-page/sign-up";
@@ -26,16 +13,12 @@ export { MessageCard } from "./components/message-cards/message-card";
 export { UserButton } from "./components/user-button";
 export { AccountSettings } from "./components-page/account-settings";
 export { AuthPage } from "./components-page/auth-page";
-export { CredentialSignInForm as CredentialSignIn } from "./components/credential-sign-in-form";
-export { CredentialSignUpForm as CredentialSignUp } from "./components/credential-sign-up-form";
-export { MagicLinkSignInForm as MagicLinkSignIn } from "./components/magic-link-sign-in-form";
+export { CredentialSignIn as CredentialSignIn } from "./components/credential-sign-in";
+export { CredentialSignUp as CredentialSignUp } from "./components/credential-sign-up";
+export { MagicLinkSignIn as MagicLinkSignIn } from "./components/magic-link-sign-in";
 export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
 
-export { 
+export {
   SelectedTeamSwitcher,
-  /**
-   * @deprecated This was renamed to `SelectedTeamSwitcher`.
-   */
-  SelectedTeamSwitcher as TeamSwitcher,
 } from "./components/selected-team-switcher";

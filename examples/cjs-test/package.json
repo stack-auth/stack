@@ -1,12 +1,13 @@
 {
   "name": "@stackframe/example-cjs-test",
-  "version": "2.4.28",
+  "version": "2.5.25",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8106",
+    "dev": "next dev --port 8110",
     "build": "next build",
-    "start": "next start --port 8106",
-    "lint": "next lint"
+    "start": "next start --port 8110",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "14.2.3",

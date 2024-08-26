@@ -1,69 +1,113 @@
 'use client';
-import { useUser } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "next/navigation";
 import {
+  Button,
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
-  Typography,
+  Typography
 } from "@stackframe/stack-ui";
-import { useMemo } from "react";
+import { PlusCircle, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { Team, useStackApp, useUser } from "..";
+import { TeamIcon } from "./team-icon";
 
 type SelectedTeamSwitcherProps = {
-  projectUrlMap?: (projectId: string) => string,
+  urlMap?: (team: Team) => string,
+  selectedTeam?: Team,
+  noUpdateSelectedTeam?: boolean,
 };
 
-function TeamIcon(props: { displayName: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.5rem', height: '1.5rem', marginRight: '0.5rem', borderRadius: '0.25rem', backgroundColor: 'rgb(228 228 231)' }}>
-      <Typography>{props.displayName.slice(0, 1).toUpperCase()}</Typography>
-    </div>
-  );
-}
-
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+  const app = useStackApp();
   const user = useUser();
+  const project = app.useProject();
   const router = useRouter();
-  const selectedTeam = user?.selectedTeam;
+  const selectedTeam = user?.selectedTeam || props.selectedTeam;
   const rawTeams = user?.useTeams();
   const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
 
+  useEffect(() => {
+    if (!props.noUpdateSelectedTeam && props.selectedTeam) {
+      runAsynchronouslyWithAlert(user?.setSelectedTeam(props.selectedTeam));
+    }
+  }, [props.noUpdateSelectedTeam, props.selectedTeam]);
+
   return (
-    <Select>
+    <Select
+      value={selectedTeam?.id}
+      onValueChange={(value) => {
+        runAsynchronouslyWithAlert(async () => {
+          const team = teams?.find(team => team.id === value);
+          if (!team) {
+            throw new Error('Team not found, this should not happen');
+          }
+
+          if (!props.noUpdateSelectedTeam) {
+            await user?.setSelectedTeam(team);
+          }
+          if (props.urlMap) {
+            router.push(props.urlMap(team));
+          }
+        });
+      }}
+    >
       <SelectTrigger className="stack-scope">
         <SelectValue placeholder="Select team"/>
       </SelectTrigger>
       <SelectContent className="stack-scope">
-        {teams && teams.map(team => (
-          <SelectItem
-            value={team.id}
-            key={team.id}
-            onClick={() => {
-              runAsynchronouslyWithAlert(async () => {
-                await user?.setSelectedTeam(team);
-                if (props.projectUrlMap) {
-                  router.push(props.projectUrlMap(team.id));
-                }
-              });
-            }}
-          >
-            <div className="flex items-center">
-              <TeamIcon displayName={team.displayName} />
-              <Typography>{team.displayName}</Typography>
+        {user?.selectedTeam ? <SelectGroup>
+          <SelectLabel>
+            <div className="flex items-center justify-between">
+              Current team
+              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
+                <Settings className="h-4 w-4"/>
+              </Button>
+            </div>
+          </SelectLabel>
+          <SelectItem value={user.selectedTeam.id}>
+            <div className="flex items-center gap-2">
+              <TeamIcon team={user.selectedTeam} />
+              <Typography>{user.selectedTeam.displayName}</Typography>
             </div>
           </SelectItem>
-        ))}
+        </SelectGroup> : undefined}
 
-        {teams?.length === 0 && (
+        {teams?.length ?
           <SelectGroup>
-            <SelectLabel>No teams</SelectLabel>
-          </SelectGroup>
-        )}
+            <SelectLabel>Other teams</SelectLabel>
+            {teams.filter(team => team.id !== user?.selectedTeam?.id)
+              .map(team => (
+                <SelectItem value={team.id} key={team.id}>
+                  <div className="flex items-center gap-2">
+                    <TeamIcon team={team} />
+                    <Typography>{team.displayName}</Typography>
+                  </div>
+                </SelectItem>
+              ))}
+          </SelectGroup> :
+          <SelectGroup>
+            <SelectLabel>No teams yet</SelectLabel>
+          </SelectGroup>}
+
+        {project.config.clientTeamCreationEnabled && <>
+          <SelectSeparator/>
+          <div>
+            <Button
+              onClick={() => router.push(`${app.urls.accountSettings}/team-creation`)}
+              className="w-full"
+              variant='ghost'
+            >
+              <PlusCircle className="mr-2 h-4 w-4"/> Create a team
+            </Button>
+          </div>
+        </>}
       </SelectContent>
     </Select>
   );

@@ -5,6 +5,7 @@ import { useStackApp } from "..";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { MessageCard } from "../components/message-cards/message-card";
 import { StyledLink } from "@stackframe/stack-ui";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export function OAuthCallback(props: { fullPage?: boolean }) {
   const app = useStackApp();
@@ -19,10 +20,11 @@ export function OAuthCallback(props: { fullPage?: boolean }) {
     try {
       hasRedirected = await app.callOAuthCallback();
     } catch (e: any) {
+      captureError("<OAuthCallback />", e);
       setError(e);
     }
-    if (!hasRedirected && process.env.NODE_ENV === 'production') {
-      await app.redirectToSignIn();
+    if (!hasRedirected && (!error || process.env.NODE_ENV === 'production')) {
+      await app.redirectToSignIn({ noRedirectBack: true });
     }
   }), []);
 

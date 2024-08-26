@@ -1,7 +1,9 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.4.28",
+  "version": "2.5.25",
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,10 +18,10 @@
   "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "rimraf dist && npm run css && tsup-node",
+    "build": "rimraf dist && npm run codegen && tsup-node",
     "codegen": "npm run css",
     "clean": "rimraf dist && rimraf node_modules",
-    "dev": "rimraf dist && concurrently \"tsup-node --watch\" \"npm run css:tw:watch\" \"npm run css:sc:watch\"",
+    "dev": "rimraf dist && concurrently -k \"tsup-node --watch\" \"npm run css:tw:watch\" \"npm run css:sc:watch\"",
     "lint": "eslint --ext .tsx,.ts .",
     "css": "npm run css:tw && npm run css:sc",
     "css:tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
@@ -45,10 +47,11 @@
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.378.0",
     "oauth4webapi": "^2.10.3",
+    "oslo": "^1.2.1",
+    "qrcode": "^1.5.4",
     "react-hook-form": "^7.51.4",
     "rimraf": "^5.0.5",
     "server-only": "^0.0.1",
-    "styled-components": "^6.1.8",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.7.2",
@@ -62,6 +65,7 @@
     "@types/color": "^3.0.6",
     "@types/cookie": "^0.6.0",
     "@types/js-cookie": "^3.0.6",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.2.66",
     "autoprefixer": "^10.4.17",
     "esbuild": "^0.20.2",
@@ -70,6 +74,7 @@
     "postcss-nested": "^6.0.1",
     "react": "^18.2.0",
     "tailwindcss": "^3.4.4",
-    "tsup": "^8.0.2"
+    "tsup": "^8.0.2",
+    "chokidar-cli": "^3.0.0"
   }
 }

@@ -14,10 +14,12 @@ For example, if you want to create a custom sign-in page with a customized title
 import { SignIn } from "@stackframe/stack";
 
 export default function CustomSignInPage() {
-  return <div>
-    <h1>My Custom Sign In page</h1>
-    <SignIn />
-  </div>;
+  return (
+    <div>
+      <h1>My Custom Sign In page</h1>
+      <SignIn />
+    </div>
+  );
 }
 ```
 
@@ -33,9 +35,9 @@ export const stackServerApp = new StackServerApp({
 });
 ```
 
-You are now all set! If you visit the `/signin` page, you should see your custom sign in page. If your user visits a protected page or the old `/handler/signin` URL, they will be redirected to your new sign-in page.
+You are now all set! If you visit the `/signin` page, you should see your custom sign in page. If your user visits a protected page or the old `/handler/sign-in` URL, they will be redirected to your new sign-in page.
 
-For more examples, please refer to the [Examples](/docs/category/page-examples).
+For more examples, please refer to the [Examples](/category/page-examples).
 
 
 ## From scratch
@@ -49,15 +51,17 @@ import { useStackApp } from "@stackframe/stack";
 export default function CustomOAuthSignIn() {
   const app = useStackApp();
 
-  return <div>
-    <h1>My Custom Sign In page</h1>
-    <button onClick={async () => {
-      // this will redirect to the OAuth provider's login page
-      await app.signInWithOAuth('google');
-    }}>
-      Sign In with Google
-    </button>
-  </div>;
+  return (
+    <div>
+      <h1>My Custom Sign In page</h1>
+      <button onClick={async () => {
+        // this will redirect to the OAuth provider's login page
+        await app.signInWithOAuth('google');
+      }}>
+        Sign In with Google
+      </button>
+    </div>
+  );
 }
 ```
 

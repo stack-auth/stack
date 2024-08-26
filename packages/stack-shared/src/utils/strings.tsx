@@ -1,3 +1,4 @@
+import { findLastIndex, unique } from "./arrays";
 import { StackAssertionError } from "./errors";
 import { filterUndefined } from "./objects";
 
@@ -15,7 +16,7 @@ export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
 
 /**
  * Returns all whitespace character at the start of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespacePrefix(s: string): string {
@@ -24,7 +25,7 @@ export function getWhitespacePrefix(s: string): string {
 
 /**
  * Returns all whitespace character at the end of the string.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function getWhitespaceSuffix(s: string): string {
@@ -33,7 +34,7 @@ export function getWhitespaceSuffix(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the start removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesStart(s: string): string {
@@ -44,18 +45,18 @@ export function trimEmptyLinesStart(s: string): string {
 
 /**
  * Returns a string with all empty or whitespace-only lines at the end removed.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimEmptyLinesEnd(s: string): string {
   const lines = s.split("\n");
-  const lastNonEmptyLineIndex = lines.findLastIndex((line) => line.trim() !== "");
+  const lastNonEmptyLineIndex = findLastIndex(lines, (line) => line.trim() !== "");
   return lines.slice(0, lastNonEmptyLineIndex + 1).join("\n");
 }
 
 /**
  * Returns a string with all empty or whitespace-only lines trimmed at the start and end.
- * 
+ *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
  */
 export function trimLines(s: string): string {
@@ -64,7 +65,7 @@ export function trimLines(s: string): string {
 
 /**
  * A template literal tag that returns the same string as the template literal without a tag.
- * 
+ *
  * Useful for implementing your own template literal tags.
  */
 export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: any[]): string {
@@ -122,6 +123,17 @@ export function mergeScopeStrings(...scopes: string[]): string {
 }
 
 
+export function snakeCaseToCamelCase(snakeCase: string): string {
+  if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
+  return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+export function camelCaseToSnakeCase(camelCase: string): string {
+  if (camelCase.match(/_/)) return camelCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
+  return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+
 /**
  * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
  * so we create an object of overrides to handle these cases.
@@ -145,7 +157,8 @@ export type NicifyOptions = {
     value: unknown,
   },
   keyInParent: PropertyKey | null,
-  overrides: (...args: Parameters<typeof nicify>) => ["result", string] | ["replace", unknown] | null,
+  hideFields: PropertyKey[],
+  overrides: (...args: Parameters<typeof nicify>) => string | null,
 };
 export function nicify(
   value: unknown,
@@ -161,6 +174,7 @@ export function nicify(
     parent: null,
     overrides: () => null,
     keyInParent: null,
+    hideFields: [],
     ...filterUndefined(options),
   };
   const {
@@ -171,19 +185,19 @@ export function nicify(
     refs,
     path,
     overrides,
+    hideFields,
   } = fullOptions;
   const nl = `\n${currentIndent}`;
 
-  if (["function", "object", "symbol"].includes(typeof value)) {
+  const overrideResult = overrides(value, options);
+  if (overrideResult !== null) return overrideResult;
+
+  if (["function", "object", "symbol"].includes(typeof value) && value !== null) {
     if (refs.has(value)) {
       return `Ref<${refs.get(value)}>`;
     }
     refs.set(value, path);
   }
-
-  const overrideResult = overrides(value, options);
-  if (overrideResult?.[0] === "result") return overrideResult[1];
-  else if (overrideResult?.[0] === "replace") return nicify(overrideResult[1], options);
 
   const newOptions: NicifyOptions = {
     maxDepth: maxDepth - 1,
@@ -195,12 +209,13 @@ export function nicify(
     overrides,
     parent: { value, options: fullOptions },
     keyInParent: null,
+    hideFields: [],
   };
-  const nestedNicify = (newValue: unknown, newPath: string, indent: boolean, keyInParent: PropertyKey | null) => {
+  const nestedNicify = (newValue: unknown, newPath: string, keyInParent: PropertyKey | null) => {
     return nicify(newValue, {
       ...newOptions,
       path: newPath,
-      currentIndent: currentIndent + (indent ? lineIndent : ""),
+      currentIndent: currentIndent + lineIndent,
       keyInParent,
     });
   };
@@ -228,37 +243,43 @@ export function nicify(
         const extraLines = getNicifiedObjectExtraLines(value);
         const resValueLength = value.length + extraLines.length;
         if (maxDepth <= 0 && resValueLength === 0) return "[...]";
-        const shouldIndent = multiline && resValueLength > 1;
-        const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, shouldIndent, i));
+        const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, i));
         resValues.push(...extraLines);
         if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+        const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
         if (shouldIndent) {
           return `[${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}]`;
         } else {
           return `[${resValues.join(", ")}]`;
         }
       }
+      if (value instanceof URL) {
+        return `URL(${JSON.stringify(value.toString())})`;
+      }
 
-      const constructorName = [null, Object].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
+      const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
 
-      const entries = getNicifiableEntries(value);
-      const extraLines = getNicifiedObjectExtraLines(value);
+      const entries = getNicifiableEntries(value).filter(([k]) => !hideFields.includes(k));
+      const extraLines = [
+        ...getNicifiedObjectExtraLines(value),
+        ...hideFields.length > 0 ? [`<some fields may have been hidden>`] : [],
+      ];
       const resValueLength = entries.length + extraLines.length;
       if (resValueLength === 0) return `${constructorString}{}`;
       if (maxDepth <= 0) return `${constructorString}{ ... }`;
-      const shouldIndent = multiline && resValueLength > 1;
       const resValues = entries.map(([k, v], keyIndex) => {
-        const keyNicified = nestedNicify(k, `Object.keys(${path})[${keyIndex}]`, shouldIndent, null);
+        const keyNicified = nestedNicify(k, `Object.keys(${path})[${keyIndex}]`, null);
         const keyInObjectLiteral = typeof k === "string" ? JSON.stringify(k) : `[${keyNicified}]`;
         if (typeof v === "function" && v.name === k) {
           return `${keyInObjectLiteral}(...): { ... }`;
         } else {
-          return `${keyInObjectLiteral}: ${nestedNicify(v, `${path}[${keyNicified}]`, shouldIndent, k)}`;
+          return `${keyInObjectLiteral}: ${nestedNicify(v, `${path}[${keyNicified}]`, k)}`;
         }
       });
       resValues.push(...extraLines);
       if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+      const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
 
       if (resValues.length === 0) return `${constructorString}{}`;
       if (shouldIndent) {
@@ -283,7 +304,14 @@ function nicifyPropertyString(str: string) {
 }
 
 function getNicifiableKeys(value: Nicifiable | object) {
-  return ("getNicifiableKeys" in value ? value.getNicifiableKeys : null)?.() ?? Object.keys(value).sort();
+  const overridden = ("getNicifiableKeys" in value ? value.getNicifiableKeys?.bind(value) : null)?.();
+  if (overridden != null) return overridden;
+  const keys = Object.keys(value).sort();
+  if (value instanceof Error) {
+    if (value.cause) keys.unshift("cause");
+    keys.unshift("message", "stack");
+  }
+  return unique(keys);
 }
 
 function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {
@@ -301,4 +329,4 @@ function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown
 
 function getNicifiedObjectExtraLines(value: Nicifiable | object) {
   return ("getNicifiedObjectExtraLines" in value ? value.getNicifiedObjectExtraLines : null)?.() ?? [];
-} 
+}

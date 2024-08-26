@@ -1,12 +1,13 @@
 {
   "name": "@stackframe/example-middleware-demo",
-  "version": "2.4.28",
+  "version": "2.5.25",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8107",
+    "dev": "next dev --port 8112",
     "build": "next build",
-    "start": "next start --port 8107",
-    "lint": "next lint"
+    "start": "next start --port 8112",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "^14.2",

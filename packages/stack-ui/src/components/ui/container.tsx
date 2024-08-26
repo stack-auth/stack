@@ -1,39 +1,28 @@
 'use client';
 
+import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
 import React from 'react';
-import styled from 'styled-components';
 
 type ContainerProps = {
   size: number,
 } & Omit<React.HTMLProps<HTMLDivElement>, 'size'>
-
-const OuterContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`;
-
-const InnerContainer = styled.div<{ $breakpoint: number }>`
-  width: 100%;
-  @media (min-width: ${props => props.$breakpoint}px) {
-    width: ${props => props.$breakpoint}px;
-  }
-`;
 
 const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
   size,
   ...props
 }, ref) => {
   return (
-    <OuterContainer>
-      <InnerContainer
-        $breakpoint={size}
-        {...props}
-        ref={ref}
-      >
-        {props.children}
-      </InnerContainer>
-    </OuterContainer>
+    <>
+      <div className="flex justify-center w-full">
+        <div
+          {...props}
+          ref={ref}
+          style={{ width: '100%', maxWidth: size, ...props.style ? filterUndefined(props.style) : {} }}
+        >
+          {props.children}
+        </div>
+      </div>
+    </>
   );
 });
 

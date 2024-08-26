@@ -1,25 +1,17 @@
 "use client";
-import { Control, FieldValues, Path } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "./ui/calendar";
-import { CalendarIcon } from "@radix-ui/react-icons";
-import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Textarea } from "./ui/textarea";
+import { Button, Calendar, Checkbox, FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, Switch, Textarea } from "@stackframe/stack-ui";
+import { CalendarIcon } from "lucide-react";
+import { Control, FieldValues, Path } from "react-hook-form";
 
 
 export function FieldLabel(props: {
-  children?: React.ReactNode, 
-  required?: boolean, 
+  children?: React.ReactNode,
+  required?: boolean,
   className?: string,
 }) {
   return <FormLabel className={cn("flex", props.className)}>
-    {props.children} 
+    {props.children}
     {props.required ? <span className="text-zinc-500">{'*'}</span> : null}
   </FormLabel>;
 }
@@ -32,6 +24,7 @@ export function TextAreaField<F extends FieldValues>(props: {
   control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
+  monospace?: boolean,
 }) {
   return (
     <FormField
@@ -47,6 +40,9 @@ export function TextAreaField<F extends FieldValues>(props: {
                 rows={props.rows}
                 placeholder={props.placeholder}
                 value={field.value ?? ""}
+                style={{
+                  fontFamily: props.monospace ? "ui-monospace, monospace" : undefined,
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -57,8 +53,8 @@ export function TextAreaField<F extends FieldValues>(props: {
   );
 }
 
-export function InputField<F extends FieldValues>(props: { 
-  control: Control<F>, 
+export function InputField<F extends FieldValues>(props: {
+  control: Control<F>,
   name: Path<F>,
   label: React.ReactNode,
   placeholder?: string,
@@ -76,12 +72,12 @@ export function InputField<F extends FieldValues>(props: {
             <FieldLabel required={props.required}>{props.label}</FieldLabel>
             <FormControl>
               <Input
-                {...field} 
+                {...field}
                 value={field.value ?? ""}
-                placeholder={props.placeholder} 
-                className="max-w-lg" 
-                disabled={props.disabled} 
-                type={props.type} 
+                placeholder={props.placeholder}
+                className="max-w-lg"
+                disabled={props.disabled}
+                type={props.type}
               />
             </FormControl>
             <FormMessage />
@@ -92,9 +88,9 @@ export function InputField<F extends FieldValues>(props: {
   );
 }
 
-export function SwitchField<F extends FieldValues>(props: { 
-  control: Control<F>, 
-  name: Path<F>, 
+export function SwitchField<F extends FieldValues>(props: {
+  control: Control<F>,
+  name: Path<F>,
   label: React.ReactNode,
   required?: boolean,
   border?: boolean,
@@ -128,12 +124,12 @@ export function SwitchField<F extends FieldValues>(props: {
   );
 }
 
-export function SwitchListField<F extends FieldValues>(props: { 
+export function SwitchListField<F extends FieldValues>(props: {
   variant?: "switch" | "checkbox",
-  control: Control<F>, 
-  name: Path<F>, 
+  control: Control<F>,
+  name: Path<F>,
   label: React.ReactNode,
-  options: { value: string, label: string }[], 
+  options: { value: string, label: string }[],
   required?: boolean,
   disabled?: boolean,
 }) {

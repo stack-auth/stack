@@ -1,13 +1,17 @@
 // TODO remove and replace with CRUD handler
 
 import * as yup from 'yup';
-import { ApiKeySetFirstViewJson, ApiKeySetJson } from '@stackframe/stack-shared';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
+import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
+import { ApiKeyCreateCrudResponse } from '@stackframe/stack-shared/dist/interface/adminInterface';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { typedIncludes } from '@stackframe/stack-shared/dist/utils/arrays';
 
-export const publishableClientKeyHeaderSchema = yup.string().matches(/^[a-zA-Z0-9_-]*$/);
+export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
 export const superSecretAdminKeyHeaderSchema = secretServerKeyHeaderSchema;
 
@@ -16,9 +20,35 @@ export async function checkApiKeySet(
 ): Promise<boolean> {
   const set = await getApiKeySet(...args);
   if (!set) return false;
-  if (set.manuallyRevokedAtMillis) return false;
-  if (set.expiresAtMillis < Date.now()) return false;
+  if (set.manually_revoked_at_millis) return false;
+  if (set.expires_at_millis < Date.now()) return false;
   return true;
+}
+
+
+type KeyType =
+  | { publishableClientKey: string }
+  | { secretServerKey: string }
+  | { superSecretAdminKey: string };
+
+function assertKeyType(obj: any): KeyType {
+  if (typeof obj !== 'object' || obj === null) {
+    throw new StackAssertionError('Invalid key type', { obj });
+  }
+  const entries = Object.entries(obj);
+  if (entries.length !== 1) {
+    throw new StackAssertionError('Invalid key type; must have exactly one entry', { obj });
+  }
+  const [key, value] = entries[0];
+  if (!typedIncludes(['publishableClientKey', 'secretServerKey', 'superSecretAdminKey'], key)) {
+    throw new StackAssertionError('Invalid key type; field must be one of the three key types', { obj });
+  }
+  if (typeof value !== 'string') {
+    throw new StackAssertionError('Invalid key type; field must be a string', { obj });
+  }
+  return {
+    [key]: value,
+  } as KeyType;
 }
 
 
@@ -26,10 +56,8 @@ export async function getApiKeySet(
   projectId: string,
   whereOrId:
     | string
-    | { publishableClientKey: string }
-    | { secretServerKey: string }
-    | { superSecretAdminKey: string },
-): Promise<ApiKeySetJson | null> {
+    | KeyType,
+): Promise<ApiKeysCrud["Admin"]["Read"] | null> {
   const where = typeof whereOrId === 'string'
     ? {
       projectId_id: {
@@ -37,7 +65,10 @@ export async function getApiKeySet(
         id: whereOrId,
       }
     }
-    : whereOrId;
+    : {
+      ...assertKeyType(whereOrId),
+      projectId,
+    };
 
   const set = await prismaClient.apiKeySet.findUnique({
     where,
@@ -52,7 +83,7 @@ export async function getApiKeySet(
 
 export async function listApiKeySets(
   projectId: string,
-): Promise<ApiKeySetJson[]> {
+): Promise<ApiKeysCrud["Admin"]["Read"][]> {
   const sets = await prismaClient.apiKeySet.findMany({
     where: {
       projectId,
@@ -69,7 +100,7 @@ export async function createApiKeySet(
   hasPublishableClientKey: boolean,
   hasSecretServerKey: boolean,
   hasSuperSecretAdminKey: boolean,
-): Promise<ApiKeySetFirstViewJson> {
+): Promise<ApiKeyCreateCrudResponse> {
   const set = await prismaClient.apiKeySet.create({
     data: {
       id: generateUuid(),
@@ -99,10 +130,10 @@ export async function createApiKeySet(
     ...set.superSecretAdminKey ? {
       superSecretAdminKey: set.superSecretAdminKey,
     } : {},
-    createdAtMillis: set.createdAt.getTime(),
-    expiresAtMillis: set.expiresAt.getTime(),
+    created_at_millis: set.createdAt.getTime(),
+    expires_at_millis: set.expiresAt.getTime(),
     description: set.description,
-    manuallyRevokedAtMillis: set.manuallyRevokedAt?.getTime() ?? null,
+    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
   };
 }
 
@@ -122,21 +153,21 @@ export async function revokeApiKeySet(projectId: string, apiKeyId: string) {
   return createSummaryFromDbType(set);
 }
 
-function createSummaryFromDbType(set: ApiKeySet): ApiKeySetJson {
+function createSummaryFromDbType(set: ApiKeySet): ApiKeysCrud["Admin"]["Read"] {
   return {
     id: set.id,
     description: set.description,
-    publishableClientKey: set.publishableClientKey === null ? null : {
-      lastFour: set.publishableClientKey.slice(-4),
+    publishable_client_key: set.publishableClientKey === null ? undefined : {
+      last_four: set.publishableClientKey.slice(-4),
     },
-    secretServerKey: set.secretServerKey === null ? null : {
-      lastFour: set.secretServerKey.slice(-4),
+    secret_server_key: set.secretServerKey === null ? undefined : {
+      last_four: set.secretServerKey.slice(-4),
     },
-    superSecretAdminKey: set.superSecretAdminKey === null ? null : {
-      lastFour: set.superSecretAdminKey.slice(-4),
+    super_secret_admin_key: set.superSecretAdminKey === null ? undefined : {
+      last_four: set.superSecretAdminKey.slice(-4),
     },
-    createdAtMillis: set.createdAt.getTime(),
-    expiresAtMillis: set.expiresAt.getTime(),
-    manuallyRevokedAtMillis: set.manuallyRevokedAt?.getTime() ?? null,
+    created_at_millis: set.createdAt.getTime(),
+    expires_at_millis: set.expiresAt.getTime(),
+    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
   };
 }

@@ -5,7 +5,7 @@ import { Button, Container, Separator, Input, Label, Link, Typography, StyledLin
 const text = "This is a test sentence. ";
 
 export default function PageClient() {
-  
+
   return (
     <div>
       <Container size={600}>
@@ -21,7 +21,7 @@ export default function PageClient() {
               Button
             </Button>
           </div>
-        
+
           <div style={{ display: 'flex', gap: 5 }}>
             <Button>
               Button
@@ -73,7 +73,7 @@ export default function PageClient() {
               <Typography type='label'>{text}</Typography>
               <Typography type='footnote'>{text}</Typography>
             </div>
-          
+
             <Separator orientation='vertical' />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 5 }}>

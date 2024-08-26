@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { prismaClient } from "@/prisma-client";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
-import { sendMagicLink } from "@/email";
+import { sendMagicLink } from "@/lib/emails";
 import { getApiKeySet, publishableClientKeyHeaderSchema } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/lib/utils";
@@ -23,17 +23,17 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { 
-    headers: { 
-      "x-stack-project-id": projectId, 
-      "x-stack-publishable-client-key": publishableClientKey 
+  const {
+    headers: {
+      "x-stack-project-id": projectId,
+      "x-stack-publishable-client-key": publishableClientKey
     },
-    body: { 
+    body: {
       email,
       redirectUrl
-    } 
+    }
   } = await deprecatedParseRequest(req, postSchema);
-  
+
   if (!await getApiKeySet(projectId, { publishableClientKey })) {
     throw new KnownErrors.ApiKeyNotFound();
   }
@@ -74,17 +74,17 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
 
     await createTeamOnSignUp(projectId, user.projectUserId);
   }
-  
+
   if (
     !validateUrl(
-      redirectUrl, 
+      redirectUrl,
       project.evaluatedConfig.domains,
-      project.evaluatedConfig.allowLocalhost 
+      project.evaluatedConfig.allowLocalhost
     )
   ) {
     throw new KnownErrors.RedirectUrlNotWhitelisted();
   }
-  
+
   await sendMagicLink(projectId, user.projectUserId, redirectUrl, newUser);
 
   return new NextResponse();

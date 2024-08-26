@@ -17,16 +17,27 @@ export function throwErr(...args: any[]): never {
 }
 
 
-export class StackAssertionError extends Error {
+export class StackAssertionError extends Error implements ErrorWithCustomCapture {
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
-    const disclaimer = `\n\nThis is likely an error in Stack. Please report it.`;
+    const disclaimer = `\n\nThis is likely an error in Stack. Please make sure you are running the newest version and report it.`;
     super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, options);
   }
+
+  customCaptureExtraArgs = [
+    {
+      ...this.extraData,
+      ...this.cause ? { cause: this.cause } : {},
+    },
+  ];
 }
 StackAssertionError.prototype.name = "StackAssertionError";
 
 
-const errorSinks = new Set<(location: string, error: unknown) => void>();
+export type ErrorWithCustomCapture = {
+  customCaptureExtraArgs: any[],
+};
+
+const errorSinks = new Set<(location: string, error: unknown, ...extraArgs: unknown[]) => void>();
 export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
   if (errorSinks.has(sink)) {
     return;
@@ -34,16 +45,20 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   errorSinks.add(sink);
 }
 registerErrorSink((location, ...args) => {
-  console.error(`Error in ${location}:`, ...args);
+  console.error(`\x1b[41mError in ${location}:`, ...args, "\x1b[0m");
 });
-registerErrorSink((location, error, ...args) => {
+registerErrorSink((location, error, ...extraArgs) => {
   globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];
-  globalVar.stackCapturedErrors.push({ location, error: args, extraArgs: args });
+  globalVar.stackCapturedErrors.push({ location, error, extraArgs });
 });
 
 export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {
-    sink(location, error);
+    sink(
+      location,
+      error,
+      ...error && (typeof error === 'object' || typeof error === 'function') && "customCaptureExtraArgs" in error && Array.isArray(error.customCaptureExtraArgs) ? (error.customCaptureExtraArgs as any[]) : [],
+    );
   }
 }
 
@@ -53,9 +68,14 @@ type Status = {
   message: string,
 };
 
-type StatusErrorConstructorParameters = [
+type StatusErrorConstructorParameters =
+| [
+  status: Status,
+  message?: string
+]
+| [
   statusCode: number | Status,
-  message?: string,
+  message: string,
 ];
 
 export class StatusError extends Error {
@@ -114,9 +134,11 @@ export class StatusError extends Error {
       message ??= status.message;
       status = status.statusCode;
     }
-    message ??= "Server Error";
     super(message);
     this.statusCode = status;
+    if (!message) {
+      throw new StackAssertionError("StatusError always requires a message unless a Status object is passed", {}, { cause: this });
+    }
   }
 
   public isClientError() {
@@ -141,11 +163,23 @@ export class StatusError extends Error {
     };
   }
 
+  public toDescriptiveJson(): Json {
+    return {
+      status_code: this.getStatusCode(),
+      message: this.message,
+      headers: this.getHeaders(),
+    };
+  }
+
+  /**
+   * @deprecated this is not a good way to make status errors human-readable, use toDescriptiveJson instead
+   */
   public toHttpJson(): Json {
     return {
-      statusCode: this.statusCode,
+      status_code: this.statusCode,
       body: this.message,
       headers: this.getHeaders(),
     };
   }
 }
+StatusError.prototype.name = "StatusError";

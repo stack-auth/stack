@@ -1,7 +1,10 @@
+import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import './polyfills';
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 const corsAllowedRequestHeaders = [
   // General
@@ -11,7 +14,8 @@ const corsAllowedRequestHeaders = [
   'x-stack-override-error-status',
   'x-stack-random-nonce',  // used to forcefully disable some caches
   'x-stack-client-version',
-  
+  'x-stack-disable-artificial-development-delay',
+
   // Project auth
   'x-stack-request-type',
   'x-stack-publishable-client-key',
@@ -29,9 +33,18 @@ const corsAllowedResponseHeaders = [
   'x-stack-actual-status',
   'x-stack-known-error',
 ];
- 
-// This function can be marked `async` if using `await` inside
+
 export async function middleware(request: NextRequest) {
+  const delay = Number.parseInt(getEnvVariable('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS', '0'));
+  if (delay) {
+    if (getNodeEnvironment().includes('production')) {
+      throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS is only allowed in development');
+    }
+    if (!request.headers.get('x-stack-disable-artificial-development-delay')) {
+      await wait(delay);
+    }
+  }
+
   const url = new URL(request.url);
   const isApiRequest = url.pathname.startsWith('/api/');
 
@@ -56,8 +69,7 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next(responseInit);
 }
- 
-// See "Matching Paths" below to learn more
+
 export const config = {
   matcher: '/:path*',
 };

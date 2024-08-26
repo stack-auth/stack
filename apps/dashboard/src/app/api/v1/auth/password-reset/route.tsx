@@ -25,15 +25,15 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   });
 
   if (!codeRecord) {
-    throw new KnownErrors.PasswordResetCodeNotFound();
+    throw new KnownErrors.VerificationCodeNotFound();
   }
 
   if (codeRecord.expiresAt < new Date()) {
-    throw new KnownErrors.PasswordResetCodeExpired();
+    throw new KnownErrors.VerificationCodeExpired();
   }
 
   if (codeRecord.usedAt) {
-    throw new KnownErrors.PasswordResetCodeAlreadyUsed();
+    throw new KnownErrors.VerificationCodeAlreadyUsed();
   }
 
   if (onlyVerifyCode) {
@@ -43,7 +43,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
   if (!password) {
     throw new StatusError(StatusError.BadRequest, "Password is required when onlyVerify is false");
   }
-  
+
   await prismaClient.projectUser.update({
     where: {
       projectId_projectUserId: {

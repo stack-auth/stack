@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/docs",
-  "version": "2.4.28",
+  "version": "2.5.25",
   "description": "",
   "main": "index.js",
   "private": true,
@@ -13,10 +13,10 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "fern-api": "^0.30.7",
-    "@stackframe/stack-backend": "workspace:*"
+    "fern-api": "^0.31.24"
   },
   "devDependencies": {
-    "rimraf": "^5.0.7"
+    "rimraf": "^5.0.7",
+    "@stackframe/stack-backend": "workspace:*"
   }
 }

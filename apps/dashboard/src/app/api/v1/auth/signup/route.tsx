@@ -6,7 +6,7 @@ import { prismaClient } from "@/prisma-client";
 import { deprecatedSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { deprecatedParseRequest } from "@/route-handlers/smart-request";
 import { createAuthTokens } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/email";
+import { sendVerificationEmail } from "@/lib/emails";
 import { getProject } from "@/lib/projects";
 import { validateUrl } from "@/lib/utils";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
@@ -28,15 +28,15 @@ const postSchema = yup.object({
 });
 
 export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
-  const { 
+  const {
     body: {
-      email, 
-      password, 
+      email,
+      password,
       emailVerificationRedirectUrl,
     },
-    headers: { 
-      "x-stack-project-id": projectId, 
-      "x-stack-publishable-client-key": publishableClientKey 
+    headers: {
+      "x-stack-project-id": projectId,
+      "x-stack-publishable-client-key": publishableClientKey
     }
   } = await deprecatedParseRequest(req, postSchema);
 
@@ -62,7 +62,7 @@ export const POST = deprecatedSmartRouteHandler(async (req: NextRequest) => {
     !validateUrl(
       emailVerificationRedirectUrl,
       project.evaluatedConfig.domains,
-      project.evaluatedConfig.allowLocalhost 
+      project.evaluatedConfig.allowLocalhost
     )
   ) {
     throw new KnownErrors.RedirectUrlNotWhitelisted();

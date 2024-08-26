@@ -1,16 +1,17 @@
-import { UserJson, ServerUserJson, KnownErrors } from "@stackframe/stack-shared";
+import { UserJson, ServerUserJson } from "@/temporary-types";
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "@/prisma-client";
 import { getProject } from "@/lib/projects";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { UserUpdateJson } from "@stackframe/stack-shared/dist/interface/clientInterface";
-import { ServerUserUpdateJson } from "@stackframe/stack-shared/dist/interface/serverInterface";
+import { UserUpdateJson } from "@/temporary-types";
+import { ServerUserUpdateJson } from "@/temporary-types";
 import {
   createServerTeamForUser,
   getClientTeamFromServerTeam,
   getServerTeamFromDbType,
 } from "./teams";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const serverUserInclude = {
   projectUserOAuthAccounts: true,
@@ -77,7 +78,7 @@ export async function updateServerUser(
           projectUserId: userId,
         },
         data: {
-          selected: null,
+          isSelected: null,
         },
       });
 
@@ -91,7 +92,7 @@ export async function updateServerUser(
             },
           },
           data: {
-            selected: true,
+            isSelected: 'TRUE',
           },
         });
       }
@@ -111,7 +112,6 @@ export async function updateServerUser(
         primaryEmailVerified: update.primaryEmailVerified,
         clientMetadata: update.clientMetadata as any,
         serverMetadata: update.serverMetadata as any,
-        selectedTeamId: update.selectedTeamId,
       }),
     });
   } catch (e) {
@@ -166,7 +166,7 @@ function getClientUserFromServerUser(serverUser: ServerUserJson): UserJson {
 export function getServerUserFromDbType(
   user: ServerUserDB,
 ): ServerUserJson {
-  const rawSelectedTeam = user.teamMembers.filter(m => m.selected)[0]?.team;
+  const rawSelectedTeam = user.teamMembers.filter(m => m.isSelected)[0]?.team;
   return {
     projectId: user.projectId,
     id: user.projectUserId,
@@ -190,8 +190,8 @@ export function getServerUserFromDbType(
 
 export async function createTeamOnSignUp(projectId: string, userId: string): Promise<void> {
   const project = await getProject(projectId);
-  if (!project) { 
-    throw new Error('Project not found'); 
+  if (!project) {
+    throw new Error('Project not found');
   }
   if (!project.evaluatedConfig.createTeamOnSignUp) {
     return;

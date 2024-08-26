@@ -1,16 +1,15 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
 import * as yup from "yup";
 import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
 import { CrudOperation, CrudSchema, CrudTypeOf } from "@stackframe/stack-shared/dist/crud";
-import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { FilterUndefined, deepPlainCamelCaseToSnakeCase, deepPlainSnakeCaseToCamelCase } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
 
-type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
+type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>> = any;
 
 type CrudSingleRouteHandler<T extends CrudTypeOf<any>, K extends Capitalize<CrudOperation>, Params extends {}, Multi extends boolean = false> =
   K extends keyof T["Admin"]
@@ -67,7 +66,7 @@ export type CrudHandlers<
 };
 
 export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOptions<CrudTypeOf<S>, any>>(
-  crud: S, 
+  crud: S,
   options: O,
 ): CrudHandlersFromOptions<O> {
   const optionsAsPartial = options as Partial<CrudRouteHandlersUnfiltered<CrudTypeOf<S>, any>>;
@@ -121,7 +120,7 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 }).required(),
                 url: yup.string().required(),
                 method: yup.string().oneOf([httpMethod]).required(),
-                body: accessSchemas.input,
+                body: accessSchemas.input.transform((value) => deepPlainCamelCaseToSnakeCase(value)),
                 params: crudOperation === "List" ? paramsSchema.partial() : paramsSchema,
               }),
               response: yup.object({
@@ -136,11 +135,13 @@ export function createCrudHandlers<S extends CrudSchema, O extends CrudHandlerOp
                 const data = req.body;
                 const adminData = await validate(data, adminSchemas.input, "Input validation");
 
-                const result = await optionsAsPartial[`on${crudOperation}`]?.({
+                const adminDataCamelCase = deepPlainSnakeCaseToCamelCase(adminData);
+                const resultCamelCase = await optionsAsPartial[`on${crudOperation}`]?.({
                   params: req.params,
-                  data: adminData,
+                  data: adminDataCamelCase,
                   auth: fullReq.auth ?? throwErr("Auth not found in CRUD handler; this should never happen! (all clients are at least client to access CRUD handler)"),
                 });
+                const result = deepPlainCamelCaseToSnakeCase(resultCamelCase);
 
                 const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
                 const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);

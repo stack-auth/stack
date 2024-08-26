@@ -17,6 +17,9 @@ ui-debug.log
 .husky
 tmp
 
+vitest.config.ts.timestamp-*
+tsup.config.bundled_*
+
 # Dependencies
 node_modules
 
@@ -106,3 +109,7 @@ docs/docs/reference/adapter
 
 # Sentry Config File
 .sentryclirc
+
+# python
+__pycache__/
+.venv/

@@ -1,7 +1,26 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "globalEnv": [
+    "STACK_*",
+    "NEXT_PUBLIC_*",
+    "NEXT_PUBLIC_SENTRY_*",
+    "SENTRY_*",
+    "VERCEL_GIT_COMMIT_SHA",
+    "NEXT_PUBLIC_POSTHOG_*",
+    "POSTHOG_*",
+    "NODE_ENV"
+  ],
+  "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env",
+        ".env.local",
+        ".env.development",
+        ".env.development.local",
+        ".env.production",
+        ".env.production.local"
+      ],
       "dependsOn": [
         "^build"
       ],
@@ -13,19 +32,39 @@
         "*.d.ts",
         "*.d.ts.map"
       ],
-      "outputMode": "new-only"
+      "outputLogs": "new-only"
+    },
+    "@stackframe/docs#build": {
+      "dependsOn": [
+        "@stackframe/stack-backend#build"
+      ]
+    },
+    "@stackframe/stack-backend#build": {
+      "dependsOn": [
+        "codegen"
+      ]
+    },
+    "@stackframe/stack-backend#codegen": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "../../docs/fern/openapi"
+      ]
     },
     "clean": {
       "cache": false
     },
     "dev": {
+      "persistent": true,
       "cache": false
     },
     "start": {
+      "persistent": true,
       "cache": false
     },
     "lint": {
-      "cache": false
+      "dependsOn": []
     },
     "codegen": {
       "cache": false
@@ -34,13 +73,7 @@
       "cache": false
     },
     "typecheck": {
-      "cache": false
-    },
-    "test": {
-      "cache": false
-    },
-    "test:watch": {
-      "cache": false
+      "dependsOn": []
     },
     "generate-docs": {
       "cache": false

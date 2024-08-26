@@ -1,0 +1,64 @@
+{
+  "name": "@stackframe/stack-emails",
+  "version": "2.5.25",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist && rimraf node_modules",
+    "dev": "tsc -w --preserveWatchOutput --declarationMap",
+    "lint": "eslint --ext .tsx,.ts ."
+  },
+  "files": [
+    "README.md",
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./dist/*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "peerDependencies": {
+    "react": ">=18.2",
+    "yup": "^1.4.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "yup": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "react-email": "2.1.0",
+    "@react-email/components": "^0.0.14",
+    "@react-email/render": "^0.0.12",
+    "lucide-react": "^0.378.0",
+    "react-colorful": "^5.6.1",
+    "zustand": "^4.5.2",
+    "zod": "^3.23.8",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "handlebars": "^4.7.8",
+    "lodash": "^4.17.21",
+    "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "@types/lodash": "^4.17.5",
+    "@types/react": "^18.2.66",
+    "next": "^14.1.0",
+    "react": "^18.2.0"
+  }
+}

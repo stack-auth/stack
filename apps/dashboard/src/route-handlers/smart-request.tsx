@@ -1,17 +1,18 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
-import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownError, KnownErrors, ProjectJson, ServerUserJson, UserJson } from "@stackframe/stack-shared";
-import { IsAny } from "@stackframe/stack-shared/dist/utils/types";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { isProjectAdmin, updateProject, whyNotProjectAdmin } from "@/lib/projects";
-import { updateServerUser } from "@/lib/users";
+import { updateProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
+import { updateServerUser } from "@/lib/users";
+import { ProjectJson, ServerUserJson } from "@/temporary-types";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { IsAny } from "@stackframe/stack-shared/dist/utils/types";
+import { NextRequest } from "next/server";
+import * as yup from "yup";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -130,7 +131,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!projectId) throw new KnownErrors.RequestTypeWithoutProjectId(requestType);
 
   let projectAccessType: "key" | "internal-user-token";
-  if (adminAccessToken) {
+  if (adminAccessToken !== null) {
     const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
     switch (reason) {
       case null: {
@@ -184,7 +185,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     {},
   );
   if (!project) {
-    throw new KnownErrors.ProjectNotFound();
+    throw new KnownErrors.ProjectNotFound("deprecated-dashboard-handler");
   }
 
   let user = null;
@@ -212,7 +213,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 }
 
 export async function createLazyRequestParser<T extends DeepPartial<SmartRequest>>(req: NextRequest, bodyBuffer: ArrayBuffer, schema: yup.Schema<T>, options?: { params: Record<string, string> }): Promise<() => Promise<[T, SmartRequest]>> {
-  const urlObject = new URL(req.url);  
+  const urlObject = new URL(req.url);
   const toValidate: SmartRequest = {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),

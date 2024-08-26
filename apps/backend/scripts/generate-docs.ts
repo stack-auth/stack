@@ -1,15 +1,19 @@
-import { parseOpenAPI } from '@/lib/openapi';
-import yaml from 'yaml';
+import { parseOpenAPI, parseWebhookOpenAPI } from '@/lib/openapi';
+import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import { webhookEvents } from '@stackframe/stack-shared/dist/interface/webhooks';
+import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
 import fs from 'fs';
 import { glob } from 'glob';
-import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
-import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
+import path from 'path';
+import yaml from 'yaml';
 
 async function main() {
-  for (const audience of ['client', 'server'] as const) {
-    const filePathPrefix = "src/app/api/v1";
+  console.log("Started docs schema generator");
+
+  for (const audience of ['client', 'server', 'admin'] as const) {
+    const filePathPrefix = path.resolve(process.platform === "win32" ? "apps/src/app/api/v1" : "src/app/api/v1");
     const importPathPrefix = "@/app/api/v1";
-    const filePaths = await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}");
+    const filePaths = [...await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}")];
     const openAPISchema = yaml.stringify(parseOpenAPI({
       endpoints: new Map(await Promise.all(filePaths.map(async (filePath) => {
         if (!filePath.startsWith(filePathPrefix)) {
@@ -18,20 +22,24 @@ async function main() {
         const suffix = filePath.slice(filePathPrefix.length);
         const midfix = suffix.slice(0, suffix.lastIndexOf("/route."));
         const importPath = `${importPathPrefix}${suffix}`;
-        const urlPath = midfix.replace("[", "{").replace("]", "}");
-        const module = require(importPath);
+        const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}");
+        const myModule = require(importPath);
         const handlersByMethod = new Map(
-          HTTP_METHODS.map(method => [method, module[method]] as const)
+          HTTP_METHODS.map(method => [method, myModule[method]] as const)
             .filter(([_, handler]) => isSmartRouteHandler(handler))
         );
         return [urlPath, handlersByMethod] as const;
       }))),
       audience,
     }));
-
     fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);
+
+    const webhookOpenAPISchema = yaml.stringify(parseWebhookOpenAPI({
+      webhooks: webhookEvents,
+    }));
+    fs.writeFileSync(`../../docs/fern/openapi/webhooks.yaml`, webhookOpenAPISchema);
   }
-  console.log("Successfully updated OpenAPI schemas");
+  console.log("Successfully updated docs schemas");
 }
 main().catch((...args) => {
   console.error(`ERROR! Could not update OpenAPI schema`, ...args);

@@ -1,5 +1,258 @@
 # @stackframe/stack
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.25
+  - @stackframe/stack-ui@2.5.25
+  - @stackframe/stack-sc@2.5.25
+
+## 2.5.24
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.24
+  - @stackframe/stack-ui@2.5.24
+  - @stackframe/stack-sc@2.5.24
+
+## 2.5.23
+
+### Patch Changes
+
+- Various bugfixes and performance improvements
+- Updated dependencies
+  - @stackframe/stack-ui@2.5.23
+  - @stackframe/stack-sc@2.5.23
+  - @stackframe/stack-shared@2.5.23
+
+## 2.5.22
+
+### Patch Changes
+
+- Team metadata
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.22
+  - @stackframe/stack-ui@2.5.22
+  - @stackframe/stack-sc@2.5.22
+
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.21
+  - @stackframe/stack-ui@2.5.21
+  - @stackframe/stack-sc@2.5.21
+
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.20
+  - @stackframe/stack-ui@2.5.20
+  - @stackframe/stack-sc@2.5.20
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.19
+  - @stackframe/stack-shared@2.5.19
+  - @stackframe/stack-ui@2.5.19
+
+## 2.5.18
+
+### Patch Changes
+
+- Multi-factor authentication
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.18
+  - @stackframe/stack-ui@2.5.18
+  - @stackframe/stack-sc@2.5.18
+
+## 2.5.17
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.17
+  - @stackframe/stack-ui@2.5.17
+  - @stackframe/stack-sc@2.5.17
+
+## 2.5.16
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.16
+- @stackframe/stack-shared@2.5.16
+- @stackframe/stack-ui@2.5.16
+
+## 2.5.15
+
+### Patch Changes
+
+- Webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.15
+  - @stackframe/stack-sc@2.5.15
+  - @stackframe/stack-ui@2.5.15
+
+## 2.5.14
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.14
+- @stackframe/stack-shared@2.5.14
+- @stackframe/stack-ui@2.5.14
+
+## 2.5.13
+
+### Patch Changes
+
+- Add server side get connected account
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.13
+  - @stackframe/stack-ui@2.5.13
+  - @stackframe/stack-sc@2.5.13
+
+## 2.5.12
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.12
+  - @stackframe/stack-ui@2.5.12
+  - @stackframe/stack-sc@2.5.12
+
+## 2.5.11
+
+### Patch Changes
+
+- Update descriptions & docs
+  - @stackframe/stack-sc@2.5.11
+  - @stackframe/stack-shared@2.5.11
+  - @stackframe/stack-ui@2.5.11
+
+## 2.5.10
+
+### Patch Changes
+
+- Facebook Business support
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.10
+  - @stackframe/stack-ui@2.5.10
+  - @stackframe/stack-sc@2.5.10
+
+## 2.5.9
+
+### Patch Changes
+
+- Impersonation
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.9
+  - @stackframe/stack-ui@2.5.9
+  - @stackframe/stack-sc@2.5.9
+
+## 2.5.8
+
+### Patch Changes
+
+- Improved docs
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.8
+  - @stackframe/stack-ui@2.5.8
+  - @stackframe/stack-sc@2.5.8
+
+## 2.5.7
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.5.7
+  - @stackframe/stack-shared@2.5.7
+  - @stackframe/stack-ui@2.5.7
+
+## 2.5.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.6
+  - @stackframe/stack-ui@2.5.6
+  - @stackframe/stack-sc@2.5.6
+
+## 2.5.5
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.5
+- @stackframe/stack-shared@2.5.5
+- @stackframe/stack-ui@2.5.5
+
+## 2.5.4
+
+### Patch Changes
+
+- Backend rework
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.4
+  - @stackframe/stack-sc@2.5.4
+  - @stackframe/stack-ui@2.5.4
+
+## 2.5.3
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.3
+  - @stackframe/stack-sc@2.5.3
+  - @stackframe/stack-ui@2.5.3
+
+## 2.5.2
+
+### Patch Changes
+
+- Team profile pictures
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.2
+  - @stackframe/stack-ui@2.5.2
+  - @stackframe/stack-sc@2.5.2
+
+## 2.5.1
+
+### Patch Changes
+
+- New backend endpoints
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.1
+  - @stackframe/stack-ui@2.5.1
+  - @stackframe/stack-sc@2.5.1
+
+## 2.5.0
+
+### Minor Changes
+
+- Client teams and many bugfixes
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.0
+  - @stackframe/stack-ui@2.5.0
+  - @stackframe/stack-sc@2.5.0
+
 ## 2.4.28
 
 ### Patch Changes

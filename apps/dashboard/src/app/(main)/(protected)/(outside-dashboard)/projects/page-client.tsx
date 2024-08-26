@@ -1,13 +1,12 @@
 'use client';
 
 import { ProjectCard } from "@/components/project-card";
+import { useRouter } from "@/components/router";
 import { SearchBar } from "@/components/search-bar";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
 import { useUser } from "@stackframe/stack";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useRouter } from "@/components/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 
 export default function PageClient() {
@@ -16,6 +15,12 @@ export default function PageClient() {
   const [sort, setSort] = useState<"recency" | "name">("recency");
   const [search, setSearch] = useState<string>("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (rawProjects.length === 0) {
+      router.push('/new-project');
+    }
+  }, [router, rawProjects]);
 
   const projects = useMemo(() => {
     let newProjects = [...rawProjects];
@@ -36,10 +41,10 @@ export default function PageClient() {
   return (
     <div className="flex-grow p-4">
       <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
-        <SearchBar 
+        <SearchBar
           placeholder="Search project name"
-          value={search} 
-          onChange={(e) => setSearch(e.target.value)} 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <div className="flex gap-4">
           <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
@@ -53,7 +58,7 @@ export default function PageClient() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          
+
           <Button
             onClick={async () => {
               router.push('/new-project');

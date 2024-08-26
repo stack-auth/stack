@@ -1,16 +1,21 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import * as yup from "yup";
+import { yupObject, yupString } from "../../schema-fields";
 
-export const accessTokenReadSchema = yup.object({
-  accessToken: yup.string().required(),
+export const connectedAccountAccessTokenReadSchema = yupObject({
+  access_token: yupString().required(),
 }).required();
 
-export const accessTokenCreateSchema = yup.object({
-  scope: yup.string().optional(),
+export const connectedAccountAccessTokenCreateSchema = yupObject({
+  scope: yupString().optional(),
 }).required();
 
-export const accessTokenCrud = createCrud({
-  clientReadSchema: accessTokenReadSchema,
-  clientCreateSchema: accessTokenCreateSchema,
+export const connectedAccountAccessTokenCrud = createCrud({
+  clientReadSchema: connectedAccountAccessTokenReadSchema,
+  clientCreateSchema: connectedAccountAccessTokenCreateSchema,
+  docs: {
+    clientCreate: {
+      hidden: true,
+    }
+  },
 });
-export type AccessTokenCrud = CrudTypeOf<typeof accessTokenCrud>;
+export type ConnectedAccountAccessTokenCrud = CrudTypeOf<typeof connectedAccountAccessTokenCrud>;

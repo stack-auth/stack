@@ -5,19 +5,19 @@ import { Typography } from "@stackframe/stack-ui";
 import { MessageCard } from "./message-card";
 import { KnownError } from "@stackframe/stack-shared";
 
-export function KnownErrorMessageCard({ 
+export function KnownErrorMessageCard({
   error,
   fullPage=false,
-}: { 
+}: {
   error: KnownError,
-  fullPage?: boolean, 
+  fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
 
   return (
-    <MessageCard 
+    <MessageCard
       title={"An error occurred"}
-      fullPage={fullPage} 
+      fullPage={fullPage}
       primaryButtonText={"Go to Home"}
       primaryAction={() => stackApp.redirectToHome()}
     >

@@ -7,26 +7,26 @@
     "preinstall": "npx -y only-allow pnpm",
     "typecheck": "only-allow pnpm && turbo typecheck",
     "build": "only-allow pnpm && turbo build",
-    "build:backend": "only-allow pnpm && turbo run build --no-cache --filter=@stackframe/stack-backend...",
-    "build:dashboard": "only-allow pnpm && turbo run build --no-cache --filter=@stackframe/stack-dashboard...",
-    "build:demo": "only-allow pnpm && turbo run build --no-cache --filter=demo-app...",
-    "clean": "only-allow pnpm && turbo run clean --no-cache && rimraf --glob **/.next && rimraf --glob **/.turbo && rimraf --glob **/node_modules",
-    "codegen": "only-allow pnpm && turbo run codegen --no-cache",
+    "build:backend": "only-allow pnpm && turbo run build --filter=@stackframe/stack-backend...",
+    "build:dashboard": "only-allow pnpm && turbo run build --filter=@stackframe/stack-dashboard...",
+    "build:demo": "only-allow pnpm && turbo run build --filter=demo-app...",
+    "clean": "only-allow pnpm && turbo run clean && rimraf --glob **/.next && rimraf --glob **/.turbo && rimraf .turbo && rimraf --glob **/node_modules",
+    "codegen": "only-allow pnpm && turbo run codegen",
     "psql": "only-allow pnpm && pnpm run --filter=@stackframe/stack-backend psql",
     "prisma": "only-allow pnpm && pnpm run --filter=@stackframe/stack-backend prisma",
     "fern": "only-allow pnpm && pnpm run --filter=@stackframe/docs fern",
-    "dev": "only-allow pnpm && turbo run dev --parallel --continue",
-    "start": "only-allow pnpm && turbo run start --parallel --continue",
-    "start:backend": "only-allow pnpm && turbo run start --continue --filter=@stackframe/stack-backend...",
-    "start:dashboard": "only-allow pnpm && turbo run start --continue --filter=@stackframe/stack-dashboard...",
-    "lint": "only-allow pnpm && turbo run lint --no-cache -- --max-warnings=0",
+    "dev": "only-allow pnpm && turbo run dev --concurrency 99999",
+    "start": "only-allow pnpm && turbo run start --concurrency 99999",
+    "start:backend": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-backend",
+    "start:dashboard": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-dashboard",
+    "start:oauth-mock-server": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/oauth-mock-server",
+    "lint": "only-allow pnpm && turbo run lint -- --max-warnings=0",
     "release": "only-allow pnpm && release",
     "peek": "only-allow pnpm && pnpm release --peek",
     "changeset": "only-allow pnpm && changeset",
-    "test:watch": "only-allow pnpm && turbo run test:watch",
-    "test": "only-allow pnpm && turbo run test",
-    "generate-docs": "only-allow pnpm && turbo run generate-docs --no-cache",
-    "generate-keys": "only-allow pnpm && turbo run generate-keys --no-cache"
+    "test": "vitest",
+    "generate-docs": "only-allow pnpm && turbo run generate-docs",
+    "generate-keys": "only-allow pnpm && turbo run generate-keys"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
@@ -36,7 +36,6 @@
     "@typescript-eslint/eslint-plugin": "^6.x",
     "@typescript-eslint/parser": "^6.x",
     "@vitejs/plugin-react": "^4.2.1",
-    "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.2",
     "eslint": "8.30.0",
     "eslint-config-next": "^14",
@@ -50,7 +49,7 @@
     "rimraf": "^5.0.5",
     "supertest": "^6.3.4",
     "tsup": "^8.0.2",
-    "turbo": "^1.11.3",
+    "turbo": "^2.0.6",
     "typescript": "5.3.3",
     "vitest": "^1.5.0"
   },
@@ -61,7 +60,6 @@
     "npm": ">=10.0.0",
     "node": ">=20.0.0"
   },
-  "dependencies": {
-    "styled-components": "^6.1.8"
-  }
+  "dependencies": {},
+  "packageManager": "pnpm@9.1.2"
 }

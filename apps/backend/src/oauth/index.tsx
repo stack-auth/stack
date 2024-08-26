@@ -1,14 +1,17 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import { OAuthProviderConfigJson } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { GithubProvider } from "./providers/github";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthModel } from "./model";
 import { OAuthBaseProvider } from "./providers/base";
-import { GoogleProvider } from "./providers/google";
 import { FacebookProvider } from "./providers/facebook";
+import { GithubProvider } from "./providers/github";
+import { GoogleProvider } from "./providers/google";
 import { MicrosoftProvider } from "./providers/microsoft";
 import { SpotifyProvider } from "./providers/spotify";
-import { SharedProvider, sharedProviders, toStandardProvider } from "@stackframe/stack-shared/dist/interface/clientInterface";
+import { MockProvider } from "./providers/mock";
+import { DiscordProvider } from "@/oauth/providers/discord";
+import { GitlabProvider } from "./providers/gitlab";
 
 const _providers = {
   github: GithubProvider,
@@ -16,30 +19,39 @@ const _providers = {
   facebook: FacebookProvider,
   microsoft: MicrosoftProvider,
   spotify: SpotifyProvider,
+  discord: DiscordProvider,
+  gitlab: GitlabProvider,
 } as const;
+
+const mockProvider = MockProvider;
 
 const _getEnvForProvider = (provider: keyof typeof _providers) => {
   return {
-    clientId: getEnvVariable(`${provider.toUpperCase()}_CLIENT_ID`),
-    clientSecret: getEnvVariable(`${provider.toUpperCase()}_CLIENT_SECRET`),
+    clientId: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_ID`),
+    clientSecret: getEnvVariable(`STACK_${provider.toUpperCase()}_CLIENT_SECRET`),
   };
 };
 
-const _isSharedProvider = (provider: OAuthProviderConfigJson): provider is OAuthProviderConfigJson & { type: SharedProvider } => {
-  return sharedProviders.includes(provider.type as any);
-};
-
-export function getProvider(provider: OAuthProviderConfigJson): OAuthBaseProvider {
-  if (_isSharedProvider(provider)) {
-    const providerName = toStandardProvider(provider.type);
-    return new _providers[providerName]({
-      clientId: _getEnvForProvider(providerName).clientId,
-      clientSecret: _getEnvForProvider(providerName).clientSecret,
-    });
+export async function getProvider(provider: ProjectsCrud['Admin']['Read']['config']['oauth_providers'][number]): Promise<OAuthBaseProvider> {
+  if (provider.type === 'shared') {
+    const clientId = _getEnvForProvider(provider.id).clientId;
+    const clientSecret = _getEnvForProvider(provider.id).clientSecret;
+    if (clientId === "MOCK") {
+      if (clientSecret !== "MOCK") {
+        throw new StackAssertionError("If OAuth provider client ID is set to MOCK, then client secret must also be set to MOCK");
+      }
+      return await mockProvider.create(provider.id);
+    } else {
+      return await _providers[provider.id].create({
+        clientId,
+        clientSecret,
+      });
+    }
   } else {
-    return new _providers[provider.type]({
-      clientId: provider.clientId,
-      clientSecret: provider.clientSecret,
+    return await _providers[provider.id].create({
+      clientId: provider.client_id || throwErr("Client ID is required for standard providers"),
+      clientSecret: provider.client_secret || throwErr("Client secret is required for standard providers"),
+      facebookConfigId: provider.facebook_config_id
     });
   }
 }

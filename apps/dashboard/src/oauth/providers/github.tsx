@@ -12,7 +12,7 @@ export class GithubProvider extends OAuthBaseProvider {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
       userinfoEndpoint: "https://api.github.com/user",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/github",
+      redirectUri: process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED + "/api/v1/auth/callback/github",
       baseScope: "user:email",
       ...options,
     });
@@ -29,7 +29,7 @@ export class GithubProvider extends OAuthBaseProvider {
       }).then((res) => res.json());
       rawUserInfo.email = emails.find((e: any) => e.primary).email;
     }
-    
+
     return validateUserInfo({
       accountId: rawUserInfo.id?.toString(),
       displayName: rawUserInfo.name,

@@ -3,7 +3,7 @@
 import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
 import Color from 'color';
-import styled from 'styled-components';
+import { useId } from 'react';
 
 const iconSize = 22;
 
@@ -54,6 +54,57 @@ function SpotifyIcon({ iconSize } : { iconSize: number} ) {
     </svg>
   );
 }
+function DiscordIcon({ iconSize } : { iconSize: number} ) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 127.14 96.36">
+      <path fill="#fff" d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+    </svg>
+  );
+}
+function GitlabIcon({ iconSize } : { iconSize: number} ) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={iconSize}
+      height={iconSize}
+      viewBox="0 -10 256 256"
+      version="1.1"
+      preserveAspectRatio="xMidYMid"
+    >
+      <g>
+        <path
+          d="M128.07485,236.074667 L128.07485,236.074667 L175.17885,91.1043048 L80.9708495,91.1043048 L128.07485,236.074667 L128.07485,236.074667 Z"
+          fill="#E24329"
+        ></path>
+        <path
+          d="M128.07485,236.074423 L80.9708495,91.104061 L14.9557638,91.104061 L128.07485,236.074423 L128.07485,236.074423 Z"
+          fill="#FC6D26"
+        ></path>
+        <path
+          d="M14.9558857,91.1044267 L14.9558857,91.1044267 L0.641828571,135.159589 C-0.663771429,139.17757 0.766171429,143.57955 4.18438095,146.06275 L128.074971,236.074789 L14.9558857,91.1044267 L14.9558857,91.1044267 Z"
+          fill="#FCA326"
+        ></path>
+        <path
+          d="M14.9558857,91.1045486 L80.9709714,91.1045486 L52.6000762,3.79026286 C51.1408762,-0.703146667 44.7847619,-0.701927619 43.3255619,3.79026286 L14.9558857,91.1045486 L14.9558857,91.1045486 Z"
+          fill="#E24329"
+        ></path>
+        <path
+          d="M128.07485,236.074423 L175.17885,91.104061 L241.193935,91.104061 L128.07485,236.074423 L128.07485,236.074423 Z"
+          fill="#FC6D26"
+        ></path>
+        <path
+          d="M241.193935,91.1044267 L241.193935,91.1044267 L255.507992,135.159589 C256.813592,139.17757 255.38365,143.57955 251.96544,146.06275 L128.07485,236.074789 L241.193935,91.1044267 L241.193935,91.1044267 Z"
+          fill="#FCA326"
+        ></path>
+        <path
+          d="M241.193935,91.1045486 L175.17885,91.1045486 L203.549745,3.79026286 C205.008945,-0.703146667 211.365059,-0.701927619 212.824259,3.79026286 L241.193935,91.1045486 L241.193935,91.1045486 Z"
+          fill="#E24329"
+        ></path>
+      </g>
+    </svg>
+  );
+}
+
 
 const changeColor = (c: Color, value: number) => {
   if (c.isLight()) {
@@ -61,16 +112,6 @@ const changeColor = (c: Color, value: number) => {
   }
   return c.hsl(c.hue(), c.saturationl(), c.lightness() + value).toString();
 };
-
-const StyledButton = styled(Button)<{ $bgColor?: string, $hoverBgColor?: string, $textColor?: string, $border?: string }>`
-  ${props => props.$bgColor ? `background-color: ${props.$bgColor} !important;` : ''}
-  ${props => props.$textColor ? `color: ${props.$textColor} !important;` : ''}
-  ${props => props.$border ? `border: ${props.$border} !important;` : ''}
-
-  &:hover {
-    ${props => props.$hoverBgColor ? `background-color: ${props.$hoverBgColor} !important;` : ''}
-  }
-`;
 
 export function OAuthButton({
   provider,
@@ -80,6 +121,7 @@ export function OAuthButton({
   type: 'sign-in' | 'sign-up',
 }) {
   const stackApp = useStackApp();
+  const styleId = useId().replaceAll(':', '-');
 
   let style : {
     backgroundColor?: string,
@@ -136,6 +178,25 @@ export function OAuthButton({
       };
       break;
     }
+    case 'discord': {
+      style = {
+        backgroundColor: '#5865F2',
+        textColor: '#fff',
+        name: 'Discord',
+        icon: <DiscordIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'gitlab': {
+      style = {
+        backgroundColor: "#111",
+        textColor: "#fff",
+        border: "1px solid #333",
+        name: "Gitlab",
+        icon: <GitlabIcon iconSize={iconSize} />,
+      };
+      break;
+    }
     default: {
       style = {
         name: provider,
@@ -143,21 +204,32 @@ export function OAuthButton({
       };
     }
   }
-  
+
+  const styleSheet = `
+    .stack-oauth-button-${styleId} {
+      background-color: ${style.backgroundColor} !important;
+      color: ${style.textColor} !important;
+      border: ${style.border} !important;
+    }
+    .stack-oauth-button-${styleId}:hover {
+      background-color: ${changeColor(Color(style.backgroundColor), 10)} !important;
+    }
+  `;
+
   return (
-    <StyledButton
-      onClick={() => stackApp.signInWithOAuth(provider)}
-      $bgColor={style.backgroundColor}
-      $hoverBgColor={changeColor(Color(style.backgroundColor), 10)}
-      $textColor={style.textColor}
-      $border={style.border}
-    >
-      <div className='flex items-center w-full gap-4'>
-        {style.icon}
-        <span className='flex-1'>
-          {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
-        </span>
-      </div>
-    </StyledButton>
+    <>
+      <style>{styleSheet}</style>
+      <Button
+        onClick={() => stackApp.signInWithOAuth(provider)}
+        className={`stack-oauth-button-${styleId}`}
+      >
+        <div className='flex items-center w-full gap-4'>
+          {style.icon}
+          <span className='flex-1'>
+            {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
+          </span>
+        </div>
+      </Button>
+    </>
   );
 }

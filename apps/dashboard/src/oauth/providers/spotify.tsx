@@ -11,7 +11,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
       issuer: "https://accounts.spotify.com",
       authorizationEndpoint: "https://accounts.spotify.com/authorize",
       tokenEndpoint: "https://accounts.spotify.com/api/token",
-      redirectUri: process.env.NEXT_PUBLIC_STACK_URL + "/api/v1/auth/callback/spotify",
+      redirectUri: process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED + "/api/v1/auth/callback/spotify",
       baseScope: "user-read-email user-read-private",
       ...options,
     });
@@ -23,7 +23,7 @@ export class SpotifyProvider extends OAuthBaseProvider {
         Authorization: `Bearer ${tokenSet.access_token}`,
       },
     }).then((res) => res.json());
-    
+
     return validateUserInfo({
       accountId: info.id,
       displayName: info.display_name,

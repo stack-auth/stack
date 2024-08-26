@@ -1,35 +1,60 @@
 'use client';
 
-import { CredentialSignInForm } from '../components/credential-sign-in-form';
+import { CredentialSignIn } from '../components/credential-sign-in';
 import { SeparatorWithText } from '../components/elements/separator-with-text';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { MaybeFullPage } from '../components/elements/maybe-full-page';
 import { useUser, useStackApp } from '..';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
-import { MagicLinkSignInForm } from '../components/magic-link-sign-in-form';
-import { ClientProjectJson } from "@stackframe/stack-shared";
-import { CredentialSignUpForm } from '../components/credential-sign-up-form';
+import { MagicLinkSignIn } from '../components/magic-link-sign-in';
+import { CredentialSignUp } from '../components/credential-sign-up';
 import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
+import { Project } from '../lib/stack-app';
+import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
+import { useEffect } from 'react';
 
-export function AuthPage({ 
+export function AuthPage({
   fullPage=false,
   type,
+  automaticRedirect,
   mockProject,
-}: { 
-  fullPage?: boolean, 
+}: {
+  fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
-  mockProject?: ClientProjectJson,
+  automaticRedirect?: boolean,
+  mockProject?: {
+    config: {
+      signUpEnabled: boolean,
+      credentialEnabled: boolean,
+      magicLinkEnabled: boolean,
+      oauthProviders: {
+        id: string,
+      }[],
+    },
+  },
 }) {
   const stackApp = useStackApp();
   const user = useUser();
   const projectFromHook = stackApp.useProject();
   const project = mockProject || projectFromHook;
 
+  useEffect(() => {
+    if (automaticRedirect) {
+      if (user && !mockProject) {
+        runAsynchronously(type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
+      }
+    }
+  }, [user, mockProject, stackApp, automaticRedirect]);
+
   if (user && !mockProject) {
     return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
   }
 
-  const enableSeparator = (project.credentialEnabled || project.magicLinkEnabled) && project.oauthProviders.filter(p => p.enabled).length > 0;
+  if (type === 'sign-up' && !project.config.signUpEnabled) {
+    return <PredefinedMessageCard type='signUpDisabled' fullPage={fullPage} />;
+  }
+
+  const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
   return (
     <MaybeFullPage fullPage={fullPage}>
@@ -39,16 +64,24 @@ export function AuthPage({
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
           </Typography>
           {type === 'sign-in' ? (
-            <Typography>
-              {"Don't have an account? "}
-              <StyledLink href={stackApp.urls.signUp}>
-                Sign up
-              </StyledLink>
-            </Typography>
+            project.config.signUpEnabled && (
+              <Typography>
+                {"Don't have an account? "}
+                <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
+                  runAsynchronously(stackApp.redirectToSignUp());
+                  e.preventDefault();
+                }}>
+                  Sign up
+                </StyledLink>
+              </Typography>
+            )
           ) : (
             <Typography>
               {"Already have an account? "}
-              <StyledLink href={stackApp.urls.signIn}>
+              <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
+                runAsynchronously(stackApp.redirectToSignIn());
+                e.preventDefault();
+              }}>
                 Sign in
               </StyledLink>
             </Typography>
@@ -56,23 +89,23 @@ export function AuthPage({
         </div>
         <OAuthButtonGroup type={type} mockProject={mockProject} />
         {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
-        {project.credentialEnabled && project.magicLinkEnabled ? (
+        {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue='magic-link'>
             <TabsList className='w-full mb-2'>
               <TabsTrigger value='magic-link' className='flex-1'>Magic Link</TabsTrigger>
               <TabsTrigger value='password' className='flex-1'>Password</TabsTrigger>
             </TabsList>
             <TabsContent value='magic-link'>
-              <MagicLinkSignInForm/>
+              <MagicLinkSignIn/>
             </TabsContent>
             <TabsContent value='password'>
-              {type === 'sign-up' ? <CredentialSignUpForm/> : <CredentialSignInForm/>}
+              {type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
             </TabsContent>
           </Tabs>
-        ) : project.credentialEnabled ? (
-          type === 'sign-up' ? <CredentialSignUpForm/> : <CredentialSignInForm/>
-        ) : project.magicLinkEnabled ? (
-          <MagicLinkSignInForm/>
+        ) : project.config.credentialEnabled ? (
+          type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+        ) : project.config.magicLinkEnabled ? (
+          <MagicLinkSignIn/>
         ) : null}
       </div>
     </MaybeFullPage>

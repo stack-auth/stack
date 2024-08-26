@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import StyledComponentsRegistry from "./styled-components-registry";
 import { globalCSS } from "../generated/global-css";
 import { BrowserScript } from "../utils/browser-script";
 import { DEFAULT_THEME } from "../utils/constants";
@@ -47,7 +46,7 @@ function convertColorToCSSVars(obj: Record<string, string>) {
     return [
       // Convert camelCase key to dash-case
       key.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`),
-      // Convert color to CSS HSL string 
+      // Convert color to CSS HSL string
       `${color[0]} ${color[1]}% ${color[2]}%`
     ];
   }));
@@ -61,11 +60,11 @@ function convertColorsToCSS(theme: Theme) {
   };
 
   function colorsToCSSVars(colors: Record<string, string>) {
-    return Object.entries(colors).map((params) => { 
+    return Object.entries(colors).map((params) => {
       return `--${params[0]}: ${params[1]};\n`;
     }).join('');
   }
-  
+
   return deindent`
   .stack-scope {
   ${colorsToCSSVars(colors.light)}
@@ -74,27 +73,35 @@ function convertColorsToCSS(theme: Theme) {
   ${colorsToCSSVars(colors.dark)}
   }`;
 }
-  
+
 
 export function StackTheme({
   theme,
   children,
+  nonce,
 } : {
   theme?: ThemeConfig,
   children?: React.ReactNode,
+  nonce?: string,
 }) {
-  const themeValue: Theme = { 
+  const themeValue: Theme = {
     ...DEFAULT_THEME,
     ...theme,
-    dark: { ...DEFAULT_THEME.dark, ...theme?.dark }, 
+    dark: { ...DEFAULT_THEME.dark, ...theme?.dark },
     light: { ...DEFAULT_THEME.light, ...theme?.light },
   };
 
   return (
-    <StyledComponentsRegistry>
-      <BrowserScript />
-      <style dangerouslySetInnerHTML={{ __html: globalCSS + '\n' + convertColorsToCSS(themeValue) }} />
+    <>
+      <BrowserScript nonce={nonce} />
+      <style
+        suppressHydrationWarning
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: globalCSS + "\n" + convertColorsToCSS(themeValue),
+        }}
+      />
       {children}
-    </StyledComponentsRegistry>
+    </>
   );
 }
