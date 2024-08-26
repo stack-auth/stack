@@ -19,7 +19,7 @@ export async function checkImageUrl(url: string){
 
 export function ProfileImageEditor(props: {
   user: NonNullable<ComponentProps<typeof UserAvatar>['user']>,
-  onProfileImageUrlChange: (profileImageUrl: string | null) => void,
+  onProfileImageUrlChange: (profileImageUrl: string | null) => void | Promise<void>,
 }) {
   const user = useUser({ or: 'redirect' });
   const cropRef = useRef<AvatarEditor>(null);
@@ -106,7 +106,7 @@ export function ProfileImageEditor(props: {
                 }
               );
               const compressedUrl = await imageCompression.getDataUrlFromFile(compressedFile);
-              await user.update({ profileImageUrl: compressedUrl });
+              await props.onProfileImageUrlChange(compressedUrl);
               reset();
             }
           }}

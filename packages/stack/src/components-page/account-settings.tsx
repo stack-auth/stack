@@ -101,7 +101,12 @@ function ProfileSection() {
     <div className='flex flex-col gap-8'>
       <div className='flex flex-col items-start'>
         <Label className="mb-2">Profile image</Label>
-        <ProfileImageEditor user={user} onProfileImageUrlChange={() => {}}/>
+        <ProfileImageEditor
+          user={user}
+          onProfileImageUrlChange={async (profileImageUrl) => {
+            await user.update({ profileImageUrl });
+          }}
+        />
       </div>
       <div className='flex flex-col'>
         <Label>Display name</Label>
