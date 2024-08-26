@@ -20,6 +20,7 @@ import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
 import { TeamIcon } from '../components/team-icon';
+import { ProfileImageEditor } from "../components/profile-image-editor";
 
 
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
@@ -97,8 +98,12 @@ function ProfileSection() {
   const user = useUser({ or: 'redirect' });
 
   return (
-    <div>
-      <div>
+    <div className='flex flex-col gap-8'>
+      <div className='flex flex-col items-start'>
+        <Label className="mb-2">Profile image</Label>
+        <ProfileImageEditor user={user} onProfileImageUrlChange={() => {}}/>
+      </div>
+      <div className='flex flex-col'>
         <Label>Display name</Label>
         <EditableText value={user.displayName || ''} onSave={async (newDisplayName) => {
           await user.update({ displayName: newDisplayName });
