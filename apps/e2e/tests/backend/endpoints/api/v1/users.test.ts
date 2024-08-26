@@ -605,6 +605,48 @@ describe("with client access", () => {
     `);
   });
 
+  it("should not be able to update profile image url", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        profile_image_url: "http://localhost:8101/open-graph-image.png",
+      },
+    });
+    expect(response).toMatchInlineSnapshot();
+  });
+
+  it("should be able to update profile image url with base64", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        profile_image_url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
+      },
+    });
+    expect(response.body.profile_image_url).toEqual("data:image/gif;base64,R0lGODlhAQABAAAAACw=");
+  });
+
+  it("should not be able to update profile image url with invalid base64", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        profile_image_url: "data:image/gif;base64,not-valid-base64",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Invalid profile image URL",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
   it.todo("should be able to set selected team id, updating the selected team object");
 });
 
@@ -1461,5 +1503,17 @@ describe("with server access", () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
+  });
+
+  it("should be able to update profile image url", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        profile_image_url: "http://localhost:8101/open-graph-image.png",
+      },
+    });
+    expect(response.body.profile_image_url).toEqual("http://localhost:8101/open-graph-image.png");
   });
 });

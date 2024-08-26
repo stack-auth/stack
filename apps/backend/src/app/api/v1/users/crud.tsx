@@ -7,6 +7,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { validateBase64 } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
@@ -142,6 +143,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     };
   },
   onCreate: async ({ auth, data }) => {
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
+    }
     if (!data.primary_email && data.primary_email_auth_enabled) {
       throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
     }
@@ -219,6 +223,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onUpdate: async ({ auth, data, params }) => {
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
+    }
+
     const db = await prismaClient.$transaction(async (tx) => {
       await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
 
