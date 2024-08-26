@@ -2,7 +2,7 @@ import { OAuthBaseProvider, TokenSet } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
-export class TwitterProvider extends OAuthBaseProvider {
+export class SlackProvider extends OAuthBaseProvider {
   private constructor(
     ...args: ConstructorParameters<typeof OAuthBaseProvider>
   ) {
@@ -10,34 +10,37 @@ export class TwitterProvider extends OAuthBaseProvider {
   }
 
   static async create(options: { clientId: string, clientSecret: string }) {
-    return new TwitterProvider(
+    return new SlackProvider(
       ...(await OAuthBaseProvider.createConstructorArgs({
-        issuer: "https://x.com",
-        authorizationEndpoint: "https://api.x.com/oauth2/authorize",
-        tokenEndpoint: "https://api.x.com/oauth2/token",
+        issuer: "https://slack.com",
+        authorizationEndpoint: "https://slack.com/oauth/v2/authorize",
+        tokenEndpoint: "https://slack.com/api/oauth.v2.access",
         redirectUri:
           getEnvVariable("STACK_BASE_URL") +
-          "/api/v1/auth/oauth/callback/twitter",
-        baseScope: "users.read tweet.read offline.access",
+          "/api/v1/auth/oauth/callback/slack",
+        baseScope: "email,profile,openid",
+        authorizationExtraParams: {
+          user_scope: "email,profile,openid",
+        },
         ...options,
       }))
     );
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const { data: userInfo } = await fetch(
-      "https://api.x.com/2/users/me?user.fields=id,name,profile_image_url",
-      {
+    const userInfo = await fetch(
+      "https://slack.com/api/openid.connect.userInfo", {
         headers: {
           Authorization: `Bearer ${tokenSet.accessToken}`,
-        },
+        }
       }
-    ).then((res) => res.json());
+    ).then(res => res.json());
+
     return validateUserInfo({
-      accountId: userInfo.id?.toString(),
-      displayName: userInfo.name || userInfo.username,
-      email: undefined, // Twitter Oauth2.0 doesn't support email
-      profileImageUrl: userInfo.profile_image_url as any,
+      accountId: userInfo.sub?.toString(),
+      displayName: userInfo.name,
+      email: userInfo.email,
+      profileImageUrl: userInfo.picture,
     });
   }
 }

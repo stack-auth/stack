@@ -580,6 +580,7 @@ enum StandardOAuthProviderType {
   DISCORD
   GITLAB
   TWITTER
+  SLACK
 }
 
 //#endregion
