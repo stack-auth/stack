@@ -1,11 +1,11 @@
 import { fileToBase64 } from '@stackframe/stack-shared/dist/utils/base64';
 import { Button, Slider, Typography } from '@stackframe/stack-ui';
-import { Edit } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
+import { Upload } from 'lucide-react';
 import { ComponentProps, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 import { useUser } from '..';
 import { UserAvatar } from './elements/user-avatar';
-import imageCompression from 'browser-image-compression';
 
 export async function checkImageUrl(url: string){
   try {
@@ -64,7 +64,7 @@ export function ProfileImageEditor(props: {
         />
         <div className='absolute top-0 left-0 h-[100px] w-[100px] bg-gray-500/20 backdrop-blur-sm items-center justify-center rounded-full flex opacity-0 hover:opacity-100 transition-opacity'>
           <div className='bg-background p-2 rounded-full'>
-            <Edit className='h-5 w-5' />
+            <Upload className='h-5 w-5' />
           </div>
         </div>
       </div>

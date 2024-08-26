@@ -7,6 +7,7 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function validateBase64(base64: string): boolean {
-  return /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(base64);
+export function validateBase64Image(base64: string): boolean {
+  const base64ImageRegex = /^data:image\/(png|jpg|jpeg|gif|bmp|webp);base64,[A-Za-z0-9+/]+={0,2}$|^[A-Za-z0-9+/]+={0,2}$/;
+  return base64ImageRegex.test(base64);
 }

@@ -608,13 +608,19 @@ describe("with client access", () => {
   it("should not be able to update profile image url", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
-      accessType: "server",
+      accessType: "client",
       method: "PATCH",
       body: {
         profile_image_url: "http://localhost:8101/open-graph-image.png",
       },
     });
-    expect(response).toMatchInlineSnapshot();
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Invalid profile image URL",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
   });
 
   it("should be able to update profile image url with base64", async ({ expect }) => {
@@ -635,7 +641,7 @@ describe("with client access", () => {
       accessType: "client",
       method: "PATCH",
       body: {
-        profile_image_url: "data:image/gif;base64,not-valid-base64",
+        profile_image_url: "data:image/not-valid;base64,test",
       },
     });
     expect(response).toMatchInlineSnapshot(`
