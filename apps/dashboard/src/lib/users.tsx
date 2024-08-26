@@ -112,8 +112,6 @@ export async function updateServerUser(
         clientMetadata: update.clientMetadata as any,
         serverMetadata: update.serverMetadata as any,
         selectedTeamId: update.selectedTeamId,
-        profileImageUrl:update.profileImageUrl,
-        uploadedProfileImageId:update.uploadedProfileImageId,
       }),
     });
   } catch (e) {

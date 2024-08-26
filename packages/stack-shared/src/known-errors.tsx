@@ -875,17 +875,6 @@ const OuterOAuthTimeout = createKnownErrorConstructor(
   () => [] as const,
 );
 
-const InvalidProfileImage = createKnownErrorConstructor(
-  KnownError,
-  "Profile_Image_Size_Exceedes_Limit",
-  () => [
-    400,
-    "Profile Image Size Exceedes Limit",
-  ] as const,
-  () => [] as const,
-);
-
-
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -964,7 +953,6 @@ export const KnownErrors = {
   OAuthAccessTokenNotAvailableWithSharedOAuthKeys,
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
-  InvalidProfileImage,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
