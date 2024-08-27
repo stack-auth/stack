@@ -27,7 +27,7 @@ export class SalesforceProvider extends OAuthBaseProvider {
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const userInfo = await fetch(
-      `https://login.salesforce.com/services/oauth2/userinfo?oauth_token=${tokenSet.accessToken}&format=json`
+      `https://login.salesforce.com/services/oauth2/userinfo?access_token=${tokenSet.accessToken}&format=json`
     ).then((res) => res.json());
     return validateUserInfo({
       accountId: userInfo.user_id,
