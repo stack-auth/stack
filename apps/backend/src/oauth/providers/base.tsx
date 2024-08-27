@@ -120,7 +120,6 @@ export abstract class OAuthBaseProvider {
         throw new KnownErrors.InvalidAuthorizationCode();
       }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
-
     }
 
     tokenSet = processTokenSet(this.constructor.name, tokenSet);

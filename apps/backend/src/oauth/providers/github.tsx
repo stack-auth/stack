@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class GithubProvider extends OAuthBaseProvider {
   private constructor(
@@ -26,21 +26,20 @@ export class GithubProvider extends OAuthBaseProvider {
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
     const rawUserInfo = await this.oauthClient.userinfo(tokenSet.accessToken);
-    let email = rawUserInfo.email;
-    if (!email) {
-      const emails = await fetch("https://api.github.com/user/emails", {
-        headers: {
-          Authorization: `token ${tokenSet.accessToken}`,
-        },
-      }).then((res) => res.json());
-      rawUserInfo.email = emails.find((e: any) => e.primary).email;
-    }
+
+    const emails = await fetch("https://api.github.com/user/emails", {
+      headers: {
+        Authorization: `token ${tokenSet.accessToken}`,
+      },
+    }).then((res) => res.json());
+    const { email, verified } = emails.find((e: any) => e.primary);
 
     return validateUserInfo({
       accountId: rawUserInfo.id?.toString(),
       displayName: rawUserInfo.name,
-      email: rawUserInfo.email,
       profileImageUrl: rawUserInfo.avatar_url as any,
+      email: email,
+      emailVerified: verified,
     });
   }
 }
