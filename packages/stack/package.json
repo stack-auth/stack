@@ -40,6 +40,7 @@
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "color": "^4.2.3",
@@ -49,6 +50,7 @@
     "oauth4webapi": "^2.10.3",
     "oslo": "^1.2.1",
     "qrcode": "^1.5.4",
+    "react-avatar-editor": "^13.0.2",
     "react-hook-form": "^7.51.4",
     "rimraf": "^5.0.5",
     "server-only": "^0.0.1",
@@ -67,14 +69,15 @@
     "@types/js-cookie": "^3.0.6",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.2.66",
+    "@types/react-avatar-editor": "^13.0.3",
     "autoprefixer": "^10.4.17",
+    "chokidar-cli": "^3.0.0",
     "esbuild": "^0.20.2",
     "next": "^14.1.0",
     "postcss": "^8.4.38",
     "postcss-nested": "^6.0.1",
     "react": "^18.2.0",
     "tailwindcss": "^3.4.4",
-    "tsup": "^8.0.2",
-    "chokidar-cli": "^3.0.0"
+    "tsup": "^8.0.2"
   }
 }

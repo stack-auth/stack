@@ -5,7 +5,7 @@ import { teamsCrudServerReadSchema } from "./teams";
 
 export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   display_name: fieldSchema.userDisplayNameSchema.optional(),
-  profile_image_url: fieldSchema.profileImageUrlSchema.optional(),
+  profile_image_url: fieldSchema.profileImageUrlSchema.nullable().optional(),
   client_metadata: fieldSchema.userClientMetadataSchema.optional(),
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema.optional(),
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
