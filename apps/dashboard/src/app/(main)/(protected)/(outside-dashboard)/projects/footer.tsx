@@ -24,15 +24,12 @@ export default function Footer () {
           </ul>
         </div>
 
-        <div className="flex text-sm md:flex-1 md:justify-center">
-          <Typography variant="secondary" type='label'>© 2024 Stackframe Inc.</Typography>
-        </div>
-
-        <div className="flex gap-4 md:flex-1 md:justify-end">
+        <div className="flex gap-4 md:flex-1 md:justify-end flex-wrap">
           {[
             { href: "https://stack-auth.com", label: "Home" },
-            { href: "https://docs.stack-auth.com", label: "Docs" },
-            { href: "mailto:team@stack-auth.com", label: "Contact us" },
+            { href: "https://www.iubenda.com/privacy-policy/19290387", label: "Privacy policy" },
+            { href: "https://www.iubenda.com/privacy-policy/19290387/cookie-policy", label: "Cookie policy" },
+            { href: "https://www.iubenda.com/terms-and-conditions/19290387", label: "Terms & conditions" },
           ].map(({ href, label }) => (
             <Link key={label} href={href}>
               <Typography variant="secondary" type='label'>{label}</Typography>

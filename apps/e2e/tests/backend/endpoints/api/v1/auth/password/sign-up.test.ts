@@ -26,7 +26,7 @@ it("should sign up new users", async ({ expect }) => {
       },
     ]
   `);
-  const response = await Auth.expectToBeSignedIn();
+  const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
   expect(response.body.auth_methods).toMatchInlineSnapshot(`
     [
       {

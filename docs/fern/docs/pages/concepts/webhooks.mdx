@@ -5,7 +5,7 @@ subtitle: Syncing team & user data with your backend
 
 Webhooks are a powerful way to keep your backend in sync with Stack. They allow you to receive real-time updates when events occur in your Stack project, such as when a user or team is created, updated, or deleted.
 
-## Setting up Webhooks
+## Setting up webhooks
 
 In the Stack dashboard, you can create a webhook endpoint in the "Webhooks" section. After creating this endpoint with your server URL, you will start receiving POST requests with a JSON payload at that endpoint. The event payload will look something like this:
 
@@ -20,7 +20,11 @@ In the Stack dashboard, you can create a webhook endpoint in the "Webhooks" sect
 }
 ```
 
-## Verifying Webhooks
+## Testing webhooks locally
+
+You can use services like [Svix Playground](https://www.svix.com/play/) or [Webhook.site](https://webhook.site/) to test the receiving of webhooks or relay them to your local development environment.
+
+## Verifying webhooks
 
 To ensure the webhook is coming from Stack (and not from a malicious actor) and is not prone to replay attacks, you should verify the request. 
 
@@ -44,7 +48,7 @@ const payload = wh.verify(payload, headers);
 
 If you do not want to install the Svix client library or are using a language that is not supported, you can [verify the signature manually](https://docs.svix.com/receiving/verifying-payloads/how-manual).
 
-## Event Types
+## Event types
 
 Please refer to the webhook endpoint API reference for more details on the available event types and their payload structures.
 
@@ -54,3 +58,7 @@ Please refer to the webhook endpoint API reference for more details on the avail
 - [team.created](/rest-api/webhooks/teams/team-created)
 - [team.updated](/rest-api/webhooks/teams/team-updated)
 - [team.deleted](/rest-api/webhooks/teams/team-deleted)
+
+## Examples
+
+Some members of the community have shared their webhook implementations. For example, [here is an example by Clark Gredoña](https://gist.github.com/clarkg/56ffad44949826ae3efe0a431b6021c4) that validates the Webhook schema and update a database user.

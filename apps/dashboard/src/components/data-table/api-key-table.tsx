@@ -1,14 +1,8 @@
 'use client';
 import { ApiKey } from '@stackframe/stack';
-import { ActionDialog } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, TextCell, standardFilterFn } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { ActionCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { SearchToolbarItem } from "./elements/toolbar-items";
-import { standardFilterFn } from "./elements/utils";
 
 type ExtendedApiKey = ApiKey & {
   status: 'valid' | 'expired' | 'revoked',
@@ -17,7 +11,7 @@ type ExtendedApiKey = ApiKey & {
 function toolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="description" placeholder="Filter by description" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
       <DataTableFacetedFilter
         column={table.getColumn("status")}
         title="Status"
@@ -78,13 +72,15 @@ const columns: ColumnDef<ExtendedApiKey>[] =  [
     filterFn: standardFilterFn,
   },
   {
-    accessorKey: "clientKey",
+    id: "clientKey",
+    accessorFn: (row) => row.publishableClientKey?.lastFour,
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Client Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.publishableClientKey?.lastFour}</TextCell>,
     enableSorting: false,
   },
   {
-    accessorKey: "serverKey",
+    id: "serverKey",
+    accessorFn: (row) => row.secretServerKey?.lastFour,
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Server Key" />,
     cell: ({ row }) => <TextCell>*******{row.original.secretServerKey?.lastFour}</TextCell>,
     enableSorting: false,

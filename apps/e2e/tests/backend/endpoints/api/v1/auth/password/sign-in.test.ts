@@ -17,7 +17,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  const response = await Auth.expectToBeSignedIn();
+  const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
   expect(response.body.auth_methods).toMatchInlineSnapshot(`
     [
       {

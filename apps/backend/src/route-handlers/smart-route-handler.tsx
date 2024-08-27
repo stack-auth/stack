@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
 import { SmartResponse, createResponse } from "./smart-response";
@@ -25,6 +25,7 @@ class InternalServerError extends StatusError {
  * Known errors that are common and should not be logged with their stacktrace.
  */
 const commonErrors = [
+  ...getNodeEnvironment() === "development" ? [KnownError] : [],
   KnownErrors.AccessTokenExpired,
   KnownErrors.CannotGetOwnUserWithoutUser,
   InternalServerError,

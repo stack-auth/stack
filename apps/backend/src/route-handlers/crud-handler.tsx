@@ -75,7 +75,7 @@ type CrudHandlerDirectByAccess<
       user?: UsersCrud["Admin"]["Read"],
       allowedErrorTypes?: (new (...args: any) => any)[],
     }
-    & ({} extends yup.InferType<QS> ? {} : { query: yup.InferType<QS> })
+    & (({} extends yup.InferType<QS> ? {} : never) | { query: yup.InferType<QS> })
     & (L extends "Create" | "List" ? Partial<yup.InferType<PS>> : yup.InferType<PS>)
     & (K extends "Read" | "List" | "Delete" ? {} : (K extends keyof T[A] ? { data: T[A][K] } : "TYPE ERROR: something went wrong here"))
   ) => Promise<(K extends "List" ? ("List" extends keyof T[A] ? T[A]["List"] : void) : (K extends "Delete" ? void : ("Read" extends keyof T[A] ? T[A]["Read"] : void)))>

@@ -10,13 +10,13 @@ export type TokenSet = {
   accessTokenExpiredAt: Date,
 };
 
-function processTokenSet(tokenSet: OIDCTokenSet): TokenSet {
+function processTokenSet(providerName: string, tokenSet: OIDCTokenSet): TokenSet {
   if (!tokenSet.access_token) {
     throw new StackAssertionError("No access token received", { tokenSet });
   }
 
   if (!tokenSet.expires_in) {
-    captureError("processTokenSet", "No expires_in received");
+    captureError("processTokenSet", new StackAssertionError(`No expires_in received from OAuth provider ${providerName}.`, { tokenSetKeys: Object.keys(tokenSet) }));
   }
 
   return {
@@ -123,7 +123,7 @@ export abstract class OAuthBaseProvider {
 
     }
 
-    tokenSet = processTokenSet(tokenSet);
+    tokenSet = processTokenSet(this.constructor.name, tokenSet);
 
     return {
       userInfo: await this.postProcessUserInfo(tokenSet),
@@ -136,7 +136,7 @@ export abstract class OAuthBaseProvider {
     scope?: string,
   }): Promise<TokenSet> {
     const tokenSet = await this.oauthClient.refresh(options.refreshToken, { exchangeBody: { scope: options.scope } });
-    return processTokenSet(tokenSet);
+    return processTokenSet(this.constructor.name, tokenSet);
   }
 
   abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;

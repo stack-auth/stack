@@ -1,5 +1,23 @@
 # @stackframe/stack-sc
 
+## 2.5.25
+
+## 2.5.24
+
+## 2.5.23
+
+## 2.5.22
+
+## 2.5.21
+
+## 2.5.20
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+
 ## 2.5.18
 
 ## 2.5.17

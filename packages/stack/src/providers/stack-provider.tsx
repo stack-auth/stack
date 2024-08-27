@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { StackClientApp, stackAppInternalsSymbol } from '../lib/stack-app';
+import { StackAdminApp, StackClientApp, StackServerApp, stackAppInternalsSymbol } from '../lib/stack-app';
 import { StackProviderClient, UserSetter } from './stack-provider-client';
 
 
@@ -8,7 +8,8 @@ export default function StackProvider({
   app,
 }: {
   children: React.ReactNode,
-  app: StackClientApp<true>,
+  // list all three types of apps even though server and admin are subclasses of client so it's clear that you can pass any
+  app: StackClientApp<true> | StackServerApp<true> | StackAdminApp<true>,
 }) {
   return (
     <StackProviderClient appJson={app[stackAppInternalsSymbol].toClientJson()}>

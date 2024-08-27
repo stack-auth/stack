@@ -1,6 +1,6 @@
 import { oauthServer } from "@/oauth";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { InvalidClientError, InvalidGrantError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { InvalidClientError, InvalidGrantError, InvalidRequestError, Request as OAuthRequest, Response as OAuthResponse, ServerError } from "@node-oauth/oauth2-server";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { oauthResponseToSmartResponse } from "../oauth-helpers";
@@ -11,14 +11,18 @@ export const POST = createSmartRouteHandler({
     description: "This endpoint is used to exchange an authorization code or refresh token for an access token.",
     tags: ["Oauth"]
   },
-  request: yupObject({}),
+  request: yupObject({
+    body: yupObject({
+      grant_type: yupString().oneOf(["authorization_code", "refresh_token"]).required(),
+    }).unknown().required(),
+  }).required(),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({}, fullReq) {
+  async handler(req, fullReq) {
     const oauthRequest = new OAuthRequest({
       headers: {
         ...fullReq.headers,
@@ -43,10 +47,25 @@ export const POST = createSmartRouteHandler({
       );
     } catch (e) {
       if (e instanceof InvalidGrantError) {
-        throw new KnownErrors.RefreshTokenNotFoundOrExpired();
+        switch (req.body.grant_type) {
+          case "authorization_code": {
+            throw new KnownErrors.InvalidAuthorizationCode();
+          }
+          case "refresh_token": {
+            throw new KnownErrors.RefreshTokenNotFoundOrExpired();
+          }
+        }
       }
       if (e instanceof InvalidClientError) {
         throw new KnownErrors.InvalidOAuthClientIdOrSecret();
+      }
+      if (e instanceof InvalidRequestError) {
+        if (e.message.includes("`redirect_uri` is invalid")) {
+          throw new KnownErrors.RedirectUrlNotWhitelisted();
+        }
+      }
+      if (e instanceof ServerError) {
+        throw (e as any).inner ?? e;
       }
       throw e;
     }

@@ -4,6 +4,7 @@ import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/proje
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
 
 async function _getTeamMembership(

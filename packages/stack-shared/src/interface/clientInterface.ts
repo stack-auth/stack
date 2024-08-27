@@ -7,11 +7,13 @@ import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
+import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
 
@@ -616,6 +618,7 @@ export class StackClientInterface {
     return {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
+      newUser: result.is_new_user,
     };
   }
 
@@ -802,6 +805,9 @@ export class StackClientInterface {
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
+      if ("code" in result && result.code === "MULTI_FACTOR_AUTHENTICATION_REQUIRED") {
+        throw new KnownErrors.MultiFactorAuthenticationRequired((result as any).details.attempt_code);
+      }
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
@@ -860,6 +866,98 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamMemberProfiles(
+    options: {
+      teamId?: string,
+      userId?: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-member-profiles?" + new URLSearchParams(filterUndefined({
+        team_id: options.teamId,
+        user_id: options.userId,
+      })),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Client']['List'];
+    return result.items;
+  }
+
+  async getTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      session,
+    );
+    return await response.json();
+  }
+
+  async leaveTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${teamId}/me`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      session,
+    );
+  }
+
+  async updateTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+      profile: TeamMemberProfilesCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      session,
+    );
+  }
+
+  async updateTeam(
+    options: {
+      teamId: string,
+      data: TeamsCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/teams/${options.teamId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.data),
+      },
+      session,
+    );
   }
 
   async listCurrentUserTeamPermissions(

@@ -8,17 +8,23 @@ export const teamsCrudClientReadSchema = yupObject({
   id: fieldSchema.teamIdSchema.required(),
   display_name: fieldSchema.teamDisplayNameSchema.required(),
   profile_image_url: fieldSchema.teamProfileImageUrlSchema.nullable().defined(),
+  client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
+  client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
 }).required();
 export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
   created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
+  server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
 }).required());
 
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.optional(),
   profile_image_url: fieldSchema.teamProfileImageUrlSchema.nullable().optional(),
+  client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
 }).required();
 export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
+  client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
+  server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
 }).required());
 
 // Create

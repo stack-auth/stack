@@ -60,6 +60,7 @@ async function seed() {
             credentialEnabled: true,
             magicLinkEnabled: true,
             createTeamOnSignUp: false,
+            clientTeamCreationEnabled: true,
           },
         },
       },
@@ -88,6 +89,7 @@ async function seed() {
         serverMetadata: {
           managedProjectIds: [
             "internal",
+            "12345678-1234-1234-1234-123456789abc", // intentionally invalid project ID to ensure we don't rely on project IDs being valid
           ],
         },
         projectUserOAuthAccounts: {

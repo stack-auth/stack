@@ -1,11 +1,9 @@
 "use client";
-import { ActionCell } from "@/components/data-table/elements/cells";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { DomainConfigJson } from "@/temporary-types";
-import { AdminProject } from "@stackframe/stack";
+import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -15,7 +13,7 @@ function EditDialog(props: {
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
-  domains: DomainConfigJson[],
+  domains: AdminDomainConfig[],
   project: AdminProject,
   type: 'update' | 'create',
 } & (
@@ -38,13 +36,16 @@ function EditDialog(props: {
       ),
     }),
     domain: urlSchema
-      .matches(/^https?:\/\//, "Origin must start with http:// or https://")
+      .matches(/^https:\/\//, "Origin must start with https://")
       .url("Domain must be a valid URL")
-      .notOneOf(props.domains
-        .filter((_, i) => props.type === 'update' && i !== props.editIndex)
-        .map(({ domain }) => domain), "Domain already exists")
+      .notOneOf(
+        props.domains
+          .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
+          .map(({ domain }) => domain),
+        "Domain already exists"
+      )
       .required()
-      .label("Origin (starts with https:// or http://)")
+      .label("Origin (starts with https://)")
       .meta({
         stackFormFieldPlaceholder: "https://example.com",
       }).default(props.type === 'update' ? props.defaultDomain : ""),
@@ -135,7 +136,7 @@ function DeleteDialog(props: {
 }
 
 function ActionMenu(props: {
-  domains: DomainConfigJson[],
+  domains: AdminDomainConfig[],
   project: AdminProject,
   editIndex: number,
   targetDomain: string,

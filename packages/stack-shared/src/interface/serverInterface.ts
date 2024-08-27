@@ -9,6 +9,7 @@ import {
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
 import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
+import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
 import { TeamPermissionsCrud } from "./crud/team-permissions";
 import { TeamsCrud } from "./crud/teams";
@@ -116,6 +117,34 @@ export class StackServerInterface extends StackClientInterface {
     const user: CurrentUserCrud['Server']['Read'] | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
     return Result.ok(user);
+  }
+
+  async listServerTeamMemberProfiles(
+    options: {
+      teamId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(
+      "/team-member-profiles?team_id=" + options.teamId,
+      {},
+      null,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Server']['List'];
+    return result.items;
+  }
+
+  async getServerTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      null,
+    );
+    return await response.json();
   }
 
   async listServerTeamPermissions(
@@ -293,6 +322,25 @@ export class StackServerInterface extends StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
     };
+  }
+
+  async leaveServerTeam(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${options.teamId}/${options.userId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
+    );
   }
 
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {

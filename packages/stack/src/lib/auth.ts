@@ -1,4 +1,4 @@
-import { StackClientInterface } from "@stackframe/stack-shared";
+import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
@@ -117,6 +117,9 @@ export async function callOAuthCallback(
       state,
     });
   } catch (e) {
+    if (e instanceof KnownError) {
+      throw e;
+    }
     throw new StackAssertionError("Error signing in during OAuth callback. Please try again.", { cause: e });
   }
 }

@@ -1,5 +1,43 @@
 # @stackframe/docs
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+
+## 2.5.24
+
+## 2.5.23
+
+### Patch Changes
+
+- Various bugfixes and performance improvements
+
+## 2.5.22
+
+### Patch Changes
+
+- Team metadata
+
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+
 ## 2.5.18
 
 ### Patch Changes
