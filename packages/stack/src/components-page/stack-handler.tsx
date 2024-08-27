@@ -11,6 +11,7 @@ import { MagicLinkCallback } from "./magic-link-callback";
 import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
+import { TeamCreation } from "./team-creation";
 import { TeamInvitation } from "./team-invitation";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
@@ -57,13 +58,18 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     forgotPassword: 'forgot-password',
     signOut: 'sign-out',
     oauthCallback: 'oauth-callback',
-    accountSettings: 'account-settings',
     magicLinkCallback: 'magic-link-callback',
     teamInvitation: 'team-invitation',
     error: 'error',
   };
 
   const path = stack.join('/');
+
+  if (path.startsWith('account-settings')) {
+    return <AccountSettings fullPage={fullPage} />;
+  }
+
+
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
@@ -92,10 +98,6 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
       return <OAuthCallback fullPage={fullPage} />;
-    }
-    case availablePaths.accountSettings: {
-      redirectIfNotHandler('accountSettings');
-      return <AccountSettings fullPage={fullPage} />;
     }
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');

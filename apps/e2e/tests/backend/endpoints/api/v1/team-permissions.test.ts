@@ -186,6 +186,7 @@ it("can customize default team permissions", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],

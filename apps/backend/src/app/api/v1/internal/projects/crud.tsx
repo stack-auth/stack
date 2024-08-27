@@ -5,10 +5,19 @@ import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { projectIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+
+// if one of these users creates a project, the others will be added as owners
+const ownerPacks = [
+  new Set([
+    "c2c03bd1-5cbe-4493-8e3f-17d1e2d7ca43",
+    "60b859bf-e148-4eff-9985-fe6e31c58a2a",
+    "1343e3e7-dd7a-44a1-8752-701c0881da72",
+  ]),
+];
 
 export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
@@ -24,6 +33,8 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
   },
   onCreate: async ({ auth, data }) => {
     const user = auth.user ?? throwErr('auth.user is required');
+    const ownerPack = ownerPacks.find(p => p.has(user.id));
+    const userIds = ownerPack ? [...ownerPack] : [user.id];
 
     const result = await prismaClient.$transaction(async (tx) => {
       const project = await tx.project.create({
@@ -39,6 +50,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               magicLinkEnabled: data.config?.magic_link_enabled ?? false,
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
+              clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,
               domains: data.config?.domains ? {
                 create: data.config.domains.map(item => ({
                   domain: item.domain,
@@ -125,34 +137,45 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
         },
       });
 
-      const projectUserTx = await tx.projectUser.findUniqueOrThrow({
-        where: {
-          projectId_projectUserId: {
-            projectId: "internal",
-            projectUserId: user.id,
+      // Update owner metadata
+      for (const userId of userIds) {
+        const projectUserTx = await tx.projectUser.findUnique({
+          where: {
+            projectId_projectUserId: {
+              projectId: "internal",
+              projectUserId: userId,
+            },
           },
-        },
-      });
+        });
+        if (!projectUserTx) {
+          if (userId === user.id) {
+            throw new StackAssertionError(`User with id '${userId}' not found after creation`, { user });
+          } else {
+            captureError("project-creation-owner-packs", new StackAssertionError(`User ${userId} in owner pack not found. The user that created this project is in an owner pack, but no user with that ID was found. Did they delete their account? Continuing silently, but you should probably update the owner pack.`, { userId, creator: user }));
+            continue;
+          }
+        }
 
-      const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
+        const serverMetadataTx: any = projectUserTx.serverMetadata ?? {};
 
-      await tx.projectUser.update({
-        where: {
-          projectId_projectUserId: {
-            projectId: "internal",
-            projectUserId: projectUserTx.projectUserId,
+        await tx.projectUser.update({
+          where: {
+            projectId_projectUserId: {
+              projectId: "internal",
+              projectUserId: projectUserTx.projectUserId,
+            },
           },
-        },
-        data: {
-          serverMetadata: {
-            ...serverMetadataTx ?? {},
-            managedProjectIds: [
-              ...serverMetadataTx?.managedProjectIds ?? [],
-              project.id,
-            ],
+          data: {
+            serverMetadata: {
+              ...serverMetadataTx ?? {},
+              managedProjectIds: [
+                ...serverMetadataTx?.managedProjectIds ?? [],
+                project.id,
+              ],
+            },
           },
-        },
-      });
+        });
+      }
 
       const result = await tx.project.findUnique({
         where: { id: project.id },

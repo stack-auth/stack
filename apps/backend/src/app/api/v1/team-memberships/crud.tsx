@@ -99,14 +99,18 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
 
       // Users are always allowed to remove themselves from a team
       // Only users with the $remove_members permission can remove other users
-      if (auth.type === 'client' && userId !== auth.user?.id) {
-        await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
-          teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
-          permissionId: "$remove_members",
-          errorType: 'required',
-        });
+      if (auth.type === 'client') {
+        const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+
+        if (userId !== currentUserId) {
+          await ensureUserTeamPermissionExists(tx, {
+            project: auth.project,
+            teamId: params.team_id,
+            userId: auth.user?.id ?? throwErr('auth.user is null'),
+            permissionId: "$remove_members",
+            errorType: 'required',
+          });
+        }
       }
 
       await ensureTeamMembershipExists(tx, {

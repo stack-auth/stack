@@ -1,7 +1,8 @@
 "use client";
 import { useRouter } from "@/components/router";
 import { useUser } from "@stackframe/stack";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
+import { PlusIcon } from "lucide-react";
 import { useMemo } from "react";
 
 export function ProjectAvatar(props: { displayName: string }) {
@@ -46,6 +47,10 @@ export function ProjectSwitcher(props: { currentProjectId: string }) {
             </div>
           </SelectItem>
         ))}
+        <Button onClick={() => router.push("/new-project")} variant="outline" className="w-full mt-2 gap-1">
+          <PlusIcon className="h-4 w-4" />
+          Create new project
+        </Button>
       </SelectContent>
     </Select>
   );

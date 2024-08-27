@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "../..";
 import { CheckIcon } from "@radix-ui/react-icons";
 import {
   Badge, Button, Command,

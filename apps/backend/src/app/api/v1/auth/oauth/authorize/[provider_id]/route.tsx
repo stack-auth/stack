@@ -30,7 +30,11 @@ export const GET = createSmartRouteHandler({
       type: yupString().oneOf(["authenticate", "link"]).default("authenticate"),
       token: yupString().default(""),
       provider_scope: yupString().optional(),
-      error_redirect_url: urlSchema.optional(),
+      /**
+       * @deprecated
+       */
+      error_redirect_url: urlSchema.optional().meta({ openapiField: { hidden: true } }),
+      error_redirect_uri: urlSchema.optional(),
       after_callback_redirect_url: yupString().optional(),
 
       // oauth parameters
@@ -108,7 +112,7 @@ export const GET = createSmartRouteHandler({
           type: query.type,
           projectUserId: projectUserId,
           providerScope: query.provider_scope,
-          errorRedirectUrl: query.error_redirect_url,
+          errorRedirectUrl: query.error_redirect_uri || query.error_redirect_url,
           afterCallbackRedirectUrl: query.after_callback_redirect_url,
         } satisfies yup.InferType<typeof oauthCookieSchema>,
         expiresAt: new Date(Date.now() + 1000 * 60 * outerOAuthFlowExpirationInMinutes),

@@ -1,5 +1,55 @@
 # cjs-test
 
+## 2.5.25
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.25
+
+## 2.5.24
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.24
+
+## 2.5.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.23
+
+## 2.5.22
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.22
+
+## 2.5.21
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.21
+
+## 2.5.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.20
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack@2.5.19
+
 ## 2.5.18
 
 ### Patch Changes

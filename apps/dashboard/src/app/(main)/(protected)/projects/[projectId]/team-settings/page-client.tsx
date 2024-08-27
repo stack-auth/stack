@@ -62,6 +62,23 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Team Settings">
+      <SettingCard title="Client-side Team Creation">
+        <SettingSwitch
+          label="Allow client users to create teams"
+          checked={project.config.clientTeamCreationEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                clientTeamCreationEnabled: checked,
+              },
+            });
+          }}
+        />
+        <Typography variant="secondary" type="footnote">
+          When enabled, users are allowed to create teams from the client-side. If disabled, teams can only be created on the dashboard/server.
+        </Typography>
+      </SettingCard>
+
       <SettingCard title="Automatic Team Creation">
         <SettingSwitch
           label="Create a personal team for each user on sign-up"

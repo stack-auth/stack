@@ -1,5 +1,75 @@
 # @stackframe/stack
 
+## 2.5.25
+
+### Patch Changes
+
+- GitLab OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.25
+  - @stackframe/stack-ui@2.5.25
+  - @stackframe/stack-sc@2.5.25
+
+## 2.5.24
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.24
+  - @stackframe/stack-ui@2.5.24
+  - @stackframe/stack-sc@2.5.24
+
+## 2.5.23
+
+### Patch Changes
+
+- Various bugfixes and performance improvements
+- Updated dependencies
+  - @stackframe/stack-ui@2.5.23
+  - @stackframe/stack-sc@2.5.23
+  - @stackframe/stack-shared@2.5.23
+
+## 2.5.22
+
+### Patch Changes
+
+- Team metadata
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.22
+  - @stackframe/stack-ui@2.5.22
+  - @stackframe/stack-sc@2.5.22
+
+## 2.5.21
+
+### Patch Changes
+
+- Discord OAuth provider
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.21
+  - @stackframe/stack-ui@2.5.21
+  - @stackframe/stack-sc@2.5.21
+
+## 2.5.20
+
+### Patch Changes
+
+- Improved account settings
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.20
+  - @stackframe/stack-ui@2.5.20
+  - @stackframe/stack-sc@2.5.20
+
+## 2.5.19
+
+### Patch Changes
+
+- Team frontend components
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.19
+  - @stackframe/stack-shared@2.5.19
+  - @stackframe/stack-ui@2.5.19
+
 ## 2.5.18
 
 ### Patch Changes

@@ -21,7 +21,7 @@ model Project {
   displayName      String
   description      String?                @default("")
   configId         String                 @db.Uuid
-  config           ProjectConfig          @relation(fields: [configId], references: [id])
+  config           ProjectConfig          @relation(fields: [configId], references: [id], onDelete: Cascade)
   configOverride   ProjectConfigOverride?
   isProductionMode Boolean
 
@@ -31,7 +31,6 @@ model Project {
 }
 
 // Contains all the configuration for a project.
-// 
 // More specifically, "configuration" is what we call those settings that only depend on environment variables and overrides between different deployments.
 model ProjectConfig {
   id String @id @default(uuid()) @db.Uuid
@@ -39,12 +38,12 @@ model ProjectConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  allowLocalhost    Boolean
-  signUpEnabled     Boolean @default(true)
-  credentialEnabled Boolean
-  magicLinkEnabled  Boolean
-
-  createTeamOnSignUp Boolean
+  allowLocalhost            Boolean
+  signUpEnabled             Boolean @default(true)
+  credentialEnabled         Boolean
+  magicLinkEnabled          Boolean
+  createTeamOnSignUp        Boolean
+  clientTeamCreationEnabled Boolean
 
   projects             Project[]
   oauthProviderConfigs OAuthProviderConfig[]
@@ -83,7 +82,7 @@ model ProjectConfigOverride {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Team {
@@ -93,8 +92,11 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  displayName     String
-  profileImageUrl String?
+  displayName            String
+  profileImageUrl        String?
+  clientMetadata         Json?
+  clientReadOnlyMetadata Json?
+  serverMetadata         Json?
 
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   permissions Permission[]
@@ -170,7 +172,7 @@ model Permission {
 
   // The scope of the permission. If projectConfigId is set, may be GLOBAL or TEAM; if teamId is set, must be TEAM.
   scope         PermissionScope
-  projectConfig ProjectConfig?  @relation(fields: [projectConfigId], references: [id])
+  projectConfig ProjectConfig?  @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   team          Team?           @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
 
   parentEdges                PermissionEdge[]             @relation("ChildPermission")
@@ -219,11 +221,11 @@ model ProjectUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project                          Project                            @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
-  projectUserRefreshTokens         ProjectUserRefreshToken[]
-  projectUserAuthorizationCodes    ProjectUserAuthorizationCode[]
-  projectUserOAuthAccounts         ProjectUserOAuthAccount[]
-  teamMembers                      TeamMember[]
+  project                       Project                        @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
+  projectUserRefreshTokens      ProjectUserRefreshToken[]
+  projectUserAuthorizationCodes ProjectUserAuthorizationCode[]
+  projectUserOAuthAccounts      ProjectUserOAuthAccount[]
+  teamMembers                   TeamMember[]
 
   // @deprecated
   projectUserEmailVerificationCode ProjectUserEmailVerificationCode[]
@@ -239,11 +241,12 @@ model ProjectUser {
   passwordHash         String?
   authWithEmail        Boolean
 
-  requiresTotpMfa      Boolean @default(false)
-  totpSecret           Bytes?
+  requiresTotpMfa Boolean @default(false)
+  totpSecret      Bytes?
 
-  serverMetadata Json?
-  clientMetadata Json?
+  clientMetadata         Json?
+  clientReadOnlyMetadata Json?
+  serverMetadata         Json?
 
   @@id([projectId, projectUserId])
 }
@@ -258,7 +261,7 @@ model ProjectUserOAuthAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
+  providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
   projectUser      ProjectUser         @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
   oauthTokens      OAuthToken[]
   oauthAccessToken OAuthAccessToken[]
@@ -362,9 +365,7 @@ model VerificationCode {
   usedAt      DateTime?
   redirectUrl String?
 
-  // @deprecated in favor of method (TODO next-release; this is no longer used)
-  email       String @default("")
-  method      Json
+  method Json @default("null")
 
   data Json
 
@@ -516,7 +517,7 @@ model StandardEmailServiceConfig {
 // Exactly one of the xyzOAuthConfig variables should be set.
 model OAuthProviderConfig {
   projectConfigId String        @db.Uuid
-  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id])
+  projectConfig   ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   id              String
 
   createdAt DateTime @default(now())
@@ -533,7 +534,7 @@ model OAuthProviderConfig {
 
 model ProxiedOAuthProviderConfig {
   projectConfigId String              @db.Uuid
-  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id], onDelete: Cascade)
   id              String
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
@@ -554,7 +555,7 @@ enum ProxiedOAuthProviderType {
 
 model StandardOAuthProviderConfig {
   projectConfigId String              @db.Uuid
-  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  providerConfig  OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id], onDelete: Cascade)
   id              String
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
@@ -576,6 +577,8 @@ enum StandardOAuthProviderType {
   GOOGLE
   MICROSOFT
   SPOTIFY
+  DISCORD
+  GITLAB
 }
 
 //#endregion

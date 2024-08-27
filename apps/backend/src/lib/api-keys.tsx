@@ -8,6 +8,8 @@ import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
 import { ApiKeyCreateCrudResponse } from '@stackframe/stack-shared/dist/interface/adminInterface';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { typedIncludes } from '@stackframe/stack-shared/dist/utils/arrays';
 
 export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
@@ -24,13 +26,37 @@ export async function checkApiKeySet(
 }
 
 
+type KeyType =
+  | { publishableClientKey: string }
+  | { secretServerKey: string }
+  | { superSecretAdminKey: string };
+
+function assertKeyType(obj: any): KeyType {
+  if (typeof obj !== 'object' || obj === null) {
+    throw new StackAssertionError('Invalid key type', { obj });
+  }
+  const entries = Object.entries(obj);
+  if (entries.length !== 1) {
+    throw new StackAssertionError('Invalid key type; must have exactly one entry', { obj });
+  }
+  const [key, value] = entries[0];
+  if (!typedIncludes(['publishableClientKey', 'secretServerKey', 'superSecretAdminKey'], key)) {
+    throw new StackAssertionError('Invalid key type; field must be one of the three key types', { obj });
+  }
+  if (typeof value !== 'string') {
+    throw new StackAssertionError('Invalid key type; field must be a string', { obj });
+  }
+  return {
+    [key]: value,
+  } as KeyType;
+}
+
+
 export async function getApiKeySet(
   projectId: string,
   whereOrId:
     | string
-    | { publishableClientKey: string }
-    | { secretServerKey: string }
-    | { superSecretAdminKey: string },
+    | KeyType,
 ): Promise<ApiKeysCrud["Admin"]["Read"] | null> {
   const where = typeof whereOrId === 'string'
     ? {
@@ -39,7 +65,10 @@ export async function getApiKeySet(
         id: whereOrId,
       }
     }
-    : whereOrId;
+    : {
+      ...assertKeyType(whereOrId),
+      projectId,
+    };
 
   const set = await prismaClient.apiKeySet.findUnique({
     where,

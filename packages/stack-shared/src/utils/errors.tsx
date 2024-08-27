@@ -17,16 +17,27 @@ export function throwErr(...args: any[]): never {
 }
 
 
-export class StackAssertionError extends Error {
+export class StackAssertionError extends Error implements ErrorWithCustomCapture {
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
     const disclaimer = `\n\nThis is likely an error in Stack. Please make sure you are running the newest version and report it.`;
     super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, options);
   }
+
+  customCaptureExtraArgs = [
+    {
+      ...this.extraData,
+      ...this.cause ? { cause: this.cause } : {},
+    },
+  ];
 }
 StackAssertionError.prototype.name = "StackAssertionError";
 
 
-const errorSinks = new Set<(location: string, error: unknown) => void>();
+export type ErrorWithCustomCapture = {
+  customCaptureExtraArgs: any[],
+};
+
+const errorSinks = new Set<(location: string, error: unknown, ...extraArgs: unknown[]) => void>();
 export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
   if (errorSinks.has(sink)) {
     return;
@@ -43,7 +54,11 @@ registerErrorSink((location, error, ...extraArgs) => {
 
 export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {
-    sink(location, error);
+    sink(
+      location,
+      error,
+      ...error && (typeof error === 'object' || typeof error === 'function') && "customCaptureExtraArgs" in error && Array.isArray(error.customCaptureExtraArgs) ? (error.customCaptureExtraArgs as any[]) : [],
+    );
   }
 }
 

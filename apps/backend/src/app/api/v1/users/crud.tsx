@@ -1,4 +1,5 @@
 import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
+import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -6,15 +7,14 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
+import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { teamPrismaToCrud } from "../teams/crud";
-import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { decodeBase64, encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
+import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
-const fullInclude = {
+export const userFullInclude = {
   projectUserOAuthAccounts: {
     include: {
       providerConfig: true,
@@ -30,7 +30,7 @@ const fullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
-const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof fullInclude}>): UsersCrud["Admin"]["Read"] => {
+export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
@@ -81,6 +81,7 @@ const prismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof ful
     profile_image_url: prisma.profileImageUrl,
     signed_up_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
+    client_read_only_metadata: prisma.clientReadOnlyMetadata,
     server_metadata: prisma.serverMetadata,
     has_password: !!prisma.passwordHash,
     auth_with_email: prisma.authWithEmail,
@@ -112,14 +113,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           projectUserId: params.user_id,
         },
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     if (!db) {
       throw new KnownErrors.UserNotFound();
     }
 
-    return prismaToCrud(db);
+    return userPrismaToCrud(db);
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -133,11 +134,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           },
         } : {},
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
     return {
-      items: db.map(prismaToCrud),
+      items: db.map(userPrismaToCrud),
       is_paginated: false,
     };
   },
@@ -169,6 +170,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         projectId: auth.project.id,
         displayName: data.display_name === undefined ? undefined : (data.display_name || null),
         clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+        clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
         serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified ?? false,
@@ -187,10 +189,28 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         } : undefined,
         totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
       },
-      include: fullInclude,
+      include: userFullInclude,
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
+
+    if (auth.project.config.create_team_on_sign_up) {
+      await teamsCrudHandlers.adminCreate({
+        data: {
+          display_name: data.display_name ?
+            `${data.display_name}'s Team` :
+            data.primary_email ?
+              `${data.primary_email}'s Team` :
+              "Personal Team"
+        },
+        query: {
+          add_current_user: "true",
+        },
+        project: auth.project,
+        user: result,
+      });
+    }
+
 
     await sendUserCreatedWebhook({
       projectId: auth.project.id,
@@ -248,6 +268,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         data: {
           displayName: data.display_name === undefined ? undefined : (data.display_name || null),
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
           serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
           primaryEmail: data.primary_email,
           primaryEmailVerified: data.primary_email_verified ?? (data.primary_email !== undefined ? false : undefined),
@@ -257,13 +278,23 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           requiresTotpMfa: data.totp_secret_base64 === undefined ? undefined : (data.totp_secret_base64 !== null),
           totpSecret: data.totp_secret_base64 == null ? data.totp_secret_base64 : Buffer.from(decodeBase64(data.totp_secret_base64)),
         },
-        include: fullInclude,
+        include: userFullInclude,
       });
+
+      // if user password changed, reset all refresh tokens
+      if (data.password !== undefined) {
+        await prismaClient.projectUserRefreshToken.deleteMany({
+          where: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+          },
+        });
+      }
 
       return db;
     });
 
-    const result = prismaToCrud(db);
+    const result = userPrismaToCrud(db);
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,
@@ -283,7 +314,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             projectUserId: params.user_id,
           },
         },
-        include: fullInclude,
+        include: userFullInclude,
       });
     });
 
@@ -306,6 +337,10 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     });
   },
   async onUpdate({ auth, data }) {
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
+    }
+
     return await usersCrudHandlers.adminUpdate({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),

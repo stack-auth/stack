@@ -5,6 +5,7 @@ import { usersCrudServerDeleteSchema, usersCrudServerReadSchema, usersCrudServer
 
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "display_name",
+  "profile_image_url",
   "client_metadata",
   "selected_team_id",
   "totp_secret_base64",
@@ -18,6 +19,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "primary_email_verified",
   "display_name",
   "client_metadata",
+  "client_read_only_metadata",
   "profile_image_url",
   "signed_up_at_millis",
   "has_password",

@@ -10,6 +10,7 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { addUserToTeam } from "../team-memberships/crud";
+import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -18,6 +19,9 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
     display_name: prisma.displayName,
     profile_image_url: prisma.profileImageUrl,
     created_at_millis: prisma.createdAt.getTime(),
+    client_metadata: prisma.clientMetadata,
+    client_read_only_metadata: prisma.clientReadOnlyMetadata,
+    server_metadata: prisma.serverMetadata,
   };
 }
 
@@ -30,11 +34,27 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     team_id: yupString().uuid().required(),
   }),
   onCreate: async ({ query, auth, data }) => {
+    if (auth.type === 'client' && !auth.user) {
+      throw new KnownErrors.UserAuthenticationRequired();
+    }
+
+    if (auth.type === 'client' && !auth.project.config.client_team_creation_enabled) {
+      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
+    }
+
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
+    }
+
     const db = await prismaClient.$transaction(async (tx) => {
       const db = await tx.team.create({
         data: {
           displayName: data.display_name,
           projectId: auth.project.id,
+          profileImageUrl: data.profile_image_url,
+          clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
+          serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         },
       });
 
@@ -69,7 +89,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureTeamMembershipExists(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
         });
       }
 
@@ -93,11 +113,15 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   },
   onUpdate: async ({ params, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+        throw new StatusError(400, "Invalid profile image URL");
+      }
+
       if (auth.type === 'client') {
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$update_team",
           errorType: 'required',
         });
@@ -115,6 +139,9 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         data: {
           displayName: data.display_name,
           profileImageUrl: data.profile_image_url,
+          clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
+          clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
+          serverMetadata: data.server_metadata === null ? Prisma.JsonNull : data.server_metadata,
         },
       });
     });
@@ -134,7 +161,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr('auth.user is null'),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$delete_team",
           errorType: 'required',
         });
@@ -160,8 +187,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   },
   onList: async ({ query, auth }) => {
     const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
-    if (auth.type === 'client' && userId !== auth.user?.id) {
-      throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+
+      if (userId !== currentUserId) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
+      }
     }
 
     const db = await prismaClient.team.findMany({

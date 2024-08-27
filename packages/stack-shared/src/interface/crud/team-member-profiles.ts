@@ -1,6 +1,7 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
 import { yupObject } from "../../schema-fields";
+import { usersCrudServerReadSchema } from "./users";
 
 
 export const teamMemberProfilesCrudClientReadSchema = yupObject({
@@ -10,6 +11,10 @@ export const teamMemberProfilesCrudClientReadSchema = yupObject({
   profile_image_url: schemaFields.teamMemberProfileImageUrlSchema.nullable().defined(),
 }).required();
 
+export const teamMemberProfilesCrudServerReadSchema = teamMemberProfilesCrudClientReadSchema.concat(yupObject({
+  user: usersCrudServerReadSchema.required(),
+})).required();
+
 export const teamMemberProfilesCrudClientUpdateSchema = yupObject({
   display_name: schemaFields.teamMemberDisplayNameSchema.optional(),
   profile_image_url: schemaFields.teamMemberProfileImageUrlSchema.nullable().optional(),
@@ -17,6 +22,7 @@ export const teamMemberProfilesCrudClientUpdateSchema = yupObject({
 
 export const teamMemberProfilesCrud = createCrud({
   clientReadSchema: teamMemberProfilesCrudClientReadSchema,
+  serverReadSchema: teamMemberProfilesCrudServerReadSchema,
   clientUpdateSchema: teamMemberProfilesCrudClientUpdateSchema,
   docs: {
     clientList: {

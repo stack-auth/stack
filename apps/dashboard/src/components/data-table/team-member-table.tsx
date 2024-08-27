@@ -1,16 +1,12 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerTeam, ServerUser } from '@stackframe/stack';
-import { ActionDialog, SimpleTooltip } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, SearchToolbarItem, SimpleTooltip } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
-import { ActionCell, BadgeCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { SearchToolbarItem } from "./elements/toolbar-items";
 import { ExtendedServerUser, extendUsers, getCommonUserColumns } from "./user-table";
 
 

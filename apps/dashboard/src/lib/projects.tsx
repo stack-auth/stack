@@ -40,6 +40,10 @@ function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
 }
 
 function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
+  if (type === 'DISCORD' || type === "GITLAB") {
+    throwErr("Legacy provider does not support discord and gitlab");
+  }
+
   return ({
     "GITHUB": "github",
     "FACEBOOK": "facebook",
@@ -182,6 +186,7 @@ export async function createProject(
             credentialEnabled: !!projectOptions.config?.credentialEnabled,
             magicLinkEnabled: !!projectOptions.config?.magicLinkEnabled,
             createTeamOnSignUp: !!projectOptions.config?.createTeamOnSignUp,
+            clientTeamCreationEnabled: false,
             emailServiceConfig: {
               create: {
                 proxiedEmailServiceConfig: {

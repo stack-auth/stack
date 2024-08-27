@@ -3,9 +3,10 @@ import { ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/li
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { teamPermissionsCrud } from '@stackframe/stack-shared/dist/interface/crud/team-permissions';
 import { teamPermissionDefinitionIdSchema, userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamPermissionsCrud, {
@@ -52,8 +53,12 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
   },
   async onList({ auth, query }) {
     const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
-    if (auth.type === 'client' && userId !== auth.user?.id) {
-      throw new StatusError(StatusError.Forbidden, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+
+      if (userId !== currentUserId) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only list permissions for their own user. user_id must be either "me" or the ID of the current user');
+      }
     }
 
     return await prismaClient.$transaction(async (tx) => {
