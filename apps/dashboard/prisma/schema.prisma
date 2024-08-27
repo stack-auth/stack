@@ -581,6 +581,7 @@ enum StandardOAuthProviderType {
   GITLAB
   LINKEDIN
   HUBSPOT
+  SALESFORCE
 }
 
 //#endregion
