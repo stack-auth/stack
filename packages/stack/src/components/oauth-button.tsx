@@ -189,7 +189,10 @@ function BitbucketIcon({ iconSize }: { iconSize: number }){
 }
 function ZoomIcon({ iconSize }: { iconSize: number }){
   return (<svg></svg>);
-};
+}
+function DropboxIcon({ iconSize }: { iconSize: number }){
+  return (<svg></svg>);
+}
 
 const changeColor = (c: Color, value: number) => {
   if (c.isLight()) {
@@ -327,6 +330,16 @@ export function OAuthButton({
         name: "Zoom",
         border: "1px solid #ddd",
         icon: <ZoomIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'dropbox': {
+      style = {
+        backgroundColor: "#fff",
+        textColor: "#000",
+        name: "Dropbox",
+        border: "1px solid #ddd",
+        icon: <DropboxIcon iconSize={iconSize} />,
       };
       break;
     }

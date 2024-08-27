@@ -17,6 +17,7 @@ import { HubspotProvider } from "./providers/hubspot";
 import { SalesforceProvider } from "./providers/salesforce";
 import { BitbucketProvider } from "./providers/bitbucket";
 import { ZoomProvider } from "./providers/zoom";
+import { DropboxProvider } from "./providers/dropbox";
 
 
 const _providers = {
@@ -32,6 +33,7 @@ const _providers = {
   salesforce: SalesforceProvider,
   bitbucket: BitbucketProvider,
   zoom: ZoomProvider,
+  dropbox: DropboxProvider,
 } as const;
 
 const mockProvider = MockProvider;

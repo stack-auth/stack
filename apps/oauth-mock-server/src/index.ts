@@ -15,6 +15,7 @@ const mockedProviders = [
   "salesforce",
   "bitbucket",
   "zoom",
+  "dropbox",
 ];
 
 const configuration: Configuration  = {

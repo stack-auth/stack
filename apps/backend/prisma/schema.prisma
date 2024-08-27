@@ -584,6 +584,7 @@ enum StandardOAuthProviderType {
   SALESFORCE
   BITBUCKET
   ZOOM
+  DROPBOX
 }
 
 //#endregion

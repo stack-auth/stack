@@ -29,6 +29,7 @@ function toTitle(id: string) {
     salesforce: "Salesforce",
     bitbucket: "Bitbucket",
     zoom: "Zoom",
+    dropbox: "Dropbox",
   }[id];
 }
 
