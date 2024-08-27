@@ -28,6 +28,7 @@ function toTitle(id: string) {
     hubspot: "Hubspot",
     salesforce: "Salesforce",
     bitbucket: "Bitbucket",
+    zoom: "Zoom",
   }[id];
 }
 

@@ -187,6 +187,9 @@ function BitbucketIcon({ iconSize }: { iconSize: number }){
     </svg>
   );
 }
+function ZoomIcon({ iconSize }: { iconSize: number }){
+  return (<svg></svg>);
+};
 
 const changeColor = (c: Color, value: number) => {
   if (c.isLight()) {
@@ -314,6 +317,16 @@ export function OAuthButton({
         name: "Bitbucket",
         border: "1px solid #ddd",
         icon: <BitbucketIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'zoom': {
+      style = {
+        backgroundColor: "#fff",
+        textColor: "#000",
+        name: "Zoom",
+        border: "1px solid #ddd",
+        icon: <ZoomIcon iconSize={iconSize} />,
       };
       break;
     }

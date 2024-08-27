@@ -583,6 +583,7 @@ enum StandardOAuthProviderType {
   HUBSPOT
   SALESFORCE
   BITBUCKET
+  ZOOM
 }
 
 //#endregion
