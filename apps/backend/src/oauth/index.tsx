@@ -18,6 +18,7 @@ import { SalesforceProvider } from "./providers/salesforce";
 import { BitbucketProvider } from "./providers/bitbucket";
 import { ZoomProvider } from "./providers/zoom";
 import { DropboxProvider } from "./providers/dropbox";
+import { CoinbaseProvider } from "./providers/coinbase";
 
 
 const _providers = {
@@ -34,6 +35,7 @@ const _providers = {
   bitbucket: BitbucketProvider,
   zoom: ZoomProvider,
   dropbox: DropboxProvider,
+  coinbase: CoinbaseProvider,
 } as const;
 
 const mockProvider = MockProvider;

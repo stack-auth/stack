@@ -40,7 +40,7 @@ function fromDBSharedProvider(type: ProxiedOAuthProviderType): SharedProvider {
 }
 
 function fromDBStandardProvider(type: StandardOAuthProviderType): StandardProvider {
-  if (type === 'DISCORD' || type === "GITLAB" || type === "LINKEDIN" || type === "HUBSPOT" || type === "SALESFORCE" || type === "BITBUCKET" || type === "ZOOM" || type === "DROPBOX") {
+  if (type === 'DISCORD' || type === "GITLAB" || type === "LINKEDIN" || type === "HUBSPOT" || type === "SALESFORCE" || type === "BITBUCKET" || type === "ZOOM" || type === "DROPBOX" || type === "COINBASE") {
     throwErr(`Legacy provider does not support ${type.toLowerCase()}`);
   }
 

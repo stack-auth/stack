@@ -30,6 +30,7 @@ function toTitle(id: string) {
     bitbucket: "Bitbucket",
     zoom: "Zoom",
     dropbox: "Dropbox",
+    coinbase: "Coinbase",
   }[id];
 }
 

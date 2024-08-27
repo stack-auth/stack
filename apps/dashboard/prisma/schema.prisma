@@ -585,6 +585,7 @@ enum StandardOAuthProviderType {
   BITBUCKET
   ZOOM
   DROPBOX
+  COINBASE
 }
 
 //#endregion

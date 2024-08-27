@@ -16,6 +16,7 @@ const mockedProviders = [
   "bitbucket",
   "zoom",
   "dropbox",
+  "coinbase",
 ];
 
 const configuration: Configuration  = {
