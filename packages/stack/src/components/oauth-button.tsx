@@ -188,13 +188,29 @@ function BitbucketIcon({ iconSize }: { iconSize: number }){
   );
 }
 function ZoomIcon({ iconSize }: { iconSize: number }){
-  return (<svg></svg>);
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width={iconSize} height={iconSize}
+    >
+      <rect width={iconSize} height={iconSize} rx="15%" fill="#2D8CFF" />
+      <path fill="#ffffff" d="M428 357c8 2 15-2 19-8 2-3 2-8 2-19V179c0-11 0-15-2-19-3-8-11-11-19-8-21 14-67 55-68 72-.8 3-.8 8-.8 15v38c0 8 0 11 .8 15 1 8 4 15 8 19 12 9 52 45 61 45zM64 187c0-15 0-23 3-27 2-4 8-8 11-11 4-3 11-3 27-3h129c38 0 57 0 72 8 11 8 23 15 30 30 8 15 8 34 8 72v68c0 15 0 23-3 27-2 4-8 8-11 11-4 3-11 3-27 3H174c-38 0-57 0-72-8-11-8-23-15-30-30-8-15-8-34-8-72z"/>
+    </svg>
+  );
 }
 function DropboxIcon({ iconSize }: { iconSize: number }){
-  return (<svg></svg>);
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 512 512" fill="#0061ff">
+      <rect width="100%" height="100%" rx="15%" fill="#ffffff" />
+      <path d="M158 101l-99 63 295 188 99-63m-99-188l99 63-295 188-99-63m99 83l98 63 98-63-98-62z" />
+    </svg>
+  );
 }
 function CoinbaseIcon({ iconSize }: { iconSize: number }){
-  return (<svg></svg>);
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 1024 1024">
+      <circle cx="512" cy="512" r="512" style={{"fill": "#0052ff"}} />
+      <path d="M516.3 361.83c60.28 0 108.1 37.18 126.26 92.47H764C742 336.09 644.47 256 517.27 256 372.82 256 260 365.65 260 512.49S370 768 517.27 768c124.35 0 223.82-80.09 245.84-199.28H642.55c-17.22 55.3-65 93.45-125.32 93.45-83.23 0-141.56-63.89-141.56-149.68.04-86.77 57.43-150.66 140.63-150.66z" style={{ "fill": "#fff"}} />
+    </svg>
+  );
 }
 
 const changeColor = (c: Color, value: number) => {
