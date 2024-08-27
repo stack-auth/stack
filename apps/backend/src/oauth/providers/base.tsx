@@ -15,14 +15,17 @@ function processTokenSet(providerName: string, tokenSet: OIDCTokenSet): TokenSet
     throw new StackAssertionError("No access token received", { tokenSet });
   }
 
-  if (!tokenSet.expires_in) {
-    captureError("processTokenSet", new StackAssertionError(`No expires_in received from OAuth provider ${providerName}.`, { tokenSetKeys: Object.keys(tokenSet) }));
+  if (!tokenSet.expires_in && !tokenSet.expires_at) {
+    captureError("processTokenSet", new StackAssertionError(`No expires_in or expires_at received from OAuth provider ${providerName}.`, { tokenSetKeys: Object.keys(tokenSet) }));
   }
 
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    accessTokenExpiredAt: tokenSet.expires_in ? new Date(Date.now() + tokenSet.expires_in * 1000) : new Date(Date.now() + 3600 * 1000),
+    accessTokenExpiredAt: tokenSet.expires_in ?
+      new Date(Date.now() + tokenSet.expires_in * 1000) :
+      tokenSet.expires_at ? new Date(tokenSet.expires_at * 1000) :
+        new Date(Date.now() + 3600 * 1000)
   };
 }
 
