@@ -32,6 +32,7 @@ function toTitle(id: string) {
     dropbox: "Dropbox",
     coinbase: "Coinbase",
     instagram: "Instagram",
+    netlify: "Netlify",
   }[id];
 }
 

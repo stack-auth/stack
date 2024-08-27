@@ -18,6 +18,7 @@ const mockedProviders = [
   "dropbox",
   "coinbase",
   "instagram",
+  "netlify",
 ];
 
 const configuration: Configuration  = {

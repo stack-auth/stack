@@ -587,6 +587,7 @@ enum StandardOAuthProviderType {
   DROPBOX
   COINBASE
   INSTAGRAM
+  NETLIFY
 }
 
 //#endregion
