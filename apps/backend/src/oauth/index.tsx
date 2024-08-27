@@ -13,6 +13,8 @@ import { MockProvider } from "./providers/mock";
 import { DiscordProvider } from "@/oauth/providers/discord";
 import { GitlabProvider } from "./providers/gitlab";
 import { LinkedInProvider } from "./providers/linkedin";
+import { HubspotProvider } from "./providers/hubspot";
+
 
 const _providers = {
   github: GithubProvider,
@@ -23,6 +25,7 @@ const _providers = {
   discord: DiscordProvider,
   gitlab: GitlabProvider,
   linkedin: LinkedInProvider,
+  hubspot: HubspotProvider,
 } as const;
 
 const mockProvider = MockProvider;

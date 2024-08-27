@@ -580,6 +580,7 @@ enum StandardOAuthProviderType {
   DISCORD
   GITLAB
   LINKEDIN
+  HUBSPOT
 }
 
 //#endregion
