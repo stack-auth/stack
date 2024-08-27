@@ -7,7 +7,7 @@ interface Identifier {
 }
 
 interface Element {
-  identifiers?: Identifier[],
+  identifiers: Identifier[],
 }
 
 export interface LinkedInProfile extends Record<string, any> {
@@ -16,7 +16,7 @@ export interface LinkedInProfile extends Record<string, any> {
   localizedLastName: string,
   profilePicture: {
     "displayImage~": {
-      elements?: Element[],
+      elements: Element[],
     },
   },
 }
@@ -45,16 +45,18 @@ export class LinkedInProvider extends OAuthBaseProvider {
     );
   }
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const rawUserInfo = await this.oauthClient.userinfo(tokenSet.accessToken) as LinkedInUserInfo;
+    const rawUserInfo = (await this.oauthClient.userinfo(
+      tokenSet.accessToken
+    )) as LinkedInProfile;
     const emailData = await fetch(
        "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
        { headers: { Authorization: `Bearer ${tokenSet.accessToken}` } }
      ).then((res) => res.json());
     return validateUserInfo({
-      accountId: rawUserInfo.id?.toString(),
+      accountId: rawUserInfo.id.toString(),
       displayName: `${rawUserInfo.localizedFirstName} ${rawUserInfo.localizedLastName}`,
       email: emailData?.elements?.[0]?.["handle~"]?.emailAddress,
-      profileImageUrl: rawUserInfo.profilePicture?.["displayImage~"]?.elements[0]?.identifiers[0]?.identifier,
+      profileImageUrl: rawUserInfo.profilePicture["displayImage~"].elements[0].identifiers[0].identifier,
     });
   }
 }
