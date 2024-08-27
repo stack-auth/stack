@@ -26,7 +26,8 @@ function toTitle(id: string) {
     gitlab: "GitLab",
     linkedin: "LinkedIn",
     hubspot: "Hubspot",
-    salesforce: "Salesforce"
+    salesforce: "Salesforce",
+    bitbucket: "Bitbucket",
   }[id];
 }
 

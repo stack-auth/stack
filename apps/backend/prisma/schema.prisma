@@ -582,6 +582,7 @@ enum StandardOAuthProviderType {
   LINKEDIN
   HUBSPOT
   SALESFORCE
+  BITBUCKET
 }
 
 //#endregion
