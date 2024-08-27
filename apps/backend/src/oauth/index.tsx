@@ -19,6 +19,7 @@ import { BitbucketProvider } from "./providers/bitbucket";
 import { ZoomProvider } from "./providers/zoom";
 import { DropboxProvider } from "./providers/dropbox";
 import { CoinbaseProvider } from "./providers/coinbase";
+import { InstagramProvider } from "./providers/instagram";
 
 
 const _providers = {
@@ -36,6 +37,7 @@ const _providers = {
   zoom: ZoomProvider,
   dropbox: DropboxProvider,
   coinbase: CoinbaseProvider,
+  instagram: InstagramProvider,
 } as const;
 
 const mockProvider = MockProvider;

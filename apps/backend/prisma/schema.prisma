@@ -586,6 +586,7 @@ enum StandardOAuthProviderType {
   ZOOM
   DROPBOX
   COINBASE
+  INSTAGRAM
 }
 
 //#endregion

@@ -31,6 +31,7 @@ function toTitle(id: string) {
     zoom: "Zoom",
     dropbox: "Dropbox",
     coinbase: "Coinbase",
+    instagram: "Instagram",
   }[id];
 }
 

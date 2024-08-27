@@ -11,7 +11,7 @@ import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Display name is required").required(),
-  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink", "discord", "gitlab", "linkedin", "hubspot", "salesforce", "bitbucket", "zoom", "dropbox", "coinbase"]).required()).required(),
+  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink", "discord", "gitlab", "linkedin", "hubspot", "salesforce", "bitbucket", "zoom", "dropbox", "coinbase", "instagram"]).required()).required(),
 });
 
 export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
