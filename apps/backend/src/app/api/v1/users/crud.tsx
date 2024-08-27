@@ -302,6 +302,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     return await usersCrudHandlers.adminRead({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      allowedErrorTypes: [StatusError]
     });
   },
   async onUpdate({ auth, data }) {
@@ -309,12 +310,14 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
+      allowedErrorTypes: [StatusError]
     });
   },
   async onDelete({ auth }) {
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      allowedErrorTypes: [StatusError]
     });
   },
 }));
