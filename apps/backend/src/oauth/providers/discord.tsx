@@ -30,11 +30,14 @@ export class DiscordProvider extends OAuthBaseProvider {
       },
     }).then((res) => res.json());
 
+    console.log(info, '!!!!!!!!!!!!!!!!!!!!');
+
     return validateUserInfo({
       accountId: info.id,
       displayName: info.global_name ?? info.username,
       email: info.email,
       profileImageUrl: `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.${info.avatar.startsWith("a_") ? "gif" : "png"}`,
+      emailVerified: info.verified,
     });
   }
 }
