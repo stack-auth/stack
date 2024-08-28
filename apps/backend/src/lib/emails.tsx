@@ -84,13 +84,18 @@ export async function sendEmail({
     },
   });
 
-  return await transporter.sendMail({
-    from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-    to,
-    subject,
-    text,
-    html
-  });
+  try {
+    return await transporter.sendMail({
+      from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+      to,
+      subject,
+      text,
+      html
+    });
+  } catch (error) {
+    throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
+  }
+
 }
 
 export async function sendEmailFromTemplate(options: {
