@@ -38,6 +38,7 @@ export class TwitterProvider extends OAuthBaseProvider {
       displayName: userInfo.name || userInfo.username,
       email: undefined, // Twitter Oauth2.0 doesn't support email
       profileImageUrl: userInfo.profile_image_url as any,
+      emailVerified: false,
     });
   }
 }

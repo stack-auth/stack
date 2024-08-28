@@ -41,6 +41,7 @@ export class SlackProvider extends OAuthBaseProvider {
       displayName: userInfo.name,
       email: userInfo.email,
       profileImageUrl: userInfo.picture,
+      emailVerified: userInfo.email_verified,
     });
   }
 }
