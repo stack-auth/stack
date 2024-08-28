@@ -30,8 +30,6 @@ export class DiscordProvider extends OAuthBaseProvider {
       },
     }).then((res) => res.json());
 
-    console.log(info, '!!!!!!!!!!!!!!!!!!!!');
-
     return validateUserInfo({
       accountId: info.id,
       displayName: info.global_name ?? info.username,

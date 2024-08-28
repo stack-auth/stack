@@ -20,6 +20,10 @@ export class GithubProvider extends OAuthBaseProvider {
       userinfoEndpoint: "https://api.github.com/user",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/github",
       baseScope: "user:email",
+      // GitHub token does not expire except for lack of use in a year
+      // We set a default of 1 year
+      // https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/token-expiration-and-revocation#token-expired-due-to-lack-of-use=
+      defaultAccessTokenExpiresInMillis: 1000 * 60 * 60 * 24 * 365,
       ...options,
     }));
   }
