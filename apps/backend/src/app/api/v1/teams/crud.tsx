@@ -10,6 +10,7 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { addUserToTeam } from "../team-memberships/crud";
+import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -39,6 +40,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     if (auth.type === 'client' && !auth.project.config.client_team_creation_enabled) {
       throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
+    }
+
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
     }
 
     const db = await prismaClient.$transaction(async (tx) => {
@@ -108,6 +113,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   },
   onUpdate: async ({ params, auth, data }) => {
     const db = await prismaClient.$transaction(async (tx) => {
+      if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+        throw new StatusError(400, "Invalid profile image URL");
+      }
+
       if (auth.type === 'client') {
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,

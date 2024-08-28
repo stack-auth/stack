@@ -86,6 +86,7 @@ export async function ensureUserTeamPermissionExists(
     userId: string,
     permissionId: string,
     errorType: 'required' | 'not-exist',
+    recursive?: boolean,
   }
 ) {
   await ensureTeamMembershipExists(tx, {
@@ -99,7 +100,7 @@ export async function ensureUserTeamPermissionExists(
     teamId: options.teamId,
     userId: options.userId,
     permissionId: options.permissionId,
-    recursive: true,
+    recursive: options.recursive ?? true,
   });
 
   if (result.length === 0) {
