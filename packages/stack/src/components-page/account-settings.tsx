@@ -415,7 +415,7 @@ function ManagementSettings(props: { team: Team }) {
 
   return (
     <>
-      <div>
+      <div className='flex flex-col'>
         <Label>Team display name</Label>
         <ProfileImageEditor
           user={props.team}
@@ -425,7 +425,7 @@ function ManagementSettings(props: { team: Team }) {
         />
       </div>
 
-      <div>
+      <div className='flex flex-col'>
         <Label>Team display name</Label>
         <EditableText
           value={props.team.displayName}
