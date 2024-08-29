@@ -29,7 +29,6 @@ function toTitle(id: string) {
     salesforce: "Salesforce",
     bitbucket: "Bitbucket",
     zoom: "Zoom",
-    dropbox: "Dropbox",
     coinbase: "Coinbase",
     instagram: "Instagram",
     netlify: "Netlify",

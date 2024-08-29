@@ -17,7 +17,6 @@ import { HubspotProvider } from "./providers/hubspot";
 import { SalesforceProvider } from "./providers/salesforce";
 import { BitbucketProvider } from "./providers/bitbucket";
 import { ZoomProvider } from "./providers/zoom";
-import { DropboxProvider } from "./providers/dropbox";
 import { CoinbaseProvider } from "./providers/coinbase";
 import { InstagramProvider } from "./providers/instagram";
 import { NetlifyProvider } from "./providers/netlify";
@@ -36,7 +35,6 @@ const _providers = {
   salesforce: SalesforceProvider,
   bitbucket: BitbucketProvider,
   zoom: ZoomProvider,
-  dropbox: DropboxProvider,
   coinbase: CoinbaseProvider,
   instagram: InstagramProvider,
   netlify: NetlifyProvider,

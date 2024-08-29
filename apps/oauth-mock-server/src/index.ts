@@ -15,7 +15,6 @@ const mockedProviders = [
   "salesforce",
   "bitbucket",
   "zoom",
-  "dropbox",
   "coinbase",
   "instagram",
   "netlify",

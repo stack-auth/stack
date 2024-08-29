@@ -584,7 +584,6 @@ enum StandardOAuthProviderType {
   SALESFORCE
   BITBUCKET
   ZOOM
-  DROPBOX
   COINBASE
   INSTAGRAM
   NETLIFY

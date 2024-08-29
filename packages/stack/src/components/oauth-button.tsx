@@ -196,14 +196,6 @@ function ZoomIcon({ iconSize }: { iconSize: number }){
     </svg>
   );
 }
-function DropboxIcon({ iconSize }: { iconSize: number }){
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 512 512" fill="#0061ff">
-      <rect width="100%" height="100%" rx="15%" fill="#ffffff" />
-      <path d="M158 101l-99 63 295 188 99-63m-99-188l99 63-295 188-99-63m99 83l98 63 98-63-98-62z" />
-    </svg>
-  );
-}
 function CoinbaseIcon({ iconSize }: { iconSize: number }){
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 1024 1024">
@@ -391,16 +383,6 @@ export function OAuthButton({
         name: "Zoom",
         border: "1px solid #ddd",
         icon: <ZoomIcon iconSize={iconSize} />,
-      };
-      break;
-    }
-    case 'dropbox': {
-      style = {
-        backgroundColor: "#fff",
-        textColor: "#000",
-        name: "Dropbox",
-        border: "1px solid #ddd",
-        icon: <DropboxIcon iconSize={iconSize} />,
       };
       break;
     }
