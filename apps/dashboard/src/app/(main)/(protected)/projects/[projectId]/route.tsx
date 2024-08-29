@@ -1,3 +1,5 @@
-import { redirectHandler } from "@/route-handlers/redirect-handler";
+import { redirect } from "next/navigation";
 
-export const GET = redirectHandler("users");
+export default function Page({ params }: { params: { projectId: string } }) {
+  redirect(`/projects/${params.projectId}/users`);
+}
