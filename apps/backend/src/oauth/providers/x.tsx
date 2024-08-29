@@ -23,29 +23,14 @@ export class XProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const headers = {
-      Authorization: `Bearer ${tokenSet.accessToken}`,
-    };
-    // const { data: userInfo } = await fetch(
-    //   "https://api.x.com/2/users/me?user.fields=id,name,profile_image_url",
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${tokenSet.accessToken}`,
-    //     },
-    //   }
-    // ).then((res) => res.json());
-
-    const [userInfo, emailInfo] = await Promise.all([
-      fetch("https://api.x.com/2/users/me?user.fields=id,name,profile_image_url", {
-        headers,
-      }).then((res) => res.json()),
-      fetch("https://api.x.com/1.1/account/verify_credentials.json", {
-        headers,
-      }).then((res) => res.json()),
-    ]);
-
-    console.log(userInfo);
-    console.log(emailInfo);
+    const { data: userInfo } = await fetch(
+      "https://api.x.com/2/users/me?user.fields=id,name,profile_image_url",
+      {
+        headers: {
+          Authorization: `Bearer ${tokenSet.accessToken}`,
+        },
+      }
+    ).then((res) => res.json());
 
     return validateUserInfo({
       accountId: userInfo.id?.toString(),
