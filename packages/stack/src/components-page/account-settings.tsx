@@ -16,11 +16,10 @@ import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
-import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
-import { TeamIcon } from '../components/team-icon';
 import { ProfileImageEditor } from "../components/profile-image-editor";
+import { TeamIcon } from '../components/team-icon';
 
 
 export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
@@ -374,7 +373,6 @@ function SignOutSection() {
 }
 
 function UserSettings(props: { team: Team }) {
-  const app = useStackApp();
   const user = useUser({ or: 'redirect' });
   const [leaving, setLeaving] = useState(false);
 
@@ -417,6 +415,16 @@ function ManagementSettings(props: { team: Team }) {
 
   return (
     <>
+      <div>
+        <Label>Team display name</Label>
+        <ProfileImageEditor
+          user={props.team}
+          onProfileImageUrlChange={async (profileImageUrl) => {
+            await props.team.update({ profileImageUrl });
+          }}
+        />
+      </div>
+
       <div>
         <Label>Team display name</Label>
         <EditableText
