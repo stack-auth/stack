@@ -32,9 +32,10 @@ export class NetlifyProvider extends OAuthBaseProvider {
     }).then((res) => res.json());
     return validateUserInfo({
       accountId: userInfo.id?.toString(),
-      displayName: userInfo.full_name,
+      displayName: userInfo.full_name ?? userInfo.slug,
       email: userInfo.email,
       profileImageUrl: userInfo.avatar_url,
+      emailVerified: !userInfo.has_pending_email_verification,
     });
   }
 }

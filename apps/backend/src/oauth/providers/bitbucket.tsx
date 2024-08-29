@@ -25,24 +25,20 @@ export class BitbucketProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const userInfo = await fetch("https://api.bitbucket.org/2.0/user", {
-      headers: {
-        Authorization: `Bearer ${tokenSet.accessToken}`
-      }
-    }).then(
-      (res) => res.json()
-    );
-    const emailData = await fetch("https://api.bitbucket.org/2.0/user/emails", {
-      headers: {
-        Authorization: `Bearer ${tokenSet.accessToken}`
-      }
-    }).then((res) => res.json());
+    const headers = {
+      Authorization: `Bearer ${tokenSet.accessToken}`,
+    };
+    const [userInfo, emailData] = await Promise.all([
+      fetch("https://api.bitbucket.org/2.0/user", {headers}).then((res) => res.json()),
+      fetch("https://api.bitbucket.org/2.0/user/emails", {headers}).then((res) => res.json()),
+    ]);
 
     return validateUserInfo({
       accountId: userInfo.uuid,
       displayName: userInfo.display_name,
       email: emailData?.values[0].email,
       profileImageUrl: userInfo.links.avatar.href,
+      emailVerified: emailData?.values[0].is_confirmed,
     });
   }
 }

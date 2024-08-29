@@ -30,6 +30,7 @@ export class HubspotProvider extends OAuthBaseProvider {
     ).then(res => res.json());
     return validateUserInfo({
       accountId: userInfo.user_id?.toString(),
+      // user field is email of the user
       displayName: userInfo.user,
       email: userInfo.user,
       // Hubspot does not provide profile image

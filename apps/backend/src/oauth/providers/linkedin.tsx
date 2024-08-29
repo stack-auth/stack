@@ -2,24 +2,7 @@ import { OAuthBaseProvider, TokenSet } from "./base";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
-interface Identifier {
-  identifier: string,
-}
-
-interface Element {
-  identifiers: Identifier[],
-}
-
-export interface LinkedInProfile extends Record<string, any> {
-  id: string,
-  localizedFirstName: string,
-  localizedLastName: string,
-  profilePicture: {
-    "displayImage~": {
-      elements: Element[],
-    },
-  },
-}
+// Note: Need to install Sign In with LinkedIn using OpenID Connect from product section in app list.
 
 export class LinkedInProvider extends OAuthBaseProvider {
   private constructor(
@@ -34,29 +17,32 @@ export class LinkedInProvider extends OAuthBaseProvider {
         issuer: "https://linkedin.com",
         authorizationEndpoint: "https://linkedin.com/oauth/v2/authorization",
         tokenEndpoint: "https://linkedin.com/oauth/v2/accessToken",
-        userinfoEndpoint:
-          "https://api.linkedin.com/v2/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~digitalmediaAsset:playableStreams))",
         redirectUri:
           getEnvVariable("STACK_BASE_URL") +
           "/api/v1/auth/oauth/callback/linkedin",
-        baseScope: "r_liteprofile r_emailaddress",
+        baseScope: "openid profile email",
+        authorizationExtraParams: {
+          grant_type: "authorization_code",
+        },
         ...options,
       }))
     );
   }
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const rawUserInfo = (await this.oauthClient.userinfo(
-      tokenSet.accessToken
-    )) as LinkedInProfile;
-    const emailData = await fetch(
-       "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
-       { headers: { Authorization: `Bearer ${tokenSet.accessToken}` } }
-     ).then((res) => res.json());
+    /*
+    Sign In with LinkedIn using OpenID Connect
+    https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2?context=linkedin%2Fconsumer%2Fcontext
+    */
+    const userInfo = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: { Authorization: `Bearer ${tokenSet.accessToken}` },
+    }).then((res) => res.json());
+
     return validateUserInfo({
-      accountId: rawUserInfo.id.toString(),
-      displayName: `${rawUserInfo.localizedFirstName} ${rawUserInfo.localizedLastName}`,
-      email: emailData?.elements?.[0]?.["handle~"]?.emailAddress,
-      profileImageUrl: rawUserInfo.profilePicture["displayImage~"].elements[0].identifiers[0].identifier,
+      accountId: userInfo.sub,
+      displayName: userInfo.name,
+      email: userInfo.email,
+      profileImageUrl: userInfo.picture,
+      emailVerified: userInfo.email_verified,
     });
   }
 }
