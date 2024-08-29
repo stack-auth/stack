@@ -159,7 +159,7 @@ export function PermissionListField<F extends FieldValues>(props: {
     }
     load().catch(console.error);
   // @ts-ignore
-  }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team, props.selectedPermissionIds]);
+  }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team, props.selectedPermissionIds, props.containedPermissionIds]);
 
   if (!graph || graph.permissions.size <= 1) {
     return null;
