@@ -12,7 +12,7 @@ import { SpotifyProvider } from "./providers/spotify";
 import { MockProvider } from "./providers/mock";
 import { DiscordProvider } from "@/oauth/providers/discord";
 import { GitlabProvider } from "./providers/gitlab";
-import { TwitterProvider } from "./providers/twitter";
+import { XProvider } from "./providers/x";
 import { SlackProvider } from "./providers/slack";
 
 const _providers = {
@@ -23,7 +23,7 @@ const _providers = {
   spotify: SpotifyProvider,
   discord: DiscordProvider,
   gitlab: GitlabProvider,
-  twitter: TwitterProvider,
+  x: XProvider,
   slack: SlackProvider,
 } as const;
 

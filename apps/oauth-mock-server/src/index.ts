@@ -10,7 +10,7 @@ const mockedProviders = [
   "spotify",
   "discord",
   "gitlab",
-  "twitter",
+  "x",
   "slack",
 ];
 

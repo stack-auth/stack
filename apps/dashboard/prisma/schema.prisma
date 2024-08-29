@@ -579,7 +579,7 @@ enum StandardOAuthProviderType {
   SPOTIFY
   DISCORD
   GITLAB
-  TWITTER
+  X
   SLACK
 }
 
