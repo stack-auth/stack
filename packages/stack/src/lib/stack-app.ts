@@ -1208,6 +1208,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
+    noRedirect?: boolean,
   }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
@@ -1224,7 +1225,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
-      return await this.redirectToAfterSignIn({ replace: true });
+      if (!options.noRedirect) {
+        return await this.redirectToAfterSignIn({ replace: true });
+      } else {
+        return;
+      }
     }
     return result;
   }
@@ -1232,6 +1237,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signUpWithCredential(options: {
     email: string,
     password: string,
+    noRedirect?: boolean,
   }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
@@ -1244,7 +1250,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     );
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
-      return await this.redirectToAfterSignUp({ replace: true });
+      if (!options.noRedirect) {
+        return await this.redirectToAfterSignUp({ replace: true });
+      } else {
+        return;
+      }
     }
     return result;
   }
@@ -2848,8 +2858,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
-    signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
+    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
