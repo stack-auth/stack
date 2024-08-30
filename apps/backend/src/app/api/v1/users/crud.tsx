@@ -121,7 +121,7 @@ export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: numb
 };
 
 // same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
-export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: number | Date): Promise<number[]> => {
+export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: (number | Date)[]): Promise<number[]> => {
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
     SELECT data->>'userId' as "userId", MAX("createdAt") as "lastActiveAt"
     FROM "Event"
@@ -129,11 +129,11 @@ export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: 
     GROUP BY data->>'userId'
   `;
 
-  const fallbackTime = typeof fallbackTo === "number" ? fallbackTo : fallbackTo.getTime();
-
-  return userIds.map(userId => {
+  return userIds.map((userId, index) => {
     const event = events.find(e => e.userId === userId);
-    return event ? event.lastActiveAt.getTime() : fallbackTime;
+    return event ? event.lastActiveAt.getTime() : (
+      typeof fallbackTo[index] === "number" ? (fallbackTo[index] as number) : (fallbackTo[index] as Date).getTime()
+    );
   });
 };
 
@@ -159,7 +159,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       throw new KnownErrors.UserNotFound();
     }
 
-    return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
+    return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, db.createdAt));
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -176,7 +176,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       include: userFullInclude,
     });
 
-    const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), new Date());
+    const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
 
     return {
       items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
