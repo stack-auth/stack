@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.5.27
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.5.26
 
 ### Patch Changes
