@@ -8,7 +8,7 @@
     "with-env": "dotenv -c development --",
     "with-env:prod": "dotenv -c --",
     "dev": "next dev --port 8101",
-    "build": "pnpm run codegen && next build",
+    "build": "next build",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8101",
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
