@@ -1,6 +1,6 @@
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { NextRequest, NextResponse } from "next/server";
-import '../polyfills';
+import '../../../polyfills';
 
 const handler = async (req: NextRequest) => {
   const msg = "Stack Auth's dashboard API is no longer available. Please upgrade the version of your Stack Auth client library, or join our Discord server for assistance: https://discord.stack-auth.com";
