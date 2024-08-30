@@ -69,6 +69,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   client_metadata: fieldSchema.userClientMetadataSchema,
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
+  last_active_at_millis: fieldSchema.userLastActiveAtMillisSchema.required(),
 }).required();
 
 export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(fieldSchema.yupObject({
