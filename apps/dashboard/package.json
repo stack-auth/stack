@@ -11,14 +11,9 @@
     "build": "pnpm run codegen && next build",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8101",
-    "codegen": "pnpm run prisma generate",
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
-    "prisma": "pnpm run with-env prisma",
     "lint": "next lint",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
-  },
-  "prisma": {
-    "seed": "pnpm run with-env tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -27,7 +22,6 @@
     "@next/bundle-analyzer": "^14.0.3",
     "@next/mdx": "^14",
     "@node-oauth/oauth2-server": "^5.1.0",
-    "@prisma/client": "^5.9.1",
     "@radix-ui/react-icons": "^1.3.0",
     "@sentry/nextjs": "^7.105.0",
     "@stackframe/stack": "workspace:*",
@@ -73,7 +67,6 @@
     "autoprefixer": "^10.4.17",
     "glob": "^10.4.1",
     "postcss": "^8.4.38",
-    "prisma": "^5.9.1",
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.7.2"
