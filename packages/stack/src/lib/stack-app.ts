@@ -5,6 +5,7 @@ import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/s
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { JwtCrud } from "@stackframe/stack-shared/dist/interface/crud/jwt";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/crud/team-member-profiles";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
@@ -291,6 +292,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     TeamPermissionsCrud['Client']['Read'][]
   >(async (session, [teamId, recursive]) => {
     return await this._interface.listCurrentUserTeamPermissions({ teamId, recursive }, session);
+  });
+  private readonly _currentUserJwtCache = createCacheBySession<
+    [string],
+    JwtCrud['Client']['Read']
+  >(async (session, [schemaId]) => {
+    return this._interface.generateJwt(schemaId, session);
   });
   private readonly _currentUserTeamsCache = createCacheBySession(async (session) => {
     return await this._interface.listCurrentUserTeams(session);
@@ -913,6 +920,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result);
+      },
+      async getJwt(schemaId: string) {
+        const result = await app._currentUserJwtCache.getOrWait([session, schemaId], "write-only");
+        return { token: result.token};
+      },
+      useJwt(schemaId: string) {
+        const result = useAsyncCache(app._currentUserJwtCache, [session, schemaId], "user.useJwt()");
+        return { token: result.token };
       }
     };
   }
@@ -1471,6 +1486,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   >(async ([teamId, userId, recursive]) => {
     return await this._interface.listServerTeamPermissions({ teamId, userId, recursive }, null);
   });
+  private readonly _serverUserJwtCache = createCache<[string, string], JwtCrud['Server']['Read']>(
+    async ([userId, schemaId]) => {
+      return this._interface.getServerUserJwt({ userId, schemaId });
+    }
+  );
   private readonly _serverUserOAuthConnectionAccessTokensCache = createCache<[string, string, string], { accessToken: string } | null>(
     async ([userId, providerId, scope]) => {
       try {
@@ -1684,6 +1704,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
       },
+      async getJwt(schemaId: string) {
+        const result = await app._serverUserJwtCache.getOrWait([crud.id, schemaId], "write-only");
+        return { token: result.token};
+      },
+      useJwt(schemaId: string) {
+        const result = useAsyncCache(app._serverUserJwtCache, [crud.id, schemaId], "user.useJwt()");
+        return { token: result.token };
+      }
     };
   }
 
@@ -2365,6 +2393,9 @@ type UserExtra = {
 
   getTeamProfile(team: Team): Promise<EditableTeamMemberProfile>,
   useTeamProfile(team: Team): EditableTeamMemberProfile,
+
+  getJwt(schemaId: string): Promise<{ token: string }>,
+  useJwt(schemaId: string): { token: string },
 }
 & AsyncStoreProperty<"team", [id: string], Team | null, false>
 & AsyncStoreProperty<"teams", [], Team[], true>

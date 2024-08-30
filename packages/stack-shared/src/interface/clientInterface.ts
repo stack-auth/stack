@@ -11,6 +11,7 @@ import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
+import { JwtCrud } from './crud/jwt';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
 import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
@@ -1075,6 +1076,18 @@ export class StackClientInterface {
         },
         body: JSON.stringify(data),
       },
+      session,
+    );
+    return await response.json();
+  }
+
+  async generateJwt(
+    schemaId: string,
+    session: InternalSession,
+  ): Promise<JwtCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/auth/jwt/me/${schemaId}`,
+      { method: "POST" },
       session,
     );
     return await response.json();

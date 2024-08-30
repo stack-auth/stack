@@ -8,6 +8,7 @@ import {
   StackClientInterface
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
+import { JwtCrud } from "./crud/jwt";
 import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
 import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
@@ -383,5 +384,17 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
+  }
+
+  async getServerUserJwt(options: {
+    userId: string,
+    schemaId: string,
+  }): Promise<JwtCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/auth/jwt/${options.userId}/${options.schemaId}`,
+      { method: "POST" },
+      null,
+    );
+    return await response.json();
   }
 }
