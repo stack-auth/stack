@@ -282,9 +282,8 @@ enum ContactChannelType {
 
 model ContactChannel {
   projectId       String
-  id              String @default(uuid()) @db.Uuid
-  projectConfigId String @db.Uuid
   projectUserId   String @db.Uuid
+  id              String @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -298,8 +297,8 @@ model ContactChannel {
   projectUser   ProjectUser     @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
   otpAuthMethod OtpAuthMethod[]
 
-  @@id([projectId, id])
-  // each user have one primary contact channel of each type (this should be enfoced to be exactly one on the application level)
+  @@id([projectId, projectUserId, id])
+  // each user has at most one primary contact channel of each type
   @@unique([projectId, projectUserId, type, isPrimary])
   // value must be unique per user per type
   @@unique([projectId, projectUserId, type, value])
@@ -412,7 +411,7 @@ model OAuthProviderConfig {
   standardOAuthConfig StandardOAuthProviderConfig?
 
   // At least one of authMethodConfig or connectedAccountConfig should be set.
-  // The config relation will never be unset, but might the enabled field might be set to false on authMethodConfig or connectedAccountConfig.
+  // The config relation will never be unset, but the enabled field might be set to false on authMethodConfig or connectedAccountConfig.
   authMethodConfig       AuthMethodConfig?       @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
   connectedAccountConfig ConnectedAccountConfig? @relation(fields: [projectConfigId, connectedAccountConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
@@ -477,7 +476,6 @@ model AuthMethod {
   projectId          String
   id                 String @default(uuid()) @db.Uuid
   projectUserId      String @db.Uuid
-  authMethodId       String @default(uuid()) @db.Uuid
   authMethodConfigId String @db.Uuid
   projectConfigId    String @db.Uuid
 
@@ -499,20 +497,19 @@ model AuthMethod {
 model OtpAuthMethod {
   projectId           String
   authMethodId        String             @db.Uuid
-  contactChannelValue String
-  contactChannelType  ContactChannelType
+  contactChannelId    String             @db.Uuid
   projectUserId       String             @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contactChannel ContactChannel @relation(fields: [projectId, projectUserId, contactChannelType, contactChannelValue], references: [projectId, projectUserId, type, value], onDelete: Cascade)
+  contactChannel ContactChannel @relation(fields: [projectId, projectUserId, contactChannelId], references: [projectId, projectUserId, id], onDelete: Cascade)
   authMethod     AuthMethod     @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser    ProjectUser    @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
-  // each contact channel value of each type can only be used once per project as an otp method
-  @@unique([projectId, contactChannelType, contactChannelValue])
+  // each contact channel can only be used once per project as an otp method
+  @@unique([projectId, contactChannelId])
 }
 
 model PasswordAuthMethod {

@@ -16,12 +16,10 @@
   - A unique constraint covering the columns `[projectConfigId,clientId]` on the table `StandardOAuthProviderConfig` will be added. If there are existing duplicate values, this will fail.
 
 */
--- CreateEnum
-CREATE TYPE "ContactChannelType" AS ENUM ('EMAIL');
 
--- CreateEnum
-CREATE TYPE "PasswordAuthMethodIdentifierType" AS ENUM ('EMAIL');
 
+
+-- Step 1: Drop constraints and foreign keys
 -- DropForeignKey
 ALTER TABLE "OAuthProviderConfig" DROP CONSTRAINT "OAuthProviderConfig_projectConfigId_fkey";
 
@@ -40,35 +38,23 @@ ALTER TABLE "ProjectUserPasswordResetCode" DROP CONSTRAINT "ProjectUserPasswordR
 -- DropForeignKey
 ALTER TABLE "StandardOAuthProviderConfig" DROP CONSTRAINT "StandardOAuthProviderConfig_projectConfigId_id_fkey";
 
--- AlterTable
-ALTER TABLE "OAuthProviderConfig" DROP COLUMN "enabled",
-ADD COLUMN     "authMethodConfigId" UUID,
-ADD COLUMN     "connectedAccountConfigId" UUID;
 
--- AlterTable
-ALTER TABLE "ProjectConfig" DROP COLUMN "credentialEnabled",
-DROP COLUMN "magicLinkEnabled";
 
--- AlterTable
-ALTER TABLE "ProjectUser" DROP COLUMN "authWithEmail",
-DROP COLUMN "passwordHash",
-DROP COLUMN "primaryEmail",
-DROP COLUMN "primaryEmailVerified";
 
--- DropTable
-DROP TABLE "ProjectUserEmailVerificationCode";
 
--- DropTable
-DROP TABLE "ProjectUserMagicLinkCode";
+-- Step 2: Create new stuff
 
--- DropTable
-DROP TABLE "ProjectUserPasswordResetCode";
+-- CreateEnum
+CREATE TYPE "ContactChannelType" AS ENUM ('EMAIL');
+
+-- CreateEnum
+CREATE TYPE "PasswordAuthMethodIdentifierType" AS ENUM ('EMAIL');
+
 
 -- CreateTable
 CREATE TABLE "ContactChannel" (
     "projectId" TEXT NOT NULL,
     "id" UUID NOT NULL,
-    "projectConfigId" UUID NOT NULL,
     "projectUserId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -77,7 +63,7 @@ CREATE TABLE "ContactChannel" (
     "isVerified" BOOLEAN NOT NULL,
     "value" TEXT NOT NULL,
 
-    CONSTRAINT "ContactChannel_pkey" PRIMARY KEY ("projectId","id")
+    CONSTRAINT "ContactChannel_pkey" PRIMARY KEY ("projectId","projectUserId","id")
 );
 
 -- CreateTable
@@ -144,7 +130,6 @@ CREATE TABLE "AuthMethod" (
     "projectId" TEXT NOT NULL,
     "id" UUID NOT NULL,
     "projectUserId" UUID NOT NULL,
-    "authMethodId" UUID NOT NULL,
     "authMethodConfigId" UUID NOT NULL,
     "projectConfigId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -157,8 +142,7 @@ CREATE TABLE "AuthMethod" (
 CREATE TABLE "OtpAuthMethod" (
     "projectId" TEXT NOT NULL,
     "authMethodId" UUID NOT NULL,
-    "contactChannelValue" TEXT NOT NULL,
-    "contactChannelType" "ContactChannelType" NOT NULL,
+    "contactChannelId" UUID NOT NULL,
     "projectUserId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -194,6 +178,124 @@ CREATE TABLE "OAuthAuthMethod" (
     CONSTRAINT "OAuthAuthMethod_pkey" PRIMARY KEY ("projectId","authMethodId")
 );
 
+-- AlterTable
+ALTER TABLE "OAuthProviderConfig" ADD COLUMN     "authMethodConfigId" UUID,
+ADD COLUMN     "connectedAccountConfigId" UUID;
+
+
+
+
+
+
+
+
+
+-- Step 3: Custom migrations
+
+-- previously, all OAuthProviderConfig were AuthMethods and ConnectedAccountConfigs implicitly
+-- this is now explicit, so set the authMethodConfigId and connectedAccountConfigId to newly created objects
+-- Set authMethodConfigId and connectedAccountConfigId to unique UUIDs for each row
+UPDATE "OAuthProviderConfig"
+    SET "authMethodConfigId" = gen_random_uuid();
+UPDATE "OAuthProviderConfig"
+    SET "connectedAccountConfigId" = gen_random_uuid()
+    FROM "StandardOAuthProviderConfig"
+    WHERE "OAuthProviderConfig"."projectConfigId" = "StandardOAuthProviderConfig"."projectConfigId" AND "OAuthProviderConfig"."id" = "StandardOAuthProviderConfig"."id";
+
+INSERT INTO "AuthMethodConfig" ("projectConfigId", "id", "createdAt", "updatedAt", "enabled")
+    SELECT "projectConfigId", "authMethodConfigId", "createdAt", "updatedAt", "enabled" FROM "OAuthProviderConfig";
+INSERT INTO "ConnectedAccountConfig" ("projectConfigId", "id", "createdAt", "updatedAt", "enabled")
+    SELECT "projectConfigId", "connectedAccountConfigId", "createdAt", "updatedAt", "enabled"
+        FROM "OAuthProviderConfig"
+        WHERE "connectedAccountConfigId" IS NOT NULL;
+
+
+-- previously, we had credentialEnabled and magicLinkEnabled on ProjectConfig
+-- now, we have PasswordAuthMethodConfig and OtpAuthMethodConfig
+INSERT INTO "PasswordAuthMethodConfig" ("projectConfigId", "authMethodConfigId", "createdAt", "updatedAt", "identifierType")
+    SELECT "id", gen_random_uuid(), "createdAt", "updatedAt", 'EMAIL'
+    FROM "ProjectConfig";
+INSERT INTO "AuthMethodConfig" ("projectConfigId", "id", "createdAt", "updatedAt", "enabled")
+    SELECT "projectConfigId", "authMethodConfigId", "PasswordAuthMethodConfig"."createdAt", "PasswordAuthMethodConfig"."updatedAt", ("ProjectConfig"."credentialEnabled" = true)
+    FROM "PasswordAuthMethodConfig"
+    LEFT JOIN "ProjectConfig" ON "PasswordAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id";
+
+INSERT INTO "OtpAuthMethodConfig" ("projectConfigId", "authMethodConfigId", "createdAt", "updatedAt", "contactChannelType")
+    SELECT "id", gen_random_uuid(), "createdAt", "updatedAt", 'EMAIL'
+    FROM "ProjectConfig";
+INSERT INTO "AuthMethodConfig" ("projectConfigId", "id", "createdAt", "updatedAt", "enabled")
+    SELECT "projectConfigId", "authMethodConfigId", "OtpAuthMethodConfig"."createdAt", "OtpAuthMethodConfig"."updatedAt", ("ProjectConfig"."credentialEnabled" = true)
+    FROM "OtpAuthMethodConfig"
+    LEFT JOIN "ProjectConfig" ON "OtpAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id";
+
+
+-- previously, we had primaryEmail and primaryEmailVerified on ProjectUser
+-- now, we have ContactChannel
+INSERT INTO "ContactChannel" ("projectId", "projectUserId", "id", "createdAt", "updatedAt", "type", "isPrimary", "isVerified", "value")
+    SELECT "projectId", "projectUserId", gen_random_uuid(), "createdAt", "updatedAt", 'EMAIL', 'TRUE', "primaryEmailVerified", "primaryEmail"
+    FROM "ProjectUser"
+    WHERE "primaryEmail" IS NOT NULL;
+
+
+-- previously, we had authWithEmail, passwordHash, and primaryEmail on ProjectUser
+-- now, we have PasswordAuthMethod and OtpAuthMethod
+INSERT INTO "PasswordAuthMethod" ("projectId", "authMethodId", "projectUserId", "createdAt", "updatedAt", "identifierType", "identifier", "passwordHash")
+    SELECT "projectId", gen_random_uuid(), "projectUserId", "createdAt", "updatedAt", 'EMAIL', "primaryEmail", "passwordHash"
+    FROM "ProjectUser"
+    WHERE "authWithEmail" = true AND "passwordHash" IS NOT NULL;
+INSERT INTO "AuthMethod" ("projectId", "id", "projectUserId", "authMethodConfigId", "projectConfigId", "createdAt", "updatedAt")
+    SELECT "projectId", "authMethodId", "projectUserId", "PasswordAuthMethodConfig"."authMethodConfigId", "projectConfigId", "PasswordAuthMethod"."createdAt", "PasswordAuthMethod"."updatedAt"
+    FROM "PasswordAuthMethod"
+    LEFT JOIN "Project" ON "PasswordAuthMethod"."projectId" = "Project"."id"
+    LEFT JOIN "ProjectConfig" ON "Project"."configId" = "ProjectConfig"."id"
+    LEFT JOIN "PasswordAuthMethodConfig" ON "ProjectConfig"."id" = "PasswordAuthMethodConfig"."projectConfigId";
+
+
+INSERT INTO "OtpAuthMethod" ("projectId", "authMethodId", "projectUserId", "createdAt", "updatedAt", "contactChannelId")
+    SELECT "ProjectUser"."projectId", gen_random_uuid(), "ProjectUser"."projectUserId", "ProjectUser"."createdAt", "ProjectUser"."updatedAt", "ContactChannel"."id"
+    FROM "ProjectUser"
+    LEFT JOIN "ContactChannel" ON "ProjectUser"."projectId" = "ContactChannel"."projectId" AND "ProjectUser"."projectUserId" = "ContactChannel"."projectUserId" AND "ContactChannel"."isPrimary" = 'TRUE'
+    WHERE "authWithEmail" = true;
+INSERT INTO "AuthMethod" ("projectId", "id", "projectUserId", "authMethodConfigId", "projectConfigId", "createdAt", "updatedAt")
+    SELECT "projectId", "authMethodId", "projectUserId", "OtpAuthMethodConfig"."authMethodConfigId", "projectConfigId", "OtpAuthMethod"."createdAt", "OtpAuthMethod"."updatedAt"
+    FROM "OtpAuthMethod"
+    LEFT JOIN "Project" ON "OtpAuthMethod"."projectId" = "Project"."id"
+    LEFT JOIN "ProjectConfig" ON "Project"."configId" = "ProjectConfig"."id"
+    LEFT JOIN "OtpAuthMethodConfig" ON "ProjectConfig"."id" = "OtpAuthMethodConfig"."projectConfigId";
+
+
+
+
+
+-- Step 4: Drop stuff
+
+-- AlterTable
+ALTER TABLE "OAuthProviderConfig" DROP COLUMN "enabled";
+
+-- AlterTable
+ALTER TABLE "ProjectConfig" DROP COLUMN "credentialEnabled",
+DROP COLUMN "magicLinkEnabled";
+
+-- AlterTable
+ALTER TABLE "ProjectUser" DROP COLUMN "authWithEmail",
+DROP COLUMN "passwordHash",
+DROP COLUMN "primaryEmail",
+DROP COLUMN "primaryEmailVerified";
+
+-- DropTable
+DROP TABLE "ProjectUserEmailVerificationCode";
+
+-- DropTable
+DROP TABLE "ProjectUserMagicLinkCode";
+
+-- DropTable
+DROP TABLE "ProjectUserPasswordResetCode";
+
+
+
+
+-- Step 5: Add foreign keys and indices 
+
 -- CreateIndex
 CREATE UNIQUE INDEX "ContactChannel_projectId_projectUserId_type_isPrimary_key" ON "ContactChannel"("projectId", "projectUserId", "type", "isPrimary");
 
@@ -204,10 +306,10 @@ CREATE UNIQUE INDEX "ContactChannel_projectId_projectUserId_type_value_key" ON "
 CREATE UNIQUE INDEX "ConnectedAccount_projectId_oauthProviderConfigId_providerAc_key" ON "ConnectedAccount"("projectId", "oauthProviderConfigId", "providerAccountId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OtpAuthMethod_projectId_contactChannelType_contactChannelVa_key" ON "OtpAuthMethod"("projectId", "contactChannelType", "contactChannelValue");
+CREATE UNIQUE INDEX "OtpAuthMethod_projectId_contactChannelId_key" ON "OtpAuthMethod"("projectId", "contactChannelId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PasswordAuthMethod_projectId_identifierType_identifier_key" ON "PasswordAuthMethod"("projectId", "identifierType", "identifier");
+-- CREATE UNIQUE INDEX "PasswordAuthMethod_projectId_identifierType_identifier_key" ON "PasswordAuthMethod"("projectId", "identifierType", "identifier");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OAuthAuthMethod_projectId_oauthProviderConfigId_providerAcc_key" ON "OAuthAuthMethod"("projectId", "oauthProviderConfigId", "providerAccountId");
@@ -279,7 +381,7 @@ ALTER TABLE "AuthMethod" ADD CONSTRAINT "AuthMethod_projectId_projectUserId_fkey
 ALTER TABLE "AuthMethod" ADD CONSTRAINT "AuthMethod_projectConfigId_authMethodConfigId_fkey" FOREIGN KEY ("projectConfigId", "authMethodConfigId") REFERENCES "AuthMethodConfig"("projectConfigId", "id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OtpAuthMethod" ADD CONSTRAINT "OtpAuthMethod_projectId_projectUserId_contactChannelType_c_fkey" FOREIGN KEY ("projectId", "projectUserId", "contactChannelType", "contactChannelValue") REFERENCES "ContactChannel"("projectId", "projectUserId", "type", "value") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "OtpAuthMethod" ADD CONSTRAINT "OtpAuthMethod_projectId_projectUserId_contactChannelId_fkey" FOREIGN KEY ("projectId", "projectUserId", "contactChannelId") REFERENCES "ContactChannel"("projectId", "projectUserId", "id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OtpAuthMethod" ADD CONSTRAINT "OtpAuthMethod_projectId_authMethodId_fkey" FOREIGN KEY ("projectId", "authMethodId") REFERENCES "AuthMethod"("projectId", "id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -304,3 +406,4 @@ ALTER TABLE "OAuthAuthMethod" ADD CONSTRAINT "OAuthAuthMethod_projectId_projectU
 
 -- AddForeignKey
 ALTER TABLE "OAuthAuthMethod" ADD CONSTRAINT "OAuthAuthMethod_projectConfigId_oauthProviderConfigId_fkey" FOREIGN KEY ("projectConfigId", "oauthProviderConfigId") REFERENCES "OAuthProviderConfig"("projectConfigId", "id") ON DELETE CASCADE ON UPDATE CASCADE;
+
