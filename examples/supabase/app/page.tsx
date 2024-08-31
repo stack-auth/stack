@@ -5,7 +5,7 @@ import { useStackApp, useUser } from "@stackframe/stack";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function Index() {
+export default function Page() {
   const app = useStackApp();
   const user = useUser();
   const supabase = createSupabaseClient();
