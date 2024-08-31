@@ -73,7 +73,7 @@ export default function PasswordResetForm(
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6">
+      <div className="text-center mb-6" style={{ width: '380px' }}>
         <Typography type='h2'>Reset Your Password</Typography>
       </div>
 

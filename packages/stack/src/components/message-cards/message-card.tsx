@@ -2,7 +2,7 @@
 
 import React from "react";
 import { MaybeFullPage } from "../elements/maybe-full-page";
-import { Button, Typography } from "@stackframe/stack-ui";
+import { Button, Container, Typography } from "@stackframe/stack-ui";
 
 export function MessageCard(
   { fullPage=false, ...props }:
@@ -18,7 +18,7 @@ export function MessageCard(
 ) {
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center stack-scope flex flex-col gap-4">
+      <div className="text-center stack-scope flex flex-col gap-4" style={{ width: '380px' }}>
         <Typography type='h3'>{props.title}</Typography>
         {props.children}
         {(props.primaryButtonText || props.secondaryButtonText) && (

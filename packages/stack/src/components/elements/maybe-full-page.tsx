@@ -6,15 +6,11 @@ import { SsrScript } from "./ssr-layout-effect";
 
 export function MaybeFullPage({
   children,
-  fullPage=true,
-  size=380,
-  fullVertical=false,
-  containerClassName,
+  fullPage,
 }: {
   children: React.ReactNode,
-  fullPage?: boolean,
+  fullPage: boolean,
   size?: number,
-  fullVertical?: boolean,
   containerClassName?: string,
 }) {
   const uniqueId = useId();
@@ -40,14 +36,12 @@ export function MaybeFullPage({
             minHeight: '100vh',
             alignSelf: 'stretch',
             display: 'flex',
-            alignItems: fullVertical ? 'stretch' : 'center',
             justifyContent: 'center',
+            alignItems: 'center',
           }}
           className="stack-scope"
         >
-          <Container size={size} className={cn(fullVertical ? undefined : 'p-4', containerClassName)}>
-            {children}
-          </Container>
+          {children}
         </div>
         <SsrScript script={scriptString} />
       </>

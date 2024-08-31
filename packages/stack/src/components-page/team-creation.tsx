@@ -42,8 +42,8 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   };
 
   return (
-    <MaybeFullPage fullPage={props.fullPage}>
-      <div className='stack-scope flex flex-col items-stretch'>
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px' }}>
         <div className="text-center mb-6">
           <Typography type='h2'>
             Create a Team
