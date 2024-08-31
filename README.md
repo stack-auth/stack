@@ -192,7 +192,7 @@ pnpm run prisma migrate dev
       class ExternalOAuth,Svix external
 ```
 
-Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
+Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram! If you want to chat with the Stack repository to get a high level overview of how it is structured and how to build off it, check out [Sage](https://sage.storia.ai).
 
 ## ❤️ Contributors
 
