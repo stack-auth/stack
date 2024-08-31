@@ -17,6 +17,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "geist": "^1.2.1",
+    "jose": "^5.2.2",
     "lucide-react": "^0.436.0",
     "next": "latest",
     "next-themes": "^0.3.0",
