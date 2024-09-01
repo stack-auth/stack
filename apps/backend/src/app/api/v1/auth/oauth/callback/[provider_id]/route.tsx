@@ -42,7 +42,6 @@ const handler = createSmartRouteHandler({
   }),
   async handler({ params, query, body }, fullReq) {
     const innerState = query.state ?? (body as any)?.state ?? "";
-    console.log("all cookies", cookies().getAll(), innerState);
     const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
     cookies().delete("stack-oauth-inner-" + innerState);
 
