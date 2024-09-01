@@ -6,7 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@stackframe/stack": "^2.5.27",
+    "@stackframe/stack": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "jose": "^5.2.2",

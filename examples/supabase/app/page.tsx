@@ -19,7 +19,7 @@ export default function Page() {
     <p>Loading...</p> :
     data.length === 0 ?
       <p>No notes found</p> :
-      data.map((note) => <li key={note.id}>{note.title}</li>);
+      data.map((note) => <li key={note.id}>{note.text}</li>);
 
   return (
     <div>

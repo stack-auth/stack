@@ -88,6 +88,10 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
               - page: Sign Up
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
+      - section: Integrations
+        contents:
+          - page: Supabase
+            path: ./docs/pages/integrations/supabase.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
