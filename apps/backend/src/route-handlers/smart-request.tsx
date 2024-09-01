@@ -227,14 +227,14 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         break;
       }
       default: {
-        throw new StackAssertionError(`Unexpected request type: ${requestType}. We should've filtered this earlier`);
+        throw new StackAssertionError(`Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`);
       }
     }
   }
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project", { projectId });
+    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
   }
 
   let user = null;

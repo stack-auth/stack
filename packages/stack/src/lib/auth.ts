@@ -1,9 +1,10 @@
 import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { constructRedirectUrl } from "../utils/url";
-import { getVerifierAndState, saveVerifierAndState } from "./cookie";
+import { consumeVerifierAndStateCookie, saveVerifierAndState } from "./cookie";
 
 export async function signInWithOAuth(
   iface: StackClientInterface,
@@ -59,7 +60,7 @@ export async function addNewOAuthProviderOrScope(
  *
  * Must be synchronous for the logic in callOAuthCallback to work without race conditions.
  */
-function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
+function consumeOAuthCallbackQueryParams() {
   const requiredParams = ["code", "state"];
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
@@ -69,10 +70,21 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
     }
   }
 
-  if (expectedState !== originalUrl.searchParams.get("state")) {
-    // If the state doesn't match, then the callback wasn't meant for us.
+  const expectedState = originalUrl.searchParams.get("state") ?? throwErr("This should never happen; isn't state required above?");
+  const cookieResult = consumeVerifierAndStateCookie(expectedState);
+
+  if (!cookieResult) {
+    // If the state can't be found in the cookies, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
-    captureError("consumeOAuthCallbackQueryParams", new Error(`Invalid OAuth callback state: Are you using another OAuth authentication with the same callback URL as Stack, or did your cookies reset?`));
+    captureError("consumeOAuthCallbackQueryParams", new Error(deindent`
+      Stack found an outer OAuth callback state in the query parameters, but not in cookies.
+      
+      This could have multiple reasons:
+        - The cookie expired, because the OAuth flow took too long.
+        - The user's browser deleted the cookie, either manually or because of a very strict cookie policy.
+        - The cookie was already consumed by this page, and the user already logged in.
+        - You are using another OAuth client library with the same callback URL as Stack.
+    `));
     return null;
   }
 
@@ -90,7 +102,11 @@ function consumeOAuthCallbackQueryParams(expectedState: string): null | URL {
   // prevent an unnecessary reload
   window.history.replaceState({}, "", newUrl.toString());
 
-  return originalUrl;
+  return {
+    originalUrl,
+    codeVerifier: cookieResult.codeVerifier,
+    state: expectedState,
+  };
 }
 
 export async function callOAuthCallback(
@@ -100,21 +116,18 @@ export async function callOAuthCallback(
   // note: this part of the function (until the return) needs
   // to be synchronous, to prevent race conditions when
   // callOAuthCallback is called multiple times in parallel
-  const { codeVerifier, state } = getVerifierAndState();
-  if (!codeVerifier || !state) {
-    throw new Error("Invalid OAuth callback URL parameters. It seems like the OAuth flow was interrupted, so please try again.");
-  }
-  const originalUrl = consumeOAuthCallbackQueryParams(state);
-  if (!originalUrl) return null;
+  const consumed = consumeOAuthCallbackQueryParams();
+  if (!consumed) return null;
 
   // the rest can be asynchronous (we now know that we are the
-  // intended recipient of the callback)
+  // intended recipient of the callback, and the only instance
+  // of callOAuthCallback that's running)
   try {
     return await iface.callOAuthCallback({
-      oauthParams: originalUrl.searchParams,
+      oauthParams: consumed.originalUrl.searchParams,
       redirectUri: constructRedirectUrl(redirectUrl),
-      codeVerifier,
-      state,
+      codeVerifier: consumed.codeVerifier,
+      state: consumed.state,
     });
   } catch (e) {
     if (e instanceof KnownError) {

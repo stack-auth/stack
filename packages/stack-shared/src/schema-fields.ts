@@ -13,6 +13,7 @@ const _serverMetaDataDescription = (identify: string) => `Server metadata. Used 
 const _atMillisDescription = (identify: string) => `(the number of milliseconds since epoch, January 1, 1970, UTC)`;
 const _createdAtMillisDescription = (identify: string) => `The time the ${identify} was created ${_atMillisDescription(identify)}`;
 const _signedUpAtMillisDescription = `The time the user signed up ${_atMillisDescription}`;
+const _lastActiveAtMillisDescription = `The time the user was last active ${_atMillisDescription}`;
 
 
 declare const StackAdaptSentinel: unique symbol;
@@ -206,6 +207,7 @@ export const userOAuthProviderSchema = yupObject({
   type: yupString().oneOf(allProviders).required(),
   provider_user_id: yupString().required(),
 });
+export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });

@@ -211,6 +211,11 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     enableGlobalFilter: true,
   },
   {
+    accessorKey: "lastActiveAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
+    cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
+  },
+  {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,

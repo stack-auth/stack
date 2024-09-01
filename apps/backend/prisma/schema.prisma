@@ -766,6 +766,8 @@ model Event {
   // TODO: add event_type, and at least one of either system_event_type or event_type is always set
   systemEventTypeIds String[]
   data               Json
+
+  @@index([data(ops: JsonbPathOps)], type: Gin)
 }
 
 //#endregion

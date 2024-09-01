@@ -30,12 +30,13 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
   - [Templates](#templates)
   - [Examples](#examples)
-- [🏗️ Development & Contribution](#-development--contribution)
+- [🏗 Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
+  - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
-- [❤️ Contributors](#-contributors)
+- [❤ Contributors](#-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -84,7 +85,7 @@ Have your own? Happy to feature it if you create a PR or message us on [Discord]
 - [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/demo)
 - [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/e-commerce)
 
-## 🏗️ Development & Contribution
+## 🏗 Development & Contribution
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
 
@@ -146,6 +147,10 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
+### Chat with the codebase
+
+Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that can answer questions about using and contributing to Stack.
+
 ### Architecture overview
 
 ```mermaid
@@ -194,7 +199,7 @@ pnpm run prisma migrate dev
 
 Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
 
-## ❤️ Contributors
+## ❤ Contributors
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" width="100%" />

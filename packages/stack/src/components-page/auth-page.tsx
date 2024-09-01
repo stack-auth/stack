@@ -58,7 +58,7 @@ export function AuthPage({
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className='stack-scope flex flex-col items-stretch'>
+      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: fullPage ? '1rem' : 0 }}>
         <div className="text-center mb-6">
           <Typography type='h2'>
             {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}

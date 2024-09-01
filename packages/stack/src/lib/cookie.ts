@@ -68,8 +68,7 @@ export async function saveVerifierAndState() {
   const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
   const state = generateRandomState();
 
-  setCookie("stack-outer-code-verifier", codeVerifier, { maxAge: 60 * 10 });
-  setCookie("stack-outer-state", state, { maxAge: 60 * 10 });
+  setCookie("stack-oauth-outer-" + state, codeVerifier, { maxAge: 60 * 60 });
 
   return {
     codeChallenge,
@@ -77,11 +76,14 @@ export async function saveVerifierAndState() {
   };
 }
 
-export function getVerifierAndState() {
-  const codeVerifier = getCookie("stack-outer-code-verifier");
-  const state = getCookie("stack-outer-state");
+export function consumeVerifierAndStateCookie(state: string) {
+  const cookieName = "stack-oauth-outer-" + state;
+  const codeVerifier = getCookie(cookieName);
+  if (!codeVerifier) {
+    return null;
+  }
+  deleteCookie(cookieName);
   return {
     codeVerifier,
-    state,
   };
 }

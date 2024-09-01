@@ -1573,6 +1573,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     return {
       ...super._createBaseUser(crud),
+      lastActiveAt: new Date(crud.last_active_at_millis),
       serverMetadata: crud.server_metadata,
       async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
         await app._updateServerUser(crud.id, { primaryEmail: email, primaryEmailVerified: options?.verified });
@@ -2405,6 +2406,8 @@ type ___________server_user = never;  // this is a marker for VSCode's outline v
 
 type ServerBaseUser = {
   setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
+
+  readonly lastActiveAt: Date,
 
   readonly serverMetadata: any,
   setServerMetadata(metadata: any): Promise<void>,

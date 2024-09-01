@@ -80,6 +80,7 @@ export class StackClientInterface {
       }
     });
     return {
+      "navigator?.onLine": globalVar.navigator?.onLine,
       cfTrace,
       apiRoot,
       baseUrlBackend,
@@ -97,7 +98,7 @@ export class StackClientInterface {
 
     // try to diagnose the error for the user
     if (retriedResult.status === "error") {
-      if (!navigator.onLine) {
+      if (globalVar.navigator && !globalVar.navigator.onLine) {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
       throw new Error(deindent`
@@ -342,7 +343,7 @@ export class StackClientInterface {
       const error = await res.text();
 
       // Do not retry, throw error instead of returning one
-      throw new Error(`Failed to send request to ${url}: ${res.status} ${error}`);
+      throw new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
     }
   }
 
