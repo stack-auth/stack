@@ -622,7 +622,7 @@ importers:
   examples/supabase:
     dependencies:
       '@stackframe/stack':
-        specifier: ^2.5.27
+        specifier: latest
         version: 2.5.27(@babel/core@7.24.7)(@types/react-dom@18.2.18)(@types/react@18.2.46)(next@14.2.7(@babel/core@7.24.7)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@supabase/ssr':
         specifier: latest
