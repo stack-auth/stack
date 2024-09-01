@@ -8,6 +8,7 @@
   "editor.tabSize": 2,
   "cSpell.words": [
     "cjsx",
+    "clsx",
     "codegen",
     "Crudl",
     "ctsx",
@@ -42,6 +43,7 @@
     "typecheck",
     "typehack",
     "Uncapitalize",
+    "upsert",
     "Whitespaces",
     "wolfgunblood"
   ],

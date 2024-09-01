@@ -48,12 +48,12 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     });
   },
   async handler(project, { email }, data) {
-    const authMethod = await prismaClient.otpAuthMethod.findUnique({
+    const authMethods = await prismaClient.otpAuthMethod.findMany({
       where: {
-        projectId_contactChannelType_contactChannelValue: {
-          projectId: project.id,
-          contactChannelType: "EMAIL",
-          contactChannelValue: email,
+        projectId: project.id,
+        contactChannel: {
+          type: "EMAIL",
+          value: email,
         },
       },
       include: {
@@ -61,9 +61,14 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       }
     });
 
-    if (!authMethod) {
-      throw new StackAssertionError("authMethod not found");
+    if (authMethods.length === 0) {
+      throw new StackAssertionError("Tried to use OTP sign in but auth method was not found?");
     }
+    if (authMethods.length > 1) {
+      throw new StackAssertionError("Tried to use OTP sign in but found multiple auth methods? The uniqueness on the DB schema should prevent this");
+    }
+
+    const authMethod = authMethods[0];
 
     if (authMethod.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({

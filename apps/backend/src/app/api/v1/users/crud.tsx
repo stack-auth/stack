@@ -260,7 +260,7 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   return otpConfig[0];
 }
 
-        export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
+export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
   const event = await prismaClient.event.findFirst({
     where: {
       data: {
@@ -441,7 +441,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       if (data.primary_email) {
         const contactChannel = await tx.contactChannel.create({
           data: {
-            projectConfigId: auth.project.config.id,
             projectUserId: newUser.projectUserId,
             projectId: auth.project.id,
             type: 'EMAIL' as const,
@@ -463,8 +462,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               otpAuthMethod: {
                 create: {
                   projectUserId: newUser.projectUserId,
-                  contactChannelType: contactChannel.type,
-                  contactChannelValue: contactChannel.value,
+                  contactChannelId: contactChannel.id,
                 }
               }
             }
@@ -523,10 +521,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         throw new StackAssertionError("User was created but not found", newUser);
       }
 
-      return userPrismaToCrud(user);
+      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId, new Date()));
     });
-
-    const result = userPrismaToCrud(db, await getUserLastActiveAtMillis(db.projectUserId, new Date()));
 
     if (auth.project.config.create_team_on_sign_up) {
       await teamsCrudHandlers.adminCreate({
@@ -661,7 +657,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               },
             },
             create: {
-              projectConfigId: auth.project.config.id,
               projectUserId: params.user_id,
               projectId: auth.project.id,
               type: 'EMAIL' as const,
@@ -739,8 +734,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 otpAuthMethod: {
                   create: {
                     projectUserId: params.user_id,
-                    contactChannelType: primaryEmailChannel.type,
-                    contactChannelValue: primaryEmailChannel.value,
+                    contactChannelId: primaryEmailChannel.id,
                   }
                 }
               }
@@ -854,10 +848,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      return userPrismaToCrud(db);
+      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
     });
 
-    const result = userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,

@@ -175,7 +175,7 @@ export const emailUsernameSchema = yupString().meta({ openapiField: { descriptio
 export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
 export const emailPasswordSchema = yupString().meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
 // Project domain config
-export const domainSchema = yupString().test('is-https', 'Domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'example.com' } });
+export const projectTrustedDomainSchema = yupString().test('is-https', 'Trusted domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'https://example.com' } });
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
 
 // Users
@@ -213,8 +213,8 @@ export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openap
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
 export const emailOtpSignInCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct the magic link from. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/auth/otp/sign-in` endpoint.', exampleValue: 'https://example.com/handler/magic-link-callback' } });
 export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
-export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJBMTO...diI4QT' } });
-export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8nsoaq2...14y' } });
+export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJB2TO...diI4QT' } });
+export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8ns3aq2...14y' } });
 export const signInResponseSchema = yupObject({
   refresh_token: refreshTokenResponseSchema.required(),
   access_token: accessTokenResponseSchema.required(),

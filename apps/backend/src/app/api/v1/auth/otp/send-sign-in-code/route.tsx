@@ -3,7 +3,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
@@ -32,19 +32,24 @@ export const POST = createSmartRouteHandler({
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
-    const authMethod = await prismaClient.otpAuthMethod.findUnique({
+    const authMethods = await prismaClient.otpAuthMethod.findMany({
       where: {
-        projectId_contactChannelType_contactChannelValue: {
-          projectId: project.id,
-          contactChannelType: "EMAIL",
-          contactChannelValue: email,
-        }
+        projectId: project.id,
+        contactChannel: {
+          type: "EMAIL",
+          value: email,
+        },
       },
       include: {
         projectUser: true,
         contactChannel: true,
       }
     });
+
+    if (authMethods.length > 1) {
+      throw new StackAssertionError("Tried to send OTP sign in code but found multiple auth methods? The uniqueness on the DB schema should prevent this");
+    }
+    const authMethod = authMethods.length === 1 ? authMethods[0] : null;
 
     const isNewUser = !authMethod;
     if (isNewUser && !project.config.sign_up_enabled) {
@@ -87,7 +92,7 @@ export const POST = createSmartRouteHandler({
     // TODO use signInVerificationCodeHandler.sendCode instead of .createCode and then sending the code manually
     await sendEmailFromTemplate({
       project,
-      // TODO fill user object instead of specifying the extra variables below manually (sIVCH.sendCode would do this already)
+      // TODO fill user object instead of specifying the extra variables below manually (signInVerificationCodeHandler.sendCode would do this already)
       user: null,
       email,
       templateType: "magic_link",
