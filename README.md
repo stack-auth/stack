@@ -146,6 +146,10 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
+### Chat with the codebase
+
+Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that can answer questions about using and contributing to Stack.
+
 ### Architecture overview
 
 ```mermaid
