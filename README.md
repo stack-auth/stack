@@ -34,6 +34,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
+  - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
 - [❤️ Contributors](#-contributors)
 
