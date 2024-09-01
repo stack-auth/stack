@@ -35,6 +35,7 @@
     "qrcode",
     "reqs",
     "stackframe",
+    "supabase",
     "Svix",
     "totp",
     "typecheck",
