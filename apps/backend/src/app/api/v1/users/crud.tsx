@@ -122,6 +122,11 @@ export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: numb
 
 // same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
 export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: (number | Date)[]): Promise<number[]> => {
+  if (userIds.length === 0) {
+    // Prisma.join throws an error if the array is empty, so we need to handle that case
+    return [];
+  }
+
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
     SELECT data->>'userId' as "userId", MAX("createdAt") as "lastActiveAt"
     FROM "Event"
