@@ -18,13 +18,18 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   app,
   params: { stack } = {},
   searchParams = {},
-  fullPage = false,
+  fullPage,
 }: {
   app: StackServerApp<HasTokenStore>,
   params?: { stack?: string[] },
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {
+  if (fullPage === undefined) {
+    console.warn("Not specifying `fullPage` in the StackHandler options is deprecated; the default value will change to `false` in the next major version. Please specify `fullPage={true}` in your `app/[...stack]/handler/page.tsx` file to retain the current behavior.");
+    fullPage = true;
+  }
+
   if (!stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>

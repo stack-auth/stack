@@ -34,6 +34,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
+  - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
 - [❤️ Contributors](#-contributors)
 
@@ -145,6 +146,10 @@ If you make changes to the Prisma schema, you need to run the following command 
 ```sh
 pnpm run prisma migrate dev
 ```
+
+### Chat with the codebase
+
+Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that can answer questions about using and contributing to Stack.
 
 ### Architecture overview
 
