@@ -72,7 +72,7 @@ export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6 stack-scope" style={{ width: '380px' }}>
+      <div className="text-center mb-6 stack-scope" style={{ width: '380px', padding: fullPage ? '1rem' : 0 }}>
         <Typography type='h2'>Reset Your Password</Typography>
         <Typography>
           {"Don't need to reset? "}
