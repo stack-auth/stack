@@ -1,5 +1,12 @@
 # @stackframe/e-commerce-demo
 
+## 2.5.28
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.28
+
 ## 2.5.27
 
 ### Patch Changes
