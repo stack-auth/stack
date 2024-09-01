@@ -1,5 +1,6 @@
 ---
-slug: rest-api/examples
+slug: integrations/other-backend
+subtitle: Integrate Stack Auth with your own server with the REST APIs
 ---
 
 To authenticate your endpoints, you need to send the user's access token and refresh token in the headers of the request to your server, and then making a request to Stack's server API to verify the user's identity.
@@ -25,7 +26,7 @@ const response = await fetch('/api/users/me', {
 
 ## Authenticating the user on the server endpoints
 
-On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user.
+On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user. (more details on the headers [here](./../rest-api/auth.mdx).)
 
 <Tabs>
   <Tab title="Node.js">

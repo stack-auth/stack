@@ -92,6 +92,8 @@ navigation:
         contents:
           - page: Supabase
             path: ./docs/pages/integrations/supabase.mdx
+          - page: Other Backend Server
+            path: ./docs/pages/integrations/other-backend.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
@@ -125,9 +127,6 @@ navigation:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
-      - page: Examples
-        icon: fa-regular fa-code
-        path: ./docs/pages/rest-api/examples.mdx
       - api: Client API Reference
         slug: client
         api-name: client
