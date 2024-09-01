@@ -85,7 +85,7 @@ Have your own? Happy to feature it if you create a PR or message us on [Discord]
 - [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/demo)
 - [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/e-commerce)
 
-## 🏗️ Development & Contribution
+## 🏗 Development & Contribution
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
 
@@ -199,7 +199,7 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
 
 Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
 
-## ❤️ Contributors
+## ❤ Contributors
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" width="100%" />
