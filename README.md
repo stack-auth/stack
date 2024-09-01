@@ -30,13 +30,13 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
   - [Templates](#templates)
   - [Examples](#examples)
-- [🏗️ Development & Contribution](#-development--contribution)
+- [🏗 Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
   - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
-- [❤️ Contributors](#-contributors)
+- [❤ Contributors](#-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
