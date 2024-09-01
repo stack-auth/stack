@@ -343,7 +343,7 @@ export class StackClientInterface {
       const error = await res.text();
 
       // Do not retry, throw error instead of returning one
-      throw new Error(`Failed to send request to ${url}: ${res.status} ${error}`);
+      throw new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
     }
   }
 
