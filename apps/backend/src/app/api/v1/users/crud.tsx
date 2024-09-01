@@ -30,7 +30,10 @@ export const userFullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
-export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>): UsersCrud["Admin"]["Read"] => {
+export const userPrismaToCrud = (
+  prisma: Prisma.ProjectUserGetPayload<{ include: typeof userFullInclude}>,
+  lastActiveAtMillis: number,
+): UsersCrud["Admin"]["Read"] => {
   const selectedTeamMembers = prisma.teamMembers;
   if (selectedTeamMembers.length > 1) {
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
@@ -95,7 +98,43 @@ export const userPrismaToCrud = (prisma: Prisma.ProjectUserGetPayload<{ include:
     connected_accounts: connectedAccounts,
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
+    last_active_at_millis: lastActiveAtMillis,
   };
+};
+
+export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
+  const event = await prismaClient.event.findFirst({
+    where: {
+      data: {
+        path: ["$.userId"],
+        equals: userId,
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return event?.createdAt.getTime() ?? (
+    typeof fallbackTo === "number" ? fallbackTo : fallbackTo.getTime()
+  );
+};
+
+// same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
+export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: (number | Date)[]): Promise<number[]> => {
+  const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
+    SELECT data->>'userId' as "userId", MAX("createdAt") as "lastActiveAt"
+    FROM "Event"
+    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`})
+    GROUP BY data->>'userId'
+  `;
+
+  return userIds.map((userId, index) => {
+    const event = events.find(e => e.userId === userId);
+    return event ? event.lastActiveAt.getTime() : (
+      typeof fallbackTo[index] === "number" ? (fallbackTo[index] as number) : (fallbackTo[index] as Date).getTime()
+    );
+  });
 };
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
@@ -120,7 +159,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       throw new KnownErrors.UserNotFound();
     }
 
-    return userPrismaToCrud(db);
+    return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, db.createdAt));
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -137,8 +176,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       include: userFullInclude,
     });
 
+    const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
+
     return {
-      items: db.map(userPrismaToCrud),
+      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
       is_paginated: false,
     };
   },
@@ -192,7 +233,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       include: userFullInclude,
     });
 
-    const result = userPrismaToCrud(db);
+    const result = userPrismaToCrud(db, await getUserLastActiveAtMillis(db.projectUserId, new Date()));
 
     if (auth.project.config.create_team_on_sign_up) {
       await teamsCrudHandlers.adminCreate({
@@ -294,7 +335,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       return db;
     });
 
-    const result = userPrismaToCrud(db);
+    const result = userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
 
     await sendUserUpdatedWebhook({
       projectId: auth.project.id,
