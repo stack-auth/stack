@@ -23,7 +23,7 @@ const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"][
   redirect(`${errorRedirectUrl}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`);
 };
 
-export const GET = createSmartRouteHandler({
+const handler = createSmartRouteHandler({
   metadata: {
     hidden: true,
   },
@@ -295,3 +295,6 @@ export const GET = createSmartRouteHandler({
     }
   },
 });
+
+export const GET = handler;
+export const POST = handler;

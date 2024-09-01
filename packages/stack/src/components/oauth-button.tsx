@@ -4,6 +4,7 @@ import { Button } from '@stackframe/stack-ui';
 import { useStackApp } from '..';
 import Color from 'color';
 import { useId } from 'react';
+import { AppleIcon } from 'lucide-react';
 
 const iconSize = 22;
 
@@ -194,6 +195,16 @@ export function OAuthButton({
         border: "1px solid #333",
         name: "Gitlab",
         icon: <GitlabIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'apple': {
+      style = {
+        backgroundColor: "#000",
+        textColor: "#fff",
+        border: "1px solid #333",
+        name: "Apple",
+        icon: <AppleIcon />,
       };
       break;
     }
