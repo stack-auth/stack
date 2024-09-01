@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@stackframe/stack": "latest",
+    "@stackframe/stack": "workspace:*",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "jose": "^5.2.2",
