@@ -1,6 +1,5 @@
 import * as jose from "jose";
 import { getEnvVariable } from "./env";
-import { KnownErrors } from "..";
 
 const STACK_SERVER_SECRET = jose.base64url.decode(getEnvVariable("STACK_SERVER_SECRET"));
 
