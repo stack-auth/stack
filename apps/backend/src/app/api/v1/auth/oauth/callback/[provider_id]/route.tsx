@@ -31,7 +31,8 @@ const handler = createSmartRouteHandler({
     params: yupObject({
       provider_id: yupString().required(),
     }).required(),
-    query: yupMixed().required(),
+    query: yupMixed().optional(),
+    body: yupMixed().optional(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([302]).required(),
@@ -39,8 +40,9 @@ const handler = createSmartRouteHandler({
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({ params, query }, fullReq) {
-    const innerState = query.state ?? "";
+  async handler({ params, query, body }, fullReq) {
+    const innerState = query.state ?? (body as any)?.state ?? "";
+    console.log("all cookies", cookies().getAll(), innerState);
     const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
     cookies().delete("stack-oauth-inner-" + innerState);
 
@@ -50,7 +52,7 @@ const handler = createSmartRouteHandler({
 
     const outerInfoDB = await prismaClient.oAuthOuterInfo.findUnique({
       where: {
-        innerState: query.state,
+        innerState: innerState,
       },
     });
 
@@ -94,7 +96,10 @@ const handler = createSmartRouteHandler({
       const { userInfo, tokenSet } = await providerObj.getCallback({
         codeVerifier: innerCodeVerifier,
         state: innerState,
-        callbackParams: query,
+        callbackParams: {
+          ...query,
+          ...body,
+        },
       });
 
       if (type === "link") {
