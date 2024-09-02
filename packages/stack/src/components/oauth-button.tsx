@@ -242,6 +242,7 @@ export function OAuthButton({
       style = {
         backgroundColor: "#000",
         textColor: "#fff",
+        border: "1px solid #333",
         name: "Slack",
         icon: <SlackIcon iconSize={iconSize} />,
       };
