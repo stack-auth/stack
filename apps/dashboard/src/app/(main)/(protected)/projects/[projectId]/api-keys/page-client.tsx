@@ -98,22 +98,49 @@ function ShowKeyDialog(props: {
   const project = stackAdminApp.useProject();
   if (!props.apiKey) return null;
 
-  return <ActionDialog
-    open={!!props.apiKey}
-    title="API Key"
-    okButton={{ label: "Close" }}
-    onClose={props.onClose}
-    confirmText="I understand that I will not be able to view this key again."
-  >
-    <div className="flex flex-col gap-4">
-      <Typography>
-        Here are your API keys. Copy them to a safe place. You will not be able to view them again.
-      </Typography>
-      <EnvKeys
-        projectId={project.id}
-        publishableClientKey={props.apiKey.publishableClientKey}
-        secretServerKey={props.apiKey.secretServerKey}
-      />
-    </div>
-  </ActionDialog>;
+  const handleDowloadKeys = ()=>{
+    if (!props.apiKey) return;
+    const content = Object.entries({
+      NEXT_PUBLIC_STACK_PROJECT_ID: project.id,
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.apiKey.publishableClientKey,
+      STACK_SECRET_SERVER_KEY: props.apiKey.secretServerKey,
+      STACK_SUPER_SECRET_ADMIN_KEY: props.apiKey.superSecretAdminKey,
+    })
+      .filter(([k, v]) => v)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("\n");
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `api_keys.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <ActionDialog
+      open={!!props.apiKey}
+      title="API Key"
+      okButton={{ label: "Close" }}
+      onClose={props.onClose}
+      confirmText="I understand that I will not be able to view this key again."
+    >
+      <div className="flex flex-col gap-4">
+        <Typography>
+          Here are your API keys.{" "}
+          <span className="font-bold">
+            Copy them to a safe place. You will not be able to view them again.
+          </span>
+        </Typography>
+        <EnvKeys
+          projectId={project.id}
+          publishableClientKey={props.apiKey.publishableClientKey}
+          secretServerKey={props.apiKey.secretServerKey}
+        />
+        <Button variant="secondary" onClick={handleDowloadKeys}>Download Keys</Button>
+      </div>
+    </ActionDialog>
+  );
 }
