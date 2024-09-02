@@ -14,9 +14,9 @@ export class XProvider extends OAuthBaseProvider {
       ...(await OAuthBaseProvider.createConstructorArgs({
         issuer: "https://twitter.com",
         authorizationEndpoint: "https://twitter.com/i/oauth2/authorize",
-        tokenEndpoint: "https://twitter.com/i/oauth2/token",
+        tokenEndpoint: "https://api.x.com/2/oauth2/token",
         redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/x",
-        baseScope: "users.read offline.access",
+        baseScope: "users.read offline.access tweet.read",
         ...options,
       }))
     );
@@ -33,9 +33,9 @@ export class XProvider extends OAuthBaseProvider {
     ).then((res) => res.json());
 
     return validateUserInfo({
-      accountId: userInfo.id?.toString(),
+      accountId: userInfo?.id?.toString(),
       displayName: userInfo.name || userInfo.username,
-      email: undefined, // X Oauth2.0 doesn't support email
+      // email: undefined, // There is no way of getting email from X Oauth2.0 API
       profileImageUrl: userInfo.profile_image_url as any,
       emailVerified: false,
     });
