@@ -18,7 +18,7 @@ export class SlackProvider extends OAuthBaseProvider {
         redirectUri:
           getEnvVariable("STACK_BASE_URL") +
           "/api/v1/auth/oauth/callback/slack",
-        baseScope: "email,profile,openid",
+        baseScope: "",
         authorizationExtraParams: {
           user_scope: "email,profile,openid",
         },
@@ -35,7 +35,6 @@ export class SlackProvider extends OAuthBaseProvider {
         }
       }
     ).then(res => res.json());
-
     return validateUserInfo({
       accountId: userInfo.sub?.toString(),
       displayName: userInfo.name,
