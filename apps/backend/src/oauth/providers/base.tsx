@@ -10,6 +10,13 @@ export type TokenSet = {
   accessTokenExpiredAt: Date,
 };
 
+type SlackAuthedUser = {
+  id: string,
+  access_token: string,
+  scope: string,
+  token_type: string,
+}
+
 function processTokenSet(providerName: string, tokenSet: OIDCTokenSet): TokenSet {
   if (!tokenSet.access_token) {
     throw new StackAssertionError("No access token received", { tokenSet });
@@ -112,6 +119,18 @@ export abstract class OAuthBaseProvider {
     };
     try {
       tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
+      /*
+      Slack has access token in authed_user
+      */
+      if (tokenSet.authed_user){
+        const authedUser = tokenSet.authed_user as SlackAuthedUser;
+        tokenSet = {
+          id_token: authedUser.id,
+          access_token: authedUser.access_token,
+          scope: authedUser.scope,
+          token_type: authedUser.token_type,
+        } as OIDCTokenSet;
+      }
     } catch (error: any) {
       if (error?.error === "invalid_grant") {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
