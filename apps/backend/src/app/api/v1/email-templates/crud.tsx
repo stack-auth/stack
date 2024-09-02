@@ -93,7 +93,7 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
     await prismaClient.emailTemplate.delete({
       where: {
         projectConfigId_type: {
-          projectConfigId: auth.project.id,
+          projectConfigId: auth.project.config.id,
           type: dbType,
         },
       },
