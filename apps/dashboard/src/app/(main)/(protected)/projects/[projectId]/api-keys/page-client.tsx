@@ -98,26 +98,6 @@ function ShowKeyDialog(props: {
   const project = stackAdminApp.useProject();
   if (!props.apiKey) return null;
 
-  const handleDowloadKeys = ()=>{
-    if (!props.apiKey) return;
-    const content = Object.entries({
-      NEXT_PUBLIC_STACK_PROJECT_ID: project.id,
-      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.apiKey.publishableClientKey,
-      STACK_SECRET_SERVER_KEY: props.apiKey.secretServerKey,
-      STACK_SUPER_SECRET_ADMIN_KEY: props.apiKey.superSecretAdminKey,
-    })
-      .filter(([k, v]) => v)
-      .map(([k, v]) => `${k}=${v}`)
-      .join("\n");
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `api_keys.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <ActionDialog
@@ -139,7 +119,6 @@ function ShowKeyDialog(props: {
           publishableClientKey={props.apiKey.publishableClientKey}
           secretServerKey={props.apiKey.secretServerKey}
         />
-        <Button variant="secondary" onClick={handleDowloadKeys}>Download Keys</Button>
       </div>
     </ActionDialog>
   );
