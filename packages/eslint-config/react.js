@@ -5,9 +5,15 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:react-hooks/recommended"
   ],
-  "settings": {
-    "react": {
-      "version": "detect"
+  plugins: ["react", "react-hooks"],
+  parserOptions: {
+    ecmaFeatures: {
+      jsx: true
+    }
+  },
+  settings: {
+    react: {
+      version: "detect"
     }
   },
   // React specific overrides go here
