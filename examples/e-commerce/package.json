@@ -7,22 +7,22 @@
     "build": "next build",
     "start": "next start --port 8111",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf .next && rimraf node_modules"
   },
   "dependencies": {
     "@stackframe/stack": "workspace:*",
-    "next": "14.2.5",
+    "next": "^14.2.7",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "@stackframe/eslint-config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5",
-    "typescript": "^5"
+    "rimraf": "^5.0.5",
+    "typescript": "^5.5.4"
   }
 }

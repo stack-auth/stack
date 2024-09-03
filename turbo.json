@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
   "globalEnv": [
     "STACK_*",
     "NEXT_PUBLIC_*",
@@ -64,6 +65,9 @@
       "cache": false
     },
     "lint": {
+      "dependsOn": ["^codegen"]
+    },
+    "lint:fix": {
       "dependsOn": []
     },
     "codegen": {

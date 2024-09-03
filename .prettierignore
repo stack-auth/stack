@@ -1,0 +1,5 @@
+# Temporarily ignore the entire project until Prettier is configured.
+# This is required because VSCode will sometimes format files on save
+# and they will not necessarily match the repo's eslint rules.
+# TODO: Add Prettier package/configuration and update this file.
+**

@@ -1,7 +1,12 @@
-const defaults = require("../../eslint-configs/defaults.js");
+/** @type {import('eslint').Linter.BaseConfig} **/
+
+const defaults = require("@stackframe/eslint-config");
 
 module.exports = {
-  extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
+  extends: ["@stackframe/eslint-config", "@stackframe/eslint-config/next"],
+  parserOptions: {
+    projectService: true,
+  },
   ignorePatterns: ["/*", "!/src", "!/prisma"],
   rules: {
     "no-restricted-imports": [
@@ -25,7 +30,9 @@ module.exports = {
       },
     ],
     "no-restricted-syntax": [
-      ...defaults.rules["no-restricted-syntax"].filter(e => typeof e !== "object" || !e.message.includes("yupXyz")),
+      ...defaults.rules["no-restricted-syntax"].filter(
+        (e) => typeof e !== "object" || !e.message.includes("yupXyz")
+      ),
     ],
   },
 };

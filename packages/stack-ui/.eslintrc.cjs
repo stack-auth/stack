@@ -1,6 +1,9 @@
+/** @type {import('eslint').Linter.BaseConfig} **/
+
 module.exports = {
-  "extends": [
-    "../../eslint-configs/defaults.js",
-  ],
-  "ignorePatterns": ['/*', '!/src'],
+  extends: ["@stackframe/eslint-config/base", "@stackframe/eslint-config/react"],
+  parserOptions: {
+    projectService: true,
+  },
+  ignorePatterns: ["/*", "!/src"],
 };

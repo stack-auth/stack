@@ -6,14 +6,17 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch --clear-screen=false src/index.ts",
+    "lint": "eslint --ext .ts src",
+    "lint:fix": "eslint --fix --ext .ts src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@types/oidc-provider": "^8.5.1",
     "@stackframe/stack-shared": "workspace:*",
     "oidc-provider": "^8.5.1"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
+    "@types/oidc-provider": "^8.5.1",
     "tsx": "^4.16.2"
   }
 }

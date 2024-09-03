@@ -23,6 +23,7 @@
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "rimraf dist && concurrently -k \"tsup-node --watch\" \"npm run css:tw:watch\" \"npm run css:sc:watch\"",
     "lint": "eslint --ext .tsx,.ts .",
+    "lint:fix": "eslint --fix --ext .tsx,.ts .",
     "css": "npm run css:tw && npm run css:sc",
     "css:tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
     "css:tw": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
@@ -64,6 +65,7 @@
     "react": ">=18.2"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@types/color": "^3.0.6",
     "@types/cookie": "^0.6.0",
     "@types/js-cookie": "^3.0.6",
@@ -73,7 +75,7 @@
     "autoprefixer": "^10.4.17",
     "chokidar-cli": "^3.0.0",
     "esbuild": "^0.20.2",
-    "next": "^14.1.0",
+    "next": "^14.2.7",
     "postcss": "^8.4.38",
     "postcss-nested": "^6.0.1",
     "react": "^18.2.0",

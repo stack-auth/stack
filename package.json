@@ -20,7 +20,8 @@
     "start:backend": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-backend",
     "start:dashboard": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-dashboard",
     "start:oauth-mock-server": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/oauth-mock-server",
-    "lint": "only-allow pnpm && turbo run lint -- --max-warnings=0",
+    "lint": "only-allow pnpm && turbo run lint",
+    "lint:fix": "only-allow pnpm && turbo run lint:fix",
     "release": "only-allow pnpm && release",
     "peek": "only-allow pnpm && pnpm release --peek",
     "changeset": "only-allow pnpm && changeset",
@@ -29,37 +30,26 @@
     "generate-keys": "only-allow pnpm && turbo run generate-keys"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@testing-library/react": "^15.0.2",
-    "@types/node": "^20.8.10",
+    "@changesets/cli": "^2.27.7",
+    "@stackframe/eslint-config": "workspace:*",
+    "@testing-library/react": "^15.0.7",
+    "@types/node": "^20.16.2",
     "@types/supertest": "^6.0.2",
-    "@typescript-eslint/eslint-plugin": "^6.x",
-    "@typescript-eslint/parser": "^6.x",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^8.2.2",
-    "eslint": "8.30.0",
-    "eslint-config-next": "^14",
-    "eslint-config-standard-with-typescript": "^43",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.31.11",
-    "jsdom": "^24.0.0",
+    "dotenv-cli": "^7.3.0",
+    "jsdom": "^24.1.3",
     "only-allow": "^1.2.1",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.10",
     "supertest": "^6.3.4",
-    "tsup": "^8.0.2",
-    "turbo": "^2.0.6",
-    "typescript": "5.3.3",
-    "vitest": "^1.5.0"
-  },
-  "pnpm": {
-    "overrides": {}
+    "tsup": "^8.2.4",
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
   },
   "engines": {
     "npm": ">=10.0.0",
     "node": ">=20.0.0"
   },
-  "dependencies": {},
-  "packageManager": "pnpm@9.1.2"
+  "packageManager": "pnpm@9.9.0"
 }

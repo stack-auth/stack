@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
-    "lint": "eslint --ext .tsx,.ts ."
+    "lint": "eslint --ext .tsx,.ts .",
+    "lint:fix": "eslint --fix --ext .tsx,.ts ."
   },
   "files": [
     "README.md",
@@ -40,25 +41,26 @@
     }
   },
   "dependencies": {
-    "react-email": "2.1.0",
     "@react-email/components": "^0.0.14",
     "@react-email/render": "^0.0.12",
-    "lucide-react": "^0.378.0",
-    "react-colorful": "^5.6.1",
-    "zustand": "^4.5.2",
-    "zod": "^3.23.8",
+    "@stackframe/stack-shared": "workspace:*",
+    "@stackframe/stack-ui": "workspace:*",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0",
     "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
-    "@stackframe/stack-shared": "workspace:*",
-    "@stackframe/stack-ui": "workspace:*"
+    "lucide-react": "^0.378.0",
+    "react-colorful": "^5.6.1",
+    "react-email": "2.1.0",
+    "tailwind-merge": "^2.3.0",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "@stackframe/eslint-config": "workspace:*",
     "@types/lodash": "^4.17.5",
     "@types/react": "^18.2.66",
     "next": "^14.1.0",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "rimraf": "^5.0.5"
   }
 }

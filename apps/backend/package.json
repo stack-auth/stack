@@ -16,6 +16,7 @@
     "prisma": "pnpm run with-env prisma",
     "prisma-studio": "pnpm run with-env prisma studio --port 8106 --browser none",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
     "generate-docs": "pnpm run with-env tsx scripts/generate-docs.ts",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
@@ -34,7 +35,7 @@
     "bcrypt": "^5.1.1",
     "dotenv-cli": "^7.3.0",
     "jose": "^5.2.2",
-    "next": "^14.1",
+    "next": "^14.2.7",
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",
     "oslo": "^1.2.1",
@@ -48,6 +49,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",

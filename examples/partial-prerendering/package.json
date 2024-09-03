@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start --port 8109",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -16,11 +17,10 @@
     "@stackframe/stack": "workspace:*"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
-    "typescript": "^5"
+    "typescript": "^5.5.4"
   }
 }

@@ -1,9 +1,12 @@
+/** @type {import('eslint').Linter.BaseConfig} **/
+
 module.exports = {
-  "extends": [
-    "../../eslint-configs/defaults.js",
-  ],
-  "ignorePatterns": ['/*', '!/tests'],
-  "rules": {
+  extends: ["@stackframe/eslint-config"],
+  parserOptions: {
+    projectService: true,
+  },
+  ignorePatterns: ["/*", "!/tests"],
+  rules: {
     "no-restricted-imports": [
       "error",
       {
@@ -11,10 +14,10 @@ module.exports = {
           {
             group: ["vitest"],
             importNames: ["test", "it"],
-            message: "Use test or it from helpers instead.",
-          },
-        ],
-      },
-    ],
+            message: "Use test or it from helpers instead."
+          }
+        ]
+      }
+    ]
   }
 };

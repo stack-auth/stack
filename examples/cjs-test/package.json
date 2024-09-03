@@ -7,22 +7,22 @@
     "build": "next build",
     "start": "next start --port 8110",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "14.2.3",
+    "next": "^14.2.7",
     "react": "^18",
     "react-dom": "^18",
     "@stackframe/stack": "workspace:*"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5.5.4"
   }
 }

@@ -21,7 +21,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
-    "lint": "eslint --ext .tsx,.ts ."
+    "lint": "eslint --ext .tsx,.ts .",
+    "lint:fix": "eslint --fix --ext .tsx,.ts ."
   },
   "files": [
     "README.md",
@@ -34,9 +35,10 @@
     "react": ">=18.2"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "@stackframe/eslint-config": "workspace:*",
     "@types/react": "^18.2.66",
-    "next": "^14.1.0",
-    "react": "^18.2.0"
+    "next": "^14.2.7",
+    "react": "^18.2.0",
+    "rimraf": "^5.0.5"
   }
 }

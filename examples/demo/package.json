@@ -9,7 +9,8 @@
     "dev": "next dev --port 8103",
     "build": "next build",
     "start": "next start --port 8103",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -17,18 +18,19 @@
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",
-    "next": "^14.1",
+    "next": "^14.2.7",
     "next-themes": "^0.2.1",
     "react": "^18.2",
     "react-dom": "^18",
     "react-icons": "^5.0.1"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "@stackframe/eslint-config": "workspace:*",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
+    "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1"
   }
 }

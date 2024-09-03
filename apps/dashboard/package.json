@@ -13,6 +13,7 @@
     "start": "next start --port 8101",
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
   },
   "dependencies": {
@@ -39,7 +40,7 @@
     "geist": "^1",
     "jose": "^5.2.2",
     "lucide-react": "^0.378.0",
-    "next": "^14.1",
+    "next": "^14.2.7",
     "next-themes": "^0.2.1",
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",
@@ -60,6 +61,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",

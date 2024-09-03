@@ -7,10 +7,12 @@
     "test:watch": "vitest watch",
     "test": "vitest run",
     "lint": "eslint --ext .tsx,.ts .",
+    "lint:fix": "eslint --fix --ext .tsx,.ts .",
     "clean": "rimraf dist && rimraf node_modules",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stackframe/eslint-config": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "dotenv": "^16.4.5",
     "oslo": "^1.2.1"

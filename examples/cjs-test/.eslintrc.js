@@ -2,8 +2,8 @@
 
 module.exports = {
   extends: ["@stackframe/eslint-config/base", "@stackframe/eslint-config/next"],
+  ignorePatterns: ["*.jsx"],
   parserOptions: {
     projectService: true,
   },
-  ignorePatterns: ["/*", "!/src"],
-};
+}
