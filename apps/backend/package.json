@@ -15,6 +15,7 @@
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
     "prisma": "pnpm run with-env prisma",
     "prisma-studio": "pnpm run with-env prisma studio --port 8106 --browser none",
+    "format": "prettier . --write",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",
@@ -57,5 +59,6 @@
     "prisma": "^5.9.1",
     "rimraf": "^5.0.5",
     "tsx": "^4.7.2"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

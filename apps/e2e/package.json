@@ -6,6 +6,7 @@
   "scripts": {
     "test:watch": "vitest watch",
     "test": "vitest run",
+    "format": "prettier . --write",
     "lint": "eslint --ext .tsx,.ts .",
     "lint:fix": "eslint --fix --ext .tsx,.ts .",
     "clean": "rimraf dist && rimraf node_modules",
@@ -13,8 +14,10 @@
   },
   "dependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "dotenv": "^16.4.5",
     "oslo": "^1.2.1"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

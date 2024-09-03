@@ -1,0 +1,17 @@
+{
+  "name": "@stackframe/prettier-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-classnames": "^0.7.2",
+    "prettier-plugin-merge": "^0.7.1",
+    "prettier-plugin-tailwindcss": "^0.6.6"
+  }
+}

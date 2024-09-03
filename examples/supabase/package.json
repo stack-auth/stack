@@ -17,9 +17,12 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/node": "20.10.6",
     "@types/react": "18.2.46",
     "@types/react-dom": "18.2.18",
     "typescript": "5.3.3"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

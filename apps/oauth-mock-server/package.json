@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch --clear-screen=false src/index.ts",
+    "format": "prettier . --write",
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --fix --ext .ts src",
     "typecheck": "tsc --noEmit"
@@ -16,7 +17,9 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/oidc-provider": "^8.5.1",
     "tsx": "^4.16.2"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

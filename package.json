@@ -20,6 +20,7 @@
     "start:backend": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-backend",
     "start:dashboard": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-dashboard",
     "start:oauth-mock-server": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/oauth-mock-server",
+    "format": "only-allow pnpm && turbo run format",
     "lint": "only-allow pnpm && turbo run lint",
     "lint:fix": "only-allow pnpm && turbo run lint:fix",
     "release": "only-allow pnpm && release",
@@ -31,7 +32,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
-    "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@testing-library/react": "^15.0.7",
     "@types/node": "^20.16.2",
     "@types/supertest": "^6.0.2",
@@ -47,6 +48,7 @@
     "typescript": "^5.5.4",
     "vitest": "^1.6.0"
   },
+  "prettier": "@stackframe/prettier-config",
   "engines": {
     "npm": ">=10.0.0",
     "node": ">=20.0.0"

@@ -45,9 +45,11 @@
     "wolfgunblood"
   ],
   "[typescript]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": "explicit"
-      }
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
   },
-  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|"
+  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }

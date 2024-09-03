@@ -12,6 +12,7 @@
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8101",
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
+    "format": "prettier . --write",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
@@ -73,5 +75,6 @@
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.7.2"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

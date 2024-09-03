@@ -6,6 +6,7 @@
     "dev": "next dev --port 8109",
     "build": "next build",
     "start": "next start --port 8109",
+    "format": "prettier . --write",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit"
@@ -18,9 +19,11 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "typescript": "^5.5.4"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

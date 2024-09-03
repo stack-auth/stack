@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
+    "format": "prettier . --write",
     "lint": "eslint --ext .tsx,.ts .",
     "lint:fix": "eslint --fix --ext .tsx,.ts ."
   },
@@ -57,10 +58,12 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/lodash": "^4.17.5",
     "@types/react": "^18.2.66",
-    "next": "^14.1.0",
+    "next": "^14.2.7",
     "react": "^18.2.0",
     "rimraf": "^5.0.5"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }

@@ -1,0 +1,7 @@
+.next
+.turbo
+dist
+pnpm-lock.yaml
+
+# TODO: figure out why this has parsing errors with Prettier
+src/known-errors.tsx

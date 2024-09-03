@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
-    "lint": "eslint --ext .tsx,.ts ."
+    "format": "prettier . --write",
+    "lint": "eslint --ext .tsx,.ts .",
+    "lint:fix": "eslint --fix --ext .tsx,.ts ."
   },
   "files": [
     "README.md",
@@ -47,11 +49,13 @@
   },
   "devDependencies": {
     "@stackframe/eslint-config": "workspace:*",
+    "@stackframe/prettier-config": "workspace:*",
     "@types/bcrypt": "^5.0.2",
     "@types/react": "^18.2.66",
     "@types/uuid": "^9.0.8",
     "next": "^14.2.7",
     "react": "^18.2.0",
     "rimraf": "^5.0.5"
-  }
+  },
+  "prettier": "@stackframe/prettier-config"
 }
