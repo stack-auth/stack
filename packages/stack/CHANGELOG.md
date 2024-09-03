@@ -1,5 +1,13 @@
 # @stackframe/stack
 
+## 2.5.29
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.29
+- @stackframe/stack-shared@2.5.29
+- @stackframe/stack-ui@2.5.29
+
 ## 2.5.28
 
 ### Patch Changes

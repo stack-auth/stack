@@ -1,5 +1,13 @@
 # @stackframe/stack-backend
 
+## 2.5.29
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-emails@2.5.29
+  - @stackframe/stack-shared@2.5.29
+
 ## 2.5.28
 
 ### Patch Changes
