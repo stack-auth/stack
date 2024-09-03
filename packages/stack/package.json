@@ -27,7 +27,9 @@
     "css:tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
     "css:tw": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
     "css:sc": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts",
-    "css:sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts'"
+    "css:sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts'",
+    "prebuild": "npx quetzal-process-translations",
+    "predev": "npx quetzal-process-translations"
   },
   "files": [
     "README.md",
@@ -37,6 +39,7 @@
   ],
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
+    "@quetzallabs/i18n": "^0.1.15",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",
@@ -45,6 +48,8 @@
     "clsx": "^2.0.0",
     "color": "^4.2.3",
     "cookie": "^0.6.0",
+    "i18next": "^23.14.0",
+    "i18next-parser": "^9.0.2",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.378.0",
     "oauth4webapi": "^2.10.3",
