@@ -84,4 +84,4 @@ export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
       <ForgotPasswordForm onSent={() => setSent(true)} />
     </MaybeFullPage>
   );
-};
+}

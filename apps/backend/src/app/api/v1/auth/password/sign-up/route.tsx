@@ -1,10 +1,9 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject, yupString, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
@@ -36,7 +35,7 @@ export const POST = createSmartRouteHandler({
       user_id: yupString().required(),
     }).required(),
   }),
-  async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }

@@ -103,11 +103,11 @@ export class StackClientInterface {
       }
       throw new Error(deindent`
         Stack is unable to connect to the server. Please check your internet connection and try again.
-        
+
         If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
 
         ${retriedResult.error}
-        
+
         ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
       `, { cause: retriedResult.error });
     }
@@ -236,10 +236,10 @@ export class StackClientInterface {
     /**
      * `tokenObj === null` means the session is invalid/not logged in
      */
-    let tokenObj = await session.getPotentiallyExpiredTokens();
+    const tokenObj = await session.getPotentiallyExpiredTokens();
 
-    let adminSession = "projectOwnerSession" in this.options ? this.options.projectOwnerSession : null;
-    let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
+    const adminSession = "projectOwnerSession" in this.options ? this.options.projectOwnerSession : null;
+    const adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
 
     // all requests should be dynamic to prevent Next.js caching
     cookies?.();
@@ -247,7 +247,7 @@ export class StackClientInterface {
     const url = this.getApiUrl() + path;
     const params: RequestInit = {
       /**
-       * This fetch may be cross-origin, in which case we don't want to send cookies of the
+       * This fetch may be cross-origin, in which case we don't want to send cookies of the
        * original origin (this is the default behavior of `credentials`).
        *
        * To help debugging, also omit cookies on same-origin, so we don't accidentally
@@ -1081,4 +1081,3 @@ export class StackClientInterface {
     return await response.json();
   }
 }
-

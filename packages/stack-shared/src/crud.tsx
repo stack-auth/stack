@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import * as yup from 'yup';
 import { NullishCoalesce } from './utils/types';
-import { FilterUndefined, filterUndefined } from './utils/objects';
+import { filterUndefined } from './utils/objects';
 
 export type AccessType = "client" | "server" | "admin";
 export type CrudOperation = "create" | "read" | "update" | "delete";
@@ -115,6 +116,7 @@ export type CrudTypeOf<S extends CrudSchema> = {
   Admin: InnerCrudTypeOf<S['admin']>,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type CrudDocsCreationOptions<SO extends CrudSchemaCreationOptions> = {
   [X in AccessTypeXCrudlOperation]?: EndpointDocumentation
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { StackAssertionError } from "./errors";
 import { camelCaseToSnakeCase, snakeCaseToCamelCase } from "./strings";
 
@@ -22,8 +23,8 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUnde
         return obj1.every((v, i) => deepPlainEquals(v, obj2[i], options));
       }
 
-      const entries1 = Object.entries(obj1).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
-      const entries2 = Object.entries(obj2).filter(([k, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      const entries1 = Object.entries(obj1).filter(([, v]) => !options.ignoreUndefinedValues || v !== undefined);
+      const entries2 = Object.entries(obj2).filter(([, v]) => !options.ignoreUndefinedValues || v !== undefined);
       if (entries1.length !== entries2.length) return false;
       return entries1.every(([k, v1]) => {
         const e2 = entries2.find(([k2]) => k === k2);

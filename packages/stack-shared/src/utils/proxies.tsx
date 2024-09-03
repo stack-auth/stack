@@ -1,6 +1,6 @@
 import { nicify } from "./strings";
 
-export function logged<T extends object>(name: string, toLog: T, options: {} = {}): T {
+export function logged<T extends object>(name: string, toLog: T): T {
   const proxy = new Proxy(toLog, {
     get(target, prop, receiver) {
       const orig = Reflect.get(target, prop, receiver);
@@ -87,7 +87,7 @@ export function createLazyProxy<FactoryResult>(factory: () => FactoryResult): Fa
       const instance = initializeIfNeeded();
       return Reflect.deleteProperty(instance, prop);
     },
-    ownKeys(target) {
+    ownKeys() {
       const instance = initializeIfNeeded();
       return Reflect.ownKeys(instance);
     },
@@ -99,7 +99,7 @@ export function createLazyProxy<FactoryResult>(factory: () => FactoryResult): Fa
       const instance = initializeIfNeeded();
       return Reflect.defineProperty(instance, prop, descriptor);
     },
-    getPrototypeOf(target) {
+    getPrototypeOf() {
       const instance = initializeIfNeeded();
       return Reflect.getPrototypeOf(instance);
     },
@@ -107,11 +107,11 @@ export function createLazyProxy<FactoryResult>(factory: () => FactoryResult): Fa
       const instance = initializeIfNeeded();
       return Reflect.setPrototypeOf(instance, proto);
     },
-    isExtensible(target) {
+    isExtensible() {
       const instance = initializeIfNeeded();
       return Reflect.isExtensible(instance);
     },
-    preventExtensions(target) {
+    preventExtensions() {
       const instance = initializeIfNeeded();
       return Reflect.preventExtensions(instance);
     },

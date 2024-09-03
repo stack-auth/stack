@@ -5,7 +5,6 @@ import * as yup from "yup";
 import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
-import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type SmartResponse = {
   statusCode: number,

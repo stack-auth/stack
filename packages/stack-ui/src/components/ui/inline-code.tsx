@@ -26,7 +26,7 @@ const InlineCode = React.forwardRef<
           try {
             await navigator.clipboard.writeText(getNodeText(props.children));
             toast({ description: 'Copied to clipboard!' });
-          } catch (e) {
+          } catch {
             toast({ description: 'Failed to copy to clipboard', variant: 'destructive' });
           }
         });

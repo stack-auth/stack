@@ -32,7 +32,7 @@ export const POST = createSmartRouteHandler({
       user_id: yupString().required(),
     }).required(),
   }),
-  async handler({ auth: { project }, body: { email, password } }, fullReq) {
+  async handler({ auth: { project }, body: { email, password } }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }

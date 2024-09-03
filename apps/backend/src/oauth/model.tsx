@@ -192,6 +192,8 @@ export class OAuthModel implements AuthorizationCodeModel {
     };
   }
 
+  // TODO: This function isn't used. Determine if it should be removed.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async revokeToken(token: RefreshToken): Promise<boolean> {
     // No refreshToken rotation for now (see Git history for old code)
     return true;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import * as yup from "yup";
 import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteHandler } from "./smart-route-handler";
 import { SmartResponse } from "./smart-response";
@@ -146,7 +147,6 @@ export function createVerificationCodeHandler<
               usedAt: new Date(),
             },
           });
-
           return await options.handler(auth.project, validatedMethod, validatedData, requestBody as any, auth.user);
         }
         case 'check': {

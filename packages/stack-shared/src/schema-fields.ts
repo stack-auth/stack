@@ -6,12 +6,12 @@ import { isUuid } from "./utils/uuids";
 
 const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name. This is not a unique identifier.`;
-const _clientMetaDataDescription = (identify: string) => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
-const _clientReadOnlyMetaDataDescription = (identify: string) => `Client read-only, server-writable metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client. The client can read this data, but cannot modify it. This is useful for things like subscription status.`;
+const _clientMetaDataDescription = () => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
+const _clientReadOnlyMetaDataDescription = () => `Client read-only, server-writable metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client. The client can read this data, but cannot modify it. This is useful for things like subscription status.`;
 const _profileImageUrlDescription = (identify: string) => `URL of the profile image for ${identify}. Can be a Base64 encoded image. Must be smaller than 100KB. Please compress and crop to a square before passing in.`;
 const _serverMetaDataDescription = (identify: string) => `Server metadata. Used as a data store, only accessible from the server side. You can store secret information related to the ${identify} here.`;
-const _atMillisDescription = (identify: string) => `(the number of milliseconds since epoch, January 1, 1970, UTC)`;
-const _createdAtMillisDescription = (identify: string) => `The time the ${identify} was created ${_atMillisDescription(identify)}`;
+const _atMillisDescription = () => `(the number of milliseconds since epoch, January 1, 1970, UTC)`;
+const _createdAtMillisDescription = (identify: string) => `The time the ${identify} was created ${_atMillisDescription()}`;
 const _signedUpAtMillisDescription = `The time the user signed up ${_atMillisDescription}`;
 const _lastActiveAtMillisDescription = `The time the user was last active ${_atMillisDescription}`;
 
@@ -36,6 +36,7 @@ export function yupBoolean<A extends boolean, B extends yup.Maybe<yup.AnyObject>
 export function yupDate<A extends Date, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.date<A, B>>) {
   return yup.date(...args);
 }
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function yupMixed<A extends {}>(...args: Parameters<typeof yup.mixed<A>>) {
   return yup.mixed(...args);
 }
@@ -121,7 +122,7 @@ export const jsonStringSchema = yupString().test("json", "Invalid JSON format", 
   try {
     JSON.parse(value);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 });
@@ -130,7 +131,7 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
   try {
     JSON.parse(value);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 });
@@ -199,8 +200,8 @@ export const userDisplayNameSchema = yupString().nullable().meta({ openapiField:
 export const selectedTeamIdSchema = yupString().uuid().meta({ openapiField: { description: 'ID of the team currently selected by the user', exampleValue: 'team-id' } });
 export const profileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('user'), exampleValue: 'https://example.com/image.jpg' } });
 export const signedUpAtMillisSchema = yupNumber().meta({ openapiField: { description: _signedUpAtMillisDescription, exampleValue: 1630000000000 } });
-export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('user'), exampleValue: { key: 'value' } } });
-export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
+export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription(), exampleValue: { key: 'value' } } });
+export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription(), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userOAuthProviderSchema = yupObject({
   type: yupString().required(),
@@ -249,8 +250,8 @@ export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdS
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });
 export const teamDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team'), exampleValue: 'My Team' } });
 export const teamProfileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('team'), exampleValue: 'https://example.com/image.jpg' } });
-export const teamClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('team'), exampleValue: { key: 'value' } } });
-export const teamClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('team'), exampleValue: { key: 'value' } } });
+export const teamClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription(), exampleValue: { key: 'value' } } });
+export const teamClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription(), exampleValue: { key: 'value' } } });
 export const teamServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('team'), exampleValue: { key: 'value' } } });
 export const teamCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('team'), exampleValue: 1630000000000 } });
 export const teamInvitationEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });

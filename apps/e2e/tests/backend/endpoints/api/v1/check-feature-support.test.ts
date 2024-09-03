@@ -1,6 +1,5 @@
 import { it } from "../../../../helpers";
-import { InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
-import { describe } from "vitest";
+import { niceBackendFetch } from "../../../backend-helpers";
 
 it("should return an error message", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/check-feature-support", {

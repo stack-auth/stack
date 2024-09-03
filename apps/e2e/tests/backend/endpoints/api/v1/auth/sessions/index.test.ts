@@ -101,6 +101,7 @@ it("creates sessions that expire", async ({ expect }) => {
   } finally {
     const timeSinceBeginDate = new Date().getTime() - beginDate.getTime();
     if (timeSinceBeginDate > 4_000) {
+      // eslint-disable-next-line no-unsafe-finally
       throw new StackAssertionError(`Timeout error: Requests were too slow (${timeSinceBeginDate}ms > 4000ms); try again or try to understand why they were slow.`);
     }
   }

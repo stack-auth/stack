@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable @typescript-eslint/no-this-alias */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { isReactServer } from "@stackframe/stack-sc";
 import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
@@ -469,7 +472,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
   protected _getTokensFromCookies(cookies: { refreshTokenCookie: string | null, accessTokenCookie: string | null }): TokenObject {
     const refreshToken = cookies.refreshTokenCookie;
-    const accessTokenObject = cookies.accessTokenCookie?.startsWith('[\"') ? JSON.parse(cookies.accessTokenCookie) : null;  // gotta check for validity first for backwards-compat, and also in case someone messes with the cookie value
+    const accessTokenObject = cookies.accessTokenCookie?.startsWith('["') ? JSON.parse(cookies.accessTokenCookie) : null;  // gotta check for validity first for backwards-compat, and also in case someone messes with the cookie value
     const accessToken = accessTokenObject && refreshToken === accessTokenObject[0] ? accessTokenObject[1] : null;  // if the refresh token has changed, the access token is invalid
     return {
       refreshToken,
@@ -529,7 +532,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     return this._storedCookieTokenStore;
-  };
+  }
   protected _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
@@ -637,7 +640,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }));
     });
 
-    let sessionsBySessionKey = this._sessionsByTokenStoreAndSessionKey.get(tokenStore) ?? new Map();
+    const sessionsBySessionKey = this._sessionsByTokenStoreAndSessionKey.get(tokenStore) ?? new Map();
     this._sessionsByTokenStoreAndSessionKey.set(tokenStore, sessionsBySessionKey);
     sessionsBySessionKey.set(sessionKey, session);
     return session;
@@ -988,7 +991,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (isReactServer || typeof window === "undefined") {
           try {
             await this._checkFeatureSupport("rsc-handler-" + handlerName, {});
-          } catch (e) {}
+          } catch (e) { /* empty */ }
         } else {
           const queryParams = new URLSearchParams(window.location.search);
           url = queryParams.get("after_auth_return_to") || url;
@@ -997,7 +1000,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (isReactServer || typeof window === "undefined") {
           try {
             await this._checkFeatureSupport("rsc-handler-" + handlerName, {});
-          } catch (e) {}
+          } catch (e) { /* empty */ }
         } else {
           const currentUrl = new URL(window.location.href);
           const nextUrl = new URL(url, currentUrl);
@@ -1444,7 +1447,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([this._getSession()], userJsonPromise));
       },
     };
-  };
+  }
 }
 
 class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends string> extends _StackClientAppImpl<HasTokenStore, ProjectId>
@@ -1967,7 +1970,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   _adminOwnedProjectFromCrud(data: InternalProjectsCrud['Admin']['Read'], onRefresh: () => Promise<void>): AdminOwnedProject {
     if (this._tokenStoreInit !== null) {
-      throw new StackAssertionError("Owned apps must always have tokenStore === null — did you not create this project with app._createOwnedApp()?");;
+      throw new StackAssertionError("Owned apps must always have tokenStore === null — did you not create this project with app._createOwnedApp()?");
     }
     return {
       ...this._adminProjectFromCrud(data, onRefresh),

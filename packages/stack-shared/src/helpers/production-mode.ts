@@ -22,7 +22,7 @@ export function getProductionModeErrors(project: ProjectsCrud["Admin"]["Read"]):
     let url;
     try {
       url = new URL(domain);
-    } catch (e) {
+    } catch {
       throw new StackAssertionError("Domain was somehow not a valid URL; we should've caught this when setting the domain in the first place", {
         domain,
         projectId: project

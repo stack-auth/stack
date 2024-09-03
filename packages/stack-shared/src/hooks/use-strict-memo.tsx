@@ -1,4 +1,4 @@
-import { useId, useInsertionEffect, useMemo } from "react";
+import { useId, useInsertionEffect } from "react";
 import { Result } from "../utils/results";
 
 type CacheInner = Map<unknown, CacheInner> | WeakMap<WeakKey, CacheInner> | { isNotNestedMap: true, value: any };

@@ -85,7 +85,7 @@ export async function logEvent<T extends EventType[]>(
     time?: Date | { start: Date, end: Date },
   } = {}
 ) {
-  let timeOrTimeRange = options.time ?? new Date();
+  const timeOrTimeRange = options.time ?? new Date();
   const timeRange = "start" in timeOrTimeRange && "end" in timeOrTimeRange ? timeOrTimeRange : { start: timeOrTimeRange, end: timeOrTimeRange };
   const isWide = timeOrTimeRange === timeRange;
 

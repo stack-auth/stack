@@ -4,6 +4,7 @@ import { stackServerApp } from "@/stack";
 
 export default async function Home() {
   const users = await stackServerApp.listUsers();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const shops: [ServerUser, Shop][] = users.map(user => [user, (user.serverMetadata as any)?.eCommerceExample?.shop] as any).filter(([_, shop]) => shop);
   const currentUser = await stackServerApp.getUser();
 

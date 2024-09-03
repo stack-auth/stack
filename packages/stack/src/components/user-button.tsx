@@ -8,7 +8,6 @@ import {
 } from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { UserAvatar } from "./elements/user-avatar";
-import { useRouter } from "next/navigation";
 import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton, Typography } from "@stackframe/stack-ui";
 
@@ -56,7 +55,6 @@ function UserButtonInner(props: UserButtonProps) {
 function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | null }) {
   const user = props.user;
   const app = useStackApp();
-  const router = useRouter();
 
   const iconProps = { size: 20, className: 'h-4 w-4' };
   const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';

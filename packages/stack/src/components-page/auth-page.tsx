@@ -9,7 +9,6 @@ import { PredefinedMessageCard } from '../components/message-cards/predefined-me
 import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { CredentialSignUp } from '../components/credential-sign-up';
 import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
-import { Project } from '../lib/stack-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { useEffect } from 'react';
 

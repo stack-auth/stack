@@ -7,7 +7,6 @@ import { render } from "@react-email/render";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { Body, Head, Html, Preview } from "@react-email/components";
 import * as Handlebars from 'handlebars/dist/handlebars.js';
-import _ from 'lodash';
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { teamInvitationTemplate } from "./templates/team-invitation";
@@ -111,7 +110,7 @@ export function objectStringMap<T extends NestedObject>(obj: T, func: (s: string
     const result: NestedObject = Array.isArray(obj) ? [] : {};
 
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const value = obj[key];
 
         if (typeof value === 'string') {
@@ -133,7 +132,7 @@ export function objectStringMap<T extends NestedObject>(obj: T, func: (s: string
 function renderString(str: string, variables: Record<string, string | null>) {
   try {
     return Handlebars.compile(str, {noEscape: true})(variables);
-  } catch (e) {
+  } catch {
     return str;
   }
 }

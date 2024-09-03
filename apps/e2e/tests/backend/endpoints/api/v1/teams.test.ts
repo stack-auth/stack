@@ -158,7 +158,7 @@ it("gets a specific team on the client", async ({ expect }) => {
 
 it("gets a specific team that the user is not part of on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response, teamId } = await Team.create();
+  const { teamId } = await Team.create();
 
   backendContext.set({
     mailbox: createMailbox()

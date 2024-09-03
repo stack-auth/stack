@@ -6,8 +6,6 @@ import { GetResult } from "@prisma/client/runtime/library";
 import { prismaClient } from "@/prisma-client";
 import * as yup from "yup";
 import { typedAssign } from "@stackframe/stack-shared/dist/utils/objects";
-import { EmailTemplateCrud } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
 
 type ReplaceNever<T, R> = [T] extends [never] ? R : T;
 

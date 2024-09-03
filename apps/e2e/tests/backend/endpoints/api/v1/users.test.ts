@@ -445,7 +445,6 @@ describe("with client access", () => {
 
   it("should be able to update totp_secret_base64 to valid base64", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const secret = generateSecureRandomString(32);
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
       method: "PATCH",

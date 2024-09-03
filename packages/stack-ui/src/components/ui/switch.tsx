@@ -8,7 +8,7 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 import { Spinner } from "./spinner";
 
-interface OriginalSwitchProps extends React.ComponentProps<typeof SwitchPrimitives.Root> {}
+type OriginalSwitchProps = React.ComponentProps<typeof SwitchPrimitives.Root>
 
 const OriginalSwitch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
@@ -31,7 +31,9 @@ const OriginalSwitch = React.forwardRef<
 ));
 OriginalSwitch.displayName = SwitchPrimitives.Root.displayName;
 interface AsyncSwitchProps extends OriginalSwitchProps {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   onCheckedChange?: (checked: boolean) => Promise<void> | void,
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void> | void,
   loading?: boolean,
 }

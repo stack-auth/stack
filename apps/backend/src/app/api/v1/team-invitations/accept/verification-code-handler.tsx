@@ -58,7 +58,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       },
     });
   },
-  async handler(project, {}, data, body, user) {
+  async handler(project, _, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired();
 
     const oldMembership = await prismaClient.teamMember.findUnique({
@@ -86,7 +86,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       body: {}
     };
   },
-  async details(project, {}, data, body, user) {
+  async details(project, _, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired();
 
     const team = await teamsCrudHandlers.adminRead({

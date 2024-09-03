@@ -9,7 +9,7 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -39,7 +39,7 @@ export const GET = createSmartRouteHandler({
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({ params, query }, fullReq) {
+  async handler({ params, query }) {
     const innerState = query.state ?? "";
     const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
     cookies().delete("stack-oauth-inner-" + innerState);
@@ -61,7 +61,7 @@ export const GET = createSmartRouteHandler({
     let outerInfo: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
     try {
       outerInfo = await oauthCookieSchema.validate(outerInfoDB.info);
-    } catch (error) {
+    } catch {
       throw new StackAssertionError("Invalid outer info");
     }
 

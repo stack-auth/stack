@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Team } from "..";
 import { Avatar, AvatarImage, Typography } from "@stackframe/stack-ui";
 

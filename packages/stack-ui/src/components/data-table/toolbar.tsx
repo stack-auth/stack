@@ -70,6 +70,7 @@ export function DataTableToolbar<TData>({
 
 
             const rowModel = table.getCoreRowModel();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const rows = rowModel.rows.map(row => Object.fromEntries(row.getAllCells().map(c => [c.column.id, renderCellValue(c)]).filter(([_, v]) => v !== undefined)));
             if (rows.length === 0) {
               alert("No data to export");

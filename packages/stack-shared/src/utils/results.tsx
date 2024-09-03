@@ -105,7 +105,7 @@ async function fromThrowingAsync<T>(fn: () => Promise<T>): Promise<Result<T, unk
   }
 }
 
-function mapResult<T, U, E = unknown, P = unknown>(result: Result<T, E>, fn: (data: T) => U): Result<U, E>;
+function mapResult<T, U, E = unknown>(result: Result<T, E>, fn: (data: T) => U): Result<U, E>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P> {
   if (result.status === "error") return {
@@ -129,7 +129,7 @@ class RetryError extends AggregateError {
       errors,
       deindent`
       Error after retrying ${errors.length} times.
-      
+
       ${isAllSame ? deindent`
         Attempts 1-${errors.length}:
           ${errors[0]}

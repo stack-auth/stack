@@ -10,7 +10,7 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -122,7 +122,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
   const getText = () => {
     try {
       return new TextDecoder().decode(bodyBuffer);
-    } catch (e) {
+    } catch {
       throw new KnownErrors.BodyParsingError("Request body cannot be parsed as UTF-8");
     }
   };
@@ -136,7 +136,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
       const text = getText();
       try {
         return JSON.parse(text);
-      } catch (e) {
+      } catch {
         throw new KnownErrors.BodyParsingError("Invalid JSON in request body");
       }
     }
@@ -150,7 +150,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
       const text = getText();
       try {
         return Object.fromEntries(new URLSearchParams(text).entries());
-      } catch (e) {
+      } catch {
         throw new KnownErrors.BodyParsingError("Invalid form data in request body");
       }
     }
@@ -162,13 +162,12 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
 
 async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const projectId = req.headers.get("x-stack-project-id");
-  let requestType = req.headers.get("x-stack-access-type");
+  const requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
   const secretServerKey = req.headers.get("x-stack-secret-server-key");
   const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
   const accessToken = req.headers.get("x-stack-access-token");
-  const refreshToken = req.headers.get("x-stack-refresh-token");
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
@@ -179,12 +178,10 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
   if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
-  let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {
     const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
     switch (reason) {
       case null: {
-        projectAccessType = "internal-user-token";
         break;
       }
       case "unparsable-access-token": {
@@ -209,21 +206,19 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { publishableClientKey });
         if (!isValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
-        projectAccessType = "key";
         break;
       }
       case "server": {
         if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { secretServerKey });
         if (!isValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
-        projectAccessType = "key";
         break;
       }
       case "admin": {
         if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
         const isValid = await checkApiKeySet(projectId, { superSecretAdminKey });
         if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
-        projectAccessType = "key";
+
         break;
       }
       default: {
@@ -272,8 +267,8 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
     body: await parseBody(req, bodyBuffer),
     headers: Object.fromEntries(
-      [...groupBy(req.headers.entries(), ([key, _]) => key.toLowerCase())]
-        .map(([key, values]) => [key, values.map(([_, value]) => value)]),
+      [...groupBy(req.headers.entries(), ([key]) => key.toLowerCase())]
+        .map(([key, values]) => [key, values.map(([, value]) => value)]),
     ),
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},

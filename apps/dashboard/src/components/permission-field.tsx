@@ -1,5 +1,5 @@
 import { FieldLabel } from "@/components/form-fields";
-import { AdminTeamPermissionDefinition, ServerTeam, ServerUser } from "@stackframe/stack";
+import { AdminTeamPermissionDefinition } from "@stackframe/stack";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { Checkbox, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@stackframe/stack-ui";
@@ -104,7 +104,7 @@ export class PermissionGraph {
     if (!permission) throw new Error(`Permission with id ${permissionId} not found`);
 
     const ancestors = [];
-    for (const [key, permission] of this.permissions.entries()) {
+    for (const [, permission] of this.permissions.entries()) {
       if (this.hasPermission(permission.id, permissionId)) {
         ancestors.push(permission);
       }
@@ -158,6 +158,7 @@ export function PermissionListField<F extends FieldValues>(props: {
       }
     }
     load().catch(console.error);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   }, [props.permissions, props.selectedPermissionId, props.type, props.user, props.team, props.selectedPermissionIds, props.containedPermissionIds]);
 

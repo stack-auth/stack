@@ -45,7 +45,7 @@ export async function getEmailTemplateWithDefault(projectId: string, type: keyof
 }
 
 function getPortConfig(port: number | string) {
-  let parsedPort = parseInt(port.toString());
+  const parsedPort = parseInt(port.toString());
   const secure = parsedPort === 465;
   return { secure };
 }

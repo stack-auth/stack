@@ -10,7 +10,7 @@ export default async function EditShop() {
   const user = await stackServerApp.getUser({ or: "redirect" });
   const shop: Shop | undefined = user.serverMetadata?.eCommerceExample?.shop ?? undefined;
 
-  async function createShop(formData: FormData) {
+  async function createShop() {
     "use server";
     await (await stackServerApp.listUsers()).find(u => u.id === user.id)!.setServerMetadata({
       // TODO this should be more like a transaction
@@ -32,7 +32,7 @@ export default async function EditShop() {
     revalidatePath("/");
   }
 
-  async function deleteShop(formData: FormData) {
+  async function deleteShop() {
     "use server";
     await (await stackServerApp.listUsers()).find(u => u.id === user.id)!.setServerMetadata({
       // TODO this should be more like a transaction

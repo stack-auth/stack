@@ -5,7 +5,7 @@ import { useDocument } from '../../documents/editor/editor-context';
 
 export default function DownloadJson() {
   const doc = useDocument();
-  const href = useMemo(() => {
+  useMemo(() => {
     return `data:text/plain,${encodeURIComponent(JSON.stringify(doc, null, '  '))}`;
   }, [doc]);
   return (

@@ -23,7 +23,7 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
   let error;
   try {
     error = KnownError.fromJson({ code: errorCode, message, details });
-  } catch (e) {
+  } catch {
     return unknownErrorCard;
   }
 

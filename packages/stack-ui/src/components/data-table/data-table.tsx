@@ -27,7 +27,6 @@ import {
 import React from "react";
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
-import { ColumnFilter } from "@tanstack/react-table";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[],

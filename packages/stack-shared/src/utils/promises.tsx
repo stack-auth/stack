@@ -80,7 +80,7 @@ export function neverResolve(): ReactPromise<never> {
   return neverResolvePromise;
 }
 
-export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?: boolean } = {}): ReactPromise<T> {
+export function pending<T>(promise: Promise<T>): ReactPromise<T> {
   const res = promise.then(
     value => {
       res.status = "fulfilled";
@@ -206,10 +206,11 @@ export function rateLimited<T>(
   options: RateLimitOptions,
 ): () => Promise<T> {
   let waitUntil = performance.now();
-  let queue: [(t: T) => void, (e: unknown) => void][] = [];
-  let addedToQueueCallbacks = new Map<string, () => void>;
+  const queue: [(t: T) => void, (e: unknown) => void][] = [];
+  const addedToQueueCallbacks = new Map<string, () => void>;
 
   const next = async () => {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (waitUntil > performance.now()) {
         await wait(Math.max(1, waitUntil - performance.now() + 1));
@@ -245,6 +246,7 @@ export function rateLimited<T>(
   };
 
   runAsynchronously(async () => {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       await next();
     }
@@ -263,14 +265,13 @@ export function rateLimited<T>(
 }
 
 export function throttled<T, A extends any[]>(func: (...args: A) => Promise<T>, delayMs: number): (...args: A) => Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
   let nextAvailable: Promise<T> | null = null;
   return async (...args) => {
     while (nextAvailable !== null) {
       await nextAvailable;
     }
     nextAvailable = new Promise<T>(resolve => {
-      timeout = setTimeout(() => {
+      setTimeout(() => {
         nextAvailable = null;
         resolve(func(...args));
       }, delayMs);

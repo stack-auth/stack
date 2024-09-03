@@ -11,7 +11,6 @@ import { MagicLinkCallback } from "./magic-link-callback";
 import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
-import { TeamCreation } from "./team-creation";
 import { TeamInvitation } from "./team-invitation";
 
 export default async function StackHandler<HasTokenStore extends boolean>({
@@ -53,7 +52,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
 
     redirect(getRelativePart(urlObj), RedirectType.replace);
-  };
+  }
 
   const availablePaths = {
     signIn: 'sign-in',
@@ -71,7 +70,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   const path = stack.join('/');
 
   if (path.startsWith('account-settings')) {
-    return <AccountSettings fullPage={fullPage} />;
+    return <AccountSettings />;
   }
 
 
@@ -116,7 +115,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
       return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
     }
     default: {
-      for (const [key, value] of Object.entries(availablePaths)) {
+      for (const [, value] of Object.entries(availablePaths)) {
         if (path === value.replaceAll('-', '')) {
           redirect(`${app.urls.handler}/${value}`, RedirectType.replace);
         }

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 'use client';
 
 import { Link } from "@/components/link";

@@ -111,7 +111,7 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       hasRequestFinished = true;
     }
   };
-};
+}
 
 export type SmartRouteHandlerOverloadMetadata = EndpointDocumentation;
 
@@ -182,7 +182,7 @@ export function createSmartRouteHandler<
   const invoke = async (nextRequest: NextRequest | null, requestId: string, smartRequest: SmartRequest) => {
     const reqsParsed: [[Req, SmartRequest], SmartRouteHandlerOverload<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
-    for (const [overloadParam, overload] of overloads.entries()) {
+    for (const [, overload] of overloads.entries()) {
       try {
         const parsedReq = await validateSmartRequest(nextRequest, smartRequest, overload.request);
         reqsParsed.push([[parsedReq, smartRequest], overload]);
@@ -203,7 +203,7 @@ export function createSmartRouteHandler<
     const fullReq = reqsParsed[0][0][1];
     const handler = reqsParsed[0][1];
 
-    let smartRes = await handler.handler(smartReq as any, fullReq);
+    const smartRes = await handler.handler(smartReq as any, fullReq);
 
     return await createResponse(nextRequest, requestId, smartRes, handler.response);
   };

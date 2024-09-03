@@ -1,4 +1,3 @@
-import { prismaClient } from "@/prisma-client";
 import { TeamSystemPermission as DBTeamSystemPermission, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -74,7 +73,7 @@ async function getParentDbIds(
     containedPermissionIds?: string[],
   }
 ) {
-  let parentDbIds = [];
+  const parentDbIds = [];
   const potentialParentPermissions = await listTeamPermissionDefinitions(tx, options.project);
   for (const parentPermissionId of options.containedPermissionIds || []) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);

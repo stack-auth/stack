@@ -58,6 +58,7 @@ const OriginalButton = React.forwardRef<HTMLButtonElement, OriginalButtonProps>(
 OriginalButton.displayName = "Button";
 
 interface ButtonProps extends OriginalButtonProps {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
   loading?: boolean,
 }

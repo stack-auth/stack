@@ -7,7 +7,7 @@ type StyleLinkProps = Omit<React.ComponentProps<"link">, "rel" | "as" | "defer">
 };
 
 export function StyleLink(props: StyleLinkProps) {
-  const { defer, onLoad, ...linkProps } = props;
+  const { defer, ...linkProps } = props;
   const isHydrated = useIsHydrated();
 
   if (defer) {

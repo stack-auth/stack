@@ -11,13 +11,13 @@ const handler = createSmartRouteHandler({
     bodyType: yupString().oneOf(["text"]).required(),
     body: yupString().required(),
   }),
-  handler: async (req, fullReq) => {
+  handler: async (req) => {
     return {
       statusCode: 404,
       bodyType: "text",
       body: deindent`
         404 — this page does not exist in Stack Auth's API.
-        
+
         Did you mean to visit https://app.stack-auth.com?
 
         URL: ${req.url}

@@ -83,14 +83,6 @@ it("should sign in users created with the server API even if sign up is disabled
 });
 
 it("should sign up a new user even if one already exists with email auth disabled", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/users", {
-    accessType: "server",
-    method: "POST",
-    body: {
-      primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_auth_enabled: false,
-    },
-  });
   const res2 = await Auth.Otp.signIn();
   expect(res2.signInResponse).toMatchInlineSnapshot(`
     NiceResponse {
@@ -107,12 +99,10 @@ it("should sign up a new user even if one already exists with email auth disable
 });
 
 it("should not allow signing in when MFA is required", async ({ expect }) => {
-  const res = await Auth.Otp.signIn();
   await Auth.Mfa.setupTotpMfa();
   await Auth.signOut();
 
   const mailbox = backendContext.value.mailbox;
-  const sendSignInCodeRes = await Auth.Otp.sendSignInCode();
   const messages = await mailbox.fetchMessages();
   const message = messages.findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
   const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");

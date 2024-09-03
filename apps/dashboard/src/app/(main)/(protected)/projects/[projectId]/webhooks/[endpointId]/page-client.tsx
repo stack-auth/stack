@@ -4,8 +4,8 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret, useSvix } from "svix-react";
+import { useMemo, useState } from "react";
+import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { getSvixResult } from "../utils";
@@ -64,6 +64,8 @@ const eventTypes = [
   'user.deleted',
 ];
 
+// TODO: This function isn't used. Determine if it should be removed.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function FilterEvents(props: { endpointId: string }) {
   const endpoint = getSvixResult(useEndpoint(props.endpointId));
   const { updateEndpoint } = useEndpointFunctions(props.endpointId);
@@ -175,13 +177,12 @@ function MessageTable(props: { endpointId: string }) {
 export default function PageClient(props: { endpointId: string }) {
   const stackAdminApp = useAdminApp();
   const svixToken = stackAdminApp.useSvixToken();
-  const [updateCounter, setUpdateCounter] = useState(0);
 
   // This is a hack to make sure svix hooks update when content changes
   const svixTokenUpdated = useMemo(() => {
     return svixToken + '';
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [svixToken, updateCounter]);
+
+  }, [svixToken]);
 
   return (
     <SvixProvider

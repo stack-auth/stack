@@ -3,7 +3,6 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
-import { listUserTeamPermissions } from "@/lib/permissions";
 
 export const POST = createSmartRouteHandler({
   metadata: {

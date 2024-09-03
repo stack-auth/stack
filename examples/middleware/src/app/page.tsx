@@ -1,5 +1,5 @@
-import { stackServerApp } from "@/stack";
 import Link from "next/link";
+import { stackServerApp } from "@/stack";
 
 export default async function Home() {
   return (

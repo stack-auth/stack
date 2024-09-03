@@ -1,6 +1,5 @@
 // TODO remove and replace with CRUD handler
 
-import * as yup from 'yup';
 import { ApiKeySet } from '@prisma/client';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';

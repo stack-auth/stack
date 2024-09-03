@@ -86,8 +86,7 @@ const nextConfig = {
       },
     ];
   },
-  skipTrailingSlashRedirect: true, 
-
+  skipTrailingSlashRedirect: true,
 
   async headers() {
     return [

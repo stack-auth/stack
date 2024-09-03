@@ -1,9 +1,9 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import * as yup from "yup";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import sharp from "sharp";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import sharp from "sharp";
+import * as yup from "yup";
 
 let pngImagePromise: Promise<Uint8Array> | undefined;
 
@@ -27,7 +27,7 @@ export const GET = createSmartRouteHandler({
       pngImagePromise = (async () => {
         const ghPage = await fetch("https://github.com/stack-auth/stack");
         const ghPageText = await ghPage.text();
-        const regex = /\<a\s+href="https:\/\/github\.com\/([^"]+)"\s+class=""\s+data-hovercard-type="user"/gm;
+        const regex = /<a\s+href="https:\/\/github\.com\/([^"]+)"\s+class=""\s+data-hovercard-type="user"/gm;
         const matches = [...ghPageText.matchAll(regex)];
         if (matches.length === 0) {
           throw new StackAssertionError("Could not find any contributors. This is unexpected.", { ghPageText });
@@ -61,7 +61,7 @@ export const GET = createSmartRouteHandler({
         }));
 
         const circleOutline = `<svg xmlns="http://www.w3.org/2000/svg" width="${profilePictureSize + 2}" height="${profilePictureSize + 2}"><circle cx="${profilePictureSize / 2 + 1}" cy="${profilePictureSize / 2 + 1}" r="${profilePictureSize / 2}" fill="none" stroke="#88888888" stroke-width="${1}"/></svg>`;
-        let mergedImage = sharp({
+        const mergedImage = sharp({
           create: {
             width: cellSize * (imagesPerRow - 1) + profilePictureSize + 2,
             height: cellSize * (rows - 1) + profilePictureSize + 2,

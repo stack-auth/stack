@@ -30,7 +30,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
+  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }

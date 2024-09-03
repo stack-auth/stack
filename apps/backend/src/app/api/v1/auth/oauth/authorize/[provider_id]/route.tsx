@@ -54,7 +54,7 @@ export const GET = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([302]).required(),
     bodyType: yupString().oneOf(["empty"]).required(),
   }),
-  async handler({ params, query }, fullReq) {
+  async handler({ params, query }) {
     const project = await getProject(query.client_id);
 
     if (!project) {

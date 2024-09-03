@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import "../polyfills";
 
 import * as yup from "yup";
@@ -120,7 +121,7 @@ export function createCrudHandlers<
   const paramsSchema = options.paramsSchema;
 
   return Object.fromEntries(
-    operations.filter(([_, crudOperation]) => optionsAsPartial[`on${crudOperation}`] !== undefined)
+    operations.filter(([, crudOperation]) => optionsAsPartial[`on${crudOperation}`] !== undefined)
       .flatMap(([httpMethod, crudOperation]) => {
         const getSchemas = (accessType: "admin" | "server" | "client") => {
           const input =
@@ -183,7 +184,7 @@ export function createCrudHandlers<
 
         const routeHandler = createSmartRouteHandler(
           [...aat],
-          ([accessType, { invoke, accessSchemas, adminSchemas }]) => {
+          ([accessType, { invoke, accessSchemas }]) => {
             const frw = routeHandlerTypeHelper({
               request: yupObject({
                 auth: yupObject({
@@ -281,7 +282,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, name: string): 
       throw new StackAssertionError(
         deindent`
           ${name} failed in CRUD handler.
-          
+
           Errors:
             ${error.errors.join("\n")}
         `,

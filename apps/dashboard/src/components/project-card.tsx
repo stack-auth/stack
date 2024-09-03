@@ -2,7 +2,7 @@
 import { useRouter } from "@/components/router";
 import { useFromNow } from '@/hooks/use-from-now';
 import { AdminProject } from '@stackframe/stack';
-import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
+import { CardDescription, CardFooter, CardHeader, CardTitle, ClickableCard, Typography } from '@stackframe/stack-ui';
 
 export function ProjectCard({ project }: { project: AdminProject }) {
   const createdAt = useFromNow(project.createdAt);

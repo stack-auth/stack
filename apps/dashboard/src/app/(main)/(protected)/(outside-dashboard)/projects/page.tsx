@@ -2,7 +2,6 @@ import { stackServerApp } from "@/stack";
 import { redirect } from "next/navigation";
 import Footer from "./footer";
 import PageClient from "./page-client";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 
 export const metadata = {
   title: "Projects",

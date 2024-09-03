@@ -61,7 +61,7 @@ function addAll<T>(set: Set<T>, values: readonly T[]) {
 }
 
 const snapshotSerializer: SnapshotSerializer = {
-  serialize(val, config, indentation, depth, refs, printer) {
+  serialize(val, config, indentation, depth, refs) {
     return nicify(val, {
       currentIndent: indentation,
       maxDepth: config.maxDepth - depth,
@@ -131,7 +131,7 @@ const snapshotSerializer: SnapshotSerializer = {
 
         // Hide fields
         const oldHideFields = options?.hideFields ?? [];
-        let newHideFields = new Set<PropertyKey>(oldHideFields);
+        const newHideFields = new Set<PropertyKey>(oldHideFields);
         if (
           (typeof value === "object" || typeof value === "function")
           && value
@@ -171,7 +171,7 @@ const snapshotSerializer: SnapshotSerializer = {
       },
     });
   },
-  test(val) {
+  test() {
     return true;
   },
 };

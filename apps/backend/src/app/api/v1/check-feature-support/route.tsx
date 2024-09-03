@@ -1,6 +1,6 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { yupObject, yupString, yupNumber, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const POST = createSmartRouteHandler({

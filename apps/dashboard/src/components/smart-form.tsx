@@ -56,7 +56,7 @@ export function SmartForm<S extends yup.ObjectSchema<any>>(props: {
       </form>
     </Form>
   );
-};
+}
 SmartForm.displayName = 'SmartForm';
 
 function SmartFormField(props: {

@@ -3,8 +3,6 @@ import { resetDocument, useDocument } from '../../../editor/editor-context';
 import { ColumnsContainerProps } from '../../columns-container/columns-container-props-schema';
 import { Trash2 } from 'lucide-react';
 
-const STYLE = "";
-
 type Props = {
   blockId: string,
 };

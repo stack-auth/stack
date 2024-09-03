@@ -6,6 +6,7 @@ import { AsyncStore } from "./stores";
 /**
  * Can be used to cache the result of a function call, for example for the `use` hook in React.
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function cacheFunction<F extends Function>(f: F): F {
   const dependenciesMap = new DependenciesMap<any, any>();
 

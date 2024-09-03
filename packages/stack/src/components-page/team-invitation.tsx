@@ -121,4 +121,4 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
   }
 
   return <TeamInvitationInner fullPage={fullPage} searchParams={searchParams} />;
-};
+}

@@ -30,11 +30,11 @@ export function parseOpenAPI(options: {
               .map(([method, handler]) => (
                 [method.toLowerCase(), parseRouteHandler({ handler, method, path, audience: options.audience })]
               ))
-              .filter(([_, handler]) => handler !== undefined)
+              .filter(([, handler]) => handler !== undefined)
           )]
         ))
-        .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
-        .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
+        .filter(([, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
+        .sort(([, handlersByMethodA], [, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
     ),
   };
 }
@@ -138,10 +138,10 @@ function parseRouteHandler(options: {
     if (result) {
       throw new StackAssertionError(deindent`
         OpenAPI generator matched multiple overloads for audience ${options.audience} on endpoint ${options.method} ${options.path}.
-        
+
         This does not necessarily mean there is a bug in the endpoint; the OpenAPI generator uses a heuristic to pick the allowed overloads, and may pick too many. Currently, this heuristic checks whether the request.auth.type property in the schema is a yup.string.oneOf(...) and matches it to the expected audience of the schema. If there are multiple overloads matching a single audience, for example because none of the overloads specify request.auth.type, the OpenAPI generator will not know which overload to generate specs for, and hence fails.
-        
-        Either specify request.auth.type on the schema of the specified endpoint or update the OpenAPI generator to support your use case. 
+
+        Either specify request.auth.type on the schema of the specified endpoint or update the OpenAPI generator to support your use case.
       `);
     }
 
@@ -192,7 +192,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capit
         properties: typedFromEntries(typedEntries((field as any).fields)
           .map(([key, field]) => [key, getFieldSchema(field, crudOperation)])),
         required: typedEntries((field as any).fields)
-          .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field as any, crudOperation))
+          .filter(([, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field as any, crudOperation))
           .map(([key]) => key),
         ...openapiFieldExtra
       };
@@ -278,7 +278,7 @@ function toRequired(description: yup.SchemaFieldDescription, crudOperation?: Cap
   let res: string[] = [];
   if (isSchemaObjectDescription(description)) {
     res = Object.entries(description.fields)
-      .filter(([_, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field, crudOperation))
+      .filter(([, field]) => !(field as any).optional && !(field as any).nullable && getFieldSchema(field, crudOperation))
       .map(([key]) => key);
   } else if (isSchemaArrayDescription(description)) {
     res = [];

@@ -97,7 +97,7 @@ it("does not have permission to list all members in their own team by default", 
 });
 
 it("can read own profile", async ({ expect }) => {
-  const { teamId, userId1, userId2, currentUserId } = await signInAndCreateTeam();
+  const { teamId } = await signInAndCreateTeam();
   const response2 = await niceBackendFetch(`/api/v1/team-member-profiles?team_id=${teamId}&user_id=me`, {
     accessType: "client",
     method: "GET",

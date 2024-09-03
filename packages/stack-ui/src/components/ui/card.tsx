@@ -76,6 +76,7 @@ const CardContent = React.forwardRef<
 ));
 CardContent.displayName = "CardContent";
 
+
 const CardSubtitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -86,6 +87,7 @@ const CardSubtitle = React.forwardRef<
     {...props}
   />
 ));
+CardSubtitle.displayName = "CardSubtitle";
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,

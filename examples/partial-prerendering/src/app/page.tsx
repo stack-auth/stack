@@ -1,7 +1,6 @@
-import { stackServerApp } from "@/stack";
-import { UserButton } from "@stackframe/stack";
 import Link from "next/link";
 import { Suspense } from "react";
+import { stackServerApp } from "@/stack";
 
 export default function Home() {
   return (
@@ -30,7 +29,7 @@ export default function Home() {
 <Suspense fallback="Loading user info...">
   <UserInfo />
 </Suspense>
-  
+
 async function UserInfo() {
   const user = await stackServerApp.getUser();
 

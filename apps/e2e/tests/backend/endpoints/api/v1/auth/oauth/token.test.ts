@@ -145,8 +145,6 @@ describe("with grant_type === 'authorization_code'", async () => {
   });
 
   it("should fail when called with an invalid code", async ({ expect }) => {
-    const getAuthorizationCodeResult = await Auth.OAuth.getAuthorizationCode();
-
     const projectKeys = backendContext.value.projectKeys;
     if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
 

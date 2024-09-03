@@ -30,7 +30,7 @@ export const POST = createSmartRouteHandler({
       success: yupString().oneOf(["maybe, only if user with e-mail exists"]).required(),
     }).required(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }

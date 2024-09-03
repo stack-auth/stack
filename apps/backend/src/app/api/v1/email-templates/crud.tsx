@@ -11,6 +11,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 function prismaToCrud(prisma: Prisma.EmailTemplateGetPayload<{}>, isDefault: boolean) {
   return {
     subject: prisma.subject,
@@ -62,7 +63,6 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
 
     const content = data.content || oldTemplate?.content || EMAIL_TEMPLATES_METADATA[params.type].defaultContent;
     const subject = data.subject || oldTemplate?.subject || EMAIL_TEMPLATES_METADATA[params.type].defaultSubject;
-
     const db = await prismaClient.emailTemplate.upsert({
       where: {
         projectConfigId_type: {

@@ -27,7 +27,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }) {
     if (!project.config.magic_link_enabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }

@@ -49,7 +49,7 @@ export default function EnvKeys(props: {
             STACK_SECRET_SERVER_KEY: props.secretServerKey,
             STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
           })
-            .filter(([k, v]) => v)
+            .filter(([, v]) => v)
             .map(([k, v]) => `${k}=${v}`)
             .join("\n")}
           label="Next.js Environment variables"

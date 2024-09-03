@@ -45,7 +45,7 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
       },
     });
   },
-  async handler(project, { email }, data, { password }) {
+  async handler(project, _, data, { password }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }

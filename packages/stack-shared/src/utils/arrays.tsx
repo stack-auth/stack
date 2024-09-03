@@ -1,4 +1,3 @@
-import { remainder } from "./math";
 
 export function typedIncludes<T extends readonly any[]>(arr: T, item: unknown): item is T[number] {
   return arr.includes(item);
@@ -26,7 +25,7 @@ export function findLastIndex<T>(arr: readonly T[], predicate: (item: T) => bool
   return -1;
 }
 
-export function groupBy<T extends any, K>(
+export function groupBy<T, K>(
   arr: Iterable<T>,
   key: (item: T) => K,
 ): Map<K, T[]> {
@@ -59,7 +58,6 @@ export function range(startInclusive: number, endExclusive?: number, step?: numb
 
 
 export function rotateLeft(arr: readonly any[], n: number): any[] {
-  const index = remainder(n, arr.length);
   return [...arr.slice(n), arr.slice(0, n)];
 }
 

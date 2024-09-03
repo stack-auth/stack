@@ -21,7 +21,7 @@ const CopyButton = React.forwardRef<
         try {
           await navigator.clipboard.writeText(props.content);
           toast({ description: 'Copied to clipboard!' });
-        } catch (e) {
+        } catch {
           toast({ description: 'Failed to copy to clipboard', variant: 'destructive' });
         }
       }}

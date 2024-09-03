@@ -2,7 +2,6 @@ import { createMailbox, it } from "../../../../helpers";
 import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 it("is not allowed to send invitation without permission", async ({ expect }) => {
-  const { userId: userId1 } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
   const receiveMailbox = createMailbox();

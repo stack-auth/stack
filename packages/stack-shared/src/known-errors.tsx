@@ -1,7 +1,6 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
-import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -68,10 +67,11 @@ export abstract class KnownError extends StatusError {
   }
 
   public static fromJson(json: KnownErrorJson): KnownError {
-    for (const [_, KnownErrorType] of Object.entries(KnownErrors)) {
+    for (const [, KnownErrorType] of Object.entries(KnownErrors)) {
       if (json.code === KnownErrorType.prototype.errorCode) {
         const constructorArgs = KnownErrorType.constructorArgsFromJson(json);
         return new KnownErrorType(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           ...constructorArgs,
         );
@@ -125,7 +125,6 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
     public readonly constructorArgs: Args;
 
     constructor(...args: Args) {
-      // @ts-expect-error
       super(...createFn(...args));
       this.constructorArgs = args;
     }
@@ -133,8 +132,9 @@ function createKnownErrorConstructor<ErrorCode extends string, Super extends Abs
     static constructorArgsFromJson(json: KnownErrorJson): Args {
       return constructorArgsFromJsonFn(json.details);
     }
-  };
+  }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   return KnownErrorImpl;
 }
@@ -288,7 +288,7 @@ const AccessTypeWithoutProjectId = createKnownErrorConstructor(
     400,
     deindent`
       The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.
-      
+
       For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
     `,
     {
@@ -305,7 +305,7 @@ const AccessTypeRequired = createKnownErrorConstructor(
     400,
     deindent`
       You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
-      
+
       For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
     `,
   ] as const,
@@ -869,7 +869,7 @@ const TeamNotFound = createKnownErrorConstructor(
   (json: any) => [json.team_id] as const,
 );
 
-const TeamAlreadyExists = createKnownErrorConstructor(
+createKnownErrorConstructor(
   KnownError,
   "TEAM_ALREADY_EXISTS",
   (teamId: string) => [
@@ -1214,7 +1214,7 @@ export const KnownErrors = {
 
 // ensure that all known error codes are unique
 const knownErrorCodes = new Set<string>();
-for (const [_, KnownError] of Object.entries(KnownErrors)) {
+for (const [, KnownError] of Object.entries(KnownErrors)) {
   if (knownErrorCodes.has(KnownError.errorCode)) {
     throw new Error(`Duplicate known error code: ${KnownError.errorCode}`);
   }

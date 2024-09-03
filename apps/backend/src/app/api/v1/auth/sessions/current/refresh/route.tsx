@@ -26,7 +26,7 @@ export const POST = createSmartRouteHandler({
       access_token: yupString().required(),
     }).required(),
   }),
-  async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }, fullReq) {
+  async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }) {
     const refreshToken = refreshTokenHeaders[0];
 
     const sessionObj = await prismaClient.projectUserRefreshToken.findUnique({

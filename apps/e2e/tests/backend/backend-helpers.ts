@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";

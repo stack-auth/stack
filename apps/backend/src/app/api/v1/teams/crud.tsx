@@ -13,6 +13,7 @@ import { addUserToTeam } from "../team-memberships/crud";
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
   return {
     id: prisma.teamId,

@@ -156,7 +156,7 @@ export class InternalSession {
   }
 
   private _refreshAndSetRefreshPromise(refreshToken: RefreshToken) {
-    let refreshPromise: Promise<AccessToken | null> = this._options.refreshAccessTokenCallback(refreshToken).then((accessToken) => {
+    const refreshPromise: Promise<AccessToken | null> = this._options.refreshAccessTokenCallback(refreshToken).then((accessToken) => {
       if (refreshPromise === this._refreshPromise) {
         this._refreshPromise = null;
         this._accessToken.set(accessToken);

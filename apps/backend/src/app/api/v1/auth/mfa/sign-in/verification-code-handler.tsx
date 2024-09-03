@@ -37,7 +37,7 @@ export const mfaVerificationCodeHandler = createVerificationCodeHandler({
     bodyType: yupString().oneOf(["json"]).required(),
     body: signInResponseSchema.required(),
   }),
-  async validate(project, method, data, body) {
+  async validate(project, _, data, body) {
     const user = await prismaClient.projectUser.findUniqueOrThrow({
       where: {
         projectId_projectUserId: {
@@ -55,7 +55,7 @@ export const mfaVerificationCodeHandler = createVerificationCodeHandler({
       throw new KnownErrors.InvalidTotpCode();
     }
   },
-  async handler(project, {}, data, body) {
+  async handler(project, _, data) {
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
       projectUserId: data.user_id,

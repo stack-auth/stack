@@ -544,7 +544,7 @@ function MembersSettings(props: { team: Team }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map(({ id, teamProfile }, i) => (
+          {users.map(({ id, teamProfile }) => (
             <TableRow key={id}>
               <TableCell>
                 <UserAvatar user={teamProfile}/>
@@ -581,7 +581,7 @@ export function TeamCreation() {
     setLoading(true);
 
     try {
-      const team = await user.createTeam({ displayName: data.displayName });
+      await user.createTeam({ displayName: data.displayName });
     } finally {
       setLoading(false);
     }

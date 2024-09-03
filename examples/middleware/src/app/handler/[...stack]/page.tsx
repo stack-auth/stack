@@ -1,10 +1,13 @@
+import type { NextPage } from "next";
 import { StackHandler } from "@stackframe/stack";
 import { stackServerApp } from "../../../stack";
 
-export default function Handler(props: any) {
+const Handler: NextPage = (props) => {
   return (
     <div style={{ backgroundColor: "white", borderRadius: 4 }}>
       <StackHandler fullPage app={stackServerApp} {...props} />
     </div>
   );
-}
+};
+
+export default Handler;

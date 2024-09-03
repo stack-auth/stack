@@ -1,9 +1,8 @@
 import "../polyfills";
 
 import { NextRequest } from "next/server";
-import * as yup from "yup";
 import { createSmartRouteHandler } from "./smart-route-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject, yupString, yupNumber, yupArray } from "@stackframe/stack-shared/dist/schema-fields";
 
 export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
   return createSmartRouteHandler({

@@ -11,6 +11,7 @@ export function throwErr(...args: any[]): never {
   } else if (args[0] instanceof Error) {
     throw args[0];
   } else {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     throw new StatusError(...args);
   }
