@@ -6,7 +6,7 @@
   "scripts": {
     "preinstall": "npx -y only-allow pnpm",
     "typecheck": "only-allow pnpm && turbo typecheck",
-    "build": "only-allow pnpm && turbo build",
+    "build": "only-allow pnpm && dotenv -e ./.env.build -- turbo build",
     "build:backend": "only-allow pnpm && turbo run build --filter=@stackframe/stack-backend...",
     "build:dashboard": "only-allow pnpm && turbo run build --filter=@stackframe/stack-dashboard...",
     "build:demo": "only-allow pnpm && turbo run build --filter=demo-app...",
