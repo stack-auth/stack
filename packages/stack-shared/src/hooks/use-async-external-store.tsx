@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AsyncResult } from "../utils/results";
 
 export function useAsyncExternalStore<T>(
-  subscribe: (callback: (t: T) => void) => (() => void),
+  subscribe: (callback: (t: T) => void) => () => void,
 ): AsyncResult<T, never> & { status: "ok" | "pending" } {
   // sure, the "sync" in useSyncExternalStore refers to "synchronize a store" and not "sync/async", but it's too good of a name to pass up on
 

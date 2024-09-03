@@ -1,10 +1,9 @@
 import { createMailbox, it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-
 it("should not have have access to the project without project keys", async ({ expect }) => {
   backendContext.set({
-    projectKeys: 'no-project'
+    projectKeys: "no-project",
   });
   const response = await niceBackendFetch("/api/v1/projects/current", { accessType: "client" });
   expect(response).toMatchInlineSnapshot(`
@@ -136,10 +135,12 @@ it("updates the project domains configuration", async ({ expect }) => {
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      domains: [{
-        domain: 'https://trusted-domain.stack-test.example.com',
-        handler_path: '/handler'
-      }]
+      domains: [
+        {
+          domain: "https://trusted-domain.stack-test.example.com",
+          handler_path: "/handler",
+        },
+      ],
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -181,14 +182,14 @@ it("updates the project domains configuration", async ({ expect }) => {
     config: {
       domains: [
         {
-          domain: 'https://trusted-domain2.stack-test.example.com',
-          handler_path: '/handler'
+          domain: "https://trusted-domain2.stack-test.example.com",
+          handler_path: "/handler",
         },
         {
-          domain: 'https://trusted-domain3.stack-test.example.com',
-          handler_path: '/handler2'
-        }
-      ]
+          domain: "https://trusted-domain3.stack-test.example.com",
+          handler_path: "/handler2",
+        },
+      ],
     },
   });
   expect(response2).toMatchInlineSnapshot(`
@@ -236,14 +237,16 @@ it("is not allowed to have two identical domains", async ({ expect }) => {
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      domains: [{
-        domain: 'https://trusted-domain.stack-test.example.com',
-        handler_path: '/handler'
-      },
-      {
-        domain: 'https://trusted-domain.stack-test.example.com',
-        handler_path: '/handler2'
-      }]
+      domains: [
+        {
+          domain: "https://trusted-domain.stack-test.example.com",
+          handler_path: "/handler",
+        },
+        {
+          domain: "https://trusted-domain.stack-test.example.com",
+          handler_path: "/handler2",
+        },
+      ],
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -547,11 +550,13 @@ it("updates the project oauth configuration", async ({ expect }) => {
   // create google oauth provider with shared type
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "shared",
-        enabled: true,
-      }]
+      oauth_providers: [
+        {
+          id: "google",
+          type: "shared",
+          enabled: true,
+        },
+      ],
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -593,11 +598,13 @@ it("updates the project oauth configuration", async ({ expect }) => {
   // update google oauth provider with shared type again
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "shared",
-        enabled: true,
-      }]
+      oauth_providers: [
+        {
+          id: "google",
+          type: "shared",
+          enabled: true,
+        },
+      ],
     },
   });
   expect(response2).toMatchInlineSnapshot(`
@@ -639,13 +646,15 @@ it("updates the project oauth configuration", async ({ expect }) => {
   // switch to standard type
   const { updateProjectResponse: response3 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "standard",
-        enabled: true,
-        client_id: "client_id",
-        client_secret: "client_secret",
-      }]
+      oauth_providers: [
+        {
+          id: "google",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: "client_secret",
+        },
+      ],
     },
   });
   expect(response3).toMatchInlineSnapshot(`
@@ -689,11 +698,13 @@ it("updates the project oauth configuration", async ({ expect }) => {
   // add another oauth provider with invalid type
   const { updateProjectResponse: response4 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "facebook",
-        type: "shared",
-        enabled: true,
-      }]
+      oauth_providers: [
+        {
+          id: "facebook",
+          type: "shared",
+          enabled: true,
+        },
+      ],
     },
   });
   expect(response4).toMatchInlineSnapshot(`
@@ -717,8 +728,8 @@ it("updates the project oauth configuration", async ({ expect }) => {
           id: "google",
           type: "shared",
           enabled: true,
-        }
-      ]
+        },
+      ],
     },
   });
   expect(response5).toMatchInlineSnapshot(`
@@ -778,8 +789,8 @@ it("updates the project oauth configuration", async ({ expect }) => {
           id: "google",
           type: "shared",
           enabled: false,
-        }
-      ]
+        },
+      ],
     },
   });
   expect(response6).toMatchInlineSnapshot(`
@@ -833,8 +844,8 @@ it("deletes a project with admin access", async ({ expect }) => {
     accessType: "admin",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
-    }
+      "x-stack-admin-access-token": adminAccessToken,
+    },
   });
 
   expect(deleteResponse).toMatchInlineSnapshot(`
@@ -855,8 +866,8 @@ it("deletes a project with server access", async ({ expect }) => {
     accessType: "server",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
-    }
+      "x-stack-admin-access-token": adminAccessToken,
+    },
   });
 
   expect(deleteResponse).toMatchInlineSnapshot(`
@@ -887,13 +898,13 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
     accessType: "server",
     method: "POST",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
+      "x-stack-admin-access-token": adminAccessToken,
     },
     body: {
       primary_email: "test@test.com",
       password: "testing",
       primary_email_auth_enabled: true,
-    }
+    },
   });
   expect(userResponse.status).toBe(201);
 
@@ -902,11 +913,11 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
     accessType: "server",
     method: "POST",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
+      "x-stack-admin-access-token": adminAccessToken,
     },
     body: {
       display_name: "Test Team",
-    }
+    },
   });
   expect(teamResponse.status).toBe(201);
 
@@ -915,10 +926,10 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'p1'
+      id: "p1",
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(teamPermissionResponse.status).toBe(201);
@@ -928,8 +939,8 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
     accessType: "server",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
-    }
+      "x-stack-admin-access-token": adminAccessToken,
+    },
   });
 
   expect(deleteResponse).toMatchInlineSnapshot(`
@@ -952,7 +963,7 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 });
 
 it("makes sure user have the correct managed project ID after project creation", async ({ expect }) => {
-  const { userId } =  await Auth.Otp.signIn();
+  const { userId } = await Auth.Otp.signIn();
 
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { projectId } = await Project.createAndGetAdminToken();
@@ -969,7 +980,7 @@ it("makes sure user have the correct managed project ID after project creation",
 });
 
 it("makes sure user don't have managed project ID after project deletion", async ({ expect }) => {
-  const { userId } =  await Auth.Otp.signIn();
+  const { userId } = await Auth.Otp.signIn();
 
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken();
@@ -979,8 +990,8 @@ it("makes sure user don't have managed project ID after project deletion", async
     accessType: "admin",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
-    }
+      "x-stack-admin-access-token": adminAccessToken,
+    },
   });
 
   expect(deleteResponse).toMatchInlineSnapshot(`
@@ -1002,7 +1013,7 @@ it("makes sure user don't have managed project ID after project deletion", async
 });
 
 it("makes sure other users are not affected by project deletion", async ({ expect }) => {
-  const { userId: userId1 } =  await Auth.Otp.signIn();
+  const { userId: userId1 } = await Auth.Otp.signIn();
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { projectId } = await Project.createAndGetAdminToken();
 
@@ -1016,8 +1027,8 @@ it("makes sure other users are not affected by project deletion", async ({ expec
     accessType: "admin",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken,
-    }
+      "x-stack-admin-access-token": adminAccessToken,
+    },
   });
 
   backendContext.set({ projectKeys: InternalProjectKeys });

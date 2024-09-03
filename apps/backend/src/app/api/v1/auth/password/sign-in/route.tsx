@@ -1,10 +1,10 @@
-import { createAuthTokens } from "@/lib/tokens";
-import { prismaClient } from "@/prisma-client";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
+import { createAuthTokens } from "@/lib/tokens";
+import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -49,7 +49,7 @@ export const POST = createSmartRouteHandler({
     }
     const user = users.length > 0 ? users[0] : null;
 
-    if (!await comparePassword(password, user?.passwordHash || "")) {
+    if (!(await comparePassword(password, user?.passwordHash || ""))) {
       throw new KnownErrors.EmailPasswordMismatch();
     }
 
@@ -77,7 +77,7 @@ export const POST = createSmartRouteHandler({
         access_token: accessToken,
         refresh_token: refreshToken,
         user_id: user.projectUserId,
-      }
+      },
     };
   },
 });

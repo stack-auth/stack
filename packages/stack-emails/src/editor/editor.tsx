@@ -1,21 +1,21 @@
-import { useEffect, useMemo } from 'react';
-import { resetDocument, setDocument, setMetadata, setSubject, useDocument, useSubject } from './documents/editor/editor-context';
-import InspectorDrawer from './sidebar';
-import TemplatePanel from './template-panel';
-import { TEditorConfiguration } from './documents/editor/core';
-import _ from 'lodash';
-import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '@stackframe/stack-emails/dist/utils';
+import _ from "lodash";
+import { useEffect, useMemo } from "react";
+import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from "@stackframe/stack-emails/dist/utils";
+import { TEditorConfiguration } from "./documents/editor/core";
+import { resetDocument, setDocument, setMetadata, setSubject, useDocument, useSubject } from "./documents/editor/editor-context";
+import InspectorDrawer from "./sidebar";
+import TemplatePanel from "./template-panel";
 
 export default function EmailEditor(props: {
-  document: TEditorConfiguration,
-  subject: string,
-  metadata: EmailTemplateMetadata,
-  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>,
-  onCancel?: () => void | Promise<void>,
-  resetSignal?: any,
-  projectDisplayName: string,
-  confirmAlertMessage: string,
-  setNeedConfirm: (needConfirm: boolean) => void,
+  document: TEditorConfiguration;
+  subject: string;
+  metadata: EmailTemplateMetadata;
+  onSave?: (document: TEditorConfiguration, subject: string) => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
+  resetSignal?: any;
+  projectDisplayName: string;
+  confirmAlertMessage: string;
+  setNeedConfirm: (needConfirm: boolean) => void;
 }) {
   const document = useDocument();
   const subject = useSubject();
@@ -49,13 +49,13 @@ export default function EmailEditor(props: {
       }
     };
 
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
   }, [edited]);
 
   return (
-    <div className='flex h-full'>
-      <div className='flex grow'>
+    <div className="flex h-full">
+      <div className="flex grow">
         <TemplatePanel />
       </div>
       <InspectorDrawer onSave={props.onSave} onCancel={props.onCancel} edited={edited} />

@@ -1,6 +1,14 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import {
+  adaptSchema,
+  clientOrHigherAuthTypeSchema,
+  emailVerificationCallbackUrlSchema,
+  signInEmailSchema,
+  yupNumber,
+  yupObject,
+  yupString,
+} from "@stackframe/stack-shared/dist/schema-fields";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { contactChannelVerificationCodeHandler } from "../verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -32,18 +40,21 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.EmailAlreadyVerified();
     }
 
-    await contactChannelVerificationCodeHandler.sendCode({
-      project,
-      data: {
-        user_id: user.id,
+    await contactChannelVerificationCodeHandler.sendCode(
+      {
+        project,
+        data: {
+          user_id: user.id,
+        },
+        method: {
+          email,
+        },
+        callbackUrl,
       },
-      method: {
-        email,
+      {
+        user,
       },
-      callbackUrl,
-    }, {
-      user,
-    });
+    );
 
     return {
       statusCode: 200,

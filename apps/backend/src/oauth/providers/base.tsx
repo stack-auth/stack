@@ -1,13 +1,13 @@
-import { Issuer, generators, CallbackParamsType, Client, TokenSet as OIDCTokenSet } from "openid-client";
-import { OAuthUserInfo } from "../utils";
+import { CallbackParamsType, Client, Issuer, TokenSet as OIDCTokenSet, generators } from "openid-client";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { OAuthUserInfo } from "../utils";
 
 export type TokenSet = {
-  accessToken: string,
-  refreshToken?: string,
-  accessTokenExpiredAt: Date,
+  accessToken: string;
+  refreshToken?: string;
+  accessTokenExpiredAt: Date;
 };
 
 function processTokenSet(providerName: string, tokenSet: OIDCTokenSet, defaultAccessTokenExpiresInMillis?: number): TokenSet {
@@ -20,18 +20,24 @@ function processTokenSet(providerName: string, tokenSet: OIDCTokenSet, defaultAc
   // otherwise, use 1h, and log an error
 
   if (!tokenSet.expires_in && !tokenSet.expires_at && !defaultAccessTokenExpiresInMillis) {
-    captureError("processTokenSet", new StackAssertionError(`No expires_in or expires_at received from OAuth provider ${providerName}. Falling back to 1h`, { tokenSetKeys: Object.keys(tokenSet) }));
+    captureError(
+      "processTokenSet",
+      new StackAssertionError(`No expires_in or expires_at received from OAuth provider ${providerName}. Falling back to 1h`, {
+        tokenSetKeys: Object.keys(tokenSet),
+      }),
+    );
   }
 
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    accessTokenExpiredAt: tokenSet.expires_in ?
-      new Date(Date.now() + tokenSet.expires_in * 1000) :
-      tokenSet.expires_at ? new Date(tokenSet.expires_at * 1000) :
-        defaultAccessTokenExpiresInMillis ?
-          new Date(Date.now() + defaultAccessTokenExpiresInMillis) :
-          new Date(Date.now() + 3600 * 1000),
+    accessTokenExpiredAt: tokenSet.expires_in
+      ? new Date(Date.now() + tokenSet.expires_in * 1000)
+      : tokenSet.expires_at
+        ? new Date(tokenSet.expires_at * 1000)
+        : defaultAccessTokenExpiresInMillis
+          ? new Date(Date.now() + defaultAccessTokenExpiresInMillis)
+          : new Date(Date.now() + 3600 * 1000),
   };
 }
 
@@ -44,33 +50,35 @@ export abstract class OAuthBaseProvider {
     public readonly defaultAccessTokenExpiresInMillis?: number,
   ) {}
 
-  protected static async createConstructorArgs(options:
-    & {
-      clientId: string,
-      clientSecret: string,
-      redirectUri: string,
-      baseScope: string,
-      authorizationExtraParams?: Record<string, string>,
-      defaultAccessTokenExpiresInMillis?: number,
-    }
-    & (
+  protected static async createConstructorArgs(
+    options: {
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+      baseScope: string;
+      authorizationExtraParams?: Record<string, string>;
+      defaultAccessTokenExpiresInMillis?: number;
+    } & (
       | {
-        issuer: string,
-        authorizationEndpoint: string,
-        tokenEndpoint: string,
-        userinfoEndpoint?: string,
-      }
+          issuer: string;
+          authorizationEndpoint: string;
+          tokenEndpoint: string;
+          userinfoEndpoint?: string;
+        }
       | {
-        discoverFromUrl: string,
-      }
-    )
+          discoverFromUrl: string;
+        }
+    ),
   ) {
-    const issuer = "discoverFromUrl" in options ? await Issuer.discover(options.discoverFromUrl) : new Issuer({
-      issuer: options.issuer,
-      authorization_endpoint: options.authorizationEndpoint,
-      token_endpoint: options.tokenEndpoint,
-      userinfo_endpoint: options.userinfoEndpoint,
-    });
+    const issuer =
+      "discoverFromUrl" in options
+        ? await Issuer.discover(options.discoverFromUrl)
+        : new Issuer({
+            issuer: options.issuer,
+            authorization_endpoint: options.authorizationEndpoint,
+            token_endpoint: options.tokenEndpoint,
+            userinfo_endpoint: options.userinfoEndpoint,
+          });
     const oauthClient = new issuer.Client({
       client_id: options.clientId,
       client_secret: options.clientSecret,
@@ -92,14 +100,16 @@ export abstract class OAuthBaseProvider {
       return grant;
     };
 
-    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams, options.defaultAccessTokenExpiresInMillis] as const;
+    return [
+      oauthClient,
+      options.baseScope,
+      options.redirectUri,
+      options.authorizationExtraParams,
+      options.defaultAccessTokenExpiresInMillis,
+    ] as const;
   }
 
-  getAuthorizationUrl(options: {
-    codeVerifier: string,
-    state: string,
-    extraScope?: string,
-  }) {
+  getAuthorizationUrl(options: { codeVerifier: string; state: string; extraScope?: string }) {
     return this.oauthClient.authorizationUrl({
       scope: mergeScopeStrings(this.scope, options.extraScope || ""),
       code_challenge: generators.codeChallenge(options.codeVerifier),
@@ -112,10 +122,10 @@ export abstract class OAuthBaseProvider {
   }
 
   async getCallback(options: {
-    callbackParams: CallbackParamsType,
-    codeVerifier: string,
-    state: string,
-  }): Promise<{ userInfo: OAuthUserInfo, tokenSet: TokenSet }> {
+    callbackParams: CallbackParamsType;
+    codeVerifier: string;
+    state: string;
+  }): Promise<{ userInfo: OAuthUserInfo; tokenSet: TokenSet }> {
     let tokenSet;
     const params = {
       code_verifier: options.codeVerifier,
@@ -141,10 +151,7 @@ export abstract class OAuthBaseProvider {
     };
   }
 
-  async getAccessToken(options: {
-    refreshToken: string,
-    scope?: string,
-  }): Promise<TokenSet> {
+  async getAccessToken(options: { refreshToken: string; scope?: string }): Promise<TokenSet> {
     const tokenSet = await this.oauthClient.refresh(options.refreshToken, { exchangeBody: { scope: options.scope } });
     return processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);
   }

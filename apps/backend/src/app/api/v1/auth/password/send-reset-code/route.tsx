@@ -1,11 +1,11 @@
-import { yupObject, yupString, yupNumber, urlSchema, emailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { emailSchema, urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, clientOrHigherAuthTypeSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { resetPasswordVerificationCodeHandler } from "../reset/verification-code-handler";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { usersCrudHandlers } from "../../../users/crud";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { usersCrudHandlers } from "../../../users/crud";
+import { resetPasswordVerificationCodeHandler } from "../reset/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -55,18 +55,21 @@ export const POST = createSmartRouteHandler({
     }
     const user = users[0];
 
-    await resetPasswordVerificationCodeHandler.sendCode({
-      project,
-      callbackUrl,
-      method: {
-        email,
+    await resetPasswordVerificationCodeHandler.sendCode(
+      {
+        project,
+        callbackUrl,
+        method: {
+          email,
+        },
+        data: {
+          user_id: user.id,
+        },
       },
-      data: {
-        user_id: user.id,
+      {
+        user,
       },
-    }, {
-      user,
-    });
+    );
 
     return {
       statusCode: 200,

@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useUser } from "@stackframe/stack";
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { Button, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
 import { ProjectCard } from "@/components/project-card";
 import { useRouter } from "@/components/router";
 import { SearchBar } from "@/components/search-bar";
-import { Button, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
-import { useUser } from "@stackframe/stack";
-import { wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { useEffect, useMemo, useState } from "react";
-
 
 export default function PageClient() {
-  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
+  const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
   const rawProjects = user.useOwnedProjects();
   const [sort, setSort] = useState<"recency" | "name">("recency");
   const [search, setSearch] = useState<string>("");
@@ -18,7 +17,7 @@ export default function PageClient() {
 
   useEffect(() => {
     if (rawProjects.length === 0) {
-      router.push('/new-project');
+      router.push("/new-project");
     }
   }, [router, rawProjects]);
 
@@ -40,14 +39,10 @@ export default function PageClient() {
 
   return (
     <div className="flex-grow p-4">
-      <div className="flex justify-between gap-4 mb-4 flex-col sm:flex-row">
-        <SearchBar
-          placeholder="Search project name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
+        <SearchBar placeholder="Search project name" value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="flex gap-4">
-          <Select value={sort} onValueChange={(n) => setSort(n === 'recency' ? 'recency' : 'name')}>
+          <Select value={sort} onValueChange={(n) => setSort(n === "recency" ? "recency" : "name")}>
             <SelectTrigger>
               <SelectValue>Sort by {sort === "recency" ? "recency" : "name"}</SelectValue>
             </SelectTrigger>
@@ -61,15 +56,16 @@ export default function PageClient() {
 
           <Button
             onClick={async () => {
-              router.push('/new-project');
+              router.push("/new-project");
               return await wait(2000);
             }}
-          >Create Project
+          >
+            Create Project
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

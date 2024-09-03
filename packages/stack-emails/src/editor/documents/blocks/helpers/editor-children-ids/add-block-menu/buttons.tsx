@@ -1,68 +1,69 @@
-import React from "react";  // explicitly import React to avoid issues with JSX eg. when running in non-Next.js server environments (Next.js always imports React first, but other environments may not)
-import { TEditorBlock } from '../../../../editor/core';
-import { BetweenHorizontalEnd, BoxSelect, Columns2, Heading, ImageIcon, Minus, RectangleHorizontal, Text } from 'lucide-react';
+import { BetweenHorizontalEnd, BoxSelect, Columns2, Heading, ImageIcon, Minus, RectangleHorizontal, Text } from "lucide-react";
+import React from "react";
+// explicitly import React to avoid issues with JSX eg. when running in non-Next.js server environments (Next.js always imports React first, but other environments may not)
+import { TEditorBlock } from "../../../../editor/core";
 
 type TButtonProps = {
-  label: string,
-  icon: JSX.Element,
-  block: () => TEditorBlock,
+  label: string;
+  icon: JSX.Element;
+  block: () => TEditorBlock;
 };
 export const BUTTONS: TButtonProps[] = [
   {
-    label: 'Heading',
-    icon: <Heading className='w-5 h-5' />,
+    label: "Heading",
+    icon: <Heading className="h-5 w-5" />,
     block: () => ({
-      type: 'Heading',
+      type: "Heading",
       data: {
-        props: { text: 'Hello friend' },
+        props: { text: "Hello friend" },
         style: {
           padding: { top: 16, bottom: 16, left: 24, right: 24 },
-          color: '#000000',
+          color: "#000000",
         },
       },
     }),
   },
   {
-    label: 'Text',
-    icon: <Text className='w-5 h-5' />,
+    label: "Text",
+    icon: <Text className="h-5 w-5" />,
     block: () => ({
-      type: 'Text',
+      type: "Text",
       data: {
-        props: { text: 'My new text block' },
+        props: { text: "My new text block" },
         style: {
           padding: { top: 16, bottom: 16, left: 24, right: 24 },
-          fontWeight: 'normal',
-          color: '#000000',
+          fontWeight: "normal",
+          color: "#000000",
         },
       },
     }),
   },
 
   {
-    label: 'Button',
-    icon: <RectangleHorizontal className='w-5 h-5' />,
+    label: "Button",
+    icon: <RectangleHorizontal className="h-5 w-5" />,
     block: () => ({
-      type: 'Button',
+      type: "Button",
       data: {
         props: {
-          text: 'Button',
-          buttonBackgroundColor: '#000000',
-          buttonTextColor: '#FFFFFF',
+          text: "Button",
+          buttonBackgroundColor: "#000000",
+          buttonTextColor: "#FFFFFF",
         },
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
       },
     }),
   },
   {
-    label: 'Image',
-    icon: <ImageIcon className='w-5 h-5' />,
+    label: "Image",
+    icon: <ImageIcon className="h-5 w-5" />,
     block: () => ({
-      type: 'Image',
+      type: "Image",
       data: {
         props: {
-          url: 'https://picsum.photos/300/200',
-          alt: 'Sample product',
-          contentAlignment: 'middle',
+          url: "https://picsum.photos/300/200",
+          alt: "Sample product",
+          contentAlignment: "middle",
           linkHref: null,
         },
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
@@ -70,31 +71,31 @@ export const BUTTONS: TButtonProps[] = [
     }),
   },
   {
-    label: 'Divider',
-    icon: <Minus className='w-5 h-5' />,
+    label: "Divider",
+    icon: <Minus className="h-5 w-5" />,
     block: () => ({
-      type: 'Divider',
+      type: "Divider",
       data: {
         style: { padding: { top: 16, right: 0, bottom: 16, left: 0 } },
         props: {
-          lineColor: '#CCCCCC',
+          lineColor: "#CCCCCC",
         },
       },
     }),
   },
   {
-    label: 'Spacer',
-    icon: <BetweenHorizontalEnd className='w-5 h-5' />,
+    label: "Spacer",
+    icon: <BetweenHorizontalEnd className="h-5 w-5" />,
     block: () => ({
-      type: 'Spacer',
+      type: "Spacer",
       data: {},
     }),
   },
   {
-    label: 'Columns',
-    icon: <Columns2 className='w-5 h-5' />,
+    label: "Columns",
+    icon: <Columns2 className="h-5 w-5" />,
     block: () => ({
-      type: 'ColumnsContainer',
+      type: "ColumnsContainer",
       data: {
         props: {
           columnsGap: 16,
@@ -106,10 +107,10 @@ export const BUTTONS: TButtonProps[] = [
     }),
   },
   {
-    label: 'Container',
-    icon: <BoxSelect className='w-5 h-5' />,
+    label: "Container",
+    icon: <BoxSelect className="h-5 w-5" />,
     block: () => ({
-      type: 'Container',
+      type: "Container",
       data: {
         style: { padding: { top: 16, bottom: 16, left: 24, right: 24 } },
       },

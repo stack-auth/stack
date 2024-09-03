@@ -6,27 +6,28 @@ import { SvixTokenCrud } from "./crud/svix-token";
 import { TeamPermissionDefinitionsCrud } from "./crud/team-permissions";
 import { ServerAuthApplicationOptions, StackServerInterface } from "./serverInterface";
 
-export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &(
-  | {
-    superSecretAdminKey: string,
-  }
-  | {
-    projectOwnerSession: InternalSession,
-  }
-);
+export type AdminAuthApplicationOptions = ServerAuthApplicationOptions &
+  (
+    | {
+        superSecretAdminKey: string;
+      }
+    | {
+        projectOwnerSession: InternalSession;
+      }
+  );
 
 export type ApiKeyCreateCrudRequest = {
-  has_publishable_client_key: boolean,
-  has_secret_server_key: boolean,
-  has_super_secret_admin_key: boolean,
-  expires_at_millis: number,
-  description: string,
+  has_publishable_client_key: boolean;
+  has_secret_server_key: boolean;
+  has_super_secret_admin_key: boolean;
+  expires_at_millis: number;
+  description: string;
 };
 
 export type ApiKeyCreateCrudResponse = ApiKeysCrud["Admin"]["Read"] & {
-  publishable_client_key?: string,
-  secret_server_key?: string,
-  super_secret_admin_key?: string,
+  publishable_client_key?: string;
+  secret_server_key?: string;
+  super_secret_admin_key?: string;
 };
 
 export class StackAdminInterface extends StackServerInterface {
@@ -75,9 +76,7 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async createApiKey(
-    options: ApiKeyCreateCrudRequest,
-  ): Promise<ApiKeyCreateCrudResponse> {
+  async createApiKey(options: ApiKeyCreateCrudRequest): Promise<ApiKeyCreateCrudResponse> {
     const response = await this.sendServerRequest(
       "/internal/api-keys",
       {
@@ -94,13 +93,14 @@ export class StackAdminInterface extends StackServerInterface {
 
   async listApiKeys(): Promise<ApiKeysCrud["Admin"]["Read"][]> {
     const response = await this.sendAdminRequest("/internal/api-keys", {}, null);
-    const result = await response.json() as ApiKeysCrud["Admin"]["List"];
+    const result = (await response.json()) as ApiKeysCrud["Admin"]["List"];
     return result.items;
   }
 
   async revokeApiKeyById(id: string) {
     await this.sendAdminRequest(
-      `/internal/api-keys/${id}`, {
+      `/internal/api-keys/${id}`,
+      {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
@@ -118,13 +118,16 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async listEmailTemplates(): Promise<EmailTemplateCrud['Admin']['Read'][]> {
+  async listEmailTemplates(): Promise<EmailTemplateCrud["Admin"]["Read"][]> {
     const response = await this.sendAdminRequest(`/email-templates`, {}, null);
-    const result = await response.json() as EmailTemplateCrud['Admin']['List'];
+    const result = (await response.json()) as EmailTemplateCrud["Admin"]["List"];
     return result.items;
   }
 
-  async updateEmailTemplate(type: EmailTemplateType, data: EmailTemplateCrud['Admin']['Update']): Promise<EmailTemplateCrud['Admin']['Read']> {
+  async updateEmailTemplate(
+    type: EmailTemplateType,
+    data: EmailTemplateCrud["Admin"]["Update"],
+  ): Promise<EmailTemplateCrud["Admin"]["Read"]> {
     const result = await this.sendAdminRequest(
       `/email-templates/${type}`,
       {
@@ -140,20 +143,18 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async resetEmailTemplate(type: EmailTemplateType): Promise<void> {
-    await this.sendAdminRequest(
-      `/email-templates/${type}`,
-      { method: "DELETE" },
-      null
-    );
+    await this.sendAdminRequest(`/email-templates/${type}`, { method: "DELETE" }, null);
   }
 
-  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud['Admin']['Read'][]> {
+  async listPermissionDefinitions(): Promise<TeamPermissionDefinitionsCrud["Admin"]["Read"][]> {
     const response = await this.sendAdminRequest(`/team-permission-definitions`, {}, null);
-    const result = await response.json() as TeamPermissionDefinitionsCrud['Admin']['List'];
+    const result = (await response.json()) as TeamPermissionDefinitionsCrud["Admin"]["List"];
     return result.items;
   }
 
-  async createPermissionDefinition(data: TeamPermissionDefinitionsCrud['Admin']['Create']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+  async createPermissionDefinition(
+    data: TeamPermissionDefinitionsCrud["Admin"]["Create"],
+  ): Promise<TeamPermissionDefinitionsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
       "/team-permission-definitions",
       {
@@ -168,7 +169,10 @@ export class StackAdminInterface extends StackServerInterface {
     return await response.json();
   }
 
-  async updatePermissionDefinition(permissionId: string, data: TeamPermissionDefinitionsCrud['Admin']['Update']): Promise<TeamPermissionDefinitionsCrud['Admin']['Read']> {
+  async updatePermissionDefinition(
+    permissionId: string,
+    data: TeamPermissionDefinitionsCrud["Admin"]["Update"],
+  ): Promise<TeamPermissionDefinitionsCrud["Admin"]["Read"]> {
     const response = await this.sendAdminRequest(
       `/team-permission-definitions/${permissionId}`,
       {
@@ -184,11 +188,7 @@ export class StackAdminInterface extends StackServerInterface {
   }
 
   async deletePermissionDefinition(permissionId: string): Promise<void> {
-    await this.sendAdminRequest(
-      `/team-permission-definitions/${permissionId}`,
-      { method: "DELETE" },
-      null,
-    );
+    await this.sendAdminRequest(`/team-permission-definitions/${permissionId}`, { method: "DELETE" }, null);
   }
 
   async getSvixToken(): Promise<SvixTokenCrud["Admin"]["Read"]> {

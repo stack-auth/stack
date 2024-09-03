@@ -1,10 +1,10 @@
-import { sendEmailFromTemplate } from "@/lib/emails";
-import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { sendEmailFromTemplate } from "@/lib/emails";
+import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const resetPasswordVerificationCodeHandler = createVerificationCodeHandler({
@@ -62,7 +62,6 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
         password,
       },
     });
-
 
     return {
       statusCode: 200,

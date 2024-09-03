@@ -1,6 +1,5 @@
-
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { describe } from "vitest";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { it, localRedirectUrl } from "../../../../../../helpers";
 import { Auth, backendContext, niceBackendFetch } from "../../../../../backend-helpers";
 
@@ -145,6 +144,8 @@ describe("with grant_type === 'authorization_code'", async () => {
   });
 
   it("should fail when called with an invalid code", async ({ expect }) => {
+    await Auth.OAuth.getAuthorizationCode();
+
     const projectKeys = backendContext.value.projectKeys;
     if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
 

@@ -5,7 +5,9 @@ it("should redirect the user to the OAuth provider with the right arguments", as
   const response = await Auth.OAuth.authorize();
   expect(response.authorizeResponse.status).toBe(307);
   expect(response.authorizeResponse.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
-  expect(response.authorizeResponse.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
+  expect(response.authorizeResponse.headers.get("set-cookie")).toMatch(
+    /^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/,
+  );
 });
 
 it("should be able to fetch the inner callback URL by following the OAuth provider redirects", async ({ expect }) => {
@@ -18,7 +20,7 @@ it("should fail if an invalid client_id is provided", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
-      ...await Auth.OAuth.getAuthorizeQuery(),
+      ...(await Auth.OAuth.getAuthorizeQuery()),
       client_id: "some-invalid-client-id",
     },
   });
@@ -42,7 +44,7 @@ it("should fail if an invalid client_secret is provided", async ({ expect }) => 
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
-      ...await Auth.OAuth.getAuthorizeQuery(),
+      ...(await Auth.OAuth.getAuthorizeQuery()),
       client_secret: "some-invalid-client-secret",
     },
   });
@@ -66,7 +68,7 @@ it("should fail if an invalid redirect URL is provided", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
     redirect: "manual",
     query: {
-      ...await Auth.OAuth.getAuthorizeQuery(),
+      ...(await Auth.OAuth.getAuthorizeQuery()),
       redirect_uri: "this is an invalid URL string",
     },
   });

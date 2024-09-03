@@ -1,30 +1,47 @@
-'use client';
+"use client";
 
-import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '..';
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
 import React, { useId } from "react";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Label,
+} from "..";
 
 export type ActionDialogProps = {
-  trigger?: React.ReactNode,
-  open?: boolean,
-  onClose?: () => void,
-  onOpenChange?: (open: boolean) => void,
-  titleIcon?: LucideIcon,
-  title: boolean | React.ReactNode,
-  description?: React.ReactNode,
-  danger?: boolean,
-  okButton?: boolean | Readonly<{
-    label?: string,
-    onClick?: () => Promise<"prevent-close" | undefined | void>,
-    props?: Partial<React.ComponentProps<typeof Button>>,
-  }>,
-  cancelButton?: boolean | Readonly<{
-    label?: string,
-    onClick?: () => Promise<"prevent-close" | undefined | void>,
-    props?: Partial<React.ComponentProps<typeof Button>>,
-  }>,
-  confirmText?: string,
-  children?: React.ReactNode,
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
+  titleIcon?: LucideIcon;
+  title: boolean | React.ReactNode;
+  description?: React.ReactNode;
+  danger?: boolean;
+  okButton?:
+    | boolean
+    | Readonly<{
+        label?: string;
+        onClick?: () => Promise<"prevent-close" | undefined | void>;
+        props?: Partial<React.ComponentProps<typeof Button>>;
+      }>;
+  cancelButton?:
+    | boolean
+    | Readonly<{
+        label?: string;
+        onClick?: () => Promise<"prevent-close" | undefined | void>;
+        props?: Partial<React.ComponentProps<typeof Button>>;
+      }>;
+  confirmText?: string;
+  children?: React.ReactNode;
 };
 
 export function ActionDialog(props: ActionDialogProps) {
@@ -52,65 +69,62 @@ export function ActionDialog(props: ActionDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} key={invalidationCount}>
-      {props.trigger && <DialogTrigger asChild>
-        {props.trigger}
-      </DialogTrigger>}
+      {props.trigger && <DialogTrigger asChild>{props.trigger}</DialogTrigger>}
 
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center">
-            <TitleIcon className="h-4 w-4 mr-2"/>
+            <TitleIcon className="mr-2 h-4 w-4" />
             {title}
           </DialogTitle>
-          <DialogDescription>
-            {props.description}
-          </DialogDescription>
+          <DialogDescription>{props.description}</DialogDescription>
         </DialogHeader>
 
         <DialogBody className="pb-2">
-          <div>
-            {props.children}
-          </div>
+          <div>{props.children}</div>
 
-          {props.confirmText && <Alert>
-            <Label className="flex gap-4 items-center">
-              <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)}/>
-              {props.confirmText}
-            </Label>
-          </Alert>}
+          {props.confirmText && (
+            <Alert>
+              <Label className="flex items-center gap-4">
+                <Checkbox id={confirmId} checked={confirmed} onCheckedChange={(v) => setConfirmed(!!v)} />
+                {props.confirmText}
+              </Label>
+            </Alert>
+          )}
         </DialogBody>
 
-
-        {anyButton && <DialogFooter className="gap-2">
-          {cancelButton && (
-            <Button
-              variant="secondary"
-              color="neutral"
-              onClick={async () => {
-                if (await cancelButton.onClick?.() !== "prevent-close") {
-                  onOpenChange(false);
-                }
-              }}
-              {...cancelButton.props}
-            >
-            Cancel
-            </Button>
-          )}
-          {okButton && (
-            <Button
-              disabled={!!props.confirmText && !confirmed}
-              variant={props.danger ? "destructive" : "default"}
-              onClick={async () => {
-                if (await okButton.onClick?.() !== "prevent-close") {
-                  onOpenChange(false);
-                }
-              }}
-              {...okButton.props}
-            >
-              {okButton.label ?? "OK"}
-            </Button>
-          )}
-        </DialogFooter>}
+        {anyButton && (
+          <DialogFooter className="gap-2">
+            {cancelButton && (
+              <Button
+                variant="secondary"
+                color="neutral"
+                onClick={async () => {
+                  if ((await cancelButton.onClick?.()) !== "prevent-close") {
+                    onOpenChange(false);
+                  }
+                }}
+                {...cancelButton.props}
+              >
+                Cancel
+              </Button>
+            )}
+            {okButton && (
+              <Button
+                disabled={!!props.confirmText && !confirmed}
+                variant={props.danger ? "destructive" : "default"}
+                onClick={async () => {
+                  if ((await okButton.onClick?.()) !== "prevent-close") {
+                    onOpenChange(false);
+                  }
+                }}
+                {...okButton.props}
+              >
+                {okButton.label ?? "OK"}
+              </Button>
+            )}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

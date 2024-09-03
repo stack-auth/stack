@@ -1,11 +1,11 @@
-import { prismaClient } from '@/prisma-client';
-import { KnownErrors } from '@stackframe/stack-shared';
+import { JOSEError, JWTExpired } from "jose/errors";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
-import { JOSEError, JWTExpired } from 'jose/errors';
-import { SystemEventTypes, logEvent } from './events';
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { decryptJWT, encryptJWT } from "@stackframe/stack-shared/dist/utils/jwt";
+import { prismaClient } from "@/prisma-client";
+import { SystemEventTypes, logEvent } from "./events";
 
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
@@ -26,13 +26,12 @@ export const oauthCookieSchema = yupObject({
   codeChallenge: yupString().required(),
   codeChallengeMethod: yupString().required(),
   responseType: yupString().required(),
-  type: yupString().oneOf(['authenticate', 'link']).required(),
+  type: yupString().oneOf(["authenticate", "link"]).required(),
   projectUserId: yupString().optional(),
   providerScope: yupString().optional(),
   errorRedirectUrl: yupString().optional(),
   afterCallbackRedirectUrl: yupString().optional(),
 });
-
 
 export async function decodeAccessToken(accessToken: string) {
   let decoded;
@@ -50,13 +49,7 @@ export async function decodeAccessToken(accessToken: string) {
   return await accessTokenSchema.validate(decoded);
 }
 
-export async function generateAccessToken({
-  projectId,
-  userId,
-}: {
-  projectId: string,
-  userId: string,
-}) {
+export async function generateAccessToken({ projectId, userId }: { projectId: string; userId: string }) {
   await logEvent([SystemEventTypes.UserActivity], { projectId, userId });
 
   // TODO: pass the scope and some other information down to the token
@@ -68,9 +61,9 @@ export async function createAuthTokens({
   projectUserId,
   expiresAt,
 }: {
-  projectId: string,
-  projectUserId: string,
-  expiresAt?: Date,
+  projectId: string;
+  projectUserId: string;
+  expiresAt?: Date;
 }) {
   expiresAt ??= new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
 

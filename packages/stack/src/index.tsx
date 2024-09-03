@@ -1,8 +1,8 @@
 export { default as StackProvider } from "./providers/stack-provider";
 export { useUser, useStackApp } from "./lib/hooks";
 export { default as StackHandler } from "./components-page/stack-handler";
-export { StackTheme } from './providers/theme-provider';
-export * from './lib/stack-app';
+export { StackTheme } from "./providers/theme-provider";
+export * from "./lib/stack-app";
 
 export { SignIn } from "./components-page/sign-in";
 export { SignUp } from "./components-page/sign-up";
@@ -19,6 +19,4 @@ export { MagicLinkSignIn as MagicLinkSignIn } from "./components/magic-link-sign
 export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
 
-export {
-  SelectedTeamSwitcher,
-} from "./components/selected-team-switcher";
+export { SelectedTeamSwitcher } from "./components/selected-team-switcher";

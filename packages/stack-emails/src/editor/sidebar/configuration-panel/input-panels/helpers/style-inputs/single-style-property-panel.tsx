@@ -1,17 +1,17 @@
-import { Square } from 'lucide-react';
-import { TStyle } from '../../../../../documents/blocks/helpers/t-style';
-import { NullableColorInput } from '../inputs/color-input';
-import { NullableFontFamily } from '../inputs/font-family';
-import FontSizeInput from '../inputs/font-size-input';
-import FontWeightInput from '../inputs/font-weight-input';
-import PaddingInput from '../inputs/padding-input';
-import SliderInput from '../inputs/slider-input';
-import TextAlignInput from '../inputs/text-align-input';
+import { Square } from "lucide-react";
+import { TStyle } from "../../../../../documents/blocks/helpers/t-style";
+import { NullableColorInput } from "../inputs/color-input";
+import { NullableFontFamily } from "../inputs/font-family";
+import FontSizeInput from "../inputs/font-size-input";
+import FontWeightInput from "../inputs/font-weight-input";
+import PaddingInput from "../inputs/padding-input";
+import SliderInput from "../inputs/slider-input";
+import TextAlignInput from "../inputs/text-align-input";
 
 type StylePropertyPanelProps = {
-  name: keyof TStyle,
-  value: TStyle,
-  onChange: (style: TStyle) => void,
+  name: keyof TStyle;
+  value: TStyle;
+  onChange: (style: TStyle) => void;
 };
 export default function SingleStylePropertyPanel({ name, value, onChange }: StylePropertyPanelProps) {
   const defaultValue = value[name] ?? null;
@@ -21,16 +21,16 @@ export default function SingleStylePropertyPanel({ name, value, onChange }: Styl
   };
 
   switch (name) {
-    case 'backgroundColor': {
+    case "backgroundColor": {
       return <NullableColorInput label="Background color" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'borderColor': {
+    case "borderColor": {
       return <NullableColorInput label="Border color" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'borderRadius': {
+    case "borderRadius": {
       return (
         <SliderInput
-          iconLabel={<Square className='h-4 w-4'/>}
+          iconLabel={<Square className="h-4 w-4" />}
           units="px"
           step={4}
           min={0}
@@ -41,22 +41,22 @@ export default function SingleStylePropertyPanel({ name, value, onChange }: Styl
         />
       );
     }
-    case 'color': {
+    case "color": {
       return <NullableColorInput label="Text color" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'fontFamily': {
+    case "fontFamily": {
       return <NullableFontFamily label="Font family" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'fontSize': {
+    case "fontSize": {
       return <FontSizeInput label="Font size" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'fontWeight': {
+    case "fontWeight": {
       return <FontWeightInput label="Font weight" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'textAlign': {
+    case "textAlign": {
       return <TextAlignInput label="Alignment" defaultValue={defaultValue} onChange={handleChange} />;
     }
-    case 'padding': {
+    case "padding": {
       return <PaddingInput label="Padding" defaultValue={defaultValue} onChange={handleChange} />;
     }
   }

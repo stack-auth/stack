@@ -1,11 +1,25 @@
 "use client";
 
-import { SettingCard, SettingSwitch } from "@/components/settings";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  CopyButton,
+  Label,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Typography,
+} from "@stackframe/stack-ui";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { getSvixResult } from "../utils";
@@ -21,7 +35,7 @@ function PageInner(props: { endpointId: string }) {
   const endpoint = getSvixResult(useEndpoint(props.endpointId));
 
   return (
-    <PageLayout title="Webhook Endpoint" description={endpoint.loaded ? endpoint.data.url : 'Loading...'}>
+    <PageLayout title="Webhook Endpoint" description={endpoint.loaded ? endpoint.data.url : "Loading..."}>
       <SettingCard title="Details" description="The details of this endpoint">
         <EndpointDetails endpointId={props.endpointId} />
       </SettingCard>
@@ -41,28 +55,24 @@ function EndpointDetails(props: { endpointId: string }) {
     <>
       <div>
         <Label>URL</Label>
-        <Typography>{endpoint.loaded ? endpoint.data.url : 'Loading...'}</Typography>
+        <Typography>{endpoint.loaded ? endpoint.data.url : "Loading..."}</Typography>
       </div>
       <div>
         <Label>Description</Label>
-        <Typography>{endpoint.loaded ? endpoint.data.description || "" : 'Loading...'}</Typography>
+        <Typography>{endpoint.loaded ? endpoint.data.description || "" : "Loading..."}</Typography>
       </div>
       <div>
         <Label>Verification secret</Label>
         <div className="flex items-center space-x-2">
-          <Typography type='label'> {secret.loaded ? secret.data.key : 'Loading...'} </Typography>
-          <CopyButton content={secret.loaded ? secret.data.key : ''} className={secret.loaded ? '' : 'hidden'} />
+          <Typography type="label"> {secret.loaded ? secret.data.key : "Loading..."} </Typography>
+          <CopyButton content={secret.loaded ? secret.data.key : ""} className={secret.loaded ? "" : "hidden"} />
         </div>
       </div>
     </>
   );
 }
 
-const eventTypes = [
-  'user.created',
-  'user.updated',
-  'user.deleted',
-];
+const eventTypes = ["user.created", "user.updated", "user.deleted"];
 
 // TODO: This function isn't used. Determine if it should be removed.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -90,11 +100,11 @@ function FilterEvents(props: { endpointId: string }) {
         }}
       />
 
-      {checked ?
-        <div className="border rounded-md p-4">
+      {checked ? (
+        <div className="rounded-md border p-4">
           <Label>Only receive events of the following types</Label>
-          <div className="flex flex-col gap-2 mt-2">
-            {eventTypes.map(eventType => {
+          <div className="mt-2 flex flex-col gap-2">
+            {eventTypes.map((eventType) => {
               const checked = filterTypes?.includes(eventType);
               const oldFilterTypes = filterTypes || [];
               return (
@@ -104,30 +114,36 @@ function FilterEvents(props: { endpointId: string }) {
                     checked={checked}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        runAsynchronously(updateEndpoint({
-                          url: endpoint.data.url,
-                          filterTypes: [...new Set([...oldFilterTypes, eventType])],
-                        }));
+                        runAsynchronously(
+                          updateEndpoint({
+                            url: endpoint.data.url,
+                            filterTypes: [...new Set([...oldFilterTypes, eventType])],
+                          }),
+                        );
                       } else {
-                        runAsynchronously(updateEndpoint({
-                          url: endpoint.data.url,
-                          filterTypes: oldFilterTypes.filter(type => type !== eventType),
-                        }));
+                        runAsynchronously(
+                          updateEndpoint({
+                            url: endpoint.data.url,
+                            filterTypes: oldFilterTypes.filter((type) => type !== eventType),
+                          }),
+                        );
                       }
                     }}
                   />
                   <Typography variant={checked ? undefined : "secondary"}>{eventType}</Typography>
                 </div>
-              ); })}
+              );
+            })}
           </div>
-        </div> :
+        </div>
+      ) : (
         <div>
           <Alert>Receiving all the event types</Alert>
-        </div>}
+        </div>
+      )}
     </>
   );
 }
-
 
 function MessageTable(props: { endpointId: string }) {
   const messages = getSvixResult(useEndpointMessageAttempts(props.endpointId, { limit: 10, withMsg: true }));
@@ -140,7 +156,7 @@ function MessageTable(props: { endpointId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="border rounded-md">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,10 +166,12 @@ function MessageTable(props: { endpointId: string }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {messages.data.map(message => (
+            {messages.data.map((message) => (
               <TableRow key={message.id}>
                 <TableCell>{message.id}</TableCell>
-                <TableCell><Badge variant={'secondary'}>{statusToString[message.status]}</Badge></TableCell>
+                <TableCell>
+                  <Badge variant={"secondary"}>{statusToString[message.status]}</Badge>
+                </TableCell>
                 <TableCell>{message.timestamp.toLocaleString()}</TableCell>
               </TableRow>
             ))}
@@ -162,11 +180,11 @@ function MessageTable(props: { endpointId: string }) {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button size='icon' variant={'outline'} disabled={!messages.hasPrevPage} onClick={messages.prevPage}>
+        <Button size="icon" variant={"outline"} disabled={!messages.hasPrevPage} onClick={messages.prevPage}>
           <ChevronLeft />
         </Button>
 
-        <Button size='icon' variant={'outline'} disabled={!messages.hasNextPage} onClick={messages.nextPage}>
+        <Button size="icon" variant={"outline"} disabled={!messages.hasNextPage} onClick={messages.nextPage}>
           <ChevronRight />
         </Button>
       </div>
@@ -180,8 +198,7 @@ export default function PageClient(props: { endpointId: string }) {
 
   // This is a hack to make sure svix hooks update when content changes
   const svixTokenUpdated = useMemo(() => {
-    return svixToken + '';
-
+    return svixToken + "";
   }, [svixToken]);
 
   return (

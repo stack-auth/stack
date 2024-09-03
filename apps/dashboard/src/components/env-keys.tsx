@@ -1,21 +1,19 @@
 import { Button, CopyField, Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
 
 export default function EnvKeys(props: {
-  projectId: string,
-  publishableClientKey?: string,
-  secretServerKey?: string,
-  superSecretAdminKey?: string,
+  projectId: string;
+  publishableClientKey?: string;
+  secretServerKey?: string;
+  superSecretAdminKey?: string;
 }) {
-
   const handleDownloadKeys = () => {
     const content = Object.entries({
       NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
-        props.publishableClientKey,
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
       STACK_SECRET_SERVER_KEY: props.secretServerKey,
       STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
     })
-      .filter(([k, v]) => v)
+      .filter(([, v]) => v)
       .map(([k, v]) => `${k}=${v}`)
       .join("\n");
     const blob = new Blob([content], { type: "text/plain" });
@@ -44,8 +42,7 @@ export default function EnvKeys(props: {
           height={160}
           value={Object.entries({
             NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
-              props.publishableClientKey,
+            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
             STACK_SECRET_SERVER_KEY: props.secretServerKey,
             STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
           })
@@ -91,7 +88,7 @@ export default function EnvKeys(props: {
           )}
         </div>
       </TabsContent>
-      <Button variant="secondary" className="w-full mt-1.5" onClick={handleDownloadKeys}>
+      <Button variant="secondary" className="mt-1.5 w-full" onClick={handleDownloadKeys}>
         Download Keys
       </Button>
     </Tabs>

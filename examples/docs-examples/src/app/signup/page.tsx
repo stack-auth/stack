@@ -1,27 +1,22 @@
-'use client';
-
+"use client";
 
 // import { SignUp } from "@stackframe/stack";
-
 // export default function DefaultSignUp() {
 //   return <SignUp fullPage />;
 // }
-
 // --------------------------------------------
-
-
-import { useStackApp } from "@stackframe/stack";
 import { useState } from "react";
+import { useStackApp } from "@stackframe/stack";
 
 export default function CustomCredentialSignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const app = useStackApp();
 
   const onSubmit = async () => {
     if (!password) {
-      setError('Please enter your password');
+      setError("Please enter your password");
       return;
     }
     // this will redirect to app.urls.afterSignUp if successful, you can customize it in the StackServerApp constructor
@@ -33,14 +28,16 @@ export default function CustomCredentialSignUp() {
   };
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      onSubmit();
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
       {error}
-      <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type='password' placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button type='submit'>Sign Up</button>
+      <input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type="submit">Sign Up</button>
     </form>
   );
 }

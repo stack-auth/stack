@@ -1,23 +1,19 @@
-import React from 'react';
-import { z } from 'zod';
-import { Button, ButtonPropsSchema } from '../../blocks/block-button';
-import { Divider, DividerPropsSchema } from '../../blocks/block-divider';
-import { Heading, HeadingPropsSchema } from '../../blocks/block-heading';
-import { Image, ImagePropsSchema } from '../../blocks/block-image';
-import { Spacer, SpacerPropsSchema } from '../../blocks/block-spacer';
-import { Text, TextPropsSchema } from '../../blocks/block-text';
-import {
-  buildBlockComponent,
-  buildBlockConfigurationDictionary,
-  buildBlockConfigurationSchema,
-} from '../../document-core';
-import ColumnsContainerEditor from '../blocks/columns-container/columns-container-editor';
-import ColumnsContainerPropsSchema from '../blocks/columns-container/columns-container-props-schema';
-import ContainerEditor from '../blocks/container/container-editor';
-import ContainerPropsSchema from '../blocks/container/container-props-schema';
-import EmailLayoutEditor from '../blocks/email-layout/email-layout-editor';
-import EmailLayoutPropsSchema from '../blocks/email-layout/email-layout-props-schema';
-import EditorBlockWrapper from '../blocks/helpers/block-wrappers/editor-block-wrapper';
+import React from "react";
+import { z } from "zod";
+import { Button, ButtonPropsSchema } from "../../blocks/block-button";
+import { Divider, DividerPropsSchema } from "../../blocks/block-divider";
+import { Heading, HeadingPropsSchema } from "../../blocks/block-heading";
+import { Image, ImagePropsSchema } from "../../blocks/block-image";
+import { Spacer, SpacerPropsSchema } from "../../blocks/block-spacer";
+import { Text, TextPropsSchema } from "../../blocks/block-text";
+import { buildBlockComponent, buildBlockConfigurationDictionary, buildBlockConfigurationSchema } from "../../document-core";
+import ColumnsContainerEditor from "../blocks/columns-container/columns-container-editor";
+import ColumnsContainerPropsSchema from "../blocks/columns-container/columns-container-props-schema";
+import ContainerEditor from "../blocks/container/container-editor";
+import ContainerPropsSchema from "../blocks/container/container-props-schema";
+import EmailLayoutEditor from "../blocks/email-layout/email-layout-editor";
+import EmailLayoutPropsSchema from "../blocks/email-layout/email-layout-props-schema";
+import EditorBlockWrapper from "../blocks/helpers/block-wrappers/editor-block-wrapper";
 
 const EDITOR_DICTIONARY = buildBlockConfigurationDictionary({
   Button: {

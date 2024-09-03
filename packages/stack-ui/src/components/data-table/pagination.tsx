@@ -1,34 +1,20 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
-} from "@radix-ui/react-icons";
-import {
-  Button, Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@stackframe/stack-ui";
+import { ChevronLeftIcon, ChevronRightIcon, DoubleArrowLeftIcon, DoubleArrowRightIcon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
 
 interface DataTablePaginationProps<TData> {
-  table: Table<TData>,
+  table: Table<TData>;
 }
 
-export function DataTablePagination<TData>({
-  table,
-}: DataTablePaginationProps<TData>) {
+export function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-between px-2 flex-col sm:flex-row gap-y-4 sm:gap-y-0">
-      <div className="flex-1 text-sm text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length === 0 ?
-          `${table.getFilteredRowModel().rows.length} row(s) found` :
-          `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected`
-        }
+    <div className="flex flex-col items-center justify-between gap-y-4 px-2 sm:flex-row sm:gap-y-0">
+      <div className="text-muted-foreground flex-1 text-sm">
+        {table.getFilteredSelectedRowModel().rows.length === 0
+          ? `${table.getFilteredRowModel().rows.length} row(s) found`
+          : `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected`}
       </div>
-      <div className="flex items-center gap-x-6 lg:gap-x-8 flex-col sm:flex-row gap-y-4 sm:gap-y-0">
+      <div className="flex flex-col items-center gap-x-6 gap-y-4 sm:flex-row sm:gap-y-0 lg:gap-x-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <Select
@@ -51,8 +37,7 @@ export function DataTablePagination<TData>({
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -64,21 +49,11 @@ export function DataTablePagination<TData>({
               <span className="sr-only">Go to first page</span>
               <DoubleArrowLeftIcon className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
+            <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
               <span className="sr-only">Go to previous page</span>
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
+            <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
               <span className="sr-only">Go to next page</span>
               <ChevronRightIcon className="h-4 w-4" />
             </Button>

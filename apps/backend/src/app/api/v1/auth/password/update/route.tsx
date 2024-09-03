@@ -1,10 +1,17 @@
-import { prismaClient } from "@/prisma-client";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import {
+  adaptSchema,
+  clientOrHigherAuthTypeSchema,
+  yupNumber,
+  yupObject,
+  yupString,
+  yupTuple,
+} from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -50,12 +57,14 @@ export const POST = createSmartRouteHandler({
         },
       });
       if (!prismaUser) {
-        throw new StackAssertionError("User not found in password update; it was probably deleted after the request started. We should put more thoughts into the transactions here");
+        throw new StackAssertionError(
+          "User not found in password update; it was probably deleted after the request started. We should put more thoughts into the transactions here",
+        );
       }
       if (!prismaUser.passwordHash) {
         throw new KnownErrors.UserDoesNotHavePassword();
       }
-      if (!await comparePassword(old_password, prismaUser.passwordHash)) {
+      if (!(await comparePassword(old_password, prismaUser.passwordHash))) {
         throw new KnownErrors.PasswordConfirmationMismatch();
       }
       await tx.projectUser.update({
@@ -75,11 +84,13 @@ export const POST = createSmartRouteHandler({
         where: {
           projectId: project.id,
           projectUserId: user.id,
-          ...refreshToken ? {
-            NOT: {
-              refreshToken: refreshToken[0],
-            },
-          } : {},
+          ...(refreshToken
+            ? {
+                NOT: {
+                  refreshToken: refreshToken[0],
+                },
+              }
+            : {}),
         },
       });
     });

@@ -1,24 +1,5 @@
-/* eslint-disable no-useless-escape */
-'use client';
+"use client";
 
-import { Link } from "@/components/link";
-import { ProjectSwitcher } from "@/components/project-switcher";
-import { cn } from "@/lib/utils";
-import { AdminProject, UserButton, useUser } from "@stackframe/stack";
-import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Button,
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  Typography,
-  buttonVariants
-} from "@stackframe/stack-ui";
 import {
   Book,
   KeyRound,
@@ -37,58 +18,78 @@ import {
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
+import { AdminProject, UserButton, useUser } from "@stackframe/stack";
+import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  Typography,
+  buttonVariants,
+} from "@stackframe/stack-ui";
+import { Link } from "@/components/link";
+import { ProjectSwitcher } from "@/components/project-switcher";
+import { cn } from "@/lib/utils";
 import { useAdminApp } from "./use-admin-app";
 
-type BreadcrumbItem = { item: React.ReactNode, href: string }
+/* eslint-disable no-useless-escape */
+
+type BreadcrumbItem = { item: React.ReactNode; href: string };
 
 type Label = {
-  name: React.ReactNode,
-  type: 'label',
+  name: React.ReactNode;
+  type: "label";
 };
 
 type Item = {
-  name: React.ReactNode,
-  href: string,
-  icon: LucideIcon,
-  regex: RegExp,
-  type: 'item',
+  name: React.ReactNode;
+  href: string;
+  icon: LucideIcon;
+  regex: RegExp;
+  type: "item";
 };
 
 type Hidden = {
-  name: BreadcrumbItem[] | ((pathname: string) => BreadcrumbItem[]),
-  regex: RegExp,
-  type: 'hidden',
+  name: BreadcrumbItem[] | ((pathname: string) => BreadcrumbItem[]);
+  regex: RegExp;
+  type: "hidden";
 };
 
 const navigationItems: (Label | Item | Hidden)[] = [
   {
     name: "Users",
-    type: 'label'
+    type: "label",
   },
   {
     name: "Users",
     href: "/users",
     regex: /^\/projects\/[^\/]+\/users$/,
     icon: User,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Auth Methods",
     href: "/auth-methods",
     regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Teams",
-    type: 'label'
+    type: "label",
   },
   {
     name: "Teams",
     href: "/teams",
     regex: /^\/projects\/[^\/]+\/teams$/,
     icon: Users,
-    type: 'item'
+    type: "item",
   },
   {
     name: (pathname: string) => {
@@ -96,7 +97,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
       let item;
       let href;
       if (match) {
-        item = <TeamMemberBreadcrumbItem key='team-display-name' teamId={match[1]} />;
+        item = <TeamMemberBreadcrumbItem key="team-display-name" teamId={match[1]} />;
         href = `/teams/${match[1]}`;
       } else {
         item = "Members";
@@ -116,39 +117,39 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/team-permissions",
     regex: /^\/projects\/[^\/]+\/team-permissions$/,
     icon: LockKeyhole,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Team Settings",
     href: "/team-settings",
     regex: /^\/projects\/[^\/]+\/team-settings$/,
     icon: Settings2,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Configuration",
-    type: 'label'
+    type: "label",
   },
   {
     name: "Domains & Handlers",
     href: "/domains",
     regex: /^\/projects\/[^\/]+\/domains$/,
     icon: LinkIcon,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Emails",
     href: "/emails",
     regex: /^\/projects\/[^\/]+\/emails$/,
     icon: Mail,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Webhooks",
     href: "/webhooks",
     regex: /^\/projects\/[^\/]+\/webhooks$/,
     icon: Webhook,
-    type: 'item'
+    type: "item",
   },
   {
     name: (pathname: string) => {
@@ -166,7 +167,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
       ];
     },
     regex: /^\/projects\/[^\/]+\/webhooks\/[^\/]+$/,
-    type: 'hidden',
+    type: "hidden",
   },
   {
     name: (pathname: string) => {
@@ -186,22 +187,22 @@ const navigationItems: (Label | Item | Hidden)[] = [
       ];
     },
     regex: /^\/projects\/[^\/]+\/emails\/templates\/[^\/]+$/,
-    type: 'hidden',
+    type: "hidden",
   },
   {
     name: "API Keys",
     href: "/api-keys",
     regex: /^\/projects\/[^\/]+\/api-keys$/,
     icon: KeyRound,
-    type: 'item'
+    type: "item",
   },
   {
     name: "Project Settings",
     href: "/project-settings",
     regex: /^\/projects\/[^\/]+\/project-settings$/,
     icon: Settings,
-    type: 'item'
-  }
+    type: "item",
+  },
 ];
 
 function TeamMemberBreadcrumbItem(props: { teamId: string }) {
@@ -215,7 +216,7 @@ function TeamMemberBreadcrumbItem(props: { teamId: string }) {
   }
 }
 
-function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
+function NavItem({ item, href, onClick }: { item: Item; href: string; onClick?: () => void }) {
   const pathname = usePathname();
   const selected = useMemo(() => {
     return item.regex.test(pathname);
@@ -225,9 +226,9 @@ function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: 
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: 'ghost', size: "sm" }),
+        buttonVariants({ variant: "ghost", size: "sm" }),
         selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+        "text-md flex-grow justify-start px-2 text-zinc-800 dark:text-zinc-300",
       )}
       onClick={onClick}
       prefetch={true}
@@ -238,28 +239,32 @@ function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: 
   );
 }
 
-function SidebarContent({ projectId, onNavigate }: { projectId: string, onNavigate?: () => void }) {
+function SidebarContent({ projectId, onNavigate }: { projectId: string; onNavigate?: () => void }) {
   return (
-    <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 border-b flex items-center px-2 shrink-0">
+    <div className="flex h-full flex-col items-stretch">
+      <div className="flex h-14 shrink-0 items-center border-b px-2">
         <ProjectSwitcher currentProjectId={projectId} />
       </div>
-      <div className="flex flex-grow flex-col gap-1 pt-2 overflow-y-auto">
+      <div className="flex flex-grow flex-col gap-1 overflow-y-auto pt-2">
         {navigationItems.map((item, index) => {
-          if (item.type === 'label') {
-            return <Typography key={index} className="pl-2 mt-3" type="label" variant="secondary">
-              {item.name}
-            </Typography>;
-          } else if (item.type === 'item') {
-            return <div key={index} className="flex px-2">
-              <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`}/>
-            </div>;
+          if (item.type === "label") {
+            return (
+              <Typography key={index} className="mt-3 pl-2" type="label" variant="secondary">
+                {item.name}
+              </Typography>
+            );
+          } else if (item.type === "item") {
+            return (
+              <div key={index} className="flex px-2">
+                <NavItem item={item} onClick={onNavigate} href={`/projects/${projectId}${item.href}`} />
+              </div>
+            );
           }
         })}
 
-        <div className="flex-grow"/>
+        <div className="flex-grow" />
 
-        <div className="py-2 px-2 flex">
+        <div className="flex px-2 py-2">
           <NavItem
             onClick={onNavigate}
             item={{
@@ -277,20 +282,14 @@ function SidebarContent({ projectId, onNavigate }: { projectId: string, onNaviga
   );
 }
 
-function HeaderBreadcrumb({
-  mobile,
-  projectId
-}: {
-  projectId: string,
-  mobile?: boolean,
-}) {
+function HeaderBreadcrumb({ mobile, projectId }: { projectId: string; mobile?: boolean }) {
   const pathname = usePathname();
-  const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
+  const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const item = navigationItems.find((item) => {
-      if (item.type === 'label') {
+      if (item.type === "label") {
         return false;
       } else {
         return item.regex.test(pathname);
@@ -303,13 +302,15 @@ function HeaderBreadcrumb({
       results = [];
     } else if (name instanceof Array) {
       results = name;
-    } else if (typeof name === 'function') {
+    } else if (typeof name === "function") {
       results = name(pathname);
     } else {
-      results = [{
-        item: name,
-        href: (item as any)?.href,
-      }];
+      results = [
+        {
+          item: name,
+          href: (item as any)?.href,
+        },
+      ];
     }
     return results.map((item) => ({
       item: item.item,
@@ -343,49 +344,47 @@ function HeaderBreadcrumb({
             <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          {breadcrumbItems.map((name, index) => (
-            index < breadcrumbItems.length - 1 ?
+          {breadcrumbItems.map((name, index) =>
+            index < breadcrumbItems.length - 1 ? (
               <Fragment key={index}>
                 <BreadcrumbItem>
-                  <Link href={name.href}>
-                    {name.item}
-                  </Link>
+                  <Link href={name.href}>{name.item}</Link>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator/>
-              </Fragment> :
+                <BreadcrumbSeparator />
+              </Fragment>
+            ) : (
               <BreadcrumbPage key={index}>
-                <Link href={name.href}>
-                  {name.item}
-                </Link>
+                <Link href={name.href}>{name.item}</Link>
               </BreadcrumbPage>
-          ))}
+            ),
+          )}
         </BreadcrumbList>
       </Breadcrumb>
     );
   }
 }
 
-export default function SidebarLayout(props: { projectId: string, children?: React.ReactNode }) {
+export default function SidebarLayout(props: { projectId: string; children?: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <div className="w-full flex">
-      <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
+    <div className="flex w-full">
+      <div className="sticky top-0 hidden h-screen w-[240px] flex-col border-r md:flex">
         <SidebarContent projectId={props.projectId} />
       </div>
-      <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
+      <div className="flex w-0 flex-grow flex-col">
+        <div className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-white px-4 dark:bg-black md:px-6">
           <div className="hidden md:flex">
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
 
-          <div className="flex md:hidden items-center">
+          <div className="flex items-center md:hidden">
             <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
               <SheetTrigger>
                 <Menu />
               </SheetTrigger>
-              <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
+              <SheetContent side="left" className="w-[240px] p-0" hasCloseButton={false}>
                 <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
               </SheetContent>
             </Sheet>
@@ -396,15 +395,19 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
           </div>
 
           <div className="flex gap-4">
-            <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                window.open("mailto:team@stack-auth.com");
+              }}
+            >
               Feedback
             </Button>
-            <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} />
+            <UserButton colorModeToggle={() => setTheme(resolvedTheme === "light" ? "dark" : "light")} />
           </div>
         </div>
-        <div className="flex-grow">
-          {props.children}
-        </div>
+        <div className="flex-grow">{props.children}</div>
       </div>
     </div>
   );

@@ -1,20 +1,19 @@
-'use client';
+"use client";
 
-import { useStackApp } from "..";
-import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
-import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import { Typography } from "@stackframe/stack-ui";
+import { useStackApp } from "..";
+import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import { MessageCard } from "../components/message-cards/message-card";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 
-
-export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export function ErrorPage({ fullPage = false, searchParams }: { fullPage?: boolean; searchParams: Record<string, string> }) {
   const stackApp = useStackApp();
   const errorCode = searchParams.errorCode;
   const message = searchParams.message;
   const details = searchParams.details;
 
-  const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={fullPage} />;
+  const unknownErrorCard = <PredefinedMessageCard type="unknownError" fullPage={fullPage} />;
 
   if (!errorCode || !message || !details) {
     return unknownErrorCard;
@@ -36,9 +35,7 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
-        <Typography>
-          This account is already connected to another user. Please connect a different account.
-        </Typography>
+        <Typography>This account is already connected to another user. Please connect a different account.</Typography>
       </MessageCard>
     );
   }

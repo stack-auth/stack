@@ -1,15 +1,15 @@
-import { Link } from "@/components/link";
-import { Typography, Separator } from "@stackframe/stack-ui";
 import { FaDiscord, FaGithub, FaLinkedin } from "react-icons/fa";
+import { Separator, Typography } from "@stackframe/stack-ui";
+import { Link } from "@/components/link";
 
-export default function Footer () {
+export default function Footer() {
   return (
     <footer>
       <Separator />
 
-      <div className="flex flex-col md:flex-row p-4 gap-4">
+      <div className="flex flex-col gap-4 p-4 md:flex-row">
         <div className="flex flex-col gap-4 md:flex-1">
-          <ul className="flex gap-4 flex-grow">
+          <ul className="flex flex-grow gap-4">
             {[
               { href: "https://discord.stack-auth.com/", icon: FaDiscord },
               { href: "https://www.linkedin.com/company/stackframe-inc", icon: FaLinkedin },
@@ -24,7 +24,7 @@ export default function Footer () {
           </ul>
         </div>
 
-        <div className="flex gap-4 md:flex-1 md:justify-end flex-wrap">
+        <div className="flex flex-wrap gap-4 md:flex-1 md:justify-end">
           {[
             { href: "https://stack-auth.com", label: "Home" },
             { href: "https://www.iubenda.com/privacy-policy/19290387", label: "Privacy policy" },
@@ -32,7 +32,9 @@ export default function Footer () {
             { href: "https://www.iubenda.com/terms-and-conditions/19290387", label: "Terms & conditions" },
           ].map(({ href, label }) => (
             <Link key={label} href={href}>
-              <Typography variant="secondary" type='label'>{label}</Typography>
+              <Typography variant="secondary" type="label">
+                {label}
+              </Typography>
             </Link>
           ))}
         </div>

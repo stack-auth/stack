@@ -2,16 +2,16 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { DiscordProvider } from "@/oauth/providers/discord";
 import { OAuthModel } from "./model";
 import { OAuthBaseProvider } from "./providers/base";
 import { FacebookProvider } from "./providers/facebook";
 import { GithubProvider } from "./providers/github";
+import { GitlabProvider } from "./providers/gitlab";
 import { GoogleProvider } from "./providers/google";
 import { MicrosoftProvider } from "./providers/microsoft";
-import { SpotifyProvider } from "./providers/spotify";
 import { MockProvider } from "./providers/mock";
-import { DiscordProvider } from "@/oauth/providers/discord";
-import { GitlabProvider } from "./providers/gitlab";
+import { SpotifyProvider } from "./providers/spotify";
 
 const _providers = {
   github: GithubProvider,
@@ -32,8 +32,10 @@ const _getEnvForProvider = (provider: keyof typeof _providers) => {
   };
 };
 
-export async function getProvider(provider: ProjectsCrud['Admin']['Read']['config']['oauth_providers'][number]): Promise<OAuthBaseProvider> {
-  if (provider.type === 'shared') {
+export async function getProvider(
+  provider: ProjectsCrud["Admin"]["Read"]["config"]["oauth_providers"][number],
+): Promise<OAuthBaseProvider> {
+  if (provider.type === "shared") {
     const clientId = _getEnvForProvider(provider.id).clientId;
     const clientSecret = _getEnvForProvider(provider.id).clientSecret;
     if (clientId === "MOCK") {

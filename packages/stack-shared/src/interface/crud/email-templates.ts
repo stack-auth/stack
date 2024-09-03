@@ -1,8 +1,8 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { jsonSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
 
-export type EmailTemplateType = typeof emailTemplateTypes[number];
-export const emailTemplateTypes = ['email_verification', 'password_reset', 'magic_link', 'team_invitation'] as const;
+export type EmailTemplateType = (typeof emailTemplateTypes)[number];
+export const emailTemplateTypes = ["email_verification", "password_reset", "magic_link", "team_invitation"] as const;
 
 export const emailTemplateAdminReadSchema = yupObject({
   type: yupString().oneOf(emailTemplateTypes).required(),
@@ -44,7 +44,7 @@ export const emailTemplateCrud = createCrud({
     },
     adminList: {
       hidden: true,
-    }
-  }
+    },
+  },
 });
 export type EmailTemplateCrud = CrudTypeOf<typeof emailTemplateCrud>;

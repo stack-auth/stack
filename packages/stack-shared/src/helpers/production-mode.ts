@@ -3,8 +3,8 @@ import { StackAssertionError } from "../utils/errors";
 import { isLocalhost } from "../utils/urls";
 
 export type ProductionModeError = {
-  message: string,
-  relativeFixUrl: `/${string}`,
+  message: string;
+  relativeFixUrl: `/${string}`;
 };
 
 export function getProductionModeErrors(project: ProjectsCrud["Admin"]["Read"]): ProductionModeError[] {
@@ -23,10 +23,13 @@ export function getProductionModeErrors(project: ProjectsCrud["Admin"]["Read"]):
     try {
       url = new URL(domain);
     } catch {
-      throw new StackAssertionError("Domain was somehow not a valid URL; we should've caught this when setting the domain in the first place", {
-        domain,
-        projectId: project
-      });
+      throw new StackAssertionError(
+        "Domain was somehow not a valid URL; we should've caught this when setting the domain in the first place",
+        {
+          domain,
+          projectId: project,
+        },
+      );
     }
 
     if (isLocalhost(url)) {

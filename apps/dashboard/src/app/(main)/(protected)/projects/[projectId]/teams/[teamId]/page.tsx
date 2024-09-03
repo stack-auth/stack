@@ -5,7 +5,5 @@ export const metadata = {
 };
 
 export default function Page({ params }: { params: { teamId: string } }) {
-  return (
-    <PageClient teamId={params.teamId} />
-  );
+  return <PageClient teamId={params.teamId} />;
 }

@@ -1,21 +1,19 @@
-import { Popover, PopoverContent, PopoverTrigger } from '@stackframe/stack-ui';
-import React from 'react';
-import { TEditorBlock } from '../../../../editor/core';
-import BlockButton from './block-button';
-import { BUTTONS } from './buttons';
+import React from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@stackframe/stack-ui";
+import { TEditorBlock } from "../../../../editor/core";
+import BlockButton from "./block-button";
+import { BUTTONS } from "./buttons";
 
 type BlocksMenuProps = {
-  trigger: React.ReactNode,
-  onSelect: (block: TEditorBlock) => void,
+  trigger: React.ReactNode;
+  onSelect: (block: TEditorBlock) => void;
 };
 export default function BlocksPopover({ trigger, onSelect }: BlocksMenuProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        {trigger}
-      </PopoverTrigger>
-      <PopoverContent className='w-[300px] md:w-[600px]'>
-        <div className='grid grid-cols-2 gap-2 md:grid-cols-4'>
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverContent className="w-[300px] md:w-[600px]">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {BUTTONS.map((k, i) => (
             <BlockButton key={i} label={k.label} icon={k.icon} onClick={() => onSelect(k.block())} />
           ))}

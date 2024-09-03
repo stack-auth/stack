@@ -57,7 +57,7 @@ it("should sign out other sessions but not own session when updating password", 
     }
   `);
   await Auth.expectSessionToBeValid();
-  await Auth.expectToBeSignedIn();  // shouldn't sign out own session
+  await Auth.expectToBeSignedIn(); // shouldn't sign out own session
 
   backendContext.set({ userAuth: otherSessionAuth });
   await Auth.expectSessionToBeInvalid();

@@ -1,4 +1,3 @@
-
 import { it, localRedirectUrl, updateCookiesFromResponse } from "../../../../../../helpers";
 import { ApiKey, Auth, Project, niceBackendFetch } from "../../../../../backend-helpers";
 
@@ -7,7 +6,9 @@ it("should return outer authorization code when inner callback url is valid", as
   expect(response.authorizationCode).toBeTruthy();
 });
 
-it("should return outer authorization code when inner callback url is valid, even if invalid error redirect url is passed", async ({ expect }) => {
+it("should return outer authorization code when inner callback url is valid, even if invalid error redirect url is passed", async ({
+  expect,
+}) => {
   const authorize = await Auth.OAuth.authorize({ errorRedirectUrl: "http://error-redirect-url.stack-test.example.com" });
   const getInnerCallbackUrlResponse = await Auth.OAuth.getInnerCallbackUrl(authorize);
   const response = await Auth.OAuth.getAuthorizationCode(getInnerCallbackUrlResponse);
@@ -42,7 +43,9 @@ it("should fail when inner callback has invalid provider ID", async ({ expect })
 });
 
 it("should fail when account is new and sign ups are disabled", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { sign_up_enabled: false, oauth_providers: [ { id: "facebook", type: "shared", enabled: true } ] } });
+  await Project.createAndSwitch({
+    config: { sign_up_enabled: false, oauth_providers: [{ id: "facebook", type: "shared", enabled: true }] },
+  });
   await ApiKey.createAndSetProjectKeys();
   const getInnerCallbackUrlResponse = await Auth.OAuth.getInnerCallbackUrl();
   const cookie = updateCookiesFromResponse("", getInnerCallbackUrlResponse.authorizeResponse);
@@ -136,7 +139,9 @@ it("should redirect to error callback url when inner callback has invalid author
   `);
 });
 
-it("should fail when inner callback has invalid authorization code and when an invalid error redirect url is passed", async ({ expect }) => {
+it("should fail when inner callback has invalid authorization code and when an invalid error redirect url is passed", async ({
+  expect,
+}) => {
   const authorize = await Auth.OAuth.authorize({ errorRedirectUrl: "http://error-redirect-url.stack-test.example.com" });
   const getInnerCallbackUrlResponse = await Auth.OAuth.getInnerCallbackUrl(authorize);
   const innerCallbackUrl = new URL(getInnerCallbackUrlResponse.innerCallbackUrl);

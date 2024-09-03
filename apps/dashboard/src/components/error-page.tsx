@@ -1,40 +1,30 @@
 "use client";
 
+import { Button, Typography } from "@stackframe/stack-ui";
 import { Logo } from "@/components/logo";
 import { useRouter } from "@/components/router";
-import { Button, Typography } from "@stackframe/stack-ui";
 
 export default function ErrorPage(props: {
-  title: React.ReactNode,
-  description?: React.ReactNode,
-  secondaryDescription?: React.ReactNode,
-  redirectUrl: string,
-  redirectText: string,
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  secondaryDescription?: React.ReactNode;
+  redirectUrl: string;
+  redirectText: string;
 }) {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-4">
-      <main className="max-w-lg flex flex-col gap-4 items-center text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center space-y-4 p-4">
+      <main className="flex max-w-lg flex-col items-center gap-4 text-center">
         <Logo width={80} />
 
-        <Typography type='h1'>
-          {props.title}
-        </Typography>
+        <Typography type="h1">{props.title}</Typography>
 
-        <Typography>
-          {props.description}
-        </Typography>
+        <Typography>{props.description}</Typography>
 
-        <Button onClick={() => router.push(props.redirectUrl)}>
-          {props.redirectText}
-        </Button>
+        <Button onClick={() => router.push(props.redirectUrl)}>{props.redirectText}</Button>
 
-        {props.secondaryDescription && (
-          <Typography variant="secondary">
-            {props.secondaryDescription}
-          </Typography>
-        )}
+        {props.secondaryDescription && <Typography variant="secondary">{props.secondaryDescription}</Typography>}
       </main>
     </div>
   );

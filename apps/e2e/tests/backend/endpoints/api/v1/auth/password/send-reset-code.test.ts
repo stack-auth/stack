@@ -79,7 +79,7 @@ it("should send a password reset code even if the user signed up with magic link
   `);
 });
 
-it('should not send a password reset code if the redirect URL is invalid', async ({ expect }) => {
+it("should not send a password reset code if the redirect URL is invalid", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
   await Auth.signOut();
   const mailbox = backendContext.value.mailbox;

@@ -7,10 +7,10 @@ export function MaybeFullPage({
   children,
   fullPage,
 }: {
-  children: React.ReactNode,
-  fullPage: boolean,
-  size?: number,
-  containerClassName?: string,
+  children: React.ReactNode;
+  fullPage: boolean;
+  size?: number;
+  containerClassName?: string;
 }) {
   const uniqueId = useId();
   const id = `stack-full-page-container-${uniqueId}`;
@@ -32,11 +32,11 @@ export function MaybeFullPage({
           id={id}
           suppressHydrationWarning
           style={{
-            minHeight: '100vh',
-            alignSelf: 'stretch',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
+            minHeight: "100vh",
+            alignSelf: "stretch",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
           className="stack-scope"
         >
@@ -46,9 +46,6 @@ export function MaybeFullPage({
       </>
     );
   } else {
-    return <>
-      {children}
-    </>;
+    return <>{children}</>;
   }
-
 }

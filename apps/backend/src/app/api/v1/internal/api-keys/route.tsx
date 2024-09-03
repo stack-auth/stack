@@ -1,9 +1,9 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { apiKeysCreateInputSchema, apiKeysCreateOutputSchema } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { prismaClient } from "@/prisma-client";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { apiKeyCrudHandlers } from "./crud";
 
 export const GET = apiKeyCrudHandlers.listHandler;
@@ -50,7 +50,7 @@ export const POST = createSmartRouteHandler({
         created_at_millis: set.createdAt.getTime(),
         expires_at_millis: set.expiresAt.getTime(),
         manually_revoked_at_millis: set.manuallyRevokedAt?.getTime(),
-      }
+      },
     } as const;
   },
 });

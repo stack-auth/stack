@@ -1,5 +1,5 @@
-import { Confetti } from "@/components/confetti";
 import { Card, CardContent, CardFooter, CardHeader, InlineCode, Typography } from "@stackframe/stack-ui";
+import { Confetti } from "@/components/confetti";
 import Actions from "./actions";
 
 export const metadata = {
@@ -24,22 +24,19 @@ export default function WizardCongratsPage() {
           }
         `}
       </style>
-      <div className="flex items-center justify-center min-h-screen text-center">
+      <div className="flex min-h-screen items-center justify-center text-center">
         <Card className="max-w-lg">
           <CardHeader>
-            <Typography type='h1'>
-                Congrats! 🎉
-            </Typography>
+            <Typography type="h1">Congrats! 🎉</Typography>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
+            <Typography>You successfully installed Stack in your project! 🚀</Typography>
             <Typography>
-              You successfully installed Stack in your project! 🚀
-            </Typography>
-            <Typography>
-              Next, please sign up on our dashboard to create a new API key, and paste it into your <InlineCode>.env.local</InlineCode> file.
+              Next, please sign up on our dashboard to create a new API key, and paste it into your <InlineCode>.env.local</InlineCode>{" "}
+              file.
             </Typography>
           </CardContent>
-          <CardFooter className="flex justify-center mt-4">
+          <CardFooter className="mt-4 flex justify-center">
             <Actions />
           </CardFooter>
         </Card>

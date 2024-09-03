@@ -1,9 +1,16 @@
-import { prismaClient } from "@/prisma-client";
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, clientOrHigherAuthTypeSchema, adaptSchema, yupString, yupNumber, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import {
+  adaptSchema,
+  clientOrHigherAuthTypeSchema,
+  yupNumber,
+  yupObject,
+  yupString,
+  yupTuple,
+} from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 
 export const DELETE = createSmartRouteHandler({
   metadata: {

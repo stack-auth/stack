@@ -14,6 +14,6 @@ export const svixTokenCrud = createCrud({
     adminCreate: {
       hidden: true,
     },
-  }
+  },
 });
 export type SvixTokenCrud = CrudTypeOf<typeof svixTokenCrud>;

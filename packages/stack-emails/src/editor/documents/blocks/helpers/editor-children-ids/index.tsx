@@ -1,15 +1,13 @@
-import React, { Fragment } from 'react';
-
-import { TEditorBlock } from '../../../editor/core';
-import EditorBlock from '../../../editor/editor-block';
-
-import AddBlockButton from './add-block-menu';
-import { useSelectedBlockId } from '../../../editor/editor-context';
+import React, { Fragment } from "react";
+import { TEditorBlock } from "../../../editor/core";
+import EditorBlock from "../../../editor/editor-block";
+import { useSelectedBlockId } from "../../../editor/editor-context";
+import AddBlockButton from "./add-block-menu";
 
 export type EditorChildrenChange = {
-  blockId: string,
-  block: TEditorBlock,
-  childrenIds: string[],
+  blockId: string;
+  block: TEditorBlock;
+  childrenIds: string[];
 };
 
 function generateId() {
@@ -17,8 +15,8 @@ function generateId() {
 }
 
 export type EditorChildrenIdsProps = {
-  childrenIds: string[] | null | undefined,
-  onChange: (val: EditorChildrenChange) => void,
+  childrenIds: string[] | null | undefined;
+  onChange: (val: EditorChildrenChange) => void;
 };
 export default function EditorChildrenIds({ childrenIds, onChange }: EditorChildrenIdsProps) {
   const selectedBlockId = useSelectedBlockId();

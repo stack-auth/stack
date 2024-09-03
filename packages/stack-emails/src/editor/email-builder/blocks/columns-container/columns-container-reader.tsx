@@ -1,8 +1,8 @@
-import React from 'react';
-import { ColumnsContainer as BaseColumnsContainer } from '../../../blocks/block-columns-container';
-import { ReaderBlock } from '../../reader/core';
-import { ColumnsContainerProps } from './columns-container-props-schema';
-import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
+import React from "react";
+import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
+import { ColumnsContainer as BaseColumnsContainer } from "../../../blocks/block-columns-container";
+import { ReaderBlock } from "../../reader/core";
+import { ColumnsContainerProps } from "./columns-container-props-schema";
 
 export default function ColumnsContainerReader({ style, props, document }: ColumnsContainerProps & { document?: TEditorConfiguration }) {
   const { columns, ...restProps } = props ?? {};

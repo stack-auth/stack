@@ -1,2 +1,4 @@
 .turbo
 pnpm-lock.yaml
+
+packages/stack-shared/src/crud.tsx

@@ -15,7 +15,7 @@ export const fullPermissionInclude = {
 } as const satisfies Prisma.PermissionInclude;
 
 export function isTeamSystemPermission(permission: string): permission is `$${Lowercase<DBTeamSystemPermission>}` {
-  return permission.startsWith('$') && permission.slice(1).toUpperCase() in DBTeamSystemPermission;
+  return permission.startsWith("$") && permission.slice(1).toUpperCase() in DBTeamSystemPermission;
 }
 
 export function teamSystemPermissionStringToDBType(permission: `$${Lowercase<DBTeamSystemPermission>}`): DBTeamSystemPermission {
@@ -23,44 +23,53 @@ export function teamSystemPermissionStringToDBType(permission: `$${Lowercase<DBT
 }
 
 export function teamDBTypeToSystemPermissionString(permission: DBTeamSystemPermission): `$${Lowercase<DBTeamSystemPermission>}` {
-  return '$' + typedToLowercase(permission) as `$${Lowercase<DBTeamSystemPermission>}`;
+  return ("$" + typedToLowercase(permission)) as `$${Lowercase<DBTeamSystemPermission>}`;
 }
 
 export type TeamSystemPermission = ReturnType<typeof teamDBTypeToSystemPermissionString>;
 
 const descriptionMap: Record<DBTeamSystemPermission, string> = {
-  "UPDATE_TEAM": "Update the team information",
-  "DELETE_TEAM": "Delete the team",
-  "READ_MEMBERS": "Read and list the other members of the team",
-  "REMOVE_MEMBERS": "Remove other members from the team",
-  "INVITE_MEMBERS": "Invite other users to the team",
+  UPDATE_TEAM: "Update the team information",
+  DELETE_TEAM: "Delete the team",
+  READ_MEMBERS: "Read and list the other members of the team",
+  REMOVE_MEMBERS: "Remove other members from the team",
+  INVITE_MEMBERS: "Invite other users to the team",
 };
 
-export function teamPermissionDefinitionJsonFromDbType(db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string }{
-  if (!db.projectConfigId && !db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
-  if (db.projectConfigId && db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId, not both`, { db });
-  if (db.scope === "GLOBAL" && db.teamId) throw new StackAssertionError(`Permission DB object should not have teamId when scope is GLOBAL`, { db });
+export function teamPermissionDefinitionJsonFromDbType(
+  db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>,
+): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string } {
+  if (!db.projectConfigId && !db.teamId)
+    throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
+  if (db.projectConfigId && db.teamId)
+    throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId, not both`, { db });
+  if (db.scope === "GLOBAL" && db.teamId)
+    throw new StackAssertionError(`Permission DB object should not have teamId when scope is GLOBAL`, { db });
 
   return {
     __database_id: db.dbId,
     id: db.queryableId,
     description: db.description || undefined,
-    contained_permission_ids: db.parentEdges.map((edge) => {
-      if (edge.parentPermission) {
-        return edge.parentPermission.queryableId;
-      } else if (edge.parentTeamSystemPermission) {
-        return '$' + typedToLowercase(edge.parentTeamSystemPermission);
-      } else {
-        throw new StackAssertionError(`Permission edge should have either parentPermission or parentSystemPermission`, { edge });
-      }
-    }).sort(),
+    contained_permission_ids: db.parentEdges
+      .map((edge) => {
+        if (edge.parentPermission) {
+          return edge.parentPermission.queryableId;
+        } else if (edge.parentTeamSystemPermission) {
+          return "$" + typedToLowercase(edge.parentTeamSystemPermission);
+        } else {
+          throw new StackAssertionError(`Permission edge should have either parentPermission or parentSystemPermission`, { edge });
+        }
+      })
+      .sort(),
   } as const;
 }
 
-export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSystemPermission): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string } {
+export function teamPermissionDefinitionJsonFromTeamSystemDbType(
+  db: DBTeamSystemPermission,
+): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string } {
   return {
-    __database_id: '$' + typedToLowercase(db),
-    id: '$' + typedToLowercase(db),
+    __database_id: "$" + typedToLowercase(db),
+    id: "$" + typedToLowercase(db),
     description: descriptionMap[db],
     contained_permission_ids: [] as string[],
   } as const;
@@ -69,14 +78,14 @@ export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSyste
 async function getParentDbIds(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    containedPermissionIds?: string[],
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    containedPermissionIds?: string[];
+  },
 ) {
   const parentDbIds = [];
   const potentialParentPermissions = await listTeamPermissionDefinitions(tx, options.project);
   for (const parentPermissionId of options.containedPermissionIds || []) {
-    const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
+    const parentPermission = potentialParentPermissions.find((p) => p.id === parentPermissionId);
     if (!parentPermission) {
       throw new KnownErrors.ContainedPermissionNotFound(parentPermissionId);
     }
@@ -86,34 +95,32 @@ async function getParentDbIds(
   return parentDbIds;
 }
 
-
 export async function listUserTeamPermissions(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    teamId?: string,
-    userId?: string,
-    permissionId?: string,
-    recursive?: boolean,
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    teamId?: string;
+    userId?: string;
+    permissionId?: string;
+    recursive?: boolean;
+  },
 ): Promise<TeamPermissionsCrud["Admin"]["Read"][]> {
   const allPermissions = await listTeamPermissionDefinitions(tx, options.project);
-  const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
+  const permissionsMap = new Map(allPermissions.map((p) => [p.id, p]));
   const results = await tx.teamMemberDirectPermission.findMany({
     where: {
       projectId: options.project.id,
       projectUserId: options.userId,
       teamId: options.teamId,
-      permission: options.permissionId && !isTeamSystemPermission(options.permissionId) ?
-        { queryableId: options.permissionId } :
-        undefined,
-      systemPermission: options.permissionId && isTeamSystemPermission(options.permissionId) ?
-        teamSystemPermissionStringToDBType(options.permissionId) :
-        undefined,
+      permission: options.permissionId && !isTeamSystemPermission(options.permissionId) ? { queryableId: options.permissionId } : undefined,
+      systemPermission:
+        options.permissionId && isTeamSystemPermission(options.permissionId)
+          ? teamSystemPermissionStringToDBType(options.permissionId)
+          : undefined,
     },
     include: {
       permission: true,
-    }
+    },
   });
 
   const groupedResults = new Map<string, typeof results>();
@@ -124,13 +131,16 @@ export async function listUserTeamPermissions(
     groupedResults.get(result.projectUserId)!.push(result);
   }
 
-  const finalResults: { id: string, team_id: string, user_id: string }[] = [];
+  const finalResults: { id: string; team_id: string; user_id: string }[] = [];
   for (const [userId, userResults] of groupedResults) {
-    const idsToProcess = [...userResults.map(p =>
-      p.permission?.queryableId ||
-      (p.systemPermission ? teamDBTypeToSystemPermissionString(p.systemPermission) : null) ||
-      throwErr(new StackAssertionError(`Permission should have either queryableId or systemPermission`, { p }))
-    )];
+    const idsToProcess = [
+      ...userResults.map(
+        (p) =>
+          p.permission?.queryableId ||
+          (p.systemPermission ? teamDBTypeToSystemPermissionString(p.systemPermission) : null) ||
+          throwErr(new StackAssertionError(`Permission should have either queryableId or systemPermission`, { p })),
+      ),
+    ];
 
     const result = new Map<string, ReturnType<typeof teamPermissionDefinitionJsonFromDbType>>();
     while (idsToProcess.length > 0) {
@@ -143,11 +153,13 @@ export async function listUserTeamPermissions(
         idsToProcess.push(...current.contained_permission_ids);
       }
     }
-    finalResults.push(...[...result.values()].map(p => ({
-      id: p.id,
-      team_id: userResults[0].teamId,
-      user_id: userId,
-    })));
+    finalResults.push(
+      ...[...result.values()].map((p) => ({
+        id: p.id,
+        team_id: userResults[0].teamId,
+        user_id: userId,
+      })),
+    );
   }
 
   return finalResults.sort((a, b) => {
@@ -160,11 +172,11 @@ export async function listUserTeamPermissions(
 export async function grantTeamPermission(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    teamId: string,
-    userId: string,
-    permissionId: string,
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    teamId: string;
+    userId: string;
+    permissionId: string;
+  },
 ) {
   if (isTeamSystemPermission(options.permissionId)) {
     await tx.teamMemberDirectPermission.upsert({
@@ -198,7 +210,7 @@ export async function grantTeamPermission(
           teamId: options.teamId,
           queryableId: options.permissionId,
         },
-      }
+      },
     });
     const anyTeamPermission = await tx.permission.findUnique({
       where: {
@@ -206,7 +218,7 @@ export async function grantTeamPermission(
           projectConfigId: options.project.config.id,
           queryableId: options.permissionId,
         },
-      }
+      },
     });
 
     const permission = teamSpecificPermission || anyTeamPermission;
@@ -251,11 +263,11 @@ export async function grantTeamPermission(
 export async function revokeTeamPermission(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    teamId: string,
-    userId: string,
-    permissionId: string,
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    teamId: string;
+    userId: string;
+    permissionId: string;
+  },
 ) {
   if (isTeamSystemPermission(options.permissionId)) {
     await tx.teamMemberDirectPermission.delete({
@@ -278,7 +290,7 @@ export async function revokeTeamPermission(
           teamId: options.teamId,
           queryableId: options.permissionId,
         },
-      }
+      },
     });
     const anyTeamPermission = await tx.permission.findUnique({
       where: {
@@ -286,7 +298,7 @@ export async function revokeTeamPermission(
           projectConfigId: options.project.config.id,
           queryableId: options.permissionId,
         },
-      }
+      },
     });
 
     const permission = teamSpecificPermission || anyTeamPermission;
@@ -299,16 +311,15 @@ export async function revokeTeamPermission(
           projectUserId: options.userId,
           teamId: options.teamId,
           permissionDbId: permission.dbId,
-        }
+        },
       },
     });
   }
 }
 
-
 export async function listTeamPermissionDefinitions(
   tx: PrismaTransaction,
-  project: ProjectsCrud["Admin"]["Read"]
+  project: ProjectsCrud["Admin"]["Read"],
 ): Promise<(TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string })[]> {
   const res = await tx.permission.findMany({
     where: {
@@ -316,17 +327,17 @@ export async function listTeamPermissionDefinitions(
         projects: {
           some: {
             id: project.id,
-          }
-        }
+          },
+        },
       },
       scope: "TEAM",
     },
-    orderBy: { queryableId: 'asc' },
+    orderBy: { queryableId: "asc" },
     include: fullPermissionInclude,
   });
-  const nonSystemPermissions = res.map(db => teamPermissionDefinitionJsonFromDbType(db));
+  const nonSystemPermissions = res.map((db) => teamPermissionDefinitionJsonFromDbType(db));
 
-  const systemPermissions = Object.values(DBTeamSystemPermission).map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db));
+  const systemPermissions = Object.values(DBTeamSystemPermission).map((db) => teamPermissionDefinitionJsonFromTeamSystemDbType(db));
 
   return [...nonSystemPermissions, ...systemPermissions];
 }
@@ -334,17 +345,17 @@ export async function listTeamPermissionDefinitions(
 export async function createTeamPermissionDefinition(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    project: ProjectsCrud["Admin"]["Read"];
     data: {
-      id: string,
-      description?: string,
-      contained_permission_ids?: string[],
-    },
-  }
+      id: string;
+      description?: string;
+      contained_permission_ids?: string[];
+    };
+  },
 ) {
   const parentDbIds = await getParentDbIds(tx, {
     project: options.project,
-    containedPermissionIds: options.data.contained_permission_ids
+    containedPermissionIds: options.data.contained_permission_ids,
   });
   const dbPermission = await tx.permission.create({
     data: {
@@ -353,7 +364,7 @@ export async function createTeamPermissionDefinition(
       description: options.data.description,
       projectConfigId: options.project.config.id,
       parentEdges: {
-        create: parentDbIds.map(parentDbId => {
+        create: parentDbIds.map((parentDbId) => {
           if (isTeamSystemPermission(parentDbId)) {
             return {
               parentTeamSystemPermission: teamSystemPermissionStringToDBType(parentDbId),
@@ -367,7 +378,7 @@ export async function createTeamPermissionDefinition(
               },
             };
           }
-        })
+        }),
       },
     },
     include: fullPermissionInclude,
@@ -378,18 +389,18 @@ export async function createTeamPermissionDefinition(
 export async function updateTeamPermissionDefinitions(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    permissionId: string,
+    project: ProjectsCrud["Admin"]["Read"];
+    permissionId: string;
     data: {
-      id?: string,
-      description?: string,
-      contained_permission_ids?: string[],
-    },
-  }
+      id?: string;
+      description?: string;
+      contained_permission_ids?: string[];
+    };
+  },
 ) {
   const parentDbIds = await getParentDbIds(tx, {
     project: options.project,
-    containedPermissionIds: options.data.contained_permission_ids
+    containedPermissionIds: options.data.contained_permission_ids,
   });
 
   let edgeUpdateData = {};
@@ -397,7 +408,7 @@ export async function updateTeamPermissionDefinitions(
     edgeUpdateData = {
       parentEdges: {
         deleteMany: {},
-        create: parentDbIds.map(parentDbId => {
+        create: parentDbIds.map((parentDbId) => {
           if (isTeamSystemPermission(parentDbId)) {
             return {
               parentTeamSystemPermission: teamSystemPermissionStringToDBType(parentDbId),
@@ -437,9 +448,9 @@ export async function updateTeamPermissionDefinitions(
 export async function deleteTeamPermissionDefinition(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    permissionId: string,
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    permissionId: string;
+  },
 ) {
   const deleted = await tx.permission.deleteMany({
     where: {

@@ -1,15 +1,16 @@
 "use client";
-import { TeamTable } from "@/components/data-table/team-table";
-import { SmartFormDialog } from "@/components/form-dialog";
-import { Button } from "@stackframe/stack-ui";
+
 import React from "react";
 import * as yup from "yup";
+import { Button } from "@stackframe/stack-ui";
+import { TeamTable } from "@/components/data-table/team-table";
+import { SmartFormDialog } from "@/components/form-dialog";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 
 type CreateDialogProps = {
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
 export default function PageClient() {
@@ -19,25 +20,15 @@ export default function PageClient() {
   const [createTeamsOpen, setCreateTeamsOpen] = React.useState(false);
 
   return (
-    <PageLayout
-      title="Teams"
-      actions={
-        <Button onClick={() => setCreateTeamsOpen(true)}>
-          Create Team
-        </Button>
-      }>
+    <PageLayout title="Teams" actions={<Button onClick={() => setCreateTeamsOpen(true)}>Create Team</Button>}>
       <TeamTable teams={teams} />
-      <CreateDialog
-        open={createTeamsOpen}
-        onOpenChange={setCreateTeamsOpen}
-      />
+      <CreateDialog open={createTeamsOpen} onOpenChange={setCreateTeamsOpen} />
     </PageLayout>
   );
 }
 
 function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const stackAdminApp = useAdminApp();
-
 
   const formSchema = yup.object({
     displayName: yup.string().required().label("Display Name"),

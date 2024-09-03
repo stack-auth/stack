@@ -8,9 +8,10 @@ import { PrismaTransaction } from "./types";
 async function _getTeamMembership(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
-    teamId: string, userId: string,
-  }
+    projectId: string;
+    teamId: string;
+    userId: string;
+  },
 ) {
   return await tx.teamMember.findUnique({
     where: {
@@ -26,10 +27,10 @@ async function _getTeamMembership(
 export async function ensureTeamMembershipExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
-    teamId: string,
-    userId: string,
-  }
+    projectId: string;
+    teamId: string;
+    userId: string;
+  },
 ) {
   await ensureUserExist(tx, { projectId: options.projectId, userId: options.userId });
 
@@ -43,10 +44,10 @@ export async function ensureTeamMembershipExists(
 export async function ensureTeamMembershipDoesNotExist(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
-    teamId: string,
-    userId: string,
-  }
+    projectId: string;
+    teamId: string;
+    userId: string;
+  },
 ) {
   const member = await _getTeamMembership(tx, options);
 
@@ -58,9 +59,9 @@ export async function ensureTeamMembershipDoesNotExist(
 export async function ensureTeamExist(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
-    teamId: string,
-  }
+    projectId: string;
+    teamId: string;
+  },
 ) {
   const team = await tx.team.findUnique({
     where: {
@@ -79,13 +80,13 @@ export async function ensureTeamExist(
 export async function ensureUserTeamPermissionExists(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
-    teamId: string,
-    userId: string,
-    permissionId: string,
-    errorType: 'required' | 'not-exist',
-    recursive?: boolean,
-  }
+    project: ProjectsCrud["Admin"]["Read"];
+    teamId: string;
+    userId: string;
+    permissionId: string;
+    errorType: "required" | "not-exist";
+    recursive?: boolean;
+  },
 ) {
   await ensureTeamMembershipExists(tx, {
     projectId: options.project.id,
@@ -102,7 +103,7 @@ export async function ensureUserTeamPermissionExists(
   });
 
   if (result.length === 0) {
-    if (options.errorType === 'not-exist') {
+    if (options.errorType === "not-exist") {
       throw new KnownErrors.TeamPermissionNotFound(options.teamId, options.userId, options.permissionId);
     } else {
       throw new KnownErrors.TeamPermissionRequired(options.teamId, options.userId, options.permissionId);
@@ -113,9 +114,9 @@ export async function ensureUserTeamPermissionExists(
 export async function ensureUserExist(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
-    userId: string,
-  }
+    projectId: string;
+    userId: string;
+  },
 ) {
   const user = await tx.projectUser.findUnique({
     where: {
@@ -131,18 +132,14 @@ export async function ensureUserExist(
   }
 }
 
-export function ensureSharedProvider(
-  providerId: ProviderType
-): Lowercase<ProxiedOAuthProviderType> {
+export function ensureSharedProvider(providerId: ProviderType): Lowercase<ProxiedOAuthProviderType> {
   if (!sharedProviders.includes(providerId as any)) {
     throw new KnownErrors.InvalidSharedOAuthProviderId(providerId);
   }
   return providerId as any;
 }
 
-export function ensureStandardProvider(
-  providerId: ProviderType
-): Lowercase<StandardOAuthProviderType> {
+export function ensureStandardProvider(providerId: ProviderType): Lowercase<StandardOAuthProviderType> {
   if (!standardProviders.includes(providerId as any)) {
     throw new KnownErrors.InvalidStandardOAuthProviderId(providerId);
   }

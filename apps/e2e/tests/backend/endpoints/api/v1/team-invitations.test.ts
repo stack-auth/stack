@@ -2,6 +2,7 @@ import { createMailbox, it } from "../../../../helpers";
 import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 it("is not allowed to send invitation without permission", async ({ expect }) => {
+  await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
   const receiveMailbox = createMailbox();
@@ -38,7 +39,6 @@ it("invites a user to a team", async ({ expect }) => {
     method: "POST",
     body: {},
   });
-
 
   const { sendTeamInvitationResponse } = await Team.sendInvitation(receiveMailbox, teamId);
 

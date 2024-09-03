@@ -2,21 +2,21 @@ import { StackAssertionError } from "./utils/errors";
 import { Store } from "./utils/stores";
 
 export class AccessToken {
-  constructor(
-    public readonly token: string,
-  ) {
+  constructor(public readonly token: string) {
     if (token === "undefined") {
-      throw new StackAssertionError("Access token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+      throw new StackAssertionError(
+        "Access token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!",
+      );
     }
   }
 }
 
 export class RefreshToken {
-  constructor(
-    public readonly token: string,
-  ) {
+  constructor(public readonly token: string) {
     if (token === "undefined") {
-      throw new StackAssertionError("Refresh token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!");
+      throw new StackAssertionError(
+        "Refresh token is the string 'undefined'; it's unlikely this is the correct value. They're supposed to be unguessable!",
+      );
     }
   }
 }
@@ -28,12 +28,12 @@ export class RefreshToken {
  */
 export class InternalSession {
   /**
-  * Each session has a session key that depends on the tokens inside. If the session has a refresh token, the session key depends only on the refresh token. If the session does not have a refresh token, the session key depends only on the access token.
-  *
-  * Multiple Session objects may have the same session key, which implies that they represent the same session by the same user. Furthermore, a session's key never changes over the lifetime of a session object.
-  *
-  * This is useful for caching and indexing sessions.
-  */
+   * Each session has a session key that depends on the tokens inside. If the session has a refresh token, the session key depends only on the refresh token. If the session does not have a refresh token, the session key depends only on the access token.
+   *
+   * Multiple Session objects may have the same session key, which implies that they represent the same session by the same user. Furthermore, a session's key never changes over the lifetime of a session object.
+   *
+   * This is useful for caching and indexing sessions.
+   */
   public readonly sessionKey: string;
 
   /**
@@ -51,17 +51,22 @@ export class InternalSession {
 
   private _refreshPromise: Promise<AccessToken | null> | null = null;
 
-  constructor(private readonly _options: {
-    refreshAccessTokenCallback(refreshToken: RefreshToken): Promise<AccessToken | null>,
-    refreshToken: string | null,
-    accessToken?: string | null,
-  }) {
+  constructor(
+    private readonly _options: {
+      refreshAccessTokenCallback(refreshToken: RefreshToken): Promise<AccessToken | null>;
+      refreshToken: string | null;
+      accessToken?: string | null;
+    },
+  ) {
     this._accessToken = new Store(_options.accessToken ? new AccessToken(_options.accessToken) : null);
     this._refreshToken = _options.refreshToken ? new RefreshToken(_options.refreshToken) : null;
-    this.sessionKey = InternalSession.calculateSessionKey({ accessToken: _options.accessToken ?? null, refreshToken: _options.refreshToken });
+    this.sessionKey = InternalSession.calculateSessionKey({
+      accessToken: _options.accessToken ?? null,
+      refreshToken: _options.refreshToken,
+    });
   }
 
-  static calculateSessionKey(ofTokens: { refreshToken: string | null, accessToken?: string | null }): string {
+  static calculateSessionKey(ofTokens: { refreshToken: string | null; accessToken?: string | null }): string {
     if (ofTokens.refreshToken) {
       return `refresh-${ofTokens.refreshToken}`;
     } else if (ofTokens.accessToken) {
@@ -94,7 +99,7 @@ export class InternalSession {
    *
    * @returns null if the session is known to be invalid, cached tokens if they exist in the cache (which may or may not be valid still), or new tokens otherwise.
    */
-  async getPotentiallyExpiredTokens(): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken | null } | null> {
+  async getPotentiallyExpiredTokens(): Promise<{ accessToken: AccessToken; refreshToken: RefreshToken | null } | null> {
     const accessToken = await this._getPotentiallyExpiredAccessToken();
     return accessToken ? { accessToken, refreshToken: this._refreshToken } : null;
   }
@@ -108,7 +113,7 @@ export class InternalSession {
    *
    * @returns null if the session is known to be invalid, or new tokens otherwise (which, at the time of fetching, are guaranteed to be valid).
    */
-  async fetchNewTokens(): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken | null } | null> {
+  async fetchNewTokens(): Promise<{ accessToken: AccessToken; refreshToken: RefreshToken | null } | null> {
     const accessToken = await this._getNewlyFetchedAccessToken();
     return accessToken ? { accessToken, refreshToken: this._refreshToken } : null;
   }

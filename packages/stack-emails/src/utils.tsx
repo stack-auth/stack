@@ -1,49 +1,45 @@
+import { Body, Head, Html, Preview } from "@react-email/components";
+import { render } from "@react-email/render";
+import { type ClassValue, clsx } from "clsx";
+import * as Handlebars from "handlebars/dist/handlebars.js";
+import { twMerge } from "tailwind-merge";
 import { EditorBlockSchema, TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
+import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { emailVerificationTemplate } from "./templates/email-verification";
-import { passwordResetTemplate } from "./templates/password-reset";
 import { magicLinkTemplate } from "./templates/magic-link";
-import { render } from "@react-email/render";
-import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
-import { Body, Head, Html, Preview } from "@react-email/components";
-import * as Handlebars from 'handlebars/dist/handlebars.js';
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { passwordResetTemplate } from "./templates/password-reset";
 import { teamInvitationTemplate } from "./templates/team-invitation";
-
 
 // TODO remove this one
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-
 const userVars = [
-  { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
-  { name: 'userPrimaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com' },
+  { name: "userDisplayName", label: "User Display Name", defined: false, example: "John Doe" },
+  { name: "userPrimaryEmail", label: "User Primary Email", defined: true, example: "example@email.com" },
 ] as const;
 
-const projectVars = [
-  { name: 'projectDisplayName', label: 'Project Name', defined: true, example: '{{ projectDisplayName }}' },
-];
+const projectVars = [{ name: "projectDisplayName", label: "Project Name", defined: true, example: "{{ projectDisplayName }}" }];
 
 export type EmailTemplateVariable = {
-  name: string,
-  label: string,
-  defined: boolean,
-  example: string,
+  name: string;
+  label: string;
+  defined: boolean;
+  example: string;
 };
 
 export type EmailTemplateMetadata = {
-  label: string,
-  description: string,
-  defaultContent: TEditorConfiguration,
-  defaultSubject: string,
-  variables: EmailTemplateVariable[],
+  label: string;
+  description: string;
+  defaultContent: TEditorConfiguration;
+  defaultSubject: string;
+  variables: EmailTemplateVariable[];
 };
 
 export const EMAIL_TEMPLATES_METADATA = {
-  'email_verification': {
+  email_verification: {
     label: "Email Verification",
     description: "Will be sent to the user when they sign-up with email/password",
     defaultContent: emailVerificationTemplate,
@@ -51,10 +47,10 @@ export const EMAIL_TEMPLATES_METADATA = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: '<email verification link>' },
+      { name: "emailVerificationLink", label: "Email Verification Link", defined: true, example: "<email verification link>" },
     ],
   } satisfies EmailTemplateMetadata,
-  'password_reset': {
+  password_reset: {
     label: "Password Reset",
     description: "Will be sent to the user when they request to reset their password (forgot password)",
     defaultContent: passwordResetTemplate,
@@ -62,21 +58,17 @@ export const EMAIL_TEMPLATES_METADATA = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'passwordResetLink', label: 'Reset Password Link', defined: true, example: '<reset password link>' },
+      { name: "passwordResetLink", label: "Reset Password Link", defined: true, example: "<reset password link>" },
     ],
   } satisfies EmailTemplateMetadata,
-  'magic_link': {
+  magic_link: {
     label: "Magic Link",
     description: "Will be sent to the user when they try to sign-up with magic link",
     defaultContent: magicLinkTemplate,
     defaultSubject: "Sign in to {{ projectDisplayName }}",
-    variables: [
-      ...userVars,
-      ...projectVars,
-      { name: 'magicLink', label: 'Magic Link', defined: true, example: '<magic link>' },
-    ],
+    variables: [...userVars, ...projectVars, { name: "magicLink", label: "Magic Link", defined: true, example: "<magic link>" }],
   } satisfies EmailTemplateMetadata,
-  'team_invitation': {
+  team_invitation: {
     label: "Team Invitation",
     description: "Will be sent to the user when they are invited to a team",
     defaultContent: teamInvitationTemplate,
@@ -84,8 +76,8 @@ export const EMAIL_TEMPLATES_METADATA = {
     variables: [
       ...userVars,
       ...projectVars,
-      { name: 'teamDisplayName', label: 'Team Display Name', defined: true, example: 'My Team' },
-      { name: 'teamInvitationLink', label: 'Team Invitation Link', defined: true, example: '<team invitation link>' },
+      { name: "teamDisplayName", label: "Team Display Name", defined: true, example: "My Team" },
+      { name: "teamInvitationLink", label: "Team Invitation Link", defined: true, example: "<team invitation link>" },
     ],
   } satisfies EmailTemplateMetadata,
 } as const;
@@ -113,9 +105,9 @@ export function objectStringMap<T extends NestedObject>(obj: T, func: (s: string
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const value = obj[key];
 
-        if (typeof value === 'string') {
+        if (typeof value === "string") {
           result[key] = func(value);
-        } else if (typeof value === 'object' && value !== null) {
+        } else if (typeof value === "object" && value !== null) {
           result[key] = mapStrings(value);
         } else {
           result[key] = value;
@@ -131,7 +123,7 @@ export function objectStringMap<T extends NestedObject>(obj: T, func: (s: string
 
 function renderString(str: string, variables: Record<string, string | null>) {
   try {
-    return Handlebars.compile(str, {noEscape: true})(variables);
+    return Handlebars.compile(str, { noEscape: true })(variables);
   } catch {
     return str;
   }
@@ -153,29 +145,19 @@ export function convertEmailTemplateMetadataExampleValues(
   };
 }
 
-export function convertEmailTemplateVariables(
-  content: TEditorConfiguration,
-  variables: EmailTemplateVariable[],
-): TEditorConfiguration {
+export function convertEmailTemplateVariables(content: TEditorConfiguration, variables: EmailTemplateVariable[]): TEditorConfiguration {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return objectStringMap(content, (str) => {
     return renderString(str, vars);
   });
 }
 
-export function convertEmailSubjectVariables(
-  subject: string,
-  variables: EmailTemplateVariable[],
-): string {
+export function convertEmailSubjectVariables(subject: string, variables: EmailTemplateVariable[]): string {
   const vars = typedFromEntries(variables.map((variable) => [variable.name, variable.example]));
   return renderString(subject, vars);
 }
 
-export function renderEmailTemplate(
-  subject: string,
-  content: TEditorConfiguration,
-  variables: Record<string, string | null>,
-) {
+export function renderEmailTemplate(subject: string, content: TEditorConfiguration, variables: Record<string, string | null>) {
   const mergedTemplate = objectStringMap(content, (str) => {
     return renderString(str, variables);
   });
@@ -186,7 +168,7 @@ export function renderEmailTemplate(
       <Head />
       <Preview>{mergedSubject}</Preview>
       <Body>
-        <Reader document={mergedTemplate} rootBlockId='root' />
+        <Reader document={mergedTemplate} rootBlockId="root" />
       </Body>
     </Html>
   );

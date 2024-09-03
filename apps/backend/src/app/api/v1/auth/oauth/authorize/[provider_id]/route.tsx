@@ -1,24 +1,25 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { generators } from "openid-client";
+import * as yup from "yup";
+import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
+import { urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { generators } from "openid-client";
-import * as yup from "yup";
 
 const outerOAuthFlowExpirationInMinutes = 10;
 
 export const GET = createSmartRouteHandler({
   metadata: {
     summary: "OAuth authorize endpoint",
-    description: "This endpoint is used to initiate the OAuth authorization flow. there are two purposes for this endpoint: 1. Authenticate a user with an OAuth provider. 2. Link an existing user with an OAuth provider.",
+    description:
+      "This endpoint is used to initiate the OAuth authorization flow. there are two purposes for this endpoint: 1. Authenticate a user with an OAuth provider. 2. Link an existing user with an OAuth provider.",
     tags: ["Oauth"],
   },
   request: yupObject({
@@ -61,7 +62,7 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
-    if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {
+    if (!(await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret }))) {
       throw new KnownErrors.InvalidPublishableClientKey(query.client_id);
     }
 
@@ -101,7 +102,7 @@ export const GET = createSmartRouteHandler({
         info: {
           projectId: project.id,
           publishableClientKey: query.client_id,
-          redirectUri: query.redirect_uri.split('#')[0], // remove hash
+          redirectUri: query.redirect_uri.split("#")[0], // remove hash
           scope: query.scope,
           state: query.state,
           grantType: query.grant_type,
@@ -121,15 +122,11 @@ export const GET = createSmartRouteHandler({
 
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
-    cookies().set(
-      "stack-oauth-inner-" + innerState,
-      "true",
-      {
-        httpOnly: true,
-        secure: getNodeEnvironment() !== "development",
-        maxAge: 60 * outerOAuthFlowExpirationInMinutes,
-      }
-    );
+    cookies().set("stack-oauth-inner-" + innerState, "true", {
+      httpOnly: true,
+      secure: getNodeEnvironment() !== "development",
+      maxAge: 60 * outerOAuthFlowExpirationInMinutes,
+    });
 
     redirect(oauthUrl);
   },

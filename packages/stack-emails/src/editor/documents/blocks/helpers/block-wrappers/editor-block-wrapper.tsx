@@ -1,13 +1,12 @@
-'use client';
+"use client";
 
-import React, { CSSProperties, useState } from 'react';
-import { useCurrentBlockId } from '../../../editor/editor-block';
-import { setSelectedBlockId, useSelectedBlockId } from '../../../editor/editor-context';
-
-import TuneMenu from './tune-menu';
+import React, { CSSProperties, useState } from "react";
+import { useCurrentBlockId } from "../../../editor/editor-block";
+import { setSelectedBlockId, useSelectedBlockId } from "../../../editor/editor-context";
+import TuneMenu from "./tune-menu";
 
 type TEditorBlockWrapperProps = {
-  children: JSX.Element,
+  children: JSX.Element;
 };
 
 export default function EditorBlockWrapper({ children }: TEditorBlockWrapperProps) {
@@ -15,11 +14,11 @@ export default function EditorBlockWrapper({ children }: TEditorBlockWrapperProp
   const [mouseInside, setMouseInside] = useState(false);
   const blockId = useCurrentBlockId();
 
-  let outline: CSSProperties['outline'];
+  let outline: CSSProperties["outline"];
   if (selectedBlockId === blockId) {
-    outline = '2px solid rgba(0,121,204, 1)';
+    outline = "2px solid rgba(0,121,204, 1)";
   } else if (mouseInside) {
-    outline = '2px solid rgba(0,121,204, 0.3)';
+    outline = "2px solid rgba(0,121,204, 0.3)";
   }
 
   const renderMenu = () => {
@@ -33,7 +32,7 @@ export default function EditorBlockWrapper({ children }: TEditorBlockWrapperProp
     <div
       className="relative max-w-full"
       style={{
-        outlineOffset: '-1px',
+        outlineOffset: "-1px",
         outline,
       }}
       onMouseEnter={(ev) => {

@@ -10,12 +10,20 @@ const oauthProviderSchema = yupObject({
   id: schemaFields.oauthIdSchema.required(),
   enabled: schemaFields.oauthEnabledSchema.required(),
   type: schemaFields.oauthTypeSchema.required(),
-  client_id: yupRequiredWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
-  client_secret: yupRequiredWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
+  client_id: yupRequiredWhen(schemaFields.oauthClientIdSchema, "type", "standard"),
+  client_secret: yupRequiredWhen(schemaFields.oauthClientSecretSchema, "type", "standard"),
 
   // extra params
-  facebook_config_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the configuration id for Facebook business login (for things like ads and marketing).' } }),
-  microsoft_tenant_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the Microsoft tenant id for Microsoft directory' } }),
+  facebook_config_id: yupString()
+    .optional()
+    .meta({
+      openapiField: {
+        description: "This parameter is the configuration id for Facebook business login (for things like ads and marketing).",
+      },
+    }),
+  microsoft_tenant_id: yupString()
+    .optional()
+    .meta({ openapiField: { description: "This parameter is the Microsoft tenant id for Microsoft directory" } }),
 });
 
 const enabledOAuthProviderSchema = yupObject({
@@ -24,12 +32,12 @@ const enabledOAuthProviderSchema = yupObject({
 
 const emailConfigSchema = yupObject({
   type: schemaFields.emailTypeSchema.required(),
-  host: yupRequiredWhen(schemaFields.emailHostSchema, 'type', 'standard'),
-  port: yupRequiredWhen(schemaFields.emailPortSchema, 'type', 'standard'),
-  username: yupRequiredWhen(schemaFields.emailUsernameSchema, 'type', 'standard'),
-  password: yupRequiredWhen(schemaFields.emailPasswordSchema, 'type', 'standard'),
-  sender_name: yupRequiredWhen(schemaFields.emailSenderNameSchema, 'type', 'standard'),
-  sender_email: yupRequiredWhen(schemaFields.emailSenderEmailSchema, 'type', 'standard'),
+  host: yupRequiredWhen(schemaFields.emailHostSchema, "type", "standard"),
+  port: yupRequiredWhen(schemaFields.emailPortSchema, "type", "standard"),
+  username: yupRequiredWhen(schemaFields.emailUsernameSchema, "type", "standard"),
+  password: yupRequiredWhen(schemaFields.emailPasswordSchema, "type", "standard"),
+  sender_name: yupRequiredWhen(schemaFields.emailSenderNameSchema, "type", "standard"),
+  sender_email: yupRequiredWhen(schemaFields.emailSenderEmailSchema, "type", "standard"),
 });
 
 const domainSchema = yupObject({
@@ -73,7 +81,6 @@ export const projectsCrudClientReadSchema = yupObject({
   }).required(),
 }).required();
 
-
 export const projectsCrudAdminUpdateSchema = yupObject({
   display_name: schemaFields.projectDisplayNameSchema.optional(),
   description: schemaFields.projectDescriptionSchema.optional(),
@@ -90,12 +97,16 @@ export const projectsCrudAdminUpdateSchema = yupObject({
     create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.optional(),
     team_creator_default_permissions: yupArray(teamPermissionSchema.required()).optional(),
     team_member_default_permissions: yupArray(teamPermissionSchema.required()).optional(),
-  }).optional().default(undefined),
+  })
+    .optional()
+    .default(undefined),
 }).required();
 
-export const projectsCrudAdminCreateSchema = projectsCrudAdminUpdateSchema.concat(yupObject({
-  display_name: schemaFields.projectDisplayNameSchema.required(),
-}).required());
+export const projectsCrudAdminCreateSchema = projectsCrudAdminUpdateSchema.concat(
+  yupObject({
+    display_name: schemaFields.projectDisplayNameSchema.required(),
+  }).required(),
+);
 
 export const projectsCrudAdminDeleteSchema = schemaFields.yupMixed();
 
@@ -106,24 +117,28 @@ export const projectsCrud = createCrud({
   adminDeleteSchema: projectsCrudAdminDeleteSchema,
   docs: {
     clientRead: {
-      summary: 'Get the current project',
-      description: 'Get the current project information including display name, oauth providers and authentication methods. Useful for display the available login options to the user.',
-      tags: ['Projects'],
+      summary: "Get the current project",
+      description:
+        "Get the current project information including display name, oauth providers and authentication methods. Useful for display the available login options to the user.",
+      tags: ["Projects"],
     },
     adminRead: {
-      summary: 'Get the current project',
-      description: 'Get the current project information and configuration including display name, oauth providers, email configuration, etc.',
-      tags: ['Projects'],
+      summary: "Get the current project",
+      description:
+        "Get the current project information and configuration including display name, oauth providers, email configuration, etc.",
+      tags: ["Projects"],
     },
     adminUpdate: {
-      summary: 'Update the current project',
-      description: 'Update the current project information and configuration including display name, oauth providers, email configuration, etc.',
-      tags: ['Projects'],
+      summary: "Update the current project",
+      description:
+        "Update the current project information and configuration including display name, oauth providers, email configuration, etc.",
+      tags: ["Projects"],
     },
     adminDelete: {
-      summary: 'Delete the current project',
-      description: 'Delete the current project and all associated data (including users, teams, API keys, project configs, etc.). Be careful, this action is irreversible.',
-      tags: ['Projects'],
+      summary: "Delete the current project",
+      description:
+        "Delete the current project and all associated data (including users, teams, API keys, project configs, etc.). Be careful, this action is irreversible.",
+      tags: ["Projects"],
     },
   },
 });

@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { SingleToggleGroup } from './single-toggle-group';
+import { useState } from "react";
+import { SingleToggleGroup } from "./single-toggle-group";
 
 type Props = {
-  label: string,
-  defaultValue: string,
-  onChange: (value: string) => void,
+  label: string;
+  defaultValue: string;
+  onChange: (value: string) => void;
 };
 
 export default function FontWeightInput({ label, defaultValue, onChange }: Props) {
@@ -19,8 +19,8 @@ export default function FontWeightInput({ label, defaultValue, onChange }: Props
         onChange(fontWeight);
       }}
       items={[
-        { value: 'normal', label: 'Regular' },
-        { value: 'bold', label: 'Bold' },
+        { value: "normal", label: "Regular" },
+        { value: "bold", label: "Bold" },
       ]}
     />
   );

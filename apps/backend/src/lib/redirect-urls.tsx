@@ -1,6 +1,10 @@
 import { isLocalhost } from "@stackframe/stack-shared/dist/utils/urls";
 
-export function validateRedirectUrl(urlOrString: string | URL, domains: { domain: string, handler_path: string }[], allowLocalhost: boolean): boolean {
+export function validateRedirectUrl(
+  urlOrString: string | URL,
+  domains: { domain: string; handler_path: string }[],
+  allowLocalhost: boolean,
+): boolean {
   const url = new URL(urlOrString);
   if (allowLocalhost && isLocalhost(url)) {
     return true;

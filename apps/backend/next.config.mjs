@@ -1,5 +1,5 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import createBundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withBundleAnalyzer = createBundleAnalyzer({
   enabled: !!process.env.ANALYZE_BUNDLE,
@@ -44,7 +44,7 @@ const withConfiguredSentryConfig = (nextConfig) =>
       // https://docs.sentry.io/product/crons/
       // https://vercel.com/docs/cron-jobs
       automaticVercelMonitors: true,
-    }
+    },
   );
 
 /** @type {import('next').NextConfig} */
@@ -88,8 +88,4 @@ const nextConfig = {
   },
 };
 
-export default withConfiguredSentryConfig(
-  withBundleAnalyzer(
-    nextConfig
-  )
-);
+export default withConfiguredSentryConfig(withBundleAnalyzer(nextConfig));

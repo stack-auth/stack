@@ -5,7 +5,7 @@
   // List of extensions which should be recommended for users of this workspace.
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "prettier-vscode.prettier-vscode",
+    "esbenp.prettier-vscode",
     "streetsidesoftware.code-spell-checker",
     "YoavBls.pretty-ts-errors",
     "mxsdev.typescript-explorer"

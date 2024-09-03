@@ -1,27 +1,24 @@
 "use client";
 
 import { Cross2Icon } from "@radix-ui/react-icons";
-import { Button } from "@stackframe/stack-ui";
 import { Cell, Table } from "@tanstack/react-table";
-import { DataTableViewOptions } from "./view-options";
+import { download, generateCsv, mkConfig } from "export-to-csv";
 import { DownloadIcon } from "lucide-react";
-import { mkConfig, generateCsv, download } from 'export-to-csv';
+import { Button } from "@stackframe/stack-ui";
+import { DataTableViewOptions } from "./view-options";
 
 interface DataTableToolbarProps<TData> {
-  table: Table<TData>,
-  toolbarRender?: (table: Table<TData>) => React.ReactNode,
+  table: Table<TData>;
+  toolbarRender?: (table: Table<TData>) => React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({
-  table,
-  toolbarRender
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table, toolbarRender }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const isSorted = table.getState().sorting.length > 0;
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         {toolbarRender?.(table)}
         {(isFiltered || isSorted) && (
           <Button
@@ -38,7 +35,7 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <div className="flex-1" />
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         <DataTableViewOptions table={table} />
         <Button
           variant="outline"
@@ -46,9 +43,9 @@ export function DataTableToolbar<TData>({
           className="ml-auto hidden h-8 lg:flex"
           onClick={() => {
             const csvConfig = mkConfig({
-              fieldSeparator: ',',
-              filename: 'data',
-              decimalSeparator: '.',
+              fieldSeparator: ",",
+              filename: "data",
+              decimalSeparator: ".",
               useKeysAsHeaders: true,
             });
 
@@ -57,21 +54,27 @@ export function DataTableToolbar<TData>({
               if (rendered === null) {
                 return undefined;
               }
-              if (['string', 'number', 'boolean', 'undefined'].includes(typeof rendered)) {
+              if (["string", "number", "boolean", "undefined"].includes(typeof rendered)) {
                 return rendered;
               }
               if (rendered instanceof Date) {
                 return rendered.toISOString();
               }
-              if (typeof rendered === 'object') {
+              if (typeof rendered === "object") {
                 return JSON.stringify(rendered);
               }
             };
 
-
             const rowModel = table.getCoreRowModel();
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const rows = rowModel.rows.map(row => Object.fromEntries(row.getAllCells().map(c => [c.column.id, renderCellValue(c)]).filter(([_, v]) => v !== undefined)));
+            const rows = rowModel.rows.map((row) =>
+              Object.fromEntries(
+                row
+                  .getAllCells()
+                  .map((c) => [c.column.id, renderCellValue(c)])
+                  .filter(([, v]) => v !== undefined),
+              ),
+            );
             if (rows.length === 0) {
               alert("No data to export");
               return;

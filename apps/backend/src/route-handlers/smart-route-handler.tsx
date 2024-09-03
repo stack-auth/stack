@@ -1,22 +1,29 @@
-import "../polyfills";
-
 import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
-import { SmartResponse, createResponse } from "./smart-response";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import "../polyfills";
+import {
+  DeepPartialSmartRequestWithSentinel,
+  MergeSmartRequest,
+  SmartRequest,
+  createSmartRequest,
+  validateSmartRequest,
+} from "./smart-request";
+import { SmartResponse, createResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}` : `Something went wrong. Please make sure the data you entered is correct.`,
+      ["development", "test"].includes(getNodeEnvironment())
+        ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}`
+        : `Something went wrong. Please make sure the data you entered is correct.`,
     );
   }
 }
@@ -25,7 +32,7 @@ class InternalServerError extends StatusError {
  * Known errors that are common and should not be logged with their stacktrace.
  */
 const commonErrors = [
-  ...getNodeEnvironment() === "development" ? [KnownError] : [],
+  ...(getNodeEnvironment() === "development" ? [KnownError] : []),
   KnownErrors.AccessTokenExpired,
   KnownErrors.CannotGetOwnUserWithoutUser,
   InternalServerError,
@@ -40,7 +47,7 @@ function catchError(error: unknown): StatusError {
   if (error instanceof Error) {
     const digest = (error as any)?.digest;
     if (typeof digest === "string") {
-      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some((m) => digest.startsWith(m))) {
         throw error;
       }
     }
@@ -55,7 +62,9 @@ function catchError(error: unknown): StatusError {
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+function handleApiRequest(
+  handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>,
+): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
     let hasRequestFinished = false;
@@ -74,14 +83,19 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       runAsynchronously(async () => {
         await wait(warnAfterSeconds * 1000);
         if (!hasRequestFinished) {
-          captureError("request-timeout-watcher", new Error(`Request with ID ${requestId} to endpoint ${req.nextUrl.pathname} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`));
+          captureError(
+            "request-timeout-watcher",
+            new Error(
+              `Request with ID ${requestId} to endpoint ${req.nextUrl.pathname} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`,
+            ),
+          );
         }
       });
 
       console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
-      const time = (performance.now() - timeStart);
+      const time = performance.now() - timeStart;
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
@@ -89,23 +103,30 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       try {
         statusError = catchError(e);
       } catch (e) {
-        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
+        console.log(
+          `[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`,
+        );
         throw e;
       }
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
-      if (!commonErrors.some(e => statusError instanceof e)) {
+      if (!commonErrors.some((e) => statusError instanceof e)) {
         console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
       }
 
-      const res = await createResponse(req, requestId, {
-        statusCode: statusError.statusCode,
-        bodyType: "binary",
-        body: statusError.getBody(),
-        headers: {
-          ...statusError.getHeaders(),
+      const res = await createResponse(
+        req,
+        requestId,
+        {
+          statusCode: statusError.statusCode,
+          bodyType: "binary",
+          body: statusError.getBody(),
+          headers: {
+            ...statusError.getHeaders(),
+          },
         },
-      }, yupMixed<any>());
+        yupMixed<any>(),
+      );
       return res;
     } finally {
       hasRequestFinished = true;
@@ -115,14 +136,11 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
 
 export type SmartRouteHandlerOverloadMetadata = EndpointDocumentation;
 
-export type SmartRouteHandlerOverload<
-  Req extends DeepPartialSmartRequestWithSentinel,
-  Res extends SmartResponse,
-> = {
-  metadata?: SmartRouteHandlerOverloadMetadata,
-  request: yup.Schema<Req>,
-  response: yup.Schema<Res>,
-  handler: (req: MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+export type SmartRouteHandlerOverload<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse> = {
+  metadata?: SmartRouteHandlerOverloadMetadata;
+  request: yup.Schema<Req>;
+  response: yup.Schema<Res>;
+  handler: (req: MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>;
 };
 
 export type SmartRouteHandlerOverloadGenerator<
@@ -136,9 +154,9 @@ export type SmartRouteHandler<
   Req extends DeepPartialSmartRequestWithSentinel = DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse = SmartResponse,
 > = ((req: NextRequest, options: any) => Promise<Response>) & {
-  overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
-  invoke: (smartRequest: SmartRequest) => Promise<Response>,
-}
+  overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>;
+  invoke: (smartRequest: SmartRequest) => Promise<Response>;
+};
 
 function getSmartRouteHandlerSymbol() {
   return Symbol.for("stack-smartRouteHandler");
@@ -148,33 +166,20 @@ export function isSmartRouteHandler(handler: any): handler is SmartRouteHandler 
   return handler?.[getSmartRouteHandlerSymbol()] === true;
 }
 
-export function createSmartRouteHandler<
-  Req extends DeepPartialSmartRequestWithSentinel,
-  Res extends SmartResponse,
->(
+export function createSmartRouteHandler<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(
   handler: SmartRouteHandlerOverload<Req, Res>,
-): SmartRouteHandler<void, Req, Res>
-export function createSmartRouteHandler<
-  OverloadParam,
-  Req extends DeepPartialSmartRequestWithSentinel,
-  Res extends SmartResponse,
->(
+): SmartRouteHandler<void, Req, Res>;
+export function createSmartRouteHandler<OverloadParam, Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(
   overloadParams: readonly OverloadParam[],
-  overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>
-): SmartRouteHandler<OverloadParam, Req, Res>
-export function createSmartRouteHandler<
-  Req extends DeepPartialSmartRequestWithSentinel,
-  Res extends SmartResponse,
->(
+  overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>,
+): SmartRouteHandler<OverloadParam, Req, Res>;
+export function createSmartRouteHandler<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(
   ...args: [readonly unknown[], SmartRouteHandlerOverloadGenerator<unknown, Req, Res>] | [SmartRouteHandlerOverload<Req, Res>]
 ): SmartRouteHandler<unknown, Req, Res> {
-  const overloadParams = args.length > 1 ? args[0] as unknown[] : [undefined];
-  const overloadGenerator = args.length > 1 ? args[1]! : () => (args[0] as SmartRouteHandlerOverload<Req, Res>);
+  const overloadParams = args.length > 1 ? (args[0] as unknown[]) : [undefined];
+  const overloadGenerator = args.length > 1 ? args[1]! : () => args[0] as SmartRouteHandlerOverload<Req, Res>;
 
-  const overloads = new Map(overloadParams.map((overloadParam) => [
-    overloadParam,
-    overloadGenerator(overloadParam),
-  ]));
+  const overloads = new Map(overloadParams.map((overloadParam) => [overloadParam, overloadGenerator(overloadParam)]));
   if (overloads.size !== overloadParams.length) {
     throw new StackAssertionError("Duplicate overload parameters");
   }
@@ -194,7 +199,7 @@ export function createSmartRouteHandler<
       if (reqsErrors.length === 1) {
         throw reqsErrors[0];
       } else {
-        const caughtErrors = reqsErrors.map(e => catchError(e));
+        const caughtErrors = reqsErrors.map((e) => catchError(e));
         throw createOverloadsError(caughtErrors);
       }
     }
@@ -208,15 +213,18 @@ export function createSmartRouteHandler<
     return await createResponse(nextRequest, requestId, smartRes, handler.response);
   };
 
-  return Object.assign(handleApiRequest(async (req, options, requestId) => {
-    const bodyBuffer = await req.arrayBuffer();
-    const smartRequest = await createSmartRequest(req, bodyBuffer, options);
-    return await invoke(req, requestId, smartRequest);
-  }), {
-    [getSmartRouteHandlerSymbol()]: true,
-    invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),
-    overloads,
-  });
+  return Object.assign(
+    handleApiRequest(async (req, options, requestId) => {
+      const bodyBuffer = await req.arrayBuffer();
+      const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+      return await invoke(req, requestId, smartRequest);
+    }),
+    {
+      [getSmartRouteHandlerSymbol()]: true,
+      invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),
+      overloads,
+    },
+  );
 }
 
 function createOverloadsError(errors: StatusError[]) {
@@ -224,7 +232,7 @@ function createOverloadsError(errors: StatusError[]) {
   if (merged.length === 1) {
     return merged[0];
   }
-  return new KnownErrors.AllOverloadsFailed(merged.map(e => e.toDescriptiveJson()));
+  return new KnownErrors.AllOverloadsFailed(merged.map((e) => e.toDescriptiveJson()));
 }
 
 const mergeErrorPriority = [
@@ -236,7 +244,9 @@ const mergeErrorPriority = [
 function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
   if (errors.length > 6) {
     // TODO fix this
-    throw new StackAssertionError("Too many overloads failed, refusing to trying to merge them as it would be computationally expensive and could be used for a DoS attack. Fix this if we ever have an endpoint with > 8 overloads");
+    throw new StackAssertionError(
+      "Too many overloads failed, refusing to trying to merge them as it would be computationally expensive and could be used for a DoS attack. Fix this if we ever have an endpoint with > 8 overloads",
+    );
   } else if (errors.length === 0) {
     throw new StackAssertionError("No errors to merge");
   } else if (errors.length === 1) {
@@ -250,11 +260,13 @@ function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
 
       // Merge "InsufficientAccessType" errors
       if (
-        a instanceof KnownErrors.InsufficientAccessType
-        && b instanceof KnownErrors.InsufficientAccessType
-        && a.constructorArgs[0] === b.constructorArgs[0]
+        a instanceof KnownErrors.InsufficientAccessType &&
+        b instanceof KnownErrors.InsufficientAccessType &&
+        a.constructorArgs[0] === b.constructorArgs[0]
       ) {
-        return [new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])])];
+        return [
+          new KnownErrors.InsufficientAccessType(a.constructorArgs[0], [...new Set([...a.constructorArgs[1], ...b.constructorArgs[1]])]),
+        ];
       }
 
       // Merge priority
@@ -289,13 +301,13 @@ function mergeOverloadErrors(errors: StatusError[]): StatusError[] {
  * if you can remove this wherever it's used without causing type errors, it's safe to remove
  */
 export function routeHandlerTypeHelper<Req extends DeepPartialSmartRequestWithSentinel, Res extends SmartResponse>(handler: {
-  request: yup.Schema<Req>,
-  response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+  request: yup.Schema<Req>;
+  response: yup.Schema<Res>;
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>;
 }): {
-  request: yup.Schema<Req>,
-  response: yup.Schema<Res>,
-  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>,
+  request: yup.Schema<Req>;
+  response: yup.Schema<Res>;
+  handler: (req: Req & MergeSmartRequest<Req>, fullReq: SmartRequest) => Promise<Res>;
 } {
   return handler;
 }

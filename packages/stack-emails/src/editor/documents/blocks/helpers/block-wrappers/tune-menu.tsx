@@ -1,10 +1,10 @@
-import { TEditorBlock } from '../../../editor/core';
-import { resetDocument, useDocument } from '../../../editor/editor-context';
-import { ColumnsContainerProps } from '../../columns-container/columns-container-props-schema';
-import { Trash2 } from 'lucide-react';
+import { Trash2 } from "lucide-react";
+import { TEditorBlock } from "../../../editor/core";
+import { resetDocument, useDocument } from "../../../editor/editor-context";
+import { ColumnsContainerProps } from "../../columns-container/columns-container-props-schema";
 
 type Props = {
-  blockId: string,
+  blockId: string;
 };
 
 export default function TuneMenu({ blockId }: Props) {
@@ -24,7 +24,7 @@ export default function TuneMenu({ blockId }: Props) {
         continue;
       }
       switch (block.type) {
-        case 'EmailLayout': {
+        case "EmailLayout": {
           nDocument[id] = {
             ...block,
             data: {
@@ -34,7 +34,7 @@ export default function TuneMenu({ blockId }: Props) {
           };
           break;
         }
-        case 'Container': {
+        case "Container": {
           nDocument[id] = {
             ...block,
             data: {
@@ -47,9 +47,9 @@ export default function TuneMenu({ blockId }: Props) {
           };
           break;
         }
-        case 'ColumnsContainer': {
+        case "ColumnsContainer": {
           nDocument[id] = {
-            type: 'ColumnsContainer',
+            type: "ColumnsContainer",
             data: {
               style: block.data.style,
               props: {
@@ -73,10 +73,10 @@ export default function TuneMenu({ blockId }: Props) {
 
   return (
     <button
-      className="bg-white shadow-md absolute top-0 right-0 rounded-full min-h-8 min-w-8 flex items-center justify-center"
+      className="absolute right-0 top-0 flex min-h-8 min-w-8 items-center justify-center rounded-full bg-white shadow-md"
       onClick={handleDeleteClick}
     >
-      <Trash2 className='w-5 h-5' />
+      <Trash2 className="h-5 w-5" />
     </button>
   );
 }

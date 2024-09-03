@@ -1,15 +1,19 @@
-import { teamCreatedWebhookEvent, teamDeletedWebhookEvent, teamUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/teams";
-import { userCreatedWebhookEvent, userDeletedWebhookEvent, userUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { WebhookEvent } from "@stackframe/stack-shared/dist/interface/webhooks";
-import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { Svix } from "svix";
 import * as yup from "yup";
+import {
+  teamCreatedWebhookEvent,
+  teamDeletedWebhookEvent,
+  teamUpdatedWebhookEvent,
+} from "@stackframe/stack-shared/dist/interface/crud/teams";
+import {
+  userCreatedWebhookEvent,
+  userDeletedWebhookEvent,
+  userUpdatedWebhookEvent,
+} from "@stackframe/stack-shared/dist/interface/crud/users";
+import { WebhookEvent } from "@stackframe/stack-shared/dist/interface/webhooks";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
-async function sendWebhooks(options: {
-  type: string,
-  projectId: string,
-  data: any,
-}) {
+async function sendWebhooks(options: { type: string; projectId: string; data: any }) {
   const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
   const server = getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined;
   const svix = new Svix(apiKey, { serverUrl: server });
@@ -34,7 +38,7 @@ async function sendWebhooks(options: {
 }
 
 function createWebhookSender<T extends yup.Schema>(event: WebhookEvent<T>) {
-  return async (options: { projectId: string, data: yup.InferType<typeof event.schema> }) => {
+  return async (options: { projectId: string; data: yup.InferType<typeof event.schema> }) => {
     await sendWebhooks({
       type: event.type,
       projectId: options.projectId,

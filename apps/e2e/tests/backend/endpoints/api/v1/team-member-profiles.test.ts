@@ -52,7 +52,6 @@ async function signInAndCreateTeam() {
   return { teamId, userId1, userId2, currentUserId: userId3 };
 }
 
-
 it("lists and updates member profiles in team", async ({ expect }) => {
   await signInAndCreateTeam();
   // Must specify team_id
@@ -68,7 +67,6 @@ it("lists and updates member profiles in team", async ({ expect }) => {
     }
   `);
 });
-
 
 it("does not have permission to list all members in their own team by default", async ({ expect }) => {
   const { teamId } = await signInAndCreateTeam();
@@ -120,7 +118,6 @@ it("can read own profile", async ({ expect }) => {
     }
   `);
 });
-
 
 it("can do several operations when granted $read_members permission", async ({ expect }) => {
   const { teamId, userId1, userId2, currentUserId } = await signInAndCreateTeam();

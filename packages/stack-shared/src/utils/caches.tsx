@@ -21,7 +21,6 @@ export function cacheFunction<F extends Function>(f: F): F {
   }) as any as F;
 }
 
-
 type CacheStrategy = "write-only" | "read-write" | "never";
 
 export class AsyncCache<D extends any[], T> {
@@ -30,8 +29,8 @@ export class AsyncCache<D extends any[], T> {
   constructor(
     private readonly _fetcher: (dependencies: D) => Promise<T>,
     private readonly _options: {
-      onSubscribe?: (key: D, refresh: () => void) => (() => void),
-      rateLimiter?: Omit<RateLimitOptions, "batchCalls">,
+      onSubscribe?: (key: D, refresh: () => void) => () => void;
+      rateLimiter?: Omit<RateLimitOptions, "batchCalls">;
     } = {},
   ) {
     // nothing here yet
@@ -49,13 +48,10 @@ export class AsyncCache<D extends any[], T> {
   getValueCache(dependencies: D): AsyncValueCache<T> {
     let cache = this._map.get(dependencies);
     if (!cache) {
-      cache = new AsyncValueCache(
-        async () => await this._fetcher(dependencies),
-        {
-          ...this._options,
-          onSubscribe: this._options.onSubscribe ? (cb) => this._options.onSubscribe!(dependencies, cb) : undefined,
-        },
-      );
+      cache = new AsyncValueCache(async () => await this._fetcher(dependencies), {
+        ...this._options,
+        onSubscribe: this._options.onSubscribe ? (cb) => this._options.onSubscribe!(dependencies, cb) : undefined,
+      });
       this._map.set(dependencies, cache);
     }
     return cache;
@@ -82,8 +78,8 @@ class AsyncValueCache<T> {
   constructor(
     fetcher: () => Promise<T>,
     private readonly _options: {
-      onSubscribe?: (refresh: () => void) => (() => void),
-      rateLimiter?: Omit<RateLimitOptions, "batchCalls">,
+      onSubscribe?: (refresh: () => void) => () => void;
+      rateLimiter?: Omit<RateLimitOptions, "batchCalls">;
     } = {},
   ) {
     this._store = new AsyncStore();
@@ -92,7 +88,6 @@ class AsyncValueCache<T> {
       throttleMs: 300,
       ...filterUndefined(_options.rateLimiter ?? {}),
     };
-
 
     this._fetcher = rateLimited(fetcher, {
       ...this._rateLimitOptions,

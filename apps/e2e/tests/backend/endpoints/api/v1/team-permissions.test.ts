@@ -52,11 +52,11 @@ it("can create a new permission and grant it to a user on the server", async ({ 
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'child',
-      description: 'Child permission',
+      id: "child",
+      description: "Child permission",
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
 
@@ -65,18 +65,18 @@ it("can create a new permission and grant it to a user on the server", async ({ 
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'parent',
-      description: 'Parent permission',
-      contained_permission_ids: ['child'],
+      id: "parent",
+      description: "Parent permission",
+      contained_permission_ids: ["child"],
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
 
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
-  const { userId } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
+  const { userId } = await Auth.Password.signUpWithEmail({ password: "test1234" });
   const { teamId } = await Team.create();
 
   // list current permissions
@@ -155,10 +155,10 @@ it("can customize default team permissions", async ({ expect }) => {
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'test'
+      id: "test",
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -174,7 +174,7 @@ it("can customize default team permissions", async ({ expect }) => {
 
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      team_member_default_permissions: [{ id: 'test' }],
+      team_member_default_permissions: [{ id: "test" }],
     },
   });
 

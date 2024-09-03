@@ -1,13 +1,13 @@
-import { Label } from '@stackframe/stack-ui';
-import { useState } from 'react';
-import EmailLayoutPropsSchema from '../documents/blocks/email-layout/email-layout-props-schema';
-import { setDocument, setSubject, useDocument, useSubject } from '../documents/editor/editor-context';
-import DownloadJson from '../template-panel/download-json';
-import ImportJson from '../template-panel/import-json';
-import BaseSidebarPanel from './configuration-panel/input-panels/helpers/base-sidebar-panel';
-import ColorInput from './configuration-panel/input-panels/helpers/inputs/color-input';
-import { NullableFontFamily } from './configuration-panel/input-panels/helpers/inputs/font-family';
-import TextInput from './configuration-panel/input-panels/helpers/inputs/text-input';
+import { useState } from "react";
+import { Label } from "@stackframe/stack-ui";
+import EmailLayoutPropsSchema from "../documents/blocks/email-layout/email-layout-props-schema";
+import { setDocument, setSubject, useDocument, useSubject } from "../documents/editor/editor-context";
+import DownloadJson from "../template-panel/download-json";
+import ImportJson from "../template-panel/import-json";
+import BaseSidebarPanel from "./configuration-panel/input-panels/helpers/base-sidebar-panel";
+import ColorInput from "./configuration-panel/input-panels/helpers/inputs/color-input";
+import { NullableFontFamily } from "./configuration-panel/input-panels/helpers/inputs/font-family";
+import TextInput from "./configuration-panel/input-panels/helpers/inputs/text-input";
 
 export default function SettingsPanel() {
   const block = useDocument().root;
@@ -20,7 +20,7 @@ export default function SettingsPanel() {
   }
 
   const { data, type } = block;
-  if (type !== 'EmailLayout') {
+  if (type !== "EmailLayout") {
     throw new Error('Expected "root" element to be of type EmailLayout');
   }
 
@@ -36,43 +36,33 @@ export default function SettingsPanel() {
 
   return (
     <BaseSidebarPanel title="Settings">
-      <TextInput
-        label='Email Subject'
-        rows={3}
-        defaultValue={subject}
-        onChange={(subject) => setSubject(subject)}
-      />
+      <TextInput label="Email Subject" rows={3} defaultValue={subject} onChange={(subject) => setSubject(subject)} />
 
       <ColorInput
         label="Backdrop color"
-        defaultValue={data.backdropColor ?? '#F5F5F5'}
+        defaultValue={data.backdropColor ?? "#F5F5F5"}
         onChange={(backdropColor) => updateData({ ...data, backdropColor })}
       />
       <ColorInput
         label="Canvas color"
-        defaultValue={data.canvasColor ?? '#FFFFFF'}
+        defaultValue={data.canvasColor ?? "#FFFFFF"}
         onChange={(canvasColor) => updateData({ ...data, canvasColor })}
       />
 
-      <NullableFontFamily
-        label="Font family"
-        defaultValue="MODERN_SANS"
-        onChange={(fontFamily) => updateData({ ...data, fontFamily })}
-      />
+      <NullableFontFamily label="Font family" defaultValue="MODERN_SANS" onChange={(fontFamily) => updateData({ ...data, fontFamily })} />
       <ColorInput
         label="Text color"
-        defaultValue={data.textColor ?? '#262626'}
+        defaultValue={data.textColor ?? "#262626"}
         onChange={(textColor) => updateData({ ...data, textColor })}
       />
 
-      <div className='flex flex-col gap-2'>
+      <div className="flex flex-col gap-2">
         <Label>Import & export</Label>
         <div className="flex flex-col gap-2">
           <DownloadJson />
           <ImportJson />
         </div>
       </div>
-
     </BaseSidebarPanel>
   );
 }

@@ -1,9 +1,9 @@
-import React from 'react';
-import { ColumnsContainer as BaseColumnsContainer } from '../../../blocks/block-columns-container';
-import { useCurrentBlockId } from '../../editor/editor-block';
-import { setDocument, setSelectedBlockId } from '../../editor/editor-context';
-import EditorChildrenIds, { EditorChildrenChange } from '../helpers/editor-children-ids';
-import ColumnsContainerPropsSchema, { ColumnsContainerProps } from './columns-container-props-schema';
+import React from "react";
+import { ColumnsContainer as BaseColumnsContainer } from "../../../blocks/block-columns-container";
+import { useCurrentBlockId } from "../../editor/editor-block";
+import { setDocument, setSelectedBlockId } from "../../editor/editor-context";
+import EditorChildrenIds, { EditorChildrenChange } from "../helpers/editor-children-ids";
+import ColumnsContainerPropsSchema, { ColumnsContainerProps } from "./columns-container-props-schema";
 
 const EMPTY_COLUMNS = [{ childrenIds: [] }, { childrenIds: [] }, { childrenIds: [] }];
 
@@ -19,7 +19,7 @@ export default function ColumnsContainerEditor({ style, props }: ColumnsContaine
     setDocument({
       [blockId]: block,
       [currentBlockId]: {
-        type: 'ColumnsContainer',
+        type: "ColumnsContainer",
         data: ColumnsContainerPropsSchema.parse({
           style,
           props: {

@@ -1,10 +1,11 @@
 "use client";
-import { SettingCard, SettingSwitch } from "@/components/settings";
+
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { CardSubtitle } from "@stackframe/stack-ui";
+import { SettingCard, SettingSwitch } from "@/components/settings";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch } from "./providers";
-import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -14,9 +15,7 @@ export default function PageClient() {
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
       <SettingCard>
-        <CardSubtitle>
-          Email-based
-        </CardSubtitle>
+        <CardSubtitle>Email-based</CardSubtitle>
         <SettingSwitch
           label="Email password authentication"
           checked={project.config.credentialEnabled}
@@ -39,26 +38,26 @@ export default function PageClient() {
             });
           }}
         />
-        <CardSubtitle className="mt-2">
-          SSO (OAuth)
-        </CardSubtitle>
+        <CardSubtitle className="mt-2">SSO (OAuth)</CardSubtitle>
         {allProviders.map((id) => {
           const provider = oauthProviders.find((provider) => provider.id === id);
-          return <ProviderSettingSwitch
-            key={id}
-            id={id}
-            provider={provider}
-            updateProvider={async (provider) => {
-              const alreadyExist = oauthProviders.some((p) => p.id === id);
-              const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
-              if (!alreadyExist) {
-                newOAuthProviders.push(provider);
-              }
-              await project.update({
-                config: { oauthProviders: newOAuthProviders },
-              });
-            }}
-          />;
+          return (
+            <ProviderSettingSwitch
+              key={id}
+              id={id}
+              provider={provider}
+              updateProvider={async (provider) => {
+                const alreadyExist = oauthProviders.some((p) => p.id === id);
+                const newOAuthProviders = oauthProviders.map((p) => (p.id === id ? provider : p));
+                if (!alreadyExist) {
+                  newOAuthProviders.push(provider);
+                }
+                await project.update({
+                  config: { oauthProviders: newOAuthProviders },
+                });
+              }}
+            />
+          );
         })}
       </SettingCard>
       <SettingCard title="Settings">

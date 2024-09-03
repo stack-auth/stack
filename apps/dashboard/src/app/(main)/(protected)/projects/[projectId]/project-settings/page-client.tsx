@@ -1,9 +1,19 @@
 "use client";
+
+import * as yup from "yup";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  ActionDialog,
+  Alert,
+  Button,
+  Typography,
+} from "@stackframe/stack-ui";
 import { InputField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
-import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 
@@ -26,23 +36,17 @@ export default function PageClient() {
         <SettingSwitch
           label="Enable production mode"
           checked={project.isProductionMode}
-          disabled={
-            !project.isProductionMode && productionModeErrors.length > 0
-          }
+          disabled={!project.isProductionMode && productionModeErrors.length > 0}
           onCheckedChange={async (checked) => {
             await project.update({ isProductionMode: checked });
           }}
         />
 
         {productionModeErrors.length === 0 ? (
-          <Alert>
-            Your configuration is ready for production and production mode can
-            be enabled. Good job!
-          </Alert>
+          <Alert>Your configuration is ready for production and production mode can be enabled. Good job!</Alert>
         ) : (
           <Alert variant="destructive">
-            Your configuration is not ready for production mode. Please fix the
-            following issues:
+            Your configuration is not ready for production mode. Please fix the following issues:
             <ul className="mt-2 list-disc pl-5">
               {productionModeErrors.map((error) => (
                 <li key={error.message}>
@@ -66,30 +70,17 @@ export default function PageClient() {
         }}
         render={(form) => (
           <>
-            <InputField
-              label="Display Name"
-              control={form.control}
-              name="displayName"
-              required
-            />
-            <InputField
-              label="Description"
-              control={form.control}
-              name="description"
-            />
+            <InputField label="Display Name" control={form.control} name="displayName" required />
+            <InputField label="Description" control={form.control} name="description" />
 
             <Typography variant="secondary" type="footnote">
-              The display name and description may be publicly visible to the
-              users of your app.
+              The display name and description may be publicly visible to the users of your app.
             </Typography>
           </>
         )}
       />
 
-      <SettingCard
-        title="Danger Zone"
-        description="Be careful with the options in this section. They can have irreversible effects."
-      >
+      <SettingCard title="Danger Zone" description="Be careful with the options in this section. They can have irreversible effects.">
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="item-1">
             <AccordionTrigger>Delete project</AccordionTrigger>
@@ -103,7 +94,7 @@ export default function PageClient() {
                   onClick: async () => {
                     await project.delete();
                     await stackAdminApp.redirectToHome();
-                  }
+                  },
                 }}
                 cancelButton
                 confirmText="I understand this action is IRREVERSIBLE and will delete ALL associated data."

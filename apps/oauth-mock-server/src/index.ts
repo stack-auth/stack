@@ -1,24 +1,14 @@
-import Provider, { Configuration } from 'oidc-provider';
+import Provider, { Configuration } from "oidc-provider";
 
 const port = Number.parseInt(process.env.PORT || "8107");
 
-const mockedProviders = [
-  "github",
-  "facebook",
-  "google",
-  "microsoft",
-  "spotify",
-  "discord",
-  "gitlab",
-];
+const mockedProviders = ["github", "facebook", "google", "microsoft", "spotify", "discord", "gitlab"];
 
-const configuration: Configuration  = {
+const configuration: Configuration = {
   clients: mockedProviders.map((providerId) => ({
     client_id: providerId,
-    client_secret: 'MOCK-SERVER-SECRET',
-    redirect_uris: [
-      `http://localhost:8102/api/v1/auth/oauth/callback/${providerId}`,
-    ],
+    client_secret: "MOCK-SERVER-SECRET",
+    redirect_uris: [`http://localhost:8102/api/v1/auth/oauth/callback/${providerId}`],
   })),
   ttl: {
     // we make sessions short so it asks us for our login again after a minute, instead of automatically logging us in with the already-logged-in session

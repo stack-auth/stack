@@ -1,5 +1,5 @@
-import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { useLayoutEffect, useRef } from "react";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 
 export function useAnimationFrame(callback: FrameRequestCallback) {
   const actualCallbackRef = useRef(callback);

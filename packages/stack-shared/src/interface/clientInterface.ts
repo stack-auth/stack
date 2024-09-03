@@ -1,31 +1,33 @@
-import * as oauth from 'oauth4webapi';
-
-import { cookies } from '@stackframe/stack-sc';
-import { KnownError, KnownErrors } from '../known-errors';
-import { AccessToken, InternalSession, RefreshToken } from '../sessions';
-import { generateSecureRandomString } from '../utils/crypto';
-import { StackAssertionError, throwErr } from '../utils/errors';
-import { globalVar } from '../utils/globals';
-import { ReadonlyJson } from '../utils/json';
-import { filterUndefined } from '../utils/objects';
+import * as oauth from "oauth4webapi";
+import { cookies } from "@stackframe/stack-sc";
+import { KnownError, KnownErrors } from "../known-errors";
+import { AccessToken, InternalSession, RefreshToken } from "../sessions";
+import { generateSecureRandomString } from "../utils/crypto";
+import { StackAssertionError, throwErr } from "../utils/errors";
+import { globalVar } from "../utils/globals";
+import { ReadonlyJson } from "../utils/json";
+import { filterUndefined } from "../utils/objects";
 import { Result } from "../utils/results";
-import { deindent } from '../utils/strings';
-import { CurrentUserCrud } from './crud/current-user';
-import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
-import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
-import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
-import { TeamPermissionsCrud } from './crud/team-permissions';
-import { TeamsCrud } from './crud/teams';
+import { deindent } from "../utils/strings";
+import { CurrentUserCrud } from "./crud/current-user";
+import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
+import { InternalProjectsCrud, ProjectsCrud } from "./crud/projects";
+import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
+import { TeamPermissionsCrud } from "./crud/team-permissions";
+import { TeamsCrud } from "./crud/teams";
 
 export type ClientInterfaceOptions = {
-  clientVersion: string,
-  baseUrl: string,
-  projectId: string,
-} & ({
-  publishableClientKey: string,
-} | {
-  projectOwnerSession: InternalSession,
-});
+  clientVersion: string;
+  baseUrl: string;
+  projectId: string;
+} & (
+  | {
+      publishableClientKey: string;
+    }
+  | {
+      projectOwnerSession: InternalSession;
+    }
+);
 
 export class StackClientInterface {
   constructor(public readonly options: ClientInterfaceOptions) {
@@ -55,12 +57,15 @@ export class StackClientInterface {
         throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
       }
     });
-    const apiRoot = session !== undefined && requestType !== undefined ? await tryRequest(async () => {
-      const res = await this.sendClientRequestInner("/", {}, session!, requestType);
-      if (res.status === "error") {
-        throw res.error;
-      }
-    }) : "Not tested";
+    const apiRoot =
+      session !== undefined && requestType !== undefined
+        ? await tryRequest(async () => {
+            const res = await this.sendClientRequestInner("/", {}, session!, requestType);
+            if (res.status === "error") {
+              throw res.error;
+            }
+          })
+        : "Not tested";
     const baseUrlBackend = await tryRequest(async () => {
       const res = await fetch(new URL("/health", this.getApiUrl()));
       if (!res.ok) {
@@ -89,19 +94,22 @@ export class StackClientInterface {
     };
   }
 
-  protected async _networkRetry<T>(cb: () => Promise<Result<T, any>>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
-    const retriedResult = await Result.retry(
-      cb,
-      5,
-      { exponentialDelayBase: 1000 },
-    );
+  protected async _networkRetry<T>(
+    cb: () => Promise<Result<T, any>>,
+    session?: InternalSession | null,
+    requestType?: "client" | "server" | "admin",
+  ): Promise<T> {
+    const retriedResult = await Result.retry(cb, 5, { exponentialDelayBase: 1000 });
 
     // try to diagnose the error for the user
     if (retriedResult.status === "error") {
       if (globalVar.navigator && !globalVar.navigator.onLine) {
-        throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
+        throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", {
+          cause: retriedResult.error,
+        });
       }
-      throw new Error(deindent`
+      throw new Error(
+        deindent`
         Stack is unable to connect to the server. Please check your internet connection and try again.
 
         If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
@@ -109,39 +117,41 @@ export class StackClientInterface {
         ${retriedResult.error}
 
         ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
-      `, { cause: retriedResult.error });
+      `,
+        { cause: retriedResult.error },
+      );
     }
     return retriedResult.data;
   }
 
-  protected async _networkRetryException<T>(cb: () => Promise<T>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
+  protected async _networkRetryException<T>(
+    cb: () => Promise<T>,
+    session?: InternalSession | null,
+    requestType?: "client" | "server" | "admin",
+  ): Promise<T> {
     return await this._networkRetry(async () => await Result.fromThrowingAsync(cb), session, requestType);
   }
 
   public async fetchNewAccessToken(refreshToken: RefreshToken) {
-    if (!('publishableClientKey' in this.options)) {
+    if (!("publishableClientKey" in this.options)) {
       // TODO support it
-      throw new Error("Admin session token is currently not supported for fetching new access token. Did you try to log in on a StackApp initiated with the admin session?");
+      throw new Error(
+        "Admin session token is currently not supported for fetching new access token. Did you try to log in on a StackApp initiated with the admin session?",
+      );
     }
 
     const as = {
       issuer: this.options.baseUrl,
-      algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
+      algorithm: "oauth2",
+      token_endpoint: this.getApiUrl() + "/auth/oauth/token",
     };
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_post',
+      token_endpoint_auth_method: "client_secret_post",
     };
 
-    const rawResponse = await this._networkRetryException(
-      async () => await oauth.refreshTokenGrantRequest(
-        as,
-        client,
-        refreshToken.token,
-      )
-    );
+    const rawResponse = await this._networkRetryException(async () => await oauth.refreshTokenGrantRequest(as, client, refreshToken.token));
     const response = await this._processResponse(rawResponse);
 
     if (response.status === "error") {
@@ -180,12 +190,7 @@ export class StackClientInterface {
       refreshToken: null,
     });
 
-
-    return await this._networkRetry(
-      () => this.sendClientRequestInner(path, requestOptions, session!, requestType),
-      session,
-      requestType,
-    );
+    return await this._networkRetry(() => this.sendClientRequestInner(path, requestOptions, session!, requestType), session, requestType);
   }
 
   public createSession(options: Omit<ConstructorParameters<typeof InternalSession>[0], "refreshAccessTokenCallback">): InternalSession {
@@ -196,20 +201,22 @@ export class StackClientInterface {
     return session;
   }
 
-  protected async sendClientRequestAndCatchKnownError<E extends typeof KnownErrors[keyof KnownErrors]>(
+  protected async sendClientRequestAndCatchKnownError<E extends (typeof KnownErrors)[keyof KnownErrors]>(
     path: string,
     requestOptions: RequestInit,
     tokenStoreOrNull: InternalSession | null,
     errorsToCatch: readonly E[],
-  ): Promise<Result<
-    Response & {
-      usedTokens: {
-        accessToken: AccessToken,
-        refreshToken: RefreshToken | null,
-      } | null,
-    },
-    InstanceType<E>
-  >> {
+  ): Promise<
+    Result<
+      Response & {
+        usedTokens: {
+          accessToken: AccessToken;
+          refreshToken: RefreshToken | null;
+        } | null;
+      },
+      InstanceType<E>
+    >
+  > {
     try {
       return Result.ok(await this.sendClientRequest(path, requestOptions, tokenStoreOrNull));
     } catch (e) {
@@ -227,12 +234,16 @@ export class StackClientInterface {
     options: RequestInit,
     session: InternalSession,
     requestType: "client" | "server" | "admin",
-  ): Promise<Result<Response & {
-    usedTokens: {
-      accessToken: AccessToken,
-      refreshToken: RefreshToken | null,
-    } | null,
-  }>> {
+  ): Promise<
+    Result<
+      Response & {
+        usedTokens: {
+          accessToken: AccessToken;
+          refreshToken: RefreshToken | null;
+        } | null;
+      }
+    >
+  > {
     /**
      * `tokenObj === null` means the session is invalid/not logged in
      */
@@ -256,27 +267,37 @@ export class StackClientInterface {
        * However, Cloudflare Workers don't actually support `credentials`, so we only set it
        * if Cloudflare-exclusive globals are not detected. https://github.com/cloudflare/workers-sdk/issues/2514
        */
-      ...("WebSocketPair" in globalVar ? {} : {
-        credentials: "omit",
-      }),
+      ...("WebSocketPair" in globalVar
+        ? {}
+        : {
+            credentials: "omit",
+          }),
       ...options,
       headers: {
         "X-Stack-Override-Error-Status": "true",
         "X-Stack-Project-Id": this.projectId,
         "X-Stack-Access-Type": requestType,
         "X-Stack-Client-Version": this.options.clientVersion,
-        ...(tokenObj ? {
-          "X-Stack-Access-Token": tokenObj.accessToken.token,
-        } : {}),
-        ...(tokenObj?.refreshToken ? {
-          "X-Stack-Refresh-Token": tokenObj.refreshToken.token,
-        } : {}),
-        ...('publishableClientKey' in this.options ? {
-          "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
-        } : {}),
-        ...(adminTokenObj ? {
-          "X-Stack-Admin-Access-Token": adminTokenObj.accessToken.token,
-        } : {}),
+        ...(tokenObj
+          ? {
+              "X-Stack-Access-Token": tokenObj.accessToken.token,
+            }
+          : {}),
+        ...(tokenObj?.refreshToken
+          ? {
+              "X-Stack-Refresh-Token": tokenObj.refreshToken.token,
+            }
+          : {}),
+        ...("publishableClientKey" in this.options
+          ? {
+              "X-Stack-Publishable-Client-Key": this.options.publishableClientKey,
+            }
+          : {}),
+        ...(adminTokenObj
+          ? {
+              "X-Stack-Admin-Access-Token": adminTokenObj.accessToken.token,
+            }
+          : {}),
         /**
          * Next.js until v15 would cache fetch requests by default, and forcefully disabling it was nearly impossible.
          *
@@ -291,9 +312,11 @@ export class StackClientInterface {
       /**
        * Cloudflare Workers does not support cache, so don't pass it there
        */
-      ...("WebSocketPair" in globalVar ? {} : {
-        cache: "no-store",
-      }),
+      ...("WebSocketPair" in globalVar
+        ? {}
+        : {
+            cache: "no-store",
+          }),
     };
 
     let rawRes;
@@ -320,9 +343,15 @@ export class StackClientInterface {
 
       // Same for the admin access token
       // TODO HACK: Some of the backend hasn't been ported to use the new error codes, so if we have project owner tokens we need to check for ApiKeyNotFound too. Once the migration to smartRouteHandlers is complete, we can check for InvalidAdminAccessToken only.
-      if (adminSession && (processedRes.error instanceof KnownErrors.InvalidAdminAccessToken || processedRes.error instanceof KnownErrors.ApiKeyNotFound)) {
+      if (
+        adminSession &&
+        (processedRes.error instanceof KnownErrors.InvalidAdminAccessToken || processedRes.error instanceof KnownErrors.ApiKeyNotFound)
+      ) {
         if (!adminTokenObj) {
-          throw new StackAssertionError("Received invalid admin access token, but admin session is not logged in", { adminTokenObj, processedRes });
+          throw new StackAssertionError("Received invalid admin access token, but admin session is not logged in", {
+            adminTokenObj,
+            processedRes,
+          });
         }
         adminSession.markAccessTokenExpired(adminTokenObj.accessToken);
         return Result.error(processedRes.error);
@@ -332,7 +361,6 @@ export class StackClientInterface {
       // Hence, throw instead of returning an error
       throw processedRes.error;
     }
-
 
     const res = Object.assign(processedRes.data, {
       usedTokens: tokenObj,
@@ -362,7 +390,9 @@ export class StackClientInterface {
     if (res.headers.has("x-stack-known-error")) {
       const errorJson = await res.json();
       if (res.headers.get("x-stack-known-error") !== errorJson.code) {
-        throw new StackAssertionError("Mismatch between x-stack-known-error header and error code in body; the server's response is invalid");
+        throw new StackAssertionError(
+          "Mismatch between x-stack-known-error header and error code in body; the server's response is invalid",
+        );
       }
       const error = KnownError.fromJson(errorJson);
       return Result.error(error);
@@ -372,27 +402,28 @@ export class StackClientInterface {
   }
 
   public async checkFeatureSupport(options: { featureName?: string } & ReadonlyJson): Promise<never> {
-    const res = await this.sendClientRequest("/check-feature-support", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const res = await this.sendClientRequest(
+      "/check-feature-support",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(options),
       },
-      body: JSON.stringify(options),
-    }, null);
+      null,
+    );
 
     throw new StackAssertionError(await res.text());
   }
 
-  async sendForgotPasswordEmail(
-    email: string,
-    callbackUrl: string,
-  ): Promise<KnownErrors["UserNotFound"] | undefined> {
+  async sendForgotPasswordEmail(email: string, callbackUrl: string): Promise<KnownErrors["UserNotFound"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/send-reset-code",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -411,14 +442,14 @@ export class StackClientInterface {
   async sendVerificationEmail(
     email: string,
     callbackUrl: string,
-    session: InternalSession
+    session: InternalSession,
   ): Promise<KnownErrors["EmailAlreadyVerified"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/contact-channels/send-verification-code",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -426,7 +457,7 @@ export class StackClientInterface {
         }),
       },
       session,
-      [KnownErrors.EmailAlreadyVerified]
+      [KnownErrors.EmailAlreadyVerified],
     );
 
     if (res.status === "error") {
@@ -434,16 +465,13 @@ export class StackClientInterface {
     }
   }
 
-  async sendMagicLinkEmail(
-    email: string,
-    callbackUrl: string,
-  ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+  async sendMagicLinkEmail(email: string, callbackUrl: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/otp/send-sign-in-code",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -451,7 +479,7 @@ export class StackClientInterface {
         }),
       },
       null,
-      [KnownErrors.RedirectUrlNotWhitelisted]
+      [KnownErrors.RedirectUrlNotWhitelisted],
     );
 
     if (res.status === "error") {
@@ -460,14 +488,14 @@ export class StackClientInterface {
   }
 
   async resetPassword(
-    options: { code: string } & ({ password: string } | { onlyVerifyCode: true })
+    options: { code: string } & ({ password: string } | { onlyVerifyCode: true }),
   ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "onlyVerifyCode" in options ? "/auth/password/reset/check-code" : "/auth/password/reset",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           code: options.code,
@@ -475,7 +503,7 @@ export class StackClientInterface {
         }),
       },
       null,
-      [KnownErrors.VerificationCodeError]
+      [KnownErrors.VerificationCodeError],
     );
 
     if (res.status === "error") {
@@ -484,15 +512,15 @@ export class StackClientInterface {
   }
 
   async updatePassword(
-    options: { oldPassword: string, newPassword: string },
-    session: InternalSession
+    options: { oldPassword: string; newPassword: string },
+    session: InternalSession,
   ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | undefined> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/update",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           old_password: options.oldPassword,
@@ -500,7 +528,7 @@ export class StackClientInterface {
         }),
       },
       session,
-      [KnownErrors.PasswordConfirmationMismatch, KnownErrors.PasswordRequirementsNotMet]
+      [KnownErrors.PasswordConfirmationMismatch, KnownErrors.PasswordRequirementsNotMet],
     );
 
     if (res.status === "error") {
@@ -522,14 +550,14 @@ export class StackClientInterface {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           code,
         }),
       },
       null,
-      [KnownErrors.VerificationCodeError]
+      [KnownErrors.VerificationCodeError],
     );
 
     if (res.status === "error") {
@@ -538,17 +566,17 @@ export class StackClientInterface {
   }
 
   async sendTeamInvitation(options: {
-    email: string,
-    teamId: string,
-    callbackUrl: string,
-    session: InternalSession | null,
+    email: string;
+    teamId: string;
+    callbackUrl: string;
+    session: InternalSession | null;
   }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/team-invitations/send-code",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: options.email,
@@ -557,7 +585,7 @@ export class StackClientInterface {
         }),
       },
       options.session,
-      [KnownErrors.TeamPermissionRequired]
+      [KnownErrors.TeamPermissionRequired],
     );
 
     if (res.status === "error") {
@@ -567,28 +595,28 @@ export class StackClientInterface {
     }
   }
 
-  async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
-    code: string,
-    session: InternalSession,
-    type: T,
-  }): Promise<Result<T extends 'details' ? { team_display_name: string } : undefined, KnownErrors["VerificationCodeError"]>> {
+  async acceptTeamInvitation<T extends "use" | "details" | "check">(options: {
+    code: string;
+    session: InternalSession;
+    type: T;
+  }): Promise<Result<T extends "details" ? { team_display_name: string } : undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
-      options.type === 'check' ?
-        "/team-invitations/accept/check-code" :
-        options.type === 'details' ?
-          "/team-invitations/accept/details" :
-          "/team-invitations/accept",
+      options.type === "check"
+        ? "/team-invitations/accept/check-code"
+        : options.type === "details"
+          ? "/team-invitations/accept/details"
+          : "/team-invitations/accept",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           code: options.code,
         }),
       },
       options.session,
-      [KnownErrors.VerificationCodeError]
+      [KnownErrors.VerificationCodeError],
     );
 
     if (res.status === "error") {
@@ -598,22 +626,22 @@ export class StackClientInterface {
     }
   }
 
-  async totpMfa(
-    attemptCode: string,
-    totp: string,
-    session: InternalSession
-  ) {
-    const res = await this.sendClientRequest("/auth/mfa/sign-in", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+  async totpMfa(attemptCode: string, totp: string, session: InternalSession) {
+    const res = await this.sendClientRequest(
+      "/auth/mfa/sign-in",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: attemptCode,
+          type: "totp",
+          totp: totp,
+        }),
       },
-      body: JSON.stringify({
-        code: attemptCode,
-        type: "totp",
-        totp: totp,
-      }),
-    }, session);
+      session,
+    );
 
     const result = await res.json();
     return {
@@ -626,14 +654,14 @@ export class StackClientInterface {
   async signInWithCredential(
     email: string,
     password: string,
-    session: InternalSession
-  ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
+    session: InternalSession,
+  ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string; refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/sign-in",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -641,7 +669,7 @@ export class StackClientInterface {
         }),
       },
       session,
-      [KnownErrors.EmailPasswordMismatch]
+      [KnownErrors.EmailPasswordMismatch],
     );
 
     if (res.status === "error") {
@@ -660,12 +688,14 @@ export class StackClientInterface {
     password: string,
     emailVerificationRedirectUrl: string,
     session: InternalSession,
-  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
+  ): Promise<
+    KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string; refreshToken: string }
+  > {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/sign-up",
       {
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         method: "POST",
         body: JSON.stringify({
@@ -675,7 +705,7 @@ export class StackClientInterface {
         }),
       },
       session,
-      [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet]
+      [KnownErrors.UserEmailAlreadyExists, KnownErrors.PasswordRequirementsNotMet],
     );
 
     if (res.status === "error") {
@@ -689,20 +719,22 @@ export class StackClientInterface {
     };
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(
+    code: string,
+  ): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean; accessToken: string; refreshToken: string }> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/otp/sign-in",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           code,
         }),
       },
       null,
-      [KnownErrors.VerificationCodeError]
+      [KnownErrors.VerificationCodeError],
     );
 
     if (res.status === "error") {
@@ -719,15 +751,15 @@ export class StackClientInterface {
 
   async getOAuthUrl(
     options: {
-      provider: string,
-      redirectUrl: string,
-      errorRedirectUrl: string,
-      afterCallbackRedirectUrl?: string,
-      codeChallenge: string,
-      state: string,
-      type: "authenticate" | "link",
-      providerScope?: string,
-    } & ({ type: "authenticate" } | { type: "link", session: InternalSession })
+      provider: string;
+      redirectUrl: string;
+      errorRedirectUrl: string;
+      afterCallbackRedirectUrl?: string;
+      codeChallenge: string;
+      state: string;
+      type: "authenticate" | "link";
+      providerScope?: string;
+    } & ({ type: "authenticate" } | { type: "link"; session: InternalSession }),
   ): Promise<string> {
     const updatedRedirectUrl = new URL(options.redirectUrl);
     for (const key of ["code", "state"]) {
@@ -737,7 +769,7 @@ export class StackClientInterface {
       updatedRedirectUrl.searchParams.delete(key);
     }
 
-    if (!('publishableClientKey' in this.options)) {
+    if (!("publishableClientKey" in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
@@ -771,38 +803,32 @@ export class StackClientInterface {
   }
 
   async callOAuthCallback(options: {
-    oauthParams: URLSearchParams,
-    redirectUri: string,
-    codeVerifier: string,
-    state: string,
-  }): Promise<{ newUser: boolean, afterCallbackRedirectUrl?: string, accessToken: string, refreshToken: string }> {
-    if (!('publishableClientKey' in this.options)) {
+    oauthParams: URLSearchParams;
+    redirectUri: string;
+    codeVerifier: string;
+    state: string;
+  }): Promise<{ newUser: boolean; afterCallbackRedirectUrl?: string; accessToken: string; refreshToken: string }> {
+    if (!("publishableClientKey" in this.options)) {
       // TODO fix
       throw new Error("Admin session token is currently not supported for OAuth");
     }
     const as = {
       issuer: this.options.baseUrl,
-      algorithm: 'oauth2',
-      token_endpoint: this.getApiUrl() + '/auth/oauth/token',
+      algorithm: "oauth2",
+      token_endpoint: this.getApiUrl() + "/auth/oauth/token",
     };
     const client: oauth.Client = {
       client_id: this.projectId,
       client_secret: this.options.publishableClientKey,
-      token_endpoint_auth_method: 'client_secret_post',
+      token_endpoint_auth_method: "client_secret_post",
     };
-    const params = await this._networkRetryException(
-      async () => oauth.validateAuthResponse(as, client, options.oauthParams, options.state),
+    const params = await this._networkRetryException(async () =>
+      oauth.validateAuthResponse(as, client, options.oauthParams, options.state),
     );
     if (oauth.isOAuth2Error(params)) {
       throw new StackAssertionError("Error validating outer OAuth response", { params }); // Handle OAuth 2.0 redirect error
     }
-    const response = await oauth.authorizationCodeGrantRequest(
-      as,
-      client,
-      params,
-      options.redirectUri,
-      options.codeVerifier,
-    );
+    const response = await oauth.authorizationCodeGrantRequest(as, client, params, options.redirectUri, options.codeVerifier);
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
@@ -828,12 +854,12 @@ export class StackClientInterface {
         {
           method: "DELETE",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({}),
         },
         session,
-        [KnownErrors.RefreshTokenError]
+        [KnownErrors.RefreshTokenError],
       );
       if (resOrError.status === "error") {
         if (resOrError.error instanceof KnownErrors.RefreshTokenError) {
@@ -850,12 +876,9 @@ export class StackClientInterface {
   }
 
   async getClientUserByToken(session: InternalSession): Promise<CurrentUserCrud["Client"]["Read"] | null> {
-    const responseOrError = await this.sendClientRequestAndCatchKnownError(
-      "/users/me",
-      {},
-      session,
-      [KnownErrors.CannotGetOwnUserWithoutUser],
-    );
+    const responseOrError = await this.sendClientRequestAndCatchKnownError("/users/me", {}, session, [
+      KnownErrors.CannotGetOwnUserWithoutUser,
+    ]);
     if (responseOrError.status === "error") {
       if (responseOrError.error instanceof KnownErrors.CannotGetOwnUserWithoutUser) {
         return null;
@@ -871,42 +894,38 @@ export class StackClientInterface {
 
   async listTeamMemberProfiles(
     options: {
-      teamId?: string,
-      userId?: string,
+      teamId?: string;
+      userId?: string;
     },
     session: InternalSession,
-  ): Promise<TeamMemberProfilesCrud['Client']['Read'][]> {
+  ): Promise<TeamMemberProfilesCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
-      "/team-member-profiles?" + new URLSearchParams(filterUndefined({
-        team_id: options.teamId,
-        user_id: options.userId,
-      })),
+      "/team-member-profiles?" +
+        new URLSearchParams(
+          filterUndefined({
+            team_id: options.teamId,
+            user_id: options.userId,
+          }),
+        ),
       {},
       session,
     );
-    const result = await response.json() as TeamMemberProfilesCrud['Client']['List'];
+    const result = (await response.json()) as TeamMemberProfilesCrud["Client"]["List"];
     return result.items;
   }
 
   async getTeamMemberProfile(
     options: {
-      teamId: string,
-      userId: string,
+      teamId: string;
+      userId: string;
     },
     session: InternalSession,
-  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
-    const response = await this.sendClientRequest(
-      `/team-member-profiles/${options.teamId}/${options.userId}`,
-      {},
-      session,
-    );
+  ): Promise<TeamMemberProfilesCrud["Client"]["Read"]> {
+    const response = await this.sendClientRequest(`/team-member-profiles/${options.teamId}/${options.userId}`, {}, session);
     return await response.json();
   }
 
-  async leaveTeam(
-    teamId: string,
-    session: InternalSession,
-  ) {
+  async leaveTeam(teamId: string, session: InternalSession) {
     await this.sendClientRequest(
       `/team-memberships/${teamId}/me`,
       {
@@ -922,9 +941,9 @@ export class StackClientInterface {
 
   async updateTeamMemberProfile(
     options: {
-      teamId: string,
-      userId: string,
-      profile: TeamMemberProfilesCrud['Client']['Update'],
+      teamId: string;
+      userId: string;
+      profile: TeamMemberProfilesCrud["Client"]["Update"];
     },
     session: InternalSession,
   ) {
@@ -943,8 +962,8 @@ export class StackClientInterface {
 
   async updateTeam(
     options: {
-      teamId: string,
-      data: TeamsCrud['Client']['Update'],
+      teamId: string;
+      data: TeamsCrud["Client"]["Update"];
     },
     session: InternalSession,
   ) {
@@ -963,37 +982,33 @@ export class StackClientInterface {
 
   async listCurrentUserTeamPermissions(
     options: {
-      teamId: string,
-      recursive: boolean,
+      teamId: string;
+      recursive: boolean;
     },
-    session: InternalSession
-  ): Promise<TeamPermissionsCrud['Client']['Read'][]> {
+    session: InternalSession,
+  ): Promise<TeamPermissionsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest(
       `/team-permissions?team_id=${options.teamId}&user_id=me&recursive=${options.recursive}`,
       {},
       session,
     );
-    const result = await response.json() as TeamPermissionsCrud['Client']['List'];
+    const result = (await response.json()) as TeamPermissionsCrud["Client"]["List"];
     return result.items;
   }
 
   async listCurrentUserTeams(session: InternalSession): Promise<TeamsCrud["Client"]["Read"][]> {
-    const response = await this.sendClientRequest(
-      "/teams?user_id=me",
-      {},
-      session,
-    );
-    const result = await response.json() as TeamsCrud["Client"]["List"];
+    const response = await this.sendClientRequest("/teams?user_id=me", {}, session);
+    const result = (await response.json()) as TeamsCrud["Client"]["List"];
     return result.items;
   }
 
-  async getClientProject(): Promise<Result<ProjectsCrud['Client']['Read'], KnownErrors["ProjectNotFound"]>> {
+  async getClientProject(): Promise<Result<ProjectsCrud["Client"]["Read"], KnownErrors["ProjectNotFound"]>> {
     const responseOrError = await this.sendClientRequestAndCatchKnownError("/projects/current", {}, null, [KnownErrors.ProjectNotFound]);
     if (responseOrError.status === "error") {
       return Result.error(responseOrError.error);
     }
     const response = responseOrError.data;
-    const project: ProjectsCrud['Client']['Read'] = await response.json();
+    const project: ProjectsCrud["Client"]["Read"] = await response.json();
     return Result.ok(project);
   }
 
@@ -1011,20 +1026,20 @@ export class StackClientInterface {
     );
   }
 
-  async listProjects(session: InternalSession): Promise<InternalProjectsCrud['Client']['Read'][]> {
+  async listProjects(session: InternalSession): Promise<InternalProjectsCrud["Client"]["Read"][]> {
     const response = await this.sendClientRequest("/internal/projects", {}, session);
     if (!response.ok) {
       throw new Error("Failed to list projects: " + response.status + " " + (await response.text()));
     }
 
-    const json = await response.json() as InternalProjectsCrud['Client']['List'];
+    const json = (await response.json()) as InternalProjectsCrud["Client"]["List"];
     return json.items;
   }
 
   async createProject(
-    project: InternalProjectsCrud['Client']['Create'],
+    project: InternalProjectsCrud["Client"]["Create"],
     session: InternalSession,
-  ): Promise<InternalProjectsCrud['Client']['Read']> {
+  ): Promise<InternalProjectsCrud["Client"]["Read"]> {
     const fetchResponse = await this.sendClientRequest(
       "/internal/projects",
       {
@@ -1048,7 +1063,7 @@ export class StackClientInterface {
     provider: string,
     scope: string,
     session: InternalSession,
-  ): Promise<ConnectedAccountAccessTokenCrud['Client']['Read']> {
+  ): Promise<ConnectedAccountAccessTokenCrud["Client"]["Read"]> {
     const response = await this.sendClientRequest(
       `/connected-accounts/me/${provider}/access-token`,
       {
@@ -1063,10 +1078,7 @@ export class StackClientInterface {
     return await response.json();
   }
 
-  async createTeamForCurrentUser(
-    data: TeamsCrud['Client']['Create'],
-    session: InternalSession,
-  ): Promise<TeamsCrud['Client']['Read']> {
+  async createTeamForCurrentUser(data: TeamsCrud["Client"]["Create"], session: InternalSession): Promise<TeamsCrud["Client"]["Read"]> {
     const response = await this.sendClientRequest(
       "/teams?add_current_user=true",
       {

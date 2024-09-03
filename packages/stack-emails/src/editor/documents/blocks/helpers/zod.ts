@@ -1,6 +1,5 @@
-import { z } from 'zod';
-
-import { FONT_FAMILY_NAMES } from './font-family';
+import { z } from "zod";
+import { FONT_FAMILY_NAMES } from "./font-family";
 
 export function zColor() {
   return z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -11,11 +10,11 @@ export function zFontFamily() {
 }
 
 export function zFontWeight() {
-  return z.enum(['bold', 'normal']);
+  return z.enum(["bold", "normal"]);
 }
 
 export function zTextAlign() {
-  return z.enum(['left', 'center', 'right']);
+  return z.enum(["left", "center", "right"]);
 }
 
 export function zPadding() {

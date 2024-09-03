@@ -1,7 +1,6 @@
 import { it } from "../../../../helpers";
 import { InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-
 it("lists all the team permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken();
@@ -10,7 +9,7 @@ it("lists all the team permissions", async ({ expect }) => {
     accessType: "admin",
     method: "GET",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response).toMatchInlineSnapshot(`
@@ -78,10 +77,10 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'p1'
+      id: "p1",
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -100,11 +99,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "POST",
     body: {
-      id: 'p2',
-      contained_permission_ids: ['p1', '$read_members']
+      id: "p2",
+      contained_permission_ids: ["p1", "$read_members"],
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response2).toMatchInlineSnapshot(`
@@ -126,11 +125,11 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "PATCH",
     body: {
-      id: 'p3',
-      contained_permission_ids: ['p1', '$update_team']
+      id: "p3",
+      contained_permission_ids: ["p1", "$update_team"],
     },
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
 
@@ -153,7 +152,7 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "GET",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response4).toMatchInlineSnapshot(`
@@ -228,7 +227,7 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "DELETE",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response5).toMatchInlineSnapshot(`
@@ -244,7 +243,7 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
     accessType: "admin",
     method: "GET",
     headers: {
-      'x-stack-admin-access-token': adminAccessToken
+      "x-stack-admin-access-token": adminAccessToken,
     },
   });
   expect(response6).toMatchInlineSnapshot(`

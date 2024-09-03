@@ -1,5 +1,5 @@
-import React, { CSSProperties } from 'react';
-import { z } from 'zod';
+import React, { CSSProperties } from "react";
+import { z } from "zod";
 
 const COLOR_SCHEMA = z
   .string()
@@ -41,7 +41,7 @@ export type DividerProps = z.infer<typeof DividerPropsSchema>;
 
 export const DividerPropsDefaults = {
   lineHeight: 1,
-  lineColor: '#333333',
+  lineColor: "#333333",
 };
 
 export function Divider({ style, props }: DividerProps) {
@@ -55,8 +55,8 @@ export function Divider({ style, props }: DividerProps) {
     <div style={st}>
       <hr
         style={{
-          width: '100%',
-          border: 'none',
+          width: "100%",
+          border: "none",
           borderTop: `${borderTopWidth}px solid ${borderTopColor}`,
           margin: 0,
         }}

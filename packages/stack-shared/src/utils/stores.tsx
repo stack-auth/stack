@@ -1,31 +1,33 @@
+import { ReactPromise, pending, rejected, resolved } from "./promises";
 import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
-import { ReactPromise, pending, rejected, resolved } from "./promises";
 
 export type ReadonlyStore<T> = {
-  get(): T,
-  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
-  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
+  get(): T;
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void };
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void };
 };
 
-export type AsyncStoreStateChangeCallback<T> = (args: { state: AsyncResult<T>, oldState: AsyncResult<T>, lastOkValue: T | undefined }) => void;
+export type AsyncStoreStateChangeCallback<T> = (args: {
+  state: AsyncResult<T>;
+  oldState: AsyncResult<T>;
+  lastOkValue: T | undefined;
+}) => void;
 
 export type ReadonlyAsyncStore<T> = {
-  isAvailable(): boolean,
-  get(): AsyncResult<T, unknown, void>,
-  getOrWait(): ReactPromise<T>,
-  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
-  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void },
-  onStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void },
-  onceStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void },
+  isAvailable(): boolean;
+  get(): AsyncResult<T, unknown, void>;
+  getOrWait(): ReactPromise<T>;
+  onChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void };
+  onceChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void };
+  onStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void };
+  onceStateChange(callback: AsyncStoreStateChangeCallback<T>): { unsubscribe: () => void };
 };
 
 export class Store<T> implements ReadonlyStore<T> {
-  private readonly _callbacks: Map<string, ((value: T, oldValue: T | undefined) => void)> = new Map();
+  private readonly _callbacks: Map<string, (value: T, oldValue: T | undefined) => void> = new Map();
 
-  constructor(
-    private _value: T
-  ) {}
+  constructor(private _value: T) {}
 
   get(): T {
     return this._value;
@@ -68,7 +70,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
 
   private _isRejected = false;
   private _rejectionError: unknown;
-  private readonly _waitingRejectFunctions = new Map<string, ((error: unknown) => void)>();
+  private readonly _waitingRejectFunctions = new Map<string, (error: unknown) => void>();
 
   private readonly _callbacks: Map<string, AsyncStoreStateChangeCallback<T>> = new Map();
 
@@ -133,11 +135,13 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
             this._isRejected = false;
             this._mostRecentOkValue = result.data;
             this._rejectionError = undefined;
-            this._callbacks.forEach((callback) => callback({
-              state: this.get(),
-              oldState,
-              lastOkValue: oldValue,
-            }));
+            this._callbacks.forEach((callback) =>
+              callback({
+                state: this.get(),
+                oldState,
+                lastOkValue: oldValue,
+              }),
+            );
             return true;
           }
           return false;
@@ -148,11 +152,13 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
           this._isRejected = true;
           this._rejectionError = result.error;
           this._waitingRejectFunctions.forEach((reject) => reject(result.error));
-          this._callbacks.forEach((callback) => callback({
-            state: this.get(),
-            oldState,
-            lastOkValue: oldValue,
-          }));
+          this._callbacks.forEach((callback) =>
+            callback({
+              state: this.get(),
+              oldState,
+              lastOkValue: oldValue,
+            }),
+          );
           return true;
         }
       }

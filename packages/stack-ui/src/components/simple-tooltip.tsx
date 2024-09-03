@@ -1,16 +1,13 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "..";
 import { CircleAlert, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "..";
 
-export function SimpleTooltip(props: {
-  tooltip: React.ReactNode,
-  children?: React.ReactNode,
-  type?: 'info' | 'warning',
-}) {
-  const icon = props.type === 'warning' ?
-    <CircleAlert className="w-4 h-4 text-zinc-500" /> :
-    props.type === 'info' ?
-      <Info className="w-4 h-4 text-zinc-500" /> :
-      null;
+export function SimpleTooltip(props: { tooltip: React.ReactNode; children?: React.ReactNode; type?: "info" | "warning" }) {
+  const icon =
+    props.type === "warning" ? (
+      <CircleAlert className="h-4 w-4 text-zinc-500" />
+    ) : props.type === "info" ? (
+      <Info className="h-4 w-4 text-zinc-500" />
+    ) : null;
 
   return (
     <TooltipProvider>
@@ -21,9 +18,7 @@ export function SimpleTooltip(props: {
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <div className="max-w-60 text-center text-wrap whitespace-pre-wrap">
-            {props.tooltip}
-          </div>
+          <div className="max-w-60 whitespace-pre-wrap text-wrap text-center">{props.tooltip}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -1,9 +1,9 @@
 "use client";
-import { useAdminApp } from '../../use-admin-app';
-import { notFound } from 'next/navigation';
-import { PageLayout } from '../../page-layout';
-import { TeamMemberTable } from '@/components/data-table/team-member-table';
 
+import { notFound } from "next/navigation";
+import { TeamMemberTable } from "@/components/data-table/team-member-table";
+import { PageLayout } from "../../page-layout";
+import { useAdminApp } from "../../use-admin-app";
 
 export default function PageClient(props: { teamId: string }) {
   const stackAdminApp = useAdminApp();

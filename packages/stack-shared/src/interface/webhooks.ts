@@ -3,13 +3,13 @@ import { teamCreatedWebhookEvent, teamDeletedWebhookEvent, teamUpdatedWebhookEve
 import { userCreatedWebhookEvent, userDeletedWebhookEvent, userUpdatedWebhookEvent } from "./crud/users";
 
 export type WebhookEvent<S extends yup.Schema> = {
-  type: string,
-  schema: S,
+  type: string;
+  schema: S;
   metadata: {
-    summary: string,
-    description: string,
-    tags?: string[],
-  },
+    summary: string;
+    description: string;
+    tags?: string[];
+  };
 };
 
 export const webhookEvents = [

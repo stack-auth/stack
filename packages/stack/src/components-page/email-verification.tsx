@@ -1,24 +1,22 @@
-'use client';
+"use client";
 
 import React from "react";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { StackClientApp, useStackApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 
 const cacheVerifyEmail = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyEmail(code);
 });
 
 export function EmailVerification({
-  searchParams: {
-    code = "",
-  } = {},
+  searchParams: { code = "" } = {},
   fullPage = false,
 }: {
-  searchParams?: Record<string, string>,
-  fullPage?: boolean,
+  searchParams?: Record<string, string>;
+  fullPage?: boolean;
 }) {
   const stackApp = useStackApp();
 
@@ -50,5 +48,5 @@ export function EmailVerification({
     throw error;
   }
 
-  return <PredefinedMessageCard type='emailVerified' fullPage={fullPage} />;
+  return <PredefinedMessageCard type="emailVerified" fullPage={fullPage} />;
 }

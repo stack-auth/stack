@@ -9,9 +9,7 @@ export function SmartImage(props: NextImageProps & { disableStrictCLS?: boolean 
     updatedSrc = `${basePath}${src}`;
   }
 
-  const updatedStaticImage = typeof updatedSrc === "object"
-    ? "default" in updatedSrc ? updatedSrc.default : updatedSrc
-    : undefined;
+  const updatedStaticImage = typeof updatedSrc === "object" ? ("default" in updatedSrc ? updatedSrc.default : updatedSrc) : undefined;
 
   return (
     // eslint-disable-next-line react/forbid-elements
@@ -22,10 +20,12 @@ export function SmartImage(props: NextImageProps & { disableStrictCLS?: boolean 
       placeholder={(+(width ?? 41) > 40 || +(height ?? 41) > 40) && !!updatedStaticImage?.blurDataURL ? "blur" : undefined}
       {...nextImageProps}
       style={{
-        ...disableStrictCLS ? {
-          width: width == null ? 'auto' : undefined,
-          height: height == null ? 'auto' : undefined,
-        } : {},
+        ...(disableStrictCLS
+          ? {
+              width: width == null ? "auto" : undefined,
+              height: height == null ? "auto" : undefined,
+            }
+          : {}),
         ...nextImageProps.style,
       }}
     />

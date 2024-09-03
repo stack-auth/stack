@@ -1,20 +1,13 @@
-'use client';
-
+"use client";
 
 // import { SignIn } from "@stackframe/stack";
-
 // export default function DefaultSignIn() {
 //   return <SignIn fullPage />;
 // }
-
 // --------------------------------------------
-
-
 // import { useStackApp } from "@stackframe/stack";
-
 // export default function CustomOAuthSignIn() {
 //   const app = useStackApp();
-
 //   return <div>
 //     <h1>My Custom Sign In page</h1>
 //     <button onClick={async () => {
@@ -25,18 +18,14 @@
 //     </button>
 //   </div>;
 // }
-
 // --------------------------------------------
-
 // import { useStackApp } from "@stackframe/stack";
 // import { useState } from "react";
-
 // export default function CustomCredentialSignIn() {
 //   const [email, setEmail] = useState('');
 //   const [password, setPassword] = useState('');
 //   const [error, setError] = useState('');
 //   const app = useStackApp();
-
 //   const onSubmit = async () => {
 //     if (!password) {
 //       setError('Please enter your password');
@@ -49,7 +38,6 @@
 //       setError(errorCode.message);
 //     }
 //   };
-
 //   return (
 //     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); } }>
 //       {error}
@@ -59,17 +47,14 @@
 //     </form>
 //   );
 // }
-
 // --------------------------------------------
-
-
-import { useStackApp } from "@stackframe/stack";
 import { useState } from "react";
+import { useStackApp } from "@stackframe/stack";
 
 export default function CustomCredentialSignIn() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const app = useStackApp();
 
   const onSubmit = async () => {
@@ -79,22 +64,26 @@ export default function CustomCredentialSignIn() {
     if (errorCode) {
       setError(errorCode.message);
     } else {
-      setMessage('Magic link sent! Please check your email.');
+      setMessage("Magic link sent! Please check your email.");
     }
   };
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      onSubmit();
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
       {error}
-      {message ?
-        <div>{message}</div> :
+      {message ? (
+        <div>{message}</div>
+      ) : (
         <>
-          <input type='email' placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <button type='submit'>Send Magic Link</button>
-        </>}
+          <input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <button type="submit">Send Magic Link</button>
+        </>
+      )}
     </form>
   );
 }

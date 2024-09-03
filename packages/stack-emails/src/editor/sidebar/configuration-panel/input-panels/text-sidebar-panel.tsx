@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { TextProps, TextPropsSchema } from '../../../blocks/block-text';
-import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import TextInput from './helpers/inputs/text-input';
-import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { useState } from "react";
+import { TextProps, TextPropsSchema } from "../../../blocks/block-text";
+import BaseSidebarPanel from "./helpers/base-sidebar-panel";
+import TextInput from "./helpers/inputs/text-input";
+import MultiStylePropertyPanel from "./helpers/style-inputs/multi-style-property-panel";
 
 type TextSidebarPanelProps = {
-  data: TextProps,
-  setData: (v: TextProps) => void,
+  data: TextProps;
+  setData: (v: TextProps) => void;
 };
 export default function TextSidebarPanel({ data, setData }: TextSidebarPanelProps) {
   const [, setErrors] = useState<Zod.ZodError | null>(null);
@@ -26,12 +26,12 @@ export default function TextSidebarPanel({ data, setData }: TextSidebarPanelProp
       <TextInput
         label="Content"
         rows={5}
-        defaultValue={data.props?.text ?? ''}
+        defaultValue={data.props?.text ?? ""}
         onChange={(text) => updateData({ ...data, props: { ...data.props, text } })}
       />
 
       <MultiStylePropertyPanel
-        names={['color', 'backgroundColor', 'fontFamily', 'fontSize', 'fontWeight', 'textAlign', 'padding']}
+        names={["color", "backgroundColor", "fontFamily", "fontSize", "fontWeight", "textAlign", "padding"]}
         value={data.style}
         onChange={(style) => updateData({ ...data, style })}
       />

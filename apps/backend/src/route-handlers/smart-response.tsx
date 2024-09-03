@@ -1,39 +1,38 @@
-import "../polyfills";
-
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { Json } from "@stackframe/stack-shared/dist/utils/json";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
+import "../polyfills";
 
 export type SmartResponse = {
-  statusCode: number,
-  headers?: Record<string, string[]>,
+  statusCode: number;
+  headers?: Record<string, string[]>;
 } & (
   | {
-    bodyType?: undefined,
-    body?: ArrayBuffer | Json | undefined,
-  }
+      bodyType?: undefined;
+      body?: ArrayBuffer | Json | undefined;
+    }
   | {
-    bodyType: "empty",
-    body?: undefined,
-  }
+      bodyType: "empty";
+      body?: undefined;
+    }
   | {
-    bodyType: "text",
-    body: string,
-  }
+      bodyType: "text";
+      body: string;
+    }
   | {
-    bodyType: "json",
-    body: Json,
-  }
+      bodyType: "json";
+      body: Json;
+    }
   | {
-    bodyType: "binary",
-    body: ArrayBuffer,
-  }
+      bodyType: "binary";
+      body: ArrayBuffer;
+    }
   | {
-    bodyType: "success",
-    body?: undefined,
-  }
+      bodyType: "success";
+      body?: undefined;
+    }
 );
 
 async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
@@ -45,23 +44,28 @@ async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Sc
       },
     });
   } catch (error) {
-    throw new StackAssertionError(`Error occurred during ${req ? `${req.method} ${req.url}` : "a custom endpoint invocation's"} response validation: ${error}`, { obj, schema, error }, { cause: error });
+    throw new StackAssertionError(
+      `Error occurred during ${req ? `${req.method} ${req.url}` : "a custom endpoint invocation's"} response validation: ${error}`,
+      { obj, schema, error },
+      { cause: error },
+    );
   }
 }
 
-
 function isBinaryBody(body: unknown): body is BodyInit {
-  return body instanceof ArrayBuffer
-    || body instanceof SharedArrayBuffer
-    || body instanceof Blob
-    || ArrayBuffer.isView(body);
+  return body instanceof ArrayBuffer || body instanceof SharedArrayBuffer || body instanceof Blob || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+export async function createResponse<T extends SmartResponse>(
+  req: NextRequest | null,
+  requestId: string,
+  obj: T,
+  schema: yup.Schema<T>,
+): Promise<Response> {
   const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;
-  const headers = new Map<string, string[]>;
+  const headers = new Map<string, string[]>();
 
   let arrayBufferBody;
 
@@ -72,7 +76,10 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
       break;
     }
     case "json": {
-      if (validated.body === undefined || !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)), { ignoreUndefinedValues: true })) {
+      if (
+        validated.body === undefined ||
+        !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)), { ignoreUndefinedValues: true })
+      ) {
         throw new StackAssertionError("Invalid JSON body is not JSON", { body: validated.body });
       }
       headers.set("content-type", ["application/json; charset=utf-8"]);
@@ -92,9 +99,11 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
     }
     case "success": {
       headers.set("content-type", ["application/json; charset=utf-8"]);
-      arrayBufferBody = new TextEncoder().encode(JSON.stringify({
-        success: true,
-      }));
+      arrayBufferBody = new TextEncoder().encode(
+        JSON.stringify({
+          success: true,
+        }),
+      );
       break;
     }
     default: {
@@ -102,14 +111,11 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
     }
   }
 
-
   // Add the request ID to the response headers
   headers.set("x-stack-request-id", [requestId]);
 
-
   // Disable caching by default
   headers.set("cache-control", ["no-store, max-age=0"]);
-
 
   // If the x-stack-override-error-status header is given, override error statuses to 200
   if (req?.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
@@ -117,16 +123,13 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
     headers.set("x-stack-actual-status", [validated.statusCode.toString()]);
   }
 
-  return new Response(
-    arrayBufferBody,
-    {
-      status,
-      headers: [
-        ...Object.entries({
-          ...Object.fromEntries(headers),
-          ...validated.headers ?? {}
-        }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
-      ],
-    },
-  );
+  return new Response(arrayBufferBody, {
+    status,
+    headers: [
+      ...Object.entries({
+        ...Object.fromEntries(headers),
+        ...(validated.headers ?? {}),
+      }).flatMap(([key, values]) => values.map((v) => [key.toLowerCase(), v!] as [string, string])),
+    ],
+  });
 }

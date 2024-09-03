@@ -1,17 +1,11 @@
 "use client";
 
-import { useStackApp } from "../..";
-import { Typography } from "@stackframe/stack-ui";
-import { MessageCard } from "./message-card";
 import { KnownError } from "@stackframe/stack-shared";
+import { Typography } from "@stackframe/stack-ui";
+import { useStackApp } from "../..";
+import { MessageCard } from "./message-card";
 
-export function KnownErrorMessageCard({
-  error,
-  fullPage=false,
-}: {
-  error: KnownError,
-  fullPage?: boolean,
-}) {
+export function KnownErrorMessageCard({ error, fullPage = false }: { error: KnownError; fullPage?: boolean }) {
   const stackApp = useStackApp();
 
   return (

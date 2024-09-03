@@ -1,9 +1,9 @@
-import { sendEmailFromTemplate } from "@/lib/emails";
-import { prismaClient } from "@/prisma-client";
-import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { sendEmailFromTemplate } from "@/lib/emails";
+import { prismaClient } from "@/prisma-client";
+import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {

@@ -1,7 +1,7 @@
 import React from "react";
+import { isBrowserLike } from "./env";
 import { neverResolve } from "./promises";
 import { deindent } from "./strings";
-import { isBrowserLike } from "./env";
 
 export function getNodeText(node: React.ReactNode): string {
   if (["number", "string"].includes(typeof node)) {
@@ -28,7 +28,6 @@ export function suspend(): never {
   React.use(neverResolve());
   throw new Error("Somehow a Promise that never resolves was resolved?");
 }
-
 
 /**
  * Use this in a component or a hook to disable SSR. Should be wrapped in a Suspense boundary, or it will throw an error.
@@ -66,7 +65,7 @@ export function suspendIfSsr(caller?: string) {
         // https://github.com/vercel/next.js/blob/d01d6d9c35a8c2725b3d74c1402ab76d4779a6cf/packages/next/src/shared/lib/lazy-dynamic/bailout-to-csr.ts#L14
         digest: "BAILOUT_TO_CLIENT_SIDE_RENDERING",
         reason: caller ?? "suspendIfSsr()",
-      }
+      },
     );
 
     throw error;

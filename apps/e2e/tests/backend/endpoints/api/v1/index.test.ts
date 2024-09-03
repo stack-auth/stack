@@ -1,5 +1,5 @@
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { describe } from "vitest";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { it } from "../../../../helpers";
 import { ApiKey, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
@@ -67,7 +67,7 @@ describe("with project keys that don't exist", async () => {
       publishableClientKey: "publish-key",
       secretServerKey: "secret-key",
       superSecretAdminKey: "admin-key",
-    }
+    },
   });
 
   it("should not have client access", async ({ expect }) => {
@@ -111,7 +111,7 @@ describe("with project keys that don't match the project ID", async () => {
         publishableClientKey: apiKeysResult.projectKeys.publishableClientKey,
         secretServerKey: apiKeysResult.projectKeys.secretServerKey,
         superSecretAdminKey: apiKeysResult.projectKeys.superSecretAdminKey,
-      }
+      },
     });
   };
 

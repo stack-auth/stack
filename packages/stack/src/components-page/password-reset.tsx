@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Label, PasswordInput, Typography } from "@stackframe/stack-ui";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
 import { StackClientApp, useStackApp } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
@@ -17,26 +17,33 @@ import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 
 const schema = yupObject({
-  password: yupString().required('Please enter your password').test({
-    name: 'is-valid-password',
-    test: (value, ctx) => {
-      const error = getPasswordError(value);
-      if (error) {
-        return ctx.createError({ message: error.message });
-      } else {
-        return true;
-      }
-    }
-  }),
-  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
+  password: yupString()
+    .required("Please enter your password")
+    .test({
+      name: "is-valid-password",
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
+      },
+    }),
+  passwordRepeat: yupString()
+    .nullable()
+    .oneOf([yup.ref("password"), null], "Passwords do not match")
+    .required("Please repeat your password"),
 });
 
-export default function PasswordResetForm(
-  { code, fullPage = false }:
-  { code: string, fullPage?: boolean }
-) {
-  const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
-    resolver: yupResolver(schema)
+export default function PasswordResetForm({ code, fullPage = false }: { code: string; fullPage?: boolean }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    clearErrors,
+  } = useForm({
+    resolver: yupResolver(schema),
   });
   const stackApp = useStackApp();
   const [finished, setFinished] = useState(false);
@@ -60,7 +67,7 @@ export default function PasswordResetForm(
   };
 
   if (finished) {
-    return <PredefinedMessageCard type='passwordReset' fullPage={fullPage} />;
+    return <PredefinedMessageCard type="passwordReset" fullPage={fullPage} />;
   }
 
   if (resetError) {
@@ -73,33 +80,37 @@ export default function PasswordResetForm(
 
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6" style={{ width: '380px', padding: fullPage ? '1rem' : 0 }}>
-        <Typography type='h2'>Reset Your Password</Typography>
+      <div className="mb-6 text-center" style={{ width: "380px", padding: fullPage ? "1rem" : 0 }}>
+        <Typography type="h2">Reset Your Password</Typography>
       </div>
 
       <form
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-        onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+        style={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}
+        onSubmit={(e) => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
-        <Label htmlFor="password" className="mb-1">New Password</Label>
+        <Label htmlFor="password" className="mb-1">
+          New Password
+        </Label>
         <PasswordInput
           id="password"
-          {...register('password')}
+          {...register("password")}
           onChange={() => {
-            clearErrors('password');
-            clearErrors('passwordRepeat');
+            clearErrors("password");
+            clearErrors("passwordRepeat");
           }}
         />
         <FormWarningText text={errors.password?.message?.toString()} />
 
-        <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat New Password</Label>
+        <Label htmlFor="repeat-password" className="mb-1 mt-4">
+          Repeat New Password
+        </Label>
         <PasswordInput
           id="repeat-password"
-          {...register('passwordRepeat')}
+          {...register("passwordRepeat")}
           onChange={() => {
-            clearErrors('password');
-            clearErrors('passwordRepeat');
+            clearErrors("password");
+            clearErrors("passwordRepeat");
           }}
         />
         <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
@@ -112,18 +123,11 @@ export default function PasswordResetForm(
   );
 }
 
-
 const cachedVerifyPasswordResetCode = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyPasswordResetCode(code);
 });
 
-export function PasswordReset({
-  searchParams,
-  fullPage = false,
-}: {
-  searchParams: Record<string, string>,
-  fullPage?: boolean,
-}) {
+export function PasswordReset({ searchParams, fullPage = false }: { searchParams: Record<string, string>; fullPage?: boolean }) {
   const stackApp = useStackApp();
 
   const invalidJsx = (
@@ -140,7 +144,10 @@ export function PasswordReset({
 
   const usedJsx = (
     <MessageCard title="Used Password Reset Link" fullPage={fullPage}>
-      <Typography>This password reset link has already been used. If you need to reset your password again, please request a new password reset link from the login page.</Typography>
+      <Typography>
+        This password reset link has already been used. If you need to reset your password again, please request a new password reset link
+        from the login page.
+      </Typography>
     </MessageCard>
   );
 

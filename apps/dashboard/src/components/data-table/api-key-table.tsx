@@ -1,11 +1,23 @@
-'use client';
-import { ApiKey } from '@stackframe/stack';
-import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, TextCell, standardFilterFn } from "@stackframe/stack-ui";
+"use client";
+
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { ApiKey } from "@stackframe/stack";
+import {
+  ActionCell,
+  ActionDialog,
+  BadgeCell,
+  DataTable,
+  DataTableColumnHeader,
+  DataTableFacetedFilter,
+  DateCell,
+  SearchToolbarItem,
+  TextCell,
+  standardFilterFn,
+} from "@stackframe/stack-ui";
 
 type ExtendedApiKey = ApiKey & {
-  status: 'valid' | 'expired' | 'revoked',
+  status: "valid" | "expired" | "revoked";
 };
 
 function toolbarRender<TData>(table: Table<TData>) {
@@ -15,7 +27,7 @@ function toolbarRender<TData>(table: Table<TData>) {
       <DataTableFacetedFilter
         column={table.getColumn("status")}
         title="Status"
-        options={['valid', 'expired', 'revoked'].map((provider) => ({
+        options={["valid", "expired", "revoked"].map((provider) => ({
           value: provider,
           label: provider,
         }))}
@@ -24,22 +36,25 @@ function toolbarRender<TData>(table: Table<TData>) {
   );
 }
 
-function RevokeDialog(props: {
-  apiKey: ExtendedApiKey,
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
-}) {
-  return <ActionDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Revoke API Key"
-    danger
-    cancelButton
-    okButton={{ label: "Revoke Key", onClick: async () => { await props.apiKey.revoke(); } }}
-    confirmText="I understand this will unlink all the apps using this API key"
-  >
-    {`Are you sure you want to revoke client key *****${props.apiKey.publishableClientKey?.lastFour} and server key *****${props.apiKey.secretServerKey?.lastFour}?`}
-  </ActionDialog>;
+function RevokeDialog(props: { apiKey: ExtendedApiKey; open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <ActionDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title="Revoke API Key"
+      danger
+      cancelButton
+      okButton={{
+        label: "Revoke Key",
+        onClick: async () => {
+          await props.apiKey.revoke();
+        },
+      }}
+      confirmText="I understand this will unlink all the apps using this API key"
+    >
+      {`Are you sure you want to revoke client key *****${props.apiKey.publishableClientKey?.lastFour} and server key *****${props.apiKey.secretServerKey?.lastFour}?`}
+    </ActionDialog>
+  );
 }
 
 function Actions({ row }: { row: Row<ExtendedApiKey> }) {
@@ -48,18 +63,20 @@ function Actions({ row }: { row: Row<ExtendedApiKey> }) {
     <>
       <RevokeDialog apiKey={row.original} open={isRevokeModalOpen} onOpenChange={setIsRevokeModalOpen} />
       <ActionCell
-        invisible={row.original.status !== 'valid'}
-        items={[{
-          item: "Revoke",
-          danger: true,
-          onClick: () => setIsRevokeModalOpen(true),
-        }]}
+        invisible={row.original.status !== "valid"}
+        items={[
+          {
+            item: "Revoke",
+            danger: true,
+            onClick: () => setIsRevokeModalOpen(true),
+          },
+        ]}
       />
     </>
   );
 }
 
-const columns: ColumnDef<ExtendedApiKey>[] =  [
+const columns: ColumnDef<ExtendedApiKey>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Description" />,
@@ -88,7 +105,7 @@ const columns: ColumnDef<ExtendedApiKey>[] =  [
   {
     accessorKey: "expiresAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Expires At" />,
-    cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={100} />
+    cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={100} />,
   },
   {
     id: "actions",
@@ -98,16 +115,19 @@ const columns: ColumnDef<ExtendedApiKey>[] =  [
 
 export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
   const extendedApiKeys = useMemo(() => {
-    const keys = props.apiKeys.map((apiKey) => ({
-      ...apiKey,
-      status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
-    } satisfies ExtendedApiKey));
+    const keys = props.apiKeys.map(
+      (apiKey) =>
+        ({
+          ...apiKey,
+          status: ({ valid: "valid", "manually-revoked": "revoked", expired: "expired" } as const)[apiKey.whyInvalid() || "valid"],
+        }) satisfies ExtendedApiKey,
+    );
     // first soft based on status, then by expiresAt
     return keys.sort((a, b) => {
       if (a.status === b.status) {
         return a.expiresAt < b.expiresAt ? 1 : -1;
       }
-      return a.status === 'valid' ? -1 : 1;
+      return a.status === "valid" ? -1 : 1;
     });
   }, [props.apiKeys]);
 

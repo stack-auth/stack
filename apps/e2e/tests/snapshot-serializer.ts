@@ -1,7 +1,7 @@
+import { SnapshotSerializer } from "vitest";
 import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
-import { SnapshotSerializer } from "vitest";
 
 const hideHeaders = [
   "access-control-allow-headers",
@@ -43,16 +43,9 @@ const stripFields = [
   "attempt_code",
 ] as const;
 
-const keyedCookieNamePrefixes = [
-  "stack-oauth-inner-",
-] as const;
+const keyedCookieNamePrefixes = ["stack-oauth-inner-"] as const;
 
-const stripUrlQueryParams = [
-  "redirect_uri",
-  "state",
-  "code",
-  "code_challenge",
-] as const;
+const stripUrlQueryParams = ["redirect_uri", "state", "code", "code_challenge"] as const;
 
 function addAll<T>(set: Set<T>, values: readonly T[]) {
   for (const value of values) {
@@ -74,10 +67,7 @@ const snapshotSerializer: SnapshotSerializer = {
 
         // Strip all UUIDs except all-zero UUID
         if (typeof value === "string") {
-          const newValue = value.replace(
-            /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
-            "<stripped UUID>"
-          );
+          const newValue = value.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "<stripped UUID>");
           if (newValue !== value) return nicify(newValue, options);
         }
 
@@ -116,10 +106,12 @@ const snapshotSerializer: SnapshotSerializer = {
               cookieName = `${keyedCookieNamePrefixes}<stripped cookie name key>`;
             }
             const cookieValue = partsStrings[0].split("=")[1];
-            const parts = new Map(partsStrings.map((part) => {
-              const [key, value] = part.split("=");
-              return [key, value];
-            }));
+            const parts = new Map(
+              partsStrings.map((part) => {
+                const [key, value] = part.split("=");
+                return [key, value];
+              }),
+            );
             const expiresDate = new Date(parts.get("Expires") ?? "2002-01-01");
             if (expiresDate.getTime() < new Date("2001-01-01").getTime()) {
               return `<deleting cookie '${cookieName}' at path '${parts.get("Path") ?? "/"}'>`;
@@ -132,11 +124,7 @@ const snapshotSerializer: SnapshotSerializer = {
         // Hide fields
         const oldHideFields = options?.hideFields ?? [];
         const newHideFields = new Set<PropertyKey>(oldHideFields);
-        if (
-          (typeof value === "object" || typeof value === "function")
-          && value
-          && "getSnapshotSerializerOptions" in value
-        ) {
+        if ((typeof value === "object" || typeof value === "function") && value && "getSnapshotSerializerOptions" in value) {
           const snapshotSerializerOptions = (value.getSnapshotSerializerOptions as any)();
           addAll(newHideFields, snapshotSerializerOptions?.hideFields ?? []);
         }
@@ -152,10 +140,10 @@ const snapshotSerializer: SnapshotSerializer = {
 
         // Strip fields
         if (
-          (typeof parentValue === "object" || typeof parentValue === "function")
-          && parentValue
-          && options.keyInParent
-          && "getSnapshotSerializerOptions" in parentValue
+          (typeof parentValue === "object" || typeof parentValue === "function") &&
+          parentValue &&
+          options.keyInParent &&
+          "getSnapshotSerializerOptions" in parentValue
         ) {
           const parentSnapshotSerializerOptions = (parentValue.getSnapshotSerializerOptions as any)();
           if (parentSnapshotSerializerOptions?.stripFields?.includes(options.keyInParent)) {

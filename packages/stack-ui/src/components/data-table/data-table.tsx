@@ -1,14 +1,6 @@
 "use client";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@stackframe/stack-ui";
-import {
   ColumnDef,
   ColumnFiltersState,
   GlobalFiltering,
@@ -25,22 +17,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import React from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@stackframe/stack-ui";
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[],
-  data: TData[],
-  toolbarRender?: (table: TableType<TData>) => React.ReactNode,
-  defaultVisibility?: VisibilityState,
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  toolbarRender?: (table: TableType<TData>) => React.ReactNode;
+  defaultVisibility?: VisibilityState;
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  toolbarRender,
-  defaultVisibility,
-}: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, toolbarRender, defaultVisibility }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility || {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -60,7 +48,8 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getColumnCanGlobalFilter: (c) => c.columnDef.enableGlobalFilter ?? GlobalFiltering.getDefaultOptions!(table).getColumnCanGlobalFilter!(c),
+    getColumnCanGlobalFilter: (c) =>
+      c.columnDef.enableGlobalFilter ?? GlobalFiltering.getDefaultOptions!(table).getColumnCanGlobalFilter!(c),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -81,12 +70,7 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   );
                 })}
@@ -96,26 +80,15 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>

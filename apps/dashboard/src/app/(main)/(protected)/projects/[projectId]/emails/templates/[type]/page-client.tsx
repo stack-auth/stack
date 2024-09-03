@@ -1,12 +1,13 @@
-'use client';
-import ErrorPage from "@/components/error-page";
-import { confirmAlertMessage, useRouter, useRouterConfirm } from "@/components/router";
+"use client";
+
+import { usePathname } from "next/navigation";
 import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
 import EmailEditor from "@stackframe/stack-emails/dist/editor/editor";
 import { EMAIL_TEMPLATES_METADATA, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { useToast } from "@stackframe/stack-ui";
-import { usePathname } from "next/navigation";
+import ErrorPage from "@/components/error-page";
+import { confirmAlertMessage, useRouter, useRouterConfirm } from "@/components/router";
 import { useAdminApp } from "../../../use-admin-app";
 
 export default function PageClient(props: { templateType: EmailTemplateType }) {
@@ -26,12 +27,14 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   }
 
   if (!validateEmailTemplateContent(template.content)) {
-    return <ErrorPage
-      title="Invalid Template"
-      description="The email template content is invalid"
-      redirectUrl={`/projects/${app.projectId}`}
-      redirectText="Go to dashboard"
-    />;
+    return (
+      <ErrorPage
+        title="Invalid Template"
+        description="The email template content is invalid"
+        redirectUrl={`/projects/${app.projectId}`}
+        redirectText="Go to dashboard"
+      />
+    );
   }
 
   const onSave = async (document: TEditorConfiguration, subject: string) => {

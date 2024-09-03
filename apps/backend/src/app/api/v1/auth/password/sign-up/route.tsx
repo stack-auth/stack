@@ -1,12 +1,17 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { yupObject, yupString, yupNumber } from "@stackframe/stack-shared/dist/schema-fields";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { createAuthTokens } from "@/lib/tokens";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrudHandlers } from "../../../users/crud";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import {
+  adaptSchema,
+  clientOrHigherAuthTypeSchema,
+  emailVerificationCallbackUrlSchema,
+  signInEmailSchema,
+} from "@stackframe/stack-shared/dist/schema-fields";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { createAuthTokens } from "@/lib/tokens";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
+import { usersCrudHandlers } from "../../../users/crud";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -61,18 +66,21 @@ export const POST = createSmartRouteHandler({
     });
 
     try {
-      await contactChannelVerificationCodeHandler.sendCode({
-        project,
-        data: {
-          user_id: createdUser.id,
+      await contactChannelVerificationCodeHandler.sendCode(
+        {
+          project,
+          data: {
+            user_id: createdUser.id,
+          },
+          method: {
+            email,
+          },
+          callbackUrl: verificationCallbackUrl,
         },
-        method: {
-          email,
+        {
+          user: createdUser,
         },
-        callbackUrl: verificationCallbackUrl,
-      }, {
-        user: createdUser,
-      });
+      );
     } catch (error) {
       captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
     }

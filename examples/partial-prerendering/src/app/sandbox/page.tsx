@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ServerStatic } from "./server-static";
-import { ServerDynamic } from "./server-dynamic";
-import { SimpleSuspense } from "./simple-suspense";
-import { ClientStatic } from "./client-static";
 import { ClientDynamic } from "./client-dynamic";
+import { ClientStatic } from "./client-static";
+import { ServerDynamic } from "./server-dynamic";
+import { ServerStatic } from "./server-static";
+import { SimpleSuspense } from "./simple-suspense";
 
 export default function SandboxPage() {
   return (

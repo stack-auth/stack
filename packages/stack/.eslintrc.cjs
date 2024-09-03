@@ -5,5 +5,5 @@ module.exports = {
   parserOptions: {
     projectService: true,
   },
-  ignorePatterns: ["/*", "!/src"]
+  ignorePatterns: ["/*", "!/src"],
 };

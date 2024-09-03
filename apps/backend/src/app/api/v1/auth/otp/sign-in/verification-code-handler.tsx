@@ -1,10 +1,10 @@
+import { VerificationCodeType } from "@prisma/client";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { createAuthTokens } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
-import { VerificationCodeType } from "@prisma/client";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
@@ -18,7 +18,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       summary: "Check sign in code",
       description: "Check if a sign in code is valid without using it",
       tags: ["OTP"],
-    }
+    },
   },
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({

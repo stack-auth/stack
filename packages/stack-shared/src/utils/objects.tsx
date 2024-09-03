@@ -14,7 +14,7 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUnde
   if (obj1 === obj2) return true;
 
   switch (typeof obj1) {
-    case 'object': {
+    case "object": {
       if (!obj1 || !obj2) return false;
 
       if (Array.isArray(obj1) || Array.isArray(obj2)) {
@@ -32,13 +32,13 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUnde
         return deepPlainEquals(v1, e2[1], options);
       });
     }
-    case 'undefined':
-    case 'string':
-    case 'number':
-    case 'boolean':
-    case 'bigint':
-    case 'symbol':
-    case 'function':{
+    case "undefined":
+    case "string":
+    case "number":
+    case "boolean":
+    case "bigint":
+    case "symbol":
+    case "function": {
       return false;
     }
     default: {
@@ -48,24 +48,24 @@ export function deepPlainEquals<T>(obj1: T, obj2: unknown, options: { ignoreUnde
 }
 
 export function deepPlainClone<T>(obj: T): T {
-  if (typeof obj === 'function') throw new StackAssertionError("deepPlainClone does not support functions");
-  if (typeof obj === 'symbol') throw new StackAssertionError("deepPlainClone does not support symbols");
-  if (typeof obj !== 'object' || !obj) return obj;
+  if (typeof obj === "function") throw new StackAssertionError("deepPlainClone does not support functions");
+  if (typeof obj === "symbol") throw new StackAssertionError("deepPlainClone does not support symbols");
+  if (typeof obj !== "object" || !obj) return obj;
   if (Array.isArray(obj)) return obj.map(deepPlainClone) as any;
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, deepPlainClone(v)])) as any;
 }
 
 export function deepPlainSnakeCaseToCamelCase(snakeCaseObj: any): any {
-  if (typeof snakeCaseObj === 'function') throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
-  if (typeof snakeCaseObj !== 'object' || !snakeCaseObj) return snakeCaseObj;
-  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(o => deepPlainSnakeCaseToCamelCase(o));
+  if (typeof snakeCaseObj === "function") throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
+  if (typeof snakeCaseObj !== "object" || !snakeCaseObj) return snakeCaseObj;
+  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map((o) => deepPlainSnakeCaseToCamelCase(o));
   return Object.fromEntries(Object.entries(snakeCaseObj).map(([k, v]) => [snakeCaseToCamelCase(k), deepPlainSnakeCaseToCamelCase(v)]));
 }
 
 export function deepPlainCamelCaseToSnakeCase(camelCaseObj: any): any {
-  if (typeof camelCaseObj === 'function') throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
-  if (typeof camelCaseObj !== 'object' || !camelCaseObj) return camelCaseObj;
-  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(o => deepPlainCamelCaseToSnakeCase(o));
+  if (typeof camelCaseObj === "function") throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
+  if (typeof camelCaseObj !== "object" || !camelCaseObj) return camelCaseObj;
+  if (Array.isArray(camelCaseObj)) return camelCaseObj.map((o) => deepPlainCamelCaseToSnakeCase(o));
   return Object.fromEntries(Object.entries(camelCaseObj).map(([k, v]) => [camelCaseToSnakeCase(k), deepPlainCamelCaseToSnakeCase(v)]));
 }
 
@@ -89,9 +89,9 @@ export function typedAssign<T extends {}, U extends {}>(target: T, source: U): T
   return Object.assign(target, source);
 }
 
-export type FilterUndefined<T> =
-  & { [k in keyof T as (undefined extends T[k] ? (T[k] extends undefined | void ? never : k) : never)]+?: T[k] & ({} | null) }
-  & { [k in keyof T as (undefined extends T[k] ? never : k)]: T[k] & ({} | null) }
+export type FilterUndefined<T> = {
+  [k in keyof T as undefined extends T[k] ? (T[k] extends undefined | void ? never : k) : never]+?: T[k] & ({} | null);
+} & { [k in keyof T as undefined extends T[k] ? never : k]: T[k] & ({} | null) };
 
 /**
  * Returns a new object with all undefined values removed. Useful when spreading optional parameters on an object, as

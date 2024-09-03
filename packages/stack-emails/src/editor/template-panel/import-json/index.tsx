@@ -1,7 +1,7 @@
-import { Button } from '@stackframe/stack-ui';
-import { Upload } from 'lucide-react';
-import { useState } from 'react';
-import ImportJsonDialog from './import-json-dialog';
+import { Upload } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@stackframe/stack-ui";
+import ImportJsonDialog from "./import-json-dialog";
 
 export default function ImportJson() {
   const [open, setOpen] = useState(false);
@@ -13,8 +13,8 @@ export default function ImportJson() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} variant='secondary' className='gap-2'>
-        <Upload className='w-4 h-4' />
+      <Button onClick={() => setOpen(true)} variant="secondary" className="gap-2">
+        <Upload className="h-4 w-4" />
         Import JSON
       </Button>
       {dialog}

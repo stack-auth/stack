@@ -1,7 +1,6 @@
-import React from 'react';
-
-import { BaseZodDictionary, BlockConfiguration, DocumentBlocksDictionary } from '..';
-import { TEditorConfiguration } from '../../documents/editor/core';
+import React from "react";
+import { BaseZodDictionary, BlockConfiguration, DocumentBlocksDictionary } from "..";
+import { TEditorConfiguration } from "../../documents/editor/core";
 
 /**
  * @param blocks Main DocumentBlocksDictionary

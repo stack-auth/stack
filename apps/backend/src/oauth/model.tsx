@@ -1,15 +1,15 @@
-import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
 import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken, generateAccessToken } from "@/lib/tokens";
-import { validateRedirectUrl } from "@/lib/redirect-urls";
-import { checkApiKeySet } from "@/lib/api-keys";
-import { getProject } from "@/lib/projects";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createMfaRequiredError } from "@/app/api/v1/auth/mfa/sign-in/verification-code-handler";
+import { checkApiKeySet } from "@/lib/api-keys";
+import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
+import { getProject } from "@/lib/projects";
+import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { decodeAccessToken, generateAccessToken } from "@/lib/tokens";
+import { prismaClient } from "@/prisma-client";
 
 const enabledScopes = ["legacy"];
 
@@ -24,7 +24,7 @@ function assertScopeIsValid(scope: string[]) {
 function checkScope(scope: string | string[] | undefined) {
   if (typeof scope === "string") {
     return enabledScopes.includes(scope);
-  } else if (Array.isArray(scope)){
+  } else if (Array.isArray(scope)) {
     return scope.every((s) => enabledScopes.includes(s));
   } else {
     return false;
@@ -45,9 +45,7 @@ export class OAuthModel implements AuthorizationCodeModel {
       return false;
     }
 
-    const redirectUris = project.config.domains.map(
-      ({ domain, handler_path }) => new URL(handler_path, domain).toString()
-    );
+    const redirectUris = project.config.domains.map(({ domain, handler_path }) => new URL(handler_path, domain).toString());
 
     if (redirectUris.length === 0 && project.config.allow_localhost) {
       redirectUris.push("http://localhost");
@@ -204,9 +202,9 @@ export class OAuthModel implements AuthorizationCodeModel {
   }
 
   async saveAuthorizationCode(
-    code: Pick<AuthorizationCode, 'authorizationCode' | 'expiresAt' | 'redirectUri' | 'scope' | 'codeChallenge' | 'codeChallengeMethod'>,
+    code: Pick<AuthorizationCode, "authorizationCode" | "expiresAt" | "redirectUri" | "scope" | "codeChallenge" | "codeChallengeMethod">,
     client: Client,
-    user: User
+    user: User,
   ): Promise<AuthorizationCode | Falsey> {
     if (!code.scope) {
       throw new KnownErrors.InvalidScope("<empty string>");
@@ -272,7 +270,7 @@ export class OAuthModel implements AuthorizationCodeModel {
       const deletedCode = await prismaClient.projectUserAuthorizationCode.delete({
         where: {
           authorizationCode: code.authorizationCode,
-        }
+        },
       });
 
       return !!deletedCode;
@@ -292,10 +290,6 @@ export class OAuthModel implements AuthorizationCodeModel {
       throw new StackAssertionError("Project not found");
     }
 
-    return validateRedirectUrl(
-      redirect_uri,
-      project.config.domains,
-      project.config.allow_localhost,
-    );
+    return validateRedirectUrl(redirect_uri, project.config.domains, project.config.allow_localhost);
   }
 }

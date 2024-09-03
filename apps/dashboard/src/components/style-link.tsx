@@ -3,7 +3,7 @@
 import { useIsHydrated } from "@/hooks/use-is-hydrated";
 
 type StyleLinkProps = Omit<React.ComponentProps<"link">, "rel" | "as" | "defer"> & {
-  defer?: boolean,
+  defer?: boolean;
 };
 
 export function StyleLink(props: StyleLinkProps) {
@@ -13,19 +13,13 @@ export function StyleLink(props: StyleLinkProps) {
   if (defer) {
     return (
       <>
-        {isHydrated ? (
-          <link rel="stylesheet" fetchPriority="low" {...linkProps} />
-        ) : (
-          <meta />
-        )}
+        {isHydrated ? <link rel="stylesheet" fetchPriority="low" {...linkProps} /> : <meta />}
         <noscript>
           <link rel="stylesheet" fetchPriority="low" {...linkProps} />
         </noscript>
       </>
     );
   } else {
-    return (
-      <link rel="stylesheet" {...linkProps} />
-    );
+    return <link rel="stylesheet" {...linkProps} />;
   }
 }

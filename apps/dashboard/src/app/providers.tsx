@@ -1,10 +1,11 @@
-'use client';
-import { useStackApp, useUser } from '@stackframe/stack';
-import posthog from 'posthog-js';
-import { PostHogProvider } from 'posthog-js/react';
-import { Suspense, useEffect, useState } from 'react';
+"use client";
 
-if (typeof window !== 'undefined') {
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
+import { Suspense, useEffect, useState } from "react";
+import { useStackApp, useUser } from "@stackframe/stack";
+
+if (typeof window !== "undefined") {
   const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k";
   if (postHogKey.length > 5) {
     posthog.init(postHogKey, {
@@ -20,7 +21,11 @@ export function CSPostHogProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function UserIdentity() {
-  return <Suspense fallback={null}><UserIdentityInner /></Suspense>;
+  return (
+    <Suspense fallback={null}>
+      <UserIdentityInner />
+    </Suspense>
+  );
 }
 
 function UserIdentityInner() {

@@ -1,5 +1,5 @@
-import { stackServerApp } from "@/stack";
 import { redirect } from "next/navigation";
+import { stackServerApp } from "@/stack";
 import Footer from "./footer";
 import PageClient from "./page-client";
 

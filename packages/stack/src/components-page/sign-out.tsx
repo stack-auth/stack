@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 import React from "react";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { CurrentUser, useUser } from "..";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 
 const cacheSignOut = cacheFunction(async (user: CurrentUser) => {
   return await user.signOut();
@@ -16,5 +16,5 @@ export function SignOut(props: { fullPage?: boolean }) {
     React.use(cacheSignOut(user));
   }
 
-  return <PredefinedMessageCard type='signedOut' fullPage={props.fullPage} />;
+  return <PredefinedMessageCard type="signedOut" fullPage={props.fullPage} />;
 }

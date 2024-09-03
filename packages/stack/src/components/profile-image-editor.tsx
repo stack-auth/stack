@@ -1,24 +1,24 @@
-import { fileToBase64 } from '@stackframe/stack-shared/dist/utils/base64';
-import { Button, Slider, Typography } from '@stackframe/stack-ui';
-import imageCompression from 'browser-image-compression';
-import { Upload } from 'lucide-react';
-import { ComponentProps, useRef, useState } from 'react';
-import AvatarEditor from 'react-avatar-editor';
-import { UserAvatar } from './elements/user-avatar';
+import imageCompression from "browser-image-compression";
+import { Upload } from "lucide-react";
+import { ComponentProps, useRef, useState } from "react";
+import AvatarEditor from "react-avatar-editor";
+import { fileToBase64 } from "@stackframe/stack-shared/dist/utils/base64";
+import { Button, Slider, Typography } from "@stackframe/stack-ui";
+import { UserAvatar } from "./elements/user-avatar";
 
-export async function checkImageUrl(url: string){
+export async function checkImageUrl(url: string) {
   try {
-    const res = await fetch(url, { method: 'HEAD' });
+    const res = await fetch(url, { method: "HEAD" });
     const buff = await res.blob();
-    return buff.type.startsWith('image/');
+    return buff.type.startsWith("image/");
   } catch {
     return false;
   }
 }
 
 export function ProfileImageEditor(props: {
-  user: NonNullable<ComponentProps<typeof UserAvatar>['user']>,
-  onProfileImageUrlChange: (profileImageUrl: string | null) => void | Promise<void>,
+  user: NonNullable<ComponentProps<typeof UserAvatar>["user"]>;
+  onProfileImageUrlChange: (profileImageUrl: string | null) => void | Promise<void>;
 }) {
   const cropRef = useRef<AvatarEditor>(null);
   const [slideValue, setSlideValue] = useState(1);
@@ -32,8 +32,8 @@ export function ProfileImageEditor(props: {
   }
 
   function upload() {
-    const input = document.createElement('input');
-    input.type = 'file';
+    const input = document.createElement("input");
+    input.type = "file";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
@@ -43,7 +43,7 @@ export function ProfileImageEditor(props: {
             setRawUrl(rawUrl);
             setError(null);
           } else {
-            setError('Invalid image');
+            setError("Invalid image");
           }
         })
         .then(() => input.remove())
@@ -53,25 +53,30 @@ export function ProfileImageEditor(props: {
   }
 
   if (!rawUrl) {
-    return <div className='flex flex-col'>
-      <div className='cursor-pointer relative' onClick={upload}>
-        <UserAvatar
-          size={100}
-          user={props.user}
-          border
-        />
-        <div className='absolute top-0 left-0 h-[100px] w-[100px] bg-gray-500/20 backdrop-blur-sm items-center justify-center rounded-full flex opacity-0 hover:opacity-100 transition-opacity'>
-          <div className='bg-background p-2 rounded-full'>
-            <Upload className='h-5 w-5' />
+    return (
+      <div className="flex flex-col">
+        <div className="relative cursor-pointer" onClick={upload}>
+          <UserAvatar size={100} user={props.user} border />
+          <div
+            className="absolute left-0 top-0 flex h-[100px] w-[100px] items-center justify-center rounded-full bg-gray-500/20 opacity-0
+              backdrop-blur-sm transition-opacity hover:opacity-100"
+          >
+            <div className="rounded-full bg-background p-2">
+              <Upload className="h-5 w-5" />
+            </div>
           </div>
         </div>
+        {error && (
+          <Typography variant="destructive" type="label">
+            {error}
+          </Typography>
+        )}
       </div>
-      {error && <Typography variant='destructive' type='label'>{error}</Typography>}
-    </div>;
+    );
   }
 
   return (
-    <div className='flex flex-col items-center gap-4'>
+    <div className="flex flex-col items-center gap-4">
       <AvatarEditor
         ref={cropRef}
         image={rawUrl || props.user.profileImageUrl || ""}
@@ -80,29 +85,19 @@ export function ProfileImageEditor(props: {
         scale={slideValue}
         rotate={0}
         border={20}
-        className='border'
+        className="border"
       />
-      <Slider
-        min={1}
-        max={5}
-        step={0.1}
-        defaultValue={[slideValue]}
-        value={[slideValue]}
-        onValueChange={(v) => setSlideValue(v[0])}
-      />
+      <Slider min={1} max={5} step={0.1} defaultValue={[slideValue]} value={[slideValue]} onValueChange={(v) => setSlideValue(v[0])} />
 
-      <div className='flex flex-row gap-2'>
+      <div className="flex flex-row gap-2">
         <Button
           onClick={async () => {
             if (cropRef.current && rawUrl) {
-              const croppedUrl = cropRef.current.getImage().toDataURL('image/jpeg');
-              const compressedFile = await imageCompression(
-                await imageCompression.getFilefromDataUrl(croppedUrl, 'profile-image'),
-                {
-                  maxSizeMB: 0.1,
-                  fileType: "image/jpeg",
-                }
-              );
+              const croppedUrl = cropRef.current.getImage().toDataURL("image/jpeg");
+              const compressedFile = await imageCompression(await imageCompression.getFilefromDataUrl(croppedUrl, "profile-image"), {
+                maxSizeMB: 0.1,
+                fileType: "image/jpeg",
+              });
               const compressedUrl = await imageCompression.getDataUrlFromFile(compressedFile);
               await props.onProfileImageUrlChange(compressedUrl);
               reset();
@@ -111,10 +106,7 @@ export function ProfileImageEditor(props: {
         >
           Save
         </Button>
-        <Button
-          variant="secondary"
-          onClick={reset}
-        >
+        <Button variant="secondary" onClick={reset}>
           Cancel
         </Button>
       </div>

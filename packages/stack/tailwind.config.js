@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["selector", '[data-stack-theme="dark"]'],
-  content: [
-    "./src/**/*.{ts,tsx}",
-    "./node_modules/@stackframe/stack-ui/src/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{ts,tsx}", "./node_modules/@stackframe/stack-ui/src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {

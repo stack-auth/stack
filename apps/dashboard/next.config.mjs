@@ -1,12 +1,10 @@
+import createBundleAnalyzer from "@next/bundle-analyzer";
+import createMDX from "@next/mdx";
 import { withSentryConfig } from "@sentry/nextjs";
 import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import remarkHeadingId from "remark-heading-id";
-
-import createMDX from "@next/mdx";
-
-import createBundleAnalyzer from "@next/bundle-analyzer";
+import remarkMath from "remark-math";
 
 const withMDX = createMDX({
   options: {
@@ -58,7 +56,7 @@ const withConfiguredSentryConfig = (nextConfig) =>
       // https://docs.sentry.io/product/crons/
       // https://vercel.com/docs/cron-jobs
       automaticVercelMonitors: true,
-    }
+    },
   );
 
 /** @type {import('next').NextConfig} */
@@ -123,6 +121,4 @@ const nextConfig = {
   },
 };
 
-export default withConfiguredSentryConfig(
-  withBundleAnalyzer(withMDX(nextConfig))
-);
+export default withConfiguredSentryConfig(withBundleAnalyzer(withMDX(nextConfig)));

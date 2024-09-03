@@ -6,10 +6,10 @@ import { MessageCard } from "./message-card";
 
 export function PredefinedMessageCard({
   type,
-  fullPage=false,
+  fullPage = false,
 }: {
-  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError' | 'signUpDisabled',
-  fullPage?: boolean,
+  type: "signedIn" | "signedOut" | "emailSent" | "passwordReset" | "emailVerified" | "unknownError" | "signUpDisabled";
+  fullPage?: boolean;
 }) {
   const stackApp = useStackApp();
 
@@ -21,7 +21,7 @@ export function PredefinedMessageCard({
   let secondaryAction: (() => Promise<void> | void) | null = null;
 
   switch (type) {
-    case 'signedIn': {
+    case "signedIn": {
       title = "You are already signed in";
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignOut();
@@ -29,13 +29,13 @@ export function PredefinedMessageCard({
       secondaryButton = "Sign out";
       break;
     }
-    case 'signedOut': {
+    case "signedOut": {
       title = "You are not currently signed in.";
       primaryAction = () => stackApp.redirectToSignIn();
       primaryButton = "Sign in";
       break;
     }
-    case 'signUpDisabled': {
+    case "signUpDisabled": {
       title = "Sign up for new users is not enabled at the moment.";
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignIn();
@@ -43,30 +43,30 @@ export function PredefinedMessageCard({
       secondaryButton = "Sign in";
       break;
     }
-    case 'emailSent': {
+    case "emailSent": {
       title = "Email sent!";
-      message = 'If the user with this e-mail address exists, an e-mail was sent to your inbox. Make sure to check your spam folder.';
+      message = "If the user with this e-mail address exists, an e-mail was sent to your inbox. Make sure to check your spam folder.";
       primaryAction = () => stackApp.redirectToHome();
       primaryButton = "Go to home";
       break;
     }
-    case 'passwordReset': {
+    case "passwordReset": {
       title = "Password reset successfully!";
-      message = 'Your password has been reset. You can now sign in with your new password.';
+      message = "Your password has been reset. You can now sign in with your new password.";
       primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
       primaryButton = "Sign in";
       break;
     }
-    case 'emailVerified': {
+    case "emailVerified": {
       title = "Email verified!";
-      message = 'Your have successfully verified your email.';
+      message = "Your have successfully verified your email.";
       primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
       primaryButton = "Sign in";
       break;
     }
-    case 'unknownError': {
+    case "unknownError": {
       title = "An unknown error occurred";
-      message = 'Please try again and if the problem persists, contact support.';
+      message = "Please try again and if the problem persists, contact support.";
       primaryAction = () => stackApp.redirectToHome();
       primaryButton = "Go to home";
       break;

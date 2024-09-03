@@ -1,11 +1,19 @@
+import { KnownErrors } from "@stackframe/stack-shared";
+import {
+  adaptSchema,
+  clientOrHigherAuthTypeSchema,
+  emailOtpSignInCallbackUrlSchema,
+  signInEmailSchema,
+  yupNumber,
+  yupObject,
+  yupString,
+} from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -40,7 +48,9 @@ export const POST = createSmartRouteHandler({
       },
     });
     if (usersPrisma.length > 1) {
-      throw new StackAssertionError(`Multiple users found in the database with the same primary email ${email}, and all with e-mail sign-in allowed. This should never happen (only non-email/OAuth accounts are allowed to share the same primaryEmail).`);
+      throw new StackAssertionError(
+        `Multiple users found in the database with the same primary email ${email}, and all with e-mail sign-in allowed. This should never happen (only non-email/OAuth accounts are allowed to share the same primaryEmail).`,
+      );
     }
 
     const userPrisma = usersPrisma.length > 0 ? usersPrisma[0] : null;

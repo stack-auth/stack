@@ -1,4 +1,3 @@
-
 export function typedIncludes<T extends readonly any[]>(arr: T, item: unknown): item is T[number] {
   return arr.includes(item);
 }
@@ -25,11 +24,8 @@ export function findLastIndex<T>(arr: readonly T[], predicate: (item: T) => bool
   return -1;
 }
 
-export function groupBy<T, K>(
-  arr: Iterable<T>,
-  key: (item: T) => K,
-): Map<K, T[]> {
-  const result = new Map<K, T[]>;
+export function groupBy<T, K>(arr: Iterable<T>, key: (item: T) => K): Map<K, T[]> {
+  const result = new Map<K, T[]>();
   for (const item of arr) {
     const k = key(item);
     if (result.get(k) === undefined) result.set(k, []);
@@ -37,7 +33,6 @@ export function groupBy<T, K>(
   }
   return result;
 }
-
 
 export function range(endExclusive: number): number[];
 export function range(startInclusive: number, endExclusive: number): number[];
@@ -50,12 +45,11 @@ export function range(startInclusive: number, endExclusive?: number, step?: numb
   if (step === undefined) step = 1;
 
   const result = [];
-  for (let i = startInclusive; step > 0 ? (i < endExclusive) : (i > endExclusive); i += step) {
+  for (let i = startInclusive; step > 0 ? i < endExclusive : i > endExclusive; i += step) {
     result.push(i);
   }
   return result;
 }
-
 
 export function rotateLeft(arr: readonly any[], n: number): any[] {
   return [...arr.slice(n), arr.slice(0, n)];
@@ -65,7 +59,6 @@ export function rotateRight(arr: readonly any[], n: number): any[] {
   return rotateLeft(arr, -n);
 }
 
-
 export function shuffle<T>(arr: readonly T[]): T[] {
   const result = [...arr];
   for (let i = result.length - 1; i > 0; i--) {
@@ -74,7 +67,6 @@ export function shuffle<T>(arr: readonly T[]): T[] {
   }
   return result;
 }
-
 
 export function outerProduct<T, U>(arr1: readonly T[], arr2: readonly U[]): [T, U][] {
   return arr1.flatMap((item1) => arr2.map((item2) => [item1, item2] as [T, U]));

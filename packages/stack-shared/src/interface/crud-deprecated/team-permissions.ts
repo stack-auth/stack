@@ -10,8 +10,7 @@ export const teamPermissionsCrudClientReadSchema = yupObject({
   team_id: schemaFields.teamIdSchema.required(),
 }).required();
 
-export const teamPermissionsCrudServerCreateSchema = yupObject({
-}).required();
+export const teamPermissionsCrudServerCreateSchema = yupObject({}).required();
 
 export const teamPermissionsCrudServerDeleteSchema = yupMixed();
 
@@ -49,19 +48,19 @@ export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 export const teamPermissionDefinitionsCrudServerReadSchema = yupObject({
   id: schemaFields.teamPermissionDefinitionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required(),
 }).required();
 
 export const teamPermissionDefinitionsCrudServerCreateSchema = yupObject({
   id: schemaFields.customTeamPermissionDefinitionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional(),
 }).required();
 
 export const teamPermissionDefinitionsCrudServerUpdateSchema = yupObject({
   id: schemaFields.customTeamPermissionDefinitionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional(),
 }).required();
 
 export const teamPermissionDefinitionsCrudServerDeleteSchema = yupMixed();
@@ -74,7 +73,8 @@ export const teamPermissionDefinitionsCrud = createCrud({
   docs: {
     serverList: {
       summary: "List team permission definitions",
-      description: "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
+      description:
+        "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
       tags: ["Permissions"],
     },
     serverCreate: {

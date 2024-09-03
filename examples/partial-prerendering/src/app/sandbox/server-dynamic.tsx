@@ -6,9 +6,5 @@ export async function ServerDynamic(props: React.PropsWithChildren<{ ms?: number
 
   await new Promise((resolve) => setTimeout(resolve, props.ms ?? 3_000));
 
-  return (
-    <span>
-      {props.children ?? "ServerDynamic"}
-    </span>
-  );
+  return <span>{props.children ?? "ServerDynamic"}</span>;
 }

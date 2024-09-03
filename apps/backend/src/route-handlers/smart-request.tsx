@@ -1,48 +1,53 @@
-import "../polyfills";
-
 import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import * as yup from "yup";
-import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
-import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import "../polyfills";
 import { CrudHandlerInvocationError } from "./crud-handler";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type SmartRequestAuth = {
-  project: ProjectsCrud["Admin"]["Read"],
-  user?: UsersCrud["Admin"]["Read"] | undefined,
-  type: "client" | "server" | "admin",
+  project: ProjectsCrud["Admin"]["Read"];
+  user?: UsersCrud["Admin"]["Read"] | undefined;
+  type: "client" | "server" | "admin";
 };
 
-export type DeepPartialSmartRequestWithSentinel<T = SmartRequest> = (T extends object ? {
-  [P in keyof T]?: DeepPartialSmartRequestWithSentinel<T[P]>
-} : T) | StackAdaptSentinel;
+export type DeepPartialSmartRequestWithSentinel<T = SmartRequest> =
+  | (T extends object
+      ? {
+          [P in keyof T]?: DeepPartialSmartRequestWithSentinel<T[P]>;
+        }
+      : T)
+  | StackAdaptSentinel;
 
 export type SmartRequest = {
-  auth: SmartRequestAuth | null,
-  url: string,
-  method: typeof allowedMethods[number],
-  body: unknown,
-  headers: Record<string, string[] | undefined>,
-  query: Record<string, string | undefined>,
-  params: Record<string, string | undefined>,
+  auth: SmartRequestAuth | null;
+  url: string;
+  method: (typeof allowedMethods)[number];
+  body: unknown;
+  headers: Record<string, string[] | undefined>;
+  query: Record<string, string | undefined>;
+  params: Record<string, string | undefined>;
 };
 
-export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  StackAdaptSentinel extends T ? NonNullable<MSQ> | (MSQ & Exclude<T, StackAdaptSentinel>) : (
-    T extends object ? (MSQ extends object ? { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> } : (T & MSQ))
-    : (T & MSQ)
-  );
+export type MergeSmartRequest<T, MSQ = SmartRequest> = StackAdaptSentinel extends T
+  ? NonNullable<MSQ> | (MSQ & Exclude<T, StackAdaptSentinel>)
+  : T extends object
+    ? MSQ extends object
+      ? { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> }
+      : T & MSQ
+    : T & MSQ;
 
 async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
   try {
@@ -96,7 +101,9 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
           }
           if (inner.path === "auth.type" && inner.type === "oneOf") {
             // Project access type not sufficient
-            const authTypeField = ((description as yup.SchemaObjectDescription).fields["auth"] as yup.SchemaObjectDescription).fields["type"] as yup.SchemaDescription;
+            const authTypeField = ((description as yup.SchemaObjectDescription).fields["auth"] as yup.SchemaObjectDescription).fields[
+              "type"
+            ] as yup.SchemaDescription;
             throw new KnownErrors.InsufficientAccessType(inner.value, authTypeField.oneOf as any[]);
           }
         }
@@ -104,9 +111,13 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
         throw new KnownErrors.SchemaError(
           deindent`
             Request validation failed on ${req.method} ${req.nextUrl.pathname}:
-              ${inners.map(e => deindent`
+              ${inners
+                .map(
+                  (e) => deindent`
                 - ${e.message}
-              `).join("\n")}
+              `,
+                )
+                .join("\n")}
           `,
         );
       }
@@ -114,7 +125,6 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
     throw error;
   }
 }
-
 
 async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<SmartRequest["body"]> {
   const contentType = req.headers.get("content-type")?.split(";")[0];
@@ -222,14 +232,19 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         break;
       }
       default: {
-        throw new StackAssertionError(`Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`);
+        throw new StackAssertionError(
+          `Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`,
+        );
       }
     }
   }
 
   const project = await getProject(projectId);
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+    throw new StackAssertionError(
+      "Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted",
+      { projectId },
+    );
   }
 
   let user = null;
@@ -260,15 +275,18 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   };
 }
 
-export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
+export async function createSmartRequest(
+  req: NextRequest,
+  bodyBuffer: ArrayBuffer,
+  options?: { params: Record<string, string> },
+): Promise<SmartRequest> {
   const urlObject = new URL(req.url);
   return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
     body: await parseBody(req, bodyBuffer),
     headers: Object.fromEntries(
-      [...groupBy(req.headers.entries(), ([key]) => key.toLowerCase())]
-        .map(([key, values]) => [key, values.map(([, value]) => value)]),
+      [...groupBy(req.headers.entries(), ([key]) => key.toLowerCase())].map(([key, values]) => [key, values.map(([, value]) => value)]),
     ),
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
@@ -276,6 +294,10 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
   } satisfies SmartRequest;
 }
 
-export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(nextReq: NextRequest | null, smartReq: SmartRequest, schema: yup.Schema<T>): Promise<T> {
+export async function validateSmartRequest<T extends DeepPartialSmartRequestWithSentinel>(
+  nextReq: NextRequest | null,
+  smartReq: SmartRequest,
+  schema: yup.Schema<T>,
+): Promise<T> {
   return await validate(smartReq, schema, nextReq);
 }

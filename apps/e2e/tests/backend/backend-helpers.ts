@@ -1,19 +1,33 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+import { expect } from "vitest";
 import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import {
+  Context,
+  Mailbox,
+  NiceRequestInit,
+  NiceResponse,
+  STACK_BACKEND_BASE_URL,
+  STACK_INTERNAL_PROJECT_ADMIN_KEY,
+  STACK_INTERNAL_PROJECT_CLIENT_KEY,
+  STACK_INTERNAL_PROJECT_ID,
+  STACK_INTERNAL_PROJECT_SERVER_KEY,
+  createMailbox,
+  localRedirectUrl,
+  niceFetch,
+  updateCookiesFromResponse,
+} from "../helpers";
 
 type BackendContext = {
-  readonly projectKeys: ProjectKeys,
-  readonly mailbox: Mailbox,
+  readonly projectKeys: ProjectKeys;
+  readonly mailbox: Mailbox;
   readonly userAuth: {
-    readonly refreshToken?: string,
-    readonly accessToken?: string,
-  } | null,
+    readonly refreshToken?: string;
+    readonly accessToken?: string;
+  } | null;
 };
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
@@ -28,13 +42,15 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
   }),
 );
 
-export type ProjectKeys = "no-project" | {
-  projectId: string,
-  publishableClientKey?: string,
-  secretServerKey?: string,
-  superSecretAdminKey?: string,
-  adminAccessToken?: string,
-};
+export type ProjectKeys =
+  | "no-project"
+  | {
+      projectId: string;
+      publishableClientKey?: string;
+      secretServerKey?: string;
+      superSecretAdminKey?: string;
+      adminAccessToken?: string;
+    };
 
 export const InternalProjectKeys = {
   projectId: STACK_INTERNAL_PROJECT_ID,
@@ -65,32 +81,39 @@ function expectSnakeCase(obj: unknown, path: string): void {
   }
 }
 
-export async function niceBackendFetch(url: string | URL, options?: Omit<NiceRequestInit, "body" | "headers"> & {
-  accessType?: null | "client" | "server" | "admin",
-  body?: unknown,
-  headers?: Record<string, string | undefined>,
-}): Promise<NiceResponse> {
+export async function niceBackendFetch(
+  url: string | URL,
+  options?: Omit<NiceRequestInit, "body" | "headers"> & {
+    accessType?: null | "client" | "server" | "admin";
+    body?: unknown;
+    headers?: Record<string, string | undefined>;
+  },
+): Promise<NiceResponse> {
   const { body, headers, accessType, ...otherOptions } = options ?? {};
   if (typeof body === "object") {
     expectSnakeCase(body, "req.body");
   }
   const { projectKeys, userAuth } = backendContext.value;
   const fullUrl = new URL(url, STACK_BACKEND_BASE_URL);
-  if (fullUrl.origin !== new URL(STACK_BACKEND_BASE_URL).origin) throw new StackAssertionError(`Invalid niceBackendFetch origin: ${fullUrl.origin}`);
-  if (fullUrl.protocol !== new URL(STACK_BACKEND_BASE_URL).protocol) throw new StackAssertionError(`Invalid niceBackendFetch protocol: ${fullUrl.protocol}`);
+  if (fullUrl.origin !== new URL(STACK_BACKEND_BASE_URL).origin)
+    throw new StackAssertionError(`Invalid niceBackendFetch origin: ${fullUrl.origin}`);
+  if (fullUrl.protocol !== new URL(STACK_BACKEND_BASE_URL).protocol)
+    throw new StackAssertionError(`Invalid niceBackendFetch protocol: ${fullUrl.protocol}`);
   const res = await niceFetch(fullUrl, {
     ...otherOptions,
-    ...body !== undefined ? { body: JSON.stringify(body) } : {},
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     headers: filterUndefined({
       "content-type": body !== undefined ? "application/json" : undefined,
       "x-stack-access-type": accessType ?? undefined,
-      ...projectKeys !== "no-project" && accessType ? {
-        "x-stack-project-id": projectKeys.projectId,
-        "x-stack-publishable-client-key": projectKeys.publishableClientKey,
-        "x-stack-secret-server-key": projectKeys.secretServerKey,
-        "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
-        'x-stack-admin-access-token': projectKeys.adminAccessToken,
-      } : {},
+      ...(projectKeys !== "no-project" && accessType
+        ? {
+            "x-stack-project-id": projectKeys.projectId,
+            "x-stack-publishable-client-key": projectKeys.publishableClientKey,
+            "x-stack-secret-server-key": projectKeys.secretServerKey,
+            "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
+            "x-stack-admin-access-token": projectKeys.adminAccessToken,
+          }
+        : {}),
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
       "x-stack-disable-artificial-development-delay": "yes",
@@ -112,7 +135,6 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
   }
   return res;
 }
-
 
 export namespace Auth {
   /**
@@ -244,7 +266,7 @@ export namespace Auth {
       `);
       const messages = await mailbox.fetchMessages({ noBody: true });
       const subjects = messages.map((message) => message.subject);
-      const containsSubstring = subjects.some(str => str.includes("Sign in to"));
+      const containsSubstring = subjects.some((str) => str.includes("Sign in to"));
       expect(containsSubstring).toBe(true);
       return {
         sendSignInCodeResponse: response,
@@ -256,7 +278,9 @@ export namespace Auth {
       const sendSignInCodeRes = await sendSignInCode();
       const messages = await mailbox.fetchMessages();
       const message = messages.findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
-      const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
+      const signInCode =
+        message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ??
+        throwErr("Sign-in URL not found");
       const response = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
         method: "POST",
         accessType: "client",
@@ -382,11 +406,11 @@ export namespace Auth {
       };
     }
 
-    export async function authorize(options?: { redirectUrl?: string, errorRedirectUrl?: string }) {
+    export async function authorize(options?: { redirectUrl?: string; errorRedirectUrl?: string }) {
       const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
         redirect: "manual",
         query: {
-          ...await Auth.OAuth.getAuthorizeQuery(),
+          ...(await Auth.OAuth.getAuthorizeQuery()),
           ...filterUndefined({
             redirect_uri: options?.redirectUrl ?? undefined,
             error_redirect_uri: options?.errorRedirectUrl ?? undefined,
@@ -395,7 +419,9 @@ export namespace Auth {
       });
       expect(response.status).toBe(307);
       expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
-      expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
+      expect(response.headers.get("set-cookie")).toMatch(
+        /^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/,
+      );
       return {
         authorizeResponse: response,
       };
@@ -413,7 +439,10 @@ export namespace Auth {
         headers: expect.any(Headers),
         body: expect.any(String),
       });
-      const signInInteractionLocation = new URL(redirectResponse1.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse1 }), authLocation);
+      const signInInteractionLocation = new URL(
+        redirectResponse1.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse1 }),
+        authLocation,
+      );
       const signInInteractionCookies = updateCookiesFromResponse("", redirectResponse1);
       const response1 = await niceFetch(signInInteractionLocation, {
         method: "POST",
@@ -433,18 +462,24 @@ export namespace Auth {
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
       });
-      const redirectResponse2 = await niceFetch(new URL(response1.headers.get("location") ?? throwErr("missing redirect location", { response1 }), signInInteractionLocation), {
-        redirect: "manual",
-        headers: {
-          cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
+      const redirectResponse2 = await niceFetch(
+        new URL(response1.headers.get("location") ?? throwErr("missing redirect location", { response1 }), signInInteractionLocation),
+        {
+          redirect: "manual",
+          headers: {
+            cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
+          },
         },
-      });
+      );
       expect(redirectResponse2).toEqual({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
       });
-      const authorizeInteractionLocation = new URL(redirectResponse2.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse2 }), authLocation);
+      const authorizeInteractionLocation = new URL(
+        redirectResponse2.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse2 }),
+        authLocation,
+      );
       const authorizeInteractionCookies = updateCookiesFromResponse(signInInteractionCookies, redirectResponse2);
       const response2 = await niceFetch(authorizeInteractionLocation, {
         method: "POST",
@@ -462,18 +497,23 @@ export namespace Auth {
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
       });
-      const redirectResponse3 = await niceFetch(new URL(response2.headers.get("location") ?? throwErr("missing redirect location", { response2 }), authLocation), {
-        redirect: "manual",
-        headers: {
-          cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
+      const redirectResponse3 = await niceFetch(
+        new URL(response2.headers.get("location") ?? throwErr("missing redirect location", { response2 }), authLocation),
+        {
+          redirect: "manual",
+          headers: {
+            cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
+          },
         },
-      });
+      );
       expect(redirectResponse3).toEqual({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
       });
-      const innerCallbackUrl = new URL(redirectResponse3.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse3 }));
+      const innerCallbackUrl = new URL(
+        redirectResponse3.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse3 }),
+      );
       expect(innerCallbackUrl.origin).toBe("http://localhost:8102");
       expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/facebook");
       return {
@@ -482,7 +522,7 @@ export namespace Auth {
       };
     }
 
-    export async function getAuthorizationCode(options?: { innerCallbackUrl: URL, authorizeResponse: NiceResponse }) {
+    export async function getAuthorizationCode(options?: { innerCallbackUrl: URL; authorizeResponse: NiceResponse }) {
       options ??= await Auth.OAuth.getInnerCallbackUrl();
       const cookie = updateCookiesFromResponse("", options.authorizeResponse);
       const response = await niceBackendFetch(options.innerCallbackUrl.toString(), {
@@ -617,8 +657,12 @@ export namespace ContactChannels {
     const mailbox = backendContext.value.mailbox;
     const sendVerificationCodeRes = await sendVerificationCode();
     const messages = await mailbox.fetchMessages();
-    const message = messages.findLast((message) => message.subject === "Verify your email at Stack Dashboard") ?? throwErr("Verification code message not found");
-    const verificationCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Verification code not found");
+    const message =
+      messages.findLast((message) => message.subject === "Verify your email at Stack Dashboard") ??
+      throwErr("Verification code message not found");
+    const verificationCode =
+      message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ??
+      throwErr("Verification code not found");
     const response = await niceBackendFetch("/api/v1/contact-channels/verify", {
       method: "POST",
       accessType: "client",
@@ -643,7 +687,7 @@ export namespace ContactChannels {
 export namespace ApiKey {
   export async function create(adminAccessToken?: string, body?: any) {
     const oldProjectKeys = backendContext.value.projectKeys;
-    if (oldProjectKeys === 'no-project') {
+    if (oldProjectKeys === "no-project") {
       throw new Error("Cannot set API key context without a project");
     }
 
@@ -659,8 +703,11 @@ export namespace ApiKey {
         ...body,
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")),
-      }
+        "x-stack-admin-access-token":
+          adminAccessToken ??
+          ((backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken) ||
+            throwErr("Missing adminAccessToken")),
+      },
     });
     expect(response.status).equals(200);
 
@@ -688,7 +735,7 @@ export namespace Project {
       accessType: "client",
       method: "POST",
       body: {
-        display_name: body?.display_name || 'New Project',
+        display_name: body?.display_name || "New Project",
         ...body,
       },
     });
@@ -710,8 +757,8 @@ export namespace Project {
       method: "PATCH",
       body,
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
+        "x-stack-admin-access-token": adminAccessToken,
+      },
     });
 
     return {
@@ -760,7 +807,7 @@ export namespace Team {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
-        display_name: body?.display_name || 'New Team',
+        display_name: body?.display_name || "New Team",
         ...body,
       },
     });
@@ -790,7 +837,9 @@ export namespace Team {
     const mailbox = backendContext.value.mailbox;
     const messages = await mailbox.fetchMessages();
     const message = messages.findLast((message) => message.subject.includes("join")) ?? throwErr("Team invitation message not found");
-    const code = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Team invitation code not found");
+    const code =
+      message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ??
+      throwErr("Team invitation code not found");
     const response = await niceBackendFetch("/api/v1/team-invitations/accept", {
       method: "POST",
       accessType: "client",

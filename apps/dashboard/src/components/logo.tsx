@@ -1,13 +1,13 @@
-import { SmartImage } from "./smart-image";
-import logoLightMode from "../../public/logo.svg";
-import logoFullLightMode from "../../public/logo-full.svg";
 import logoDarkMode from "../../public/logo-bright.svg";
 import logoFullDarkMode from "../../public/logo-full-bright.svg";
+import logoFullLightMode from "../../public/logo-full.svg";
+import logoLightMode from "../../public/logo.svg";
 import { Link } from "./link";
+import { SmartImage } from "./smart-image";
 
 type ImageProps = React.ComponentProps<typeof SmartImage>;
 
-export function Logo(props: (ImageProps | Omit<ImageProps, "src" | "alt">) & { full?: boolean, href?: string}) {
+export function Logo(props: (ImageProps | Omit<ImageProps, "src" | "alt">) & { full?: boolean; href?: string }) {
   const { full, ...imageProps } = props;
   const logos = {
     light: full ? logoFullLightMode : logoLightMode,

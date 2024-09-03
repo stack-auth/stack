@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { HeadingProps, HeadingPropsDefaults, HeadingPropsSchema } from '../../../blocks/block-heading';
-import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import TextInput from './helpers/inputs/text-input';
-import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
-import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
+import { useState } from "react";
+import { HeadingProps, HeadingPropsDefaults, HeadingPropsSchema } from "../../../blocks/block-heading";
+import BaseSidebarPanel from "./helpers/base-sidebar-panel";
+import { SingleToggleGroup } from "./helpers/inputs/single-toggle-group";
+import TextInput from "./helpers/inputs/text-input";
+import MultiStylePropertyPanel from "./helpers/style-inputs/multi-style-property-panel";
 
 type HeadingSidebarPanelProps = {
-  data: HeadingProps,
-  setData: (v: HeadingProps) => void,
+  data: HeadingProps;
+  setData: (v: HeadingProps) => void;
 };
 export default function HeadingSidebarPanel({ data, setData }: HeadingSidebarPanelProps) {
   const [, setErrors] = useState<Zod.ZodError | null>(null);
@@ -39,13 +39,13 @@ export default function HeadingSidebarPanel({ data, setData }: HeadingSidebarPan
           updateData({ ...data, props: { ...data.props, level } });
         }}
         items={[
-          { value: 'h1', label: 'H1' },
-          { value: 'h2', label: 'H2' },
-          { value: 'h3', label: 'H3' },
+          { value: "h1", label: "H1" },
+          { value: "h2", label: "H2" },
+          { value: "h3", label: "H3" },
         ]}
       />
       <MultiStylePropertyPanel
-        names={['color', 'backgroundColor', 'fontFamily', 'fontWeight', 'textAlign', 'padding']}
+        names={["color", "backgroundColor", "fontFamily", "fontWeight", "textAlign", "padding"]}
         value={data.style}
         onChange={(style) => updateData({ ...data, style })}
       />

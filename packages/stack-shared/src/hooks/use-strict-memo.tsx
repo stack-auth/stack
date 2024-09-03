@@ -1,12 +1,12 @@
 import { useId, useInsertionEffect } from "react";
 import { Result } from "../utils/results";
 
-type CacheInner = Map<unknown, CacheInner> | WeakMap<WeakKey, CacheInner> | { isNotNestedMap: true, value: any };
+type CacheInner = Map<unknown, CacheInner> | WeakMap<WeakKey, CacheInner> | { isNotNestedMap: true; value: any };
 
 const cached = new Map<string, CacheInner>();
 
 function unwrapFromInner(dependencies: any[], inner: CacheInner): Result<any, void> {
-  if ((dependencies.length === 0) !== ("isNotNestedMap" in inner)) {
+  if ((dependencies.length === 0) !== "isNotNestedMap" in inner) {
     return Result.error(undefined);
   }
   if ("isNotNestedMap" in inner) {
@@ -36,8 +36,8 @@ function wrapToInner(dependencies: any[], value: any): CacheInner {
   const [key, ...rest] = dependencies;
   const inner = wrapToInner(rest, value);
 
-  const isObject = (typeof key === "object" && key !== null);
-  const isUnregisteredSymbol = (typeof key === "symbol" && Symbol.keyFor(key) === undefined);
+  const isObject = typeof key === "object" && key !== null;
+  const isUnregisteredSymbol = typeof key === "symbol" && Symbol.keyFor(key) === undefined;
   const isWeak = isObject || isUnregisteredSymbol;
   const mapType = isWeak ? WeakMap : Map;
 

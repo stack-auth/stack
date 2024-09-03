@@ -1,18 +1,35 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, Typography, useToast } from "@stackframe/stack-ui";
 import { Settings } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as yup from "yup";
-
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  DelayedInput,
+  Form,
+  Label,
+  Switch,
+  Typography,
+  useToast,
+} from "@stackframe/stack-ui";
 
 export function SettingCard(props: {
-  title?: string,
-  description?: string,
-  actions?: React.ReactNode,
-  children?: React.ReactNode,
-  accordion?: string,
+  title?: string;
+  description?: string;
+  actions?: React.ReactNode;
+  children?: React.ReactNode;
+  accordion?: string;
 }) {
   return (
     <Card>
@@ -24,35 +41,34 @@ export function SettingCard(props: {
       )}
 
       <CardContent className="flex flex-col gap-4">
-        {props.accordion ?
+        {props.accordion ? (
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>{props.accordion}</AccordionTrigger>
-              <AccordionContent>
-                {props.children}
-              </AccordionContent>
+              <AccordionContent>{props.children}</AccordionContent>
             </AccordionItem>
-          </Accordion> :
-          props.children}
-
+          </Accordion>
+        ) : (
+          props.children
+        )}
       </CardContent>
-      {props.actions && <CardFooter>
-        <div className="w-full flex justify-end gap-2">
-          {props.actions}
-        </div>
-      </CardFooter>}
+      {props.actions && (
+        <CardFooter>
+          <div className="flex w-full justify-end gap-2">{props.actions}</div>
+        </CardFooter>
+      )}
     </Card>
   );
 }
 
 export function SettingSwitch(props: {
-  label: string | React.ReactNode,
-  hint?: string | React.ReactNode,
-  checked?: boolean,
-  disabled?: boolean,
-  onCheckedChange: (checked: boolean) => void | Promise<void>,
-  actions?: React.ReactNode,
-  onlyShowActionsWhenChecked?: boolean,
+  label: string | React.ReactNode;
+  hint?: string | React.ReactNode;
+  checked?: boolean;
+  disabled?: boolean;
+  onCheckedChange: (checked: boolean) => void | Promise<void>;
+  actions?: React.ReactNode;
+  onlyShowActionsWhenChecked?: boolean;
 }) {
   const id = useId();
   const [checkedState, setCheckedState] = useState(props.checked);
@@ -67,37 +83,35 @@ export function SettingSwitch(props: {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center">
-        <Switch
-          id={id}
-          checked={checked}
-          onCheckedChange={onCheckedChange}
-          disabled={props.disabled}
-        />
-        <Label className='px-2' htmlFor={id}>{props.label}</Label>
+        <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={props.disabled} />
+        <Label className="px-2" htmlFor={id}>
+          {props.label}
+        </Label>
         {showActions && props.actions}
       </div>
-      {props.hint && <Typography variant="secondary" type="footnote">{props.hint}</Typography>}
+      {props.hint && (
+        <Typography variant="secondary" type="footnote">
+          {props.hint}
+        </Typography>
+      )}
     </div>
   );
 }
 
-export const SettingIconButton = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<typeof Button>
->((props, ref) => {
+export const SettingIconButton = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>((props, ref) => {
   return (
-    <Button variant='ghost' size='sm' className="p-1 h-full" onClick={props.onClick} ref={ref}>
-      <Settings className="w-4 h-4 text-muted-foreground" />
+    <Button variant="ghost" size="sm" className="h-full p-1" onClick={props.onClick} ref={ref}>
+      <Settings className="h-4 w-4 text-muted-foreground" />
     </Button>
   );
 });
 SettingIconButton.displayName = "SettingIconButton";
 
 export function SettingInput(props: {
-  label: string,
-  defaultValue?: string,
-  onChange?: (value: string) => void | Promise<void>,
-  actions?: React.ReactNode,
+  label: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void | Promise<void>;
+  actions?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -112,27 +126,22 @@ export function SettingInput(props: {
   );
 }
 
-export function SettingText(props: {
-  label: string,
-  children: React.ReactNode,
-}) {
+export function SettingText(props: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
       <Label>{props.label}</Label>
-      <div>
-        {props.children}
-      </div>
+      <div>{props.children}</div>
     </div>
   );
 }
 
 export function FormSettingCard<F extends FieldValues>(
-  props: Omit<React.ComponentProps<typeof SettingCard>, 'children' | 'actions'> & {
-    defaultValues?: Partial<F>,
-    onSubmit: (values: F) => Promise<void> | void,
-    render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
-    formSchema: yup.ObjectSchema<F>,
-  }
+  props: Omit<React.ComponentProps<typeof SettingCard>, "children" | "actions"> & {
+    defaultValues?: Partial<F>;
+    onSubmit: (values: F) => Promise<void> | void;
+    render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode;
+    formSchema: yup.ObjectSchema<F>;
+  },
 ) {
   const formId = useId();
   const form = useForm({
@@ -161,14 +170,21 @@ export function FormSettingCard<F extends FieldValues>(
   }, [props.defaultValues, form]);
 
   return (
-    <SettingCard {...props} actions={
-      <>
-        <Button onClick={() => form.reset()} variant='secondary' disabled={buttonsDisabled}>Cancel</Button>
-        <Button form={formId} type="submit" loading={submitting} disabled={buttonsDisabled}>Save</Button>
-      </>
-    }>
+    <SettingCard
+      {...props}
+      actions={
+        <>
+          <Button onClick={() => form.reset()} variant="secondary" disabled={buttonsDisabled}>
+            Cancel
+          </Button>
+          <Button form={formId} type="submit" loading={submitting} disabled={buttonsDisabled}>
+            Save
+          </Button>
+        </>
+      }
+    >
       <Form {...form}>
-        <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
+        <form onSubmit={(e) => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
           {props.render(form)}
         </form>
       </Form>

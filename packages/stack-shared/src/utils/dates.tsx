@@ -1,11 +1,11 @@
 import { remainder } from "./math";
 
 const agoUnits = [
-  [60, 'second'],
-  [60, 'minute'],
-  [24, 'hour'],
-  [7, 'day'],
-  [5, 'week'],
+  [60, "second"],
+  [60, "minute"],
+  [24, "hour"],
+  [7, "day"],
+  [5, "week"],
 ] as const;
 
 export function fromNow(date: Date): string {
@@ -13,11 +13,11 @@ export function fromNow(date: Date): string {
 }
 
 export function fromNowDetailed(date: Date): {
-  result: string,
+  result: string;
   /**
    * May be Infinity if the result will never change.
    */
-  secondsUntilChange: number,
+  secondsUntilChange: number;
 } {
   if (!(date instanceof Date)) {
     throw new Error(`fromNow only accepts Date objects (received: ${date})`);
@@ -29,7 +29,7 @@ export function fromNowDetailed(date: Date): {
   let remainingInUnit = Math.abs(elapsed) / 1000;
   if (remainingInUnit < 15) {
     return {
-      result: 'just now',
+      result: "just now",
       secondsUntilChange: 15 - remainingInUnit,
     };
   }
@@ -39,12 +39,12 @@ export function fromNowDetailed(date: Date): {
     if (rounded < nextUnitSize) {
       if (elapsed < 0) {
         return {
-          result: `in ${rounded} ${unitName}${rounded === 1 ? '' : 's'}`,
+          result: `in ${rounded} ${unitName}${rounded === 1 ? "" : "s"}`,
           secondsUntilChange: remainder((remainingInUnit - rounded + 0.5) * unitInSeconds, unitInSeconds),
         };
       } else {
         return {
-          result: `${rounded} ${unitName}${rounded === 1 ? '' : 's'} ago`,
+          result: `${rounded} ${unitName}${rounded === 1 ? "" : "s"} ago`,
           secondsUntilChange: remainder((rounded - remainingInUnit - 0.5) * unitInSeconds, unitInSeconds),
         };
       }
@@ -54,7 +54,7 @@ export function fromNowDetailed(date: Date): {
   }
 
   return {
-    result: date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+    result: date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
     secondsUntilChange: Infinity,
   };
 }

@@ -19,7 +19,11 @@ it("each verification code that was already requested can be used exactly once",
   const mailbox = backendContext.value.mailbox;
   const messages = await mailbox.fetchMessages();
   const verifyMessages = messages.filter((message) => message.subject === "Verify your email at Stack Dashboard");
-  const verificationCodes = verifyMessages.map((message) => message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Verification code not found"));
+  const verificationCodes = verifyMessages.map(
+    (message) =>
+      message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ??
+      throwErr("Verification code not found"),
+  );
   expect(verificationCodes).toHaveLength(3);
 
   for (const code of verificationCodes) {

@@ -43,10 +43,7 @@ html[data-stack-theme='dark'] .stack-skeleton[data-stack-state="activated"] {
 }
 `;
 
-const Skeleton = React.forwardRef<
-  React.ElementRef<"span">,
-  React.ComponentPropsWithoutRef<"span"> & { deactivated?: boolean }
->(
+const Skeleton = React.forwardRef<React.ElementRef<"span">, React.ComponentPropsWithoutRef<"span"> & { deactivated?: boolean }>(
   (props, ref) => {
     return (
       <>
@@ -59,7 +56,7 @@ const Skeleton = React.forwardRef<
         />
       </>
     );
-  }
+  },
 );
 Skeleton.displayName = "Skeleton";
 

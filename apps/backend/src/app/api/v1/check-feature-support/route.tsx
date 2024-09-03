@@ -1,7 +1,7 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { yupObject, yupString, yupNumber, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -22,7 +22,13 @@ export const POST = createSmartRouteHandler({
     body: yupString().required(),
   }),
   handler: async (req) => {
-    captureError("check-feature-support", new StackAssertionError(`${req.auth?.user?.primaryEmail || "User"} tried to check support of unsupported feature: ${JSON.stringify(req.body, null, 2)}`, { req }));
+    captureError(
+      "check-feature-support",
+      new StackAssertionError(
+        `${req.auth?.user?.primaryEmail || "User"} tried to check support of unsupported feature: ${JSON.stringify(req.body, null, 2)}`,
+        { req },
+      ),
+    );
     return {
       statusCode: 200,
       bodyType: "text",

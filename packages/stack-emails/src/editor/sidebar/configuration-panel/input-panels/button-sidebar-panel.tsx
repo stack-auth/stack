@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { ButtonProps, ButtonPropsDefaults, ButtonPropsSchema } from '../../../blocks/block-button';
-import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import ColorInput from './helpers/inputs/color-input';
-import { SingleToggleGroup } from './helpers/inputs/single-toggle-group';
-import TextInput from './helpers/inputs/text-input';
-import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { useState } from "react";
+import { ButtonProps, ButtonPropsDefaults, ButtonPropsSchema } from "../../../blocks/block-button";
+import BaseSidebarPanel from "./helpers/base-sidebar-panel";
+import ColorInput from "./helpers/inputs/color-input";
+import { SingleToggleGroup } from "./helpers/inputs/single-toggle-group";
+import TextInput from "./helpers/inputs/text-input";
+import MultiStylePropertyPanel from "./helpers/style-inputs/multi-style-property-panel";
 
 type ButtonSidebarPanelProps = {
-  data: ButtonProps,
-  setData: (v: ButtonProps) => void,
+  data: ButtonProps;
+  setData: (v: ButtonProps) => void;
 };
 export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanelProps) {
   const [, setErrors] = useState<Zod.ZodError | null>(null);
@@ -33,23 +33,15 @@ export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanel
 
   return (
     <BaseSidebarPanel title="Button block">
-      <TextInput
-        label="Text"
-        defaultValue={text}
-        onChange={(text) => updateData({ ...data, props: { ...data.props, text } })}
-      />
-      <TextInput
-        label="Url"
-        defaultValue={url}
-        onChange={(url) => updateData({ ...data, props: { ...data.props, url } })}
-      />
+      <TextInput label="Text" defaultValue={text} onChange={(text) => updateData({ ...data, props: { ...data.props, text } })} />
+      <TextInput label="Url" defaultValue={url} onChange={(url) => updateData({ ...data, props: { ...data.props, url } })} />
       <SingleToggleGroup
         label="Width"
-        value={fullWidth ? 'FULL_WIDTH' : 'AUTO'}
-        onValueChange={(v) => updateData({ ...data, props: { ...data.props, fullWidth: v === 'FULL_WIDTH' } })}
+        value={fullWidth ? "FULL_WIDTH" : "AUTO"}
+        onValueChange={(v) => updateData({ ...data, props: { ...data.props, fullWidth: v === "FULL_WIDTH" } })}
         items={[
-          { value: 'FULL_WIDTH', label: 'Full' },
-          { value: 'AUTO', label: 'Auto' },
+          { value: "FULL_WIDTH", label: "Full" },
+          { value: "AUTO", label: "Auto" },
         ]}
       />
       <SingleToggleGroup
@@ -57,10 +49,10 @@ export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanel
         value={size}
         onValueChange={(size) => updateData({ ...data, props: { ...data.props, size } })}
         items={[
-          { value: 'x-small', label: 'Xs' },
-          { value: 'small', label: 'Sm' },
-          { value: 'medium', label: 'Md' },
-          { value: 'large', label: 'Lg' },
+          { value: "x-small", label: "Xs" },
+          { value: "small", label: "Sm" },
+          { value: "medium", label: "Md" },
+          { value: "large", label: "Lg" },
         ]}
       />
       <SingleToggleGroup
@@ -68,9 +60,9 @@ export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanel
         value={buttonStyle}
         onValueChange={(buttonStyle) => updateData({ ...data, props: { ...data.props, buttonStyle } })}
         items={[
-          { value: 'rectangle', label: 'Rectangle' },
-          { value: 'rounded', label: 'Rounded' },
-          { value: 'pill', label: 'Pill' },
+          { value: "rectangle", label: "Rectangle" },
+          { value: "rounded", label: "Rounded" },
+          { value: "pill", label: "Pill" },
         ]}
       />
       <ColorInput
@@ -84,7 +76,7 @@ export default function ButtonSidebarPanel({ data, setData }: ButtonSidebarPanel
         onChange={(buttonBackgroundColor) => updateData({ ...data, props: { ...data.props, buttonBackgroundColor } })}
       />
       <MultiStylePropertyPanel
-        names={['backgroundColor', 'fontFamily', 'fontSize', 'fontWeight', 'textAlign', 'padding']}
+        names={["backgroundColor", "fontFamily", "fontSize", "fontWeight", "textAlign", "padding"]}
         value={data.style}
         onChange={(style) => updateData({ ...data, style })}
       />

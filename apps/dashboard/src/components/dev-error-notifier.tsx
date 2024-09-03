@@ -1,17 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { useToast } from "@stackframe/stack-ui";
-import { useEffect } from "react";
 
-const neverNotify = [
-  "Failed to fetch RSC payload",
-  "[Fast Refresh] performing full",
-];
+const neverNotify = ["Failed to fetch RSC payload", "[Fast Refresh] performing full"];
 
 let callbacks: ((prop: string, args: any[]) => void)[] = [];
 
-if (process.env.NODE_ENV === 'development' && isBrowserLike()) {
+if (process.env.NODE_ENV === "development" && isBrowserLike()) {
   for (const prop of ["warn", "error"] as const) {
     const original = console[prop];
     console[prop] = (...args) => {

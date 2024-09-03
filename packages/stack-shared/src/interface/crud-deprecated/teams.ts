@@ -7,24 +7,29 @@ export const teamsCrudClientReadSchema = yupObject({
   id: fieldSchema.teamIdSchema.required(),
   display_name: fieldSchema.teamDisplayNameSchema.required(),
 }).required();
-export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
-  created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
-}).required());
+export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(
+  yupObject({
+    created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
+  }).required(),
+);
 
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.optional(),
 }).required();
-export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-}).required());
+export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({}).required());
 
 // Create
-export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
-}).required());
-export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
-}).required());
+export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(
+  yupObject({
+    display_name: fieldSchema.teamDisplayNameSchema.required(),
+  }).required(),
+);
+export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(
+  yupObject({
+    display_name: fieldSchema.teamDisplayNameSchema.required(),
+  }).required(),
+);
 
 // Delete
 export const teamsCrudClientDeleteSchema = yupMixed();

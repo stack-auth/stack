@@ -10,8 +10,7 @@ export const teamPermissionsCrudClientReadSchema = yupObject({
   team_id: schemaFields.teamIdSchema.required(),
 }).required();
 
-export const teamPermissionsCrudServerCreateSchema = yupObject({
-}).required();
+export const teamPermissionsCrudServerCreateSchema = yupObject({}).required();
 
 export const teamPermissionsCrudServerDeleteSchema = yupMixed();
 
@@ -22,12 +21,14 @@ export const teamPermissionsCrud = createCrud({
   docs: {
     clientList: {
       summary: "List team permissions",
-      description: "List team permissions of the current user. `user_id=me` must be set for client requests. Note that this might contain the permissions with the same permission ID across different teams. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
+      description:
+        "List team permissions of the current user. `user_id=me` must be set for client requests. Note that this might contain the permissions with the same permission ID across different teams. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
       tags: ["Permissions"],
     },
     serverList: {
       summary: "List team permissions of a user",
-      description: "Query and filter the permission with `team_id`, `user_id`, and `permission_id`. Note that this might contain the permissions with the same permission ID across different teams and users. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
+      description:
+        "Query and filter the permission with `team_id`, `user_id`, and `permission_id`. Note that this might contain the permissions with the same permission ID across different teams and users. `(team_id, user_id, permission_id)` together uniquely identify a permission.",
       tags: ["Permissions"],
     },
     serverCreate: {
@@ -49,19 +50,19 @@ export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 export const teamPermissionDefinitionsCrudAdminReadSchema = yupObject({
   id: schemaFields.teamPermissionDefinitionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required(),
 }).required();
 
 export const teamPermissionDefinitionsCrudAdminCreateSchema = yupObject({
   id: schemaFields.customTeamPermissionDefinitionIdSchema.required(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional(),
 }).required();
 
 export const teamPermissionDefinitionsCrudAdminUpdateSchema = yupObject({
   id: schemaFields.customTeamPermissionDefinitionIdSchema.optional(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional(),
 }).required();
 
 export const teamPermissionDefinitionsCrudAdminDeleteSchema = yupMixed();
@@ -74,7 +75,8 @@ export const teamPermissionDefinitionsCrud = createCrud({
   docs: {
     adminList: {
       summary: "List team permission definitions",
-      description: "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
+      description:
+        "Query and filter the permission with team_id, user_id, and permission_id (the equivalent of listing permissions on the Stack dashboard)",
       tags: ["Permissions"],
     },
     adminCreate: {

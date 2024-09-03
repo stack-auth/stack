@@ -14,10 +14,10 @@ module.exports = {
           {
             group: ["vitest"],
             importNames: ["test", "it"],
-            message: "Use test or it from helpers instead."
-          }
-        ]
-      }
-    ]
-  }
+            message: "Use test or it from helpers instead.",
+          },
+        ],
+      },
+    ],
+  },
 };

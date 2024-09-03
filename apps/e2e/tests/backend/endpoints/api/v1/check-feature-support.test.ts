@@ -5,7 +5,7 @@ it("should return an error message", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/check-feature-support", {
     method: "POST",
     body: {
-      feature_name: "some-feature"
+      feature_name: "some-feature",
     },
   });
   expect(response).toMatchInlineSnapshot(`

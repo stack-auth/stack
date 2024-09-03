@@ -1,12 +1,12 @@
-import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
+import { cookies as rscCookies } from "@stackframe/stack-sc/force-react-server";
 
 type SetCookieOptions = { maxAge?: number };
 
 function isRscCookieUnavailableError(e: any) {
   const allowedMessageSnippets = ["was called outside a request scope", "cookies() expects to have requestAsyncStorage"];
-  return typeof e?.message === "string" && allowedMessageSnippets.some(msg => e.message.includes(msg));
+  return typeof e?.message === "string" && allowedMessageSnippets.some((msg) => e.message.includes(msg));
 }
 
 export function getCookie(name: string): string | null {
@@ -51,11 +51,13 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
   } catch (e: any) {
     if (isRscCookieUnavailableError(e)) {
       if (window.location.protocol !== "https:" && isProd) {
-        throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
+        throw new Error(
+          "Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.",
+        );
       }
       Cookies.set(name, value, {
         secure: isProd,
-        expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
+        expires: options.maxAge === undefined ? undefined : new Date(Date.now() + options.maxAge * 1000),
       });
     } else {
       throw e;

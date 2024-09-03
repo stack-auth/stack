@@ -1,12 +1,12 @@
-import { Label } from '@stackframe/stack-ui';
-import { Text } from 'lucide-react';
-import { useState } from 'react';
-import RawSliderInput from './raw/raw-slider-input';
+import { Text } from "lucide-react";
+import { useState } from "react";
+import { Label } from "@stackframe/stack-ui";
+import RawSliderInput from "./raw/raw-slider-input";
 
 type Props = {
-  label: string,
-  defaultValue: number,
-  onChange: (v: number) => void,
+  label: string;
+  defaultValue: number;
+  onChange: (v: number) => void;
 };
 export default function FontSizeInput({ label, defaultValue, onChange }: Props) {
   const [value, setValue] = useState(defaultValue);
@@ -15,10 +15,10 @@ export default function FontSizeInput({ label, defaultValue, onChange }: Props) 
     onChange(value);
   };
   return (
-    <div className='flex flex-col gap-2'>
+    <div className="flex flex-col gap-2">
       <Label>{label}</Label>
       <RawSliderInput
-        iconLabel={<Text className='h-4 w-4' />}
+        iconLabel={<Text className="h-4 w-4" />}
         value={value}
         setValue={handleChange}
         units="px"

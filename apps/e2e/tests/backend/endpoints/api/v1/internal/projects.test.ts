@@ -1,9 +1,8 @@
 import { it } from "../../../../../helpers";
 import { Auth, InternalProjectClientKeys, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
-
 it("should not have have access to the project", async ({ expect }) => {
-  backendContext.set({ projectKeys: 'no-project' });
+  backendContext.set({ projectKeys: "no-project" });
   const response1 = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
@@ -20,7 +19,6 @@ it("should not have have access to the project", async ({ expect }) => {
     }
   `);
 });
-
 
 it("is not allowed to list all current projects without signing in", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/internal/projects", { accessType: "client" });
@@ -151,8 +149,8 @@ it("creates a new project with different configurations", async ({ expect }) => 
           enabled: false,
           client_id: "client_id",
           client_secret: "client_secret",
-        }
-      ]
+        },
+      ],
     },
   });
   expect(response2).toMatchInlineSnapshot(`
@@ -296,14 +294,14 @@ it("creates a new project with different configurations", async ({ expect }) => 
     config: {
       domains: [
         {
-          domain: 'https://domain1.com',
-          handler_path: '/handler1'
+          domain: "https://domain1.com",
+          handler_path: "/handler1",
         },
         {
-          domain: 'https://domain2.com',
-          handler_path: '/handler2'
-        }
-      ]
+          domain: "https://domain2.com",
+          handler_path: "/handler2",
+        },
+      ],
     },
   });
   expect(response5).toMatchInlineSnapshot(`

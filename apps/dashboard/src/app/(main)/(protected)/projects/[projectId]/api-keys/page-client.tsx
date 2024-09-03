@@ -1,15 +1,15 @@
 "use client";
+
+import { useState } from "react";
+import * as yup from "yup";
+import { ApiKeyFirstView } from "@stackframe/stack";
+import { ActionDialog, Button, Typography } from "@stackframe/stack-ui";
 import { ApiKeyTable } from "@/components/data-table/api-key-table";
 import EnvKeys from "@/components/env-keys";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SelectField } from "@/components/form-fields";
-import { ApiKeyFirstView } from "@stackframe/stack";
-import { ActionDialog, Button, Typography } from "@stackframe/stack-ui";
-import { useState } from "react";
-import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
@@ -19,26 +19,11 @@ export default function PageClient() {
   const [returnedApiKey, setReturnedApiKey] = useState<ApiKeyFirstView | null>(null);
 
   return (
-    <PageLayout
-      title="API Keys"
-      actions={
-        <Button onClick={() => setIsNewApiKeyDialogOpen(true)}>
-          Create API Key
-        </Button>
-      }
-    >
+    <PageLayout title="API Keys" actions={<Button onClick={() => setIsNewApiKeyDialogOpen(true)}>Create API Key</Button>}>
       <ApiKeyTable apiKeys={apiKeySets} />
 
-      <CreateDialog
-        open={isNewApiKeyDialogOpen}
-        onOpenChange={setIsNewApiKeyDialogOpen}
-        onKeyCreated={setReturnedApiKey}
-      />
-      <ShowKeyDialog
-        apiKey={returnedApiKey || undefined}
-        onClose={() => setReturnedApiKey(null)}
-      />
-
+      <CreateDialog open={isNewApiKeyDialogOpen} onOpenChange={setIsNewApiKeyDialogOpen} onKeyCreated={setReturnedApiKey} />
+      <ShowKeyDialog apiKey={returnedApiKey || undefined} onClose={() => setReturnedApiKey(null)} />
     </PageLayout>
   );
 }
@@ -55,49 +40,47 @@ const expiresInOptions = {
 
 const formSchema = yup.object({
   description: yup.string().required().label("Description"),
-  expiresIn: yup.string().default(neverInMs.toString()).label("Expires in").meta({
-    stackFormFieldRender: (props) => (
-      <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
-    )
-  }),
+  expiresIn: yup
+    .string()
+    .default(neverInMs.toString())
+    .label("Expires in")
+    .meta({
+      stackFormFieldRender: (props) => (
+        <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
+      ),
+    }),
 });
 
-function CreateDialog(props: {
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
-  onKeyCreated?: (key: ApiKeyFirstView) => void,
-}) {
+function CreateDialog(props: { open: boolean; onOpenChange: (open: boolean) => void; onKeyCreated?: (key: ApiKeyFirstView) => void }) {
   const stackAdminApp = useAdminApp();
 
-  return <SmartFormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Create API Key"
-    formSchema={formSchema}
-    okButton={{ label: "Create" }}
-    onSubmit={async (values) => {
-      const expiresIn = parseInt(values.expiresIn);
-      const newKey = await stackAdminApp.createApiKey({
-        hasPublishableClientKey: true,
-        hasSecretServerKey: true,
-        hasSuperSecretAdminKey: false,
-        expiresAt: new Date(Date.now() + expiresIn),
-        description: values.description,
-      });
-      props.onKeyCreated?.(newKey);
-    }}
-    cancelButton
-  />;
+  return (
+    <SmartFormDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title="Create API Key"
+      formSchema={formSchema}
+      okButton={{ label: "Create" }}
+      onSubmit={async (values) => {
+        const expiresIn = parseInt(values.expiresIn);
+        const newKey = await stackAdminApp.createApiKey({
+          hasPublishableClientKey: true,
+          hasSecretServerKey: true,
+          hasSuperSecretAdminKey: false,
+          expiresAt: new Date(Date.now() + expiresIn),
+          description: values.description,
+        });
+        props.onKeyCreated?.(newKey);
+      }}
+      cancelButton
+    />
+  );
 }
 
-function ShowKeyDialog(props: {
-  apiKey?: ApiKeyFirstView,
-  onClose?: () => void,
-}) {
+function ShowKeyDialog(props: { apiKey?: ApiKeyFirstView; onClose?: () => void }) {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   if (!props.apiKey) return null;
-
 
   return (
     <ActionDialog
@@ -109,10 +92,7 @@ function ShowKeyDialog(props: {
     >
       <div className="flex flex-col gap-4">
         <Typography>
-          Here are your API keys.{" "}
-          <span className="font-bold">
-            Copy them to a safe place. You will not be able to view them again.
-          </span>
+          Here are your API keys. <span className="font-bold">Copy them to a safe place. You will not be able to view them again.</span>
         </Typography>
         <EnvKeys
           projectId={project.id}

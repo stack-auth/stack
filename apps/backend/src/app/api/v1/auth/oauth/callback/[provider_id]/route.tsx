@@ -1,3 +1,11 @@
+import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
@@ -5,14 +13,6 @@ import { oauthCookieSchema } from "@/lib/tokens";
 import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
-import { KnownError, KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
 
 const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
@@ -44,8 +44,11 @@ export const GET = createSmartRouteHandler({
     const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
     cookies().delete("stack-oauth-inner-" + innerState);
 
-    if (cookieInfo?.value !== 'true') {
-      throw new StatusError(StatusError.BadRequest, "OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again");
+    if (cookieInfo?.value !== "true") {
+      throw new StatusError(
+        StatusError.BadRequest,
+        "OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again",
+      );
     }
 
     const outerInfoDB = await prismaClient.oAuthOuterInfo.findUnique({
@@ -65,15 +68,7 @@ export const GET = createSmartRouteHandler({
       throw new StackAssertionError("Invalid outer info");
     }
 
-    const {
-      projectId,
-      innerCodeVerifier,
-      type,
-      projectUserId,
-      providerScope,
-      errorRedirectUrl,
-      afterCallbackRedirectUrl,
-    } = outerInfo;
+    const { projectId, innerCodeVerifier, type, projectUserId, providerScope, errorRedirectUrl, afterCallbackRedirectUrl } = outerInfo;
 
     const project = await getProject(projectId);
     if (!project) {
@@ -113,9 +108,9 @@ export const GET = createSmartRouteHandler({
             projectUserOAuthAccounts: {
               include: {
                 providerConfig: true,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         if (!user) {
           throw new StackAssertionError("User not found");
@@ -141,7 +136,7 @@ export const GET = createSmartRouteHandler({
           code_challenge: outerInfo.codeChallenge,
           code_challenge_method: outerInfo.codeChallengeMethod,
           response_type: outerInfo.responseType,
-        }
+        },
       });
 
       const storeTokens = async () => {
@@ -153,7 +148,7 @@ export const GET = createSmartRouteHandler({
               refreshToken: tokenSet.refreshToken,
               providerAccountId: userInfo.accountId,
               scopes: extractScopes(providerObj.scope + " " + providerScope),
-            }
+            },
           });
         }
 
@@ -165,118 +160,115 @@ export const GET = createSmartRouteHandler({
             providerAccountId: userInfo.accountId,
             scopes: extractScopes(providerObj.scope + " " + providerScope),
             expiresAt: tokenSet.accessTokenExpiredAt,
-          }
+          },
         });
       };
 
       const oauthResponse = new OAuthResponse();
       try {
-        await oauthServer.authorize(
-          oauthRequest,
-          oauthResponse,
-          {
-            authenticateHandler: {
-              handle: async () => {
-                const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
-                  where: {
-                    projectId_oauthProviderConfigId_providerAccountId: {
-                      projectId: outerInfo.projectId,
-                      oauthProviderConfigId: provider.id,
-                      providerAccountId: userInfo.accountId,
-                    },
+        await oauthServer.authorize(oauthRequest, oauthResponse, {
+          authenticateHandler: {
+            handle: async () => {
+              const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
+                where: {
+                  projectId_oauthProviderConfigId_providerAccountId: {
+                    projectId: outerInfo.projectId,
+                    oauthProviderConfigId: provider.id,
+                    providerAccountId: userInfo.accountId,
                   },
-                });
+                },
+              });
 
-                // ========================== link account with user ==========================
-                if (type === "link") {
-                  if (!projectUserId) {
-                    throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
+              // ========================== link account with user ==========================
+              if (type === "link") {
+                if (!projectUserId) {
+                  throw new StackAssertionError("projectUserId not found in cookie when authorizing signed in user");
+                }
+
+                if (oldAccount) {
+                  // ========================== account already connected ==========================
+                  if (oldAccount.projectUserId !== projectUserId) {
+                    throw new KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser();
                   }
-
-                  if (oldAccount) {
-                    // ========================== account already connected ==========================
-                    if (oldAccount.projectUserId !== projectUserId) {
-                      throw new KnownErrors.OAuthConnectionAlreadyConnectedToAnotherUser();
-                    }
-                    await storeTokens();
-                  } else {
-                    // ========================== connect account with user ==========================
-                    await prismaClient.projectUserOAuthAccount.create({
-                      data: {
-                        providerAccountId: userInfo.accountId,
-                        email: userInfo.email,
-                        providerConfig: {
-                          connect: {
-                            projectConfigId_id: {
-                              projectConfigId: project.config.id,
-                              id: provider.id,
-                            },
-                          },
-                        },
-                        projectUser: {
-                          connect: {
-                            projectId_projectUserId: {
-                              projectId: outerInfo.projectId,
-                              projectUserId: projectUserId,
-                            },
+                  await storeTokens();
+                } else {
+                  // ========================== connect account with user ==========================
+                  await prismaClient.projectUserOAuthAccount.create({
+                    data: {
+                      providerAccountId: userInfo.accountId,
+                      email: userInfo.email,
+                      providerConfig: {
+                        connect: {
+                          projectConfigId_id: {
+                            projectConfigId: project.config.id,
+                            id: provider.id,
                           },
                         },
                       },
-                    });
-                  }
+                      projectUser: {
+                        connect: {
+                          projectId_projectUserId: {
+                            projectId: outerInfo.projectId,
+                            projectUserId: projectUserId,
+                          },
+                        },
+                      },
+                    },
+                  });
+                }
 
+                await storeTokens();
+                return {
+                  id: projectUserId,
+                  newUser: false,
+                  afterCallbackRedirectUrl,
+                };
+              } else {
+                // ========================== sign in user ==========================
+
+                if (oldAccount) {
                   await storeTokens();
+
                   return {
-                    id: projectUserId,
+                    id: oldAccount.projectUserId,
                     newUser: false,
                     afterCallbackRedirectUrl,
                   };
-                } else {
+                }
 
-                  // ========================== sign in user ==========================
+                // ========================== sign up user ==========================
 
-                  if (oldAccount) {
-                    await storeTokens();
-
-                    return {
-                      id: oldAccount.projectUserId,
-                      newUser: false,
-                      afterCallbackRedirectUrl,
-                    };
-                  }
-
-                  // ========================== sign up user ==========================
-
-                  if (!project.config.sign_up_enabled) {
-                    throw new KnownErrors.SignUpNotEnabled();
-                  }
-                  const newAccount = await usersCrudHandlers.adminCreate({
-                    project,
-                    data: {
-                      display_name: userInfo.displayName,
-                      profile_image_url: userInfo.profileImageUrl || undefined,
-                      primary_email: userInfo.email,
-                      primary_email_verified: userInfo.emailVerified,
-                      primary_email_auth_enabled: false,
-                      oauth_providers: [{
+                if (!project.config.sign_up_enabled) {
+                  throw new KnownErrors.SignUpNotEnabled();
+                }
+                const newAccount = await usersCrudHandlers.adminCreate({
+                  project,
+                  data: {
+                    display_name: userInfo.displayName,
+                    profile_image_url: userInfo.profileImageUrl || undefined,
+                    primary_email: userInfo.email,
+                    primary_email_verified: userInfo.emailVerified,
+                    primary_email_auth_enabled: false,
+                    oauth_providers: [
+                      {
                         id: provider.id,
                         account_id: userInfo.accountId,
                         email: userInfo.email,
-                      }],
-                    },
-                  });
+                      },
+                    ],
+                  },
+                });
 
-                  await storeTokens();
-                  return {
-                    id: newAccount.id,
-                    newUser: true,
-                    afterCallbackRedirectUrl,
-                  };
-                }
+                await storeTokens();
+                return {
+                  id: newAccount.id,
+                  newUser: true,
+                  afterCallbackRedirectUrl,
+                };
               }
-            }
-          }
-        );
+            },
+          },
+        });
       } catch (error) {
         if (error instanceof InvalidClientError) {
           if (error.message.includes("redirect_uri")) {

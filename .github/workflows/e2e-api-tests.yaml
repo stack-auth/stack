@@ -3,12 +3,9 @@ name: Runs E2E API Tests
 on:
   push:
     branches:
-      - dev
-      - main
-  pull_request:
-    branches:
-      - dev
-      - main
+      - "**"
+    tags:
+      - "*.*.*"
 
 jobs:
   build:
@@ -21,17 +18,15 @@ jobs:
         node-version: [20.x, 22.6]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-            version: 9.1.2
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -41,13 +36,13 @@ jobs:
 
       - name: Create .env.test.local file for apps/dashboard
         run: cp apps/dashboard/.env.development apps/dashboard/.env.test.local
-      
+
       - name: Create .env.test.local file for apps/e2e
         run: cp apps/e2e/.env.development apps/e2e/.env.test.local
 
       - name: Create .env.test.local file for examples/cjs-test
         run: cp examples/cjs-test/.env.development examples/cjs-test/.env.test.local
-      
+
       - name: Create .env.test.local file for examples/demo
         run: cp examples/demo/.env.development examples/demo/.env.test.local
 
@@ -83,7 +78,7 @@ jobs:
 
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
-  
+
       - name: Start stack-backend in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:

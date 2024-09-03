@@ -11,10 +11,12 @@ export const teamsCrudClientReadSchema = yupObject({
   client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
   client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
 }).required();
-export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
-  created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
-  server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
-}).required());
+export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(
+  yupObject({
+    created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
+    server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
+  }).required(),
+);
 
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
@@ -22,18 +24,24 @@ export const teamsCrudClientUpdateSchema = yupObject({
   profile_image_url: fieldSchema.teamProfileImageUrlSchema.nullable().optional(),
   client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
 }).required();
-export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-  client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
-  server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
-}).required());
+export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(
+  yupObject({
+    client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
+    server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
+  }).required(),
+);
 
 // Create
-export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
-}).required());
-export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
-}).required());
+export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(
+  yupObject({
+    display_name: fieldSchema.teamDisplayNameSchema.required(),
+  }).required(),
+);
+export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(
+  yupObject({
+    display_name: fieldSchema.teamDisplayNameSchema.required(),
+  }).required(),
+);
 
 // Delete
 export const teamsCrudClientDeleteSchema = fieldSchema.yupMixed();
@@ -68,7 +76,8 @@ export const teamsCrud = createCrud({
     },
     clientUpdate: {
       summary: "Update a team",
-      description: "Update the team information. Only allowed if the current user is a member of the team and has the `$update_team` permission.",
+      description:
+        "Update the team information. Only allowed if the current user is a member of the team and has the `$update_team` permission.",
       tags: ["Teams"],
     },
     clientDelete: {
@@ -125,9 +134,11 @@ export const teamUpdatedWebhookEvent = {
   },
 } satisfies WebhookEvent<typeof teamsCrud.server.readSchema>;
 
-const webhookTeamDeletedSchema = fieldSchema.yupObject({
-  id: fieldSchema.userIdSchema.required(),
-}).required();
+const webhookTeamDeletedSchema = fieldSchema
+  .yupObject({
+    id: fieldSchema.userIdSchema.required(),
+  })
+  .required();
 
 export const teamDeletedWebhookEvent = {
   type: "team.deleted",

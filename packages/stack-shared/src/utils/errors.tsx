@@ -1,7 +1,6 @@
 import { globalVar } from "./globals";
 import { Json } from "./json";
 
-
 export function throwErr(errorMessage: string, extraData?: any): never;
 export function throwErr(error: Error): never;
 export function throwErr(...args: StatusErrorConstructorParameters): never;
@@ -17,9 +16,12 @@ export function throwErr(...args: any[]): never {
   }
 }
 
-
 export class StackAssertionError extends Error implements ErrorWithCustomCapture {
-  constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
+  constructor(
+    message: string,
+    public readonly extraData?: Record<string, any>,
+    options?: ErrorOptions,
+  ) {
     const disclaimer = `\n\nThis is likely an error in Stack. Please make sure you are running the newest version and report it.`;
     super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, options);
   }
@@ -27,15 +29,14 @@ export class StackAssertionError extends Error implements ErrorWithCustomCapture
   customCaptureExtraArgs = [
     {
       ...this.extraData,
-      ...this.cause ? { cause: this.cause } : {},
+      ...(this.cause ? { cause: this.cause } : {}),
     },
   ];
 }
 StackAssertionError.prototype.name = "StackAssertionError";
 
-
 export type ErrorWithCustomCapture = {
-  customCaptureExtraArgs: any[],
+  customCaptureExtraArgs: any[];
 };
 
 const errorSinks = new Set<(location: string, error: unknown, ...extraArgs: unknown[]) => void>();
@@ -58,26 +59,22 @@ export function captureError(location: string, error: unknown): void {
     sink(
       location,
       error,
-      ...error && (typeof error === 'object' || typeof error === 'function') && "customCaptureExtraArgs" in error && Array.isArray(error.customCaptureExtraArgs) ? (error.customCaptureExtraArgs as any[]) : [],
+      ...(error &&
+      (typeof error === "object" || typeof error === "function") &&
+      "customCaptureExtraArgs" in error &&
+      Array.isArray(error.customCaptureExtraArgs)
+        ? (error.customCaptureExtraArgs as any[])
+        : []),
     );
   }
 }
 
-
 type Status = {
-  statusCode: number,
-  message: string,
+  statusCode: number;
+  message: string;
 };
 
-type StatusErrorConstructorParameters =
-| [
-  status: Status,
-  message?: string
-]
-| [
-  statusCode: number | Status,
-  message: string,
-];
+type StatusErrorConstructorParameters = [status: Status, message?: string] | [statusCode: number | Status, message: string];
 
 export class StatusError extends Error {
   public name = "StatusError";
@@ -125,12 +122,8 @@ export class StatusError extends Error {
   public static NotExtended = { statusCode: 510, message: "Not Extended" };
   public static NetworkAuthenticationRequired = { statusCode: 511, message: "Network Authentication Required" };
 
-
   constructor(...args: StatusErrorConstructorParameters);
-  constructor(
-    status: number | Status,
-    message?: string,
-  ) {
+  constructor(status: number | Status, message?: string) {
     if (typeof status === "object") {
       message ??= status.message;
       status = status.statusCode;

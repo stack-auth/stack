@@ -10,4 +10,4 @@ export {
   //
   type TReaderProps,
   default as Reader,
-} from './reader/core';
+} from "./reader/core";

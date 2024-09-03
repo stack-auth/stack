@@ -1,6 +1,6 @@
-import { prismaClient } from "@/prisma-client";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { NextRequest } from "next/server";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { prismaClient } from "@/prisma-client";
 
 export async function GET(req: NextRequest) {
   if (req.nextUrl.searchParams.get("db")) {
@@ -11,14 +11,17 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return Response.json({
-    status: "ok",
-  }, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-      "Access-Control-Expose-Headers": "*",
-    }
-  });
+  return Response.json(
+    {
+      status: "ok",
+    },
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Expose-Headers": "*",
+      },
+    },
+  );
 }

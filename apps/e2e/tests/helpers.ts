@@ -1,11 +1,11 @@
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { omit } from "@stackframe/stack-shared/dist/utils/objects";
-import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
 import { afterEach, beforeEach, test as vitestTest } from "vitest";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const test: typeof vitestTest = vitestTest.extend({});
 export const it: typeof vitestTest = test;
@@ -20,10 +20,15 @@ export class Context<R, T> {
   private _withStorage: AsyncLocalStorage<T[]> = new AsyncLocalStorage();
   private _isInTest = false;
 
-  constructor(private readonly _getInitialValue: () => R, private readonly _reducer: (acc: R, value: T) => R) {
+  constructor(
+    private readonly _getInitialValue: () => R,
+    private readonly _reducer: (acc: R, value: T) => R,
+  ) {
     beforeEach(async () => {
       if (this._isInTest) {
-        throw new StackAssertionError("beforeEach was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
+        throw new StackAssertionError(
+          "beforeEach was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.",
+        );
       }
       if (this._withStorage.getStore()) {
         throw new StackAssertionError("Did you wrap an entire test into Context.with(...)?");
@@ -61,7 +66,9 @@ export class Context<R, T> {
     this._values.set(randomId, value);
     const before = () => {
       if (this._yetToReduce.has(randomId)) {
-        throw new StackAssertionError("Value setter was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.");
+        throw new StackAssertionError(
+          "Value setter was called twice without a single afterEach! Are you running tests concurrently? This is not supported by withContext.",
+        );
       }
       this._yetToReduce.add(randomId);
     };
@@ -105,7 +112,10 @@ function getEnvVar(name: string): string {
 }
 
 export function updateCookie(cookieString: string, cookieName: string, cookieValue: string) {
-  const cookies = cookieString.split(";").map((cookie) => cookie.trim()).filter((cookie) => cookie.length > 0);
+  const cookies = cookieString
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter((cookie) => cookie.length > 0);
   const newCookie = `${cookieName}=${cookieValue}`;
   const cookieIndex = cookies.findIndex((cookie) => cookie.startsWith(`${cookieName}=`));
   if (cookieIndex === -1) {
@@ -133,16 +143,12 @@ export class NiceResponse implements Nicifiable {
 
   getNicifiableKeys(): string[] {
     // reorder the keys for nicer printing
-    return [
-      "status",
-      ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] : ["body"],
-      "headers",
-    ];
+    return ["status", ...(this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] : ["body"]), "headers"];
   }
 }
 
 export type NiceRequestInit = RequestInit & {
-  query?: Record<string, string>,
+  query?: Record<string, string>;
 };
 
 export async function niceFetch(url: string | URL, options?: NiceRequestInit): Promise<NiceResponse> {
@@ -170,37 +176,29 @@ export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callb
 const generatedEmailSuffix = "@stack-generated.example.com";
 export const generatedEmailRegex = /[a-zA-Z0-9_.+-]+@stack-generated\.example\.com/;
 
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
+export type Mailbox = { emailAddress: string; fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
 export class MailboxMessage {
-  declare public readonly subject: string;
-  declare public readonly from: string;
-  declare public readonly to: string;
-  declare public readonly date: string;
-  declare public readonly id: string;
-  declare public readonly size: number;
-  declare public readonly seen: boolean;
-  declare public readonly "posix-millis": number;
-  declare public readonly header?: any;
-  declare public readonly body?: { text: string, html: string };
-  declare public readonly attachments?: any[];
+  public declare readonly subject: string;
+  public declare readonly from: string;
+  public declare readonly to: string;
+  public declare readonly date: string;
+  public declare readonly id: string;
+  public declare readonly size: number;
+  public declare readonly seen: boolean;
+  public declare readonly "posix-millis": number;
+  public declare readonly header?: any;
+  public declare readonly body?: { text: string; html: string };
+  public declare readonly attachments?: any[];
 
   constructor(json: any) {
     Object.assign(this, json);
   }
 
   getSnapshotSerializerOptions() {
-    return ({
+    return {
       stripFields: [],
-      hideFields: [
-        "posix-millis",
-        "header",
-        "date",
-        "mailbox",
-        "id",
-        "size",
-        "seen",
-      ],
-    });
+      hideFields: ["posix-millis", "header", "date", "mailbox", "id", "size", "seen"],
+    };
   }
 }
 
@@ -211,18 +209,22 @@ export function createMailbox(): Mailbox {
     emailAddress: `${mailboxName}${generatedEmailSuffix}`,
     async fetchMessages({ noBody } = {}) {
       const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
-      return await Promise.all((res.body as any[]).map(async (message) => {
-        let fullMessage: any;
-        if (fullMessageCache.has(message.id)) {
-          fullMessage = fullMessageCache.get(message.id);
-        } else {
-          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
-          fullMessage = fullMessageRes.body;
-          fullMessageCache.set(message.id, fullMessage);
-        }
-        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
-        return new MailboxMessage(messagePart);
-      }));
+      return await Promise.all(
+        (res.body as any[]).map(async (message) => {
+          let fullMessage: any;
+          if (fullMessageCache.has(message.id)) {
+            fullMessage = fullMessageCache.get(message.id);
+          } else {
+            const fullMessageRes = await niceFetch(
+              new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL),
+            );
+            fullMessage = fullMessageRes.body;
+            fullMessageCache.set(message.id, fullMessage);
+          }
+          const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
+          return new MailboxMessage(messagePart);
+        }),
+      );
     },
   };
 }

@@ -1,5 +1,4 @@
 import "server-only";
-
 import { StackServerApp } from "@stackframe/stack";
 
 export const stackServerApp = new StackServerApp({
@@ -7,5 +6,5 @@ export const stackServerApp = new StackServerApp({
   urls: {
     signIn: "/signin",
     signUp: "/signup",
-  }
+  },
 });

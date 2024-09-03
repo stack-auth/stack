@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import ContainerPropsSchema, { ContainerProps } from '../../../documents/blocks/container/container-props-schema';
-import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { useState } from "react";
+import ContainerPropsSchema, { ContainerProps } from "../../../documents/blocks/container/container-props-schema";
+import BaseSidebarPanel from "./helpers/base-sidebar-panel";
+import MultiStylePropertyPanel from "./helpers/style-inputs/multi-style-property-panel";
 
 type ContainerSidebarPanelProps = {
-  data: ContainerProps,
-  setData: (v: ContainerProps) => void,
+  data: ContainerProps;
+  setData: (v: ContainerProps) => void;
 };
 
 export default function ContainerSidebarPanel({ data, setData }: ContainerSidebarPanelProps) {
@@ -22,7 +22,7 @@ export default function ContainerSidebarPanel({ data, setData }: ContainerSideba
   return (
     <BaseSidebarPanel title="Container block">
       <MultiStylePropertyPanel
-        names={['backgroundColor', 'borderColor', 'borderRadius', 'padding']}
+        names={["backgroundColor", "borderColor", "borderRadius", "padding"]}
         value={data.style}
         onChange={(style) => updateData({ ...data, style })}
       />

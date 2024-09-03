@@ -1,9 +1,16 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, adaptSchema, yupString, yupNumber, serverOrHigherAuthTypeSchema, userIdOrMeSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { usersCrudHandlers } from "../../users/crud";
-import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
+import {
+  adaptSchema,
+  serverOrHigherAuthTypeSchema,
+  userIdOrMeSchema,
+  yupNumber,
+  yupObject,
+  yupString,
+} from "@stackframe/stack-shared/dist/schema-fields";
 import { createAuthTokens } from "@/lib/tokens";
+import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { usersCrudHandlers } from "../../users/crud";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -18,7 +25,9 @@ export const POST = createSmartRouteHandler({
     }).required(),
     body: yupObject({
       user_id: userIdOrMeSchema.required(),
-      expires_in_millis: yupNumber().max(1000 * 60 * 60 * 24 * 367).default(1000 * 60 * 60 * 24 * 365),
+      expires_in_millis: yupNumber()
+        .max(1000 * 60 * 60 * 24 * 367)
+        .default(1000 * 60 * 60 * 24 * 365),
     }).required(),
   }),
   response: yupObject({
@@ -57,7 +66,7 @@ export const POST = createSmartRouteHandler({
       body: {
         refresh_token: refreshToken,
         access_token: accessToken,
-      }
+      },
     };
   },
 });

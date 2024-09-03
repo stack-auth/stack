@@ -1,5 +1,5 @@
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
@@ -9,11 +9,14 @@ describe("without project access", () => {
   });
 
   it("should not be able to read own user", async ({ expect }) => {
-    await backendContext.with({
-      projectKeys: InternalProjectKeys,
-    }, async () => {
-      await Auth.Otp.signIn();
-    });
+    await backendContext.with(
+      {
+        projectKeys: InternalProjectKeys,
+      },
+      async () => {
+        await Auth.Otp.signIn();
+      },
+    );
     const response = await niceBackendFetch("/api/v1/users/me");
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -271,9 +274,13 @@ describe("with client access", () => {
     `);
   });
 
-  it.todo("should be able to set own profile image URL with an image HTTP URL, and the new profile image URL should be a different HTTP URL on our storage service");
+  it.todo(
+    "should be able to set own profile image URL with an image HTTP URL, and the new profile image URL should be a different HTTP URL on our storage service",
+  );
 
-  it.todo("should be able to set own profile image URL with a base64 data URL, and the new profile image URL should be a different HTTP URL on our storage service");
+  it.todo(
+    "should be able to set own profile image URL with a base64 data URL, and the new profile image URL should be a different HTTP URL on our storage service",
+  );
 
   it.todo("should not be able to set own profile image URL with a file: protocol URL");
 
@@ -286,7 +293,7 @@ describe("with client access", () => {
       method: "PATCH",
       body: {
         display_name: "Johnny Doe",
-        server_metadata: { "key": "value" },
+        server_metadata: { key: "value" },
       },
     });
     expect(response).toMatchInlineSnapshot(`
@@ -761,9 +768,9 @@ describe("with server access", () => {
 
   it("should be able to read a user", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+    const signedInResponse = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
-    }));
+    });
     const userId = signedInResponse.body.id;
     backendContext.set({
       userAuth: null,
@@ -987,7 +994,9 @@ describe("with server access", () => {
     `);
   });
 
-  it("should not be able to create a user with email auth enabled if the email already exists with email auth enabled", async ({ expect }) => {
+  it("should not be able to create a user with email auth enabled if the email already exists with email auth enabled", async ({
+    expect,
+  }) => {
     const response = await niceBackendFetch("/api/v1/users", {
       accessType: "server",
       method: "POST",
@@ -1053,7 +1062,9 @@ describe("with server access", () => {
     `);
   });
 
-  it("should be able to create a user with email auth enabled if the email already exists but without email auth enabled", async ({ expect }) => {
+  it("should be able to create a user with email auth enabled if the email already exists but without email auth enabled", async ({
+    expect,
+  }) => {
     const response = await niceBackendFetch("/api/v1/users", {
       accessType: "server",
       method: "POST",
@@ -1149,7 +1160,9 @@ describe("with server access", () => {
     `);
   });
 
-  it("should be able to create a user with email auth disabled even if the email already exists with email auth enabled", async ({ expect }) => {
+  it("should be able to create a user with email auth disabled even if the email already exists with email auth enabled", async ({
+    expect,
+  }) => {
     const password = generateSecureRandomString();
     const response2 = await niceBackendFetch("/api/v1/users", {
       accessType: "server",
@@ -1247,9 +1260,9 @@ describe("with server access", () => {
 
   it("should be able to update a user", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+    const signedInResponse = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
-    }));
+    });
     const userId = signedInResponse.body.id;
     backendContext.set({
       userAuth: null,
@@ -1442,9 +1455,9 @@ describe("with server access", () => {
 
   it("should be able to delete a user", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const signedInResponse = (await niceBackendFetch("/api/v1/users/me", {
+    const signedInResponse = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
-    }));
+    });
     const userId = signedInResponse.body.id;
     backendContext.set({
       userAuth: null,

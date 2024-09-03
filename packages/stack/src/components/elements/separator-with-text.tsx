@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 import { Separator } from "@stackframe/stack-ui";
 
 export function SeparatorWithText({ text }: { text: string }) {
   return (
-    <div className="flex items-center justify-center my-6 stack-scope">
+    <div className="stack-scope my-6 flex items-center justify-center">
       <div className="flex-1">
         <Separator />
       </div>

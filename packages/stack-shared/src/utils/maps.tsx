@@ -5,7 +5,7 @@ export class MaybeWeakMap<K, V> {
   private readonly _weakMap: WeakMap<K & WeakKey, V>;
 
   constructor(entries?: readonly (readonly [K, V])[] | null) {
-    const entriesArray = [...entries ?? []];
+    const entriesArray = [...(entries ?? [])];
     this._primitiveMap = new Map(entriesArray.filter((e) => !this._isAllowedInWeakMap(e[0])));
     this._weakMap = new WeakMap(entriesArray.filter((e): e is [K & WeakKey, V] => this._isAllowedInWeakMap(e[0])));
   }
@@ -50,13 +50,9 @@ export class MaybeWeakMap<K, V> {
   [Symbol.toStringTag] = "MaybeWeakMap";
 }
 
-
-type DependenciesMapInner<V> = (
-  & { map: MaybeWeakMap<unknown, DependenciesMapInner<V>> }
-  & (
-    | { hasValue: true, value: V }
-    | { hasValue: false, value: undefined }
-  )
+type DependenciesMapInner<V> = { map: MaybeWeakMap<unknown, DependenciesMapInner<V>> } & (
+  | { hasValue: true; value: V }
+  | { hasValue: false; value: undefined }
 );
 
 export class DependenciesMap<K extends any[], V> {
@@ -70,9 +66,8 @@ export class DependenciesMap<K extends any[], V> {
     }
   }
 
-
   private _unwrapFromInner(dependencies: any[], inner: DependenciesMapInner<V>): Result<V, void> {
-    if ((dependencies.length === 0)) {
+    if (dependencies.length === 0) {
       return this._valueToResult(inner);
     } else {
       const [key, ...rest] = dependencies;
@@ -99,7 +94,7 @@ export class DependenciesMap<K extends any[], V> {
       const [key, ...rest] = dependencies;
       let newInner = inner.map.get(key);
       if (!newInner) {
-        inner.map.set(key, newInner = { map: new MaybeWeakMap(), hasValue: false, value: undefined });
+        inner.map.set(key, (newInner = { map: new MaybeWeakMap(), hasValue: false, value: undefined }));
       }
       return this._setInInner(rest, value, newInner);
     }

@@ -1,27 +1,29 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@stackframe/stack-ui";
 import { UserRound } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@stackframe/stack-ui";
 
 const defaultSize = 34;
 
 export function UserAvatar(props: {
-  size?: number,
+  size?: number;
   user?: {
-    profileImageUrl?: string | null,
-    displayName?: string | null,
-    primaryEmail?: string | null,
-  } | null,
-  border?: boolean,
+    profileImageUrl?: string | null;
+    displayName?: string | null;
+    primaryEmail?: string | null;
+  } | null;
+  border?: boolean;
 }) {
   const user = props.user;
   return (
-    <Avatar style={{ height: props.size || defaultSize, width: props.size || defaultSize }} className={props.border ? 'border' : ''}>
-      <AvatarImage src={user?.profileImageUrl || ''} />
+    <Avatar style={{ height: props.size || defaultSize, width: props.size || defaultSize }} className={props.border ? "border" : ""}>
+      <AvatarImage src={user?.profileImageUrl || ""} />
       <AvatarFallback>
-        {user ?
-          <div className='font-medium' style={{ fontSize: (props.size || defaultSize) * 0.5 }}>
+        {user ? (
+          <div className="font-medium" style={{ fontSize: (props.size || defaultSize) * 0.5 }}>
             {(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}
-          </div> :
-          <UserRound className="text-zinc-500" size={(props.size || defaultSize) * 0.6} />}
+          </div>
+        ) : (
+          <UserRound className="text-zinc-500" size={(props.size || defaultSize) * 0.6} />
+        )}
       </AvatarFallback>
     </Avatar>
   );

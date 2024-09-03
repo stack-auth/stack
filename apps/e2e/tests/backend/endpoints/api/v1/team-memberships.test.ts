@@ -1,7 +1,6 @@
 import { createMailbox, it } from "../../../../helpers";
 import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-
 it("is not allowed to add user to team on client", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();
@@ -190,11 +189,11 @@ it("should give team creator default permissions", async ({ expect }) => {
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
-  const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
+  const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: "test1234" });
   backendContext.set({
     mailbox: createMailbox(),
   });
-  const { userId: userId2 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
+  const { userId: userId2 } = await Auth.Password.signUpWithEmail({ password: "test1234" });
   const { teamId } = await Team.create();
 
   await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {

@@ -2,10 +2,9 @@ import { describe } from "vitest";
 import { it } from "../../../../../helpers";
 import { ApiKey, Auth, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
-
 describe("without project access", () => {
   backendContext.set({
-    projectKeys: 'no-project'
+    projectKeys: "no-project",
   });
 
   it("should not have have access to api keys", async ({ expect }) => {
@@ -107,8 +106,8 @@ describe("with admin access to a non-internal project", () => {
         expires_at_millis: 123,
       },
       headers: {
-        'x-stack-admin-access-token': 'invalid-key',
-      }
+        "x-stack-admin-access-token": "invalid-key",
+      },
     });
     expect(response1).toMatchInlineSnapshot(`
       NiceResponse {
@@ -152,8 +151,8 @@ describe("with admin access to a non-internal project", () => {
         description: "new description",
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
+        "x-stack-admin-access-token": adminAccessToken,
+      },
     });
 
     expect(response2).toMatchInlineSnapshot(`
@@ -174,18 +173,18 @@ describe("with admin access to a non-internal project", () => {
 
     // create another api key
     await ApiKey.create(adminAccessToken, {
-      description: 'key2',
+      description: "key2",
       has_publishable_client_key: false,
       has_secret_server_key: true,
-      has_super_secret_admin_key: false
+      has_super_secret_admin_key: false,
     });
 
     // list api keys
     const response3 = await niceBackendFetch("/api/v1/internal/api-keys", {
       accessType: "admin",
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
+        "x-stack-admin-access-token": adminAccessToken,
+      },
     });
     expect(response3).toMatchInlineSnapshot(`
       NiceResponse {
@@ -223,8 +222,8 @@ describe("with admin access to a non-internal project", () => {
         revoked: true,
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
-      }
+        "x-stack-admin-access-token": adminAccessToken,
+      },
     });
     expect(response4).toMatchInlineSnapshot(`
       NiceResponse {

@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useMemo } from 'react';
-
-import { EditorBlock as CoreEditorBlock } from './core';
-import { useDocument, useMetadata } from './editor-context';
-import { convertEmailTemplateVariables } from '@stackframe/stack-emails/dist/utils';
+import React, { createContext, useContext, useMemo } from "react";
+import { convertEmailTemplateVariables } from "@stackframe/stack-emails/dist/utils";
+import { EditorBlock as CoreEditorBlock } from "./core";
+import { useDocument, useMetadata } from "./editor-context";
 
 const EditorBlockContext = createContext<string | null>(null);
 export const useCurrentBlockId = () => useContext(EditorBlockContext)!;
 
 type EditorBlockProps = {
-  id: string,
+  id: string;
 };
 
 /**
@@ -29,7 +28,7 @@ export default function EditorBlock({ id }: EditorBlockProps) {
   const block = mergedDocument[id];
   // eslint-disable-next-line
   if (!block) {
-    throw new Error('Could not find block');
+    throw new Error("Could not find block");
   }
   return (
     <EditorBlockContext.Provider value={id}>

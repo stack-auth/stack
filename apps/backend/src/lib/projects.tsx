@@ -1,6 +1,3 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
-import { prismaClient } from "@/prisma-client";
-import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -8,7 +5,14 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
+import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { prismaClient } from "@/prisma-client";
+import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
+import {
+  fullPermissionInclude,
+  teamPermissionDefinitionJsonFromDbType,
+  teamPermissionDefinitionJsonFromTeamSystemDbType,
+} from "./permissions";
 import { decodeAccessToken } from "./tokens";
 
 export const fullProjectInclude = {
@@ -42,54 +46,57 @@ export const fullProjectInclude = {
 type FullProjectInclude = typeof fullProjectInclude;
 export type ProjectDB = Prisma.ProjectGetPayload<{ include: FullProjectInclude }> & {
   config: {
-    oauthProviderConfigs: (Prisma.OAuthProviderConfigGetPayload<
-      typeof fullProjectInclude.config.include.oauthProviderConfigs
-    >)[],
-    emailServiceConfig: Prisma.EmailServiceConfigGetPayload<
-      typeof fullProjectInclude.config.include.emailServiceConfig
-    > | null,
-    domains: Prisma.ProjectDomainGetPayload<
-      typeof fullProjectInclude.config.include.domains
-    >[],
-    permissions: Prisma.PermissionGetPayload<
-      typeof fullProjectInclude.config.include.permissions
-    >[],
-  },
+    oauthProviderConfigs: Prisma.OAuthProviderConfigGetPayload<typeof fullProjectInclude.config.include.oauthProviderConfigs>[];
+    emailServiceConfig: Prisma.EmailServiceConfigGetPayload<typeof fullProjectInclude.config.include.emailServiceConfig> | null;
+    domains: Prisma.ProjectDomainGetPayload<typeof fullProjectInclude.config.include.domains>[];
+    permissions: Prisma.PermissionGetPayload<typeof fullProjectInclude.config.include.permissions>[];
+  };
 };
 
 export function projectPrismaToCrud(
-  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
+  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>,
 ): ProjectsCrud["Admin"]["Read"] {
   const oauthProviders = prisma.config.oauthProviderConfigs
-    .flatMap((provider): {
-      id: ProviderType,
-      enabled: boolean,
-      type: 'standard' | 'shared',
-      client_id?: string,
-      client_secret?: string ,
-      facebook_config_id?: string,
-      microsoft_tenant_id?: string,
-    }[] => {
-      if (provider.proxiedOAuthConfig) {
-        return [{
-          id: typedToLowercase(provider.proxiedOAuthConfig.type),
-          enabled: provider.enabled,
-          type: 'shared',
-        }];
-      } else if (provider.standardOAuthConfig) {
-        return [{
-          id: typedToLowercase(provider.standardOAuthConfig.type),
-          enabled: provider.enabled,
-          type: 'standard',
-          client_id: provider.standardOAuthConfig.clientId,
-          client_secret: provider.standardOAuthConfig.clientSecret,
-          facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
-          microsoft_tenant_id: provider.standardOAuthConfig.microsoftTenantId ?? undefined,
-        }];
-      } else {
-        throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
-      }
-    })
+    .flatMap(
+      (
+        provider,
+      ): {
+        id: ProviderType;
+        enabled: boolean;
+        type: "standard" | "shared";
+        client_id?: string;
+        client_secret?: string;
+        facebook_config_id?: string;
+        microsoft_tenant_id?: string;
+      }[] => {
+        if (provider.proxiedOAuthConfig) {
+          return [
+            {
+              id: typedToLowercase(provider.proxiedOAuthConfig.type),
+              enabled: provider.enabled,
+              type: "shared",
+            },
+          ];
+        } else if (provider.standardOAuthConfig) {
+          return [
+            {
+              id: typedToLowercase(provider.standardOAuthConfig.type),
+              enabled: provider.enabled,
+              type: "standard",
+              client_id: provider.standardOAuthConfig.clientId,
+              client_secret: provider.standardOAuthConfig.clientSecret,
+              facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
+              microsoft_tenant_id: provider.standardOAuthConfig.microsoftTenantId ?? undefined,
+            },
+          ];
+        } else {
+          throw new StackAssertionError(
+            `Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`,
+            { prisma },
+          );
+        }
+      },
+    )
     .sort((a, b) => a.id.localeCompare(b.id));
   return {
     id: prisma.id,
@@ -113,7 +120,7 @@ export function projectPrismaToCrud(
         }))
         .sort((a, b) => a.domain.localeCompare(b.domain)),
       oauth_providers: oauthProviders,
-      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
+      enabled_oauth_providers: oauthProviders.filter((provider) => provider.enabled),
       email_config: (() => {
         const emailServiceConfig = prisma.config.emailServiceConfig;
         if (!emailServiceConfig) {
@@ -121,7 +128,7 @@ export function projectPrismaToCrud(
         }
         if (emailServiceConfig.proxiedEmailServiceConfig) {
           return {
-            type: "shared"
+            type: "shared",
           } as const;
         } else if (emailServiceConfig.standardEmailServiceConfig) {
           const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
@@ -138,21 +145,26 @@ export function projectPrismaToCrud(
           throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
         }
       })(),
-      team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
+      team_creator_default_permissions: prisma.config.permissions
+        .filter((perm) => perm.isDefaultTeamCreatorPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
         .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
         .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-      team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
+        .map((perm) => ({ id: perm.id })),
+      team_member_default_permissions: prisma.config.permissions
+        .filter((perm) => perm.isDefaultTeamMemberPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
         .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
         .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-    }
+        .map((perm) => ({ id: perm.id })),
+    },
   };
 }
 
-export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
+export async function whyNotProjectAdmin(
+  projectId: string,
+  adminAccessToken: string,
+): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
   if (!adminAccessToken) {
     return "unparsable-access-token";
   }
@@ -164,7 +176,10 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     if (error instanceof KnownErrors.AccessTokenExpired) {
       return "access-token-expired";
     }
-    console.warn("Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
+    console.warn(
+      "Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.",
+      error,
+    );
     return "unparsable-access-token";
   }
   const { userId, projectId: accessTokenProjectId } = decoded;
@@ -175,7 +190,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
   let user;
   try {
     user = await usersCrudHandlers.adminRead({
-      project: await getProject("internal") ?? throwErr("Can't find internal project??"),
+      project: (await getProject("internal")) ?? throwErr("Can't find internal project??"),
       user_id: userId,
     });
   } catch (e) {
@@ -201,7 +216,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
 }
 
 export async function isProjectAdmin(projectId: string, adminAccessToken: string) {
-  return !await whyNotProjectAdmin(projectId, adminAccessToken);
+  return !(await whyNotProjectAdmin(projectId, adminAccessToken));
 }
 
 function isStringArray(value: any): value is string[] {

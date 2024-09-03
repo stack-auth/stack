@@ -1,12 +1,12 @@
+import { VerificationCodeType } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
-import { VerificationCodeType } from "@prisma/client";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamsCrudHandlers } from "../../teams/crud";
-import { KnownErrors } from "@stackframe/stack-shared";
 
 export const teamInvitationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -83,7 +83,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     return {
       statusCode: 200,
       bodyType: "json",
-      body: {}
+      body: {},
     };
   },
   async details(project, _, data, body, user) {
@@ -102,5 +102,5 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
         team_display_name: team.display_name,
       },
     };
-  }
+  },
 });

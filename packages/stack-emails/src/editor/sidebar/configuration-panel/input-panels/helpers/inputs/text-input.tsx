@@ -1,21 +1,21 @@
-import { Input, Label, Textarea } from '@stackframe/stack-ui';
-import { useState } from 'react';
+import { useState } from "react";
+import { Input, Label, Textarea } from "@stackframe/stack-ui";
 
 type Props = {
-  label: string,
-  rows?: number,
-  placeholder?: string,
-  helperText?: string | JSX.Element,
-  defaultValue: string,
-  onChange: (v: string) => void,
+  label: string;
+  rows?: number;
+  placeholder?: string;
+  helperText?: string | JSX.Element;
+  defaultValue: string;
+  onChange: (v: string) => void;
 };
 
 export default function TextInput({ helperText, label, placeholder, rows, defaultValue, onChange }: Props) {
   const [value, setValue] = useState(defaultValue);
-  const isMultiline = typeof rows === 'number' && rows > 1;
+  const isMultiline = typeof rows === "number" && rows > 1;
 
   return (
-    <div className='flex flex-col gap-2'>
+    <div className="flex flex-col gap-2">
       <Label>{label}</Label>
       {isMultiline ? (
         <Textarea

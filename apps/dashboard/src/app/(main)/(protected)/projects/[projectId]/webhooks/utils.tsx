@@ -1,18 +1,20 @@
-import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
 import { Alert } from "@stackframe/stack-ui";
+import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
 
 type Pagination = {
-  hasPrevPage?: boolean,
-  hasNextPage?: boolean,
-  prevPage?: () => void,
-  nextPage?: () => void,
-}
+  hasPrevPage?: boolean;
+  hasNextPage?: boolean;
+  prevPage?: () => void;
+  nextPage?: () => void;
+};
 
-export function getSvixResult<D>(data: {
-  loading: boolean,
-  error: any,
-  data: D,
-} & Pagination): { loaded: true, data: NonNullable<D> } & Pagination | { loaded: false, rendered: JSX.Element } & Pagination {
+export function getSvixResult<D>(
+  data: {
+    loading: boolean;
+    error: any;
+    data: D;
+  } & Pagination,
+): ({ loaded: true; data: NonNullable<D> } & Pagination) | ({ loaded: false; rendered: JSX.Element } & Pagination) {
   if (data.error) {
     return {
       loaded: false,

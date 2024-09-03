@@ -1,6 +1,6 @@
-import React, { CSSProperties } from 'react';
-import { z } from 'zod';
 import { Img } from "@react-email/components";
+import React, { CSSProperties } from "react";
+import { z } from "zod";
 
 const PADDING_SCHEMA = z
   .object({
@@ -24,7 +24,7 @@ export const ImagePropsSchema = z.object({
         .regex(/^#[0-9a-fA-F]{6}$/)
         .optional()
         .nullable(),
-      textAlign: z.enum(['center', 'left', 'right']).optional().nullable(),
+      textAlign: z.enum(["center", "left", "right"]).optional().nullable(),
     })
     .optional()
     .nullable(),
@@ -35,7 +35,7 @@ export const ImagePropsSchema = z.object({
       url: z.string().optional().nullable(),
       alt: z.string().optional().nullable(),
       linkHref: z.string().optional().nullable(),
-      contentAlignment: z.enum(['top', 'middle', 'bottom']).optional().nullable(),
+      contentAlignment: z.enum(["top", "middle", "bottom"]).optional().nullable(),
     })
     .optional()
     .nullable(),
@@ -56,19 +56,19 @@ export function Image({ style, props }: ImageProps) {
 
   const imageElement = (
     <Img
-      alt={props?.alt ?? ''}
-      src={props?.url ?? ''}
+      alt={props?.alt ?? ""}
+      src={props?.url ?? ""}
       width={width}
       height={height}
       style={{
         width,
         height,
-        outline: 'none',
-        border: 'none',
-        textDecoration: 'none',
-        verticalAlign: props?.contentAlignment ?? 'middle',
-        display: 'inline-block',
-        maxWidth: '100%',
+        outline: "none",
+        border: "none",
+        textDecoration: "none",
+        verticalAlign: props?.contentAlignment ?? "middle",
+        display: "inline-block",
+        maxWidth: "100%",
       }}
     />
   );
@@ -79,7 +79,7 @@ export function Image({ style, props }: ImageProps) {
 
   return (
     <div style={sectionStyle}>
-      <a href={linkHref} style={{ textDecoration: 'none' }} target="_blank">
+      <a href={linkHref} style={{ textDecoration: "none" }} target="_blank">
         {imageElement}
       </a>
     </div>

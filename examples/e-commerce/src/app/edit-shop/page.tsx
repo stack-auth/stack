@@ -1,10 +1,9 @@
-import "server-only";
-
-import Link from 'next/link';
-import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
-import { stackServerApp } from '@/stack';
+import { revalidatePath } from "next/cache";
+import Link from "next/link";
+import "server-only";
 import { Product, Shop } from "@/shop";
+import { stackServerApp } from "@/stack";
 
 export default async function EditShop() {
   const user = await stackServerApp.getUser({ or: "redirect" });
@@ -12,35 +11,43 @@ export default async function EditShop() {
 
   async function createShop() {
     "use server";
-    await (await stackServerApp.listUsers()).find(u => u.id === user.id)!.setServerMetadata({
-      // TODO this should be more like a transaction
-      ...user.serverMetadata,
-      eCommerceExample: {
-        shop: {
-          displayName: "My Shop",
-          products: [
-            {
-              id: randomUUID(),
-              name: "Product",
-              dollarPrice: 10,
-            }
-          ],
+    await (
+      await stackServerApp.listUsers()
+    )
+      .find((u) => u.id === user.id)!
+      .setServerMetadata({
+        // TODO this should be more like a transaction
+        ...user.serverMetadata,
+        eCommerceExample: {
+          shop: {
+            displayName: "My Shop",
+            products: [
+              {
+                id: randomUUID(),
+                name: "Product",
+                dollarPrice: 10,
+              },
+            ],
+          },
         },
-      },
-    });
+      });
     revalidatePath("/edit-shop");
     revalidatePath("/");
   }
 
   async function deleteShop() {
     "use server";
-    await (await stackServerApp.listUsers()).find(u => u.id === user.id)!.setServerMetadata({
-      // TODO this should be more like a transaction
-      ...user.serverMetadata,
-      eCommerceExample: {
-        shop: undefined,
-      },
-    });
+    await (
+      await stackServerApp.listUsers()
+    )
+      .find((u) => u.id === user.id)!
+      .setServerMetadata({
+        // TODO this should be more like a transaction
+        ...user.serverMetadata,
+        eCommerceExample: {
+          shop: undefined,
+        },
+      });
     revalidatePath("/edit-shop");
     revalidatePath("/");
   }
@@ -59,16 +66,20 @@ export default async function EditShop() {
         dollarPrice: Number(formData.get(`product${i}DollarPrice`)),
       });
     }
-    await (await stackServerApp.listUsers()).find(u => u.id === user.id)!.setServerMetadata({
-      // TODO this should be more like a transaction
-      ...user.serverMetadata,
-      eCommerceExample: {
-        shop: {
-          displayName: formData.get("displayName") as string,
-          products,
+    await (
+      await stackServerApp.listUsers()
+    )
+      .find((u) => u.id === user.id)!
+      .setServerMetadata({
+        // TODO this should be more like a transaction
+        ...user.serverMetadata,
+        eCommerceExample: {
+          shop: {
+            displayName: formData.get("displayName") as string,
+            products,
+          },
         },
-      },
-    });
+      });
     revalidatePath("/edit-shop");
     revalidatePath("/");
   }
@@ -82,11 +93,12 @@ export default async function EditShop() {
           <>
             {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
             <form action={saveShop}>
-              Shop Name:{" "}<input name="displayName" type="text" defaultValue={shop.displayName} />
+              Shop Name: <input name="displayName" type="text" defaultValue={shop.displayName} />
               <ul>
                 {shop.products.map((product, i) => (
                   <li key={product.id}>
-                    <input name={`product${i}Name`} type="text" defaultValue={product.name} />{" for "}$<input name={`product${i}DollarPrice`} type="number" defaultValue={product.dollarPrice} />
+                    <input name={`product${i}Name`} type="text" defaultValue={product.name} />
+                    {" for "}$<input name={`product${i}DollarPrice`} type="number" defaultValue={product.dollarPrice} />
                   </li>
                 ))}
               </ul>

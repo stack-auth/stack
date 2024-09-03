@@ -3,25 +3,21 @@ import { deindent } from "./strings";
 
 export type Result<T, E = unknown> =
   | {
-    status: "ok",
-    data: T,
-  }
+      status: "ok";
+      data: T;
+    }
   | {
-    status: "error",
-    error: E,
-  };
+      status: "error";
+      error: E;
+    };
 
 export type AsyncResult<T, E = unknown, P = void> =
   | Result<T, E>
-  | (
-    & {
-      status: "pending",
-    }
-    & {
-      progress: P,
-    }
-  );
-
+  | ({
+      status: "pending";
+    } & {
+      progress: P;
+    });
 
 export const Result = {
   fromThrowing,
@@ -108,37 +104,46 @@ async function fromThrowingAsync<T>(fn: () => Promise<T>): Promise<Result<T, unk
 function mapResult<T, U, E = unknown>(result: Result<T, E>, fn: (data: T) => U): Result<U, E>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P>;
 function mapResult<T, U, E = unknown, P = unknown>(result: AsyncResult<T, E, P>, fn: (data: T) => U): AsyncResult<U, E, P> {
-  if (result.status === "error") return {
-    status: "error",
-    error: result.error,
-  };
-  if (result.status === "pending") return {
-    status: "pending",
-    ..."progress" in result ? { progress: result.progress } : {},
-  } as any;
+  if (result.status === "error")
+    return {
+      status: "error",
+      error: result.error,
+    };
+  if (result.status === "pending")
+    return {
+      status: "pending",
+      ...("progress" in result ? { progress: result.progress } : {}),
+    } as any;
 
   return Result.ok(fn(result.data));
 }
 
-
 class RetryError extends AggregateError {
   constructor(public readonly errors: unknown[]) {
-    const strings = errors.map(e => String(e));
-    const isAllSame = strings.length > 1 && strings.every(s => s === strings[0]);
+    const strings = errors.map((e) => String(e));
+    const isAllSame = strings.length > 1 && strings.every((s) => s === strings[0]);
     super(
       errors,
       deindent`
       Error after retrying ${errors.length} times.
 
-      ${isAllSame ? deindent`
+      ${
+        isAllSame
+          ? deindent`
         Attempts 1-${errors.length}:
           ${errors[0]}
-      ` : errors.map((e, i) => deindent`
+      `
+          : errors
+              .map(
+                (e, i) => deindent`
           Attempt ${i + 1}:
             ${e}
-        `).join("\n\n")}
+        `,
+              )
+              .join("\n\n")
+      }
       `,
-      { cause: errors[errors.length - 1] }
+      { cause: errors[errors.length - 1] },
     );
     this.name = "RetryError";
   }

@@ -9,17 +9,15 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js v20
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-            version: 9.1.2
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -29,13 +27,13 @@ jobs:
 
       - name: Create .env.production.local file for apps/dashboard
         run: cp apps/dashboard/.env.development apps/dashboard/.env.production.local
-      
+
       - name: Create .env.production.local file for apps/e2e
         run: cp apps/e2e/.env.development apps/e2e/.env.production.local
 
       - name: Create .env.production.local file for examples/cjs-test
         run: cp examples/cjs-test/.env.development examples/cjs-test/.env.production.local
-      
+
       - name: Create .env.production.local file for examples/demo
         run: cp examples/demo/.env.development examples/demo/.env.production.local
 

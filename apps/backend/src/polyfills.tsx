@@ -1,6 +1,6 @@
+import * as Sentry from "@sentry/nextjs";
 import * as util from "util";
 import { registerErrorSink } from "@stackframe/stack-shared/dist/utils/errors";
-import * as Sentry from "@sentry/nextjs";
 
 const sentryErrorSink = (location: string, error: unknown) => {
   Sentry.captureException(error, { extra: { location } });

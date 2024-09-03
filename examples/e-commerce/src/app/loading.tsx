@@ -1,9 +1,7 @@
 export default function Loading() {
   return (
     <>
-      <div className="card">
-        Loading...
-      </div>
+      <div className="card">Loading...</div>
     </>
   );
 }

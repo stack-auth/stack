@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "strict": true,
     "noEmit": true,
@@ -23,21 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "skipLibCheck": true
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.?ts",
-    "**/*.?tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.?ts", "**/*.?tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

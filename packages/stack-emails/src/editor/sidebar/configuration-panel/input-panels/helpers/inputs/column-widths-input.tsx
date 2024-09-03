@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import TextDimensionInput from './text-dimension-input';
+import { useState } from "react";
+import TextDimensionInput from "./text-dimension-input";
 
 export const DEFAULT_2_COLUMNS = [6] as [number];
 export const DEFAULT_3_COLUMNS = [4, 8] as [number, number];
@@ -12,9 +12,9 @@ type FixedWidths = [
   number | null | undefined,
 ];
 type ColumnsLayoutInputProps = {
-  defaultValue: FixedWidths | null | undefined,
-  onChange: (v: FixedWidths | null | undefined) => void,
-  columnsCount: 2 | 3,
+  defaultValue: FixedWidths | null | undefined;
+  onChange: (v: FixedWidths | null | undefined) => void;
+  columnsCount: 2 | 3;
 };
 export default function ColumnWidthsInput({ defaultValue, onChange, columnsCount }: ColumnsLayoutInputProps) {
   const [currentValue, setCurrentValue] = useState<[TWidthValue, TWidthValue, TWidthValue]>(() => {
@@ -44,7 +44,7 @@ export default function ColumnWidthsInput({ defaultValue, onChange, columnsCount
     );
   }
   return (
-    <div className='flex gap-1'>
+    <div className="flex gap-1">
       <TextDimensionInput
         label="Column 1"
         defaultValue={currentValue[0]}

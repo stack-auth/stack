@@ -15,7 +15,7 @@ it("should send a sign-in code per e-mail", async ({ expect }) => {
   `);
 });
 
-it('should refuse to send a sign-in code if the redirect URL is invalid', async ({ expect }) => {
+it("should refuse to send a sign-in code if the redirect URL is invalid", async ({ expect }) => {
   const mailbox = backendContext.value.mailbox;
   const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
     method: "POST",
@@ -89,4 +89,3 @@ it("should refuse to sign up a new user if sign ups are disabled on the project"
 it.todo("should create a team for newly created users if configured as such");
 
 it.todo("should not create a team for newly created users if not configured as such");
-

@@ -1,48 +1,48 @@
-import { CSSProperties } from 'react';
-import { z } from 'zod';
+import { CSSProperties } from "react";
+import { z } from "zod";
 
 const FONT_FAMILY_SCHEMA = z
   .enum([
-    'MODERN_SANS',
-    'BOOK_SANS',
-    'ORGANIC_SANS',
-    'GEOMETRIC_SANS',
-    'HEAVY_SANS',
-    'ROUNDED_SANS',
-    'MODERN_SERIF',
-    'BOOK_SERIF',
-    'MONOSPACE',
+    "MODERN_SANS",
+    "BOOK_SANS",
+    "ORGANIC_SANS",
+    "GEOMETRIC_SANS",
+    "HEAVY_SANS",
+    "ROUNDED_SANS",
+    "MODERN_SERIF",
+    "BOOK_SERIF",
+    "MONOSPACE",
   ])
   .nullable()
   .optional();
 
 function getFontFamily(fontFamily: z.infer<typeof FONT_FAMILY_SCHEMA>) {
   switch (fontFamily) {
-    case 'MODERN_SANS': {
+    case "MODERN_SANS": {
       return '"Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif';
     }
-    case 'BOOK_SANS': {
+    case "BOOK_SANS": {
       return 'Optima, Candara, "Noto Sans", source-sans-pro, sans-serif';
     }
-    case 'ORGANIC_SANS': {
+    case "ORGANIC_SANS": {
       return 'Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", source-sans-pro, sans-serif';
     }
-    case 'GEOMETRIC_SANS': {
+    case "GEOMETRIC_SANS": {
       return 'Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif';
     }
-    case 'HEAVY_SANS': {
+    case "HEAVY_SANS": {
       return 'Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif';
     }
-    case 'ROUNDED_SANS': {
+    case "ROUNDED_SANS": {
       return 'ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, Comfortaa, Manjari, "Arial Rounded MT Bold", Calibri, source-sans-pro, sans-serif';
     }
-    case 'MODERN_SERIF': {
+    case "MODERN_SERIF": {
       return 'Charter, "Bitstream Charter", "Sitka Text", Cambria, serif';
     }
-    case 'BOOK_SERIF': {
+    case "BOOK_SERIF": {
       return '"Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif';
     }
-    case 'MONOSPACE': {
+    case "MONOSPACE": {
       return '"Nimbus Mono PS", "Courier New", "Cutive Mono", monospace';
     }
     default: {
@@ -77,8 +77,8 @@ export const TextPropsSchema = z.object({
       backgroundColor: COLOR_SCHEMA,
       fontSize: z.number().gte(0).optional().nullable(),
       fontFamily: FONT_FAMILY_SCHEMA,
-      fontWeight: z.enum(['bold', 'normal']).optional().nullable(),
-      textAlign: z.enum(['left', 'center', 'right']).optional().nullable(),
+      fontWeight: z.enum(["bold", "normal"]).optional().nullable(),
+      textAlign: z.enum(["left", "center", "right"]).optional().nullable(),
       padding: PADDING_SCHEMA,
     })
     .optional()
@@ -94,7 +94,7 @@ export const TextPropsSchema = z.object({
 export type TextProps = z.infer<typeof TextPropsSchema>;
 
 export const TextPropsDefaults = {
-  text: '',
+  text: "",
 };
 
 const parseText = (text: string) => {
@@ -117,10 +117,10 @@ const parseText = (text: string) => {
           href={match[2]}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: 'blue', textDecoration: 'underline' }}
+          style={{ color: "blue", textDecoration: "underline" }}
         >
           {match[1]}
-        </a>
+        </a>,
       );
     }
 

@@ -6,8 +6,19 @@ export function logged<T extends object>(name: string, toLog: T): T {
       const orig = Reflect.get(target, prop, receiver);
       if (typeof orig === "function") {
         return function (this: any, ...args: any[]) {
-          const success = (v: any, isPromise: boolean) => console.debug(`logged(...): Called ${name}.${String(prop)}(${args.map(a => nicify(a)).join(", ")}) => ${isPromise ? "Promise<" : ""}${nicify(result)}${isPromise ? ">" : ""}`, { this: this, args, promise: isPromise ? result : false, result: v, trace: new Error() });
-          const error = (e: any, isPromise: boolean) => console.debug(`logged(...): Error in ${name}.${String(prop)}(${args.map(a => nicify(a)).join(", ")})`, { this: this, args, promise: isPromise ? result : false, error: e, trace: new Error() });
+          const success = (v: any, isPromise: boolean) =>
+            console.debug(
+              `logged(...): Called ${name}.${String(prop)}(${args.map((a) => nicify(a)).join(", ")}) => ${isPromise ? "Promise<" : ""}${nicify(result)}${isPromise ? ">" : ""}`,
+              { this: this, args, promise: isPromise ? result : false, result: v, trace: new Error() },
+            );
+          const error = (e: any, isPromise: boolean) =>
+            console.debug(`logged(...): Error in ${name}.${String(prop)}(${args.map((a) => nicify(a)).join(", ")})`, {
+              this: this,
+              args,
+              promise: isPromise ? result : false,
+              error: e,
+              trace: new Error(),
+            });
 
           let result: unknown;
           try {
@@ -70,58 +81,61 @@ export function createLazyProxy<FactoryResult>(factory: () => FactoryResult): Fa
     return cache!;
   }
 
-  return new Proxy({}, {
-    get(target, prop, receiver) {
-      const instance = initializeIfNeeded();
-      return Reflect.get(instance, prop, receiver);
+  return new Proxy(
+    {},
+    {
+      get(target, prop, receiver) {
+        const instance = initializeIfNeeded();
+        return Reflect.get(instance, prop, receiver);
+      },
+      set(target, prop, value, receiver) {
+        const instance = initializeIfNeeded();
+        return Reflect.set(instance, prop, value, receiver);
+      },
+      has(target, prop) {
+        const instance = initializeIfNeeded();
+        return Reflect.has(instance, prop);
+      },
+      deleteProperty(target, prop) {
+        const instance = initializeIfNeeded();
+        return Reflect.deleteProperty(instance, prop);
+      },
+      ownKeys() {
+        const instance = initializeIfNeeded();
+        return Reflect.ownKeys(instance);
+      },
+      getOwnPropertyDescriptor(target, prop) {
+        const instance = initializeIfNeeded();
+        return Reflect.getOwnPropertyDescriptor(instance, prop);
+      },
+      defineProperty(target, prop, descriptor) {
+        const instance = initializeIfNeeded();
+        return Reflect.defineProperty(instance, prop, descriptor);
+      },
+      getPrototypeOf() {
+        const instance = initializeIfNeeded();
+        return Reflect.getPrototypeOf(instance);
+      },
+      setPrototypeOf(target, proto) {
+        const instance = initializeIfNeeded();
+        return Reflect.setPrototypeOf(instance, proto);
+      },
+      isExtensible() {
+        const instance = initializeIfNeeded();
+        return Reflect.isExtensible(instance);
+      },
+      preventExtensions() {
+        const instance = initializeIfNeeded();
+        return Reflect.preventExtensions(instance);
+      },
+      apply(target, thisArg, argumentsList) {
+        const instance = initializeIfNeeded();
+        return Reflect.apply(instance as any, thisArg, argumentsList);
+      },
+      construct(target, argumentsList, newTarget) {
+        const instance = initializeIfNeeded();
+        return Reflect.construct(instance as any, argumentsList, newTarget);
+      },
     },
-    set(target, prop, value, receiver) {
-      const instance = initializeIfNeeded();
-      return Reflect.set(instance, prop, value, receiver);
-    },
-    has(target, prop) {
-      const instance = initializeIfNeeded();
-      return Reflect.has(instance, prop);
-    },
-    deleteProperty(target, prop) {
-      const instance = initializeIfNeeded();
-      return Reflect.deleteProperty(instance, prop);
-    },
-    ownKeys() {
-      const instance = initializeIfNeeded();
-      return Reflect.ownKeys(instance);
-    },
-    getOwnPropertyDescriptor(target, prop) {
-      const instance = initializeIfNeeded();
-      return Reflect.getOwnPropertyDescriptor(instance, prop);
-    },
-    defineProperty(target, prop, descriptor) {
-      const instance = initializeIfNeeded();
-      return Reflect.defineProperty(instance, prop, descriptor);
-    },
-    getPrototypeOf() {
-      const instance = initializeIfNeeded();
-      return Reflect.getPrototypeOf(instance);
-    },
-    setPrototypeOf(target, proto) {
-      const instance = initializeIfNeeded();
-      return Reflect.setPrototypeOf(instance, proto);
-    },
-    isExtensible() {
-      const instance = initializeIfNeeded();
-      return Reflect.isExtensible(instance);
-    },
-    preventExtensions() {
-      const instance = initializeIfNeeded();
-      return Reflect.preventExtensions(instance);
-    },
-    apply(target, thisArg, argumentsList) {
-      const instance = initializeIfNeeded();
-      return Reflect.apply(instance as any, thisArg, argumentsList);
-    },
-    construct(target, argumentsList, newTarget) {
-      const instance = initializeIfNeeded();
-      return Reflect.construct(instance as any, argumentsList, newTarget);
-    }
-  }) as FactoryResult;
+  ) as FactoryResult;
 }

@@ -1,4 +1,8 @@
-'use client';
+"use client";
+
+import { PlusCircle, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import {
   Button,
@@ -10,18 +14,15 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-  Typography
+  Typography,
 } from "@stackframe/stack-ui";
-import { PlusCircle, Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
 import { Team, useStackApp, useUser } from "..";
 import { TeamIcon } from "./team-icon";
 
 type SelectedTeamSwitcherProps = {
-  urlMap?: (team: Team) => string,
-  selectedTeam?: Team,
-  noUpdateSelectedTeam?: boolean,
+  urlMap?: (team: Team) => string;
+  selectedTeam?: Team;
+  noUpdateSelectedTeam?: boolean;
 };
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
@@ -31,7 +32,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
   const router = useRouter();
   const selectedTeam = user?.selectedTeam || props.selectedTeam;
   const rawTeams = user?.useTeams();
-  const teams = useMemo(() => rawTeams?.sort((a, b) => b.id === selectedTeam?.id ? 1 : -1), [rawTeams, selectedTeam]);
+  const teams = useMemo(() => rawTeams?.sort((a, b) => (b.id === selectedTeam?.id ? 1 : -1)), [rawTeams, selectedTeam]);
 
   useEffect(() => {
     if (!props.noUpdateSelectedTeam && props.selectedTeam) {
@@ -44,9 +45,9 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
       value={selectedTeam?.id}
       onValueChange={(value) => {
         runAsynchronouslyWithAlert(async () => {
-          const team = teams?.find(team => team.id === value);
+          const team = teams?.find((team) => team.id === value);
           if (!team) {
-            throw new Error('Team not found, this should not happen');
+            throw new Error("Team not found, this should not happen");
           }
 
           if (!props.noUpdateSelectedTeam) {
@@ -59,31 +60,39 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
       }}
     >
       <SelectTrigger className="stack-scope">
-        <SelectValue placeholder="Select team"/>
+        <SelectValue placeholder="Select team" />
       </SelectTrigger>
       <SelectContent className="stack-scope">
-        {user?.selectedTeam ? <SelectGroup>
-          <SelectLabel>
-            <div className="flex items-center justify-between">
-              Current team
-              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
-                <Settings className="h-4 w-4"/>
-              </Button>
-            </div>
-          </SelectLabel>
-          <SelectItem value={user.selectedTeam.id}>
-            <div className="flex items-center gap-2">
-              <TeamIcon team={user.selectedTeam} />
-              <Typography>{user.selectedTeam.displayName}</Typography>
-            </div>
-          </SelectItem>
-        </SelectGroup> : undefined}
+        {user?.selectedTeam ? (
+          <SelectGroup>
+            <SelectLabel>
+              <div className="flex items-center justify-between">
+                Current team
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+            </SelectLabel>
+            <SelectItem value={user.selectedTeam.id}>
+              <div className="flex items-center gap-2">
+                <TeamIcon team={user.selectedTeam} />
+                <Typography>{user.selectedTeam.displayName}</Typography>
+              </div>
+            </SelectItem>
+          </SelectGroup>
+        ) : undefined}
 
-        {teams?.length ?
+        {teams?.length ? (
           <SelectGroup>
             <SelectLabel>Other teams</SelectLabel>
-            {teams.filter(team => team.id !== user?.selectedTeam?.id)
-              .map(team => (
+            {teams
+              .filter((team) => team.id !== user?.selectedTeam?.id)
+              .map((team) => (
                 <SelectItem value={team.id} key={team.id}>
                   <div className="flex items-center gap-2">
                     <TeamIcon team={team} />
@@ -91,23 +100,23 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                   </div>
                 </SelectItem>
               ))}
-          </SelectGroup> :
+          </SelectGroup>
+        ) : (
           <SelectGroup>
             <SelectLabel>No teams yet</SelectLabel>
-          </SelectGroup>}
+          </SelectGroup>
+        )}
 
-        {project.config.clientTeamCreationEnabled && <>
-          <SelectSeparator/>
-          <div>
-            <Button
-              onClick={() => router.push(`${app.urls.accountSettings}/team-creation`)}
-              className="w-full"
-              variant='ghost'
-            >
-              <PlusCircle className="mr-2 h-4 w-4"/> Create a team
-            </Button>
-          </div>
-        </>}
+        {project.config.clientTeamCreationEnabled && (
+          <>
+            <SelectSeparator />
+            <div>
+              <Button onClick={() => router.push(`${app.urls.accountSettings}/team-creation`)} className="w-full" variant="ghost">
+                <PlusCircle className="mr-2 h-4 w-4" /> Create a team
+              </Button>
+            </div>
+          </>
+        )}
       </SelectContent>
     </Select>
   );

@@ -1,6 +1,6 @@
-import React, { CSSProperties } from 'react';
-import { Container as ReactEmailContainer } from '@react-email/components';
-import { z } from 'zod';
+import { Container as ReactEmailContainer } from "@react-email/components";
+import React, { CSSProperties } from "react";
+import { z } from "zod";
 
 const COLOR_SCHEMA = z
   .string()
@@ -34,11 +34,11 @@ export const ContainerPropsSchema = z.object({
 });
 
 export type ContainerProps = {
-  style?: z.infer<typeof ContainerPropsSchema>['style'],
-  children?: JSX.Element | JSX.Element[] | null,
+  style?: z.infer<typeof ContainerPropsSchema>["style"];
+  children?: JSX.Element | JSX.Element[] | null;
 };
 
-function getBorder(style: ContainerProps['style']) {
+function getBorder(style: ContainerProps["style"]) {
   if (!style || !style.borderColor) {
     return undefined;
   }

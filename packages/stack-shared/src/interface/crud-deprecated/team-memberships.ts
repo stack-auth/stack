@@ -1,11 +1,9 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import { yupMixed, yupObject } from "../../schema-fields";
 
-export const teamMembershipsCrudServerReadSchema = yupObject({
-}).required();
+export const teamMembershipsCrudServerReadSchema = yupObject({}).required();
 
-export const teamMembershipsCrudServerCreateSchema = yupObject({
-}).required();
+export const teamMembershipsCrudServerCreateSchema = yupObject({}).required();
 
 export const teamMembershipsCrudServerDeleteSchema = yupMixed();
 

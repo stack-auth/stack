@@ -36,7 +36,7 @@ export function decodeBase32(input: string): Uint8Array {
     throw new StackAssertionError("Invalid base32 string");
   }
 
-  const output = new Uint8Array((input.length * 5 / 8) | 0);
+  const output = new Uint8Array(((input.length * 5) / 8) | 0);
   let bits = 0;
   let value = 0;
   let outputIndex = 0;
@@ -76,7 +76,11 @@ export function decodeBase64(input: string): Uint8Array {
     throw new StackAssertionError("Invalid base64 string");
   }
 
-  return new Uint8Array(atob(input).split("").map((char) => char.charCodeAt(0)));
+  return new Uint8Array(
+    atob(input)
+      .split("")
+      .map((char) => char.charCodeAt(0)),
+  );
 }
 
 export function isBase32(input: string): boolean {

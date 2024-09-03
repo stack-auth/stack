@@ -5,7 +5,5 @@ export const metadata = {
 };
 
 export default function Page({ params }: { params: { endpointId: string } }) {
-  return (
-    <PageClient endpointId={params.endpointId} />
-  );
+  return <PageClient endpointId={params.endpointId} />;
 }

@@ -27,7 +27,7 @@ it("should not refresh sessions given invalid refresh tokens", async ({ expect }
     method: "POST",
     accessType: "client",
     headers: {
-      "x-stack-refresh-token": "something-invalid"
+      "x-stack-refresh-token": "something-invalid",
     },
   });
   expect(refreshSessionResponse).toMatchInlineSnapshot(`

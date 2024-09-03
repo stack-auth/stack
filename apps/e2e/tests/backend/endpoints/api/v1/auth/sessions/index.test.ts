@@ -58,19 +58,21 @@ it("creates sessions for existing users", async ({ expect }) => {
   `);
 });
 
-it("creates sessions that expire", async ({ expect }) => {
-  const res = await Auth.Password.signUpWithEmail();
-  await Auth.expectToBeSignedIn();
-  const beginDate = new Date();
-  const res2 = await niceBackendFetch("/api/v1/auth/sessions", {
-    accessType: "server",
-    method: "POST",
-    body: {
-      user_id: res.userId,
-      expires_in_millis: 5_000,
-    },
-  });
-  expect(res2).toMatchInlineSnapshot(`
+it(
+  "creates sessions that expire",
+  async ({ expect }) => {
+    const res = await Auth.Password.signUpWithEmail();
+    await Auth.expectToBeSignedIn();
+    const beginDate = new Date();
+    const res2 = await niceBackendFetch("/api/v1/auth/sessions", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        user_id: res.userId,
+        expires_in_millis: 5_000,
+      },
+    });
+    expect(res2).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
       "body": {
@@ -80,40 +82,42 @@ it("creates sessions that expire", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  const waitPromise = wait(5_001);
-  try {
-    const refreshSessionResponse1 = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
-      method: "POST",
-      accessType: "client",
-      headers: {
-        "x-stack-refresh-token": res2.body.refresh_token
-      },
-    });
-    expect(refreshSessionResponse1).toMatchInlineSnapshot(`
+    const waitPromise = wait(5_001);
+    try {
+      const refreshSessionResponse1 = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
+        method: "POST",
+        accessType: "client",
+        headers: {
+          "x-stack-refresh-token": res2.body.refresh_token,
+        },
+      });
+      expect(refreshSessionResponse1).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": { "access_token": <stripped field 'access_token'> },
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
-    backendContext.set({ userAuth: { accessToken: refreshSessionResponse1.body.access_token, refreshToken: res2.body.refresh_token } });
-    await Auth.expectToBeSignedIn();
-  } finally {
-    const timeSinceBeginDate = new Date().getTime() - beginDate.getTime();
-    if (timeSinceBeginDate > 4_000) {
-      // eslint-disable-next-line no-unsafe-finally
-      throw new StackAssertionError(`Timeout error: Requests were too slow (${timeSinceBeginDate}ms > 4000ms); try again or try to understand why they were slow.`);
+      backendContext.set({ userAuth: { accessToken: refreshSessionResponse1.body.access_token, refreshToken: res2.body.refresh_token } });
+      await Auth.expectToBeSignedIn();
+    } finally {
+      const timeSinceBeginDate = new Date().getTime() - beginDate.getTime();
+      if (timeSinceBeginDate > 4_000) {
+        // eslint-disable-next-line no-unsafe-finally
+        throw new StackAssertionError(
+          `Timeout error: Requests were too slow (${timeSinceBeginDate}ms > 4000ms); try again or try to understand why they were slow.`,
+        );
+      }
     }
-  }
-  await waitPromise;
-  const refreshSessionResponse2 = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
-    method: "POST",
-    accessType: "client",
-    headers: {
-      "x-stack-refresh-token": res2.body.refresh_token
-    },
-  });
-  expect(refreshSessionResponse2).toMatchInlineSnapshot(`
+    await waitPromise;
+    const refreshSessionResponse2 = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
+      method: "POST",
+      accessType: "client",
+      headers: {
+        "x-stack-refresh-token": res2.body.refresh_token,
+      },
+    });
+    expect(refreshSessionResponse2).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 401,
       "body": {
@@ -126,12 +130,14 @@ it("creates sessions that expire", async ({ expect }) => {
       },
     }
   `);
-  backendContext.set({ userAuth: { accessToken: undefined, refreshToken: res2.body.refresh_token } });
-  await Auth.expectToBeSignedOut();
-}, {
-  // we wanna retry this, because in development mode, often the first time is slow due to compilation
-  retry: 1,
-});
+    backendContext.set({ userAuth: { accessToken: undefined, refreshToken: res2.body.refresh_token } });
+    await Auth.expectToBeSignedOut();
+  },
+  {
+    // we wanna retry this, because in development mode, often the first time is slow due to compilation
+    retry: 1,
+  },
+);
 
 it("cannot create sessions with an expiry date larger than a year away", async ({ expect }) => {
   const res = await Auth.Password.signUpWithEmail();

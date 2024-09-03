@@ -17,7 +17,10 @@ export function getEnvVariable(name: string, defaultValue?: string | undefined):
     `);
   }
 
-  return ((process.env[name] || defaultValue) ?? throwErr(`Missing environment variable: ${name}`)) || (defaultValue ?? throwErr(`Empty environment variable: ${name}`));
+  return (
+    ((process.env[name] || defaultValue) ?? throwErr(`Missing environment variable: ${name}`)) ||
+    (defaultValue ?? throwErr(`Empty environment variable: ${name}`))
+  );
 }
 
 export function getNodeEnvironment() {

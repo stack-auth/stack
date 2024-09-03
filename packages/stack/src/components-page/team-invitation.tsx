@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
+import React from "react";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Typography } from "@stackframe/stack-ui";
-import React from "react";
 import { MessageCard, StackClientApp, useStackApp, useUser } from "..";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 
@@ -16,16 +16,14 @@ const cachedGetInvitationDetails = cacheFunction(async (stackApp: StackClientApp
   return await stackApp.getTeamInvitationDetails(code);
 });
 
-function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<string, string> }) {
+function TeamInvitationInner(props: { fullPage?: boolean; searchParams: Record<string, string> }) {
   const stackApp = useStackApp();
   const [success, setSuccess] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const details = React.use(cachedGetInvitationDetails(stackApp, props.searchParams.code || ''));
+  const details = React.use(cachedGetInvitationDetails(stackApp, props.searchParams.code || ""));
 
-  if (errorMessage || details.status === 'error') {
-    return (
-      <PredefinedMessageCard type="unknownError" fullPage={props.fullPage} />
-    );
+  if (errorMessage || details.status === "error") {
+    return <PredefinedMessageCard type="unknownError" fullPage={props.fullPage} />;
   }
 
   if (success) {
@@ -41,20 +39,21 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
     );
   }
 
-
   return (
     <MessageCard
       title="Team invitation"
       fullPage={props.fullPage}
       primaryButtonText="Join"
-      primaryAction={() => runAsynchronouslyWithAlert(async () => {
-        const result = await stackApp.acceptTeamInvitation(props.searchParams.code || '');
-        if (result.status === 'error') {
-        setErrorMessage(result.error.message);
-        } else {
-        setSuccess(true);
-        }
-      })}
+      primaryAction={() =>
+        runAsynchronouslyWithAlert(async () => {
+          const result = await stackApp.acceptTeamInvitation(props.searchParams.code || "");
+          if (result.status === "error") {
+            setErrorMessage(result.error.message);
+          } else {
+            setSuccess(true);
+          }
+        })
+      }
       secondaryButtonText="Ignore"
       secondaryAction={() => stackApp.redirectToHome()}
     >
@@ -63,7 +62,7 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
   );
 }
 
-export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export function TeamInvitation({ fullPage = false, searchParams }: { fullPage?: boolean; searchParams: Record<string, string> }) {
   const user = useUser();
   const stackApp = useStackApp();
 
@@ -105,9 +104,9 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
     );
   }
 
-  const verificationResult = React.use(cachedVerifyInvitation(stackApp, searchParams.code || ''));
+  const verificationResult = React.use(cachedVerifyInvitation(stackApp, searchParams.code || ""));
 
-  if (verificationResult.status === 'error') {
+  if (verificationResult.status === "error") {
     const error = verificationResult.error;
     if (error instanceof KnownErrors.VerificationCodeNotFound) {
       return invalidJsx;

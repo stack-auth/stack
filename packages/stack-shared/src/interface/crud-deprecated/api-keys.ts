@@ -18,24 +18,28 @@ export const apiKeysCreateInputSchema = yupObject({
   has_super_secret_admin_key: yupBoolean().required(),
 });
 
-export const apiKeysCreateOutputSchema = baseApiKeysReadSchema.concat(yupObject({
-  publishable_client_key: yupString().optional(),
-  secret_server_key: yupString().optional(),
-  super_secret_admin_key: yupString().optional(),
-}).required());
+export const apiKeysCreateOutputSchema = baseApiKeysReadSchema.concat(
+  yupObject({
+    publishable_client_key: yupString().optional(),
+    secret_server_key: yupString().optional(),
+    super_secret_admin_key: yupString().optional(),
+  }).required(),
+);
 
 // Used for list, read and update endpoints after the initial creation
-export const apiKeysCrudAdminObfuscatedReadSchema = baseApiKeysReadSchema.concat(yupObject({
-  publishable_client_key: yupObject({
-    last_four: yupString().required(),
-  }).optional(),
-  secret_server_key: yupObject({
-    last_four: yupString().required(),
-  }).optional(),
-  super_secret_admin_key: yupObject({
-    last_four: yupString().required(),
-  }).optional(),
-}));
+export const apiKeysCrudAdminObfuscatedReadSchema = baseApiKeysReadSchema.concat(
+  yupObject({
+    publishable_client_key: yupObject({
+      last_four: yupString().required(),
+    }).optional(),
+    secret_server_key: yupObject({
+      last_four: yupString().required(),
+    }).optional(),
+    super_secret_admin_key: yupObject({
+      last_four: yupString().required(),
+    }).optional(),
+  }),
+);
 
 export const apiKeysCrudAdminUpdateSchema = yupObject({
   description: yupString().optional(),

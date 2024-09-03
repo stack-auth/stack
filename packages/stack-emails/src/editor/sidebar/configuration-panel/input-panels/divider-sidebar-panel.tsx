@@ -1,14 +1,14 @@
-import { MoveVertical } from 'lucide-react';
-import { useState } from 'react';
-import { DividerProps, DividerPropsDefaults, DividerPropsSchema } from '../../../blocks/block-divider';
-import BaseSidebarPanel from './helpers/base-sidebar-panel';
-import ColorInput from './helpers/inputs/color-input';
-import SliderInput from './helpers/inputs/slider-input';
-import MultiStylePropertyPanel from './helpers/style-inputs/multi-style-property-panel';
+import { MoveVertical } from "lucide-react";
+import { useState } from "react";
+import { DividerProps, DividerPropsDefaults, DividerPropsSchema } from "../../../blocks/block-divider";
+import BaseSidebarPanel from "./helpers/base-sidebar-panel";
+import ColorInput from "./helpers/inputs/color-input";
+import SliderInput from "./helpers/inputs/slider-input";
+import MultiStylePropertyPanel from "./helpers/style-inputs/multi-style-property-panel";
 
 type DividerSidebarPanelProps = {
-  data: DividerProps,
-  setData: (v: DividerProps) => void,
+  data: DividerProps;
+  setData: (v: DividerProps) => void;
 };
 export default function DividerSidebarPanel({ data, setData }: DividerSidebarPanelProps) {
   const [, setErrors] = useState<Zod.ZodError | null>(null);
@@ -34,7 +34,7 @@ export default function DividerSidebarPanel({ data, setData }: DividerSidebarPan
       />
       <SliderInput
         label="Height"
-        iconLabel={<MoveVertical className='h-4 w-4' />}
+        iconLabel={<MoveVertical className="h-4 w-4" />}
         units="px"
         step={1}
         min={1}
@@ -43,7 +43,7 @@ export default function DividerSidebarPanel({ data, setData }: DividerSidebarPan
         onChange={(lineHeight) => updateData({ ...data, props: { ...data.props, lineHeight } })}
       />
       <MultiStylePropertyPanel
-        names={['backgroundColor', 'padding']}
+        names={["backgroundColor", "padding"]}
         value={data.style}
         onChange={(style) => updateData({ ...data, style })}
       />

@@ -1,7 +1,6 @@
 import { createMailbox, it } from "../../../../helpers";
 import { ApiKey, Auth, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
   const response = await niceBackendFetch("/api/v1/teams", { accessType: "client" });
@@ -161,7 +160,7 @@ it("gets a specific team that the user is not part of on the client", async ({ e
   const { teamId } = await Team.create();
 
   backendContext.set({
-    mailbox: createMailbox()
+    mailbox: createMailbox(),
   });
   await Auth.Otp.signIn();
 
@@ -190,7 +189,7 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
   const { teamId } = await Team.create();
 
   backendContext.set({
-    mailbox: createMailbox()
+    mailbox: createMailbox(),
   });
 
   await Auth.Otp.signIn();
@@ -234,7 +233,7 @@ it("should not be allowed to get a team that the user is not part of on the clie
   const { teamId } = await Team.create();
 
   backendContext.set({
-    mailbox: createMailbox()
+    mailbox: createMailbox(),
   });
 
   await Auth.Otp.signIn();
@@ -326,7 +325,7 @@ it("updates team client metadata on the client", async ({ expect }) => {
     method: "PATCH",
     body: {
       client_metadata: {
-        test: "test-value"
+        test: "test-value",
       },
     },
   });
@@ -362,7 +361,7 @@ it("should not be able to update team client read only metadata on the client", 
     method: "PATCH",
     body: {
       client_read_only_metadata: {
-        test: "test-value"
+        test: "test-value",
       },
     },
   });
@@ -425,7 +424,7 @@ it("updates a team on the server", async ({ expect }) => {
       display_name: "My Updated Team",
       profile_image_url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
       server_metadata: {
-        "test": "test-value"
+        test: "test-value",
       },
     },
   });
@@ -477,7 +476,7 @@ it("updates team client read only metadata on the server", async ({ expect }) =>
     method: "PATCH",
     body: {
       client_read_only_metadata: {
-        test: "test-value"
+        test: "test-value",
       },
     },
   });
@@ -613,7 +612,7 @@ it("enables create team on sign up", async ({ expect }) => {
       config: {
         create_team_on_sign_up: true,
         magic_link_enabled: true,
-      }
+      },
     },
     headers: {
       "x-stack-admin-access-token": adminAccessToken,
@@ -625,7 +624,7 @@ it("enables create team on sign up", async ({ expect }) => {
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   backendContext.set({
-    mailbox: createMailbox()
+    mailbox: createMailbox(),
   });
   await Auth.Otp.signIn();
 

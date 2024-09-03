@@ -1,5 +1,5 @@
 import { it } from "../../../../../helpers";
-import { backendContext, Auth, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 import { ContactChannels } from "../../../../backend-helpers";
 
 it("can't send a verification code while logged out", async ({ expect }) => {
@@ -29,7 +29,6 @@ it("can't send a verification code while logged out", async ({ expect }) => {
   `);
 });
 
-
 it("should send a verification code per e-mail", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
   await ContactChannels.sendVerificationCode();
@@ -51,9 +50,8 @@ it("should send a verification code per e-mail", async ({ expect }) => {
   `);
 });
 
-
 it("can't verify an e-mail that has already been verified", async ({ expect }) => {
-  await Auth.Otp.signIn();  // OTP accounts are verified by default
+  await Auth.Otp.signIn(); // OTP accounts are verified by default
   const response = await niceBackendFetch("/api/v1/contact-channels/send-verification-code", {
     method: "POST",
     accessType: "client",

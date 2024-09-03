@@ -1,6 +1,6 @@
-import { SmartResponse } from "@/route-handlers/smart-response";
 import { Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { SmartResponse } from "@/route-handlers/smart-response";
 
 export function oauthResponseToSmartResponse(oauthResponse: OAuthResponse): SmartResponse {
   if (!oauthResponse.status) {
@@ -14,7 +14,7 @@ export function oauthResponseToSmartResponse(oauthResponse: OAuthResponse): Smar
       statusCode: oauthResponse.status,
       bodyType: "json",
       body: oauthResponse.body,
-      headers: Object.fromEntries(Object.entries(oauthResponse.headers || {}).map(([k, v]) => ([k, [v]]))),
+      headers: Object.fromEntries(Object.entries(oauthResponse.headers || {}).map(([k, v]) => [k, [v]])),
     };
   } else {
     throw new StackAssertionError(`Invalid OAuth response status code: ${oauthResponse.status}`, { oauthResponse });
@@ -24,13 +24,8 @@ export function oauthResponseToSmartResponse(oauthResponse: OAuthResponse): Smar
 export abstract class OAuthResponseError extends StatusError {
   public name = "OAuthResponseError";
 
-  constructor(
-    public readonly oauthResponse: OAuthResponse
-  ) {
-    super(
-      oauthResponse.status ?? throwErr(`OAuth response status is missing`),
-      JSON.stringify(oauthResponse.body),
-    );
+  constructor(public readonly oauthResponse: OAuthResponse) {
+    super(oauthResponse.status ?? throwErr(`OAuth response status is missing`), JSON.stringify(oauthResponse.body));
   }
 
   public override getBody(): Uint8Array {
@@ -40,7 +35,7 @@ export abstract class OAuthResponseError extends StatusError {
   public override getHeaders(): Record<string, string[]> {
     return {
       "Content-Type": ["application/json; charset=utf-8"],
-      ...Object.fromEntries(Object.entries(this.oauthResponse.headers || {}).map(([k, v]) => ([k, [v]]))),
+      ...Object.fromEntries(Object.entries(this.oauthResponse.headers || {}).map(([k, v]) => [k, [v]])),
     };
   }
 }

@@ -1,14 +1,14 @@
-import { getProject } from '@/lib/projects';
-import { prismaClient } from '@/prisma-client';
-import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
-import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
-import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
-import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
-import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
-import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
+import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
+import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from "@stackframe/stack-emails/dist/utils";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { getProject } from "@/lib/projects";
+import { prismaClient } from "@/prisma-client";
 
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
@@ -25,10 +25,12 @@ export async function getEmailTemplate(projectId: string, type: keyof typeof EMA
     },
   });
 
-  return template ? {
-    ...template,
-    content: template.content as TEditorConfiguration,
-  } : null;
+  return template
+    ? {
+        ...template,
+        content: template.content as TEditorConfiguration,
+      }
+    : null;
 }
 
 export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
@@ -51,15 +53,15 @@ function getPortConfig(port: number | string) {
 }
 
 export type EmailConfig = {
-  host: string,
-  port: number,
-  username: string,
-  password: string,
-  senderEmail: string,
-  senderName: string,
-  secure: boolean,
-  type: 'shared' | 'standard',
-}
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  senderEmail: string;
+  senderName: string;
+  secure: boolean;
+  type: "shared" | "standard";
+};
 
 export async function sendEmail({
   emailConfig,
@@ -68,11 +70,11 @@ export async function sendEmail({
   text,
   html,
 }: {
-  emailConfig: EmailConfig,
-  to: string | string[],
-  subject: string,
-  html: string,
-  text?: string,
+  emailConfig: EmailConfig;
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
 }) {
   const transporter = nodemailer.createTransport({
     host: emailConfig.host,
@@ -90,20 +92,19 @@ export async function sendEmail({
       to,
       subject,
       text,
-      html
+      html,
     });
   } catch (error) {
-    throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
+    throw new StackAssertionError("Failed to send email", { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
   }
-
 }
 
 export async function sendEmailFromTemplate(options: {
-  project: ProjectsCrud["Admin"]["Read"],
-  user: UsersCrud["Admin"]["Read"] | null,
-  email: string,
-  templateType: keyof typeof EMAIL_TEMPLATES_METADATA,
-  extraVariables: Record<string, string | null>,
+  project: ProjectsCrud["Admin"]["Read"];
+  user: UsersCrud["Admin"]["Read"] | null;
+  email: string;
+  templateType: keyof typeof EMAIL_TEMPLATES_METADATA;
+  extraVariables: Record<string, string | null>;
 }) {
   const template = await getEmailTemplateWithDefault(options.project.id, options.templateType);
 
@@ -127,20 +128,30 @@ export async function sendEmailFromTemplate(options: {
 async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<EmailConfig> {
   const projectEmailConfig = project.config.email_config;
 
-  if (projectEmailConfig.type === 'shared') {
+  if (projectEmailConfig.type === "shared") {
     return {
-      host: getEnvVariable('STACK_EMAIL_HOST'),
-      port: parseInt(getEnvVariable('STACK_EMAIL_PORT')),
-      username: getEnvVariable('STACK_EMAIL_USERNAME'),
-      password: getEnvVariable('STACK_EMAIL_PASSWORD'),
-      senderEmail: getEnvVariable('STACK_EMAIL_SENDER'),
+      host: getEnvVariable("STACK_EMAIL_HOST"),
+      port: parseInt(getEnvVariable("STACK_EMAIL_PORT")),
+      username: getEnvVariable("STACK_EMAIL_USERNAME"),
+      password: getEnvVariable("STACK_EMAIL_PASSWORD"),
+      senderEmail: getEnvVariable("STACK_EMAIL_SENDER"),
       senderName: project.display_name,
-      secure: getPortConfig(getEnvVariable('STACK_EMAIL_PORT')).secure,
-      type: 'shared',
+      secure: getPortConfig(getEnvVariable("STACK_EMAIL_PORT")).secure,
+      type: "shared",
     };
   } else {
-    if (!projectEmailConfig.host || !projectEmailConfig.port || !projectEmailConfig.username || !projectEmailConfig.password || !projectEmailConfig.sender_email || !projectEmailConfig.sender_name) {
-      throw new StackAssertionError("Email config is not complete despite not being shared. This should never happen?", { projectId: project.id, emailConfig: projectEmailConfig });
+    if (
+      !projectEmailConfig.host ||
+      !projectEmailConfig.port ||
+      !projectEmailConfig.username ||
+      !projectEmailConfig.password ||
+      !projectEmailConfig.sender_email ||
+      !projectEmailConfig.sender_name
+    ) {
+      throw new StackAssertionError("Email config is not complete despite not being shared. This should never happen?", {
+        projectId: project.id,
+        emailConfig: projectEmailConfig,
+      });
     }
     return {
       host: projectEmailConfig.host,
@@ -150,7 +161,7 @@ async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<E
       senderEmail: projectEmailConfig.sender_email,
       senderName: projectEmailConfig.sender_name,
       secure: getPortConfig(projectEmailConfig.port).secure,
-      type: 'standard',
+      type: "standard",
     };
   }
 }

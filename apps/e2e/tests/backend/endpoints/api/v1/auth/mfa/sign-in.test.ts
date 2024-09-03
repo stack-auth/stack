@@ -60,6 +60,7 @@ it("should sign in users with MFA enabled", async ({ expect }) => {
 });
 
 it("should reject invalid attempt codes", async ({ expect }) => {
+  await Auth.Password.signUpWithEmail();
   const { totpSecret } = await Auth.Mfa.setupTotpMfa();
   await Auth.signOut();
   const totp = await new TOTPController().generate(totpSecret);
@@ -87,9 +88,9 @@ it("should reject invalid attempt codes", async ({ expect }) => {
   `);
 });
 
-
 it("should reject invalid totp codes", async ({ expect }) => {
   const passwordRes = await Auth.Password.signUpWithEmail();
+  await Auth.Mfa.setupTotpMfa();
   await Auth.signOut();
   const signInRes = await niceBackendFetch("/api/v1/auth/password/sign-in", {
     method: "POST",

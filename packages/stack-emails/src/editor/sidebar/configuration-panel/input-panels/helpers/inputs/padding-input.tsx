@@ -1,18 +1,18 @@
-import { Label } from '@stackframe/stack-ui';
-import { ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine, ArrowUpFromLine } from 'lucide-react';
-import { useState } from 'react';
-import RawSliderInput from './raw/raw-slider-input';
+import { ArrowDownFromLine, ArrowLeftFromLine, ArrowRightFromLine, ArrowUpFromLine } from "lucide-react";
+import { useState } from "react";
+import { Label } from "@stackframe/stack-ui";
+import RawSliderInput from "./raw/raw-slider-input";
 
 type TPaddingValue = {
-  top: number,
-  bottom: number,
-  right: number,
-  left: number,
+  top: number;
+  bottom: number;
+  right: number;
+  left: number;
 };
 type Props = {
-  label: string,
-  defaultValue: TPaddingValue | null,
-  onChange: (value: TPaddingValue) => void,
+  label: string;
+  defaultValue: TPaddingValue | null;
+  onChange: (value: TPaddingValue) => void;
 };
 export default function PaddingInput({ label, defaultValue, onChange }: Props) {
   const [value, setValue] = useState(() => {
@@ -37,13 +37,13 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
   }
 
   return (
-    <div className='flex flex-col gap-2'>
+    <div className="flex flex-col gap-2">
       <Label>{label}</Label>
 
       <RawSliderInput
-        iconLabel={<ArrowUpFromLine className='w-4 h-4' />}
+        iconLabel={<ArrowUpFromLine className="h-4 w-4" />}
         value={value.top}
-        setValue={(num) => handleChange('top', num)}
+        setValue={(num) => handleChange("top", num)}
         units="px"
         step={4}
         min={0}
@@ -51,9 +51,9 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<ArrowDownFromLine className='w-4 h-4' />}
+        iconLabel={<ArrowDownFromLine className="h-4 w-4" />}
         value={value.bottom}
-        setValue={(num) => handleChange('bottom', num)}
+        setValue={(num) => handleChange("bottom", num)}
         units="px"
         step={4}
         min={0}
@@ -61,9 +61,9 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<ArrowLeftFromLine className='w-4 h-4' />}
+        iconLabel={<ArrowLeftFromLine className="h-4 w-4" />}
         value={value.left}
-        setValue={(num) => handleChange('left', num)}
+        setValue={(num) => handleChange("left", num)}
         units="px"
         step={4}
         min={0}
@@ -71,9 +71,9 @@ export default function PaddingInput({ label, defaultValue, onChange }: Props) {
       />
 
       <RawSliderInput
-        iconLabel={<ArrowRightFromLine className='w-4 h-4' />}
+        iconLabel={<ArrowRightFromLine className="h-4 w-4" />}
         value={value.right}
-        setValue={(num) => handleChange('right', num)}
+        setValue={(num) => handleChange("right", num)}
         units="px"
         step={4}
         min={0}

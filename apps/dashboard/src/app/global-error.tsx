@@ -1,9 +1,9 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { Spinner } from "@stackframe/stack-ui";
 import Error from "next/error";
 import { useEffect } from "react";
+import { Spinner } from "@stackframe/stack-ui";
 
 export default function GlobalError({ error }: any) {
   const isProdLike = process.env.NODE_ENV.includes("production");
@@ -26,15 +26,7 @@ export default function GlobalError({ error }: any) {
 
   return (
     <html>
-      <body suppressHydrationWarning>
-        {isProdLike ? (
-          <Spinner />
-        ) : (
-          <Error
-            statusCode={500}
-          />
-        )}
-      </body>
+      <body suppressHydrationWarning>{isProdLike ? <Spinner /> : <Error statusCode={500} />}</body>
     </html>
   );
 }

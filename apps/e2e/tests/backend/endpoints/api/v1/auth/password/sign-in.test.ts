@@ -60,6 +60,7 @@ it("should not allow signing in with an e-mail that never signed up", async ({ e
 });
 
 it("should not allow signing in with an incorrect password", async ({ expect }) => {
+  await Auth.Password.signUpWithEmail();
   const response = await niceBackendFetch("/api/v1/auth/password/sign-in", {
     method: "POST",
     accessType: "client",

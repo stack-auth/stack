@@ -1,6 +1,6 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { adaptSchema, projectIdSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 
 export const GET = createSmartRouteHandler({
   metadata: {
@@ -33,7 +33,14 @@ export const GET = createSmartRouteHandler({
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
+    body: yupString()
+      .required()
+      .meta({
+        openapiField: {
+          exampleValue:
+            "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None",
+        },
+      }),
   }),
   handler: async (req) => {
     return {
@@ -42,10 +49,14 @@ export const GET = createSmartRouteHandler({
       body: deindent`
         Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
 
-        Authentication: ${!req.auth ? "None" : deindent` ${typedCapitalize(req.auth.type)}
+        Authentication: ${
+          !req.auth
+            ? "None"
+            : deindent` ${typedCapitalize(req.auth.type)}
           Project: ${req.auth.project.id}
-          User: ${req.auth.user ? req.auth.user.primary_email ?? req.auth.user.id : "None"}
-        `}
+          User: ${req.auth.user ? (req.auth.user.primary_email ?? req.auth.user.id) : "None"}
+        `
+        }
       `,
     };
   },

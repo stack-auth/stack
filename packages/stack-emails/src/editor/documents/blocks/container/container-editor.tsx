@@ -1,12 +1,9 @@
-import React from 'react';
-
-import { Container as BaseContainer } from '../../../blocks/block-container';
-
-import { useCurrentBlockId } from '../../editor/editor-block';
-import { setDocument, setSelectedBlockId, useDocument } from '../../editor/editor-context';
-import EditorChildrenIds from '../helpers/editor-children-ids';
-
-import { ContainerProps } from './container-props-schema';
+import React from "react";
+import { Container as BaseContainer } from "../../../blocks/block-container";
+import { useCurrentBlockId } from "../../editor/editor-block";
+import { setDocument, setSelectedBlockId, useDocument } from "../../editor/editor-context";
+import EditorChildrenIds from "../helpers/editor-children-ids";
+import { ContainerProps } from "./container-props-schema";
 
 export default function ContainerEditor({ style, props }: ContainerProps) {
   const childrenIds = props?.childrenIds ?? [];
@@ -22,7 +19,7 @@ export default function ContainerEditor({ style, props }: ContainerProps) {
           setDocument({
             [blockId]: block,
             [currentBlockId]: {
-              type: 'Container',
+              type: "Container",
               data: {
                 ...document[currentBlockId].data,
                 props: { childrenIds: childrenIds },

@@ -1,17 +1,17 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, ActionDialogProps, Form } from "@stackframe/stack-ui";
 import React, { useEffect, useId, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import * as yup from "yup";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { ActionDialog, ActionDialogProps, Form } from "@stackframe/stack-ui";
 import { SmartForm } from "./smart-form";
 
 export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
-  props: Omit<ActionDialogProps, 'children'> & {
-    formSchema: S,
-    onSubmit: (values: yup.InferType<S>) => Promise<void | 'prevent-close'> | void | 'prevent-close',
+  props: Omit<ActionDialogProps, "children"> & {
+    formSchema: S;
+    onSubmit: (values: yup.InferType<S>) => Promise<void | "prevent-close"> | void | "prevent-close";
   },
 ) {
   const formId = `${useId()}-form`;
@@ -19,7 +19,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
   const [openState, setOpenState] = useState(false);
   const handleSubmit = async (values: yup.InferType<S>) => {
     const res = await props.onSubmit(values);
-    if (res !== 'prevent-close') {
+    if (res !== "prevent-close") {
       setOpenState(false);
       props.onOpenChange?.(false);
       props.onClose?.();
@@ -41,7 +41,7 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
           form: formId,
           type: "submit",
           loading: submitting,
-          ...((typeof props.okButton === "boolean") ? {} : props.okButton?.props)
+          ...(typeof props.okButton === "boolean" ? {} : props.okButton?.props),
         },
       }}
     >
@@ -51,12 +51,12 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
 }
 
 export function FormDialog<F extends FieldValues>(
-  props: Omit<ActionDialogProps, 'children'> & {
-    defaultValues?: Partial<F>,
-    onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
-    render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
-    formSchema: yup.ObjectSchema<F>,
-  }
+  props: Omit<ActionDialogProps, "children"> & {
+    defaultValues?: Partial<F>;
+    onSubmit: (values: F) => Promise<void | "prevent-close"> | void | "prevent-close";
+    render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode;
+    formSchema: yup.ObjectSchema<F>;
+  },
 ) {
   const formId = useId();
   const form = useForm({
@@ -73,7 +73,7 @@ export function FormDialog<F extends FieldValues>(
     try {
       const result = await props.onSubmit(values);
       form.reset();
-      if (result !== 'prevent-close') {
+      if (result !== "prevent-close") {
         setOpenState(false);
         props.onClose?.();
         props.onOpenChange?.(false);
@@ -107,12 +107,12 @@ export function FormDialog<F extends FieldValues>(
           form: formId,
           type: "submit",
           loading: submitting,
-          ...((typeof props.okButton == "boolean") ? {} : props.okButton?.props)
+          ...(typeof props.okButton == "boolean" ? {} : props.okButton?.props),
         },
       }}
     >
       <Form {...form}>
-        <form onSubmit={e => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
+        <form onSubmit={(e) => runAsynchronouslyWithAlert(form.handleSubmit(onSubmit)(e))} className="space-y-4" id={formId}>
           {props.render(form)}
         </form>
       </Form>

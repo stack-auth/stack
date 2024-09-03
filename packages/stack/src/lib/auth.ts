@@ -9,11 +9,11 @@ import { consumeVerifierAndStateCookie, saveVerifierAndState } from "./cookie";
 export async function signInWithOAuth(
   iface: StackClientInterface,
   options: {
-    provider: string,
-    redirectUrl: string,
-    errorRedirectUrl: string,
-    providerScope?: string,
-  }
+    provider: string;
+    redirectUrl: string;
+    errorRedirectUrl: string;
+    providerScope?: string;
+  },
 ) {
   const { codeChallenge, state } = await saveVerifierAndState();
   const location = await iface.getOAuthUrl({
@@ -32,10 +32,10 @@ export async function signInWithOAuth(
 export async function addNewOAuthProviderOrScope(
   iface: StackClientInterface,
   options: {
-    provider: string,
-    redirectUrl: string,
-    errorRedirectUrl: string,
-    providerScope?: string,
+    provider: string;
+    redirectUrl: string;
+    errorRedirectUrl: string;
+    providerScope?: string;
   },
   session: InternalSession,
 ) {
@@ -76,7 +76,9 @@ function consumeOAuthCallbackQueryParams() {
   if (!cookieResult) {
     // If the state can't be found in the cookies, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
-    captureError("consumeOAuthCallbackQueryParams", new Error(deindent`
+    captureError(
+      "consumeOAuthCallbackQueryParams",
+      new Error(deindent`
       Stack found an outer OAuth callback state in the query parameters, but not in cookies.
       
       This could have multiple reasons:
@@ -84,10 +86,10 @@ function consumeOAuthCallbackQueryParams() {
         - The user's browser deleted the cookie, either manually or because of a very strict cookie policy.
         - The cookie was already consumed by this page, and the user already logged in.
         - You are using another OAuth client library with the same callback URL as Stack.
-    `));
+    `),
+    );
     return null;
   }
-
 
   const newUrl = new URL(originalUrl);
   for (const param of requiredParams) {
@@ -109,10 +111,7 @@ function consumeOAuthCallbackQueryParams() {
   };
 }
 
-export async function callOAuthCallback(
-  iface: StackClientInterface,
-  redirectUrl: string,
-) {
+export async function callOAuthCallback(iface: StackClientInterface, redirectUrl: string) {
   // note: this part of the function (until the return) needs
   // to be synchronous, to prevent race conditions when
   // callOAuthCallback is called multiple times in parallel

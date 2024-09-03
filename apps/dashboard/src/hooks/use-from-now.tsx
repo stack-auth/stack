@@ -8,9 +8,12 @@ export function useFromNow(date: Date): string {
 
   useEffect(() => {
     if (Number.isFinite(detailed.secondsUntilChange)) {
-      const timeout = setTimeout(() => {
-        setInvalidationCounter(invalidationCounter + 1);
-      }, Math.round(detailed.secondsUntilChange * 1000));
+      const timeout = setTimeout(
+        () => {
+          setInvalidationCounter(invalidationCounter + 1);
+        },
+        Math.round(detailed.secondsUntilChange * 1000),
+      );
       return () => clearTimeout(timeout);
     }
   }, [invalidationCounter, detailed.secondsUntilChange]);

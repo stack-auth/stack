@@ -15,7 +15,7 @@ export const connectedAccountAccessTokenCrud = createCrud({
   docs: {
     clientCreate: {
       hidden: true,
-    }
+    },
   },
 });
 export type ConnectedAccountAccessTokenCrud = CrudTypeOf<typeof connectedAccountAccessTokenCrud>;

@@ -11,7 +11,7 @@ export function typedToUppercase<S extends string>(s: S): Uppercase<S> {
 }
 
 export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
-  return s.charAt(0).toUpperCase() + s.slice(1) as Capitalize<S>;
+  return (s.charAt(0).toUpperCase() + s.slice(1)) as Capitalize<S>;
 }
 
 /**
@@ -75,7 +75,6 @@ export function templateIdentity(strings: TemplateStringsArray | readonly string
   return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
 }
 
-
 export function deindent(code: string): string;
 export function deindent(strings: TemplateStringsArray | readonly string[], ...values: any[]): string;
 export function deindent(strings: string | readonly string[], ...values: any[]): string {
@@ -94,13 +93,12 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
     .map((line) => getWhitespacePrefix(line).length)
     .reduce((min, current) => Math.min(min, current), Infinity);
 
-  const deindentedStrings = trimmedStrings
-    .map((string, stringIndex) => {
-      return string
-        .split("\n")
-        .map((line, lineIndex) => stringIndex !== 0 && lineIndex === 0 ? line : line.substring(indentation))
-        .join("\n");
-    });
+  const deindentedStrings = trimmedStrings.map((string, stringIndex) => {
+    return string
+      .split("\n")
+      .map((line, lineIndex) => (stringIndex !== 0 && lineIndex === 0 ? line : line.substring(indentation)))
+      .join("\n");
+  });
 
   const indentedValues = values.map((value, i) => {
     const firstLineIndentation = getWhitespacePrefix(deindentedStrings[i].split("\n").at(-1)!);
@@ -110,18 +108,20 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
   return templateIdentity(deindentedStrings, ...indentedValues);
 }
 
-export function extractScopes(scope: string, removeDuplicates=true): string[] {
+export function extractScopes(scope: string, removeDuplicates = true): string[] {
   const trimmedString = scope.trim();
   const scopesArray = trimmedString.split(/\s+/);
-  const filtered = scopesArray.filter(scope => scope.length > 0);
+  const filtered = scopesArray.filter((scope) => scope.length > 0);
   return removeDuplicates ? [...new Set(filtered)] : filtered;
 }
 
 export function mergeScopeStrings(...scopes: string[]): string {
-  const allScope = scopes.map((s) => extractScopes(s)).flat().join(" ");
+  const allScope = scopes
+    .map((s) => extractScopes(s))
+    .flat()
+    .join(" ");
   return extractScopes(allScope).join(" ");
 }
-
 
 export function snakeCaseToCamelCase(snakeCase: string): string {
   if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
@@ -133,37 +133,35 @@ export function camelCaseToSnakeCase(camelCase: string): string {
   return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-
 /**
  * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
  * so we create an object of overrides to handle these cases.
  */
-const nicifiableClassNameOverrides = new Map(Object.entries({
-  Headers,
-} as Record<string, unknown>).map(([k, v]) => [v, k]));
+const nicifiableClassNameOverrides = new Map(
+  Object.entries({
+    Headers,
+  } as Record<string, unknown>).map(([k, v]) => [v, k]),
+);
 export type Nicifiable = {
-  getNicifiableKeys?(): PropertyKey[],
-  getNicifiedObjectExtraLines?(): string[],
+  getNicifiableKeys?(): PropertyKey[];
+  getNicifiedObjectExtraLines?(): string[];
 };
 export type NicifyOptions = {
-  maxDepth: number,
-  currentIndent: string,
-  lineIndent: string,
-  multiline: boolean,
-  refs: Map<unknown, string>,
-  path: string,
+  maxDepth: number;
+  currentIndent: string;
+  lineIndent: string;
+  multiline: boolean;
+  refs: Map<unknown, string>;
+  path: string;
   parent: null | {
-    options: NicifyOptions,
-    value: unknown,
-  },
-  keyInParent: PropertyKey | null,
-  hideFields: PropertyKey[],
-  overrides: (...args: Parameters<typeof nicify>) => string | null,
+    options: NicifyOptions;
+    value: unknown;
+  };
+  keyInParent: PropertyKey | null;
+  hideFields: PropertyKey[];
+  overrides: (...args: Parameters<typeof nicify>) => string | null;
 };
-export function nicify(
-  value: unknown,
-  options: Partial<NicifyOptions> = {},
-): string {
+export function nicify(value: unknown, options: Partial<NicifyOptions> = {}): string {
   const fullOptions: NicifyOptions = {
     maxDepth: 5,
     currentIndent: "",
@@ -177,16 +175,7 @@ export function nicify(
     hideFields: [],
     ...filterUndefined(options),
   };
-  const {
-    maxDepth,
-    currentIndent,
-    lineIndent,
-    multiline,
-    refs,
-    path,
-    overrides,
-    hideFields,
-  } = fullOptions;
+  const { maxDepth, currentIndent, lineIndent, multiline, refs, path, overrides, hideFields } = fullOptions;
   const nl = `\n${currentIndent}`;
 
   const overrideResult = overrides(value, options);
@@ -221,7 +210,9 @@ export function nicify(
   };
 
   switch (typeof value) {
-    case "string": case "boolean": case "number": {
+    case "string":
+    case "boolean":
+    case "number": {
       return JSON.stringify(value);
     }
     case "undefined": {
@@ -245,10 +236,11 @@ export function nicify(
         if (maxDepth <= 0 && resValueLength === 0) return "[...]";
         const resValues = value.map((v, i) => nestedNicify(v, `${path}[${i}]`, i));
         resValues.push(...extraLines);
-        if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
-        const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
+        if (resValues.length !== resValueLength)
+          throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+        const shouldIndent = resValues.length > 1 || resValues.some((x) => x.includes("\n"));
         if (shouldIndent) {
-          return `[${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}]`;
+          return `[${nl}${resValues.map((x) => `${lineIndent}${x},${nl}`).join("")}]`;
         } else {
           return `[${resValues.join(", ")}]`;
         }
@@ -257,14 +249,13 @@ export function nicify(
         return `URL(${JSON.stringify(value.toString())})`;
       }
 
-      const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
+      const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value))
+        ? null
+        : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";
 
       const entries = getNicifiableEntries(value).filter(([k]) => !hideFields.includes(k));
-      const extraLines = [
-        ...getNicifiedObjectExtraLines(value),
-        ...hideFields.length > 0 ? [`<some fields may have been hidden>`] : [],
-      ];
+      const extraLines = [...getNicifiedObjectExtraLines(value), ...(hideFields.length > 0 ? [`<some fields may have been hidden>`] : [])];
       const resValueLength = entries.length + extraLines.length;
       if (resValueLength === 0) return `${constructorString}{}`;
       if (maxDepth <= 0) return `${constructorString}{ ... }`;
@@ -278,12 +269,13 @@ export function nicify(
         }
       });
       resValues.push(...extraLines);
-      if (resValues.length !== resValueLength) throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
-      const shouldIndent = resValues.length > 1 || resValues.some(x => x.includes("\n"));
+      if (resValues.length !== resValueLength)
+        throw new StackAssertionError("nicify of object: resValues.length !== resValueLength", { value, resValues, resValueLength });
+      const shouldIndent = resValues.length > 1 || resValues.some((x) => x.includes("\n"));
 
       if (resValues.length === 0) return `${constructorString}{}`;
       if (shouldIndent) {
-        return `${constructorString}{${nl}${resValues.map(x => `${lineIndent}${x},${nl}`).join("")}}`;
+        return `${constructorString}{${nl}${resValues.map((x) => `${lineIndent}${x},${nl}`).join("")}}`;
       } else {
         return `${constructorString}{ ${resValues.join(", ")} }`;
       }
@@ -316,8 +308,8 @@ function getNicifiableKeys(value: Nicifiable | object) {
 
 function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown][] {
   const recordLikes = [Headers];
-  function isRecordLike(value: unknown): value is InstanceType<typeof recordLikes[number]> {
-    return recordLikes.some(x => value instanceof x);
+  function isRecordLike(value: unknown): value is InstanceType<(typeof recordLikes)[number]> {
+    return recordLikes.some((x) => value instanceof x);
   }
 
   if (isRecordLike(value)) {
