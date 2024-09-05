@@ -68,6 +68,7 @@ export function projectPrismaToCrud(
       client_id?: string,
       client_secret?: string ,
       facebook_config_id?: string,
+      microsoft_tenant_id?: string,
     }[] => {
       if (provider.proxiedOAuthConfig) {
         return [{
