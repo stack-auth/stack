@@ -3,7 +3,7 @@ import { KnownErrors } from '@stackframe/stack-shared';
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
-import { decryptJWT, encryptJWT } from '@stackframe/stack-shared/dist/utils/jwt';
+import { decryptJWE, encryptJWE, signJWT, verifyJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { JOSEError, JWTExpired } from 'jose/errors';
 import { SystemEventTypes, logEvent } from './events';
 
@@ -33,11 +33,12 @@ export const oauthCookieSchema = yupObject({
   afterCallbackRedirectUrl: yupString().optional(),
 });
 
+const jwtIssuer = "https://access-token.jwt-signature.stack-auth.com";
 
 export async function decodeAccessToken(accessToken: string) {
-  let decoded;
+  let payload;
   try {
-    decoded = await decryptJWT(accessToken);
+    payload = await verifyJWT(jwtIssuer, accessToken);
   } catch (error) {
     if (error instanceof JWTExpired) {
       throw new KnownErrors.AccessTokenExpired();
@@ -47,7 +48,12 @@ export async function decodeAccessToken(accessToken: string) {
     throw error;
   }
 
-  return await accessTokenSchema.validate(decoded);
+  return await accessTokenSchema.validate({
+    projectId: payload.projectId,
+    userId: payload.sub,
+    refreshTokenId: payload.refreshTokenId,
+    exp: payload.exp,
+  });
 }
 
 export async function generateAccessToken({
@@ -59,8 +65,7 @@ export async function generateAccessToken({
 }) {
   await logEvent([SystemEventTypes.UserActivity], { projectId, userId });
 
-  // TODO: pass the scope and some other information down to the token
-  return await encryptJWT({ projectId, userId }, getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "1h"));
+  return await signJWT(jwtIssuer, { projectId, sub: userId }, getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min"));
 }
 
 export async function createAuthTokens({
