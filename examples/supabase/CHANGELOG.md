@@ -1,5 +1,12 @@
 # @stackframe/example-supabase
 
+## 2.5.30
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.5.30
+
 ## 2.5.29
 
 ### Patch Changes
