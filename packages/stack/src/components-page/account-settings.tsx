@@ -23,14 +23,14 @@ import { TeamIcon } from '../components/team-icon';
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 
 
-export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+export function AccountSettings(props: { fullPage?: boolean }) {
   const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
   const stackApp = useStackApp();
   const project = stackApp.useProject();
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
+    <MaybeFullPage fullPage={!!props.fullPage}>
       <div style={{ alignSelf: 'stretch', flexGrow: 1 }}>
         <SidebarLayout
           items={([

@@ -4,13 +4,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, Typography } from "@stackframe/stack-ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { MessageCard, useStackApp, useUser } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
-import { useRouter } from "next/navigation";
 
 const schema = yupObject({
   displayName: yupString().required('Please enter a team name'),

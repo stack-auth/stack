@@ -28,13 +28,7 @@ type Components = {
 };
 
 
-export default async function StackHandler<HasTokenStore extends boolean>({
-  app,
-  params: { stack } = {},
-  searchParams = {},
-  fullPage,
-  componentProps
-}: {
+export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,
   params?: { stack?: string[] },
   searchParams?: Record<string, string>,
@@ -43,17 +37,17 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     [K in keyof Components]?: Parameters<Components[K]>;
   }
 }) {
-  if (!stack) {
+  if (!props.params?.stack) {
     return (
-      <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>
+      <MessageCard title="Invalid Stack Handler Setup" fullPage={props.fullPage}>
         <p>Can't use Stack handler at this location. Make sure that the file is in a folder called [...stack].</p>
       </MessageCard>
     );
   }
 
   function redirectIfNotHandler(name: keyof HandlerUrls) {
-    const url = app.urls[name];
-    const handlerUrl = app.urls.handler;
+    const url = props.app.urls[name];
+    const handlerUrl = props.app.urls.handler;
 
     if (url !== handlerUrl && url.startsWith(handlerUrl + "/")) {
       // don't redirect if the url is a handler url
@@ -61,7 +55,7 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     }
 
     const urlObj = new URL(url, "http://example.com");
-    for (const [key, value] of Object.entries(searchParams)) {
+    for (const [key, value] of Object.entries(props.searchParams || {})) {
       urlObj.searchParams.set(key, value);
     }
 
@@ -81,56 +75,56 @@ export default async function StackHandler<HasTokenStore extends boolean>({
     error: 'error',
   };
 
-  const path = stack.join('/');
+  const path = props.params.stack.join('/');
 
   if (path.startsWith('account-settings')) {
-    return <AccountSettings fullPage={fullPage} {...componentProps?.AccountSettings} />;
+    return <AccountSettings fullPage={props.fullPage} {...props.componentProps?.AccountSettings} />;
   }
 
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      return <SignIn fullPage={fullPage} automaticRedirect {...componentProps?.SignIn} />
+      return <SignIn fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignIn} />
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      return <SignUp fullPage={fullPage} automaticRedirect {...componentProps?.SignUp} />;
+      return <SignUp fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignUp} />;
     }
     case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
-      return <EmailVerification searchParams={searchParams} fullPage={fullPage} {...componentProps?.EmailVerification} />;
+      return <EmailVerification searchParams={props.searchParams} fullPage={props.fullPage} {...props.componentProps?.EmailVerification} />;
     }
     case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
-      return <PasswordReset searchParams={searchParams} fullPage={fullPage} {...componentProps?.PasswordReset} />;
+      return <PasswordReset searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.PasswordReset} />;
     }
     case availablePaths.forgotPassword: {
       redirectIfNotHandler('forgotPassword');
-      return <ForgotPassword fullPage={fullPage} {...componentProps?.ForgotPassword} />;
+      return <ForgotPassword fullPage={props.fullPage} {...props.componentProps?.ForgotPassword} />;
     }
     case availablePaths.signOut: {
       redirectIfNotHandler('signOut');
-      return <SignOut fullPage={fullPage} {...componentProps?.SignOut} />;
+      return <SignOut fullPage={props.fullPage} {...props.componentProps?.SignOut} />;
     }
     case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
-      return <OAuthCallback fullPage={fullPage} {...componentProps?.OAuthCallback} />;
+      return <OAuthCallback fullPage={props.fullPage} {...props.componentProps?.OAuthCallback} />;
     }
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
-      return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} {...componentProps?.MagicLinkCallback} />;
+      return <MagicLinkCallback searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.MagicLinkCallback} />;
     }
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
-      return <TeamInvitation searchParams={searchParams} fullPage={fullPage} {...componentProps?.TeamInvitation} />;
+      return <TeamInvitation searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.TeamInvitation} />;
     }
     case availablePaths.error: {
-      return <ErrorPage searchParams={searchParams} fullPage={fullPage} {...componentProps?.ErrorPage} />;
+      return <ErrorPage searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.ErrorPage} />;
     }
     default: {
       for (const [key, value] of Object.entries(availablePaths)) {
         if (path === value.replaceAll('-', '')) {
-          redirect(`${app.urls.handler}/${value}`, RedirectType.replace);
+          redirect(`${props.app.urls.handler}/${value}`, RedirectType.replace);
         }
       }
       return notFound();

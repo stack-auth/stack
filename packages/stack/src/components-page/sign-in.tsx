@@ -1,5 +1,5 @@
 import { AuthPage } from './auth-page';
 
-export function SignIn({ fullPage=false, automaticRedirect }: { fullPage?: boolean, automaticRedirect?: boolean }) {
-  return <AuthPage fullPage={fullPage} type='sign-in' automaticRedirect={automaticRedirect} />;
+export function SignIn(props: { fullPage?: boolean, automaticRedirect?: boolean }) {
+  return <AuthPage fullPage={!!props.fullPage} type='sign-in' automaticRedirect={!!props.automaticRedirect} />;
 }

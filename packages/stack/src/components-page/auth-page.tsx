@@ -12,15 +12,11 @@ import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 
-export function AuthPage({
-  fullPage=false,
-  type,
-  automaticRedirect,
-  mockProject,
-}: {
+export function AuthPage(props: {
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   automaticRedirect?: boolean,
+  extraInfo?: React.ReactNode,
   mockProject?: {
     config: {
       signUpEnabled: boolean,
@@ -35,34 +31,34 @@ export function AuthPage({
   const stackApp = useStackApp();
   const user = useUser();
   const projectFromHook = stackApp.useProject();
-  const project = mockProject || projectFromHook;
+  const project = props.mockProject || projectFromHook;
 
   useEffect(() => {
-    if (automaticRedirect) {
-      if (user && !mockProject) {
-        runAsynchronously(type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
+    if (props.automaticRedirect) {
+      if (user && !props.mockProject) {
+        runAsynchronously(props.type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
       }
     }
-  }, [user, mockProject, stackApp, automaticRedirect]);
+  }, [user, props.mockProject, stackApp, props.automaticRedirect]);
 
-  if (user && !mockProject) {
-    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
+  if (user && !props.mockProject) {
+    return <PredefinedMessageCard type='signedIn' fullPage={props.fullPage} />;
   }
 
-  if (type === 'sign-up' && !project.config.signUpEnabled) {
-    return <PredefinedMessageCard type='signUpDisabled' fullPage={fullPage} />;
+  if (props.type === 'sign-up' && !project.config.signUpEnabled) {
+    return <PredefinedMessageCard type='signUpDisabled' fullPage={props.fullPage} />;
   }
 
   const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
-      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: fullPage ? '1rem' : 0 }}>
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <div className="text-center mb-6">
           <Typography type='h2'>
-            {type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
+            {props.type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
           </Typography>
-          {type === 'sign-in' ? (
+          {props.type === 'sign-in' ? (
             project.config.signUpEnabled && (
               <Typography>
                 {"Don't have an account? "}
@@ -86,7 +82,7 @@ export function AuthPage({
             </Typography>
           )}
         </div>
-        <OAuthButtonGroup type={type} mockProject={mockProject} />
+        <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
         {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue='magic-link'>
@@ -98,11 +94,11 @@ export function AuthPage({
               <MagicLinkSignIn/>
             </TabsContent>
             <TabsContent value='password'>
-              {type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+              {props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
             </TabsContent>
           </Tabs>
         ) : project.config.credentialEnabled ? (
-          type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+          props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
         ) : null}
