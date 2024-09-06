@@ -35,7 +35,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   fullPage: boolean,
   componentProps?: {
     [K in keyof Components]?: Parameters<Components[K]>;
-  }
+  },
 }) {
   if (!props.params?.stack) {
     return (
@@ -84,7 +84,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      return <SignIn fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignIn} />
+      return <SignIn fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignIn} />;
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
