@@ -102,6 +102,11 @@ export function AuthPage(props: {
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
         ) : null}
+        {props.extraInfo && (
+          <div className='flex flex-col items-center text-center text-sm text-gray-500 mt-2'>
+            <p>{props.extraInfo}</p>
+          </div>
+        )}
       </div>
     </MaybeFullPage>
   );
