@@ -1,6 +1,6 @@
 import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
-import { AuthPage, StackServerApp } from "..";
+import { SignIn, SignUp, StackServerApp } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
 import { AccountSettings } from "./account-settings";
@@ -11,25 +11,38 @@ import { MagicLinkCallback } from "./magic-link-callback";
 import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
-import { TeamCreation } from "./team-creation";
 import { TeamInvitation } from "./team-invitation";
+
+type Components = {
+  SignIn: typeof SignIn,
+  SignUp: typeof SignUp,
+  EmailVerification: typeof EmailVerification,
+  PasswordReset: typeof PasswordReset,
+  ForgotPassword: typeof ForgotPassword,
+  SignOut: typeof SignOut,
+  OAuthCallback: typeof OAuthCallback,
+  MagicLinkCallback: typeof MagicLinkCallback,
+  TeamInvitation: typeof TeamInvitation,
+  ErrorPage: typeof ErrorPage,
+  AccountSettings: typeof AccountSettings,
+};
+
 
 export default async function StackHandler<HasTokenStore extends boolean>({
   app,
   params: { stack } = {},
   searchParams = {},
   fullPage,
+  componentProps
 }: {
   app: StackServerApp<HasTokenStore>,
   params?: { stack?: string[] },
   searchParams?: Record<string, string>,
-  fullPage?: boolean,
-}) {
-  if (fullPage === undefined) {
-    console.warn("Not specifying `fullPage` in the StackHandler options is deprecated; the default value will change to `false` in the next major version. Please specify `fullPage={true}` in your `app/[...stack]/handler/page.tsx` file to retain the current behavior.");
-    fullPage = true;
+  fullPage: boolean,
+  componentProps?: {
+    [K in keyof Components]?: Parameters<Components[K]>;
   }
-
+}) {
   if (!stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={fullPage}>
@@ -71,49 +84,48 @@ export default async function StackHandler<HasTokenStore extends boolean>({
   const path = stack.join('/');
 
   if (path.startsWith('account-settings')) {
-    return <AccountSettings fullPage={fullPage} />;
+    return <AccountSettings fullPage={fullPage} {...componentProps?.AccountSettings} />;
   }
-
 
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      return <AuthPage fullPage={fullPage} type='sign-in' automaticRedirect />;
+      return <SignIn fullPage={fullPage} automaticRedirect {...componentProps?.SignIn} />
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      return <AuthPage fullPage={fullPage} type='sign-up' automaticRedirect />;
+      return <SignUp fullPage={fullPage} automaticRedirect {...componentProps?.SignUp} />;
     }
     case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
-      return <EmailVerification searchParams={searchParams} fullPage={fullPage} />;
+      return <EmailVerification searchParams={searchParams} fullPage={fullPage} {...componentProps?.EmailVerification} />;
     }
     case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
-      return <PasswordReset searchParams={searchParams} fullPage={fullPage} />;
+      return <PasswordReset searchParams={searchParams} fullPage={fullPage} {...componentProps?.PasswordReset} />;
     }
     case availablePaths.forgotPassword: {
       redirectIfNotHandler('forgotPassword');
-      return <ForgotPassword fullPage={fullPage} />;
+      return <ForgotPassword fullPage={fullPage} {...componentProps?.ForgotPassword} />;
     }
     case availablePaths.signOut: {
       redirectIfNotHandler('signOut');
-      return <SignOut fullPage={fullPage} />;
+      return <SignOut fullPage={fullPage} {...componentProps?.SignOut} />;
     }
     case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
-      return <OAuthCallback fullPage={fullPage} />;
+      return <OAuthCallback fullPage={fullPage} {...componentProps?.OAuthCallback} />;
     }
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
-      return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} />;
+      return <MagicLinkCallback searchParams={searchParams} fullPage={fullPage} {...componentProps?.MagicLinkCallback} />;
     }
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
-      return <TeamInvitation searchParams={searchParams} fullPage={fullPage} />;
+      return <TeamInvitation searchParams={searchParams} fullPage={fullPage} {...componentProps?.TeamInvitation} />;
     }
     case availablePaths.error: {
-      return <ErrorPage searchParams={searchParams} fullPage={fullPage} />;
+      return <ErrorPage searchParams={searchParams} fullPage={fullPage} {...componentProps?.ErrorPage} />;
     }
     default: {
       for (const [key, value] of Object.entries(availablePaths)) {

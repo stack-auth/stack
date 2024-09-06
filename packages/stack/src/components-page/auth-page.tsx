@@ -1,17 +1,16 @@
 'use client';
 
-import { CredentialSignIn } from '../components/credential-sign-in';
-import { SeparatorWithText } from '../components/elements/separator-with-text';
-import { OAuthButtonGroup } from '../components/oauth-button-group';
-import { MaybeFullPage } from '../components/elements/maybe-full-page';
-import { useUser, useStackApp } from '..';
-import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
-import { MagicLinkSignIn } from '../components/magic-link-sign-in';
-import { CredentialSignUp } from '../components/credential-sign-up';
-import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
-import { Project } from '../lib/stack-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
+import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
 import { useEffect } from 'react';
+import { useStackApp, useUser } from '..';
+import { CredentialSignIn } from '../components/credential-sign-in';
+import { CredentialSignUp } from '../components/credential-sign-up';
+import { MaybeFullPage } from '../components/elements/maybe-full-page';
+import { SeparatorWithText } from '../components/elements/separator-with-text';
+import { MagicLinkSignIn } from '../components/magic-link-sign-in';
+import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
+import { OAuthButtonGroup } from '../components/oauth-button-group';
 
 export function AuthPage({
   fullPage=false,
