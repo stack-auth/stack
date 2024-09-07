@@ -6,10 +6,7 @@ export async function TranslationProvider({ lang, children }: {
   children: React.ReactNode,
 }) {
   const locale = quetzalLocales.get(lang ?? (undefined as never));
-  if (!locale) {
-    throw new Error(`No messages found for locale: ${lang}`);
-  }
-  return <TranslationProviderClient quetzalKeys={quetzalKeys} quetzalLocale={locale}>
+  return <TranslationProviderClient quetzalKeys={quetzalKeys} quetzalLocale={locale ?? new Map()}>
     {children}
   </TranslationProviderClient>;
 }
