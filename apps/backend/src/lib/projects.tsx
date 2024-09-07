@@ -171,44 +171,6 @@ export function projectPrismaToCrud(
   };
 }
 
-export async function whyNotProjectAdmin(options: {
-  project: ProjectsCrud["Admin"]["Read"] | null,
-  internalUser: UsersCrud["Admin"]["Read"] | null,
-  adminAccessToken: string,
-}): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
-  if (!options.adminAccessToken) {
-    return "unparsable-access-token";
-  }
-
-  let decoded;
-  try {
-    decoded = await decodeAccessToken(options.adminAccessToken);
-  } catch (error) {
-    if (error instanceof KnownErrors.AccessTokenExpired) {
-      return "access-token-expired";
-    }
-    console.warn("Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
-    return "unparsable-access-token";
-  }
-  const { userId, projectId: accessTokenProjectId } = decoded;
-  if (accessTokenProjectId !== "internal") {
-    return "wrong-token-project-id";
-  }
-
-  // the should never trigger as it should be checked from the caller already, but just to make it consistent here
-  if (!options.internalUser || options.internalUser.id !== userId) {
-    captureError("Internal user does not match access token user", {});
-    return "not-admin";
-  }
-
-  const allProjects = listManagedProjectIds(options.internalUser);
-  if (!options.project || !allProjects.includes(options.project.id)) {
-    return "not-admin";
-  }
-
-  return null;
-}
-
 function isStringArray(value: any): value is string[] {
   return Array.isArray(value) && value.every((id) => typeof id === "string");
 }

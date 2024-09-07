@@ -300,22 +300,22 @@ export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: 
   });
 };
 
-export async function getUser(projectId: string, userId: string) {
+export async function getUser(options: { projectId: string, userId: string }) {
   const [db, lastActiveAtMillis] = await Promise.all([
     prismaClient.projectUser.findUnique({
       where: {
         projectId_projectUserId: {
-          projectId,
-          projectUserId: userId,
+          projectId: options.projectId,
+          projectUserId: options.userId,
         },
       },
       include: userFullInclude,
     }),
-    getUserLastActiveAtMillis(userId, new Date()),
+    getUserLastActiveAtMillis(options.userId, new Date()),
   ]);
 
   if (!db) {
-    throw new KnownErrors.UserNotFound();
+    return null;
   }
 
   return userPrismaToCrud(db, lastActiveAtMillis);
@@ -329,7 +329,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     user_id: userIdOrMeSchema.required(),
   }),
   onRead: async ({ auth, params }) => {
-    return await getUser(auth.project.id, params.user_id);
+    const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
+    if (!user) {
+      throw new KnownErrors.UserNotFound();
+    }
+    return user;
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({

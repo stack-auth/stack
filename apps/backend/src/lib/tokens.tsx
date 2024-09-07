@@ -6,6 +6,7 @@ import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { decryptJWE, encryptJWE, signJWT, verifyJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { JOSEError, JWTExpired } from 'jose/errors';
 import { SystemEventTypes, logEvent } from './events';
+import { Result } from '@stackframe/stack-shared/dist/utils/results';
 
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
@@ -41,19 +42,21 @@ export async function decodeAccessToken(accessToken: string) {
     payload = await verifyJWT(jwtIssuer, accessToken);
   } catch (error) {
     if (error instanceof JWTExpired) {
-      throw new KnownErrors.AccessTokenExpired();
+      return Result.error(new KnownErrors.AccessTokenExpired());
     } else if (error instanceof JOSEError) {
-      throw new KnownErrors.UnparsableAccessToken();
+      return Result.error(new KnownErrors.UnparsableAccessToken());
     }
     throw error;
   }
 
-  return await accessTokenSchema.validate({
+  const result = await accessTokenSchema.validate({
     projectId: payload.projectId,
     userId: payload.sub,
     refreshTokenId: payload.refreshTokenId,
     exp: payload.exp,
   });
+
+  return Result.ok(result);
 }
 
 export async function generateAccessToken({
