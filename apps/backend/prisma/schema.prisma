@@ -281,9 +281,9 @@ enum ContactChannelType {
 }
 
 model ContactChannel {
-  projectId       String
-  projectUserId   String @db.Uuid
-  id              String @default(uuid()) @db.Uuid
+  projectId     String
+  projectUserId String @db.Uuid
+  id            String @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -495,10 +495,10 @@ model AuthMethod {
 }
 
 model OtpAuthMethod {
-  projectId           String
-  authMethodId        String             @db.Uuid
-  contactChannelId    String             @db.Uuid
-  projectUserId       String             @db.Uuid
+  projectId        String
+  authMethodId     String @db.Uuid
+  contactChannelId String @db.Uuid
+  projectUserId    String @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -562,6 +562,7 @@ enum StandardOAuthProviderType {
   SPOTIFY
   DISCORD
   GITLAB
+  BITBUCKET
 }
 
 model OAuthToken {

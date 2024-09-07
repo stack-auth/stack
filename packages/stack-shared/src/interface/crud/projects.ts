@@ -15,6 +15,7 @@ const oauthProviderSchema = yupObject({
 
   // extra params
   facebook_config_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the configuration id for Facebook business login (for things like ads and marketing).' } }),
+  microsoft_tenant_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the Microsoft tenant id for Microsoft directory' } }),
 });
 
 const enabledOAuthProviderSchema = yupObject({

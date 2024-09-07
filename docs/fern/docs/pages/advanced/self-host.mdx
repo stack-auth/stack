@@ -1,0 +1,144 @@
+---
+slug: advanced/self-host
+subtitle: Self-host Stack Auth on your own server
+---
+
+Stack Auth is fully open-source and can be self-hosted on your own infrastructure. This guide will introduce each component of the project and how to set them up.
+
+<Note>
+If you are unsure whether you should self-host, here are some things to consider:
+
+- **Complexity**: Stack Auth is a complex project with many interdependent services. Self-hosting requires managing these services and ensuring they work together seamlessly.
+- **Updates**: Stack Auth is a rapidly evolving project with frequent feature and fix releases. Self-hosting requires you to manage updates and apply them timely.
+- **Reliability**: Self-hosting requires you to ensure the reliability of your infrastructure. Downtimes and outages can be costly to handle.
+- **Security**: Self-hosting requires ensuring the security of your infrastructure. A compromised service can affect your users.
+
+For most users, we recommend using [Stack Auth's cloud hosted solution](https://app.stack-auth.com). However, if you understand the above challenges and are comfortable managing them, follow the instructions below to self-host!
+</Note>
+
+## Services
+
+On a high level, Stack Auth is composed of the following services:
+- **API backend**: The core of Stack Auth, providing the REST API that the dashboard and your app connect to. This is what [api.stack-auth.com](https://api.stack-auth.com) provides.
+- **Dashboard**: The interface for managing users, teams, auth methods, etc. This is available at [app.stack-auth.com](https://app.stack-auth.com).
+- **Client SDK**: An SDK used to connect your app to the Stack Auth API backend, wrapping API calls and providing easy-to-use interfaces. More details [here](/getting-started/setup).
+- **Postgres database**: Used to store all user data. We use [Prisma](https://prisma.io) as the ORM and manage the database schema migrations.
+- **Svix**: Used to send webhooks. Svix is open-source and can be self-hosted, but also offers a cloud hosted solution. More on Svix [here](https://svix.com)
+- **Email server**: We use [Inbucket](https://inbucket.org) as a local email server for development and a separate SMTP server for production. Any email service supporting SMTP will work.
+
+## Local development
+
+### Setup
+
+Clone the repository and check out the directory:
+
+```sh
+git clone git@github.com:stack-auth/stack.git
+cd stack
+```
+
+Pre-populated `.env` files for the setup below are available and used by default in `.env.development` in each package. Copy all the `.env.development` files to `.env.local` in the respective packages for local development.
+
+In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
+
+```sh
+docker compose -f dependencies.compose.yaml up
+```
+
+Then open a new terminal:
+
+```sh
+pnpm install
+
+# Build everything once
+pnpm run build
+
+# Initialize the database and seed it with some data
+pnpm prisma db push
+pnpm prisma db seed
+
+# Run code generation (repeat this after e.g., changing the Prisma schema). This is part of the build script but faster.
+pnpm run codegen
+
+# Start the dev server
+pnpm run dev
+
+# In a different terminal, run tests in watch mode
+pnpm run test
+```
+
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), the API on port 8102, a demo on port 8103, docs on port 8104, Inbucket (emails) on port 8105, and Prisma Studio on port 8106.
+
+Your IDE may show errors on all `@stackframe/XYZ` imports. To fix this, restart the TypeScript language server; for example, in VSCode, you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
+
+### Database migrations
+
+If you make changes to the Prisma schema, you need to run the following command to create a migration:
+
+```sh
+pnpm run prisma migrate dev
+```
+
+## Production deployment
+
+### Database, Svix, email
+
+Deploy these services with your preferred platform. Copy the URLs/API keys—you'll need them in the next step.
+
+### API backend
+
+Clone the repository and check out the backend directory:
+
+```sh
+git clone git@github.com:stack-auth/stack.git
+cd stack/apps/backend
+```
+
+Copy the `.env` file to `.env.local` and fill in the variables. Note that `STACK_BASE_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
+
+Build and start the server:
+
+```sh
+pnpm build
+pnpm start
+```
+
+### Dashboard
+
+Clone the repository and check out the dashboard directory:
+
+```sh
+git clone git@github.com:stack-auth/stack.git
+cd stack/apps/dashboard
+```
+
+Copy the `.env` file to `.env.local` and fill in the variables. Note that `NEXT_PUBLIC_STACK_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
+
+Build and start the server:
+
+```sh
+pnpm build
+pnpm start
+```
+
+### Initialize the database
+
+You need to initialize the database with the following command:
+
+```sh
+pnpm prisma migrate deploy
+```
+
+The database is still empty; you need to create a project with the ID "internal" used by the dashboard to authenticate itself. You can do this with the following command:
+
+```sh
+pnpm prisma db seed
+```
+
+Now you can go to the dashboard (e.g., https://your-dashboard-url.com) and sign up for an account.
+
+To manage your dashboard configs with this account, manually go into the database, find the user you just created, and add `{ managedProjectIds: ["internal"] }` to the `serverMetadata` jsonb column.
+
+Go back to the dashboard, refresh the page, and you should see the "Stack Dashboard" project. We recommend disabling new user sign-ups to your internal project to avoid unauthorized account and project creations.
+
+Now, create a new project for your app and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).

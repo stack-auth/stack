@@ -8,7 +8,7 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, LogOut, ShieldCheck } from 'lucide-react';
+import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -23,14 +23,22 @@ import { TeamIcon } from '../components/team-icon';
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 
 
-export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
+export function AccountSettings(props: {
+  fullPage?: boolean,
+  extraItems?: {
+    title: string,
+    icon: LucideIcon,
+    content: React.ReactNode,
+    subpath: string,
+  }[],
+}) {
   const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
   const stackApp = useStackApp();
   const project = stackApp.useProject();
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
+    <MaybeFullPage fullPage={!!props.fullPage}>
       <div style={{ alignSelf: 'stretch', flexGrow: 1 }}>
         <SidebarLayout
           items={([
@@ -61,6 +69,13 @@ export function AccountSettings({ fullPage=false }: { fullPage?: boolean }) {
               icon: LogOut,
               content: <SignOutSection />,
             },
+            ...(props.extraItems?.map(item => ({
+              title: item.title,
+              type: 'item',
+              subpath: item.subpath,
+              icon: item.icon,
+              content: item.content,
+            } as const)) || []),
             ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
               title: 'Teams',
               type: 'divider',

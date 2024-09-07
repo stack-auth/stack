@@ -11,34 +11,29 @@ const cacheVerifyEmail = cacheFunction(async (stackApp: StackClientApp<true>, co
   return await stackApp.verifyEmail(code);
 });
 
-export function EmailVerification({
-  searchParams: {
-    code = "",
-  } = {},
-  fullPage = false,
-}: {
+export function EmailVerification(props: {
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
 
   const invalidJsx = (
-    <MessageCard title="Invalid Verification Link" fullPage={fullPage}>
+    <MessageCard title="Invalid Verification Link" fullPage={!!props.fullPage}>
       <p>Please check if you have the correct link. If you continue to have issues, please contact support.</p>
     </MessageCard>
   );
 
   const expiredJsx = (
-    <MessageCard title="Expired Verification Link" fullPage={fullPage}>
+    <MessageCard title="Expired Verification Link" fullPage={!!props.fullPage}>
       <p>Your email verification link has expired. Please request a new verification link from your account settings.</p>
     </MessageCard>
   );
 
-  if (!code) {
+  if (!props.searchParams?.code) {
     return invalidJsx;
   }
 
-  const error = React.use(cacheVerifyEmail(stackApp, code));
+  const error = React.use(cacheVerifyEmail(stackApp, props.searchParams.code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;
@@ -50,5 +45,5 @@ export function EmailVerification({
     throw error;
   }
 
-  return <PredefinedMessageCard type='emailVerified' fullPage={fullPage} />;
+  return <PredefinedMessageCard type='emailVerified' fullPage={!!props.fullPage} />;
 }

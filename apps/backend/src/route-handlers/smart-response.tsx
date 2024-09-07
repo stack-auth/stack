@@ -62,9 +62,12 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
   const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;
-  const headers = new Map<string, string[]>;
+  const headers = new Map<string, string[]>();
 
   let arrayBufferBody;
+
+  // if we have something that resembles a browser, prettify JSON outputs
+  const jsonIndent = req?.headers.get("Accept")?.includes("text/html") ? 2 : undefined;
 
   const bodyType = validated.bodyType ?? (validated.body === undefined ? "empty" : isBinaryBody(validated.body) ? "binary" : "json");
   switch (bodyType) {
@@ -77,7 +80,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
         throw new StackAssertionError("Invalid JSON body is not JSON", { body: validated.body });
       }
       headers.set("content-type", ["application/json; charset=utf-8"]);
-      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body));
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body, null, jsonIndent));
       break;
     }
     case "text": {
@@ -95,7 +98,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
       headers.set("content-type", ["application/json; charset=utf-8"]);
       arrayBufferBody = new TextEncoder().encode(JSON.stringify({
         success: true,
-      }));
+      }, null, jsonIndent));
       break;
     }
     default: {
