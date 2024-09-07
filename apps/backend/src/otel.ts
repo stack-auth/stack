@@ -9,8 +9,8 @@ import { PrismaInstrumentation } from "@prisma/instrumentation";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export function otelSetup() {
-  // only enable otel in development mode for now
-  if (getEnvVariable("NODE_ENV", "") !== "development") {
+  // by default, otel is only enabled in development mode
+  if (!(getEnvVariable("OTEL_ENABLED", "") || getEnvVariable("NODE_ENV", "") === "development")) {
     return;
   }
 
