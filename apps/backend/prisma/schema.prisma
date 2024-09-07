@@ -463,7 +463,9 @@ model StandardOAuthProviderConfig {
 
   // optional extra parameters for specific oauth providers
   // Facebook business integration requires a config_id
-  facebookConfigId String?
+  facebookConfigId  String?
+  // Microsoft organizational directory (tenant)
+  microsoftTenantId String?
 
   providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
 
@@ -563,6 +565,7 @@ enum StandardOAuthProviderType {
   SPOTIFY
   DISCORD
   GITLAB
+  BITBUCKET
 }
 
 model OAuthToken {

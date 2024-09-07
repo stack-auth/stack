@@ -1,5 +1,13 @@
 # @stackframe/docs
 
+## 2.5.30
+
+### Patch Changes
+
+- More OAuth providers
+
+## 2.5.29
+
 ## 2.5.28
 
 ### Patch Changes

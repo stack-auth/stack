@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/e2e-tests",
-  "version": "2.5.28",
+  "version": "2.5.30",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
   "dependencies": {
     "@stackframe/stack-shared": "workspace:*",
     "dotenv": "^16.4.5",
+    "jose": "^5.2.2",
     "oslo": "^1.2.1"
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 import { AuthPage } from './auth-page';
 
-export function SignUp({ fullPage=false }: { fullPage?: boolean }) {
-  return <AuthPage fullPage={fullPage} type='sign-up' />;
+export function SignUp(props: { fullPage?: boolean, automaticRedirect?: boolean, extraInfo?: React.ReactNode }) {
+  return <AuthPage fullPage={!!props.fullPage} type='sign-up' automaticRedirect={!!props.automaticRedirect} extraInfo={props.extraInfo} />;
 }

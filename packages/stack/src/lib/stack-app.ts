@@ -2006,6 +2006,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
           clientId: p.client_id ?? throwErr("Client ID is missing"),
           clientSecret: p.client_secret ?? throwErr("Client secret is missing"),
           facebookConfigId: p.facebook_config_id,
+          microsoftTenantId: p.microsoft_tenant_id,
         } as const))),
         emailConfig: data.config.email_config.type === 'shared' ? {
           type: 'shared'
@@ -2537,6 +2538,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
           client_id: p.clientId,
           client_secret: p.clientSecret,
           facebook_config_id: p.facebookConfigId,
+          microsoft_tenant_id: p.microsoftTenantId,
         }),
       })),
       email_config: options.config?.emailConfig && (
@@ -2633,6 +2635,7 @@ export type AdminOAuthProviderConfig = {
     clientId: string,
     clientSecret: string,
     facebookConfigId?: string,
+    microsoftTenantId?: string,
   }
 ) & OAuthProviderConfig;
 

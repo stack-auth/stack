@@ -91,9 +91,16 @@ navigation:
       - section: Integrations
         contents:
           - page: Supabase
+            icon: fa-regular fa-bolt
             path: ./docs/pages/integrations/supabase.mdx
           - page: Other Backend Server
+            icon: fa-regular fa-network-wired
             path: ./docs/pages/integrations/other-backend.mdx
+      - section: Advanced
+        contents:
+          - page: Self-Hosting
+            icon: fa-regular fa-house-laptop
+            path: ./docs/pages/advanced/self-host.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview

@@ -1,5 +1,22 @@
 # @stackframe/stack-backend
 
+## 2.5.30
+
+### Patch Changes
+
+- More OAuth providers
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.30
+  - @stackframe/stack-emails@2.5.30
+
+## 2.5.29
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-emails@2.5.29
+  - @stackframe/stack-shared@2.5.29
+
 ## 2.5.28
 
 ### Patch Changes

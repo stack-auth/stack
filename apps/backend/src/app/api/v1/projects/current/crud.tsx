@@ -194,6 +194,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
                   clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
                   facebookConfigId: providerUpdate.facebook_config_id,
+                  microsoftTenantId: providerUpdate.microsoft_tenant_id,
                 },
               },
             };
@@ -226,6 +227,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   clientId: provider.update.client_id ?? throwErr('client_id is required'),
                   clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
                   facebookConfigId: provider.update.facebook_config_id,
+                  microsoftTenantId: provider.update.microsoft_tenant_id,
                 },
               },
             };

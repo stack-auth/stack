@@ -99,6 +99,7 @@ export function projectPrismaToCrud(
             client_id: providerConfig.standardOAuthConfig.clientId,
             client_secret: providerConfig.standardOAuthConfig.clientSecret,
             facebook_config_id: providerConfig.standardOAuthConfig.facebookConfigId ?? undefined,
+            microsoft_tenant_id: providerConfig.standardOAuthConfig.microsoftTenantId ?? undefined,
           } as const;
         } else {
           throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
