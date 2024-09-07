@@ -12,6 +12,7 @@ import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
+import { FilterUndefined, filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 
 type Components = {
   SignIn: typeof SignIn,
@@ -78,48 +79,88 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   const path = props.params.stack.join('/');
 
   if (path.startsWith('account-settings')) {
-    return <AccountSettings fullPage={props.fullPage} {...props.componentProps?.AccountSettings} />;
+    return <AccountSettings
+      fullPage={props.fullPage}
+      {...filterUndefinedINU(props.componentProps?.AccountSettings)}
+    />;
   }
 
   switch (path) {
     case availablePaths.signIn: {
       redirectIfNotHandler('signIn');
-      return <SignIn fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignIn} />;
+      return <SignIn
+        fullPage={props.fullPage}
+        automaticRedirect
+        {...filterUndefinedINU(props.componentProps?.SignIn)}
+      />;
     }
     case availablePaths.signUp: {
       redirectIfNotHandler('signUp');
-      return <SignUp fullPage={props.fullPage} automaticRedirect {...props.componentProps?.SignUp} />;
+      return <SignUp
+        fullPage={props.fullPage}
+        automaticRedirect
+        {...filterUndefinedINU(props.componentProps?.SignUp)}
+      />;
     }
     case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
-      return <EmailVerification searchParams={props.searchParams} fullPage={props.fullPage} {...props.componentProps?.EmailVerification} />;
+      return <EmailVerification
+        searchParams={props.searchParams}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.EmailVerification)}
+      />;
     }
     case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
-      return <PasswordReset searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.PasswordReset} />;
+      return <PasswordReset
+        searchParams={props.searchParams || {}}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.PasswordReset)}
+      />;
     }
     case availablePaths.forgotPassword: {
       redirectIfNotHandler('forgotPassword');
-      return <ForgotPassword fullPage={props.fullPage} {...props.componentProps?.ForgotPassword} />;
+      return <ForgotPassword
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.ForgotPassword)}
+      />;
     }
     case availablePaths.signOut: {
       redirectIfNotHandler('signOut');
-      return <SignOut fullPage={props.fullPage} {...props.componentProps?.SignOut} />;
+      return <SignOut
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.SignOut)}
+      />;
     }
     case availablePaths.oauthCallback: {
       redirectIfNotHandler('oauthCallback');
-      return <OAuthCallback fullPage={props.fullPage} {...props.componentProps?.OAuthCallback} />;
+      return <OAuthCallback
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.OAuthCallback)}
+      />;
     }
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
-      return <MagicLinkCallback searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.MagicLinkCallback} />;
+      return <MagicLinkCallback
+        searchParams={props.searchParams || {}}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.MagicLinkCallback)}
+      />;
     }
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
-      return <TeamInvitation searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.TeamInvitation} />;
+      return <TeamInvitation
+        searchParams={props.searchParams || {}}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.TeamInvitation)}
+      />;
     }
     case availablePaths.error: {
-      return <ErrorPage searchParams={props.searchParams || {}} fullPage={props.fullPage} {...props.componentProps?.ErrorPage} />;
+      return <ErrorPage
+        searchParams={props.searchParams || {}}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.ErrorPage)}
+      />;
     }
     default: {
       for (const [key, value] of Object.entries(availablePaths)) {
@@ -130,4 +171,9 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
       return notFound();
     }
   }
+}
+
+
+function filterUndefinedINU<T extends {}>(value: T | undefined): FilterUndefined<T> | undefined {
+  return value === undefined ? value : filterUndefined(value);
 }
