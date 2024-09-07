@@ -11,7 +11,7 @@ import { SeparatorWithText } from '../components/elements/separator-with-text';
 import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
-import { t } from '../lib/translation';
+import { useTranslation } from '../lib/translations';
 
 export function AuthPage(props: {
   fullPage?: boolean,
@@ -33,6 +33,7 @@ export function AuthPage(props: {
   const user = useUser();
   const projectFromHook = stackApp.useProject();
   const project = props.mockProject || projectFromHook;
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (props.automaticRedirect) {
