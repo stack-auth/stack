@@ -72,3 +72,12 @@ jobs:
       
       - name: Typecheck
         run: pnpm typecheck
+      
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Error: There are uncommitted changes after build/lint/typecheck."
+            echo "Please commit all changes before pushing."
+            git status
+            exit 1
+          fi
