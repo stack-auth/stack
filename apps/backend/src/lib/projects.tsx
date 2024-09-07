@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
@@ -196,8 +196,9 @@ export async function whyNotProjectAdmin(options: {
     return "wrong-token-project-id";
   }
 
-  // the second condition should never trigger as it should be checked from the caller already, but just to make it consistent here
+  // the should never trigger as it should be checked from the caller already, but just to make it consistent here
   if (!options.internalUser || options.internalUser.id !== userId) {
+    captureError("Internal user does not match access token user", {});
     return "not-admin";
   }
 
