@@ -48,6 +48,7 @@ export function AuthPage(props: {
   if (props.type === 'sign-up' && !project.config.signUpEnabled) {
     return <PredefinedMessageCard type='signUpDisabled' fullPage={props.fullPage} />;
   }
+
   const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
   return (
@@ -107,20 +108,6 @@ export function AuthPage(props: {
           </div>
         )}
       </div>
-      <OAuthButtonGroup type={type} mockProject={mockProject} />
-      {enableSeparator && <SeparatorWithText text={t("Or continue with")} />}
-      {project.config.credentialEnabled && project.config.magicLinkEnabled ? <Tabs defaultValue='magic-link'>
-        <TabsList className='w-full mb-2'>
-          <TabsTrigger value='magic-link' className='flex-1'>{t("Magic Link")}</TabsTrigger>
-          <TabsTrigger value='password' className='flex-1'>{t("Password")}</TabsTrigger>
-        </TabsList>
-        <TabsContent value='magic-link'>
-          <MagicLinkSignIn />
-        </TabsContent>
-        <TabsContent value='password'>
-          {type === 'sign-up' ? <CredentialSignUp /> : <CredentialSignIn />}
-        </TabsContent>
-      </Tabs> : project.config.credentialEnabled ? type === 'sign-up' ? <CredentialSignUp /> : <CredentialSignIn /> : project.config.magicLinkEnabled ? <MagicLinkSignIn /> : null}
-    </div>
-  </MaybeFullPage>;
+    </MaybeFullPage>
+  );
 }
