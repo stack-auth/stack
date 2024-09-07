@@ -4,7 +4,6 @@ import { getUser } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
-import { trace } from "@opentelemetry/api";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -160,142 +159,134 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
   }
 }
 
-const tracer = trace.getTracer("Application");
-
 async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
-  return await tracer.startActiveSpan("parseAuth", async (span) => {
-    try {
-      const projectId = req.headers.get("x-stack-project-id");
-      let requestType = req.headers.get("x-stack-access-type");
-      const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
-      const secretServerKey = req.headers.get("x-stack-secret-server-key");
-      const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
-      const adminAccessToken = req.headers.get("x-stack-admin-access-token");
-      const accessToken = req.headers.get("x-stack-access-token");
-      const refreshToken = req.headers.get("x-stack-refresh-token");
+  const projectId = req.headers.get("x-stack-project-id");
+  let requestType = req.headers.get("x-stack-access-type");
+  const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
+  const secretServerKey = req.headers.get("x-stack-secret-server-key");
+  const superSecretAdminKey = req.headers.get("x-stack-super-secret-admin-key");
+  const adminAccessToken = req.headers.get("x-stack-admin-access-token");
+  const accessToken = req.headers.get("x-stack-access-token");
+  const refreshToken = req.headers.get("x-stack-refresh-token");
 
-      const queries = {
-        project: projectId ? getProject(projectId) : Promise.resolve(null),
-        isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
-        isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
-        isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
-        internalUser: projectId && adminAccessToken ? (async () => {
-          let decoded;
-          try {
-            decoded = await decodeAccessToken(adminAccessToken);
-          } catch (error) {
-            return null;
-          }
-          const { userId, projectId: accessTokenProjectId } = decoded;
-          if (accessTokenProjectId !== "internal")
-            return null;
-          return await getUser('internal', userId);
-        })() : Promise.resolve(null),
-        user: projectId && accessToken ? (async () => {
-          let decoded;
-          try {
-            decoded = await decodeAccessToken(accessToken);
-          } catch (error) {
-            return null;
-          }
-          const { userId, projectId: accessTokenProjectId } = decoded;
-          if (accessTokenProjectId !== projectId) {
-            return null;
-          }
-          return await getUser(projectId, userId);
-        })() : Promise.resolve(null),
-      };
-
-      const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
-
-      if (!requestType && eitherKeyOrToken) {
-        throw new KnownErrors.ProjectKeyWithoutAccessType();
+  const queries = {
+    project: projectId ? getProject(projectId) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+    internalUser: projectId && adminAccessToken ? (async () => {
+      let decoded;
+      try {
+        decoded = await decodeAccessToken(adminAccessToken);
+      } catch (error) {
+        return null;
       }
-      if (!requestType) return null;
-      if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
-      if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
-
-      let projectAccessType: "key" | "internal-user-token";
-      if (adminAccessToken) {
-        const reason = await whyNotProjectAdmin({
-          project: await queries.project,
-          internalUser: await queries.internalUser,
-          adminAccessToken,
-        });
-
-        switch (reason) {
-          case null: {
-            projectAccessType = "internal-user-token";
-            break;
-          }
-          case "unparsable-access-token": {
-            throw new KnownErrors.UnparsableAdminAccessToken();
-          }
-          case "not-admin": {
-            throw new KnownErrors.AdminAccessTokenIsNotAdmin();
-          }
-          case "wrong-token-project-id": {
-            throw new KnownErrors.InvalidProjectForAdminAccessToken();
-          }
-          case "access-token-expired": {
-            throw new KnownErrors.AdminAccessTokenExpired();
-          }
-          default: {
-            throw new StackAssertionError(`Unexpected reason for lack of project admin: ${reason}`);
-          }
-        }
-      } else {
-        switch (requestType) {
-          case "client": {
-            if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
-            if (!await queries.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
-            projectAccessType = "key";
-            break;
-          }
-          case "server": {
-            if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
-            if (!await queries.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
-            projectAccessType = "key";
-            break;
-          }
-          case "admin": {
-            if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
-            if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
-            projectAccessType = "key";
-            break;
-          }
-          default: {
-            throw new StackAssertionError(`Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`);
-          }
-        }
+      const { userId, projectId: accessTokenProjectId } = decoded;
+      if (accessTokenProjectId !== "internal")
+        return null;
+      return await getUser('internal', userId);
+    })() : Promise.resolve(null),
+    user: projectId && accessToken ? (async () => {
+      let decoded;
+      try {
+        decoded = await decodeAccessToken(accessToken);
+      } catch (error) {
+        return null;
       }
-
-      const project = await queries.project;
-      if (!project) {
-        throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+      const { userId, projectId: accessTokenProjectId } = decoded;
+      if (accessTokenProjectId !== projectId) {
+        return null;
       }
+      return await getUser(projectId, userId);
+    })() : Promise.resolve(null),
+  };
 
-      let user = null;
-      if (accessToken) {
-        const decodedAccessToken = await decodeAccessToken(accessToken);
-        const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+  const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
-        if (accessTokenProjectId !== projectId) {
-          throw new KnownErrors.InvalidProjectForAccessToken();
-        }
+  if (!requestType && eitherKeyOrToken) {
+    throw new KnownErrors.ProjectKeyWithoutAccessType();
+  }
+  if (!requestType) return null;
+  if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
+  if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
-        user = await queries.user;
+  let projectAccessType: "key" | "internal-user-token";
+  if (adminAccessToken) {
+    const reason = await whyNotProjectAdmin({
+      project: await queries.project,
+      internalUser: await queries.internalUser,
+      adminAccessToken,
+    });
+
+    switch (reason) {
+      case null: {
+        projectAccessType = "internal-user-token";
+        break;
       }
-
-      return {
-        project,
-        user: user ?? undefined,
-        type: requestType,
-      };
-    } finally {
-    span.end();
+      case "unparsable-access-token": {
+        throw new KnownErrors.UnparsableAdminAccessToken();
+      }
+      case "not-admin": {
+        throw new KnownErrors.AdminAccessTokenIsNotAdmin();
+      }
+      case "wrong-token-project-id": {
+        throw new KnownErrors.InvalidProjectForAdminAccessToken();
+      }
+      case "access-token-expired": {
+        throw new KnownErrors.AdminAccessTokenExpired();
+      }
+      default: {
+        throw new StackAssertionError(`Unexpected reason for lack of project admin: ${reason}`);
+      }
     }
-  });
+  } else {
+    switch (requestType) {
+      case "client": {
+        if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
+        if (!await queries.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
+        projectAccessType = "key";
+        break;
+      }
+      case "server": {
+        if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
+        if (!await queries.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
+        projectAccessType = "key";
+        break;
+      }
+      case "admin": {
+        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
+        if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
+        projectAccessType = "key";
+        break;
+      }
+      default: {
+        throw new StackAssertionError(`Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`);
+      }
+    }
+  }
+
+  const project = await queries.project;
+  if (!project) {
+    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+  }
+
+  let user = null;
+  if (accessToken) {
+    const decodedAccessToken = await decodeAccessToken(accessToken);
+    const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+
+    if (accessTokenProjectId !== projectId) {
+      throw new KnownErrors.InvalidProjectForAccessToken();
+    }
+
+    user = await queries.user;
+  }
+
+  return {
+    project,
+    user: user ?? undefined,
+    type: requestType,
+  };
 }
 
 export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {

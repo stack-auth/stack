@@ -6,6 +6,7 @@ import { Resource } from "@opentelemetry/resources";
 import { BasicTracerProvider, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { PrismaInstrumentation } from "@prisma/instrumentation";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 
 export function otelSetup() {
   // only enable otel in development mode for now
