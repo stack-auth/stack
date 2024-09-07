@@ -54,10 +54,9 @@ export function TeamCreation(props: { fullPage?: boolean }) {
           onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
           noValidate
         >
-          <Label htmlFor="email" className="mb-1">Display name</Label>
+          <Label htmlFor="display-name" className="mb-1">Display name</Label>
           <Input
-            id="email"
-            type="email"
+            id="display-name"
             {...register('displayName')}
           />
           <FormWarningText text={errors.displayName?.message?.toString()} />
