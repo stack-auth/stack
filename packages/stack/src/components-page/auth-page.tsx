@@ -12,6 +12,7 @@ import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from
 import { Project } from '../lib/stack-app';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { useEffect } from 'react';
+import { t } from '../lib/translation';
 
 export function AuthPage({
   fullPage = false,
@@ -33,7 +34,6 @@ export function AuthPage({
     },
   },
 }) {
-  const t = () => "some string";
   const stackApp = useStackApp();
   const user = useUser();
   const projectFromHook = stackApp.useProject();
@@ -62,7 +62,7 @@ export function AuthPage({
           {type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
         </Typography>
         {type === 'sign-in' ? project.config.signUpEnabled && <Typography>
-          {t("Doasdfadsn't have an account?")}
+          {t("Don't have an account?")}{" "}
           <StyledLink href={stackApp.urls.signUp} onClick={e => {
             runAsynchronously(stackApp.redirectToSignUp());
             e.preventDefault();
