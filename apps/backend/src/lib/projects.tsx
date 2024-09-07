@@ -220,10 +220,6 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
   return null;
 }
 
-export async function isProjectAdmin(projectId: string, adminAccessToken: string) {
-  return !await whyNotProjectAdmin(projectId, adminAccessToken);
-}
-
 function isStringArray(value: any): value is string[] {
   return Array.isArray(value) && value.every((id) => typeof id === "string");
 }

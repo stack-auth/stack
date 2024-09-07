@@ -899,7 +899,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
   paramsSchema: yupObject({} as const),
   async onRead({ auth }) {
     if (!auth.user) {
-      throw new KnownErrors.UserAuthenticationRequired();
+      throw new KnownErrors.CannotGetOwnUserWithoutUser();
     }
     return auth.user;
   },

@@ -1,19 +1,19 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
-import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
-import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { getUser } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, whyNotProjectAdmin } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { NextRequest } from "next/server";
+import * as yup from "yup";
 import { CrudHandlerInvocationError } from "./crud-handler";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
@@ -170,6 +170,13 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
 
+  const queries = {
+    project: projectId ? getProject(projectId) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+  };
+
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
@@ -207,22 +214,19 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     switch (requestType) {
       case "client": {
         if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { publishableClientKey });
-        if (!isValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
+        if (!await queries.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
         projectAccessType = "key";
         break;
       }
       case "server": {
         if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { secretServerKey });
-        if (!isValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
+        if (!await queries.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
         projectAccessType = "key";
         break;
       }
       case "admin": {
         if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { superSecretAdminKey });
-        if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
+        if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         projectAccessType = "key";
         break;
       }
@@ -247,10 +251,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     }
 
     try {
-      user = await usersCrudHandlers.adminRead({
-        project,
-        user_id: userId,
-      });
+      user = await getUser(projectId, userId);
     } catch (e) {
       if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
         user = null;
