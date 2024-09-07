@@ -172,14 +172,18 @@ export function projectPrismaToCrud(
   };
 }
 
-export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
-  if (!adminAccessToken) {
+export async function whyNotProjectAdmin(options: {
+  project: ProjectsCrud["Admin"]["Read"] | null,
+  internalUser: UsersCrud["Admin"]["Read"] | null,
+  adminAccessToken: string,
+}): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
+  if (!options.adminAccessToken) {
     return "unparsable-access-token";
   }
 
   let decoded;
   try {
-    decoded = await decodeAccessToken(adminAccessToken);
+    decoded = await decodeAccessToken(options.adminAccessToken);
   } catch (error) {
     if (error instanceof KnownErrors.AccessTokenExpired) {
       return "access-token-expired";
@@ -192,28 +196,13 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
     return "wrong-token-project-id";
   }
 
-  let user;
-  try {
-    user = await usersCrudHandlers.adminRead({
-      project: await getProject("internal") ?? throwErr("Can't find internal project??"),
-      user_id: userId,
-    });
-  } catch (e) {
-    if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
-      // this may happen eg. if the user has a valid access token but has since been deleted
-      return "not-admin";
-    }
-    throw e;
-  }
-
-  const allProjects = listManagedProjectIds(user);
-  if (!allProjects.includes(projectId)) {
+  // the second condition should never trigger as it should be checked from the caller already, but just to make it consistent here
+  if (!options.internalUser || options.internalUser.id !== userId) {
     return "not-admin";
   }
 
-  const project = await getProject(projectId);
-  if (!project) {
-    // this happens if the project is still in the user's managedProjectIds, but has since been deleted
+  const allProjects = listManagedProjectIds(options.internalUser);
+  if (!options.project || !allProjects.includes(options.project.id)) {
     return "not-admin";
   }
 

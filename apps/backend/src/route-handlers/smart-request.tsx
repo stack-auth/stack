@@ -175,6 +175,18 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
     isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
     isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+    internalUser: projectId && adminAccessToken ? (async () => {
+      let decoded;
+      try {
+        decoded = await decodeAccessToken(adminAccessToken);
+      } catch (error) {
+        return null;
+      }
+      const { userId, projectId: accessTokenProjectId } = decoded;
+      if (accessTokenProjectId !== "internal")
+        return null;
+      return await getUser('internal', userId);
+    })() : Promise.resolve(null),
   };
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
@@ -188,7 +200,11 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {
-    const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
+    const reason = await whyNotProjectAdmin({
+      project: await queries.project,
+      internalUser: await queries.internalUser,
+      adminAccessToken,
+    });
     switch (reason) {
       case null: {
         projectAccessType = "internal-user-token";
