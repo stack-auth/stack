@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.31
+  - @stackframe/stack@2.5.31
+  - @stackframe/stack-emails@2.5.31
+  - @stackframe/stack-ui@2.5.31
+
 ## 2.5.30
 
 ### Patch Changes
