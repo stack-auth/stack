@@ -30,7 +30,7 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
   },
 );
 
-const jwks = await jose.createRemoteJWKSet(new URL("/.well-known/jwks.json", STACK_BACKEND_BASE_URL));
+const jwks = jose.createRemoteJWKSet(new URL("/.well-known/jwks.json", STACK_BACKEND_BASE_URL));
 
 export type ProjectKeys = "no-project" | {
   projectId: string,

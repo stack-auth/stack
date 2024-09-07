@@ -9,7 +9,7 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, LogOut, ShieldCheck } from 'lucide-react';
+import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -22,72 +22,94 @@ import { UserAvatar } from '../components/elements/user-avatar';
 import { ProfileImageEditor } from "../components/profile-image-editor";
 import { TeamIcon } from '../components/team-icon';
 
-import { MaybeFullPage } from "../components/elements/maybe-full-page";
-import { t } from "../lib/translation";
-export function AccountSettings({
-  fullPage = false
-}: {
+export function AccountSettings(props: {
   fullPage?: boolean,
+  extraItems?: {
+    title: string,
+    icon: LucideIcon,
+    content: React.ReactNode,
+    subpath: string,
+  }[],
 }) {
-  const user = useUser({
-    or: 'redirect'
-  });
+  const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
   const stackApp = useStackApp();
   const project = stackApp.useProject();
-  return <MaybeFullPage fullPage={fullPage}>
-    <div style={{
-      alignSelf: 'stretch',
-      flexGrow: 1
-    }}>
-      <SidebarLayout items={([{
-        title: t("My Profile"),
-        type: 'item',
-        subpath: '/profile',
-        icon: Contact,
-        content: <ProfileSection />
-      }, {
-        title: t("Security"),
-        type: 'item',
-        icon: ShieldCheck,
-        subpath: '/security',
-        content: <div className='flex flex-col gap-8'>
-          <EmailVerificationSection />
-          <PasswordSection />
-          <MfaSection />
-        </div>
-      }, {
-        title: t("Sign Out"),
-        subpath: '/sign-out',
-        type: 'item',
-        icon: LogOut,
-        content: <SignOutSection />
-      }, ...(teams.length > 0 || project.config.clientTeamCreationEnabled ? [{
-        title: t("Teams"),
-        type: 'divider'
-      }] as const : []), ...teams.map(team => ({
-        title: <div className='flex gap-2 items-center'>
-          <TeamIcon team={team} />
-          {team.displayName}
-        </div>,
-        type: 'item',
-        subpath: `/teams/${team.id}`,
-        content: <div className="flex flex-col gap-8">
-          <ProfileSettings team={team} />
-          <ManagementSettings team={team} />
-          <MemberInvitation team={team} />
-          <MembersSettings team={team} />
-          <UserSettings team={team} />
-        </div>
-      }) as const), ...(project.config.clientTeamCreationEnabled ? [{
-        title: t("Create a team"),
-        icon: CirclePlus,
-        type: 'item',
-        subpath: '/team-creation',
-        content: <TeamCreation />
-      }] as const : [])] as const).filter(p => p.type === 'divider' || (p as any).content)} title={t("Account Settings")} basePath={stackApp.urls.accountSettings} />
-    </div>
-  </MaybeFullPage>;
+
+  return (
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div style={{ alignSelf: 'stretch', flexGrow: 1 }}>
+        <SidebarLayout
+          items={([
+            {
+              title: 'My Profile',
+              type: 'item',
+              subpath: '/profile',
+              icon: Contact,
+              content: <ProfileSection/>,
+            },
+            {
+              title: 'Security',
+              type: 'item',
+              icon: ShieldCheck,
+              subpath: '/security',
+              content: (
+                <div className='flex flex-col gap-8'>
+                  <EmailVerificationSection />
+                  <PasswordSection />
+                  <MfaSection />
+                </div>
+              ),
+            },
+            {
+              title: 'Sign Out',
+              subpath: '/sign-out',
+              type: 'item',
+              icon: LogOut,
+              content: <SignOutSection />,
+            },
+            ...(props.extraItems?.map(item => ({
+              title: item.title,
+              type: 'item',
+              subpath: item.subpath,
+              icon: item.icon,
+              content: item.content,
+            } as const)) || []),
+            ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
+              title: 'Teams',
+              type: 'divider',
+            }] as const : [],
+            ...teams.map(team => ({
+              title: <div className='flex gap-2 items-center'>
+                <TeamIcon team={team}/>
+                {team.displayName}
+              </div>,
+              type: 'item',
+              subpath: `/teams/${team.id}`,
+              content: (
+                <div className="flex flex-col gap-8">
+                  <ProfileSettings team={team}/>
+                  <ManagementSettings team={team}/>
+                  <MemberInvitation team={team}/>
+                  <MembersSettings team={team}/>
+                  <UserSettings team={team}/>
+                </div>
+              ),
+            } as const)),
+            ...project.config.clientTeamCreationEnabled ? [{
+              title: 'Create a team',
+              icon: CirclePlus,
+              type: 'item',
+              subpath: '/team-creation',
+              content: <TeamCreation />,
+            }] as const : [],
+          ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
+          title='Account Settings'
+          basePath={stackApp.urls.accountSettings}
+        />
+      </div>
+    </MaybeFullPage>
+  );
 }
 function ProfileSection() {
   const user = useUser({
