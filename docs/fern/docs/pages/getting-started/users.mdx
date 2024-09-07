@@ -151,7 +151,7 @@ console.log(user.clientMetadata);
 
 If you want to store sensitive information, you can use the `serverMetadata` field. This data is only readable & writable from the server.
 
-```tsx title="my-server-component.tsx"
+```tsx
 const user = await stackServerApp.getUser();
 await user.update({
   serverMetadata: {
@@ -162,6 +162,22 @@ await user.update({
 // later:
 const user = await stackServerApp.getUser();
 console.log(user.serverMetadata);
+```
+
+If you want to store some information that is writable by the server but only readable by the client, you can use the `clientReadOnlyMetadata` field. This is useful for things like subscription status, where the client needs to know the status but shouldn't be able to change it.
+
+```tsx
+// On the server:
+const user = await stackServerApp.getUser();
+await user.update({
+  clientReadOnlyMetadata: {
+    subscriptionPlan: "premium",
+  },
+});
+
+// On the client:
+const user = useUser();
+console.log(user.clientReadOnlyMetadata);
 ```
 
 ## Signing out

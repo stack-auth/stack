@@ -16,12 +16,22 @@ const script = () => {
     return null;
   };
 
+  const setTheme = (mode: 'dark' | 'light') => {
+    document.documentElement.setAttribute('data-stack-theme', mode);
+  };
+
   const copyFromColorScheme = () => {
     const colorScheme = getComputedStyle(document.documentElement).getPropertyValue('color-scheme');
+
     if (colorScheme) {
+      if (colorScheme === 'normal') {
+        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setTheme(isDark ? 'dark' : 'light');
+        return true;
+      }
       const mode = getColorMode(colorScheme);
       if (mode) {
-        document.documentElement.setAttribute('data-stack-theme', mode);
+        setTheme(mode);
         return true;
       }
     }
@@ -34,7 +44,7 @@ const script = () => {
       if (colorTheme) {
         const mode = getColorMode(colorTheme);
         if (mode) {
-          document.documentElement.setAttribute('data-stack-theme', mode);
+          setTheme(mode);
           return true;
         }
       }

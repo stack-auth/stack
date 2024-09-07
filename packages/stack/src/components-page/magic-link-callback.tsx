@@ -12,12 +12,7 @@ const cacheSignInWithMagicLink = cacheFunction(async (stackApp: StackClientApp<t
   return await stackApp.signInWithMagicLink(code);
 });
 
-export function MagicLinkCallback({
-  searchParams: {
-    code = "",
-  } = {},
-  fullPage = false,
-}: {
+export function MagicLinkCallback(props: {
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {
@@ -25,32 +20,32 @@ export function MagicLinkCallback({
   const user = useUser();
 
   if (user) {
-    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={!!props.fullPage} />;
   }
 
   const invalidJsx = (
-    <MessageCard title="Invalid Magic Link" fullPage={fullPage}>
+    <MessageCard title="Invalid Magic Link" fullPage={!!props.fullPage}>
       <p>Please check if you have the correct link. If you continue to have issues, please contact support.</p>
     </MessageCard>
   );
 
   const expiredJsx = (
-    <MessageCard title="Expired Magic Link" fullPage={fullPage}>
+    <MessageCard title="Expired Magic Link" fullPage={!!props.fullPage}>
       <p>Your magic link has expired. Please request a new magic link if you need to sign-in.</p>
     </MessageCard>
   );
 
   const alreadyUsedJsx = (
-    <MessageCard title="Magic Link Already Used" fullPage={fullPage}>
+    <MessageCard title="Magic Link Already Used" fullPage={!!props.fullPage}>
       <p>The magic link has already been used. The link can only be used once. Please request a new magic link if you need to sign-in again.</p>
     </MessageCard>
   );
 
-  if (!code) {
+  if (!props.searchParams?.code) {
     return invalidJsx;
   }
 
-  const error = React.use(cacheSignInWithMagicLink(stackApp, code));
+  const error = React.use(cacheSignInWithMagicLink(stackApp, props.searchParams.code));
 
   if (error instanceof KnownErrors.VerificationCodeNotFound) {
     return invalidJsx;

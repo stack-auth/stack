@@ -9,6 +9,7 @@ import {
 } from "./clientInterface";
 import { CurrentUserCrud } from "./crud/current-user";
 import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
+import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
 import { TeamPermissionsCrud } from "./crud/team-permissions";
 import { TeamsCrud } from "./crud/teams";
@@ -72,6 +73,21 @@ export class StackServerInterface extends StackClientInterface {
     }
   }
 
+  async createServerUser(data: UsersCrud['Server']['Create']): Promise<UsersCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      "/users",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
   async getServerUserByToken(session: InternalSession): Promise<CurrentUserCrud['Server']['Read'] | null> {
     const responseOrError = await this.sendServerRequestAndCatchKnownError(
       "/users/me",
@@ -103,13 +119,41 @@ export class StackServerInterface extends StackClientInterface {
     return Result.ok(user);
   }
 
+  async listServerTeamMemberProfiles(
+    options: {
+      teamId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(
+      "/team-member-profiles?team_id=" + options.teamId,
+      {},
+      null,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Server']['List'];
+    return result.items;
+  }
+
+  async getServerTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      null,
+    );
+    return await response.json();
+  }
+
   async listServerTeamPermissions(
     options: {
       userId?: string,
       teamId?: string,
       recursive: boolean,
     },
-    session: InternalSession
+    session: InternalSession | null,
   ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
       "/team-permissions?" + new URLSearchParams(filterUndefined({
@@ -280,20 +324,23 @@ export class StackServerInterface extends StackClientInterface {
     };
   }
 
-  async listServerTeamMemberPermissions(
+  async leaveServerTeam(
     options: {
       teamId: string,
       userId: string,
-      recursive: boolean,
-    }
-  ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest(
-      `/team-permissions?team_id=${options.teamId}&user_id=${options.userId}&recursive=${options.recursive}`,
-      {},
-      null
+    },
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${options.teamId}/${options.userId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      null,
     );
-    const result = await response.json() as TeamPermissionsCrud['Server']['List'];
-    return result.items;
   }
 
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {

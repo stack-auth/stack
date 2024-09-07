@@ -2,6 +2,9 @@
 *.untracked.*
 
 
+
+.vercel
+
 # Misc
 .DS_Store
 .eslintcache
@@ -18,6 +21,7 @@ ui-debug.log
 tmp
 
 vitest.config.ts.timestamp-*
+tsup.config.bundled_*
 
 # Dependencies
 node_modules

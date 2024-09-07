@@ -1,8 +1,8 @@
-import { it } from "../../../../helpers";
+import { createMailbox, it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
-it("should not have have access to the project", async ({ expect }) => {
+it("should not have have access to the project without project keys", async ({ expect }) => {
   backendContext.set({
     projectKeys: 'no-project'
   });
@@ -24,15 +24,14 @@ it("should not have have access to the project", async ({ expect }) => {
 });
 
 it("gets current project (internal)", async ({ expect }) => {
-  backendContext.set({
-    projectKeys: InternalProjectKeys,
-  });
+  backendContext.set({ projectKeys: InternalProjectKeys });
   const response = await niceBackendFetch("/api/v1/projects/current", { accessType: "client" });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 200,
       "body": {
         "config": {
+          "client_team_creation_enabled": true,
           "credential_enabled": true,
           "enabled_oauth_providers": [
             { "id": "facebook" },
@@ -41,6 +40,7 @@ it("gets current project (internal)", async ({ expect }) => {
             { "id": "microsoft" },
           ],
           "magic_link_enabled": true,
+          "sign_up_enabled": true,
         },
         "display_name": "Stack Dashboard",
         "id": "internal",
@@ -52,7 +52,7 @@ it("gets current project (internal)", async ({ expect }) => {
 
 it("creates and updates the basic project information of a project", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
     display_name: "Updated Project",
     description: "Updated description",
@@ -64,6 +64,7 @@ it("creates and updates the basic project information of a project", async ({ ex
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -72,6 +73,7 @@ it("creates and updates the basic project information of a project", async ({ ex
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -89,10 +91,11 @@ it("creates and updates the basic project information of a project", async ({ ex
 
 it("updates the basic project configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
     config: {
       allow_localhost: false,
+      sign_up_enabled: false,
       credential_enabled: false,
       magic_link_enabled: true,
     },
@@ -103,6 +106,7 @@ it("updates the basic project configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": false,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
@@ -111,6 +115,7 @@ it("updates the basic project configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": true,
           "oauth_providers": [],
+          "sign_up_enabled": false,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -128,7 +133,7 @@ it("updates the basic project configuration", async ({ expect }) => {
 
 it("updates the project domains configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       domains: [{
@@ -143,6 +148,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -156,6 +162,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -190,6 +197,7 @@ it("updates the project domains configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -207,6 +215,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -222,9 +231,33 @@ it("updates the project domains configuration", async ({ expect }) => {
   `);
 });
 
+it("is not allowed to have two identical domains", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
+    config: {
+      domains: [{
+        domain: 'https://trusted-domain.stack-test.example.com',
+        handler_path: '/handler'
+      },
+      {
+        domain: 'https://trusted-domain.stack-test.example.com',
+        handler_path: '/handler2'
+      }]
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "Duplicated domain found",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("updates the project email configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       email_config: {
@@ -244,6 +277,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -260,6 +294,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -294,6 +329,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -310,6 +346,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -338,6 +375,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -346,6 +384,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -374,6 +413,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -382,6 +422,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -416,6 +457,7 @@ it("updates the project email configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -432,6 +474,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -447,15 +490,15 @@ it("updates the project email configuration", async ({ expect }) => {
   `);
 });
 
-it("updates the project email configuration with the wrong parameters", async ({ expect }) => {
+it("updates the project email configuration with invalid parameters", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       email_config: {
         type: "shared",
         client_id: "client_id",
-      },
+      } as any,
     },
   });
   expect(response1).toMatchInlineSnapshot(`
@@ -500,7 +543,7 @@ it("updates the project email configuration with the wrong parameters", async ({
 
 it("updates the project oauth configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   // create google oauth provider with shared type
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
@@ -517,6 +560,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -531,6 +575,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -561,6 +606,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -575,6 +621,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -607,6 +654,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -623,6 +671,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "standard",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -678,6 +727,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -700,6 +750,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -737,6 +788,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -756,6 +808,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
               "type": "shared",
             },
           ],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
         },
@@ -769,4 +822,210 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
+
+it("deletes a project with admin access", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("deletes a project with server access", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "server",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "INSUFFICIENT_ACCESS_TYPE",
+        "details": {
+          "actual_access_type": "server",
+          "allowed_access_types": ["admin"],
+        },
+        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("deletes a project with users, teams, and permissions", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Create a user
+  const userResponse = await niceBackendFetch(`/api/v1/users`, {
+    accessType: "server",
+    method: "POST",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    },
+    body: {
+      primary_email: "test@test.com",
+      password: "testing",
+      primary_email_auth_enabled: true,
+    }
+  });
+  expect(userResponse.status).toBe(201);
+
+  // Create a team
+  const teamResponse = await niceBackendFetch(`/api/v1/teams`, {
+    accessType: "server",
+    method: "POST",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    },
+    body: {
+      display_name: "Test Team",
+    }
+  });
+  expect(teamResponse.status).toBe(201);
+
+  // create a team permission
+  const teamPermissionResponse = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
+    accessType: "admin",
+    method: "POST",
+    body: {
+      id: 'p1'
+    },
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken
+    },
+  });
+  expect(teamPermissionResponse.status).toBe(201);
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "server",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 401,
+      "body": {
+        "code": "INSUFFICIENT_ACCESS_TYPE",
+        "details": {
+          "actual_access_type": "server",
+          "allowed_access_types": ["admin"],
+        },
+        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("makes sure user have the correct managed project ID after project creation", async ({ expect }) => {
+  const { userId } =  await Auth.Otp.signIn();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { projectId } = await Project.createAndGetAdminToken();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+
+  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds = userResponse.body.server_metadata.managedProjectIds;
+  expect(projectIds.length).toBe(1);
+  expect(projectIds[0]).toBe(projectId);
+});
+
+it("makes sure user don't have managed project ID after project deletion", async ({ expect }) => {
+  const { userId } =  await Auth.Otp.signIn();
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+
+  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds = userResponse.body.server_metadata.managedProjectIds;
+  expect(projectIds.length).toBe(0);
+});
+
+it("makes sure other users are not affected by project deletion", async ({ expect }) => {
+  const { userId: userId1 } =  await Auth.Otp.signIn();
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { projectId } = await Project.createAndGetAdminToken();
+
+  backendContext.set({ mailbox: createMailbox(), projectKeys: InternalProjectKeys });
+  await Auth.Otp.signIn();
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+
+  // Delete the project
+  await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "DELETE",
+    headers: {
+      'x-stack-admin-access-token': adminAccessToken,
+    }
+  });
+
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const userResponse1 = await niceBackendFetch(`/api/v1/users/${userId1}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  const projectIds1 = userResponse1.body.server_metadata.managedProjectIds;
+  expect(projectIds1.length).toBe(1);
+  expect(projectIds1[0]).toBe(projectId);
 });

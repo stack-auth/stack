@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x, 22.6]
 
     steps:
       - uses: actions/checkout@v3
@@ -60,6 +60,12 @@ jobs:
 
       - name: Create .env.production.local file for examples/partial-prerendering
         run: cp examples/partial-prerendering/.env.development examples/partial-prerendering/.env.production.local
+
+      - name: Create .env.production.local file for examples/supabase
+        run: cp examples/supabase/.env.development examples/supabase/.env.production.local
+
+      - name: Put QUETZAL_API_KEY in .env.local for packages/stack
+        run: echo "QUETZAL_API_KEY=${{ secrets.QUETZAL_API_KEY }}" >> packages/stack/.env.local
 
       - name: Build
         run: pnpm build

@@ -4,18 +4,12 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionDialog, CopyField, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
-import { ActionCell, AvatarCell, BadgeCell, DateCell, TextCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { DataTableFacetedFilter } from "./elements/faceted-filter";
-import { SearchToolbarItem } from "./elements/toolbar-items";
-import { arrayFilterFn, standardFilterFn } from "./elements/utils";
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -25,7 +19,7 @@ export type ExtendedServerUser = ServerUser & {
 function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
       <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
@@ -198,11 +192,13 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
-    cell: ({ row }) => <TextCell size={120}>{row.original.displayName}</TextCell>,
+    cell: ({ row }) =>  <TextCell size={120}><span className={row.original.displayName === null ? 'text-slate-400' : ''}>{row.original.displayName ?? '–'}</span></TextCell>,
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "primaryEmail",
@@ -212,12 +208,19 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
+    enableGlobalFilter: true,
+  },
+  {
+    accessorKey: "lastActiveAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
+    cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
   },
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    filterFn: standardFilterFn
+    filterFn: standardFilterFn,
+    enableGlobalFilter: false,
   },
 ] satisfies ColumnDef<T>[];
 

@@ -5,8 +5,10 @@ import { usersCrudServerDeleteSchema, usersCrudServerReadSchema, usersCrudServer
 
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "display_name",
+  "profile_image_url",
   "client_metadata",
   "selected_team_id",
+  "totp_secret_base64",
 ]).required();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
@@ -17,12 +19,16 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "primary_email_verified",
   "display_name",
   "client_metadata",
+  "client_read_only_metadata",
   "profile_image_url",
   "signed_up_at_millis",
   "has_password",
   "auth_with_email",
   "oauth_providers",
   "selected_team_id",
+  "auth_methods",
+  "connected_accounts",
+  "requires_totp_mfa",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),
 })).nullable().defined(); // TODO: next-release: make required

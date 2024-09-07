@@ -7,11 +7,13 @@ import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
+import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
 
@@ -78,6 +80,7 @@ export class StackClientInterface {
       }
     });
     return {
+      "navigator?.onLine": globalVar.navigator?.onLine,
       cfTrace,
       apiRoot,
       baseUrlBackend,
@@ -95,7 +98,7 @@ export class StackClientInterface {
 
     // try to diagnose the error for the user
     if (retriedResult.status === "error") {
-      if (!navigator.onLine) {
+      if (globalVar.navigator && !globalVar.navigator.onLine) {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
       throw new Error(deindent`
@@ -299,7 +302,6 @@ export class StackClientInterface {
     } catch (e) {
       if (e instanceof TypeError) {
         // Network error, retry
-        console.warn(`Stack detected a network error while fetching ${url}, retrying.`, e, { url });
         return Result.error(e);
       }
       throw e;
@@ -341,7 +343,7 @@ export class StackClientInterface {
       const error = await res.text();
 
       // Do not retry, throw error instead of returning one
-      throw new Error(`Failed to send request to ${url}: ${res.status} ${error}`);
+      throw new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
     }
   }
 
@@ -535,6 +537,92 @@ export class StackClientInterface {
     }
   }
 
+  async sendTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+    session: InternalSession | null,
+  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
+      },
+      options.session,
+      [KnownErrors.TeamPermissionRequired]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
+    }
+  }
+
+  async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
+    code: string,
+    session: InternalSession,
+    type: T,
+  }): Promise<Result<T extends 'details' ? { team_display_name: string } : undefined, KnownErrors["VerificationCodeError"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      options.type === 'check' ?
+        "/team-invitations/accept/check-code" :
+        options.type === 'details' ?
+          "/team-invitations/accept/details" :
+          "/team-invitations/accept",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          code: options.code,
+        }),
+      },
+      options.session,
+      [KnownErrors.VerificationCodeError]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(await res.data.json());
+    }
+  }
+
+  async totpMfa(
+    attemptCode: string,
+    totp: string,
+    session: InternalSession
+  ) {
+    const res = await this.sendClientRequest("/auth/mfa/sign-in", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        code: attemptCode,
+        type: "totp",
+        totp: totp,
+      }),
+    }, session);
+
+    const result = await res.json();
+    return {
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
+      newUser: result.is_new_user,
+    };
+  }
+
   async signInWithCredential(
     email: string,
     password: string,
@@ -625,7 +713,7 @@ export class StackClientInterface {
     return {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
-      newUser: result.new_user,
+      newUser: result.is_new_user,
     };
   }
 
@@ -718,12 +806,15 @@ export class StackClientInterface {
 
     const result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
     if (oauth.isOAuth2Error(result)) {
+      if ("code" in result && result.code === "MULTI_FACTOR_AUTHENTICATION_REQUIRED") {
+        throw new KnownErrors.MultiFactorAuthenticationRequired((result as any).details.attempt_code);
+      }
       // TODO Handle OAuth 2.0 response body error
       throw new StackAssertionError("Outer OAuth error during authorization code response", { result });
     }
     return {
-      newUser: result.newUser as boolean,
-      afterCallbackRedirectUrl: result.afterCallbackRedirectUrl as string | undefined,
+      newUser: result.is_new_user as boolean,
+      afterCallbackRedirectUrl: result.after_callback_redirect_url as string | undefined,
       accessToken: result.access_token,
       refreshToken: result.refresh_token ?? throwErr("Refresh token not found in outer OAuth response"),
     };
@@ -776,6 +867,98 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamMemberProfiles(
+    options: {
+      teamId?: string,
+      userId?: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-member-profiles?" + new URLSearchParams(filterUndefined({
+        team_id: options.teamId,
+        user_id: options.userId,
+      })),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamMemberProfilesCrud['Client']['List'];
+    return result.items;
+  }
+
+  async getTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {},
+      session,
+    );
+    return await response.json();
+  }
+
+  async leaveTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-memberships/${teamId}/me`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      session,
+    );
+  }
+
+  async updateTeamMemberProfile(
+    options: {
+      teamId: string,
+      userId: string,
+      profile: TeamMemberProfilesCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      session,
+    );
+  }
+
+  async updateTeam(
+    options: {
+      teamId: string,
+      data: TeamsCrud['Client']['Update'],
+    },
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/teams/${options.teamId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.data),
+      },
+      session,
+    );
   }
 
   async listCurrentUserTeamPermissions(

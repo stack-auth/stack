@@ -1,3 +1,4 @@
+import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
 import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -8,6 +9,7 @@ import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject } from "@/lib/projects";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { createMfaRequiredError } from "@/app/api/v1/auth/mfa/sign-in/verification-code-handler";
 
 const enabledScopes = ["legacy"];
 
@@ -80,11 +82,33 @@ export class OAuthModel implements AuthorizationCodeModel {
 
   async generateRefreshToken(client: Client, user: User, scope: string[]): Promise<string> {
     assertScopeIsValid(scope);
+
     return generateSecureRandomString();
   }
 
-  async saveToken(token: Token, client: Client, user: User): Promise<Token | Falsey>{
+  async saveToken(token: Token, client: Client, user: User): Promise<Token | Falsey> {
     if (token.refreshToken) {
+      const projectUser = await prismaClient.projectUser.findUniqueOrThrow({
+        where: {
+          projectId_projectUserId: {
+            projectId: client.id,
+            projectUserId: user.id,
+          },
+        },
+        include: {
+          project: {
+            include: fullProjectInclude,
+          },
+        },
+      });
+      if (projectUser.requiresTotpMfa) {
+        throw await createMfaRequiredError({
+          project: projectPrismaToCrud(projectUser.project),
+          userId: projectUser.projectUserId,
+          isNewUser: false,
+        });
+      }
+
       await prismaClient.projectUserRefreshToken.create({
         data: {
           refreshToken: token.refreshToken,
@@ -104,9 +128,19 @@ export class OAuthModel implements AuthorizationCodeModel {
     token.client = client;
     token.user = user;
     return {
-      ...token,
+      accessToken: token.accessToken,
+      accessTokenExpiresAt: token.accessTokenExpiresAt,
+      refreshToken: token.refreshToken,
+      refreshTokenExpiresAt: token.refreshTokenExpiresAt,
+      scope: token.scope,
+      client: token.client,
+      user: token.user,
+
+      // TODO remove deprecated camelCase properties
       newUser: user.newUser,
+      is_new_user: user.newUser,
       afterCallbackRedirectUrl: user.afterCallbackRedirectUrl,
+      after_callback_redirect_url: user.afterCallbackRedirectUrl,
     };
   }
 

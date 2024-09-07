@@ -1,16 +1,12 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerTeam, ServerUser } from '@stackframe/stack';
-import { ActionDialog, SimpleTooltip } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, SearchToolbarItem, SimpleTooltip } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
-import { ActionCell, BadgeCell } from "./elements/cells";
-import { DataTableColumnHeader } from "./elements/column-header";
-import { DataTable } from "./elements/data-table";
-import { SearchToolbarItem } from "./elements/toolbar-items";
 import { ExtendedServerUser, extendUsers, getCommonUserColumns } from "./user-table";
 
 
@@ -65,8 +61,7 @@ function EditPermissionDialog(props: {
           {...innerProps}
           permissions={permissions}
           type="edit-user"
-          team={props.team}
-          user={props.user}
+          containedPermissionIds={props.user.permissions}
         />
       ),
     }),
@@ -169,7 +164,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
   useEffect(() => {
     async function load() {
       const promises = props.users.map(async user => {
-        const permissions = await user.listPermissions(props.team, { direct: true });
+        const permissions = await user.listPermissions(props.team, { recursive: false });
         return {
           user,
           permissions,

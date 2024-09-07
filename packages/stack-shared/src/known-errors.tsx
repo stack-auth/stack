@@ -1,6 +1,7 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
+import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -399,7 +400,7 @@ const InvalidProjectForAdminAccessToken = createKnownErrorConstructor(
   "INVALID_PROJECT_FOR_ADMIN_ACCESS_TOKEN",
   () => [
     401,
-    "Admin access token not valid for this project.",
+    "Admin access tokens must be created on the internal project.",
   ] as const,
   () => [] as const,
 );
@@ -659,6 +660,16 @@ const ProjectNotFound = createKnownErrorConstructor(
     ] as const;
   },
   (json: any) => [json.project_id] as const,
+);
+
+const SignUpNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "SIGN_UP_NOT_ENABLED",
+  () => [
+    400,
+    "Creation of new accounts is not enabled for this project. Please ask the project owner to enable it.",
+  ] as const,
+  () => [] as const,
 );
 
 const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
@@ -999,6 +1010,29 @@ const OAuthProviderNotFoundOrNotEnabled = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const MultiFactorAuthenticationRequired = createKnownErrorConstructor(
+  KnownError,
+  "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+  (attemptCode: string) => [
+    400,
+    `Multi-factor authentication is required for this user.`,
+    {
+      attempt_code: attemptCode,
+    },
+  ] as const,
+  (json) => [json.attempt_code] as const,
+);
+
+const InvalidTotpCode = createKnownErrorConstructor(
+  KnownError,
+  "INVALID_TOTP_CODE",
+  () => [
+    400,
+    "The TOTP code is invalid. Please try again.",
+  ] as const,
+  () => [] as const,
+);
+
 const UserAuthenticationRequired = createKnownErrorConstructor(
   KnownError,
   "USER_AUTHENTICATION_REQUIRED",
@@ -1022,6 +1056,21 @@ const TeamMembershipAlreadyExists = createKnownErrorConstructor(
 const TeamPermissionRequired = createKnownErrorConstructor(
   KnownError,
   "TEAM_PERMISSION_REQUIRED",
+  (teamId, userId, permissionId) => [
+    401,
+    `User ${userId} does not have permission ${permissionId} in team ${teamId}.`,
+    {
+      team_id: teamId,
+      user_id: userId,
+      permission_id: permissionId,
+    },
+  ] as const,
+  (json) => [json.team_id, json.user_id, json.permission_id] as const,
+);
+
+const TeamPermissionNotFound = createKnownErrorConstructor(
+  KnownError,
+  "TEAM_PERMISSION_NOT_FOUND",
   (teamId, userId, permissionId) => [
     401,
     `User ${userId} does not have permission ${permissionId} in team ${teamId}.`,
@@ -1120,6 +1169,7 @@ export const KnownErrors = {
   UserNotFound,
   ApiKeyNotFound,
   ProjectNotFound,
+  SignUpNotEnabled,
   PasswordAuthenticationNotEnabled,
   EmailPasswordMismatch,
   RedirectUrlNotWhitelisted,
@@ -1150,12 +1200,15 @@ export const KnownErrors = {
   UserAlreadyConnectedToAnotherOAuthConnection,
   OuterOAuthTimeout,
   OAuthProviderNotFoundOrNotEnabled,
+  MultiFactorAuthenticationRequired,
+  InvalidTotpCode,
   UserAuthenticationRequired,
   TeamMembershipAlreadyExists,
   TeamPermissionRequired,
   InvalidSharedOAuthProviderId,
   InvalidStandardOAuthProviderId,
   InvalidAuthorizationCode,
+  TeamPermissionNotFound,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

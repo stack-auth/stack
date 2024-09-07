@@ -65,30 +65,56 @@ it("creates a team and manage users on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "client_read_only_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
+            "requires_totp_mfa": false,
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "client_read_only_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
+            "requires_totp_mfa": false,
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,
@@ -125,15 +151,28 @@ it("creates a team and manage users on the server", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "auth_methods": [
+              {
+                "contact_channel": {
+                  "email": "<stripped UUID>@stack-generated.example.com",
+                  "type": "email",
+                },
+                "type": "otp",
+              },
+            ],
             "auth_with_email": true,
             "client_metadata": null,
+            "client_read_only_metadata": null,
+            "connected_accounts": [],
             "display_name": null,
             "has_password": false,
             "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_verified": true,
             "profile_image_url": null,
+            "requires_totp_mfa": false,
             "selected_team": null,
             "selected_team_id": null,
             "server_metadata": null,
@@ -148,7 +187,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
 
 it("should give team creator default permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });

@@ -1,14 +1,11 @@
-import { yupObject, yupString, yupNumber, yupBoolean } from "@stackframe/stack-shared/dist/schema-fields";
-import { prismaClient } from "@/prisma-client";
-import { createAuthTokens } from "@/lib/tokens";
-import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
-import { signInResponseSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { VerificationCodeType } from "@prisma/client";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
+import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { usersCrudHandlers } from "../../../users/crud";
 
 export const resetPasswordVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -26,6 +23,9 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
   type: VerificationCodeType.PASSWORD_RESET,
   data: yupObject({
     user_id: yupString().required(),
+  }),
+  method: yupObject({
+    email: yupString().email().required(),
   }),
   requestBody: yupObject({
     password: yupString().required(),
@@ -55,17 +55,14 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
       throw passwordError;
     }
 
-    await prismaClient.projectUser.update({
-      where: {
-        projectId_projectUserId: {
-          projectId: project.id,
-          projectUserId: data.user_id,
-        },
-      },
+    await usersCrudHandlers.adminUpdate({
+      project,
+      user_id: data.user_id,
       data: {
-        passwordHash: await hashPassword(password),
+        password,
       },
     });
+
 
     return {
       statusCode: 200,

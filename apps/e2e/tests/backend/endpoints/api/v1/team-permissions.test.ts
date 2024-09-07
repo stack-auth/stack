@@ -45,7 +45,7 @@ it("is not allowed to grant non-existing permission to a user on the server", as
 
 it("can create a new permission and grant it to a user on the server", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   // create a permission child
   await niceBackendFetch(`/api/v1/team-permission-definitions`, {
@@ -149,7 +149,7 @@ it("can create a new permission and grant it to a user on the server", async ({ 
 
 it("can customize default team permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndSetAdmin();
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   const response1 = await niceBackendFetch(`/api/v1/team-permission-definitions`, {
     accessType: "admin",
@@ -186,6 +186,7 @@ it("can customize default team permissions", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "client_team_creation_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -194,6 +195,7 @@ it("can customize default team permissions", async ({ expect }) => {
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "test" }],
         },

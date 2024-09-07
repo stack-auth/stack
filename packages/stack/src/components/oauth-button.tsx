@@ -54,6 +54,63 @@ function SpotifyIcon({ iconSize } : { iconSize: number} ) {
     </svg>
   );
 }
+function DiscordIcon({ iconSize } : { iconSize: number} ) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 127.14 96.36">
+      <path fill="#fff" d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+    </svg>
+  );
+}
+function GitlabIcon({ iconSize } : { iconSize: number} ) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={iconSize}
+      height={iconSize}
+      viewBox="0 -10 256 256"
+      version="1.1"
+      preserveAspectRatio="xMidYMid"
+    >
+      <g>
+        <path d="M128.07485,236.074667 L128.07485,236.074667 L175.17885,91.1043048 L80.9708495,91.1043048 L128.07485,236.074667 L128.07485,236.074667 Z" fill="#E24329"></path>
+        <path d="M128.07485,236.074423 L80.9708495,91.104061 L14.9557638,91.104061 L128.07485,236.074423 L128.07485,236.074423 Z" fill="#FC6D26"></path>
+        <path d="M14.9558857,91.1044267 L14.9558857,91.1044267 L0.641828571,135.159589 C-0.663771429,139.17757 0.766171429,143.57955 4.18438095,146.06275 L128.074971,236.074789 L14.9558857,91.1044267 L14.9558857,91.1044267 Z" fill="#FCA326"></path>
+        <path d="M14.9558857,91.1045486 L80.9709714,91.1045486 L52.6000762,3.79026286 C51.1408762,-0.703146667 44.7847619,-0.701927619 43.3255619,3.79026286 L14.9558857,91.1045486 L14.9558857,91.1045486 Z" fill="#E24329"></path>
+        <path d="M128.07485,236.074423 L175.17885,91.104061 L241.193935,91.104061 L128.07485,236.074423 L128.07485,236.074423 Z" fill="#FC6D26"></path>
+        <path d="M241.193935,91.1044267 L241.193935,91.1044267 L255.507992,135.159589 C256.813592,139.17757 255.38365,143.57955 251.96544,146.06275 L128.07485,236.074789 L241.193935,91.1044267 L241.193935,91.1044267 Z" fill="#FCA326"></path>
+        <path d="M241.193935,91.1045486 L175.17885,91.1045486 L203.549745,3.79026286 C205.008945,-0.703146667 211.365059,-0.701927619 212.824259,3.79026286 L241.193935,91.1045486 L241.193935,91.1045486 Z" fill="#E24329"></path>
+      </g>
+    </svg>
+  );
+}
+
+function BitbucketIcon({ iconSize }: { iconSize: number }) {
+  return (
+    <svg
+      preserveAspectRatio="xMidYMid"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="-0.9662264221278978 -0.5824607696358868 257.93281329857973 230.8324730411935"
+      width={iconSize}
+      height={iconSize}
+    >
+      <linearGradient
+        id="a"
+        x1="108.633%"
+        x2="46.927%"
+        y1="13.818%"
+        y2="78.776%"
+      >
+        <stop offset=".18" stopColor="#0052cc" />
+        <stop offset="1" stopColor="#2684ff" />
+      </linearGradient>
+      <g fill="none">
+        <path d="M101.272 152.561h53.449l12.901-75.32H87.06z" />
+        <path d="M8.308 0A8.202 8.202 0 0 0 .106 9.516l34.819 211.373a11.155 11.155 0 0 0 10.909 9.31h167.04a8.202 8.202 0 0 0 8.201-6.89l34.82-213.752a8.202 8.202 0 0 0-8.203-9.514zm146.616 152.768h-53.315l-14.436-75.42h80.67z" fill="#2684ff"/>
+        <path d="M244.61 77.242h-76.916l-12.909 75.36h-53.272l-62.902 74.663a11.105 11.105 0 0 0 7.171 2.704H212.73a8.196 8.196 0 0 0 8.196-6.884z" fill="url(#a)"/>
+      </g>
+    </svg>
+  );
+}
 
 const changeColor = (c: Color, value: number) => {
   if (c.isLight()) {
@@ -124,6 +181,35 @@ export function OAuthButton({
         textColor: '#fff',
         name: 'Spotify',
         icon: <SpotifyIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'discord': {
+      style = {
+        backgroundColor: '#5865F2',
+        textColor: '#fff',
+        name: 'Discord',
+        icon: <DiscordIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'gitlab': {
+      style = {
+        backgroundColor: "#111",
+        textColor: "#fff",
+        border: "1px solid #333",
+        name: "Gitlab",
+        icon: <GitlabIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case "bitbucket": {
+      style = {
+        backgroundColor: "#fff",
+        textColor: "#000",
+        border: "1px solid #ddd",
+        name: "Bitbucket",
+        icon: <BitbucketIcon iconSize={iconSize} />,
       };
       break;
     }

@@ -68,6 +68,7 @@ export function projectPrismaToCrud(
       client_id?: string,
       client_secret?: string ,
       facebook_config_id?: string,
+      microsoft_tenant_id?: string,
     }[] => {
       if (provider.proxiedOAuthConfig) {
         return [{
@@ -83,6 +84,7 @@ export function projectPrismaToCrud(
           client_id: provider.standardOAuthConfig.clientId,
           client_secret: provider.standardOAuthConfig.clientSecret,
           facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
+          microsoft_tenant_id: provider.standardOAuthConfig.microsoftTenantId ?? undefined,
         }];
       } else {
         throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${provider.id}' of project '${prisma.id}'`, { prisma });
@@ -99,9 +101,11 @@ export function projectPrismaToCrud(
     config: {
       id: prisma.config.id,
       allow_localhost: prisma.config.allowLocalhost,
+      sign_up_enabled: prisma.config.signUpEnabled,
       credential_enabled: prisma.config.credentialEnabled,
       magic_link_enabled: prisma.config.magicLinkEnabled,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
+      client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       domains: prisma.config.domains
         .map((domain) => ({
           domain: domain.domain,
@@ -148,7 +152,7 @@ export function projectPrismaToCrud(
   };
 }
 
-export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-project-id" | "not-admin" | null> {
+export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
   if (!adminAccessToken) {
     return "unparsable-access-token";
   }
@@ -165,7 +169,7 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
   }
   const { userId, projectId: accessTokenProjectId } = decoded;
   if (accessTokenProjectId !== "internal") {
-    return "wrong-project-id";
+    return "wrong-token-project-id";
   }
 
   let user;
@@ -184,6 +188,12 @@ export async function whyNotProjectAdmin(projectId: string, adminAccessToken: st
 
   const allProjects = listManagedProjectIds(user);
   if (!allProjects.includes(projectId)) {
+    return "not-admin";
+  }
+
+  const project = await getProject(projectId);
+  if (!project) {
+    // this happens if the project is still in the user's managedProjectIds, but has since been deleted
     return "not-admin";
   }
 

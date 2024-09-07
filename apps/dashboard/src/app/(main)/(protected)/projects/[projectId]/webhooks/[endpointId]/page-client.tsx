@@ -4,8 +4,8 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
-import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
+import { useEffect, useMemo, useState } from "react";
+import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret, useSvix } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { getSvixResult } from "../utils";
@@ -25,10 +25,6 @@ function PageInner(props: { endpointId: string }) {
       <SettingCard title="Details" description="The details of this endpoint">
         <EndpointDetails endpointId={props.endpointId} />
       </SettingCard>
-
-      {/* <SettingCard title="Filters" description="Filter the events that are sent to this endpoint">
-        <FilterEvents endpointId={props.endpointId} />
-      </SettingCard> */}
 
       <SettingCard title="Events History" description="The log of events sent to this endpoint">
         <MessageTable endpointId={props.endpointId} />
@@ -132,7 +128,7 @@ function FilterEvents(props: { endpointId: string }) {
 
 
 function MessageTable(props: { endpointId: string }) {
-  const messages = getSvixResult(useEndpointMessageAttempts(props.endpointId, { limit: 10 }));
+  const messages = getSvixResult(useEndpointMessageAttempts(props.endpointId, { limit: 10, withMsg: true }));
 
   if (!messages.loaded) return messages.rendered;
 

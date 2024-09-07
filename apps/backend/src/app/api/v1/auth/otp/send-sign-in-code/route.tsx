@@ -5,6 +5,7 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSch
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -44,6 +45,10 @@ export const POST = createSmartRouteHandler({
 
     const userPrisma = usersPrisma.length > 0 ? usersPrisma[0] : null;
     const isNewUser = !userPrisma;
+    if (isNewUser && !project.config.sign_up_enabled) {
+      throw new KnownErrors.SignUpNotEnabled();
+    }
+
     let userObj: Pick<NonNullable<typeof userPrisma>, "projectUserId" | "displayName" | "primaryEmail"> | null = userPrisma;
     if (!userObj) {
       // TODO this should be in the same transaction as the read above
@@ -54,6 +59,7 @@ export const POST = createSmartRouteHandler({
           primary_email: email,
           primary_email_verified: false,
         },
+        allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });
       userObj = {
         projectUserId: createdUser.id,

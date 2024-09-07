@@ -1,15 +1,19 @@
 import * as yup from "yup";
+import { isBase64 } from "./utils/bytes";
+import { StackAssertionError } from "./utils/errors";
 import { allProviders } from "./utils/oauth";
 import { isUuid } from "./utils/uuids";
 
 const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name. This is not a unique identifier.`;
 const _clientMetaDataDescription = (identify: string) => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
-const _profileImageUrlDescription = (identify: string) => `URL of the profile image for ${identify}. Can be a Base64 encoded image. Please compress and crop to a square before passing in.`;
+const _clientReadOnlyMetaDataDescription = (identify: string) => `Client read-only, server-writable metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client. The client can read this data, but cannot modify it. This is useful for things like subscription status.`;
+const _profileImageUrlDescription = (identify: string) => `URL of the profile image for ${identify}. Can be a Base64 encoded image. Must be smaller than 100KB. Please compress and crop to a square before passing in.`;
 const _serverMetaDataDescription = (identify: string) => `Server metadata. Used as a data store, only accessible from the server side. You can store secret information related to the ${identify} here.`;
 const _atMillisDescription = (identify: string) => `(the number of milliseconds since epoch, January 1, 1970, UTC)`;
 const _createdAtMillisDescription = (identify: string) => `The time the ${identify} was created ${_atMillisDescription(identify)}`;
 const _signedUpAtMillisDescription = `The time the user signed up ${_atMillisDescription}`;
+const _lastActiveAtMillisDescription = `The time the user was last active ${_atMillisDescription}`;
 
 
 declare const StackAdaptSentinel: unique symbol;
@@ -47,15 +51,17 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
     ({ path }) => `${path} contains unknown properties`,
     (value: any, context) => {
       if (context.options.context?.noUnknownPathPrefixes?.some((prefix: string) => context.path.startsWith(prefix))) {
-        const availableKeys = new Set(Object.keys(context.schema.fields));
-        const unknownKeys = Object.keys(value ?? {}).filter(key => !availableKeys.has(key));
-        if (unknownKeys.length > 0) {
-          // TODO "did you mean XYZ"
-          return context.createError({
-            message: `${context.path} contains unknown properties: ${unknownKeys.join(', ')}`,
-            path: context.path,
-            params: { unknownKeys },
-          });
+        if (context.schema.spec.noUnknown !== false) {
+          const availableKeys = new Set(Object.keys(context.schema.fields));
+          const unknownKeys = Object.keys(value ?? {}).filter(key => !availableKeys.has(key));
+          if (unknownKeys.length > 0) {
+            // TODO "did you mean XYZ"
+            return context.createError({
+              message: `${context.path} contains unknown properties: ${unknownKeys.join(', ')}`,
+              path: context.path,
+              params: { unknownKeys },
+            });
+          }
         }
       }
       return true;
@@ -67,6 +73,30 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
 }
 /* eslint-enable no-restricted-syntax */
 
+export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<yup.InferType<T[number]>> {
+  if (args.length === 0) throw new Error('yupUnion must have at least one schema');
+
+  const [first] = args;
+  const firstDesc = first.describe();
+  for (const schema of args) {
+    const desc = schema.describe();
+    if (desc.type !== firstDesc.type) throw new StackAssertionError(`yupUnion must have schemas of the same type (got: ${firstDesc.type} and ${desc.type})`, { first, schema, firstDesc, desc });
+  }
+
+  return yupMixed().required().test('is-one-of', 'Invalid value', async (value, context) => {
+    const errors = [];
+    for (const schema of args) {
+      try {
+        await schema.validate(value, context.options);
+        return true;
+      } catch (e) {
+        errors.push(e);
+      }
+    }
+    throw new AggregateError(errors, 'Invalid value; must be one of the provided schemas');
+  });
+}
+
 // Common
 export const adaptSchema = yupMixed<StackAdaptSentinel>();
 /**
@@ -76,7 +106,7 @@ export const urlSchema = yupString().test({
   name: 'url',
   message: 'Invalid URL',
   test: (value) => {
-    if (value === undefined) return true;
+    if (!value) return true;
     try {
       new URL(value);
       return true;
@@ -105,6 +135,10 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
   }
 });
 export const emailSchema = yupString().email();
+export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
+  if (value == null) return true;
+  return isBase64(value);
+});
 
 // Request auth
 export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);
@@ -123,6 +157,8 @@ export const projectConfigIdSchema = yupString().meta({ openapiField: { descript
 export const projectAllowLocalhostSchema = yupBoolean().meta({ openapiField: { description: 'Whether localhost is allowed as a domain for this project. Should only be allowed in development mode', exampleValue: true } });
 export const projectCreateTeamOnSignUpSchema = yupBoolean().meta({ openapiField: { description: 'Whether a team should be created for each user that signs up', exampleValue: true } });
 export const projectMagicLinkEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
+export const projectClientTeamCreationEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether client users can create teams', exampleValue: true } });
+export const projectSignUpEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether users can sign up new accounts, or whether they are only allowed to sign in to existing accounts. Regardless of this option, the server API can always create new users with the `POST /users` endpoint.', exampleValue: true } });
 export const projectCredentialEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
 // Project OAuth config
 export const oauthIdSchema = yupString().oneOf(allProviders).meta({ openapiField: { description: `OAuth provider ID, one of ${allProviders.map(x => `\`${x}\``).join(', ')}`, exampleValue: 'google' } });
@@ -155,16 +191,22 @@ export const userIdOrMeSchema = yupString().uuid().transform(v => {
 }).test((v, context) => {
   if (v === userIdMeSentinelUuid) throw new ReplaceFieldWithOwnUserId(context.path);
   return true;
-}).meta({ openapiField: { description: 'The ID of the user, or the special value `me` to signify the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
+}).meta({ openapiField: { description: 'The ID of the user, or the special value `me` for the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const userIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('user'), exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const primaryEmailSchema = emailSchema.meta({ openapiField: { description: 'Primary email', exampleValue: 'johndoe@example.com' } });
 export const primaryEmailVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the primary email has been verified to belong to this user', exampleValue: true } });
 export const userDisplayNameSchema = yupString().nullable().meta({ openapiField: { description: _displayNameDescription('user'), exampleValue: 'John Doe' } });
-export const selectedTeamIdSchema = yupString().meta({ openapiField: { description: 'ID of the team currently selected by the user', exampleValue: 'team-id' } });
-export const profileImageUrlSchema = yupString().meta({ openapiField: { description: _profileImageUrlDescription('user'), exampleValue: 'https://example.com/image.jpg' } });
+export const selectedTeamIdSchema = yupString().uuid().meta({ openapiField: { description: 'ID of the team currently selected by the user', exampleValue: 'team-id' } });
+export const profileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('user'), exampleValue: 'https://example.com/image.jpg' } });
 export const signedUpAtMillisSchema = yupNumber().meta({ openapiField: { description: _signedUpAtMillisDescription, exampleValue: 1630000000000 } });
 export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('user'), exampleValue: { key: 'value' } } });
+export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
+export const userOAuthProviderSchema = yupObject({
+  type: yupString().required(),
+  provider_user_id: yupString().required(),
+});
+export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
@@ -206,14 +248,17 @@ export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdS
 // Teams
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });
 export const teamDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team'), exampleValue: 'My Team' } });
-export const teamProfileImageUrlSchema = yupString().meta({ openapiField: { description: _profileImageUrlDescription('team'), exampleValue: 'https://example.com/image.jpg' } });
+export const teamProfileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('team'), exampleValue: 'https://example.com/image.jpg' } });
 export const teamClientMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientMetaDataDescription('team'), exampleValue: { key: 'value' } } });
+export const teamClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('team'), exampleValue: { key: 'value' } } });
 export const teamServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('team'), exampleValue: { key: 'value' } } });
 export const teamCreatedAtMillisSchema = yupNumber().meta({ openapiField: { description: _createdAtMillisDescription('team'), exampleValue: 1630000000000 } });
+export const teamInvitationEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
+export const teamInvitationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
 
 // Team member profiles
 export const teamMemberDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team member') + ' Note that this is separate from the display_name of the user.', exampleValue: 'John Doe' } });
-export const teamMemberProfileImageUrlSchema = yupString().meta({ openapiField: { description: _profileImageUrlDescription('team member'), exampleValue: 'https://example.com/image.jpg' } });
+export const teamMemberProfileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('team member'), exampleValue: 'https://example.com/image.jpg' } });
 
 // Utils
 export function yupRequiredWhen<S extends yup.AnyObject>(

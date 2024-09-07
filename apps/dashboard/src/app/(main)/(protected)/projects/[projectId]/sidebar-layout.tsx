@@ -37,6 +37,7 @@ import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import { useAdminApp } from "./use-admin-app";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
 type BreadcrumbItem = { item: React.ReactNode, href: string }
 
@@ -374,7 +375,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
         <SidebarContent projectId={props.projectId} />
       </div>
       <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-5 px-4 md:px-6">
+        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
           <div className="hidden md:flex">
             <HeaderBreadcrumb projectId={props.projectId} />
           </div>
@@ -395,9 +396,9 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
           </div>
 
           <div className="flex gap-4">
-            <Button variant="outline" size='sm' onClick={() => { window.open("mailto:team@stack-auth.com"); }}>
-              Feedback
-            </Button>
+            <FeedbackDialog
+              trigger={<Button variant="outline" size='sm'>Feedback</Button>}
+            />
             <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} />
           </div>
         </div>

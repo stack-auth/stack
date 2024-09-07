@@ -1,18 +1,19 @@
 "use client";
 
-import { Container } from "@stackframe/stack-ui";
 import React, { useId } from "react";
 import { SsrScript } from "./ssr-layout-effect";
 
 export function MaybeFullPage({
   children,
-  fullPage=true
+  fullPage,
 }: {
   children: React.ReactNode,
-  fullPage?: boolean,
+  fullPage: boolean,
+  size?: number,
+  containerClassName?: string,
 }) {
   const uniqueId = useId();
-  const id = `stack-card-frame-${uniqueId}`;
+  const id = `stack-full-page-container-${uniqueId}`;
 
   const scriptString = `(([id]) => {
     const el = document.getElementById(id);
@@ -34,14 +35,12 @@ export function MaybeFullPage({
             minHeight: '100vh',
             alignSelf: 'stretch',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
+            alignItems: 'center',
           }}
           className="stack-scope"
         >
-          <Container size={380} style={{ padding: '1rem 1rem' }}>
-            {children}
-          </Container>
+          {children}
         </div>
         <SsrScript script={scriptString} />
       </>

@@ -9,6 +9,7 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
 import { useState } from "react";
 import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 const schema = yupObject({
   email: yupString().email('Please enter a valid email').required('Please enter your email'),
@@ -27,7 +28,10 @@ export function CredentialSignIn() {
 
     try {
       const { email, password } = data;
-      const error = await app.signInWithCredential({ email, password });
+      const error = await app.signInWithCredential({
+        email,
+        password,
+      });
       setError('email', { type: 'manual', message: error?.message });
     } finally {
       setLoading(false);

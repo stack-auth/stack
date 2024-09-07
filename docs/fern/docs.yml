@@ -5,8 +5,9 @@ instances:
       github:
         owner: stack-auth
         repo: stack
-        branch: dev
+        branch: dev/docs
 title: Stack Auth Documentation
+js: ./custom-script.js
 
 tabs:
   documentation:
@@ -87,6 +88,19 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
               - page: Sign Up
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
+      - section: Integrations
+        contents:
+          - page: Supabase
+            icon: fa-regular fa-bolt
+            path: ./docs/pages/integrations/supabase.mdx
+          - page: Other Backend Server
+            icon: fa-regular fa-network-wired
+            path: ./docs/pages/integrations/other-backend.mdx
+      - section: Advanced
+        contents:
+          - page: Self-Hosting
+            icon: fa-regular fa-house-laptop
+            path: ./docs/pages/advanced/self-host.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
@@ -120,9 +134,6 @@ navigation:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
-      - page: Examples
-        icon: fa-regular fa-code
-        path: ./docs/pages/rest-api/examples.mdx
       - api: Client API Reference
         slug: client
         api-name: client
@@ -170,3 +181,4 @@ logo:
   light: ./docs/assets/logo-light-mode.svg
   dark: ./docs/assets/logo-dark-mode.svg
   height: 28
+  href: https://stack-auth.com

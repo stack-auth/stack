@@ -17,6 +17,8 @@ import '../polyfills';
 import { ClientPolyfill } from './client-polyfill';
 import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
+import dynamic from 'next/dynamic';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED || ''),
@@ -24,10 +26,17 @@ export const metadata: Metadata = {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
   },
-  description: 'Stack Auth is the fastest way to add authentication to your web app.',
+  description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
   openGraph: {
+    title: 'Stack Auth Dashboard',
+    description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
     images: [`${process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED}/open-graph-image.png`]
-  }
+  },
+  twitter: {
+    title: 'Stack Auth Dashboard',
+    description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
+    images: [`${process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED}/open-graph-image.png`]
+  },
 };
 
 const fontSans = FontSans({
@@ -40,6 +49,10 @@ type TagConfigJson = {
   attributes: { [key: string]: string },
   innerHTML?: string,
 };
+
+const PageView = dynamic(() => import('./pageview'), {
+  ssr: false,
+});
 
 export default function RootLayout({
   children,
@@ -73,6 +86,8 @@ export default function RootLayout({
           suppressHydrationWarning
         >
           <Analytics />
+          <PageView />
+          <SpeedInsights />
           <ThemeProvider>
             <StackProvider app={stackServerApp}>
               <StackTheme>

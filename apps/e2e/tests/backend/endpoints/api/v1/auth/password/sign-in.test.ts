@@ -17,7 +17,22 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
-  await Auth.expectToBeSignedIn();
+  const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+  expect(response.body.auth_methods).toMatchInlineSnapshot(`
+    [
+      {
+        "identifier": "<stripped UUID>@stack-generated.example.com",
+        "type": "password",
+      },
+      {
+        "contact_channel": {
+          "email": "<stripped UUID>@stack-generated.example.com",
+          "type": "email",
+        },
+        "type": "otp",
+      },
+    ]
+  `);
 });
 
 it("should not allow signing in with an e-mail that never signed up", async ({ expect }) => {
@@ -63,6 +78,35 @@ it("should not allow signing in with an incorrect password", async ({ expect }) 
       },
       "headers": Headers {
         "x-stack-known-error": "EMAIL_PASSWORD_MISMATCH",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("should not allow signing in when MFA is required", async ({ expect }) => {
+  const res = await Auth.Password.signUpWithEmail();
+  await Auth.Mfa.setupTotpMfa();
+  await Auth.signOut();
+
+  const response = await niceBackendFetch("/api/v1/auth/password/sign-in", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: backendContext.value.mailbox.emailAddress,
+      password: res.password,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
+        "details": { "attempt_code": <stripped field 'attempt_code'> },
+        "error": "Multi-factor authentication is required for this user.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "MULTI_FACTOR_AUTHENTICATION_REQUIRED",
         <some fields may have been hidden>,
       },
     }

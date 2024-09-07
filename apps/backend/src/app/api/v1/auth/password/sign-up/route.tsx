@@ -4,10 +4,11 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrl
 import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -45,17 +46,8 @@ export const POST = createSmartRouteHandler({
       throw passwordError;
     }
 
-    // TODO: make this a transaction
-    const users = await prismaClient.projectUser.findMany({
-      where: {
-        projectId: project.id,
-        primaryEmail: email,
-        authWithEmail: true,
-      },
-    });
-
-    if (users.length > 0) {
-      throw new KnownErrors.UserEmailAlreadyExists();
+    if (!project.config.sign_up_enabled) {
+      throw new KnownErrors.SignUpNotEnabled();
     }
 
     const createdUser = await usersCrudHandlers.adminCreate({
@@ -66,20 +58,33 @@ export const POST = createSmartRouteHandler({
         primary_email_verified: false,
         password,
       },
+      allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
-    await contactChannelVerificationCodeHandler.sendCode({
-      project,
-      data: {
-        user_id: createdUser.id,
-      },
-      method: {
-        email,
-      },
-      callbackUrl: verificationCallbackUrl,
-    }, {
-      user: createdUser,
-    });
+    try {
+      await contactChannelVerificationCodeHandler.sendCode({
+        project,
+        data: {
+          user_id: createdUser.id,
+        },
+        method: {
+          email,
+        },
+        callbackUrl: verificationCallbackUrl,
+      }, {
+        user: createdUser,
+      });
+    } catch (error) {
+      captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+    }
+
+    if (createdUser.requires_totp_mfa) {
+      throw await createMfaRequiredError({
+        project,
+        isNewUser: true,
+        userId: createdUser.id,
+      });
+    }
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,

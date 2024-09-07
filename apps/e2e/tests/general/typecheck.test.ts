@@ -2,7 +2,7 @@ import { exec } from "child_process";
 import { describe } from "vitest";
 import { it } from "../helpers";
 
-describe.todo("`pnpm run typecheck`", () => {
+describe("`pnpm run typecheck`", () => {
   it("completes successfully", async ({ expect }) => {
     const [error, stdout, stderr] = await new Promise<[Error | null, string, string]>((resolve) => {
       exec("pnpm run typecheck", (error, stdout, stderr) => {

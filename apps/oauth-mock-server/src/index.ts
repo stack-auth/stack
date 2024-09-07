@@ -8,6 +8,9 @@ const mockedProviders = [
   "google",
   "microsoft",
   "spotify",
+  "discord",
+  "gitlab",
+  "bitbucket",
 ];
 
 const configuration: Configuration  = {

@@ -32,6 +32,7 @@ const stripFields = [
   "access_token",
   "refresh_token",
   "date",
+  "last_active_at_millis",
   "signed_up_at_millis",
   "expires_at_millis",
   "created_at_millis",
@@ -39,6 +40,7 @@ const stripFields = [
   "publishable_client_key",
   "secret_server_key",
   "super_secret_admin_key",
+  "attempt_code",
 ] as const;
 
 const keyedCookieNamePrefixes = [

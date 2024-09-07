@@ -48,21 +48,20 @@ const commandsExecuted = [];
 async function main() {
   console.log();
   console.log(`
-       ██████            
-   ██████████████        
-████████████████████     
+       ██████
+   ██████████████
+████████████████████
 ████████████████████                WELCOME TO
 █████████████████        ╔═╗╔╦╗╔═╗╔═╗╦╔═  ┌─┐┬ ┬┌┬┐┬ ┬
 █████████████            ╚═╗ ║ ╠═╣║  ╠╩╗  ├─┤│ │ │ ├─┤
 █████████████   ████     ╚═╝ ╩ ╩ ╩╚═╝╩ ╩  ┴ ┴└─┘ ┴ ┴ ┴
-   █████████████████     
-       ██████     ██     
-████            ████     
+   █████████████████
+       ██████     ██
+████            ████
    █████    █████
        ██████
   `);
   console.log();
-
 
   let projectPath = await getProjectPath();
   if (!fs.existsSync(projectPath)) {
@@ -81,7 +80,11 @@ async function main() {
       `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
     );
   }
-  if (!packageJson.dependencies["next"].includes("14")) {
+  const nextPackageJsonVersion = packageJson.dependencies["next"];
+  if (
+    !nextPackageJsonVersion.includes("14") &&
+    nextPackageJsonVersion !== "latest"
+  ) {
     throw new UserError(
       `The project at ${projectPath} is using an unsupported version of Next.js (found ${packageJson.dependencies["next"]}).\n\nOnly Next.js 14 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
     );
@@ -195,7 +198,7 @@ async function main() {
     {
       type: "confirm",
       name: "ready",
-      message: `Found a Next.js project at ${projectPath}. Ready to install Stack?`,
+      message: `Found a Next.js project at ${projectPath} — ready to install Stack?`,
       default: true,
     },
   ]);
@@ -225,7 +228,9 @@ async function main() {
   );
   await writeFileIfNotExists(
     handlerPath,
-    `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${handlerFileExtension.includes("ts") ? ": any" : ""}) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`
+    `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${
+      handlerFileExtension.includes("ts") ? ": any" : ""
+    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`
   );
   await writeFileIfNotExists(
     stackAppPath,
@@ -237,7 +242,9 @@ async function main() {
   console.log();
   console.log();
   console.log();
-  console.log(`${ansis.bold}${ansis.green}Installation succeeded!${ansis.clear}`);
+  console.log(
+    `${ansis.bold}${ansis.green}Installation succeeded!${ansis.clear}`
+  );
   console.log();
   console.log("Commands executed:");
   for (const command of commandsExecuted) {
@@ -258,19 +265,29 @@ main()
     console.log();
     console.log();
     console.log();
-    console.log(`${ansis.green}===============================================${ansis.clear}`);
+    console.log(
+      `${ansis.green}===============================================${ansis.clear}`
+    );
     console.log();
-    console.log(`${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`);
+    console.log(
+      `${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`
+    );
     console.log();
     console.log("Next steps:");
-    console.log("  1. Create an account and project on https://app.stack-auth.com");
-    console.log("  2. Copy the environment variables from the new API key into your .env.local file");
+    console.log(
+      "  1. Create an account and project on https://app.stack-auth.com"
+    );
+    console.log(
+      "  2. Copy the environment variables from the new API key into your .env.local file"
+    );
     console.log();
     console.log(
       "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
     );
     console.log();
-    console.log(`${ansis.green}===============================================${ansis.clear}`);
+    console.log(
+      `${ansis.green}===============================================${ansis.clear}`
+    );
     console.log();
     console.log(
       "For more information, please visit https://docs.stack-auth.com/docs/getting-started/setup"
@@ -286,20 +303,22 @@ main()
     console.error();
     console.error();
     console.error();
-    console.error(`${ansis.red}===============================================${ansis.clear}`);
+    console.error(
+      `${ansis.red}===============================================${ansis.clear}`
+    );
     console.error();
     if (err instanceof UserError) {
       console.error(`${ansis.red}ERROR!${ansis.clear} ${err.message}`);
     } else {
-      console.error(
-        "An error occurred during the initialization process."
-      );
+      console.error("An error occurred during the initialization process.");
     }
     console.error();
-    console.error(`${ansis.red}===============================================${ansis.clear}`);
+    console.error(
+      `${ansis.red}===============================================${ansis.clear}`
+    );
     console.error();
     console.error(
-      "If you need assistance, please try installing Slack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
+      "If you need assistance, please try installing Stack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
     );
     if (!(err instanceof UserError)) {
       console.error("");
@@ -431,13 +450,16 @@ async function getPackageManager() {
   const yarnLock = fs.existsSync(path.join(projectPath, "yarn.lock"));
   const pnpmLock = fs.existsSync(path.join(projectPath, "pnpm-lock.yaml"));
   const npmLock = fs.existsSync(path.join(projectPath, "package-lock.json"));
+  const bunLock = fs.existsSync(path.join(projectPath, "bun.lockb"));
 
-  if (yarnLock && !pnpmLock && !npmLock) {
+  if (yarnLock && !pnpmLock && !npmLock && !bunLock) {
     return "yarn";
-  } else if (!yarnLock && pnpmLock && !npmLock) {
+  } else if (!yarnLock && pnpmLock && !npmLock && !bunLock) {
     return "pnpm";
-  } else if (!yarnLock && !pnpmLock && npmLock) {
+  } else if (!yarnLock && !pnpmLock && npmLock && !bunLock) {
     return "npm";
+  } else if (!yarnLock && !pnpmLock && !npmLock && bunLock) {
+    return "bun";
   }
 
   const answers = await inquirer.prompt([
@@ -445,22 +467,25 @@ async function getPackageManager() {
       type: "list",
       name: "packageManager",
       message: "Which package manager are you using for this project?",
-      choices: ["npm", "yarn", "pnpm"],
+      choices: ["npm", "yarn", "pnpm", "bun"],
     },
   ]);
   return answers.packageManager;
 }
 
-
 async function shellNicelyFormatted(command, { quiet, ...options }) {
   console.log();
   const ui = new inquirer.ui.BottomBar();
   let dots = 4;
-  ui.updateBottomBar(`${ansis.blue}Running command: ${command}...${ansis.clear}`);
+  ui.updateBottomBar(
+    `${ansis.blue}Running command: ${command}...${ansis.clear}`
+  );
   const interval = setInterval(() => {
     if (!isDryRun) {
       ui.updateBottomBar(
-        `${ansis.blue}Running command: ${command}${".".repeat(dots++ % 5)}${ansis.clear}`
+        `${ansis.blue}Running command: ${command}${".".repeat(dots++ % 5)}${
+          ansis.clear
+        }`
       );
     }
   }, 700);
@@ -490,7 +515,11 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
     }
   } finally {
     clearTimeout(interval);
-    ui.updateBottomBar(quiet ? "" : `${ansis.green}√${ansis.clear} Command ${command} succeeded\n`);
+    ui.updateBottomBar(
+      quiet
+        ? ""
+        : `${ansis.green}√${ansis.clear} Command ${command} succeeded\n`
+    );
     ui.close();
   }
 }

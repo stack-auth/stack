@@ -22,6 +22,9 @@ function toTitle(id: string) {
     facebook: "Facebook",
     microsoft: "Microsoft",
     spotify: "Spotify",
+    discord: "Discord",
+    gitlab: "GitLab",
+    bitbucket: "Bitbucket",
   }[id];
 }
 
@@ -40,6 +43,7 @@ export const providerFormSchema = yup.object({
       otherwise: (schema) => schema.optional()
     }),
   facebookConfigId: yup.string().optional(),
+  microsoftTenantId: yup.string().optional(),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -51,6 +55,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
     clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
     facebookConfigId: (props.provider as any)?.facebookConfigId ?? "",
+    microsoftTenantId: (props.provider as any)?.microsoftTenantId ?? "",
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
@@ -64,6 +69,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
         facebookConfigId: values.facebookConfigId,
+        microsoftTenantId: values.microsoftTenantId,
       });
     }
   };
@@ -98,7 +104,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.provider?.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
               </Typography>
             </div>}
 
@@ -126,6 +132,15 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
                   name="facebookConfigId"
                   label="Configuration ID (only required for Facebook Business)"
                   placeholder="Facebook Config ID"
+                />
+              )}
+
+              {props.id === 'microsoft' && (
+                <InputField
+                  control={form.control}
+                  name="microsoftTenantId"
+                  label="Tenant ID (required if you are using the organizational directory)"
+                  placeholder="Tenant ID"
                 />
               )}
             </>
@@ -186,7 +201,7 @@ export function ProviderSettingSwitch(props: Props) {
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
             {isShared && enabled &&
-              <SimpleTooltip tooltip="Shared keys are automatically created by Stack, but contain Stack's logo on the OAuth sign-in page.">
+              <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>
             }

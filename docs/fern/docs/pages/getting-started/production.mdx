@@ -12,7 +12,7 @@ By default, Stack allows all localhost paths as valid callback URLs. This is con
 Follow these steps when you're ready to push your application to production:
 
 1. **Add Your Domain**: Navigate to the `Domain & Handlers` tab in the Stack dashboard. If you haven't configured your handler, you can leave it as the default. (Learn more about handlers [here](../sdk/stack-app.mdx)).
-   
+
 2. **Disable Localhost Callbacks**: For enhanced security, disable the `Allow all localhost callbacks for development` option.
 
 ### OAuth providers
@@ -25,23 +25,38 @@ To use your own OAuth provider setups in production, follow these steps for each
    <Tabs>
      <Tab title="Google">
        [Google OAuth Setup Guide](https://developers.google.com/identity/protocols/oauth2#1.-obtain-oauth-2.0-credentials-from-the-dynamic_data.setvar.console_name-.)  
-       Callback URL: `https://api.stack-auth.com/api/v1/auth/oauth/callback/google`
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/google`
      </Tab>
      <Tab title="GitHub">
        [GitHub OAuth Setup Guide](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)  
-       Callback URL: `https://api.stack-auth.com/api/v1/auth/oauth/callback/github`
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/github`
      </Tab>
      <Tab title="Facebook">
        [Facebook OAuth Setup Guide](https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case)  
-       Callback URL: `https://api.stack-auth.com/api/v1/auth/oauth/callback/facebook`
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/facebook`
      </Tab>
      <Tab title="Microsoft">
        [Microsoft Azure OAuth Setup Guide](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)  
-       Callback URL: `https://api.stack-auth.com/api/v1/auth/oauth/callback/microsoft`
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/microsoft`
      </Tab>
      <Tab title="Spotify">
        [Spotify OAuth Setup Guide](https://developer.spotify.com/documentation/general/guides/app-settings/)  
-       Callback URL: `https://api.stack-auth.com/api/v1/auth/oauth/callback/spotify`
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/spotify`
+     </Tab>
+     <Tab title="Gitlab">
+       [Gitlab OAuth Setup Guide](https://docs.gitlab.com/ee/integration/oauth_provider.html)  
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/gitlab`
+     </Tab>
+     <Tab title="Bitbucket">
+       [Bitbucket OAuth Setup Guide](https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud)  
+       Callback URL:  
+       `https://api.stack-auth.com/api/v1/auth/oauth/callback/bitbucket`
      </Tab>
    </Tabs>
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { ActionCell } from "@/components/data-table/elements/cells";
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard } from "@/components/settings";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoints, useSvix } from "svix-react";
@@ -27,7 +26,7 @@ function CreateDialog(props: {
 
   const formSchema = yup.object({
     makeSureAlert: yup.mixed().meta({ stackFormFieldRender: () => <Alert> Make sure this is a trusted URL that you control.</Alert> }),
-    url: urlSchema.required().label("URL (starts with https:// or http://)"),
+    url: urlSchema.required().label("URL (starts with https://)").test("is-https", "URL must start with https://", (value) => value.startsWith("https://")),
     description: yup.string().label("Description"),
   });
 

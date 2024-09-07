@@ -1,6 +1,9 @@
+import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import * as jose from "jose";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -19,17 +22,22 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
     mailbox: createMailbox(),
     userAuth: null,
   }),
-  (acc, update) => ({
-    ...acc,
-    ...filterUndefined(update),
-  }),
+  (acc, update) => {
+    return {
+      ...acc,
+      ...filterUndefined(update),
+    };
+  },
 );
+
+const jwks = jose.createRemoteJWKSet(new URL("/.well-known/jwks.json", STACK_BACKEND_BASE_URL));
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
   publishableClientKey?: string,
   secretServerKey?: string,
   superSecretAdminKey?: string,
+  adminAccessToken?: string,
 };
 
 export const InternalProjectKeys = {
@@ -52,9 +60,10 @@ function expectSnakeCase(obj: unknown, path: string): void {
     }
   } else {
     for (const [key, value] of Object.entries(obj)) {
-      if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_")) {
+      if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
         throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
       }
+      if (key === "client_metadata" || key === "server_metadata") continue;
       expectSnakeCase(value, `${path}.${key}`);
     }
   }
@@ -84,9 +93,11 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
         "x-stack-publishable-client-key": projectKeys.publishableClientKey,
         "x-stack-secret-server-key": projectKeys.secretServerKey,
         "x-stack-super-secret-admin-key": projectKeys.superSecretAdminKey,
+        'x-stack-admin-access-token': projectKeys.adminAccessToken,
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
+      "x-stack-disable-artificial-development-delay": "yes",
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
@@ -108,30 +119,110 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 
 
 export namespace Auth {
-  export async function expectToBeSignedIn() {
-    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+  export async function ensureParsableAccessToken() {
+    const accessToken = backendContext.value.userAuth?.accessToken;
+    if (accessToken) {
+      const { payload } = await jose.jwtVerify(accessToken, jwks);
+      expect(payload).toEqual({
+        "exp": expect.any(Number),
+        "iat": expect.any(Number),
+        "iss": "https://access-token.jwt-signature.stack-auth.com",
+        "projectId": expect.any(String),
+        "sub": expect.any(String),
+      });
+    }
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: OK
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectSessionToBeValid() {
+    const response = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", { method: "POST", accessType: "client" });
+    if (response.status !== 200) {
+      throw new StackAssertionError("Expected session to be valid, but was actually invalid.", { response });
+    }
     expect(response).toEqual({
       status: 200,
-      headers: expect.anything(),
-      body: expect.anything(),
+      headers: expect.objectContaining({}),
+      body: expect.objectContaining({}),
     });
   }
 
-  export async function expectToBeSignedOut() {
+  /**
+   * Valid session & valid access token: Error
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: OK
+   */
+  export async function expectSessionToBeInvalid() {
+    const response = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", { method: "POST", accessType: "client" });
+    expect(response.status).not.toEqual(200);
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectAccessTokenToBeInvalid() {
+    await ensureParsableAccessToken();
     const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 400,
-        "body": {
-          "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-          "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
-          <some fields may have been hidden>,
-        },
-      }
-    `);
+    if (response.status === 200) {
+      throw new StackAssertionError("Expected access token to be invalid, but was actually valid.", { response });
+    }
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: OK
+   * Invalid session & invalid access token: Error
+   */
+  export async function expectAccessTokenToBeValid() {
+    await ensureParsableAccessToken();
+    const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+    if (response.status !== 200) {
+      throw new StackAssertionError("Expected access token to be valid, but was actually invalid.", { response });
+    }
+  }
+
+  /**
+   * Valid session & valid access token: OK
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: Error
+   *
+   * (see comment in the function for rationale, and why "invalid refresh token but valid access token" is not
+   * considered "signed in")
+   */
+  export async function expectToBeSignedIn() {
+    // there is a world where we would accept either access token OR session to be "signed in", instead of both
+    // however, it's better to be strict and throw an error if either is invalid; this helps catch bugs
+    // if you really want to check only one of them, use expectSessionToBeValid or expectAccessTokenToBeValid
+    // for more information, see the comment in expectToBeSignedOut
+    await Auth.expectAccessTokenToBeValid();
+    await Auth.expectSessionToBeValid();
+  }
+
+  /**
+   * Valid session & valid access token: Error
+   * Valid session & invalid access token: Error
+   * Invalid session & valid access token: Error
+   * Invalid session & invalid access token: OK
+   */
+  export async function expectToBeSignedOut() {
+    await Auth.expectAccessTokenToBeInvalid();
+
+    // usually, when we mean "signed out" we mean "both access token AND session are invalid"; we'd rather be strict
+    // so, we additionally check the session
+    // this has the weird side effect that expectToBeSignedIn (which is also strict, checking that access token AND
+    // session are valid) may throw, even if expectToBeSignedOut also throws
+    // if you run into something like that in your tests, use expectSessionToBeInvalid instead
+    await Auth.expectSessionToBeInvalid();
   }
 
   export async function signOut() {
@@ -173,7 +264,8 @@ export namespace Auth {
       `);
       const messages = await mailbox.fetchMessages({ noBody: true });
       const subjects = messages.map((message) => message.subject);
-      expect(subjects).toContain("Sign in to Stack Dashboard");
+      const containsSubstring = subjects.some(str => str.includes("Sign in to"));
+      expect(containsSubstring).toBe(true);
       return {
         sendSignInCodeResponse: response,
       };
@@ -183,7 +275,7 @@ export namespace Auth {
       const mailbox = backendContext.value.mailbox;
       const sendSignInCodeRes = await sendSignInCode();
       const messages = await mailbox.fetchMessages();
-      const message = messages.findLast((message) => message.subject === "Sign in to Stack Dashboard") ?? throwErr("Sign-in code message not found");
+      const message = messages.findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
       const signInCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Sign-in URL not found");
       const response = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
         method: "POST",
@@ -310,13 +402,14 @@ export namespace Auth {
       };
     }
 
-    export async function authorize(options?: { redirectUrl: string }) {
+    export async function authorize(options?: { redirectUrl?: string, errorRedirectUrl?: string }) {
       const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
         redirect: "manual",
         query: {
           ...await Auth.OAuth.getAuthorizeQuery(),
           ...filterUndefined({
             redirect_uri: options?.redirectUrl ?? undefined,
+            error_redirect_uri: options?.errorRedirectUrl ?? undefined,
           }),
         },
       });
@@ -437,6 +530,80 @@ export namespace Auth {
         authorizationCode: outerCallbackUrl.searchParams.get("code")!,
       };
     }
+
+    export async function signIn() {
+      const getAuthorizationCodeResult = await Auth.OAuth.getAuthorizationCode();
+
+      const projectKeys = backendContext.value.projectKeys;
+      if (projectKeys === "no-project") throw new Error("No project keys found in the backend context");
+
+      const tokenResponse = await niceBackendFetch("/api/v1/auth/oauth/token", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          client_id: projectKeys.projectId,
+          client_secret: projectKeys.publishableClientKey ?? throwErr("No publishable client key found in the backend context"),
+          code: getAuthorizationCodeResult.authorizationCode,
+          redirect_uri: localRedirectUrl,
+          code_verifier: "some-code-challenge",
+          grant_type: "authorization_code",
+        },
+      });
+      expect(tokenResponse).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": {
+            "access_token": <stripped field 'access_token'>,
+            "afterCallbackRedirectUrl": null,
+            "after_callback_redirect_url": null,
+            "expires_in": 3599,
+            "is_new_user": true,
+            "newUser": true,
+            "refresh_token": <stripped field 'refresh_token'>,
+            "scope": "legacy",
+            "token_type": "Bearer",
+          },
+          "headers": Headers {
+            "pragma": "no-cache",
+            <some fields may have been hidden>,
+          },
+        }
+      `);
+
+      backendContext.set({
+        userAuth: {
+          accessToken: tokenResponse.body.access_token,
+          refreshToken: tokenResponse.body.refresh_token,
+        },
+      });
+
+      return {
+        ...getAuthorizationCodeResult,
+        tokenResponse,
+      };
+    }
+  }
+
+  export namespace Mfa {
+    export async function setupTotpMfa() {
+      const totpSecretBytes = crypto.getRandomValues(new Uint8Array(20));
+      const totpSecretBase64 = encodeBase64(totpSecretBytes);
+      const response = await niceBackendFetch("/api/v1/users/me", {
+        accessType: "client",
+        method: "PATCH",
+        body: {
+          totp_secret_base64: totpSecretBase64,
+        },
+      });
+      expect(response).toMatchObject({
+        status: 200,
+      });
+
+      return {
+        setupTotpMfaResponse: response,
+        totpSecret: totpSecretBytes,
+      };
+    }
   }
 }
 
@@ -494,7 +661,7 @@ export namespace ContactChannels {
 }
 
 export namespace ApiKey {
-  export async function create(adminAccessToken: string, body?: any) {
+  export async function create(adminAccessToken?: string, body?: any) {
     const oldProjectKeys = backendContext.value.projectKeys;
     if (oldProjectKeys === 'no-project') {
       throw new Error("Cannot set API key context without a project");
@@ -512,7 +679,7 @@ export namespace ApiKey {
         ...body,
       },
       headers: {
-        'x-stack-admin-access-token': adminAccessToken,
+        'x-stack-admin-access-token': adminAccessToken ?? (backendContext.value.projectKeys !== "no-project" && backendContext.value.projectKeys.adminAccessToken || throwErr("Missing adminAccessToken")),
       }
     });
     expect(response.status).equals(200);
@@ -528,7 +695,7 @@ export namespace ApiKey {
     };
   }
 
-  export async function createAndSetProjectKeys(adminAccessToken: string, body?: any) {
+  export async function createAndSetProjectKeys(adminAccessToken?: string, body?: any) {
     const res = await ApiKey.create(adminAccessToken, body);
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
@@ -545,13 +712,19 @@ export namespace Project {
         ...body,
       },
     });
+    expect(response).toMatchObject({
+      status: 201,
+      body: {
+        id: expect.any(String),
+      },
+    });
     return {
       createProjectResponse: response,
-      projectId: response.body.id,
+      projectId: response.body.id as string,
     };
   }
 
-  export async function updateCurrent(adminAccessToken: string, body: any) {
+  export async function updateCurrent(adminAccessToken: string, body: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
     const response = await niceBackendFetch(`/api/v1/projects/current`, {
       accessType: "admin",
       method: "PATCH",
@@ -566,15 +739,14 @@ export namespace Project {
     };
   }
 
-  export async function createAndSetAdmin(body?: any) {
+  export async function createAndGetAdminToken(body?: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
     backendContext.set({
       projectKeys: InternalProjectKeys,
     });
     await Auth.Otp.signIn();
-    const { projectId, createProjectResponse } = await Project.create(body);
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
-
     expect(adminAccessToken).toBeDefined();
+    const { projectId, createProjectResponse } = await Project.create(body);
 
     backendContext.set({
       projectKeys: {
@@ -589,12 +761,23 @@ export namespace Project {
       createProjectResponse,
     };
   }
+
+  export async function createAndSwitch(body?: Partial<InternalProjectsCrud["Admin"]["Create"]>) {
+    const createResult = await Project.createAndGetAdminToken(body);
+    backendContext.set({
+      projectKeys: {
+        projectId: createResult.projectId,
+        adminAccessToken: createResult.adminAccessToken,
+      },
+    });
+    return createResult;
+  }
 }
 
 export namespace Team {
   export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
     const response = await niceBackendFetch("/api/v1/teams?add_current_user=true", {
-      accessType: options.accessType ?? "client",
+      accessType: options.accessType ?? "server",
       method: "POST",
       body: {
         display_name: body?.display_name || 'New Team',
@@ -604,6 +787,46 @@ export namespace Team {
     return {
       createTeamResponse: response,
       teamId: response.body.id,
+    };
+  }
+
+  export async function sendInvitation(receiveMailbox: Mailbox, teamId: string) {
+    const response = await niceBackendFetch("/api/v1/team-invitations/send-code", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: receiveMailbox.emailAddress,
+        team_id: teamId,
+        callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+
+    return {
+      sendTeamInvitationResponse: response,
+    };
+  }
+
+  export async function acceptInvitation() {
+    const mailbox = backendContext.value.mailbox;
+    const messages = await mailbox.fetchMessages();
+    const message = messages.findLast((message) => message.subject.includes("join")) ?? throwErr("Team invitation message not found");
+    const code = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Team invitation code not found");
+    const response = await niceBackendFetch("/api/v1/team-invitations/accept", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        code,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {},
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    return {
+      acceptTeamInvitationResponse: response,
     };
   }
 }

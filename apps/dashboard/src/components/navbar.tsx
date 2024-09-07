@@ -1,10 +1,11 @@
 'use client';
 
 import { UserButton } from "@stackframe/stack";
-import { Typography } from "@stackframe/stack-ui";
+import { Button, Typography } from "@stackframe/stack-ui";
 import { useTheme } from "next-themes";
 import { Link } from "./link";
 import { Logo } from "./logo";
+import { FeedbackDialog } from "./feedback-dialog";
 
 export function Navbar({ ...props }) {
   const { resolvedTheme, setTheme } = useTheme();
@@ -18,9 +19,9 @@ export function Navbar({ ...props }) {
       </div>
       <div className="flex items-center">
         <div className="flex gap-4 mr-8 items-center">
-          <Link href="mailto:team@stack-auth.com">
-            <Typography type='label'>Feedback</Typography>
-          </Link>
+          <FeedbackDialog
+            trigger={<Button variant="outline" size='sm'>Feedback</Button>}
+          />
           <Link href="https://docs.stack-auth.com/">
             <Typography type='label'>Docs</Typography>
           </Link>

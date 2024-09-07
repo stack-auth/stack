@@ -1,6 +1,6 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { it } from "../../../../../../helpers";
-import { Auth, backendContext, niceBackendFetch } from "../../../../../backend-helpers";
+import { Auth, Project, backendContext, niceBackendFetch } from "../../../../../backend-helpers";
 
 it("should sign up new users", async ({ expect }) => {
   const res = await Auth.Password.signUpWithEmail();
@@ -26,7 +26,22 @@ it("should sign up new users", async ({ expect }) => {
       },
     ]
   `);
-  await Auth.expectToBeSignedIn();
+  const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
+  expect(response.body.auth_methods).toMatchInlineSnapshot(`
+    [
+      {
+        "identifier": "<stripped UUID>@stack-generated.example.com",
+        "type": "password",
+      },
+      {
+        "contact_channel": {
+          "email": "<stripped UUID>@stack-generated.example.com",
+          "type": "email",
+        },
+        "type": "otp",
+      },
+    ]
+  `);
 });
 
 it("should not allow signing up with an e-mail that already exists", async ({ expect }) => {
@@ -49,6 +64,58 @@ it("should not allow signing up with an e-mail that already exists", async ({ ex
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("should not allow signing up if credentials are disabled", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { credential_enabled: false } });
+  const res2 = await niceBackendFetch("/api/v1/auth/password/sign-up", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: backendContext.value.mailbox.emailAddress,
+      password: generateSecureRandomString(),
+      verification_callback_url: "http://localhost:12345",
+    },
+  });
+  expect(res2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "PASSWORD_AUTHENTICATION_NOT_ENABLED",
+        "error": "Password authentication is not enabled for this project.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "PASSWORD_AUTHENTICATION_NOT_ENABLED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("should not allow signing up if sign ups are disabled", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { sign_up_enabled: false, credential_enabled: true } });
+  const res2 = await niceBackendFetch("/api/v1/auth/password/sign-up", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: backendContext.value.mailbox.emailAddress,
+      password: generateSecureRandomString(),
+      verification_callback_url: "http://localhost:12345",
+    },
+  });
+  expect(res2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SIGN_UP_NOT_ENABLED",
+        "error": "Creation of new accounts is not enabled for this project. Please ask the project owner to enable it.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SIGN_UP_NOT_ENABLED",
         <some fields may have been hidden>,
       },
     }

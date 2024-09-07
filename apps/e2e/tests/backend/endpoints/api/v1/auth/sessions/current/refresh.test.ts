@@ -4,7 +4,7 @@ import { Auth, backendContext, niceBackendFetch } from "../../../../../../backen
 it("should refresh sessions", async ({ expect }) => {
   await Auth.Password.signUpWithEmail();
   backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: undefined } });
-  await Auth.expectToBeSignedOut();
+  await Auth.expectSessionToBeValid();
   const refreshSessionResponse = await niceBackendFetch("/api/v1/auth/sessions/current/refresh", {
     method: "POST",
     accessType: "client",
@@ -17,6 +17,7 @@ it("should refresh sessions", async ({ expect }) => {
     }
   `);
   backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: refreshSessionResponse.body.access_token } });
+  await Auth.expectSessionToBeValid();
   await Auth.expectToBeSignedIn();
 });
 

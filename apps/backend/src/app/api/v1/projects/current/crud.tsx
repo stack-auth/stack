@@ -194,6 +194,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
                   clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
                   facebookConfigId: providerUpdate.facebook_config_id,
+                  microsoftTenantId: providerUpdate.microsoft_tenant_id,
                 },
               },
             };
@@ -227,6 +228,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                   clientId: provider.update.client_id ?? throwErr('client_id is required'),
                   clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
                   facebookConfigId: provider.update.facebook_config_id,
+                  microsoftTenantId: provider.update.microsoft_tenant_id,
                 },
               },
             };
@@ -245,6 +247,14 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
       // ======================= update the rest =======================
 
+      // check domain uniqueness
+      if (data.config?.domains) {
+        const domains = data.config.domains.map((item) => item.domain);
+        if (new Set(domains).size !== domains.length) {
+          throw new StatusError(StatusError.BadRequest, 'Duplicated domain found');
+        }
+      }
+
       return await tx.project.update({
         where: { id: auth.project.id },
         data: {
@@ -253,8 +263,10 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           isProductionMode: data.is_production_mode,
           config: {
             update: {
+              signUpEnabled: data.config?.sign_up_enabled,
               credentialEnabled: data.config?.credential_enabled,
               magicLinkEnabled: data.config?.magic_link_enabled,
+              clientTeamCreationEnabled: data.config?.client_team_creation_enabled,
               allowLocalhost: data.config?.allow_localhost,
               createTeamOnSignUp: data.config?.create_team_on_sign_up,
               domains: data.config?.domains ? {
@@ -276,4 +288,58 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
   onRead: async ({ auth }) => {
     return auth.project;
   },
+  onDelete: async ({ auth }) => {
+    await prismaClient.$transaction(async (tx) => {
+      const configs = await tx.projectConfig.findMany({
+        where: {
+          id: auth.project.config.id
+        },
+        include: {
+          projects: true
+        }
+      });
+
+      if (configs.length !== 1) {
+        throw new StatusError(StatusError.NotFound, 'Project config not found');
+      }
+
+      await tx.projectConfig.delete({
+        where: {
+          id: auth.project.config.id
+        },
+      });
+
+      // delete managed ids from users
+      const users = await tx.projectUser.findMany({
+        where: {
+          projectId: 'internal',
+          serverMetadata: {
+            path: ['managedProjectIds'],
+            array_contains: auth.project.id
+          }
+        }
+      });
+
+      for (const user of users) {
+        const updatedManagedProjectIds = (user.serverMetadata as any).managedProjectIds.filter(
+          (id: any) => id !== auth.project.id
+        ) as string[];
+
+        await tx.projectUser.update({
+          where: {
+            projectId_projectUserId: {
+              projectId: 'internal',
+              projectUserId: user.projectUserId
+            }
+          },
+          data: {
+            serverMetadata: {
+              ...user.serverMetadata as any,
+              managedProjectIds: updatedManagedProjectIds,
+            }
+          }
+        });
+      }
+    });
+  }
 }));

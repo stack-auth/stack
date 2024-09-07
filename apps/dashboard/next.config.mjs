@@ -80,6 +80,10 @@ const nextConfig = {
         source: "/consume/:path*",
         destination: "https://eu.i.posthog.com/:path*",
       },
+      {
+        source: "/consume/decide",
+        destination: "https://eu.i.posthog.com/decide",
+      },
     ];
   },
   skipTrailingSlashRedirect: true, 
