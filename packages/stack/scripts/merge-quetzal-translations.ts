@@ -12,7 +12,7 @@ async function main() {
   // replace Quetzal's auto-generated IDs (like k-0, k-1, etc.) with our own
   // we do this because Quetzal's IDs are not stable when running the script multiple times
   const oldKeysReversed = Object.fromEntries(Object.entries(quetzalKeys).map(([key, value]) => [value, key]));
-  const newKeys = Object.fromEntries(Object.keys(quetzalKeys).map((key, i) => [key, `__stack-auto-translation-${i}`]));
+  const newKeys = Object.fromEntries(Object.keys(sortKeys(quetzalKeys)).map((key, i) => [key, `__stack-auto-translation-${i}`]));
   const localesByKeys = Object.fromEntries(Object.entries(locales).map(([key, value]) => [
     key,
     Object.fromEntries(Object.entries(value).map(([key, value]) => [oldKeysReversed[key], value]))
