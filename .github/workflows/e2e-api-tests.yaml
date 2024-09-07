@@ -70,7 +70,7 @@ jobs:
         run: echo "QUETZAL_API_KEY=${{ secrets.QUETZAL_API_KEY }}" >> packages/stack/.env.local
 
       - name: Build
-        run: pnpm build}
+        run: pnpm build
 
       - name: Start Docker Compose
         run: docker compose -f dependencies.compose.yaml up -d
