@@ -53,11 +53,12 @@ jobs:
 
       - name: Create .env.production.local file for examples/supabase
         run: cp examples/supabase/.env.development examples/supabase/.env.production.local
+        
+      - name: Put QUETZAL_API_KEY in .env.local for packages/stack
+        run: echo "QUETZAL_API_KEY=${{ secrets.QUETZAL_API_KEY }}" >> packages/stack/.env.local
 
       - name: Build
         run: pnpm build
-        env:
-          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
 
       - name: Check API is valid
         run: pnpm run fern check
