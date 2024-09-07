@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+
 ## 2.5.30
 
 ### Patch Changes
