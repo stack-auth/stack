@@ -4,7 +4,7 @@ import { Auth, niceBackendFetch } from "../../../../../backend-helpers";
 it("should redirect the user to the OAuth provider with the right arguments", async ({ expect }) => {
   const response = await Auth.OAuth.authorize();
   expect(response.authorizeResponse.status).toBe(307);
-  expect(response.authorizeResponse.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
+  expect(response.authorizeResponse.headers.get("location")).toMatch(/^http:\/\/localhost:8114\/auth\?.*$/);
   expect(response.authorizeResponse.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
 });
 
