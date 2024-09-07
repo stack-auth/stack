@@ -175,7 +175,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
     isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
     isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
-    internalUser: projectId && adminAccessToken ? (async () => {
+    internalUser: projectId && adminAccessToken && requestType === "admin" ? (async () => {
       let decoded;
       try {
         decoded = await decodeAccessToken(adminAccessToken);
@@ -186,6 +186,14 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       if (accessTokenProjectId !== "internal")
         return null;
       return await getUser('internal', userId);
+    })() : Promise.resolve(null),
+    user: projectId && accessToken && requestType !== "admin" ? (async () => {
+      const decodedAccessToken = await decodeAccessToken(accessToken);
+      const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+      if (accessTokenProjectId !== projectId) {
+        return null;
+      }
+      return await getUser(projectId, userId);
     })() : Promise.resolve(null),
   };
 
@@ -205,6 +213,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       internalUser: await queries.internalUser,
       adminAccessToken,
     });
+
     switch (reason) {
       case null: {
         projectAccessType = "internal-user-token";
@@ -252,7 +261,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     }
   }
 
-  const project = await getProject(projectId);
+  const project = await queries.project;
   if (!project) {
     throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
   }
@@ -266,13 +275,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    try {
-      user = await getUser(projectId, userId);
-    } catch (e) {
-      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
-        user = null;
-      }
-    }
+    user = await queries.user;
   }
 
   return {
