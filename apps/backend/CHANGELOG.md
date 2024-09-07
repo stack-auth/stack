@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.32
+
+### Patch Changes
+
+- Improved connected account performance
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.32
+  - @stackframe/stack-shared@2.5.32
+
 ## 2.5.31
 
 ### Patch Changes
