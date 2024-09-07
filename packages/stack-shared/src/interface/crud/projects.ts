@@ -33,7 +33,7 @@ const emailConfigSchema = yupObject({
 });
 
 const domainSchema = yupObject({
-  domain: schemaFields.domainSchema.required(),
+  domain: schemaFields.projectTrustedDomainSchema.required(),
   handler_path: schemaFields.handlerPathSchema.required(),
 });
 

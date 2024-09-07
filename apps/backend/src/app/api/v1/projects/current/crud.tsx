@@ -134,7 +134,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       // loop though all the items from crud.config.oauth_providers
       // create the config if it is not already in the DB
       // update the config if it is already in the DB
-      // set the enabled flag to false if it is not in the crud.config.oauth_providers but is in the DB
+      // update/create all auth methods and connected account configs
 
       const oldProviders = oldProject.config.oauth_providers;
       const oauthProviderUpdates = data.config?.oauth_providers;
@@ -160,7 +160,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
         // Update existing proxied/standard providers
         for (const [id, { providerUpdate, oldProvider }] of providerMap) {
-        // remove existing provider configs
+          // remove existing provider configs
           switch (oldProvider.type) {
             case 'shared': {
               await tx.proxiedOAuthProviderConfig.deleteMany({
@@ -203,7 +203,6 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           await tx.oAuthProviderConfig.update({
             where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
             data: {
-              enabled: providerUpdate.enabled,
               ...providerConfigUpdate,
             },
           });
@@ -238,8 +237,161 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             data: {
               id: provider.id,
               projectConfigId: oldProject.config.id,
-              enabled: provider.update.enabled,
               ...providerConfigData,
+            },
+          });
+        }
+
+        // Update/create auth methods and connected account configs
+        const providers = await tx.oAuthProviderConfig.findMany({
+          where: {
+            projectConfigId: oldProject.config.id,
+          },
+          include: {
+            standardOAuthConfig: true,
+            proxiedOAuthConfig: true,
+          }
+        });
+        for (const provider of providers) {
+          const enabled = oauthProviderUpdates.find((p) => p.id === provider.id)?.enabled ?? false;
+
+          const authMethod = await tx.authMethodConfig.findFirst({
+            where: {
+              projectConfigId: oldProject.config.id,
+              oauthProviderConfig: {
+                id: provider.id,
+              },
+            }
+          });
+
+          if (!authMethod) {
+            await tx.authMethodConfig.create({
+              data: {
+                projectConfigId: oldProject.config.id,
+                enabled,
+                oauthProviderConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      projectConfigId: oldProject.config.id,
+                      id: provider.id,
+                    }
+                  }
+                }
+              },
+            });
+          } else {
+            await tx.authMethodConfig.update({
+              where: {
+                projectConfigId_id: {
+                  projectConfigId: oldProject.config.id,
+                  id: authMethod.id,
+                }
+              },
+              data: {
+                enabled,
+              },
+            });
+          }
+
+          const connectedAccount = await tx.connectedAccountConfig.findFirst({
+            where: {
+              projectConfigId: oldProject.config.id,
+              oauthProviderConfig: {
+                id: provider.id,
+              },
+            }
+          });
+
+          if (!connectedAccount) {
+            if (provider.standardOAuthConfig) {
+              await tx.connectedAccountConfig.create({
+                data: {
+                  projectConfigId: oldProject.config.id,
+                  oauthProviderConfig: {
+                    connect: {
+                      projectConfigId_id: {
+                        projectConfigId: oldProject.config.id,
+                        id: provider.id,
+                      }
+                    }
+                  }
+                },
+              });
+            }
+          } else {
+            await tx.connectedAccountConfig.update({
+              where: {
+                projectConfigId_id: {
+                  projectConfigId: oldProject.config.id,
+                  id: connectedAccount.id,
+                }
+              },
+              data: {
+                enabled: provider.standardOAuthConfig ? enabled : false,
+              },
+            });
+          }
+        }
+      }
+
+      // ======================= update password auth method =======================
+      const passwordAuth = await tx.passwordAuthMethodConfig.findFirst({
+        where: {
+          projectConfigId: oldProject.config.id,
+          identifierType: "EMAIL",
+        },
+      });
+      if (data.config?.credential_enabled !== undefined) {
+        if (data.config.credential_enabled && !passwordAuth) {
+          await tx.authMethodConfig.create({
+            data: {
+              projectConfigId: oldProject.config.id,
+              enabled: true,
+              passwordConfig: {
+                create: {
+                  identifierType: "EMAIL",
+                },
+              },
+            },
+          });
+        } else if (!data.config.credential_enabled && passwordAuth) {
+          await tx.authMethodConfig.delete({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: oldProject.config.id,
+                id: passwordAuth.authMethodConfigId,
+              },
+            },
+          });
+        }
+      }
+
+      // ======================= update OTP auth method =======================
+      const otpAuth = await tx.otpAuthMethodConfig.findFirst({
+        where: {
+          projectConfigId: oldProject.config.id,
+        },
+      });
+      if (data.config?.magic_link_enabled !== undefined) {
+        if (data.config.magic_link_enabled && !otpAuth) {
+          await tx.authMethodConfig.create({
+            data: {
+              projectConfigId: oldProject.config.id,
+              enabled: true,
+              otpConfig: {
+                create: {
+                  contactChannelType: "EMAIL",
+                },
+              },
+            },
+          });
+        } else if (!data.config.magic_link_enabled && otpAuth) {
+          await tx.authMethodConfig.delete({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: oldProject.config.id,
+                id: otpAuth.authMethodConfigId,
+              },
             },
           });
         }
@@ -264,8 +416,6 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
           config: {
             update: {
               signUpEnabled: data.config?.sign_up_enabled,
-              credentialEnabled: data.config?.credential_enabled,
-              magicLinkEnabled: data.config?.magic_link_enabled,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled,
               allowLocalhost: data.config?.allow_localhost,
               createTeamOnSignUp: data.config?.create_team_on_sign_up,

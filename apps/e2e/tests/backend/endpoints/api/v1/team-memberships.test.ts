@@ -187,7 +187,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
 
 it("should give team creator default permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });

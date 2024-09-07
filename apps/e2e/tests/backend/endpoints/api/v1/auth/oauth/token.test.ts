@@ -37,6 +37,7 @@ describe("with grant_type === 'authorization_code'", async () => {
           "auth_methods": [
             {
               "provider": {
+                "id": "facebook",
                 "provider_user_id": "<stripped UUID>@stack-generated.example.com",
                 "type": "facebook",
               },
@@ -46,15 +47,7 @@ describe("with grant_type === 'authorization_code'", async () => {
           "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
-          "connected_accounts": [
-            {
-              "provider": {
-                "provider_user_id": "<stripped UUID>@stack-generated.example.com",
-                "type": "facebook",
-              },
-              "type": "oauth",
-            },
-          ],
+          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
