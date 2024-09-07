@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+  - @stackframe/stack-sc@2.5.31
+
 ## 2.5.30
 
 ### Patch Changes

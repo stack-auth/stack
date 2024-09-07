@@ -1,5 +1,13 @@
 # e2e-tests
 
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.31
+
 ## 2.5.30
 
 ### Patch Changes
