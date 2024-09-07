@@ -307,7 +307,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               await tx.connectedAccountConfig.create({
                 data: {
                   projectConfigId: oldProject.config.id,
-                  enabled: enabled,
+                  enabled,
                   oauthProviderConfig: {
                     connect: {
                       projectConfigId_id: {

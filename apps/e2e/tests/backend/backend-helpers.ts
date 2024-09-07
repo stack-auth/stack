@@ -414,7 +414,7 @@ export namespace Auth {
         },
       });
       expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
+      expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8114\/auth\?.*$/);
       expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
       return {
         authorizeResponse: response,

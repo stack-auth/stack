@@ -1,11 +1,9 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { prismaClient } from "@/prisma-client";
-import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { decodeAccessToken } from "./tokens";
@@ -171,58 +169,6 @@ export function projectPrismaToCrud(
         .map(perm => ({ id: perm.id })),
     }
   };
-}
-
-export async function whyNotProjectAdmin(projectId: string, adminAccessToken: string): Promise<"unparsable-access-token" | "access-token-expired" | "wrong-token-project-id" | "not-admin" | null> {
-  if (!adminAccessToken) {
-    return "unparsable-access-token";
-  }
-
-  let decoded;
-  try {
-    decoded = await decodeAccessToken(adminAccessToken);
-  } catch (error) {
-    if (error instanceof KnownErrors.AccessTokenExpired) {
-      return "access-token-expired";
-    }
-    console.warn("Failed to decode a user-provided admin access token. This may not be an error (for example, it could happen if the client changed Stack app hosts), but could indicate one.", error);
-    return "unparsable-access-token";
-  }
-  const { userId, projectId: accessTokenProjectId } = decoded;
-  if (accessTokenProjectId !== "internal") {
-    return "wrong-token-project-id";
-  }
-
-  let user;
-  try {
-    user = await usersCrudHandlers.adminRead({
-      project: await getProject("internal") ?? throwErr("Can't find internal project??"),
-      user_id: userId,
-    });
-  } catch (e) {
-    if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
-      // this may happen eg. if the user has a valid access token but has since been deleted
-      return "not-admin";
-    }
-    throw e;
-  }
-
-  const allProjects = listManagedProjectIds(user);
-  if (!allProjects.includes(projectId)) {
-    return "not-admin";
-  }
-
-  const project = await getProject(projectId);
-  if (!project) {
-    // this happens if the project is still in the user's managedProjectIds, but has since been deleted
-    return "not-admin";
-  }
-
-  return null;
-}
-
-export async function isProjectAdmin(projectId: string, adminAccessToken: string) {
-  return !await whyNotProjectAdmin(projectId, adminAccessToken);
 }
 
 function isStringArray(value: any): value is string[] {

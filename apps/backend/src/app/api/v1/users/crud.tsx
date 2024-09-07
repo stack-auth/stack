@@ -300,6 +300,27 @@ export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: 
   });
 };
 
+export async function getUser(options: { projectId: string, userId: string }) {
+  const [db, lastActiveAtMillis] = await Promise.all([
+    prismaClient.projectUser.findUnique({
+      where: {
+        projectId_projectUserId: {
+          projectId: options.projectId,
+          projectUserId: options.userId,
+        },
+      },
+      include: userFullInclude,
+    }),
+    getUserLastActiveAtMillis(options.userId, new Date()),
+  ]);
+
+  if (!db) {
+    return null;
+  }
+
+  return userPrismaToCrud(db, lastActiveAtMillis);
+}
+
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
@@ -308,21 +329,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     user_id: userIdOrMeSchema.required(),
   }),
   onRead: async ({ auth, params }) => {
-    const db = await prismaClient.projectUser.findUnique({
-      where: {
-        projectId_projectUserId: {
-          projectId: auth.project.id,
-          projectUserId: params.user_id,
-        },
-      },
-      include: userFullInclude,
-    });
-
-    if (!db) {
+    const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
+    if (!user) {
       throw new KnownErrors.UserNotFound();
     }
-
-    return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, db.createdAt));
+    return user;
   },
   onList: async ({ auth, query }) => {
     const db = await prismaClient.projectUser.findMany({
@@ -891,11 +902,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(currentUserCrud, {
   paramsSchema: yupObject({} as const),
   async onRead({ auth }) {
-    return await usersCrudHandlers.adminRead({
-      project: auth.project,
-      user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
-      allowedErrorTypes: [StatusError]
-    });
+    if (!auth.user) {
+      throw new KnownErrors.CannotGetOwnUserWithoutUser();
+    }
+    return auth.user;
   },
   async onUpdate({ auth, data }) {
     if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {

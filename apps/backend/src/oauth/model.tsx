@@ -145,13 +145,12 @@ export class OAuthModel implements AuthorizationCodeModel {
   }
 
   async getAccessToken(accessToken: string): Promise<Token | Falsey> {
-    let decoded;
-    try {
-      decoded = await decodeAccessToken(accessToken);
-    } catch (e) {
-      captureError("getAccessToken", e);
+    const result = await decodeAccessToken(accessToken);
+    if (result.status === "error") {
+      captureError("unexpected error in getAccessToken", result.error);
       return false;
     }
+    const decoded = result.data;
 
     return {
       accessToken,
