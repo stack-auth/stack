@@ -49,7 +49,10 @@ it("creates a team and manage users on the server", async ({ expect }) => {
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
-      "body": {},
+      "body": {
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
+      },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
