@@ -3,7 +3,7 @@ import React from 'react';
 import { ReaderBlock } from '../../reader/core';
 
 import { EmailLayoutProps } from './email-layout-props-schema';
-import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
+import { TEditorConfiguration } from '../../../../editor/documents/editor/core';
 
 function getFontFamily(fontFamily: EmailLayoutProps['fontFamily']) {
   const f = fontFamily ?? 'MODERN_SANS';
