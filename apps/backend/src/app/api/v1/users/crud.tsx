@@ -541,7 +541,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
     }
 
-
     await sendUserCreatedWebhook({
       projectId: auth.project.id,
       data: result,

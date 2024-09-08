@@ -1,3 +1,4 @@
+import { teamMembershipCreatedWebhookEvent, teamMembershipDeletedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { teamCreatedWebhookEvent, teamDeletedWebhookEvent, teamUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userCreatedWebhookEvent, userDeletedWebhookEvent, userUpdatedWebhookEvent } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { WebhookEvent } from "@stackframe/stack-shared/dist/interface/webhooks";
@@ -51,3 +52,5 @@ export const sendUserDeletedWebhook = createWebhookSender(userDeletedWebhookEven
 export const sendTeamCreatedWebhook = createWebhookSender(teamCreatedWebhookEvent);
 export const sendTeamUpdatedWebhook = createWebhookSender(teamUpdatedWebhookEvent);
 export const sendTeamDeletedWebhook = createWebhookSender(teamDeletedWebhookEvent);
+export const sendTeamMembershipCreatedWebhook = createWebhookSender(teamMembershipCreatedWebhookEvent);
+export const sendTeamMembershipDeletedWebhook = createWebhookSender(teamMembershipDeletedWebhookEvent);

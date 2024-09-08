@@ -176,6 +176,7 @@ layout:
   content-width: 40rem
   disable-header: false
   header-height: 60px
+  sidebar-width: 300px
 favicon: ./docs/assets/favicon.ico
 logo:
   light: ./docs/assets/logo-light-mode.svg
