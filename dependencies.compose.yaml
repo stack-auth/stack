@@ -33,7 +33,7 @@ services:
     volumes:
       - inbucket-data:/data
 
-  # ================= Jaeger =================
+  # ================= OpenTelemetry & Jaeger =================
 
   jaeger:
     image: jaegertracing/all-in-one:latest

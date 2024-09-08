@@ -1,8 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
-import { otelSetup } from './otel';
-
-otelSetup();
 
 // In dev mode, fast refresh causes us to recreate many Prisma clients, eventually overloading the database.
 // Therefore, only create one Prisma client in dev mode.
