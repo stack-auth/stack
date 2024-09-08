@@ -66,9 +66,12 @@ export const projectsCrudClientReadSchema = yupObject({
   display_name: schemaFields.projectDisplayNameSchema.required(),
   config: yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
-    credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
-    magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
+    /* @deprecated */
+    credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
+    /* @deprecated */
+    magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    /* @deprecated */
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
   }).required(),
 }).required();
