@@ -232,11 +232,8 @@ async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string)
   if (passwordConfig.length > 1) {
     throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
   }
-  if (passwordConfig.length === 0) {
-    throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
-  }
 
-  return passwordConfig[0];
+  return passwordConfig.length === 0 ? null : passwordConfig[0];
 }
 
 // TODO: retrieve in the project
@@ -253,11 +250,8 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   if (otpConfig.length > 1) {
     throw new StackAssertionError("Multiple OTP auth methods found in the project", otpConfig);
   }
-  if (otpConfig.length === 0) {
-    throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the project");
-  }
 
-  return otpConfig[0];
+  return otpConfig.length === 0 ? null : otpConfig[0];
 }
 
 export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
@@ -458,40 +452,30 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         if (data.primary_email_auth_enabled) {
           const otpConfig = await getOtpConfig(tx, auth.project.config.id);
 
-          await tx.authMethod.create({
-            data: {
-              projectId: auth.project.id,
-              projectUserId: newUser.projectUserId,
-              projectConfigId: auth.project.config.id,
-              authMethodConfigId: otpConfig.authMethodConfigId,
-              otpAuthMethod: {
-                create: {
-                  projectUserId: newUser.projectUserId,
-                  contactChannelId: contactChannel.id,
+          if (otpConfig) {
+            await tx.authMethod.create({
+              data: {
+                projectId: auth.project.id,
+                projectUserId: newUser.projectUserId,
+                projectConfigId: auth.project.config.id,
+                authMethodConfigId: otpConfig.authMethodConfigId,
+                otpAuthMethod: {
+                  create: {
+                    projectUserId: newUser.projectUserId,
+                    contactChannelId: contactChannel.id,
+                  }
                 }
               }
-            }
-          });
-        }
-
-        const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
-          where: {
-            projectConfigId: auth.project.config.id,
-          },
-          include: {
-            authMethodConfig: true,
+            });
           }
-        });
-
-        if (passwordConfig.length === 0) {
-          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
-        }
-        if (passwordConfig.length > 1) {
-          throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
         }
 
         if (data.password) {
           const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+
+          if (!passwordConfig) {
+            throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+          }
 
           await tx.authMethod.create({
             data: {
@@ -730,20 +714,22 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
             const otpConfig = await getOtpConfig(tx, auth.project.config.id);
 
-            await tx.authMethod.create({
-              data: {
-                projectId: auth.project.id,
-                projectConfigId: auth.project.config.id,
-                projectUserId: params.user_id,
-                authMethodConfigId: otpConfig.authMethodConfigId,
-                otpAuthMethod: {
-                  create: {
-                    projectUserId: params.user_id,
-                    contactChannelId: primaryEmailChannel.id,
+            if (otpConfig) {
+              await tx.authMethod.create({
+                data: {
+                  projectId: auth.project.id,
+                  projectConfigId: auth.project.config.id,
+                  projectUserId: params.user_id,
+                  authMethodConfigId: otpConfig.authMethodConfigId,
+                  otpAuthMethod: {
+                    create: {
+                      projectUserId: params.user_id,
+                      contactChannelId: primaryEmailChannel.id,
+                    }
                   }
                 }
-              }
-            });
+              });
+            }
           }
         } else {
           if (otpAuth) {
@@ -803,6 +789,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             }
 
             const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+
+            if (!passwordConfig) {
+              throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+            }
 
             await tx.authMethod.create({
               data: {
