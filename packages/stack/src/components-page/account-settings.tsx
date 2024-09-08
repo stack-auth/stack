@@ -290,7 +290,7 @@ function MfaSection() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState<string>("");
   const [isMaybeWrong, setIsMaybeWrong] = useState(false);
-  const isEnabled = user.isMultiFactorRequired;
+  const enabled = user.isMultiFactorRequired;
 
   const [handleSubmit, isLoading] = useAsyncCallback(async () => {
     await user.update({
@@ -317,7 +317,7 @@ function MfaSection() {
         <Label>Multi-factor Authentication</Label>
 
         <div>
-          {isEnabled ? (
+          {enabled ? (
             <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
           ) : (
             generatedSecret ? (
@@ -346,9 +346,9 @@ function MfaSection() {
 
           <Button
             className="mt-4"
-            variant={isEnabled ? 'secondary' : 'default'}
+            variant={enabled ? 'secondary' : 'default'}
             onClick={async () => {
-              if (isEnabled) {
+              if (enabled) {
                 await user.update({
                   totpMultiFactorSecret: null,
                 });
@@ -363,7 +363,7 @@ function MfaSection() {
               }
             }}
           >
-            {isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
+            {enabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
           </Button>
         </div>
       </div>

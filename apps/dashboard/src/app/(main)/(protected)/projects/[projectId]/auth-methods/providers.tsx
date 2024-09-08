@@ -181,7 +181,7 @@ export function TurnOffProviderDialog(props: {
 
 export function ProviderSettingSwitch(props: Props) {
   const enabled = !!props.provider?.enabled;
-  const isShared = props.provider?.type === 'shared';
+  const shared = props.provider?.type === 'shared';
   const [TurnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
   const [ProviderSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
 
@@ -200,7 +200,7 @@ export function ProviderSettingSwitch(props: Props) {
         label={
           <div className="flex items-center gap-2">
             {toTitle(props.id)}
-            {isShared && enabled &&
+            {shared && enabled &&
               <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
                 <Badge variant="secondary">Shared keys</Badge>
               </SimpleTooltip>

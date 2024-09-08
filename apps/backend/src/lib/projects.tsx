@@ -77,7 +77,8 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: typeof fullProjectIn
 export function projectPrismaToCrud(
   prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
 ): ProjectsCrud["Admin"]["Read"] {
-  const oauthProviders = prisma.config.authMethodConfigs
+  /* @deprecated */
+  const enabledOauthProviders = prisma.config.authMethodConfigs
     .map((config) => {
       if (config.oauthProviderConfig) {
         const providerConfig = config.oauthProviderConfig;
@@ -105,6 +106,50 @@ export function projectPrismaToCrud(
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
     .sort((a, b) => a.id.localeCompare(b.id));
 
+  const emailConfig = (() => {
+    const emailServiceConfig = prisma.config.emailServiceConfig;
+    if (!emailServiceConfig) {
+      throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
+    }
+    if (emailServiceConfig.proxiedEmailServiceConfig) {
+      return {
+        type: "shared"
+      } as const;
+    } else if (emailServiceConfig.standardEmailServiceConfig) {
+      const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
+      return {
+        type: "standard",
+        host: standardEmailConfig.host,
+        port: standardEmailConfig.port,
+        username: standardEmailConfig.username,
+        password: standardEmailConfig.password,
+        sender_email: standardEmailConfig.senderEmail,
+        sender_name: standardEmailConfig.senderName,
+      } as const;
+    } else {
+      throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
+    }
+  })();
+
+  const domains = prisma.config.domains
+    .map((domain) => ({
+      domain: domain.domain,
+      handler_path: domain.handlerPath,
+    }))
+    .sort((a, b) => a.domain.localeCompare(b.domain));
+
+  const teamCreatorDefaultPermissions = prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
+    .map(teamPermissionDefinitionJsonFromDbType)
+    .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map(perm => ({ id: perm.id }));
+
+  const teamMemberDefaultPermissions = prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
+    .map(teamPermissionDefinitionJsonFromDbType)
+    .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map(perm => ({ id: perm.id }));
+
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig);
 
@@ -119,52 +164,19 @@ export function projectPrismaToCrud(
       id: prisma.config.id,
       allow_localhost: prisma.config.allowLocalhost,
       sign_up_enabled: prisma.config.signUpEnabled,
-      credential_enabled: !!passwordAuth,
-      magic_link_enabled: !!otpAuth,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
-      domains: prisma.config.domains
-        .map((domain) => ({
-          domain: domain.domain,
-          handler_path: domain.handlerPath,
-        }))
-        .sort((a, b) => a.domain.localeCompare(b.domain)),
-      oauth_providers: oauthProviders,
-      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
-      email_config: (() => {
-        const emailServiceConfig = prisma.config.emailServiceConfig;
-        if (!emailServiceConfig) {
-          throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
-        }
-        if (emailServiceConfig.proxiedEmailServiceConfig) {
-          return {
-            type: "shared"
-          } as const;
-        } else if (emailServiceConfig.standardEmailServiceConfig) {
-          const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
-          return {
-            type: "standard",
-            host: standardEmailConfig.host,
-            port: standardEmailConfig.port,
-            username: standardEmailConfig.username,
-            password: standardEmailConfig.password,
-            sender_email: standardEmailConfig.senderEmail,
-            sender_name: standardEmailConfig.senderName,
-          } as const;
-        } else {
-          throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
-        }
-      })(),
-      team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-      team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
+      team_creator_default_permissions: teamCreatorDefaultPermissions,
+      team_member_default_permissions: teamMemberDefaultPermissions,
+      domains: domains,
+      email_config: emailConfig,
+
+      /* @deprecated */
+      enabled_oauth_providers: enabledOauthProviders,
+      /* @deprecated */
+      credential_enabled: !!passwordAuth,
+      /* @deprecated */
+      magic_link_enabled: !!otpAuth,
     }
   };
 }

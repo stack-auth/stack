@@ -2,7 +2,6 @@ import { fullProjectInclude, listManagedProjectIds, projectPrismaToCrud } from "
 import { ensureSharedProvider, ensureStandardProvider } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { ContactChannelType } from "@prisma/client/edge";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { projectIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
