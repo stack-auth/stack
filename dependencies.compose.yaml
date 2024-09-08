@@ -1,5 +1,6 @@
 services:
-  # ================= stack =================
+
+  # ================= PostgreSQL =================
 
   db:
     image: postgres:latest
@@ -7,19 +8,21 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: stackframe
-      POSTGRES_DELAY: ${POSTGRES_DELAY:-0}
+      POSTGRES_DELAY_MS: ${POSTGRES_DELAY_MS:-0}
     ports:
       - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
     entrypoint: ["sh", "-c", "
-      if [ $POSTGRES_DELAY -gt 0 ]; then 
+      if [ $POSTGRES_DELAY_MS -gt 0 ]; then 
         apt-get update && apt-get install -y iproute2 && \
-        tc qdisc add dev eth0 root netem delay ${POSTGRES_DELAY}ms;
+        tc qdisc add dev eth0 root netem delay ${POSTGRES_DELAY_MS}ms;
       fi;
       exec docker-entrypoint.sh postgres"]
     cap_add:
       - NET_ADMIN
+
+  # ================= Inbucket =================
 
   inbucket:
     image: inbucket/inbucket:latest
@@ -29,6 +32,8 @@ services:
       - 1100:1100
     volumes:
       - inbucket-data:/data
+
+  # ================= Jaeger =================
 
   jaeger:
     image: jaegertracing/all-in-one:latest
