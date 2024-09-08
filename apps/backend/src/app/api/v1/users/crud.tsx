@@ -611,7 +611,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         oldPrimaryEmail: primaryEmailContactChannel?.value,
         primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
         primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
-        primaryEmailAuthEnabled: !!otpAuth || data.primary_email_auth_enabled,
+        primaryEmailAuthEnabled: !!otpAuth || !!passwordAuth || data.primary_email_auth_enabled,
         passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
 
