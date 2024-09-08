@@ -290,7 +290,7 @@ main()
     );
     console.log();
     console.log(
-      "For more information, please visit https://docs.stack-auth.com/docs/getting-started/setup"
+      "For more information, please visit https://docs.stack-auth.com/getting-started/setup"
     );
     console.log();
     await open("https://app.stack-auth.com/wizard-congrats");
@@ -318,7 +318,7 @@ main()
     );
     console.error();
     console.error(
-      "If you need assistance, please try installing Stack manually as described in https://docs.stack-auth.com/docs/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
+      "If you need assistance, please try installing Stack manually as described in https://docs.stack-auth.com/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
     );
     if (!(err instanceof UserError)) {
       console.error("");
