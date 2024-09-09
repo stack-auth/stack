@@ -104,6 +104,7 @@ export function projectPrismaToCrud(
       }
     })
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
+    .filter(provider => provider.enabled)
     .sort((a, b) => a.id.localeCompare(b.id));
 
   const emailConfig = (() => {
@@ -138,17 +139,13 @@ export function projectPrismaToCrud(
     }))
     .sort((a, b) => a.domain.localeCompare(b.domain));
 
-  const teamCreatorDefaultPermissions = prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-    .map(teamPermissionDefinitionJsonFromDbType)
-    .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .map(perm => ({ id: perm.id }));
-
-  const teamMemberDefaultPermissions = prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-    .map(teamPermissionDefinitionJsonFromDbType)
-    .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .map(perm => ({ id: perm.id }));
+  const getPermissions = (type: 'creator' | 'member') => {
+    return prisma.config.permissions.filter(perm => type === 'creator' ? perm.isDefaultTeamCreatorPermission : perm.isDefaultTeamMemberPermission)
+      .map(teamPermissionDefinitionJsonFromDbType)
+      .concat((type === 'creator' ? prisma.config.teamCreateDefaultSystemPermissions : prisma.config.teamMemberDefaultSystemPermissions ).map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+      .map(perm => ({ id: perm.id }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  };
 
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig);
@@ -166,8 +163,8 @@ export function projectPrismaToCrud(
       sign_up_enabled: prisma.config.signUpEnabled,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
-      team_creator_default_permissions: teamCreatorDefaultPermissions,
-      team_member_default_permissions: teamMemberDefaultPermissions,
+      team_creator_default_permissions: getPermissions('creator'),
+      team_member_default_permissions: getPermissions('member'),
       domains: domains,
       email_config: emailConfig,
 
