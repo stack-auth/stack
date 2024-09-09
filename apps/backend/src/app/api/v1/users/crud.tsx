@@ -201,7 +201,7 @@ async function checkAuthData(
   }
   if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
-      const otp = await tx.otpAuthMethod.findFirst({
+      const otpAuth = await tx.otpAuthMethod.findFirst({
         where: {
           projectId: data.projectId,
           contactChannel: {
@@ -211,7 +211,18 @@ async function checkAuthData(
         }
       });
 
-      if (otp) {
+      if (otpAuth) {
+        throw new KnownErrors.UserEmailAlreadyExists();
+      }
+
+      const passwordAuth = await tx.passwordAuthMethod.findFirst({
+        where: {
+          projectId: data.projectId,
+          identifier: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+        }
+      });
+
+      if (passwordAuth) {
         throw new KnownErrors.UserEmailAlreadyExists();
       }
     }
