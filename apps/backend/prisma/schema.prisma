@@ -263,7 +263,7 @@ model ProjectUserOAuthAccount {
   // we might want to add more user info here later
   email String?
 
-  providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id])
+  providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
   // Before the OAuth account is connected to a use (for example, in the link oauth process), the projectUser is null.
   projectUser      ProjectUser?        @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
   oauthTokens      OAuthToken[]
@@ -416,7 +416,7 @@ model OAuthProviderConfig {
   authMethodConfig       AuthMethodConfig?       @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
   connectedAccountConfig ConnectedAccountConfig? @relation(fields: [projectConfigId, connectedAccountConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
-  projectConfig            ProjectConfig             @relation(fields: [projectConfigId], references: [id])
+  projectConfig            ProjectConfig             @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   projectUserOAuthAccounts ProjectUserOAuthAccount[]
   connectedAccounts        ConnectedAccount[]
   oauthAuthMethod          OAuthAuthMethod[]
@@ -467,7 +467,7 @@ model StandardOAuthProviderConfig {
   // Microsoft organizational directory (tenant)
   microsoftTenantId String?
 
-  providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id])
+  providerConfig OAuthProviderConfig @relation(fields: [projectConfigId, id], references: [projectConfigId, id], onDelete: Cascade)
 
   // each type of standard OAuth provider can only be used once per project
   @@id([projectConfigId, id])
