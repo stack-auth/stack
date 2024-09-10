@@ -95,7 +95,7 @@ export async function listUserTeamPermissions(
     teamId?: string,
     userId?: string,
     permissionId?: string,
-    recursive?: boolean,
+    recursive: boolean,
   }
 ): Promise<TeamPermissionsCrud["Admin"]["Read"][]> {
   const allPermissions = await listTeamPermissionDefinitions(tx, options.project);
@@ -105,12 +105,6 @@ export async function listUserTeamPermissions(
       projectId: options.project.id,
       projectUserId: options.userId,
       teamId: options.teamId,
-      permission: options.permissionId && !isTeamSystemPermission(options.permissionId) ?
-        { queryableId: options.permissionId } :
-        undefined,
-      systemPermission: options.permissionId && isTeamSystemPermission(options.permissionId) ?
-        teamSystemPermissionStringToDBType(options.permissionId) :
-        undefined,
     },
     include: {
       permission: true,
@@ -151,11 +145,13 @@ export async function listUserTeamPermissions(
     })));
   }
 
-  return finalResults.sort((a, b) => {
-    if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
-    if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
-    return a.id.localeCompare(b.id);
-  });
+  return finalResults
+    .sort((a, b) => {
+      if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
+      if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
+      return a.id.localeCompare(b.id);
+    })
+    .filter(p => options.permissionId ? p.id === options.permissionId : true);
 }
 
 export async function grantTeamPermission(

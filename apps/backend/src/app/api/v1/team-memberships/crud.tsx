@@ -120,6 +120,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
             userId: auth.user?.id ?? throwErr('auth.user is null'),
             permissionId: "$remove_members",
             errorType: 'required',
+            recursive: true,
           });
         }
       }
