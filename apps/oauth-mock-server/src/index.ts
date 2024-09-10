@@ -4,7 +4,7 @@ const port = Number.parseInt(process.env.PORT || "8114");
 
 const mockedProviders = [
   "github",
-  "facebook",
+  "spotify",
   "google",
   "microsoft",
   "spotify",

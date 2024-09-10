@@ -444,7 +444,6 @@ model ProxiedOAuthProviderConfig {
 
 enum ProxiedOAuthProviderType {
   GITHUB
-  FACEBOOK
   GOOGLE
   MICROSOFT
   SPOTIFY

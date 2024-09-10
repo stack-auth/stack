@@ -146,7 +146,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
           enabled: true,
         },
         {
-          id: "facebook",
+          id: "spotify",
           type: "standard",
           enabled: false,
           client_id: "client_id",
@@ -174,7 +174,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
               "client_id": "client_id",
               "client_secret": "client_secret",
               "enabled": false,
-              "id": "facebook",
+              "id": "spotify",
               "type": "standard",
             },
             {
