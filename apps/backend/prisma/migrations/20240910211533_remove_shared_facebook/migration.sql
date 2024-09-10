@@ -6,11 +6,12 @@
 
 -- Update shared facebook project to be a standard oauth provider
 -- First, create StandardOAuthProviderConfig entries for Facebook providers
-INSERT INTO "StandardOAuthProviderConfig" ("projectConfigId", "id", "type", "clientId", "clientSecret", "createdAt", "updatedAt")
+INSERT INTO "StandardOAuthProviderConfig" ("projectConfigId", "id", "type", "enabled", "clientId", "clientSecret", "createdAt", "updatedAt")
 SELECT 
     p."projectConfigId",
     p."id",
     'FACEBOOK',
+    FALSE,
     '',
     '',
     NOW(),
