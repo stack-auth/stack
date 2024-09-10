@@ -343,11 +343,11 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       });
       if (data.config?.credential_enabled !== undefined) {
-        if (data.config.credential_enabled && !passwordAuth) {
+        if (!passwordAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
-              enabled: true,
+              enabled: data.config.credential_enabled,
               passwordConfig: {
                 create: {
                   identifierType: "EMAIL",
@@ -355,7 +355,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        } else if (!data.config.credential_enabled && passwordAuth) {
+        } else {
           await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
@@ -364,7 +364,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
             data: {
-              enabled: false,
+              enabled: data.config.credential_enabled,
             },
           });
         }
@@ -377,11 +377,11 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       });
       if (data.config?.magic_link_enabled !== undefined) {
-        if (data.config.magic_link_enabled && !otpAuth) {
+        if (!otpAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
-              enabled: true,
+              enabled: data.config.magic_link_enabled,
               otpConfig: {
                 create: {
                   contactChannelType: "EMAIL",
@@ -389,7 +389,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        } else if (!data.config.magic_link_enabled && otpAuth) {
+        } else {
           await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
@@ -398,7 +398,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
             data: {
-              enabled: false,
+              enabled: data.config.magic_link_enabled,
             },
           });
         }
