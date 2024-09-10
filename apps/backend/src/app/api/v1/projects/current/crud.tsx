@@ -356,12 +356,15 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             },
           });
         } else if (!data.config.credential_enabled && passwordAuth) {
-          await tx.authMethodConfig.delete({
+          await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
                 projectConfigId: oldProject.config.id,
                 id: passwordAuth.authMethodConfigId,
               },
+            },
+            data: {
+              enabled: false,
             },
           });
         }
@@ -387,12 +390,15 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
             },
           });
         } else if (!data.config.magic_link_enabled && otpAuth) {
-          await tx.authMethodConfig.delete({
+          await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
                 projectConfigId: oldProject.config.id,
                 id: otpAuth.authMethodConfigId,
               },
+            },
+            data: {
+              enabled: false,
             },
           });
         }
