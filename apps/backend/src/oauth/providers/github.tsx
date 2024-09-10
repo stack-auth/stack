@@ -1,6 +1,7 @@
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { OAuthBaseProvider, TokenSet } from "./base";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export class GithubProvider extends OAuthBaseProvider {
   private constructor(
@@ -36,6 +37,12 @@ export class GithubProvider extends OAuthBaseProvider {
         Authorization: `token ${tokenSet.accessToken}`,
       },
     }).then((res) => res.json());
+    if (!emails.find) {
+      throw new StackAssertionError("Error fetching user emails from github", {
+        emails,
+        rawUserInfo,
+      });
+    }
     const { email, verified } = emails.find((e: any) => e.primary);
 
     return validateUserInfo({
