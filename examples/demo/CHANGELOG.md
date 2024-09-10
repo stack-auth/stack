@@ -1,5 +1,14 @@
 # demo-app
 
+## 2.5.33
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.33
+  - @stackframe/stack@2.5.33
+  - @stackframe/stack-ui@2.5.33
+
 ## 2.5.32
 
 ### Patch Changes

@@ -343,11 +343,11 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       });
       if (data.config?.credential_enabled !== undefined) {
-        if (data.config.credential_enabled && !passwordAuth) {
+        if (!passwordAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
-              enabled: true,
+              enabled: data.config.credential_enabled,
               passwordConfig: {
                 create: {
                   identifierType: "EMAIL",
@@ -355,13 +355,16 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        } else if (!data.config.credential_enabled && passwordAuth) {
-          await tx.authMethodConfig.delete({
+        } else {
+          await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
                 projectConfigId: oldProject.config.id,
                 id: passwordAuth.authMethodConfigId,
               },
+            },
+            data: {
+              enabled: data.config.credential_enabled,
             },
           });
         }
@@ -374,11 +377,11 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       });
       if (data.config?.magic_link_enabled !== undefined) {
-        if (data.config.magic_link_enabled && !otpAuth) {
+        if (!otpAuth) {
           await tx.authMethodConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
-              enabled: true,
+              enabled: data.config.magic_link_enabled,
               otpConfig: {
                 create: {
                   contactChannelType: "EMAIL",
@@ -386,13 +389,16 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               },
             },
           });
-        } else if (!data.config.magic_link_enabled && otpAuth) {
-          await tx.authMethodConfig.delete({
+        } else {
+          await tx.authMethodConfig.update({
             where: {
               projectConfigId_id: {
                 projectConfigId: oldProject.config.id,
                 id: otpAuth.authMethodConfigId,
               },
+            },
+            data: {
+              enabled: data.config.magic_link_enabled,
             },
           });
         }

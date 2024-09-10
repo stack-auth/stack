@@ -147,8 +147,8 @@ export function projectPrismaToCrud(
       .sort((a, b) => a.id.localeCompare(b.id));
   };
 
-  const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig);
-  const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig);
+  const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
+  const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
 
   return {
     id: prisma.id,

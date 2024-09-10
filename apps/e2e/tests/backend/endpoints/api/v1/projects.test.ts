@@ -880,7 +880,25 @@ it("deletes a project with server access", async ({ expect }) => {
 
 it("deletes a project with users, teams, and permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
+  const { adminAccessToken, createProjectResponse } = await Project.createAndGetAdminToken({
+    config: {
+      magic_link_enabled: true,
+      oauth_providers: [
+        {
+          id: "google",
+          type: "shared",
+          enabled: true,
+        },
+        {
+          id: "facebook",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: "client_secret",
+        }
+      ]
+    }
+  });
 
   // Create a user
   const userResponse = await niceBackendFetch(`/api/v1/users`, {
@@ -925,7 +943,7 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 
   // Delete the project
   const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
-    accessType: "server",
+    accessType: "admin",
     method: "DELETE",
     headers: {
       'x-stack-admin-access-token': adminAccessToken,
@@ -934,19 +952,9 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 
   expect(deleteResponse).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 401,
-      "body": {
-        "code": "INSUFFICIENT_ACCESS_TYPE",
-        "details": {
-          "actual_access_type": "server",
-          "allowed_access_types": ["admin"],
-        },
-        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
-      },
-      "headers": Headers {
-        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-        <some fields may have been hidden>,
-      },
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });

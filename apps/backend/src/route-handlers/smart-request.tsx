@@ -11,6 +11,7 @@ import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
+import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest } from "next/server";
 import * as yup from "yup";
@@ -218,13 +219,13 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   // Do all the requests in parallel
   const queries = {
-    project: projectId ? getProject(projectId) : Promise.resolve(null),
-    isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
-    isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
-    isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
-    user: projectId && accessToken ? extractUserFromAccessToken({ token: accessToken, projectId }) : Promise.resolve(null),
-    internalUser: projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
-  };
+    project: projectId ? ignoreUnhandledRejection(getProject(projectId)) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { publishableClientKey })) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { secretServerKey })) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { superSecretAdminKey })) : Promise.resolve(false),
+    user: projectId && accessToken ? ignoreUnhandledRejection(extractUserFromAccessToken({ token: accessToken, projectId })) : Promise.resolve(null),
+    internalUser: projectId && adminAccessToken ? ignoreUnhandledRejection(extractUserFromAdminAccessToken({ token: adminAccessToken, projectId })) : Promise.resolve(null),
+  } as const;
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
