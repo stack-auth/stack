@@ -218,12 +218,12 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   // Do all the requests in parallel
   const queries = {
-    project: projectId ? getProject(projectId) : Promise.resolve(null),
-    isClientKeyValid: projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
-    isServerKeyValid: projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
-    isAdminKeyValid: projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
-    user: projectId && accessToken ? extractUserFromAccessToken({ token: accessToken, projectId }) : Promise.resolve(null),
-    internalUser: projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
+    project: projectId ? await getProject(projectId) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? await checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? await checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? await checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+    user: projectId && accessToken ? await extractUserFromAccessToken({ token: accessToken, projectId }) : Promise.resolve(null),
+    internalUser: projectId && adminAccessToken ? await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
   };
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
