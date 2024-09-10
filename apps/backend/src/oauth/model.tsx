@@ -147,7 +147,7 @@ export class OAuthModel implements AuthorizationCodeModel {
   async getAccessToken(accessToken: string): Promise<Token | Falsey> {
     const result = await decodeAccessToken(accessToken);
     if (result.status === "error") {
-      captureError("unexpected error in getAccessToken", result.error);
+      captureError("getAccessToken", result.error);
       return false;
     }
     const decoded = result.data;
