@@ -8,7 +8,7 @@ export function PageLayout(props: {
 }) {
   return (
     <div className="py-4 px-4 md:px-6 flex justify-center">
-      <div className="max-w-[1000px] w-[1000px] min-w-0">
+      <div className="max-w-[1250px] w-[1250px] min-w-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
           <div>
             <Typography type="h2">
