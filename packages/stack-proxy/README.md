@@ -45,13 +45,13 @@ You can explore the proxy at [localhost:3001](http://localhost:3001).
 
 ## What You Get
 
-If you access a protected page through the proxy without being authenticated, you will be redirected to a customizable sign-in page like this:
+If you access a protected page through the proxy without being authenticated, you will be redirected to a sign-in page like this (customizable on the dashboard):
 
 <div align="center">
 <img alt="Stack Setup" src="assets/sign-in.png" width="400" />
 </div>
 
-After signing in, you will be able to access the protected pages. To retrieve user information from your static website, you can read the headers as shown in this JavaScript (Express) example:
+After signing in, you will be able to access the protected pages. To retrieve user information from your webpage, you can read the headers as shown in this JavaScript Express example (works similarly on other languages/frameworks):
 
 ```js
 app.get('/', (req, res) => {
