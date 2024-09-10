@@ -171,16 +171,16 @@ it("creates a new project with different configurations", async ({ expect }) => 
           "magic_link_enabled": false,
           "oauth_providers": [
             {
+              "enabled": true,
+              "id": "google",
+              "type": "shared",
+            },
+            {
               "client_id": "client_id",
               "client_secret": "client_secret",
               "enabled": false,
               "id": "spotify",
               "type": "standard",
-            },
-            {
-              "enabled": true,
-              "id": "google",
-              "type": "shared",
             },
           ],
           "sign_up_enabled": true,
