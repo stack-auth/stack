@@ -37,9 +37,9 @@ describe("with grant_type === 'authorization_code'", async () => {
           "auth_methods": [
             {
               "provider": {
-                "id": "facebook",
+                "id": "spotify",
                 "provider_user_id": "<stripped UUID>@stack-generated.example.com",
-                "type": "facebook",
+                "type": "spotify",
               },
               "type": "oauth",
             },
@@ -55,7 +55,7 @@ describe("with grant_type === 'authorization_code'", async () => {
             {
               "account_id": "<stripped UUID>@stack-generated.example.com",
               "email": "<stripped UUID>@stack-generated.example.com",
-              "id": "facebook",
+              "id": "spotify",
             },
           ],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
