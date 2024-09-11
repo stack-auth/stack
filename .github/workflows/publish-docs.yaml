@@ -71,6 +71,9 @@ jobs:
 
       - name: Create .env.production.local file for examples/supabase
         run: cp examples/supabase/.env.development examples/supabase/.env.production.local
+      
+      - name: Create .env.production.local file for examples/express-proxied-server
+        run: cp examples/express-proxied-server/.env.development examples/express-proxied-server/.env.production.local
 
       - name: Build
         run: pnpm build

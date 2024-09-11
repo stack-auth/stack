@@ -607,6 +607,9 @@ importers:
       express:
         specifier: ^4.19.2
         version: 4.20.0
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
 
   examples/middleware:
     dependencies:
