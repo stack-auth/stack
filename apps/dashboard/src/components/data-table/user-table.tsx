@@ -170,6 +170,12 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
             item: "Edit",
             onClick: () => setIsEditModalOpen(true),
           },
+          ...row.original.isMultiFactorRequired ? [{
+            item: "Remove 2FA",
+            onClick: async () => {
+              await row.original.update({ totpMultiFactorSecret: null });
+            },
+          }] : [],
           {
             item: "Delete",
             onClick: () => setIsDeleteModalOpen(true),
