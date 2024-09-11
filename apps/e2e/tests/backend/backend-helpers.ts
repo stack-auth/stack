@@ -403,7 +403,7 @@ export namespace Auth {
     }
 
     export async function authorize(options?: { redirectUrl?: string, errorRedirectUrl?: string }) {
-      const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
+      const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/spotify", {
         redirect: "manual",
         query: {
           ...await Auth.OAuth.getAuthorizeQuery(),
@@ -495,7 +495,7 @@ export namespace Auth {
       });
       const innerCallbackUrl = new URL(redirectResponse3.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse3 }));
       expect(innerCallbackUrl.origin).toBe("http://localhost:8102");
-      expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/facebook");
+      expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/spotify");
       return {
         ...options,
         innerCallbackUrl,
