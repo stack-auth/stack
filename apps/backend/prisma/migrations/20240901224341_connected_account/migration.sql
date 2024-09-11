@@ -224,7 +224,7 @@ INSERT INTO "OtpAuthMethodConfig" ("projectConfigId", "authMethodConfigId", "cre
     SELECT "id", gen_random_uuid(), "createdAt", "updatedAt", 'EMAIL'
     FROM "ProjectConfig";
 INSERT INTO "AuthMethodConfig" ("projectConfigId", "id", "createdAt", "updatedAt", "enabled")
-    SELECT "projectConfigId", "authMethodConfigId", "OtpAuthMethodConfig"."createdAt", "OtpAuthMethodConfig"."updatedAt", ("ProjectConfig"."credentialEnabled" = true)
+    SELECT "projectConfigId", "authMethodConfigId", "OtpAuthMethodConfig"."createdAt", "OtpAuthMethodConfig"."updatedAt", ("ProjectConfig"."magicLinkEnabled" = true)
     FROM "OtpAuthMethodConfig"
     LEFT JOIN "ProjectConfig" ON "OtpAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id";
 
