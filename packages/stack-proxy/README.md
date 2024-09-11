@@ -53,18 +53,24 @@ If you access a protected page through the proxy without being authenticated, yo
 After signing in, you will be able to access the protected pages. To retrieve user information from your webpage, you can read the headers as shown in this JavaScript Express example (works similarly on other languages/frameworks):
 
 ```js
+const handlebars = require('handlebars');
+const template = handlebars.compile(`
+  <div>
+    {{#if authenticated}}
+      <p>Name: {{displayName}}</p>
+      <p><a href="/handler/account-settings">Account Settings</a></p>
+    {{else}}
+      <p><a href="/handler/sign-in">Sign In</a></p>
+    {{/if}}
+  </div>
+`);
+
 app.get('/', (req, res) => {
-  const authenticated = req.headers['x-stack-authenticated'];
-  const displayName = req.headers['x-stack-user-display-name'];
-  res.send(`
-    <div>
-      <p>Authenticated: ${authenticated ? "Yes" : "No"}</p>
-      ${authenticated ? `<p>Display Name: ${displayName}</p>` : ""}
-      ${authenticated ? `<p><a href="/handler/account-settings">Account Settings<\/a><\/p>` : `<p><a href="/handler/sign-in">Sign In<\/a><\/p>`}
-    </div>
-  `);
+  const authenticated = !!req.headers['x-stack-authenticated'];
+  const displayName = req.headers['x-stack-user-display-name'] || '';
+  const html = template({ authenticated, displayName });
+  res.send(html);
 });
-```
 
 Available headers:
 
