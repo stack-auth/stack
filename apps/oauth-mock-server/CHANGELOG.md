@@ -1,5 +1,13 @@
 # @stackframe/oauth-mock-server
 
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.33
+
 ## 2.5.32
 
 ### Patch Changes

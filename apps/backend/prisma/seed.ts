@@ -38,7 +38,7 @@ async function seed() {
             create: {
               allowLocalhost: true,
               oauthProviderConfigs: {
-                create: (['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
+                create: (['github', 'spotify', 'google', 'microsoft'] as const).map((id) => ({
                   id,
                   proxiedOAuthConfig: {
                     create: {
@@ -86,7 +86,7 @@ async function seed() {
                   }
                 }
               },
-              ...(['github', 'facebook', 'google', 'microsoft'] as const).map((id) => ({
+              ...(['github', 'spotify', 'google', 'microsoft'] as const).map((id) => ({
                 oauthProviderConfig: {
                   connect: {
                     projectConfigId_id: {

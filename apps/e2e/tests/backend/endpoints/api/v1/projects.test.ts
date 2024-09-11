@@ -34,10 +34,10 @@ it("gets current project (internal)", async ({ expect }) => {
           "client_team_creation_enabled": true,
           "credential_enabled": true,
           "enabled_oauth_providers": [
-            { "id": "facebook" },
             { "id": "github" },
             { "id": "google" },
             { "id": "microsoft" },
+            { "id": "spotify" },
           ],
           "magic_link_enabled": true,
           "sign_up_enabled": true,
@@ -690,7 +690,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
   const { updateProjectResponse: response4 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       oauth_providers: [{
-        id: "facebook",
+        id: "spotify",
         type: "shared",
         enabled: true,
       }]
@@ -709,7 +709,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
     config: {
       oauth_providers: [
         {
-          id: "facebook",
+          id: "spotify",
           type: "shared",
           enabled: true,
         },
@@ -733,20 +733,20 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "domains": [],
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [
-            { "id": "facebook" },
             { "id": "google" },
+            { "id": "spotify" },
           ],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [
             {
               "enabled": true,
-              "id": "facebook",
+              "id": "google",
               "type": "shared",
             },
             {
               "enabled": true,
-              "id": "google",
+              "id": "spotify",
               "type": "shared",
             },
           ],
@@ -770,7 +770,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
     config: {
       oauth_providers: [
         {
-          id: "facebook",
+          id: "spotify",
           type: "shared",
           enabled: true,
         },
@@ -793,18 +793,18 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [{ "id": "facebook" }],
+          "enabled_oauth_providers": [{ "id": "spotify" }],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [
             {
-              "enabled": true,
-              "id": "facebook",
+              "enabled": false,
+              "id": "google",
               "type": "shared",
             },
             {
-              "enabled": false,
-              "id": "google",
+              "enabled": true,
+              "id": "spotify",
               "type": "shared",
             },
           ],
@@ -890,7 +890,7 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
           enabled: true,
         },
         {
-          id: "facebook",
+          id: "spotify",
           type: "standard",
           enabled: true,
           client_id: "client_id",
