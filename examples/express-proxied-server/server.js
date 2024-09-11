@@ -3,6 +3,15 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 
 app.get('/', (req, res) => {
   const authenticated = !!req.headers['x-stack-authenticated'];
@@ -11,7 +20,7 @@ app.get('/', (req, res) => {
     <div>
       <p>Main page</p>
       <p>Authenticated: ${authenticated ? "Yes" : "No"}</p>
-      ${authenticated ? `<p>Display Name: ${displayName}</p>` : ""}
+      ${authenticated ? `<p>Display Name: ${escapeHtml(displayName)}</p>` : ""}
       ${authenticated ? `<p><a href="/handler/account-settings" style="text-decoration: underline;">Account Settings</a></p>` : ""}
       <p><a href="/protected" style="text-decoration: underline;">Go to protected page</a></p>
       ${!authenticated ? '<p><a href="/handler/sign-in" style="text-decoration: underline;">Sign In</a></p>' : ""}
