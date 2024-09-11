@@ -949,6 +949,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.4
+      tsx:
+        specifier: ^4.7.2
+        version: 4.16.2
       typescript:
         specifier: ^5
         version: 5.3.3

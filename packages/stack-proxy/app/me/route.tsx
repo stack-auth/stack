@@ -16,7 +16,6 @@ export const GET = async (req: NextRequest) => {
           id: user.id,
           primary_email: user.primaryEmail,
           display_name: user.displayName,
-          profile_image_url: user.profileImageUrl,
         },
         authenticated: true,
       },

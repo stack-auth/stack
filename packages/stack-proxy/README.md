@@ -7,40 +7,39 @@ Stack Auth Proxy is a simple one-command proxy that authenticates your HTTP requ
 First, create your API keys on the [Stack Auth Dashboard](https://app.stack-auth.com) and retrieve your environment variables. Note that Stack Auth is open-source and can be self-hosted; more details are available [here](https://github.com/stack-auth/stack).
 
 ```sh
-STACK_PROJECT_ID=<your-project-id> && \
-STACK_PUBLISHABLE_CLIENT_KEY=<your-client-key> && \
-STACK_SECRET_SERVER_KEY=<your-server-key> && \
+STACK_PROJECT_ID=<project-id> && \
+STACK_PUBLISHABLE_CLIENT_KEY=<client-key> && \
+STACK_SECRET_SERVER_KEY=<server-key> && \
 npx @stackframe/stack-proxy \
-  --server-port <port-to-your-http-server> \
-  --proxy-port <port-you-want-to-access-your-website-with>
+  -s <port-to-your-http-server> \
+  -p <port-to-access-your-website-with>
 ```
 
-You can also use a glob-style pattern with `--protected-pattern` to specify which routes to protect. By default, all routes are protected.
+You can also use a glob-style pattern with `-u` to specify which routes to protect. By default, all routes are protected.
 
 <details>
   <summary>If you don't have a website, you can run our example server to play around with the proxy</summary>
 
 Start the example server on port 3000:
 ```sh
-git clone https://github.com/stack-auth/stack
-cd examples/express-proxied-server
-npm install
-PORT=3000 && node server.js
+PORT=3001 && npx @stackframe/proxied-server-example
 ```
 
-Now, open a new terminal and run the proxy server on port 3001:
+You can check out the original server without the proxy at [localhost:3001](http://localhost:3001).
+
+Now, open a new terminal and run the proxy server on port 3000:
 
 ```sh
-STACK_PROJECT_ID=<your-project-id> && \
-STACK_PUBLISHABLE_CLIENT_KEY=<your-client-key> && \
-STACK_SECRET_SERVER_KEY=<your-server-key> && \
-npx stack-auth-proxy \
-  --server-port 3000 \
-  --proxy-port 3001 \
-  --protected-pattern "/protected**"
+STACK_PROJECT_ID=<project-id> && \
+STACK_PUBLISHABLE_CLIENT_KEY=<client-key> && \
+STACK_SECRET_SERVER_KEY=<server-key> && \
+npx @stackframe/stack-proxy \
+  -s 3001 \
+  -p 3000 \
+  -u "/protected**"
 ```
 
-You can explore the proxy at [localhost:3001](http://localhost:3001).
+You can explore the proxy at [localhost:3000](http://localhost:3000).
 </details>
 
 ## What You Get
@@ -73,7 +72,6 @@ Available headers:
 - `x-stack-user-id`
 - `x-stack-user-primary-email`
 - `x-stack-user-display-name`
-- `x-stack-user-profile-image-url`
 
 Available URLs (redirect your app server to these URLs as needed):
 

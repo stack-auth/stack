@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { minimatch } from 'minimatch';
 import { createServer, request as httpRequest } from "http";
 import httpProxy from "http-proxy";
+import { minimatch } from 'minimatch';
 import next from "next";
 import { parse } from "url";
 
@@ -27,7 +27,6 @@ const allHeaders = [
   "x-stack-user-id",
   "x-stack-user-primary-email",
   "x-stack-user-display-name",
-  "x-stack-user-profile-image-url",
 ];
 
 app.prepare().then(() => {
@@ -77,7 +76,6 @@ app.prepare().then(() => {
             req.headers["x-stack-user-id"] = userInfo.user.id;
             req.headers["x-stack-user-primary-email"] = userInfo.user.primary_email;
             req.headers["x-stack-user-display-name"] = userInfo.user.display_name;
-            req.headers["x-stack-user-profile-image-url"] = userInfo.user.profile_image_url;
           } else if (minimatch(req.url!, argOptions.protectedPattern)) {
             res.statusCode = 302;
             res.setHeader("Location", "/handler/sign-in");
