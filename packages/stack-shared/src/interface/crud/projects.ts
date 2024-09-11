@@ -1,6 +1,7 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
 import { yupArray, yupObject, yupRequiredWhen, yupString } from "../../schema-fields";
+import { allProviders } from "../../utils/oauth";
 
 const teamPermissionSchema = yupObject({
   id: yupString().required(),
@@ -8,8 +9,7 @@ const teamPermissionSchema = yupObject({
 
 const oauthProviderConfigSharedFields = {
   id: yupString().required(),
-  type: yupString().oneOf(['password', 'otp', 'oauth']).required(),
-  enabled: schemaFields.yupBoolean().required(),
+  type: yupString().oneOf(allProviders).required(),
 };
 const oauthProviderConfigSchema = schemaFields.yupUnion(
   yupObject({
@@ -34,20 +34,15 @@ const authMethodConfigSchema = schemaFields.yupUnion(
   yupObject({
     ...authMethodSharedFields,
     type: yupString().oneOf(['password']).required(),
-    identifier: yupString().required(),
   }).required(),
   yupObject({
     ...authMethodSharedFields,
     type: yupString().oneOf(['otp']).required(),
-    contact_channel: yupObject({
-      type: yupString().oneOf(['email']).required(),
-      email: yupString().required(),
-    }).required(),
   }).required(),
   yupObject({
     ...authMethodSharedFields,
     type: yupString().oneOf(['oauth']).required(),
-    provider_id: yupString().required(),
+    provider_config_id: yupString().required(),
   }).required(),
 );
 

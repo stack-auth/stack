@@ -99,13 +99,70 @@ export function projectPrismaToCrud(
             microsoft_tenant_id: providerConfig.standardOAuthConfig.microsoftTenantId ?? undefined,
           } as const;
         } else {
-          throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
+          throw new StackAssertionError(`DB union violation: provider config '${config.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
         }
       }
     })
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
     .filter(provider => provider.enabled)
     .sort((a, b) => a.id.localeCompare(b.id));
+
+  const oauthProviderConfigs = prisma.config.oauthProviderConfigs.map(provider => {
+    if (provider.proxiedOAuthConfig) {
+      return {
+        id: provider.id,
+        shared: true,
+        type: typedToLowercase(provider.proxiedOAuthConfig.type),
+      } as const;
+    } else if (provider.standardOAuthConfig) {
+      return {
+        id: provider.id,
+        shared: false,
+        type: typedToLowercase(provider.standardOAuthConfig.type),
+        client_id: provider.standardOAuthConfig.clientId,
+        client_secret: provider.standardOAuthConfig.clientSecret,
+        facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
+        microsoft_tenant_id: provider.standardOAuthConfig.microsoftTenantId ?? undefined,
+      } as const;
+    } else {
+      throw new StackAssertionError(`DB union violation: provider config '${provider.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
+    }
+  });
+
+  const authMethodConfigs = prisma.config.authMethodConfigs.map(config => {
+    if (config.passwordConfig) {
+      return {
+        id: config.id,
+        enabled: config.enabled,
+        type: "password",
+      } as const;
+    } else if (config.otpConfig) {
+      return {
+        id: config.id,
+        enabled: config.enabled,
+        type: "otp",
+      } as const;
+    } else if (config.oauthProviderConfig) {
+      return {
+        id: config.id,
+        type: "oauth",
+        enabled: config.enabled,
+        provider_config_id: config.oauthProviderConfig.id,
+      } as const;
+    }
+    throw new StackAssertionError(`DB union violation: auth method config '${config.id}' of project '${prisma.id}' is neither password nor otp`, { prisma });
+  });
+
+  const connectedAccountConfigs = prisma.config.connectedAccountConfigs.map(config => {
+    if (!config.oauthProviderConfig) {
+      throw new StackAssertionError(`DB non-nullable violation: connected account config '${config.id}' of project '${prisma.id}' is not connected to an oauth provider`, { prisma });
+    }
+    return {
+      id: config.id,
+      enabled: config.enabled,
+      provider_id: config.oauthProviderConfig.id,
+    } as const;
+  });
 
   const emailConfig = (() => {
     const emailServiceConfig = prisma.config.emailServiceConfig;
@@ -128,7 +185,7 @@ export function projectPrismaToCrud(
         sender_name: standardEmailConfig.senderName,
       } as const;
     } else {
-      throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
+      throw new StackAssertionError(`DB union violation: email service config '${prisma.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
     }
   })();
 
@@ -167,6 +224,9 @@ export function projectPrismaToCrud(
       team_member_default_permissions: getPermissions('member'),
       domains: domains,
       email_config: emailConfig,
+      oauth_provider_configs: oauthProviderConfigs,
+      auth_method_configs: authMethodConfigs,
+      connected_accounts: connectedAccountConfigs,
 
       /* @deprecated */
       enabled_oauth_providers: enabledOauthProviders,
