@@ -11,12 +11,15 @@ import { useStackApp, useUser } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
-
-const schema = yupObject({
-  email: yupString().email('Please enter a valid email').required('Please enter your email')
-});
+import { useTranslation } from "../lib/translations";
 
 export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    email: yupString().email(t("Please enter a valid email")).required(t("Please enter your email"))
+  });
+
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });
@@ -40,7 +43,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-1">Your Email</Label>
+      <Label htmlFor="email" className="mb-1">{t("Your Email")}</Label>
       <Input
         id="email"
         type="email"
@@ -50,7 +53,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Button type="submit" className="mt-6" loading={loading}>
-        Send Email
+        {t("Send Email")}
       </Button>
     </form>
   );
@@ -58,6 +61,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
 
 
 export function ForgotPassword(props: { fullPage?: boolean }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
   const user = useUser();
   const [sent, setSent] = useState(false);
@@ -73,11 +77,11 @@ export function ForgotPassword(props: { fullPage?: boolean }) {
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
       <div className="text-center mb-6 stack-scope" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
-        <Typography type='h2'>Reset Your Password</Typography>
+        <Typography type='h2'>{t("Reset Your Password")}</Typography>
         <Typography>
-          {"Don't need to reset? "}
+          {t("Don't need to reset?")}{" "}
           <StyledLink href={stackApp.urls['signUp']}>
-            Sign in
+            {t("Sign in")}
           </StyledLink>
         </Typography>
       </div>

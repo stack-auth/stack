@@ -11,6 +11,7 @@ import { SeparatorWithText } from '../components/elements/separator-with-text';
 import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
+import { useTranslation } from '../lib/translations';
 
 export function AuthPage(props: {
   fullPage?: boolean,
@@ -32,6 +33,7 @@ export function AuthPage(props: {
   const user = useUser();
   const projectFromHook = stackApp.useProject();
   const project = props.mockProject || projectFromHook;
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (props.automaticRedirect) {
@@ -56,29 +58,25 @@ export function AuthPage(props: {
       <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <div className="text-center mb-6">
           <Typography type='h2'>
-            {props.type === 'sign-in' ? 'Sign in to your account' : 'Create a new account'}
+            {props.type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
           </Typography>
           {props.type === 'sign-in' ? (
             project.config.signUpEnabled && (
               <Typography>
-                {"Don't have an account? "}
+                {t("Don't have an account?")}{" "}
                 <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
                   runAsynchronously(stackApp.redirectToSignUp());
                   e.preventDefault();
-                }}>
-                  Sign up
-                </StyledLink>
+                }}>{t("Sign up")}</StyledLink>
               </Typography>
             )
           ) : (
             <Typography>
-              {"Already have an account? "}
+              {t("Already have an account?")}{" "}
               <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
                 runAsynchronously(stackApp.redirectToSignIn());
                 e.preventDefault();
-              }}>
-                Sign in
-              </StyledLink>
+              }}>{t("Sign in")}</StyledLink>
             </Typography>
           )}
         </div>
@@ -87,8 +85,8 @@ export function AuthPage(props: {
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue='magic-link'>
             <TabsList className='w-full mb-2'>
-              <TabsTrigger value='magic-link' className='flex-1'>Magic Link</TabsTrigger>
-              <TabsTrigger value='password' className='flex-1'>Password</TabsTrigger>
+              <TabsTrigger value='magic-link' className='flex-1'>{t("Magic Link")}</TabsTrigger>
+              <TabsTrigger value='password' className='flex-1'>{t("Password")}</TabsTrigger>
             </TabsList>
             <TabsContent value='magic-link'>
               <MagicLinkSignIn/>
