@@ -45,14 +45,14 @@ export function AccountSettings(props: {
         <SidebarLayout
           items={([
             {
-              title: 'My Profile',
+              title: t('My Profile'),
               type: 'item',
               subpath: '/profile',
               icon: Contact,
               content: <ProfileSection/>,
             },
             {
-              title: 'Security',
+              title: t('Security'),
               type: 'item',
               icon: ShieldCheck,
               subpath: '/security',
@@ -65,7 +65,7 @@ export function AccountSettings(props: {
               ),
             },
             {
-              title: 'Sign Out',
+              title: t('Sign Out'),
               subpath: '/sign-out',
               type: 'item',
               icon: LogOut,
@@ -79,7 +79,7 @@ export function AccountSettings(props: {
               content: item.content,
             } as const)) || []),
             ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
-              title: 'Teams',
+              title: t('Teams'),
               type: 'divider',
             }] as const : [],
             ...teams.map(team => ({
@@ -100,7 +100,7 @@ export function AccountSettings(props: {
               ),
             } as const)),
             ...project.config.clientTeamCreationEnabled ? [{
-              title: 'Create a team',
+              title: t('Create a team'),
               icon: CirclePlus,
               type: 'item',
               subpath: '/team-creation',
@@ -177,24 +177,25 @@ function EmailVerificationSection() {
   );
 }
 
-const passwordSchema = yupObject({
-  oldPassword: yupString().required('Please enter your old password'),
-  newPassword: yupString().required('Please enter your password').test({
-    name: 'is-valid-password',
-    test: (value, ctx) => {
-      const error = getPasswordError(value);
-      if (error) {
-        return ctx.createError({ message: error.message });
-      } else {
-        return true;
-      }
-    }
-  }),
-  newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], 'Passwords do not match').required('Please repeat your password')
-});
-
 function PasswordSection() {
   const { t } = useTranslation();
+
+  const passwordSchema = yupObject({
+    oldPassword: yupString().required(t('Please enter your old password')),
+    newPassword: yupString().required(t('Please enter your password')).test({
+      name: 'is-valid-password',
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
+      }
+    }),
+    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+  });
+
   const user = useUser({ or: "throw" });
   const [changingPassword, setChangingPassword] = useState(false);
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
@@ -209,7 +210,7 @@ function PasswordSection() {
       const { oldPassword, newPassword } = data;
       const error = await user.updatePassword({ oldPassword, newPassword });
       if (error) {
-        setError('oldPassword', { type: 'manual', message: 'Incorrect password' });
+        setError('oldPassword', { type: 'manual', message: t('Incorrect password') });
       } else {
         reset();
         setAlreadyReset(true);
@@ -472,12 +473,13 @@ function ProfileSettings(props: { team: Team }) {
   );
 }
 
-const invitationSchema = yupObject({
-  email: yupString().email().required('Please enter an email address'),
-});
-
 function MemberInvitation(props: { team: Team }) {
   const { t } = useTranslation();
+
+  const invitationSchema = yupObject({
+    email: yupString().email().required(t('Please enter an email address')),
+  });
+
   const user = useUser({ or: 'redirect' });
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
 
@@ -573,12 +575,13 @@ function MembersSettings(props: { team: Team }) {
   );
 }
 
-const teamCreationSchema = yupObject({
-  displayName: yupString().required("Please enter a team name"),
-});
-
 export function TeamCreation() {
   const { t } = useTranslation();
+
+  const teamCreationSchema = yupObject({
+    displayName: yupString().required(t("Please enter a team name")),
+  });
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(teamCreationSchema)
   });
