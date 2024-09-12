@@ -741,8 +741,8 @@ importers:
         version: 1.4.0
     devDependencies:
       '@quetzallabs/i18n':
-        specifier: ^0.1.15
-        version: 0.1.15(next@14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+        specifier: ^0.1.19
+        version: 0.1.19(next@14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@types/color':
         specifier: ^3.0.6
         version: 3.0.6
@@ -2740,8 +2740,8 @@ packages:
   '@prisma/get-platform@5.15.0':
     resolution: {integrity: sha512-1GULDkW4+/VQb73vihxCBSc4Chc2x88MA+O40tcZFjmBzG4/fF44PaXFxUqKSFltxU9L9GIMLhh0Gfkk/pUbtg==}
 
-  '@quetzallabs/i18n@0.1.15':
-    resolution: {integrity: sha512-yLYAQW/gkDE8kyOzIkTQsNE+O9PURdePFAqinoZ1uUJELo4TVU67LNpF2cickQ25qj2UF5pTyE39Fcl7A2peiQ==}
+  '@quetzallabs/i18n@0.1.19':
+    resolution: {integrity: sha512-QX2FjuaqKawjOD0kQGB5LpMj5ux6boSMJU2tvx2R/AYI3YnVOEeQw1NeM+8FwhB1vio4o33pjr/ju8RaRjY3lg==}
     hasBin: true
 
   '@radix-ui/colors@1.0.1':
@@ -10744,7 +10744,7 @@ snapshots:
     dependencies:
       '@prisma/debug': 5.15.0
 
-  '@quetzallabs/i18n@0.1.15(next@14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
+  '@quetzallabs/i18n@0.1.19(next@14.2.3(@babel/core@7.24.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
     dependencies:
       '@babel/parser': 7.25.6
       '@babel/traverse': 7.25.6

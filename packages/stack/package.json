@@ -69,7 +69,7 @@
     "react": ">=18.2"
   },
   "devDependencies": {
-    "@quetzallabs/i18n": "^0.1.15",
+    "@quetzallabs/i18n": "^0.1.19",
     "@types/color": "^3.0.6",
     "@types/cookie": "^0.6.0",
     "@types/js-cookie": "^3.0.6",

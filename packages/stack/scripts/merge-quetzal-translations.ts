@@ -13,6 +13,7 @@ async function main() {
   // we do this because Quetzal's IDs are not stable when running the script multiple times
   const oldKeysReversed = Object.fromEntries(Object.entries(quetzalKeys).map(([key, value]) => [value, key]));
   const newKeys = Object.fromEntries(Object.keys(sortKeys(quetzalKeys)).map((key, i) => [key, `__stack-auto-translation-${i}`]));
+  const newKeysReversed = Object.fromEntries(Object.entries(newKeys).map(([key, value]) => [value, key]));
   const localesByKeys = Object.fromEntries(Object.entries(locales).map(([key, value]) => [
     key,
     Object.fromEntries(Object.entries(value).map(([key, value]) => [newKeys[oldKeysReversed[key]], value]))
@@ -20,8 +21,8 @@ async function main() {
 
   const enUS = localesByKeys["en-US"];
   for (const [key, enUSTranslation] of Object.entries(enUS)) {
-    if (oldKeys[key] !== enUSTranslation) {
-      throw new Error(`Quetzal's en-US translation of ${JSON.stringify(oldKeys[key])} is different from the original string! Quetzal's translation: ${JSON.stringify(enUSTranslation)}`);
+    if (newKeysReversed[key] !== enUSTranslation) {
+      throw new Error(`Quetzal's en-US translation of ${JSON.stringify(newKeysReversed[key])} is different from the original string! Quetzal's translation: ${JSON.stringify(enUSTranslation)}`);
     }
   }
 
