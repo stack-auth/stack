@@ -12,6 +12,7 @@ import { SpotifyProvider } from "./providers/spotify";
 import { MockProvider } from "./providers/mock";
 import { DiscordProvider } from "@/oauth/providers/discord";
 import { GitlabProvider } from "./providers/gitlab";
+import { BitbucketProvider } from "./providers/bitbucket";
 
 const _providers = {
   github: GithubProvider,
@@ -21,6 +22,7 @@ const _providers = {
   spotify: SpotifyProvider,
   discord: DiscordProvider,
   gitlab: GitlabProvider,
+  bitbucket: BitbucketProvider,
 } as const;
 
 const mockProvider = MockProvider;
@@ -51,7 +53,8 @@ export async function getProvider(provider: ProjectsCrud['Admin']['Read']['confi
     return await _providers[provider.id].create({
       clientId: provider.client_id || throwErr("Client ID is required for standard providers"),
       clientSecret: provider.client_secret || throwErr("Client secret is required for standard providers"),
-      facebookConfigId: provider.facebook_config_id
+      facebookConfigId: provider.facebook_config_id,
+      microsoftTenantId: provider.microsoft_tenant_id,
     });
   }
 }

@@ -4,7 +4,6 @@ import imageCompression from 'browser-image-compression';
 import { Upload } from 'lucide-react';
 import { ComponentProps, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
-import { useUser } from '..';
 import { UserAvatar } from './elements/user-avatar';
 
 export async function checkImageUrl(url: string){
@@ -21,7 +20,6 @@ export function ProfileImageEditor(props: {
   user: NonNullable<ComponentProps<typeof UserAvatar>['user']>,
   onProfileImageUrlChange: (profileImageUrl: string | null) => void | Promise<void>,
 }) {
-  const user = useUser({ or: 'redirect' });
   const cropRef = useRef<AvatarEditor>(null);
   const [slideValue, setSlideValue] = useState(1);
   const [rawUrl, setRawUrl] = useState<string | null>(null);

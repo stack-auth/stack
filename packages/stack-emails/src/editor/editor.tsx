@@ -4,7 +4,7 @@ import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
 import { TEditorConfiguration } from './documents/editor/core';
 import _ from 'lodash';
-import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '@stackframe/stack-emails/dist/utils';
+import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '../utils';
 
 export default function EmailEditor(props: {
   document: TEditorConfiguration,

@@ -10,6 +10,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { PrismaTransaction } from "@/lib/types";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 
 
 export async function addUserToTeam(tx: PrismaTransaction, options: {
@@ -91,12 +92,22 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       });
     });
 
-    return {};
+    const data = {
+      team_id: params.team_id,
+      user_id: userId,
+    };
+
+    await sendTeamMembershipCreatedWebhook({
+      projectId: auth.project.id,
+      data,
+    });
+
+    return data;
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.$transaction(async (tx) => {
-      const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
+    const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
 
+    await prismaClient.$transaction(async (tx) => {
       // Users are always allowed to remove themselves from a team
       // Only users with the $remove_members permission can remove other users
       if (auth.type === 'client') {
@@ -109,6 +120,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
             userId: auth.user?.id ?? throwErr('auth.user is null'),
             permissionId: "$remove_members",
             errorType: 'required',
+            recursive: true,
           });
         }
       }
@@ -128,6 +140,14 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
           },
         },
       });
+    });
+
+    await sendTeamMembershipDeletedWebhook({
+      projectId: auth.project.id,
+      data: {
+        team_id: params.team_id,
+        user_id: userId,
+      },
     });
   },
 }));

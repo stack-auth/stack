@@ -8,13 +8,13 @@ import { Typography } from "@stackframe/stack-ui";
 import { MessageCard } from "../components/message-cards/message-card";
 
 
-export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<string, string> }) {
   const stackApp = useStackApp();
-  const errorCode = searchParams.errorCode;
-  const message = searchParams.message;
-  const details = searchParams.details;
+  const errorCode = props.searchParams.errorCode;
+  const message = props.searchParams.message;
+  const details = props.searchParams.details;
 
-  const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={fullPage} />;
+  const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={!!props.fullPage} />;
 
   if (!errorCode || !message || !details) {
     return unknownErrorCard;
@@ -32,7 +32,7 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     return (
       <MessageCard
         title="Failed to connect account"
-        fullPage={fullPage}
+        fullPage={!!props.fullPage}
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
@@ -48,7 +48,7 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     return (
       <MessageCard
         title="Failed to connect account"
-        fullPage={fullPage}
+        fullPage={!!props.fullPage}
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
@@ -59,5 +59,5 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     );
   }
 
-  return <KnownErrorMessageCard error={error} fullPage={fullPage} />;
+  return <KnownErrorMessageCard error={error} fullPage={!!props.fullPage} />;
 }

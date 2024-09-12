@@ -31,10 +31,10 @@ const schema = yupObject({
   passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
 });
 
-export default function PasswordResetForm(
-  { code, fullPage = false }:
-  { code: string, fullPage?: boolean }
-) {
+export default function PasswordResetForm(props: {
+  code: string,
+  fullPage?: boolean,
+}) {
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });
@@ -47,7 +47,7 @@ export default function PasswordResetForm(
     setLoading(true);
     try {
       const { password } = data;
-      const errorCode = await stackApp.resetPassword({ password, code });
+      const errorCode = await stackApp.resetPassword({ password, code: props.code });
       if (errorCode) {
         setResetError(true);
         return;
@@ -60,20 +60,20 @@ export default function PasswordResetForm(
   };
 
   if (finished) {
-    return <PredefinedMessageCard type='passwordReset' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='passwordReset' fullPage={!!props.fullPage} />;
   }
 
   if (resetError) {
     return (
-      <MessageCard title="Failed to reset password" fullPage={fullPage}>
+      <MessageCard title="Failed to reset password" fullPage={!!props.fullPage}>
         Failed to reset password. Please request a new password reset link
       </MessageCard>
     );
   }
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6">
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className="text-center mb-6" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <Typography type='h2'>Reset Your Password</Typography>
       </div>
 

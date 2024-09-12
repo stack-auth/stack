@@ -1,4 +1,3 @@
-
 import { PrismaClient } from '@prisma/client';
 import { getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 

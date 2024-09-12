@@ -37,37 +37,39 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
-    const users = await prismaClient.projectUser.findMany({
+    const authMethod = await prismaClient.passwordAuthMethod.findUnique({
       where: {
-        projectId: project.id,
-        primaryEmail: email,
-        authWithEmail: true,
+        projectId_identifierType_identifier: {
+          projectId: project.id,
+          identifierType: "EMAIL",
+          identifier: email,
+        }
       },
+      include: {
+        projectUser: true,
+      }
     });
-    if (users.length > 1) {
-      throw new StackAssertionError("Multiple users found with the same email", { users });
-    }
-    const user = users.length > 0 ? users[0] : null;
 
-    if (!await comparePassword(password, user?.passwordHash || "")) {
+    // we compare the password even if the authMethod doesn't exist to prevent timing attacks
+    if (!await comparePassword(password, authMethod?.passwordHash || "")) {
       throw new KnownErrors.EmailPasswordMismatch();
     }
 
-    if (!user) {
+    if (!authMethod) {
       throw new StackAssertionError("This should never happen (the comparePassword call should've already caused this to fail)");
     }
 
-    if (user.requiresTotpMfa) {
+    if (authMethod.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
         project,
         isNewUser: false,
-        userId: user.projectUserId,
+        userId: authMethod.projectUser.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
-      projectUserId: user.projectUserId,
+      projectUserId: authMethod.projectUser.projectUserId,
     });
 
     return {
@@ -76,7 +78,7 @@ export const POST = createSmartRouteHandler({
       body: {
         access_token: accessToken,
         refresh_token: refreshToken,
-        user_id: user.projectUserId,
+        user_id: authMethod.projectUser.projectUserId,
       }
     };
   },

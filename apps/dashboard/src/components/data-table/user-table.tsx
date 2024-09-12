@@ -170,6 +170,12 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
             item: "Edit",
             onClick: () => setIsEditModalOpen(true),
           },
+          ...row.original.isMultiFactorRequired ? [{
+            item: "Remove 2FA",
+            onClick: async () => {
+              await row.original.update({ totpMultiFactorSecret: null });
+            },
+          }] : [],
           {
             item: "Delete",
             onClick: () => setIsDeleteModalOpen(true),
@@ -209,6 +215,11 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       {row.original.primaryEmail}
     </TextCell>,
     enableGlobalFilter: true,
+  },
+  {
+    accessorKey: "lastActiveAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
+    cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
   },
   {
     accessorKey: "emailVerified",

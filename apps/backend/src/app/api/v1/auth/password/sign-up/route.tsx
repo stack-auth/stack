@@ -4,7 +4,7 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrl
 import { prismaClient } from "@/prisma-client";
 import { createAuthTokens } from "@/lib/tokens";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
@@ -61,18 +61,22 @@ export const POST = createSmartRouteHandler({
       allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
-    await contactChannelVerificationCodeHandler.sendCode({
-      project,
-      data: {
-        user_id: createdUser.id,
-      },
-      method: {
-        email,
-      },
-      callbackUrl: verificationCallbackUrl,
-    }, {
-      user: createdUser,
-    });
+    try {
+      await contactChannelVerificationCodeHandler.sendCode({
+        project,
+        data: {
+          user_id: createdUser.id,
+        },
+        method: {
+          email,
+        },
+        callbackUrl: verificationCallbackUrl,
+      }, {
+        user: createdUser,
+      });
+    } catch (error) {
+      captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+    }
 
     if (createdUser.requires_totp_mfa) {
       throw await createMfaRequiredError({

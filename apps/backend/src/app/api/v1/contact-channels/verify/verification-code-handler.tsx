@@ -1,8 +1,7 @@
-import * as yup from "yup";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
-import { sendEmailFromTemplate } from "@/lib/emails";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
@@ -42,17 +41,18 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     });
   },
   async handler(project, { email }, data) {
-    const updatedPrismaUser = await prismaClient.projectUser.update({
+    await prismaClient.contactChannel.update({
       where: {
-        projectId_projectUserId: {
+        projectId_projectUserId_type_value: {
           projectId: project.id,
           projectUserId: data.user_id,
+          type: "EMAIL",
+          value: email,
         },
-        primaryEmail: email,
       },
       data: {
-        primaryEmailVerified: true,
-      },
+        isVerified: true,
+      }
     });
 
     return {

@@ -98,22 +98,28 @@ function ShowKeyDialog(props: {
   const project = stackAdminApp.useProject();
   if (!props.apiKey) return null;
 
-  return <ActionDialog
-    open={!!props.apiKey}
-    title="API Key"
-    okButton={{ label: "Close" }}
-    onClose={props.onClose}
-    confirmText="I understand that I will not be able to view this key again."
-  >
-    <div className="flex flex-col gap-4">
-      <Typography>
-        Here are your API keys. Copy them to a safe place. You will not be able to view them again.
-      </Typography>
-      <EnvKeys
-        projectId={project.id}
-        publishableClientKey={props.apiKey.publishableClientKey}
-        secretServerKey={props.apiKey.secretServerKey}
-      />
-    </div>
-  </ActionDialog>;
+
+  return (
+    <ActionDialog
+      open={!!props.apiKey}
+      title="API Key"
+      okButton={{ label: "Close" }}
+      onClose={props.onClose}
+      confirmText="I understand that I will not be able to view this key again."
+    >
+      <div className="flex flex-col gap-4">
+        <Typography>
+          Here are your API keys.{" "}
+          <span className="font-bold">
+            Copy them to a safe place. You will not be able to view them again.
+          </span>
+        </Typography>
+        <EnvKeys
+          projectId={project.id}
+          publishableClientKey={props.apiKey.publishableClientKey}
+          secretServerKey={props.apiKey.secretServerKey}
+        />
+      </div>
+    </ActionDialog>
+  );
 }

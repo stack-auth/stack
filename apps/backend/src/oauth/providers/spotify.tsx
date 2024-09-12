@@ -35,6 +35,9 @@ export class SpotifyProvider extends OAuthBaseProvider {
       displayName: info.display_name,
       email: info.email,
       profileImageUrl: info.images?.[0]?.url,
+      // Spotify does not make sure that the email is verified, so we cannot trust it
+      // https://developer.spotify.com/documentation/web-api/reference/get-current-users-profile
+      emailVerified: false,
     });
   }
 }

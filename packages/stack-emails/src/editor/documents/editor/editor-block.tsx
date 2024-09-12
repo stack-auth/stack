@@ -4,7 +4,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 
 import { EditorBlock as CoreEditorBlock } from './core';
 import { useDocument, useMetadata } from './editor-context';
-import { convertEmailTemplateVariables } from '@stackframe/stack-emails/dist/utils';
+import { convertEmailTemplateVariables } from '../../../utils';
 
 const EditorBlockContext = createContext<string | null>(null);
 export const useCurrentBlockId = () => useContext(EditorBlockContext)!;

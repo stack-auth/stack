@@ -57,22 +57,22 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
 }
 
 
-export function ForgotPassword({ fullPage=false }: { fullPage?: boolean }) {
+export function ForgotPassword(props: { fullPage?: boolean }) {
   const stackApp = useStackApp();
   const user = useUser();
   const [sent, setSent] = useState(false);
 
   if (user) {
-    return <PredefinedMessageCard type='signedIn' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='signedIn' fullPage={!!props.fullPage} />;
   }
 
   if (sent) {
-    return <PredefinedMessageCard type='emailSent' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='emailSent' fullPage={!!props.fullPage} />;
   }
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6 stack-scope">
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className="text-center mb-6 stack-scope" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <Typography type='h2'>Reset Your Password</Typography>
         <Typography>
           {"Don't need to reset? "}

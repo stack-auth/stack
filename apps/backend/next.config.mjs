@@ -53,6 +53,10 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   poweredByHeader: false,
 
+  experimental: {
+    instrumentationHook: true,
+  },
+
   async headers() {
     return [
       {

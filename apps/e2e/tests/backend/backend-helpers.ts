@@ -3,6 +3,7 @@ import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import * as jose from "jose";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -21,11 +22,15 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
     mailbox: createMailbox(),
     userAuth: null,
   }),
-  (acc, update) => ({
-    ...acc,
-    ...filterUndefined(update),
-  }),
+  (acc, update) => {
+    return {
+      ...acc,
+      ...filterUndefined(update),
+    };
+  },
 );
+
+const jwks = jose.createRemoteJWKSet(new URL("/.well-known/jwks.json", STACK_BACKEND_BASE_URL));
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
@@ -114,6 +119,20 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 
 
 export namespace Auth {
+  export async function ensureParsableAccessToken() {
+    const accessToken = backendContext.value.userAuth?.accessToken;
+    if (accessToken) {
+      const { payload } = await jose.jwtVerify(accessToken, jwks);
+      expect(payload).toEqual({
+        "exp": expect.any(Number),
+        "iat": expect.any(Number),
+        "iss": "https://access-token.jwt-signature.stack-auth.com",
+        "projectId": expect.any(String),
+        "sub": expect.any(String),
+      });
+    }
+  }
+
   /**
    * Valid session & valid access token: OK
    * Valid session & invalid access token: OK
@@ -150,6 +169,7 @@ export namespace Auth {
    * Invalid session & invalid access token: Error
    */
   export async function expectAccessTokenToBeInvalid() {
+    await ensureParsableAccessToken();
     const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
     if (response.status === 200) {
       throw new StackAssertionError("Expected access token to be invalid, but was actually valid.", { response });
@@ -163,6 +183,7 @@ export namespace Auth {
    * Invalid session & invalid access token: Error
    */
   export async function expectAccessTokenToBeValid() {
+    await ensureParsableAccessToken();
     const response = await niceBackendFetch("/api/v1/users/me", { accessType: "client" });
     if (response.status !== 200) {
       throw new StackAssertionError("Expected access token to be valid, but was actually invalid.", { response });
@@ -382,7 +403,7 @@ export namespace Auth {
     }
 
     export async function authorize(options?: { redirectUrl?: string, errorRedirectUrl?: string }) {
-      const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/facebook", {
+      const response = await niceBackendFetch("/api/v1/auth/oauth/authorize/spotify", {
         redirect: "manual",
         query: {
           ...await Auth.OAuth.getAuthorizeQuery(),
@@ -393,7 +414,7 @@ export namespace Auth {
         },
       });
       expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8107\/auth\?.*$/);
+      expect(response.headers.get("location")).toMatch(/^http:\/\/localhost:8114\/auth\?.*$/);
       expect(response.headers.get("set-cookie")).toMatch(/^stack-oauth-inner-[^;]+=[^;]+; Path=\/; Expires=[^;]+; Max-Age=\d+;( Secure;)? HttpOnly$/);
       return {
         authorizeResponse: response,
@@ -474,7 +495,7 @@ export namespace Auth {
       });
       const innerCallbackUrl = new URL(redirectResponse3.headers.get("location") ?? throwErr("missing redirect location", { redirectResponse3 }));
       expect(innerCallbackUrl.origin).toBe("http://localhost:8102");
-      expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/facebook");
+      expect(innerCallbackUrl.pathname).toBe("/api/v1/auth/oauth/callback/spotify");
       return {
         ...options,
         innerCallbackUrl,
