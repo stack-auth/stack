@@ -49,7 +49,10 @@ it("creates a team and manage users on the server", async ({ expect }) => {
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
-      "body": {},
+      "body": {
+        "team_id": "<stripped UUID>",
+        "user_id": "<stripped UUID>",
+      },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -187,7 +190,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
 
 it("should give team creator default permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });

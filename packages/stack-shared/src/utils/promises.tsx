@@ -97,6 +97,17 @@ export function pending<T>(promise: Promise<T>, options: { disableErrorWrapping?
   return res;
 }
 
+/**
+ * Should be used to wrap Promises that are not immediately awaited, so they don't throw an unhandled promise rejection
+ * error.
+ *
+ * Vercel kills serverless functions on unhandled promise rejection errors, so this is important.
+ */
+export function ignoreUnhandledRejection<T extends Promise<any>>(promise: T): T {
+  promise.catch(() => {});
+  return promise;
+}
+
 export async function wait(ms: number) {
   return await new Promise<void>(resolve => setTimeout(resolve, ms));
 }

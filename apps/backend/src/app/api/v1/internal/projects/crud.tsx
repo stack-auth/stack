@@ -2,6 +2,7 @@ import { fullProjectInclude, listManagedProjectIds, projectPrismaToCrud } from "
 import { ensureSharedProvider, ensureStandardProvider } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { ContactChannelType } from "@prisma/client/edge";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { projectIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
@@ -46,8 +47,6 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           config: {
             create: {
               signUpEnabled: data.config?.sign_up_enabled ?? true,
-              credentialEnabled: data.config?.credential_enabled ?? true,
-              magicLinkEnabled: data.config?.magic_link_enabled ?? false,
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,
@@ -60,7 +59,6 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               oauthProviderConfigs: data.config?.oauth_providers ? {
                 create: data.config.oauth_providers.map(item => ({
                   id: item.id,
-                  enabled: item.enabled,
                   proxiedOAuthConfig: item.type === "shared" ? {
                     create: {
                       type: typedToUppercase(ensureSharedProvider(item.id)),
@@ -104,6 +102,68 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           }
         },
         include: fullProjectInclude,
+      });
+
+      // all oauth providers are created as auth methods for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          authMethodConfigs: {
+            create: [
+              ...data.config?.oauth_providers ? project.config.oauthProviderConfigs.map(item => ({
+                enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+                oauthProviderConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      projectConfigId: project.config.id,
+                      id: item.id,
+                    }
+                  }
+                }
+              })) : [],
+              ...data.config?.magic_link_enabled ? [{
+                enabled: true,
+                otpConfig: {
+                  create: {
+                    contactChannelType: 'EMAIL',
+                  }
+                },
+              }] : [],
+              ...(data.config?.credential_enabled ?? true) ? [{
+                enabled: true,
+                passwordConfig: {
+                  create: {
+                    identifierType: 'EMAIL',
+                  }
+                },
+              }] : [],
+            ]
+          }
+        }
+      });
+
+      // all standard oauth providers are created as connected accounts for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          connectedAccountConfigs: data.config?.oauth_providers ? {
+            create: project.config.oauthProviderConfigs.map(item => ({
+              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+              oauthProviderConfig: {
+                connect: {
+                  projectConfigId_id: {
+                    projectConfigId: project.config.id,
+                    id: item.id,
+                  }
+                }
+              }
+            })),
+          } : undefined,
+        }
       });
 
       await tx.permission.create({

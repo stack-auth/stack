@@ -1,5 +1,27 @@
 # @stackframe/stack-dashboard
 
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.33
+  - @stackframe/stack-shared@2.5.33
+  - @stackframe/stack@2.5.33
+  - @stackframe/stack-ui@2.5.33
+
+## 2.5.32
+
+### Patch Changes
+
+- Improved connected account performance
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.32
+  - @stackframe/stack-shared@2.5.32
+  - @stackframe/stack@2.5.32
+  - @stackframe/stack-ui@2.5.32
+
 ## 2.5.31
 
 ### Patch Changes

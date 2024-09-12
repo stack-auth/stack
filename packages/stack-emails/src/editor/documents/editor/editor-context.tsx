@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { TEditorConfiguration } from './core';
-import { EmailTemplateMetadata } from '@stackframe/stack-emails/dist/utils';
-import { emptyEmailTemplate } from '@stackframe/stack-emails/dist/templates/empty';
+import { EmailTemplateMetadata } from '../../../utils';
+import { emptyEmailTemplate } from '../../../templates/empty';
 
 type TValue = {
   document: TEditorConfiguration,

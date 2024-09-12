@@ -54,6 +54,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
             userId: currentUserId,
             permissionId: '$read_members',
             errorType: 'required',
+            recursive: true,
           });
         }
       } else {
@@ -98,6 +99,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
             userId: currentUserId,
             permissionId: '$read_members',
             errorType: 'required',
+            recursive: true,
           });
         }
       }

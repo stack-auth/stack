@@ -101,13 +101,7 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
 
-In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
-
-```sh
-docker compose -f dependencies.compose.yaml up
-```
-
-Then open a new terminal:
+In a new terminal:
 
 ```sh
 pnpm install
@@ -115,12 +109,10 @@ pnpm install
 # Run build to build everything once
 pnpm run build
 
-# initialize the database and seed it with some data
-pnpm prisma db push
-pnpm prisma db seed
-
-# Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
-pnpm run codegen
+# reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
+pnpm run restart-deps
+# pnpm run start-deps
+# pnpm run stop-deps
 
 # Start the dev server
 pnpm run dev

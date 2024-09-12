@@ -1,7 +1,11 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupMixed, yupObject } from "../../schema-fields";
+import { yupMixed, yupObject, yupString } from "../../schema-fields";
+import { WebhookEvent } from "../webhooks";
 
-export const teamMembershipsCrudClientReadSchema = yupObject({}).required();
+export const teamMembershipsCrudClientReadSchema = yupObject({
+  team_id: yupString().required(),
+  user_id: yupString().required(),
+}).required();
 export const teamMembershipsCrudServerCreateSchema = yupObject({}).required();
 export const teamMembershipsCrudClientDeleteSchema = yupMixed();
 
@@ -30,3 +34,23 @@ export const teamMembershipsCrud = createCrud({
   },
 });
 export type TeamMembershipsCrud = CrudTypeOf<typeof teamMembershipsCrud>;
+
+export const teamMembershipCreatedWebhookEvent = {
+  type: "team_membership.created",
+  schema: teamMembershipsCrud.server.readSchema,
+  metadata: {
+    summary: "Team Membership Created",
+    description: "This event is triggered when a user is added to a team.",
+    tags: ["Teams"],
+  },
+} satisfies WebhookEvent<typeof teamMembershipsCrud.server.readSchema>;
+
+export const teamMembershipDeletedWebhookEvent = {
+  type: "team_membership.deleted",
+  schema: teamMembershipsCrud.server.readSchema,
+  metadata: {
+    summary: "Team Membership Deleted",
+    description: "This event is triggered when a user is removed from a team.",
+    tags: ["Teams"],
+  },
+} satisfies WebhookEvent<typeof teamMembershipsCrud.server.readSchema>;

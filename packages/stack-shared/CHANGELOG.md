@@ -1,5 +1,19 @@
 # @stackframe/stack-shared
 
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+  - @stackframe/stack-sc@2.5.33
+
+## 2.5.32
+
+### Patch Changes
+
+- Improved connected account performance
+  - @stackframe/stack-sc@2.5.32
+
 ## 2.5.31
 
 ### Patch Changes

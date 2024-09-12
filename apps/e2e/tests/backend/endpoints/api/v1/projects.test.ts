@@ -34,10 +34,10 @@ it("gets current project (internal)", async ({ expect }) => {
           "client_team_creation_enabled": true,
           "credential_enabled": true,
           "enabled_oauth_providers": [
-            { "id": "facebook" },
             { "id": "github" },
             { "id": "google" },
             { "id": "microsoft" },
+            { "id": "spotify" },
           ],
           "magic_link_enabled": true,
           "sign_up_enabled": true,
@@ -690,7 +690,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
   const { updateProjectResponse: response4 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       oauth_providers: [{
-        id: "facebook",
+        id: "spotify",
         type: "shared",
         enabled: true,
       }]
@@ -709,7 +709,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
     config: {
       oauth_providers: [
         {
-          id: "facebook",
+          id: "spotify",
           type: "shared",
           enabled: true,
         },
@@ -733,20 +733,20 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "domains": [],
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [
-            { "id": "facebook" },
             { "id": "google" },
+            { "id": "spotify" },
           ],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [
             {
               "enabled": true,
-              "id": "facebook",
+              "id": "google",
               "type": "shared",
             },
             {
               "enabled": true,
-              "id": "google",
+              "id": "spotify",
               "type": "shared",
             },
           ],
@@ -770,7 +770,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
     config: {
       oauth_providers: [
         {
-          id: "facebook",
+          id: "spotify",
           type: "shared",
           enabled: true,
         },
@@ -793,18 +793,18 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [{ "id": "facebook" }],
+          "enabled_oauth_providers": [{ "id": "spotify" }],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
           "oauth_providers": [
             {
-              "enabled": true,
-              "id": "facebook",
+              "enabled": false,
+              "id": "google",
               "type": "shared",
             },
             {
-              "enabled": false,
-              "id": "google",
+              "enabled": true,
+              "id": "spotify",
               "type": "shared",
             },
           ],
@@ -880,7 +880,25 @@ it("deletes a project with server access", async ({ expect }) => {
 
 it("deletes a project with users, teams, and permissions", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken, createProjectResponse } = await Project.createAndGetAdminToken({
+    config: {
+      magic_link_enabled: true,
+      oauth_providers: [
+        {
+          id: "google",
+          type: "shared",
+          enabled: true,
+        },
+        {
+          id: "spotify",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: "client_secret",
+        }
+      ]
+    }
+  });
 
   // Create a user
   const userResponse = await niceBackendFetch(`/api/v1/users`, {
@@ -925,7 +943,7 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 
   // Delete the project
   const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
-    accessType: "server",
+    accessType: "admin",
     method: "DELETE",
     headers: {
       'x-stack-admin-access-token': adminAccessToken,
@@ -934,19 +952,9 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 
   expect(deleteResponse).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 401,
-      "body": {
-        "code": "INSUFFICIENT_ACCESS_TYPE",
-        "details": {
-          "actual_access_type": "server",
-          "allowed_access_types": ["admin"],
-        },
-        "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
-      },
-      "headers": Headers {
-        "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-        <some fields may have been hidden>,
-      },
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
     }
   `);
 });

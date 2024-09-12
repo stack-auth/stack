@@ -74,6 +74,9 @@ jobs:
         
       - name: Put QUETZAL_API_KEY in .env.local for packages/stack
         run: echo "QUETZAL_API_KEY=${{ secrets.QUETZAL_API_KEY }}" >> packages/stack/.env.local
+      
+      - name: Create .env.production.local file for packages/stack-proxy
+        run: cp packages/stack-proxy/.env.development packages/stack-proxy/.env.production.local
 
       - name: Build
         run: pnpm build
