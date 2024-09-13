@@ -53,7 +53,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const { t } = useTranslation();
   const user = props.user;
   const app = useStackApp();
-  const project = app.useProject();
+
   const iconProps = { size: 20, className: 'h-4 w-4' };
   const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
 
@@ -92,7 +92,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           onClick={async () => await app.redirectToSignIn()}
           icon={<LogIn {...iconProps} />}
         />}
-        {!user && project.config.signUpEnabled && <Item
+        {!user && <Item
           text={t('Sign up')}
           onClick={async () => await app.redirectToSignUp()}
           icon={<UserPlus {...iconProps}/> }
