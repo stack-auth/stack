@@ -1,15 +1,84 @@
 "use client";
+
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { ActionDialog, Typography } from "@stackframe/stack-ui";
+import { useState } from "react";
+import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 import { ProviderSettingSwitch } from "./providers";
-import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
+
+function ConfirmSignUpEnabledDialog(props: {
+  open?: boolean,
+  onOpenChange?: (open: boolean) => void,
+}) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+
+  return (
+    <ActionDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title="Enable sign-up"
+      danger
+      okButton={{
+        label: "Enable Sign-up",
+        onClick: async () => {
+          await project.update({
+            config: {
+              signUpEnabled: true,
+            },
+          });
+        }
+      }}
+      cancelButton
+    >
+      <Typography>
+        Do you really want to enable sign-up for your project? Anyone will be able to create an account on your project.
+      </Typography>
+    </ActionDialog>
+  );
+}
+
+function ConfirmSignUpDisabledDialog(props: {
+  open?: boolean,
+  onOpenChange?: (open: boolean) => void,
+}) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+
+  return (
+    <ActionDialog
+      open={props.open}
+      onOpenChange={props.onOpenChange}
+      title="Disable sign-up"
+      danger
+      okButton={{
+        label: "Disable Sign-up",
+        onClick: async () => {
+          await project.update({
+            config: {
+              signUpEnabled: false,
+            },
+          });
+        }
+      }}
+      cancelButton
+    >
+      <Typography>
+        Do you really want to disable sign-up for your project? No one except for the project admins will be able to create new accounts. However, existing users will still be able to sign in.
+      </Typography>
+    </ActionDialog>
+  );
+}
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const oauthProviders = project.config.oauthProviders;
+  const [confirmSignUpEnabled, setConfirmSignUpEnabled] = useState(false);
+  const [confirmSignUpDisabled, setConfirmSignUpDisabled] = useState(false);
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
@@ -63,18 +132,26 @@ export default function PageClient() {
       </SettingCard>
       <SettingCard title="Settings">
         <SettingSwitch
-          label="Disable sign ups, only allow sign ins from existing users"
-          checked={!project.config.signUpEnabled}
+          label="Allow self-server user sign-ups"
+          checked={project.config.signUpEnabled}
           onCheckedChange={async (checked) => {
-            await project.update({
-              config: {
-                signUpEnabled: !checked,
-              },
-            });
+            if (checked) {
+              setConfirmSignUpEnabled(true);
+            } else {
+              setConfirmSignUpDisabled(true);
+            }
           }}
-          hint="Admins (like you) can still create new accounts manually by clicking 'Create User' on the Users page of the dashboard."
+          hint='If disabled, only existing users can sign in. However, admins (like you) can still create new accounts manually by clicking "Create User" on the dashboard "Users" page.'
         />
       </SettingCard>
+      <ConfirmSignUpEnabledDialog
+        open={confirmSignUpEnabled}
+        onOpenChange={setConfirmSignUpEnabled}
+      />
+      <ConfirmSignUpDisabledDialog
+        open={confirmSignUpDisabled}
+        onOpenChange={setConfirmSignUpDisabled}
+      />
     </PageLayout>
   );
 }
