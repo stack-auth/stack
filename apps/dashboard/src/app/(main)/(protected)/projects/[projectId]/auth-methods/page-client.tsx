@@ -132,7 +132,7 @@ export default function PageClient() {
       </SettingCard>
       <SettingCard title="Settings">
         <SettingSwitch
-          label="Allow self-server user sign-ups"
+          label="Allow new user sign-ups"
           checked={project.config.signUpEnabled}
           onCheckedChange={async (checked) => {
             if (checked) {
