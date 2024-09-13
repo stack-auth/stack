@@ -1,0 +1,17 @@
+---
+slug: concepts/user-onboarding
+subtitle: How to implement an user onboarding page and collect information on sign-ups
+---
+
+Stack Auth by default only collect email addresses and user names on sign-up if the OAuth providers/sign-in methods provide these information. If you want to make sure that these information are collected, or if you want to collect more additional information like phone number or addresses, or if you want to show user an onboarding tutorial, you can implement your own user onboarding page.
+
+The naive way to implement this is to redirect your users to an onboarding page after they sign up. However, this is not recommended as:
+1. The users can just click away/turn off the page before they complete the onboarding.
+2. The redirect URL might vary depending on the context (for example, if the user opens a protected page, and then redirected to the sign-in page, they will be redirected to the page they tried to access after the authentication)
+
+So instead, the more reliable way is to store a `onboarded` flag in the user metadata, and then redirect the user to the onboarding page if they haven't completed it.
+
+## Example implementation
+
+```jsx title="app/onboarding/page.tsx"
+```
