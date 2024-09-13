@@ -13,5 +13,113 @@ So instead, the more reliable way is to store a `onboarded` flag in the user met
 
 ## Example implementation
 
+First, let's create a onboarding page that collects the user's name and address, and then update the user metadata with the data.
+
 ```jsx title="app/onboarding/page.tsx"
+'use client';
+import { useEffect, useState } from 'react';
+import { useUser } from '@stackframe/stack';
+
+export default function Page() {
+  const user = useUser();
+  const router = useRouter();
+  const [displayName, setDisplayName] = useState(user.displayName);
+  const [address, setAddress] = useState('');
+
+  // Redirect to home if the user has already onboarded
+  useEffect(() => {
+    if (user.metadata.onboarded) {
+      router.push('/');
+    }
+  }, [user]);
+
+  // Update the user metadata if the user has completed the onboarding
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await user.update({
+      displayName,
+      clientMetadata: {
+        onboarded: true,
+        address,
+      },
+    });
+  };
+
+  // Render the onboarding page
+  return <form onSubmit={handleSubmit}>
+    <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+    <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
+    <button type="submit">Submit</button>
+  </form>
+}
 ```
+
+<Note>
+With the above implementation, the user can still skip the onboarding by directly sending an API request to the Stack Server to update the `clientMetadata.onboarded` flag. If you want to ensure that the onboarding process cannot be skipped even if some malicious actor tries to do so, you should create a server endpoint with data validation store the data and `onboarded` flag in the `clientReadonlyMetadata` after the data validation on the server side.
+</Note>
+
+
+Next, we can create a hook/function that checks if the user has completed the onboarding, and redirect the user to the onboarding page if they haven't.
+
+<Tabs>
+<Tab title="Client Hook">
+```jsx title="app/hook.ts"
+'use client';
+import { useEffect } from 'react';
+import { useUser } from '@stackframe/stack';
+
+export function useOnboarding() {
+  const user = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user.metadata.onboarded) {
+      router.push('/onboarding');
+    }
+  }, [user]);
+}
+```
+</Tab>
+
+<Tab title="Server Function">
+```jsx title="app/page.tsx"
+import { stackServerApp } from '@/stack';
+import { redirect } from 'next/navigation';
+
+export async function ensureOnboarding() {
+  const user = await stackServerApp.getUser();
+  if (!user.metadata.onboarded) {
+    redirect('/onboarding');
+  }
+}
+```
+</Tab>
+</Tabs>
+
+Now, you can use these functions in the places where onboarding is required (for most usecases, this is most likely to be all the places where you interact with the user object).
+
+<Tabs>
+<Tab title="Client Component">
+```jsx title="app/page.tsx"
+import { useOnboarding } from '@/app/hook';
+
+export default function Page() {
+  useOnboarding();
+  const user = useUser();
+  return <div>Welcome to the app, {user.displayName}</div>
+}
+```
+</Tab>
+
+<Tab title="Server Component">
+```jsx title="app/page.tsx"
+import { ensureOnboarding } from '@/app/hook';
+
+export default async function Page() {
+  await ensureOnboarding();
+  const user = await stackServerApp.getUser();
+  return <div>Welcome to the app, {user.displayName}</div>
+}
+```
+</Tab>
+</Tabs>
