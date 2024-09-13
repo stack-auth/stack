@@ -1,5 +1,7 @@
 # @stackframe/init-stack
 
+## 2.5.34
+
 ## 2.5.33
 
 ### Patch Changes
