@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.34
+
+### Patch Changes
+
+- Internationalization
+
 ## 2.5.33
 
 ### Patch Changes

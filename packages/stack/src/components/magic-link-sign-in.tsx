@@ -1,20 +1,23 @@
 'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { FormWarningText } from "./elements/form-warning";
-import { useStackApp } from "..";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label } from "@stackframe/stack-ui";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-
-const schema = yupObject({
-  email: yupString().email('Please enter a valid email').required('Please enter your email')
-});
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { useStackApp } from "..";
+import { useTranslation } from "../lib/translations";
+import { FormWarningText } from "./elements/form-warning";
 
 export function MagicLinkSignIn() {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email'))
+  });
+
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });
@@ -53,7 +56,7 @@ export function MagicLinkSignIn() {
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Button disabled={sent} type="submit" className="mt-6" loading={loading}>
-        {sent ? 'Email sent!' : 'Send magic link'}
+        {sent ? t('Email sent!') : t('Send magic link')}
       </Button>
     </form>
   );

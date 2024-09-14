@@ -1,22 +1,24 @@
 'use client';
 
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { FormWarningText } from "./elements/form-warning";
-import { useStackApp } from "..";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
 import { useState } from "react";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { KnownErrors } from "@stackframe/stack-shared";
-
-const schema = yupObject({
-  email: yupString().email('Please enter a valid email').required('Please enter your email'),
-  password: yupString().required('Please enter your password')
-});
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { useStackApp } from "..";
+import { useTranslation } from "../lib/translations";
+import { FormWarningText } from "./elements/form-warning";
 
 export function CredentialSignIn() {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
+    password: yupString().required(t('Please enter your password'))
+  });
+
   const { register, handleSubmit, setError, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
@@ -44,7 +46,7 @@ export function CredentialSignIn() {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-1">Email</Label>
+      <Label htmlFor="email" className="mb-1">{t('Email')}</Label>
       <Input
         id="email"
         type="email"
@@ -52,7 +54,7 @@ export function CredentialSignIn() {
       />
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
+      <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
         {...register('password')}
@@ -60,11 +62,11 @@ export function CredentialSignIn() {
       <FormWarningText text={errors.password?.message?.toString()} />
 
       <StyledLink href={app.urls.forgotPassword} className="mt-1 text-sm">
-        Forgot password?
+        {t('Forgot password?')}
       </StyledLink>
 
       <Button type="submit" className="mt-6" loading={loading}>
-        Sign In
+        {t('Sign In')}
       </Button>
     </form>
   );

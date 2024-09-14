@@ -1,5 +1,14 @@
 # @stackframe/stack-backend
 
+## 2.5.34
+
+### Patch Changes
+
+- Internationalization
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.34
+  - @stackframe/stack-emails@2.5.34
+
 ## 2.5.33
 
 ### Patch Changes

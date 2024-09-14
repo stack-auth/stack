@@ -4,6 +4,7 @@ import imageCompression from 'browser-image-compression';
 import { Upload } from 'lucide-react';
 import { ComponentProps, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
+import { useTranslation } from '../lib/translations';
 import { UserAvatar } from './elements/user-avatar';
 
 export async function checkImageUrl(url: string){
@@ -20,6 +21,7 @@ export function ProfileImageEditor(props: {
   user: NonNullable<ComponentProps<typeof UserAvatar>['user']>,
   onProfileImageUrlChange: (profileImageUrl: string | null) => void | Promise<void>,
 }) {
+  const { t } = useTranslation();
   const cropRef = useRef<AvatarEditor>(null);
   const [slideValue, setSlideValue] = useState(1);
   const [rawUrl, setRawUrl] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export function ProfileImageEditor(props: {
             setRawUrl(rawUrl);
             setError(null);
           } else {
-            setError('Invalid image');
+            setError(t('Invalid image'));
           }
         })
         .then(() => input.remove())
@@ -109,13 +111,13 @@ export function ProfileImageEditor(props: {
             }
           }}
         >
-          Save
+          {t('Save')}
         </Button>
         <Button
           variant="secondary"
           onClick={reset}
         >
-          Cancel
+          {t('Cancel')}
         </Button>
       </div>
     </div>

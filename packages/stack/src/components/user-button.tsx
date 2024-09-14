@@ -1,16 +1,12 @@
 'use client';
 
-import React, { Suspense } from "react";
-import {
-  useUser,
-  useStackApp,
-  CurrentUser,
-} from "..";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { UserAvatar } from "./elements/user-avatar";
-import { useRouter } from "next/navigation";
-import { CircleUser, LogIn, SunMoon, UserPlus, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Skeleton, Typography } from "@stackframe/stack-ui";
+import { CircleUser, LogIn, LogOut, SunMoon, UserPlus } from "lucide-react";
+import React, { Suspense } from "react";
+import { CurrentUser, useStackApp, useUser } from "..";
+import { useTranslation } from "../lib/translations";
+import { UserAvatar } from "./elements/user-avatar";
 
 function Item(props: { text: string, icon: React.ReactNode, onClick: () => void | Promise<void> }) {
   return (
@@ -54,9 +50,9 @@ function UserButtonInner(props: UserButtonProps) {
 
 
 function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | null }) {
+  const { t } = useTranslation();
   const user = props.user;
   const app = useStackApp();
-  const router = useRouter();
 
   const iconProps = { size: 20, className: 'h-4 w-4' };
   const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
@@ -81,23 +77,23 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
             <div>
               {user && <Typography>{user.displayName}</Typography>}
               {user && <Typography variant="secondary" type='label'>{user.primaryEmail}</Typography>}
-              {!user && <Typography>Not signed in</Typography>}
+              {!user && <Typography>{t('Not signed in')}</Typography>}
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {user && <Item
-          text="Account settings"
+          text={t('Account settings')}
           onClick={async () => await app.redirectToAccountSettings()}
           icon={<CircleUser {...iconProps} />}
         />}
         {!user && <Item
-          text="Sign in"
+          text={t('Sign in')}
           onClick={async () => await app.redirectToSignIn()}
           icon={<LogIn {...iconProps} />}
         />}
         {!user && <Item
-          text="Sign up"
+          text={t('Sign up')}
           onClick={async () => await app.redirectToSignUp()}
           icon={<UserPlus {...iconProps}/> }
         />}
@@ -106,13 +102,13 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         ))}
         {props.colorModeToggle && (
           <Item
-            text="Toggle theme"
+            text={t('Toggle theme')}
             onClick={props.colorModeToggle}
             icon={<SunMoon {...iconProps} />}
           />
         )}
         {user && <Item
-          text="Sign out"
+          text={t('Sign out')}
           onClick={() => user.signOut()}
           icon={<LogOut {...iconProps} />}
         />}
