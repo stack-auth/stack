@@ -1,18 +1,19 @@
+import { DiscordProvider } from "@/oauth/providers/discord";
 import OAuth2Server from "@node-oauth/oauth2-server";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthModel } from "./model";
 import { OAuthBaseProvider } from "./providers/base";
+import { BitbucketProvider } from "./providers/bitbucket";
 import { FacebookProvider } from "./providers/facebook";
 import { GithubProvider } from "./providers/github";
-import { GoogleProvider } from "./providers/google";
-import { MicrosoftProvider } from "./providers/microsoft";
-import { SpotifyProvider } from "./providers/spotify";
-import { MockProvider } from "./providers/mock";
-import { DiscordProvider } from "@/oauth/providers/discord";
 import { GitlabProvider } from "./providers/gitlab";
-import { BitbucketProvider } from "./providers/bitbucket";
+import { GoogleProvider } from "./providers/google";
+import { LinkedInProvider } from "./providers/linkedin";
+import { MicrosoftProvider } from "./providers/microsoft";
+import { MockProvider } from "./providers/mock";
+import { SpotifyProvider } from "./providers/spotify";
 
 const _providers = {
   github: GithubProvider,
@@ -23,6 +24,7 @@ const _providers = {
   discord: DiscordProvider,
   gitlab: GitlabProvider,
   bitbucket: BitbucketProvider,
+  linkedin: LinkedInProvider,
 } as const;
 
 const mockProvider = MockProvider;

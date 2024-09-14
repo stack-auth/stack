@@ -42,6 +42,7 @@ export abstract class OAuthBaseProvider {
     public readonly redirectUri: string,
     public readonly authorizationExtraParams?: Record<string, string>,
     public readonly defaultAccessTokenExpiresInMillis?: number,
+    public readonly noPKCE?: boolean,
   ) {}
 
   protected static async createConstructorArgs(options:
@@ -52,6 +53,8 @@ export abstract class OAuthBaseProvider {
       baseScope: string,
       authorizationExtraParams?: Record<string, string>,
       defaultAccessTokenExpiresInMillis?: number,
+      tokenEndpointAuthMethod?: "client_secret_post" | "client_secret_basic",
+      noPKCE?: boolean,
     }
     & (
       | {
@@ -76,6 +79,7 @@ export abstract class OAuthBaseProvider {
       client_secret: options.clientSecret,
       redirect_uri: options.redirectUri,
       response_types: ["code"],
+      token_endpoint_auth_method: options.tokenEndpointAuthMethod ?? "client_secret_basic",
     });
 
     // facebook always return an id_token even in the OAuth2 flow, which is not supported by openid-client
@@ -92,7 +96,7 @@ export abstract class OAuthBaseProvider {
       return grant;
     };
 
-    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams, options.defaultAccessTokenExpiresInMillis] as const;
+    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams, options.defaultAccessTokenExpiresInMillis, options.noPKCE] as const;
   }
 
   getAuthorizationUrl(options: {
@@ -102,8 +106,10 @@ export abstract class OAuthBaseProvider {
   }) {
     return this.oauthClient.authorizationUrl({
       scope: mergeScopeStrings(this.scope, options.extraScope || ""),
-      code_challenge: generators.codeChallenge(options.codeVerifier),
-      code_challenge_method: "S256",
+      ...(this.noPKCE ? {} : {
+        code_challenge_method: "S256",
+        code_challenge: generators.codeChallenge(options.codeVerifier),
+      }),
       state: options.state,
       response_type: "code",
       access_type: "offline",
@@ -117,12 +123,15 @@ export abstract class OAuthBaseProvider {
     state: string,
   }): Promise<{ userInfo: OAuthUserInfo, tokenSet: TokenSet }> {
     let tokenSet;
-    const params = {
-      code_verifier: options.codeVerifier,
-      state: options.state,
-    };
     try {
-      tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
+      tokenSet = await this.oauthClient.oauthCallback(
+        this.redirectUri,
+        options.callbackParams,
+        {
+          code_verifier: this.noPKCE ? undefined : options.codeVerifier,
+          state: options.state,
+        },
+      );
     } catch (error: any) {
       if (error?.error === "invalid_grant") {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
