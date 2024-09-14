@@ -52,7 +52,7 @@ navigation:
             icon: fa-regular fa-folder-gear
             path: ./docs/pages/concepts/stack-app.mdx
           - page: Custom User Data
-            icon: fa-regular fa-user-tag
+            icon: fa-regular fa-user-pen
             path: ./docs/pages/concepts/custom-user-data.mdx
           - page: User Onboarding
             icon: fa-regular fa-user-check
