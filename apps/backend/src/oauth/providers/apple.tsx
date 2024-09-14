@@ -20,13 +20,13 @@ export class AppleProvider extends OAuthBaseProvider {
         authorizationExtraParams: {
           "response_mode": "form_post",
         },
+        noPKCE: true,
         ...options,
       }))
     );
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    console.log('!!!!!!!!!!!!!!!!!!!!');
     const headers = { Authorization: `Bearer ${tokenSet.accessToken}`};
     const [userInfo, emails] = await Promise.all([
       fetch("https://gitlab.com/api/v4/user", { headers }).then(res => res.json()),
