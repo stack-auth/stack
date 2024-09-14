@@ -116,7 +116,7 @@ Middleware can be used whenever it is easy to tell whether a page should be prot
 </Note>
 
 
-## User metadata
+## User data
 
 You can update attributes on a user object with the `user.update()` function.
 
@@ -132,53 +132,7 @@ export default function MyClientComponent() {
 }
 ```
 
-You can store custom data in the `clientMetadata` field. It will be readable and writable by the user themselves and should not contain any sensitive information.
-
-```tsx
-await user.update({
-  clientMetadata: {
-    mailingAddress: "123 Main St",
-  },
-});
-```
-
-You can then read the `clientMetadata` field from the `User` object:
-
-```tsx
-const user = useUser();
-console.log(user.clientMetadata);
-```
-
-If you want to store sensitive information, you can use the `serverMetadata` field. This data is only readable & writable from the server.
-
-```tsx
-const user = await stackServerApp.getUser();
-await user.update({
-  serverMetadata: {
-    secretInfo: "This is a secret",
-  },
-});
-
-// later:
-const user = await stackServerApp.getUser();
-console.log(user.serverMetadata);
-```
-
-If you want to store some information that is writable by the server but only readable by the client, you can use the `clientReadOnlyMetadata` field. This is useful for things like subscription status, where the client needs to know the status but shouldn't be able to change it.
-
-```tsx
-// On the server:
-const user = await stackServerApp.getUser();
-await user.update({
-  clientReadOnlyMetadata: {
-    subscriptionPlan: "premium",
-  },
-});
-
-// On the client:
-const user = useUser();
-console.log(user.clientReadOnlyMetadata);
-```
+You can also store custom user data in the `clientMetadata`, `serverMetadata`, or `clientReadonlyMetadata` fields. More information [here](../concepts/custom-user-data).
 
 ## Signing out
 

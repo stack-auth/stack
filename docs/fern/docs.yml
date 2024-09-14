@@ -51,6 +51,12 @@ navigation:
           - page: The StackApp Object
             icon: fa-regular fa-folder-gear
             path: ./docs/pages/concepts/stack-app.mdx
+          - page: Custom User Data
+            icon: fa-regular fa-user-pen
+            path: ./docs/pages/concepts/custom-user-data.mdx
+          - page: User Onboarding
+            icon: fa-regular fa-user-check
+            path: ./docs/pages/concepts/user-onboarding.mdx
           - page: Connected OAuth Accounts
             icon: fa-regular fa-link
             path: ./docs/pages/concepts/oauth.mdx
@@ -66,8 +72,9 @@ navigation:
           - page: Webhooks
             icon: fa-regular fa-webhook
             path: ./docs/pages/concepts/webhooks.mdx
-          # - page: Local Development
-          #   icon: fa-regular fa-laptop
+          - page: Backend Integration
+            icon: fa-regular fa-network-wired
+            path: ./docs/pages/concepts/backend-integration.mdx
       - section: Customization
         contents:
           - page: Dark/Light Mode
@@ -91,19 +98,14 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
               - page: Sign Up
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
-      - section: Integrations
+      - section: Others
         contents:
-          - page: Supabase
+          - page: Supabase Integration
             icon: fa-regular fa-bolt
-            path: ./docs/pages/integrations/supabase.mdx
-          - page: Other Backend Server
-            icon: fa-regular fa-network-wired
-            path: ./docs/pages/integrations/other-backend.mdx
-      - section: Advanced
-        contents:
+            path: ./docs/pages/others/supabase.mdx
           - page: Self-Hosting
             icon: fa-regular fa-house-laptop
-            path: ./docs/pages/advanced/self-host.mdx
+            path: ./docs/pages/others/self-host.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
