@@ -1,4 +1,4 @@
-import { CopyField, Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
+import { Button, CopyField, Tabs, TabsContent, TabsList, TabsTrigger } from "@stackframe/stack-ui";
 
 export default function EnvKeys(props: {
   projectId: string,
@@ -6,26 +6,56 @@ export default function EnvKeys(props: {
   secretServerKey?: string,
   superSecretAdminKey?: string,
 }) {
+
+  const handleDownloadKeys = () => {
+    const content = Object.entries({
+      NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
+      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
+        props.publishableClientKey,
+      STACK_SECRET_SERVER_KEY: props.secretServerKey,
+      STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
+    })
+      .filter(([k, v]) => v)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("\n");
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `api_keys.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <Tabs defaultValue={'env'}>
+    <Tabs defaultValue={"env"}>
       <TabsList className="flex">
-        <TabsTrigger value='env' className="flex-grow">Next.js</TabsTrigger>
-        <TabsTrigger value='keys' className="flex-grow">API Keys</TabsTrigger>
+        <TabsTrigger value="env" className="flex-grow">
+          Next.js
+        </TabsTrigger>
+        <TabsTrigger value="keys" className="flex-grow">
+          API Keys
+        </TabsTrigger>
       </TabsList>
-      <TabsContent value={'env'}>
+      <TabsContent value={"env"}>
         <CopyField
           monospace
           height={160}
           value={Object.entries({
             NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
+            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
+              props.publishableClientKey,
             STACK_SECRET_SERVER_KEY: props.secretServerKey,
             STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
-          }).filter(([k, v]) => v).map(([k, v]) => `${k}=${v}`).join("\n")}
+          })
+            .filter(([k, v]) => v)
+            .map(([k, v]) => `${k}=${v}`)
+            .join("\n")}
           label="Next.js Environment variables"
         />
       </TabsContent>
-      <TabsContent value={'keys'}>
+      <TabsContent value={"keys"}>
         <div className="flex flex-col gap-2">
           {props.projectId && (
             <CopyField
@@ -61,6 +91,9 @@ export default function EnvKeys(props: {
           )}
         </div>
       </TabsContent>
+      <Button variant="secondary" className="w-full mt-1.5" onClick={handleDownloadKeys}>
+        Download Keys
+      </Button>
     </Tabs>
   );
 }

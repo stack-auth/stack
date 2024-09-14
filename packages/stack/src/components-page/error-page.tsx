@@ -6,15 +6,17 @@ import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import { Typography } from "@stackframe/stack-ui";
 import { MessageCard } from "../components/message-cards/message-card";
+import { useTranslation } from "../lib/translations";
 
 
-export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<string, string> }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
-  const errorCode = searchParams.errorCode;
-  const message = searchParams.message;
-  const details = searchParams.details;
+  const errorCode = props.searchParams.errorCode;
+  const message = props.searchParams.message;
+  const details = props.searchParams.details;
 
-  const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={fullPage} />;
+  const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={!!props.fullPage} />;
 
   if (!errorCode || !message || !details) {
     return unknownErrorCard;
@@ -31,13 +33,13 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     // TODO: add "Connect a different account" button
     return (
       <MessageCard
-        title="Failed to connect account"
-        fullPage={fullPage}
-        primaryButtonText="Go to Home"
+        title={t("Failed to connect account")}
+        fullPage={!!props.fullPage}
+        primaryButtonText={t("Go to Home")}
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
-          This account is already connected to another user. Please connect a different account.
+          {t("This account is already connected to another user. Please connect a different account.")}
         </Typography>
       </MessageCard>
     );
@@ -48,16 +50,16 @@ export function ErrorPage({ fullPage=false, searchParams }: { fullPage?: boolean
     return (
       <MessageCard
         title="Failed to connect account"
-        fullPage={fullPage}
+        fullPage={!!props.fullPage}
         primaryButtonText="Go to Home"
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
-          The user is already connected to another OAuth account. Did you maybe selected the wrong account on the OAuth provider page?
+          {t("The user is already connected to another OAuth account. Did you maybe selected the wrong account on the OAuth provider page?")}
         </Typography>
       </MessageCard>
     );
   }
 
-  return <KnownErrorMessageCard error={error} fullPage={fullPage} />;
+  return <KnownErrorMessageCard error={error} fullPage={!!props.fullPage} />;
 }

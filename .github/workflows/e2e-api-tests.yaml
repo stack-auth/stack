@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.6]
+        node-version: [20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -62,6 +62,12 @@ jobs:
 
       - name: Create .env.test.local file for examples/partial-prerendering
         run: cp examples/partial-prerendering/.env.development examples/partial-prerendering/.env.test.local
+
+      - name: Create .env.test.local file for examples/supabase
+        run: cp examples/supabase/.env.development examples/supabase/.env.test.local
+      
+      - name: Create .env.test.local file for packages/stack-proxy
+        run: cp packages/stack-proxy/.env.development packages/stack-proxy/.env.test.local
 
       - name: Build
         run: pnpm build

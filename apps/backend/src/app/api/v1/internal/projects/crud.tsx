@@ -19,6 +19,13 @@ const ownerPacks = [
   ]),
 ];
 
+// if the user is in this list, the project will not have sign-up enabled on creation
+const disableSignUpByDefault = new Set([
+  "c2c03bd1-5cbe-4493-8e3f-17d1e2d7ca43",
+  "60b859bf-e148-4eff-9985-fe6e31c58a2a",
+  "1343e3e7-dd7a-44a1-8752-701c0881da72",
+]);
+
 export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
     projectId: projectIdSchema.required(),
@@ -45,9 +52,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           isProductionMode: data.is_production_mode ?? false,
           config: {
             create: {
-              signUpEnabled: data.config?.sign_up_enabled ?? true,
-              credentialEnabled: data.config?.credential_enabled ?? true,
-              magicLinkEnabled: data.config?.magic_link_enabled ?? false,
+              signUpEnabled: data.config?.sign_up_enabled ?? (disableSignUpByDefault.has(user.id) ? false : true),
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,
@@ -60,7 +65,6 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               oauthProviderConfigs: data.config?.oauth_providers ? {
                 create: data.config.oauth_providers.map(item => ({
                   id: item.id,
-                  enabled: item.enabled,
                   proxiedOAuthConfig: item.type === "shared" ? {
                     create: {
                       type: typedToUppercase(ensureSharedProvider(item.id)),
@@ -72,6 +76,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                       clientId: item.client_id ?? throwErr('client_id is required'),
                       clientSecret: item.client_secret ?? throwErr('client_secret is required'),
                       facebookConfigId: item.facebook_config_id,
+                      microsoftTenantId: item.microsoft_tenant_id,
                     }
                   } : undefined,
                 }))
@@ -103,6 +108,68 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           }
         },
         include: fullProjectInclude,
+      });
+
+      // all oauth providers are created as auth methods for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          authMethodConfigs: {
+            create: [
+              ...data.config?.oauth_providers ? project.config.oauthProviderConfigs.map(item => ({
+                enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+                oauthProviderConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      projectConfigId: project.config.id,
+                      id: item.id,
+                    }
+                  }
+                }
+              })) : [],
+              ...data.config?.magic_link_enabled ? [{
+                enabled: true,
+                otpConfig: {
+                  create: {
+                    contactChannelType: 'EMAIL',
+                  }
+                },
+              }] : [],
+              ...(data.config?.credential_enabled ?? true) ? [{
+                enabled: true,
+                passwordConfig: {
+                  create: {
+                    identifierType: 'EMAIL',
+                  }
+                },
+              }] : [],
+            ]
+          }
+        }
+      });
+
+      // all standard oauth providers are created as connected accounts for backwards compatibility
+      await tx.projectConfig.update({
+        where: {
+          id: project.config.id,
+        },
+        data: {
+          connectedAccountConfigs: data.config?.oauth_providers ? {
+            create: project.config.oauthProviderConfigs.map(item => ({
+              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+              oauthProviderConfig: {
+                connect: {
+                  projectConfigId_id: {
+                    projectConfigId: project.config.id,
+                    id: item.id,
+                  }
+                }
+              }
+            })),
+          } : undefined,
+        }
       });
 
       await tx.permission.create({

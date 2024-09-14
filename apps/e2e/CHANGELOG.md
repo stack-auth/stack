@@ -1,5 +1,58 @@
 # e2e-tests
 
+## 2.5.34
+
+### Patch Changes
+
+- Internationalization
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.34
+
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.33
+
+## 2.5.32
+
+### Patch Changes
+
+- Improved connected account performance
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.32
+
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.31
+
+## 2.5.30
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.30
+
+## 2.5.29
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.5.29
+
+## 2.5.28
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.28
+
 ## 2.5.27
 
 ### Patch Changes

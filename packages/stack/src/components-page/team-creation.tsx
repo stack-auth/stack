@@ -4,19 +4,22 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, Typography } from "@stackframe/stack-ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { MessageCard, useStackApp, useUser } from "..";
 import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
-import { useRouter } from "next/navigation";
-
-const schema = yupObject({
-  displayName: yupString().required('Please enter a team name'),
-});
+import { useTranslation } from "../lib/translations";
 
 export function TeamCreation(props: { fullPage?: boolean }) {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    displayName: yupString().required(t('Please enter a team name')),
+  });
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
@@ -27,7 +30,7 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   const router = useRouter();
 
   if (!project.config.clientTeamCreationEnabled) {
-    return <MessageCard title='Team creation is not enabled' />;
+    return <MessageCard title={t('Team creation is not enabled')} />;
   }
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
@@ -43,10 +46,10 @@ export function TeamCreation(props: { fullPage?: boolean }) {
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
-      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px' }}>
+      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <div className="text-center mb-6">
           <Typography type='h2'>
-            Create a Team
+            {t('Create a Team')}
           </Typography>
         </div>
         <form
@@ -54,16 +57,15 @@ export function TeamCreation(props: { fullPage?: boolean }) {
           onSubmit={e => runAsynchronously(handleSubmit(onSubmit)(e))}
           noValidate
         >
-          <Label htmlFor="email" className="mb-1">Display name</Label>
+          <Label htmlFor="display-name" className="mb-1">{t('Display name')}</Label>
           <Input
-            id="email"
-            type="email"
+            id="display-name"
             {...register('displayName')}
           />
           <FormWarningText text={errors.displayName?.message?.toString()} />
 
           <Button type="submit" className="mt-6" loading={loading}>
-            Create
+            {t('Create')}
           </Button>
         </form>
       </div>

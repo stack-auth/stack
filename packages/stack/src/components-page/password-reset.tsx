@@ -15,26 +15,29 @@ import { FormWarningText } from "../components/elements/form-warning";
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
+import { useTranslation } from "../lib/translations";
 
-const schema = yupObject({
-  password: yupString().required('Please enter your password').test({
-    name: 'is-valid-password',
-    test: (value, ctx) => {
-      const error = getPasswordError(value);
-      if (error) {
-        return ctx.createError({ message: error.message });
-      } else {
-        return true;
+export default function PasswordResetForm(props: {
+  code: string,
+  fullPage?: boolean,
+}) {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    password: yupString().required(t("Please enter your password")).test({
+      name: 'is-valid-password',
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
       }
-    }
-  }),
-  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], 'Passwords do not match').required('Please repeat your password')
-});
+    }),
+    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], t("Passwords do not match")).required(t("Please repeat your password"))
+  });
 
-export default function PasswordResetForm(
-  { code, fullPage = false }:
-  { code: string, fullPage?: boolean }
-) {
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });
@@ -47,7 +50,7 @@ export default function PasswordResetForm(
     setLoading(true);
     try {
       const { password } = data;
-      const errorCode = await stackApp.resetPassword({ password, code });
+      const errorCode = await stackApp.resetPassword({ password, code: props.code });
       if (errorCode) {
         setResetError(true);
         return;
@@ -60,21 +63,21 @@ export default function PasswordResetForm(
   };
 
   if (finished) {
-    return <PredefinedMessageCard type='passwordReset' fullPage={fullPage} />;
+    return <PredefinedMessageCard type='passwordReset' fullPage={!!props.fullPage} />;
   }
 
   if (resetError) {
     return (
-      <MessageCard title="Failed to reset password" fullPage={fullPage}>
-        Failed to reset password. Please request a new password reset link
+      <MessageCard title={t("Failed to reset password")} fullPage={!!props.fullPage}>
+        {t("Failed to reset password. Please request a new password reset link")}
       </MessageCard>
     );
   }
 
   return (
-    <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center mb-6" style={{ width: '380px' }}>
-        <Typography type='h2'>Reset Your Password</Typography>
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className="text-center mb-6" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
+        <Typography type='h2'>{t("Reset Your Password")}</Typography>
       </div>
 
       <form
@@ -82,7 +85,7 @@ export default function PasswordResetForm(
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
-        <Label htmlFor="password" className="mb-1">New Password</Label>
+        <Label htmlFor="password" className="mb-1">{t("New Password")}</Label>
         <PasswordInput
           id="password"
           {...register('password')}
@@ -93,7 +96,7 @@ export default function PasswordResetForm(
         />
         <FormWarningText text={errors.password?.message?.toString()} />
 
-        <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat New Password</Label>
+        <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat New Password")}</Label>
         <PasswordInput
           id="repeat-password"
           {...register('passwordRepeat')}
@@ -105,7 +108,7 @@ export default function PasswordResetForm(
         <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
 
         <Button type="submit" className="mt-6" loading={loading}>
-          Reset Password
+          {t("Reset Password")}
         </Button>
       </form>
     </MaybeFullPage>
@@ -124,23 +127,24 @@ export function PasswordReset({
   searchParams: Record<string, string>,
   fullPage?: boolean,
 }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
 
   const invalidJsx = (
-    <MessageCard title="Invalid Password Reset Link" fullPage={fullPage}>
-      <Typography>Please double check if you have the correct password reset link.</Typography>
+    <MessageCard title={t("Invalid Password Reset Link")} fullPage={fullPage}>
+      <Typography>{t("Please double check if you have the correct password reset link.")}</Typography>
     </MessageCard>
   );
 
   const expiredJsx = (
-    <MessageCard title="Expired Password Reset Link" fullPage={fullPage}>
-      <Typography>Your password reset link has expired. Please request a new password reset link from the login page.</Typography>
+    <MessageCard title={t("Expired Password Reset Link")} fullPage={fullPage}>
+      <Typography>{t("Your password reset link has expired. Please request a new password reset link from the login page.")}</Typography>
     </MessageCard>
   );
 
   const usedJsx = (
-    <MessageCard title="Used Password Reset Link" fullPage={fullPage}>
-      <Typography>This password reset link has already been used. If you need to reset your password again, please request a new password reset link from the login page.</Typography>
+    <MessageCard title={t("Used Password Reset Link")} fullPage={fullPage}>
+      <Typography>{t("This password reset link has already been used. If you need to reset your password again, please request a new password reset link from the login page.")}</Typography>
     </MessageCard>
   );
 

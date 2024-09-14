@@ -7,6 +7,7 @@ import { Typography } from "@stackframe/stack-ui";
 import React from "react";
 import { MessageCard, StackClientApp, useStackApp, useUser } from "..";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
+import { useTranslation } from "../lib/translations";
 
 const cachedVerifyInvitation = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.verifyTeamInvitationCode(code);
@@ -17,6 +18,7 @@ const cachedGetInvitationDetails = cacheFunction(async (stackApp: StackClientApp
 });
 
 function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<string, string> }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
   const [success, setSuccess] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -31,7 +33,7 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
   if (success) {
     return (
       <MessageCard
-        title="Team invitation"
+        title={t('Team invitation')}
         fullPage={props.fullPage}
         primaryButtonText="Go to home"
         primaryAction={() => stackApp.redirectToHome()}
@@ -44,9 +46,9 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
 
   return (
     <MessageCard
-      title="Team invitation"
+      title={t('Team invitation')}
       fullPage={props.fullPage}
-      primaryButtonText="Join"
+      primaryButtonText={t('Join')}
       primaryAction={() => runAsynchronouslyWithAlert(async () => {
         const result = await stackApp.acceptTeamInvitation(props.searchParams.code || '');
         if (result.status === 'error') {
@@ -55,7 +57,7 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
         setSuccess(true);
         }
       })}
-      secondaryButtonText="Ignore"
+      secondaryButtonText={t('Ignore')}
       secondaryAction={() => stackApp.redirectToHome()}
     >
       <Typography>You are invited to join {details.data.teamDisplayName}</Typography>
@@ -64,24 +66,25 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
 }
 
 export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: boolean, searchParams: Record<string, string> }) {
+  const { t } = useTranslation();
   const user = useUser();
   const stackApp = useStackApp();
 
   const invalidJsx = (
-    <MessageCard title="Invalid Team Invitation Link" fullPage={fullPage}>
-      <Typography>Please double check if you have the correct team invitation link.</Typography>
+    <MessageCard title={t('Invalid Team Invitation Link')} fullPage={fullPage}>
+      <Typography>{t('Please double check if you have the correct team invitation link.')}</Typography>
     </MessageCard>
   );
 
   const expiredJsx = (
-    <MessageCard title="Expired Team Invitation Link" fullPage={fullPage}>
-      <Typography>Your team invitation link has expired. Please request a new team invitation link </Typography>
+    <MessageCard title={t('Expired Team Invitation Link')} fullPage={fullPage}>
+      <Typography>{t('Your team invitation link has expired. Please request a new team invitation link ')}</Typography>
     </MessageCard>
   );
 
   const usedJsx = (
-    <MessageCard title="Used Team Invitation Link" fullPage={fullPage}>
-      <Typography>This team invitation link has already been used.</Typography>
+    <MessageCard title={t('Used Team Invitation Link')} fullPage={fullPage}>
+      <Typography>{t('This team invitation link has already been used.')}</Typography>
     </MessageCard>
   );
 
@@ -93,14 +96,14 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
   if (!user) {
     return (
       <MessageCard
-        title="Team invitation"
+        title={t('Team invitation')}
         fullPage={fullPage}
-        primaryButtonText="Go to sign in"
+        primaryButtonText={t('Go to sign in')}
         primaryAction={() => stackApp.redirectToSignIn()}
-        secondaryButtonText="Cancel"
+        secondaryButtonText={t('Cancel')}
         secondaryAction={() => stackApp.redirectToHome()}
       >
-        <Typography>Sign in or create an account to join the team.</Typography>
+        <Typography>{t('Sign in or create an account to join the team.')}</Typography>
       </MessageCard>
     );
   }

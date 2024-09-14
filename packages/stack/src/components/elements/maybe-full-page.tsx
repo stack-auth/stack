@@ -13,7 +13,7 @@ export function MaybeFullPage({
   containerClassName?: string,
 }) {
   const uniqueId = useId();
-  const id = `stack-card-frame-${uniqueId}`;
+  const id = `stack-full-page-container-${uniqueId}`;
 
   const scriptString = `(([id]) => {
     const el = document.getElementById(id);

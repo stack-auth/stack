@@ -7,13 +7,14 @@ import { Form } from "@stackframe/stack-ui";
 import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { DateField, InputField } from "./form-fields";
+import { DateField, InputField, TextAreaField } from "./form-fields";
 
 // Used for yup TS support
 declare module 'yup' {
   export interface CustomSchemaMetadata {
     stackFormFieldRender?: (props: { control: ReturnType<typeof useForm>['control'], name: string, label: string, disabled: boolean }) => React.ReactNode,
     stackFormFieldPlaceholder?: string,
+    type?: "text" | "textarea",
   }
 }
 
@@ -95,7 +96,11 @@ function SmartFormField(props: {
 
   switch (props.description.type) {
     case 'string': {
-      return <InputField {...usualProps} />;
+      if (props.description.meta?.type === "textarea") {
+        return <TextAreaField {...usualProps} />;
+      } else {
+        return <InputField {...usualProps} />;
+      }
     }
     case 'date': {
       return <DateField {...usualProps} />;

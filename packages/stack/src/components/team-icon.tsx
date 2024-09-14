@@ -1,6 +1,5 @@
-import Image from "next/image";
-import { Team } from "..";
 import { Avatar, AvatarImage, Typography } from "@stackframe/stack-ui";
+import { Team } from "..";
 
 export function TeamIcon(props: { team: Team }) {
   if (props.team.profileImageUrl) {

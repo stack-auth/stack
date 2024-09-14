@@ -1,4 +1,6 @@
 {
+  "name": "@stackframe/example-supabase",
+  "version": "2.5.34",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -6,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@stackframe/stack": "latest",
+    "@stackframe/stack": "workspace:*",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "jose": "^5.2.2",

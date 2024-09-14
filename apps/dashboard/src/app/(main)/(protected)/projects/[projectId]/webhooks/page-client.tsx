@@ -26,7 +26,7 @@ function CreateDialog(props: {
 
   const formSchema = yup.object({
     makeSureAlert: yup.mixed().meta({ stackFormFieldRender: () => <Alert> Make sure this is a trusted URL that you control.</Alert> }),
-    url: urlSchema.required().label("URL (starts with https:// or http://)"),
+    url: urlSchema.required().label("URL (starts with https://)").test("is-https", "URL must start with https://", (value) => value.startsWith("https://")),
     description: yup.string().label("Description"),
   });
 

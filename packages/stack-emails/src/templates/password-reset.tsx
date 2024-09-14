@@ -1,4 +1,4 @@
-import { TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
+import { TEditorConfiguration } from "../editor/documents/editor/core";
 
 export const passwordResetTemplate: TEditorConfiguration = {
   "root": {

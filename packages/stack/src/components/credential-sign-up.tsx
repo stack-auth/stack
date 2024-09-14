@@ -9,25 +9,28 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { useStackApp } from "..";
+import { useTranslation } from "../lib/translations";
 import { FormWarningText } from "./elements/form-warning";
 
-const schema = yupObject({
-  email: yupString().email('Please enter a valid email').required('Please enter your email'),
-  password: yupString().required('Please enter your password').test({
-    name: 'is-valid-password',
-    test: (value, ctx) => {
-      const error = getPasswordError(value);
-      if (error) {
-        return ctx.createError({ message: error.message });
-      } else {
-        return true;
-      }
-    }
-  }),
-  passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], 'Passwords do not match').required('Please repeat your password')
-});
-
 export function CredentialSignUp() {
+  const { t } = useTranslation();
+
+  const schema = yupObject({
+    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
+    password: yupString().required(t('Please enter your password')).test({
+      name: 'is-valid-password',
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
+      }
+    }),
+    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+  });
+
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });

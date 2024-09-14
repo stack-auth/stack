@@ -1,0 +1,14 @@
+{
+  "name": "@stackframe/proxied-server-example",
+  "version": "2.5.34",
+  "dependencies": {
+    "express": "^4.19.2",
+    "handlebars": "^4.7.8"
+  },
+  "scripts": {
+    "dev": "PORT=8115 node server.js"
+  },
+  "bin": {
+    "proxied-server-example": "./server.js"
+  }
+}

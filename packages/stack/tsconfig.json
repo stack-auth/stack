@@ -15,6 +15,6 @@
     "sourceMap": true,
     "declarationMap": true
   },
-  "include": ["next-env.d.ts", "src/**/*", ".next/types/**/*.ts", "../stack-shared/src/utils/browsers.tsx"],
+  "include": ["next-env.d.ts", "src/**/*", ".next/types/**/*.ts", "../stack-shared/src/utils/browsers.tsx", "src/providers/translation-provider-client.tsx", "src/providers/translation-provider.tsx"],
   "exclude": ["node_modules", "dist"]
 }

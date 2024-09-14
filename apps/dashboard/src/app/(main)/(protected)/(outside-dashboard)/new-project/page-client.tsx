@@ -11,7 +11,7 @@ import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Display name is required").required(),
-  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink", "discord", "gitlab", "apple"]).required()).required(),
+  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink", "discord", "gitlab", "bitbucket", "apple"]).required()).required(),
 });
 
 export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
@@ -37,7 +37,7 @@ export default function PageClient () {
       signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
-      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
+      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
 
@@ -88,7 +88,7 @@ export default function PageClient () {
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },
-                  { value: "facebook", label: "Facebook" },
+                  { value: "spotify", label: "Spotify" },
                 ]}
               />
 
