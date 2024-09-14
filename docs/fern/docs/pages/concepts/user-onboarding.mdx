@@ -1,6 +1,6 @@
 ---
 slug: concepts/user-onboarding
-subtitle: Implementing a User Onboarding Page and Collecting Information on Sign-Up
+subtitle: Implementing a user onboarding page and collecting information on sign-up
 ---
 
 By default, Stack Auth only collects email addresses and user names during sign-up, provided these details are available from the OAuth providers or sign-in methods used. If you want to ensure these details are collected, gather additional information such as phone numbers or addresses, or display an onboarding tutorial for new users, you need to create a custom user onboarding page.
@@ -12,7 +12,7 @@ The most straightforward approach is to redirect users to an onboarding page rig
 
 Instead, a more reliable strategy is to store an `onboarded` flag in the user's metadata and redirect users to the onboarding page if they haven't completed it yet.
 
-## Example Implementation
+## Example implementation
 
 First, let's create an onboarding page to collect the user's name and address, then update the user's metadata (more details on metadata [here](../concepts/custom-user-data.mdx)).
 
