@@ -76,6 +76,9 @@ navigation:
           - page: Colors and Styles
             icon: fa-regular fa-paint-brush
             path: ./docs/pages/customization/custom-styles.mdx
+          - page: Internationalization
+            icon: fa-regular fa-language
+            path: ./docs/pages/customization/internationalization.mdx
           # - page: Customize Emails
           #   icon: fa-regular fa-envelope
           - page: Custom Layouts and Pages

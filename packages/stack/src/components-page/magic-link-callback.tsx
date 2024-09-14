@@ -7,6 +7,7 @@ import { PredefinedMessageCard } from "../components/message-cards/predefined-me
 import { KnownErrors } from "@stackframe/stack-shared";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+import { useTranslation } from "../lib/translations";
 
 const cacheSignInWithMagicLink = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.signInWithMagicLink(code);
@@ -16,6 +17,7 @@ export function MagicLinkCallback(props: {
   searchParams?: Record<string, string>,
   fullPage?: boolean,
 }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
   const user = useUser();
 
@@ -24,20 +26,20 @@ export function MagicLinkCallback(props: {
   }
 
   const invalidJsx = (
-    <MessageCard title="Invalid Magic Link" fullPage={!!props.fullPage}>
-      <p>Please check if you have the correct link. If you continue to have issues, please contact support.</p>
+    <MessageCard title={t("Invalid Magic Link")} fullPage={!!props.fullPage}>
+      <p>{t("Please check if you have the correct link. If you continue to have issues, please contact support.")}</p>
     </MessageCard>
   );
 
   const expiredJsx = (
-    <MessageCard title="Expired Magic Link" fullPage={!!props.fullPage}>
-      <p>Your magic link has expired. Please request a new magic link if you need to sign-in.</p>
+    <MessageCard title={t("Expired Magic Link")} fullPage={!!props.fullPage}>
+      <p>{t("Your magic link has expired. Please request a new magic link if you need to sign-in.")}</p>
     </MessageCard>
   );
 
   const alreadyUsedJsx = (
-    <MessageCard title="Magic Link Already Used" fullPage={!!props.fullPage}>
-      <p>The magic link has already been used. The link can only be used once. Please request a new magic link if you need to sign-in again.</p>
+    <MessageCard title={t("Magic Link Already Used")} fullPage={!!props.fullPage}>
+      <p>{t("The magic link has already been used. The link can only be used once. Please request a new magic link if you need to sign-in again.")}</p>
     </MessageCard>
   );
 

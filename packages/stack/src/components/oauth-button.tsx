@@ -1,9 +1,10 @@
 'use client';
 
 import { Button } from '@stackframe/stack-ui';
-import { useStackApp } from '..';
 import Color from 'color';
 import { useId } from 'react';
+import { useStackApp } from '..';
+import { useTranslation } from '../lib/translations';
 
 const iconSize = 22;
 
@@ -126,6 +127,7 @@ export function OAuthButton({
   provider: string,
   type: 'sign-in' | 'sign-up',
 }) {
+  const { t } = useTranslation();
   const stackApp = useStackApp();
   const styleId = useId().replaceAll(':', '-');
 
@@ -242,7 +244,7 @@ export function OAuthButton({
         <div className='flex items-center w-full gap-4'>
           {style.icon}
           <span className='flex-1'>
-            {type === 'sign-up' ? 'Sign up with ' : 'Sign in with '}{style.name}
+            {type === 'sign-up' ? t('Sign up with ') : t('Sign in with ')}{style.name}
           </span>
         </div>
       </Button>
