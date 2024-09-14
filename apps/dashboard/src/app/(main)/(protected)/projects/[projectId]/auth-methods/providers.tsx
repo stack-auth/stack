@@ -26,6 +26,7 @@ function toTitle(id: string) {
     gitlab: "GitLab",
     apple: "Apple",
     bitbucket: "Bitbucket",
+    linkedin: "LinkedIn",
   }[id];
 }
 

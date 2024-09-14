@@ -565,6 +565,7 @@ enum StandardOAuthProviderType {
   DISCORD
   GITLAB
   BITBUCKET
+  LINKEDIN
   APPLE
 }
 
