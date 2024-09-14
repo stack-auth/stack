@@ -43,6 +43,8 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
     const ownerPack = ownerPacks.find(p => p.has(user.id));
     const userIds = ownerPack ? [...ownerPack] : [user.id];
 
+    // TODO: ensure that the oauth configs are valid
+
     const result = await prismaClient.$transaction(async (tx) => {
       const project = await tx.project.create({
         data: {
@@ -62,17 +64,17 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                   handlerPath: item.handler_path,
                 }))
               } : undefined,
-              oauthProviderConfigs: data.config?.oauth_providers ? {
-                create: data.config.oauth_providers.map(item => ({
+              oauthProviderConfigs: data.config?.oauth_provider_configs ? {
+                create: data.config.oauth_provider_configs.map(item => ({
                   id: item.id,
-                  proxiedOAuthConfig: item.type === "shared" ? {
+                  proxiedOAuthConfig: item.shared ? {
                     create: {
-                      type: typedToUppercase(ensureSharedProvider(item.id)),
+                      type: typedToUppercase(ensureSharedProvider(item.type)),
                     }
                   } : undefined,
-                  standardOAuthConfig: item.type === "standard" ? {
+                  standardOAuthConfig: !item.shared ? {
                     create: {
-                      type: typedToUppercase(ensureStandardProvider(item.id)),
+                      type: typedToUppercase(ensureStandardProvider(item.type)),
                       clientId: item.client_id ?? throwErr('client_id is required'),
                       clientSecret: item.client_secret ?? throwErr('client_secret is required'),
                       facebookConfigId: item.facebook_config_id,
@@ -117,35 +119,44 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
         },
         data: {
           authMethodConfigs: {
-            create: [
-              ...data.config?.oauth_providers ? project.config.oauthProviderConfigs.map(item => ({
-                enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
-                oauthProviderConfig: {
-                  connect: {
-                    projectConfigId_id: {
-                      projectConfigId: project.config.id,
-                      id: item.id,
+            create: data.config?.auth_method_configs?.map(item => {
+              switch (item.type) {
+                case "oauth": {
+                  return {
+                    id: item.id,
+                    enabled: item.enabled,
+                    oauthConfig: {
+                      connect: {
+                        id: item.provider_config_id,
+                        projectConfigId: project.config.id,
+                      }
                     }
-                  }
+                  };
                 }
-              })) : [],
-              ...data.config?.magic_link_enabled ? [{
-                enabled: true,
-                otpConfig: {
-                  create: {
-                    contactChannelType: 'EMAIL',
-                  }
-                },
-              }] : [],
-              ...(data.config?.credential_enabled ?? true) ? [{
-                enabled: true,
-                passwordConfig: {
-                  create: {
-                    identifierType: 'EMAIL',
-                  }
-                },
-              }] : [],
-            ]
+                case "password": {
+                  return {
+                    id: item.id,
+                    enabled: item.enabled,
+                    passwordConfig: {
+                      create: {
+                        identifierType: 'EMAIL',
+                      }
+                    }
+                  };
+                }
+                case "otp": {
+                  return {
+                    id: item.id,
+                    enabled: item.enabled,
+                    otpConfig: {
+                      create: {
+                        contactChannelType: 'EMAIL',
+                      }
+                    }
+                  };
+                }
+              }
+            }),
           }
         }
       });
@@ -156,9 +167,9 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           id: project.config.id,
         },
         data: {
-          connectedAccountConfigs: data.config?.oauth_providers ? {
-            create: project.config.oauthProviderConfigs.map(item => ({
-              enabled: (data.config?.oauth_providers?.find(p => p.id === item.id) ?? throwErr("oauth provider not found")).enabled,
+          connectedAccountConfigs: data.config?.connected_accounts ? {
+            create: data.config.connected_accounts?.map(item => ({
+              enabled: item.enabled,
               oauthProviderConfig: {
                 connect: {
                   projectConfigId_id: {

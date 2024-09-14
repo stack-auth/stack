@@ -140,6 +140,10 @@ export const projectsCrudAdminUpdateSchema = yupObject({
 
     domains: yupArray(domainSchema.required()).optional().default(undefined),
     email_config: emailConfigSchema.optional().default(undefined),
+
+    oauth_provider_configs: yupArray(oauthProviderConfigSchema).optional().default(undefined),
+    auth_method_configs: yupArray(authMethodConfigSchema).optional().default(undefined),
+    connected_accounts: yupArray(connectedAccountSchema).optional().default(undefined),
   }).optional().default(undefined),
 }).required();
 
