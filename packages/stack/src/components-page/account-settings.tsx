@@ -21,6 +21,7 @@ import { UserAvatar } from '../components/elements/user-avatar';
 import { ProfileImageEditor } from "../components/profile-image-editor";
 import { TeamIcon } from '../components/team-icon';
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
+import { useTranslation } from "../lib/translations";
 
 
 export function AccountSettings(props: {
@@ -32,6 +33,7 @@ export function AccountSettings(props: {
     subpath: string,
   }[],
 }) {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const teams = user.useTeams();
   const stackApp = useStackApp();
@@ -43,14 +45,14 @@ export function AccountSettings(props: {
         <SidebarLayout
           items={([
             {
-              title: 'My Profile',
+              title: t('My Profile'),
               type: 'item',
               subpath: '/profile',
               icon: Contact,
               content: <ProfileSection/>,
             },
             {
-              title: 'Security',
+              title: t('Security'),
               type: 'item',
               icon: ShieldCheck,
               subpath: '/security',
@@ -63,7 +65,7 @@ export function AccountSettings(props: {
               ),
             },
             {
-              title: 'Sign Out',
+              title: t('Sign Out'),
               subpath: '/sign-out',
               type: 'item',
               icon: LogOut,
@@ -77,7 +79,7 @@ export function AccountSettings(props: {
               content: item.content,
             } as const)) || []),
             ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
-              title: 'Teams',
+              title: t('Teams'),
               type: 'divider',
             }] as const : [],
             ...teams.map(team => ({
@@ -98,14 +100,14 @@ export function AccountSettings(props: {
               ),
             } as const)),
             ...project.config.clientTeamCreationEnabled ? [{
-              title: 'Create a team',
+              title: t('Create a team'),
               icon: CirclePlus,
               type: 'item',
               subpath: '/team-creation',
               content: <TeamCreation />,
             }] as const : [],
           ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
-          title='Account Settings'
+          title={t("Account Settings")}
           basePath={stackApp.urls.accountSettings}
         />
       </div>
@@ -114,12 +116,13 @@ export function AccountSettings(props: {
 }
 
 function ProfileSection() {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
 
   return (
     <div className='flex flex-col gap-8'>
       <div className='flex flex-col items-start'>
-        <Label className="mb-2">Profile image</Label>
+        <Label className="mb-2">{t("Profile image")}</Label>
         <ProfileImageEditor
           user={user}
           onProfileImageUrlChange={async (profileImageUrl) => {
@@ -128,7 +131,7 @@ function ProfileSection() {
         />
       </div>
       <div className='flex flex-col'>
-        <Label>Display name</Label>
+        <Label>{t("Display name")}</Label>
         <EditableText value={user.displayName || ''} onSave={async (newDisplayName) => {
           await user.update({ displayName: newDisplayName });
         }}/>
@@ -138,6 +141,7 @@ function ProfileSection() {
 }
 
 function EmailVerificationSection() {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const [emailSent, setEmailSent] = useState(false);
 
@@ -148,12 +152,12 @@ function EmailVerificationSection() {
   return (
     <>
       <div>
-        <Label>Email Verification</Label>
+        <Label>{t("Email Verification")}</Label>
         {user.primaryEmailVerified ? (
-          <Typography variant='success'>Your email has been verified.</Typography>
+          <Typography variant='success'>{t("Your email has been verified.")}</Typography>
         ) : (
           <>
-            <Typography variant='destructive'>Your email has not been verified.</Typography>
+            <Typography variant='destructive'>{t("Your email has not been verified.")}</Typography>
             <div className='flex mt-4'>
               <Button
                 disabled={emailSent}
@@ -162,7 +166,7 @@ function EmailVerificationSection() {
                   setEmailSent(true);
                 }}
               >
-                {emailSent ? 'Email sent!' : 'Send Verification Email'}
+                {emailSent ? t("Email sent!") : t("Send Verification Email")}
               </Button>
             </div>
           </>
@@ -173,23 +177,25 @@ function EmailVerificationSection() {
   );
 }
 
-const passwordSchema = yupObject({
-  oldPassword: yupString().required('Please enter your old password'),
-  newPassword: yupString().required('Please enter your password').test({
-    name: 'is-valid-password',
-    test: (value, ctx) => {
-      const error = getPasswordError(value);
-      if (error) {
-        return ctx.createError({ message: error.message });
-      } else {
-        return true;
-      }
-    }
-  }),
-  newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], 'Passwords do not match').required('Please repeat your password')
-});
-
 function PasswordSection() {
+  const { t } = useTranslation();
+
+  const passwordSchema = yupObject({
+    oldPassword: yupString().required(t('Please enter your old password')),
+    newPassword: yupString().required(t('Please enter your password')).test({
+      name: 'is-valid-password',
+      test: (value, ctx) => {
+        const error = getPasswordError(value);
+        if (error) {
+          return ctx.createError({ message: error.message });
+        } else {
+          return true;
+        }
+      }
+    }),
+    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+  });
+
   const user = useUser({ or: "throw" });
   const [changingPassword, setChangingPassword] = useState(false);
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
@@ -204,7 +210,7 @@ function PasswordSection() {
       const { oldPassword, newPassword } = data;
       const error = await user.updatePassword({ oldPassword, newPassword });
       if (error) {
-        setError('oldPassword', { type: 'manual', message: 'Incorrect password' });
+        setError('oldPassword', { type: 'manual', message: t('Incorrect password') });
       } else {
         reset();
         setAlreadyReset(true);
@@ -223,33 +229,31 @@ function PasswordSection() {
 
   return (
     <div>
-      <Label>Change password</Label>
+      <Label>{t("Change password")}</Label>
       <div>
         {
           alreadyReset ?
-            <Typography variant='success'>Password changed successfully!</Typography> :
+            <Typography variant='success'>{t("Password changed successfully!")}</Typography> :
             !changingPassword ?
               <Button
                 variant='secondary'
                 onClick={async () => {
                   setChangingPassword(true);
                 }}
-              >
-                Change Password
-              </Button> :
+              >{t("Change Password")}</Button> :
               <form
                 onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
                 noValidate
               >
-                <Label htmlFor="old-password" className="mb-1">Old password</Label>
+                <Label htmlFor="old-password" className="mb-1">{t("Old password")}</Label>
                 <Input
                   id="old-password"
                   type="password"
-                  {...register('oldPassword')}
+                  {...register("oldPassword")}
                 />
                 <FormWarningText text={errors.oldPassword?.message?.toString()} />
 
-                <Label htmlFor="new-password" className="mt-4 mb-1">Password</Label>
+                <Label htmlFor="new-password" className="mt-4 mb-1">{t("Password")}</Label>
                 <PasswordInput
                   id="new-password"
                   {...registerPassword}
@@ -261,7 +265,7 @@ function PasswordSection() {
                 />
                 <FormWarningText text={errors.newPassword?.message?.toString()} />
 
-                <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat password</Label>
+                <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat password")}</Label>
                 <PasswordInput
                   id="repeat-password"
                   {...registerPasswordRepeat}
@@ -273,9 +277,7 @@ function PasswordSection() {
                 />
                 <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
 
-                <Button type="submit" className="mt-6" loading={loading}>
-                  Change Password
-                </Button>
+                <Button type="submit" className="mt-6" loading={loading}>{t("Change Password")}</Button>
               </form>
         }
       </div>
@@ -284,6 +286,7 @@ function PasswordSection() {
 }
 
 function MfaSection() {
+  const { t } = useTranslation();
   const project = useStackApp().useProject();
   const user = useUser({ or: "throw" });
   const [generatedSecret, setGeneratedSecret] = useState<Uint8Array | null>(null);
@@ -314,17 +317,17 @@ function MfaSection() {
   return (
     <div>
       <div>
-        <Label>Multi-factor Authentication</Label>
+        <Label>{t("Multi-factor Authentication")}</Label>
 
         <div>
           {isEnabled ? (
-            <Typography variant="success">Multi-factor authentication is currently enabled.</Typography>
+            <Typography variant="success">{t("Multi-factor authentication is currently enabled.")}</Typography>
           ) : (
             generatedSecret ? (
               <div className='flex flex-col gap-4 items-center'>
-                <Typography>Scan this QR code with your authenticator app:</Typography>
-                <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt="TOTP multi-factor authentication QR code" />
-                <Typography>Then, enter your six-digit MFA code:</Typography>
+                <Typography>{t("Scan this QR code with your authenticator app:")}</Typography>
+                <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt={t("TOTP multi-factor authentication QR code")} />
+                <Typography>{t("Then, enter your six-digit MFA code:")}</Typography>
                 <Input
                   value={mfaCode}
                   onChange={(e) => {
@@ -336,11 +339,11 @@ function MfaSection() {
                   disabled={isLoading}
                 />
                 {isMaybeWrong && mfaCode.length === 6 && (
-                  <Typography variant="destructive">Incorrect code. Please try again.</Typography>
+                  <Typography variant="destructive">{t("Incorrect code. Please try again.")}</Typography>
                 )}
               </div>
             ) : (
-              <Typography variant="destructive">Multi-factor authentication is currently disabled.</Typography>
+              <Typography variant="destructive">{t("Multi-factor authentication is currently disabled.")}</Typography>
             )
           )}
 
@@ -363,7 +366,7 @@ function MfaSection() {
               }
             }}
           >
-            {isEnabled ? 'Disable' : (generatedSecret ? 'Cancel' : 'Enable')}
+            {isEnabled ? t("Disable") : (generatedSecret ? t("Cancel") : t("Enable"))}
           </Button>
         </div>
       </div>
@@ -377,6 +380,7 @@ async function generateTotpQrCode(project: Project, user: CurrentUser, secret: U
 }
 
 function SignOutSection() {
+  const { t } = useTranslation();
   const user = useUser({ or: "throw" });
   return (
     <div className='flex flex-col gap-2'>
@@ -384,15 +388,14 @@ function SignOutSection() {
         <Button
           variant='secondary'
           onClick={() => user.signOut()}
-        >
-          Sign Out
-        </Button>
+        >{t("Sign Out")}</Button>
       </div>
     </div>
   );
 }
 
 function UserSettings(props: { team: Team }) {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const [leaving, setLeaving] = useState(false);
 
@@ -403,21 +406,15 @@ function UserSettings(props: { team: Team }) {
           <Button
             variant='secondary'
             onClick={async () => setLeaving(true)}
-          >
-          Leave team
-          </Button> :
+          >{t("Leave team")}</Button> :
           <div className=''>
-            <Typography variant='destructive'>Are you sure you want to leave the team?</Typography>
+            <Typography variant='destructive'>{t("Are you sure you want to leave the team?")}</Typography>
             <div className='flex gap-2'>
               <Button variant='destructive' onClick={async () => {
                 await user.leaveTeam(props.team);
                 window.location.reload();
-              }}>
-                Leave
-              </Button>
-              <Button variant='secondary' onClick={() => setLeaving(false)}>
-                Cancel
-              </Button>
+              }}>{t("Leave")}</Button>
+              <Button variant='secondary' onClick={() => setLeaving(false)}>{t("Cancel")}</Button>
             </div>
           </div>}
       </div>
@@ -426,6 +423,7 @@ function UserSettings(props: { team: Team }) {
 }
 
 function ManagementSettings(props: { team: Team }) {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const updateTeamPermission = user.usePermission(props.team, '$update_team');
 
@@ -436,7 +434,7 @@ function ManagementSettings(props: { team: Team }) {
   return (
     <>
       <div className='flex flex-col'>
-        <Label>Team display name</Label>
+        <Label>{t("Team display name")}</Label>
         <ProfileImageEditor
           user={props.team}
           onProfileImageUrlChange={async (profileImageUrl) => {
@@ -446,7 +444,7 @@ function ManagementSettings(props: { team: Team }) {
       </div>
 
       <div className='flex flex-col'>
-        <Label>Team display name</Label>
+        <Label>{t("Team display name")}</Label>
         <EditableText
           value={props.team.displayName}
           onSave={async (newDisplayName) => await props.team.update({ displayName: newDisplayName })}
@@ -457,13 +455,14 @@ function ManagementSettings(props: { team: Team }) {
 }
 
 function ProfileSettings(props: { team: Team }) {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const profile = user.useTeamProfile(props.team);
 
   return (
     <div className="flex flex-col">
       <div className="flex flex-col">
-        <Label className="flex gap-2">User display name <SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
+        <Label className="flex gap-2">{t("User display name")}<SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
         <EditableText
           value={profile.displayName || ''}
           onSave={async (newDisplayName) => {
@@ -474,11 +473,13 @@ function ProfileSettings(props: { team: Team }) {
   );
 }
 
-const invitationSchema = yupObject({
-  email: yupString().email().required('Please enter an email address'),
-});
-
 function MemberInvitation(props: { team: Team }) {
+  const { t } = useTranslation();
+
+  const invitationSchema = yupObject({
+    email: yupString().email().required(t('Please enter an email address')),
+  });
+
   const user = useUser({ or: 'redirect' });
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
 
@@ -509,7 +510,7 @@ function MemberInvitation(props: { team: Team }) {
 
   return (
     <div>
-      <Label>Invite a user to team</Label>
+      <Label>{t("Invite a user to team")}</Label>
       <form
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
@@ -517,13 +518,11 @@ function MemberInvitation(props: { team: Team }) {
         <div className="flex flex-col gap-4 md:flex-row">
           <div>
             <Input
-              placeholder="Email"
-              {...register('email')}
+              placeholder={t("Email")}
+              {...register("email")}
             />
           </div>
-          <Button type="submit" loading={loading}>
-            Invite User
-          </Button>
+          <Button type="submit" loading={loading}>{t("Invite User")}</Button>
         </div>
         <FormWarningText text={errors.email?.message?.toString()} />
         {invitedEmail && <Typography type='label' variant='secondary'>Invited {invitedEmail}</Typography>}
@@ -534,6 +533,7 @@ function MemberInvitation(props: { team: Team }) {
 
 
 function MembersSettings(props: { team: Team }) {
+  const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const readMemberPermission = user.usePermission(props.team, '$read_members');
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
@@ -550,12 +550,12 @@ function MembersSettings(props: { team: Team }) {
 
   return (
     <div>
-      <Label>Members</Label>
+      <Label>{t("Members")}</Label>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">User</TableHead>
-            <TableHead className="w-[200px]">Name</TableHead>
+            <TableHead className="w-[100px]">{t("User")}</TableHead>
+            <TableHead className="w-[200px]">{t("Name")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -575,11 +575,13 @@ function MembersSettings(props: { team: Team }) {
   );
 }
 
-const teamCreationSchema = yupObject({
-  displayName: yupString().required('Please enter a team name'),
-});
-
 export function TeamCreation() {
+  const { t } = useTranslation();
+
+  const teamCreationSchema = yupObject({
+    displayName: yupString().required(t("Please enter a team name")),
+  });
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(teamCreationSchema)
   });
@@ -589,7 +591,7 @@ export function TeamCreation() {
   const [loading, setLoading] = useState(false);
 
   if (!project.config.clientTeamCreationEnabled) {
-    return <MessageCard title='Team creation is not enabled' />;
+    return <MessageCard title={t("Team creation is not enabled")} />;
   }
 
   const onSubmit = async (data: yup.InferType<typeof teamCreationSchema>) => {
@@ -612,18 +614,16 @@ export function TeamCreation() {
         >
           <div className="flex items-end gap-4">
             <div>
-              <Label htmlFor="email" className="mb-1">Display name</Label>
+              <Label htmlFor="email" className="mb-1">{t("Display name")}</Label>
               <Input
                 id="email"
                 type="email"
-                {...register('displayName')}
+                {...register("displayName")}
               />
             </div>
             <FormWarningText text={errors.displayName?.message?.toString()} />
 
-            <Button type="submit" className="mt-6" loading={loading}>
-              Create
-            </Button>
+            <Button type="submit" className="mt-6" loading={loading}>{t("Create")}</Button>
           </div>
         </form>
       </div>

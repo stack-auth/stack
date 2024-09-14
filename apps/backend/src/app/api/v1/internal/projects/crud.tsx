@@ -2,7 +2,6 @@ import { fullProjectInclude, listManagedProjectIds, projectPrismaToCrud } from "
 import { ensureSharedProvider, ensureStandardProvider } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { ContactChannelType } from "@prisma/client/edge";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { internalProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { projectIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
@@ -19,6 +18,13 @@ const ownerPacks = [
     "1343e3e7-dd7a-44a1-8752-701c0881da72",
   ]),
 ];
+
+// if the user is in this list, the project will not have sign-up enabled on creation
+const disableSignUpByDefault = new Set([
+  "c2c03bd1-5cbe-4493-8e3f-17d1e2d7ca43",
+  "60b859bf-e148-4eff-9985-fe6e31c58a2a",
+  "1343e3e7-dd7a-44a1-8752-701c0881da72",
+]);
 
 export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
@@ -46,7 +52,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           isProductionMode: data.is_production_mode ?? false,
           config: {
             create: {
-              signUpEnabled: data.config?.sign_up_enabled ?? true,
+              signUpEnabled: data.config?.sign_up_enabled ?? (disableSignUpByDefault.has(user.id) ? false : true),
               allowLocalhost: data.config?.allow_localhost ?? true,
               createTeamOnSignUp: data.config?.create_team_on_sign_up ?? false,
               clientTeamCreationEnabled: data.config?.client_team_creation_enabled ?? false,

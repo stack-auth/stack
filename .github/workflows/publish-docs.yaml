@@ -77,8 +77,6 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
 
       - name: Check API is valid
         run: pnpm run fern check

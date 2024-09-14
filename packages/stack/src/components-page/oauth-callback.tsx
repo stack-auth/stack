@@ -6,8 +6,10 @@ import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises"
 import { MessageCard } from "../components/message-cards/message-card";
 import { StyledLink } from "@stackframe/stack-ui";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { useTranslation } from "../lib/translations";
 
 export function OAuthCallback(props: { fullPage?: boolean }) {
+  const { t } = useTranslation();
   const app = useStackApp();
   const called = useRef(false);
   const [error, setError] = useState<unknown>(null);
@@ -33,11 +35,11 @@ export function OAuthCallback(props: { fullPage?: boolean }) {
   }, []);
 
   return <MessageCard title='Redirecting...' fullPage={props.fullPage}>
-    {showRedirectLink ? <p>If you are not redirected automatically, <StyledLink href={app.urls.home}>click here</StyledLink>.</p> : null}
+    {showRedirectLink ? <p>{t('If you are not redirected automatically, ')}<StyledLink href={app.urls.home}>t('click here')</StyledLink></p> : null}
     {error ? <div>
-      <p>Something went wrong while processing the OAuth callback:</p>
+      <p>{t("Something went wrong while processing the OAuth callback:")}</p>
       <pre>{JSON.stringify(error, null, 2)}</pre>
-      <p>This is most likely an error in Stack. Please report it.</p>
+      <p>{t("This is most likely an error in Stack. Please report it.")}</p>
     </div> : null}
   </MessageCard>;
 }
