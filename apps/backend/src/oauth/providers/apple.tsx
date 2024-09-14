@@ -17,9 +17,8 @@ export class AppleProvider extends OAuthBaseProvider {
         tokenEndpoint: "https://appleid.apple.com/auth/token",
         redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/apple",
         baseScope: "name email",
-        authorizationExtraParams: {
-          "response_mode": "form_post",
-        },
+        authorizationExtraParams: { "response_mode": "form_post" },
+        tokenEndpointAuthMethod: "client_secret_post",
         noPKCE: true,
         ...options,
       }))
@@ -27,13 +26,6 @@ export class AppleProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const headers = { Authorization: `Bearer ${tokenSet.accessToken}`};
-    const [userInfo, emails] = await Promise.all([
-      fetch("https://gitlab.com/api/v4/user", { headers }).then(res => res.json()),
-      fetch("https://gitlab.com/api/v4/user/emails", { headers }).then(res => res.json())
-    ]);
-
-    const { confirmed_at } = emails.find((e: any) => e.email === userInfo.email);
 
     return validateUserInfo({
       accountId: userInfo.id?.toString(),
