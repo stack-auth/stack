@@ -35,16 +35,20 @@ export class FacebookProvider extends OAuthBaseProvider {
     url.searchParams.append('access_token', tokenSet.accessToken || "");
     url.searchParams.append('fields', 'id,name,email');
     const rawUserInfo = await fetch(url).then((res) => res.json());
-
     if (!rawUserInfo.email) {
-      throw new StatusError(StatusError.BadRequest, `Facebook OAuth did not return an email address. This is likely because you did not allow the "email" scope on the Facebook developer dashboard.`);
+      throw new StatusError(StatusError.BadRequest, `Facebook OAuth did not return an email address. This is likely because "email" scope is not selected on the Facebook developer dashboard.`);
     }
+
+    const profileImageUrl = new URL(`https://graph.facebook.com/${rawUserInfo.id}`);
+    profileImageUrl.searchParams.append("access_token", tokenSet.accessToken || "");
+    profileImageUrl.searchParams.append("fields", "picture.type(small)");
+    const profileImage = await fetch(profileImageUrl).then((res) => res.json());
 
     return validateUserInfo({
       accountId: rawUserInfo.id,
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
-      profileImageUrl: `https://graph.facebook.com/v19.0/${rawUserInfo.id}/picture`,
+      profileImageUrl: profileImage?.picture?.data?.url,
       // Even though it seems like that Facebook verifies the email address with the API calls, but the official docs say that it's not verified.
       // To be on the safe side, we'll assume that it's not verified.
       // https://stackoverflow.com/questions/14280535/is-it-possible-to-check-if-an-email-is-confirmed-on-facebook
