@@ -23,7 +23,6 @@ export class AppleProvider extends OAuthBaseProvider {
         authorizationExtraParams: { "response_mode": "form_post" },
         tokenEndpointAuthMethod: "client_secret_post",
         openid: true,
-        noPKCE: true,
         ...options,
       }))
     );
