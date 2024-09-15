@@ -1,6 +1,7 @@
 {
   "name": "@stackframe/proxied-server-example",
   "version": "2.5.35",
+  "private": true,
   "dependencies": {
     "express": "^4.19.2",
     "handlebars": "^4.7.8"
