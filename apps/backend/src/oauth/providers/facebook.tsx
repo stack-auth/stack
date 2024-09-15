@@ -21,10 +21,12 @@ export class FacebookProvider extends OAuthBaseProvider {
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/facebook",
       baseScope: "public_profile email",
-      ...options,
+      openid: true,
+      jwksUri: "https://www.facebook.com/.well-known/oauth/openid/jwks",
       authorizationExtraParams: options.facebookConfigId ? {
         config_id: options.facebookConfigId,
       } : undefined,
+      ...options,
     }));
   }
 

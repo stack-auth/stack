@@ -566,6 +566,7 @@ enum StandardOAuthProviderType {
   GITLAB
   BITBUCKET
   LINKEDIN
+  APPLE
 }
 
 model OAuthToken {
