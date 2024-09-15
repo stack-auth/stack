@@ -19,7 +19,8 @@ First, let's create an onboarding page to collect the user's name and address, t
 ```jsx title="app/onboarding/page.tsx"
 'use client';
 import { useEffect, useState } from 'react';
-import { useUser, useRouter } from '@stackframe/stack';
+import { useUser } from '@stackframe/stack';
+import { useRouter } from 'next/navigation';
 
 export default function OnboardingPage() {
   const user = useUser();
@@ -29,7 +30,7 @@ export default function OnboardingPage() {
 
   // Redirect to home if the user has already onboarded
   useEffect(() => {
-    if (user.metadata.onboarded) {
+    if (user.clientMetadata.onboarded) {
       router.push('/');
     }
   }, [user]);
@@ -74,14 +75,15 @@ Next, we can create a hook/function to check if the user has completed onboardin
 ```jsx title="app/onboarding-hooks.ts"
 'use client';
 import { useEffect } from 'react';
-import { useUser, useRouter } from '@stackframe/stack';
+import { useUser } from '@stackframe/stack';
+import { useRouter } from 'next/navigation';
 
 export function useOnboarding() {
   const user = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user.metadata.onboarded) {
+    if (!user.clientMetadata.onboarded) {
       router.push('/onboarding');
     }
   }, [user]);
@@ -96,7 +98,7 @@ import { redirect } from 'next/navigation';
 
 export async function ensureOnboarding() {
   const user = await stackServerApp.getUser();
-  if (!user.metadata.onboarded) {
+  if (!user.serverMetadata.onboarded) {
     redirect('/onboarding');
   }
 }
