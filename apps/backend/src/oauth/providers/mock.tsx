@@ -14,6 +14,7 @@ export class MockProvider extends OAuthBaseProvider {
       discoverFromUrl: getEnvVariable("STACK_OAUTH_MOCK_URL"),
       redirectUri: `${getEnvVariable("STACK_BASE_URL")}/api/v1/auth/oauth/callback/${providerId}`,
       baseScope: "openid",
+      openid: true,
       clientId: providerId,
       clientSecret: "MOCK-SERVER-SECRET",
     }));

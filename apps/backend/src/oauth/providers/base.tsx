@@ -60,23 +60,25 @@ export abstract class OAuthBaseProvider {
       noPKCE?: boolean,
     }
     & (
-      | {
+      | ({
         issuer: string,
         authorizationEndpoint: string,
         tokenEndpoint: string,
         userinfoEndpoint?: string,
       }
+      & (
+        | {
+          openid: true,
+          jwksUri: string,
+        }
+        | {
+          openid?: false,
+        }
+      )
+    )
       | {
         discoverFromUrl: string,
-      }
-    )
-    & (
-      | {
-        openid: true,
-        jwksUri: string,
-      }
-      | {
-        openid?: false,
+        openid?: boolean,
       }
     )
   ) {
