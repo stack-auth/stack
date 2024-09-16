@@ -139,6 +139,9 @@ export const userUpdatedWebhookEvent = {
 
 const webhookUserDeletedSchema = fieldSchema.yupObject({
   id: fieldSchema.userIdSchema.required(),
+  teams: fieldSchema.yupArray(fieldSchema.yupObject({
+    id: fieldSchema.yupString().required(),
+  })).required(),
 }).required();
 
 export const userDeletedWebhookEvent = {
