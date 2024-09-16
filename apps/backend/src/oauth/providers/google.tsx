@@ -19,6 +19,8 @@ export class GoogleProvider extends OAuthBaseProvider {
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userinfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/google",
+      openid: true,
+      jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
       baseScope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
       ...options,
     }));
