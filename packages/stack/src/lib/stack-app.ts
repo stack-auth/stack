@@ -913,7 +913,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result);
-      }
+      },
+      async delete() {
+        await app._interface.deleteCurrentUser(session);
+        await app._signOut(session);
+      },
     };
   }
 
@@ -2355,6 +2359,8 @@ type UserExtra = {
    */
   update(update: UserUpdateOptions): Promise<void>,
 
+  delete(): Promise<void>,
+
   getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
   getConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
   useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
@@ -2417,7 +2423,6 @@ type ServerBaseUser = {
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   update(user: ServerUserUpdateOptions): Promise<void>,
-  delete(): Promise<void>,
 
   grantPermission(scope: Team, permissionId: string): Promise<void>,
   revokePermission(scope: Team, permissionId: string): Promise<void>,

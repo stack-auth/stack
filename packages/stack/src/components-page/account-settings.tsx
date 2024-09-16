@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -626,6 +626,44 @@ export function TeamCreation() {
             <Button type="submit" className="mt-6" loading={loading}>{t("Create")}</Button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+export function PrivacySettings() {
+  const { t } = useTranslation();
+  const user = useUser({ or: 'redirect' });
+  const app = useStackApp();
+
+  return (
+    <div className='stack-scope flex flex-col items-stretch'>
+      <div className="mb-6">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="item-1">
+            <AccordionTrigger>{t("Delete Account")}</AccordionTrigger>
+            <AccordionContent>
+              <ActionDialog
+                trigger={<Button variant="destructive">{t("Delete Account")}</Button>}
+                title={t("Delete account")}
+                danger
+                okButton={{
+                  label: t("Delete Account"),
+                  onClick: async () => {
+                    await user.delete();
+                    await app.redirectToHome();
+                  }
+                }}
+                cancelButton
+                confirmText={t("I understand this action is IRREVERSIBLE and will delete ALL associated data.")}
+              >
+                <Typography>
+                  {t("Are you sure that you want to delete your account?")}
+                </Typography>
+              </ActionDialog>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );
