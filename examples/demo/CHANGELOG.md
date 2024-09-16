@@ -1,5 +1,15 @@
 # demo-app
 
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.36
+  - @stackframe/stack-ui@2.5.36
+  - @stackframe/stack@2.5.36
+
 ## 2.5.35
 
 ### Patch Changes
