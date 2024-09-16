@@ -20,7 +20,7 @@ export class FacebookProvider extends OAuthBaseProvider {
       authorizationEndpoint: "https://facebook.com/v20.0/dialog/oauth/",
       tokenEndpoint: "https://graph.facebook.com/v20.0/oauth/access_token",
       redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/facebook",
-      baseScope: "public_profile email",
+      baseScope: "openid public_profile email",
       openid: true,
       jwksUri: "https://www.facebook.com/.well-known/oauth/openid/jwks",
       authorizationExtraParams: options.facebookConfigId ? {
