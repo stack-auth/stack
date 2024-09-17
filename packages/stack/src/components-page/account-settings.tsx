@@ -8,19 +8,19 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon, Database } from 'lucide-react';
+import { CirclePlus, Contact, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
+import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { SidebarLayout } from '../components/elements/sidebar-layout';
 import { UserAvatar } from '../components/elements/user-avatar';
 import { ProfileImageEditor } from "../components/profile-image-editor";
 import { TeamIcon } from '../components/team-icon';
-import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { useTranslation } from "../lib/translations";
 
 
@@ -49,34 +49,21 @@ export function AccountSettings(props: {
               type: 'item',
               subpath: '/profile',
               icon: Contact,
-              content: <ProfileSection/>,
+              content: <ProfilePage/>,
             },
             {
               title: t('Security'),
               type: 'item',
-              icon: ShieldCheck,
               subpath: '/security',
-              content: (
-                <div className='flex flex-col gap-8'>
-                  <EmailVerificationSection />
-                  <PasswordSection />
-                  <MfaSection />
-                </div>
-              ),
+              icon: ShieldCheck,
+              content: <SecurityPage/>,
             },
-            ...project.config.clientUserDeletionEnabled ? [{
-              title: t('Privacy'),
-              type: 'item',
-              subpath: '/privacy',
-              icon: Database,
-              content: <PrivacySection />,
-            }] as const : [],
             {
-              title: t('Sign Out'),
-              subpath: '/sign-out',
+              title: t('Settings'),
               type: 'item',
-              icon: LogOut,
-              content: <SignOutSection />,
+              subpath: '/settings',
+              icon: Settings,
+              content: <SettingsPage/>,
             },
             ...(props.extraItems?.map(item => ({
               title: item.title,
@@ -140,16 +127,31 @@ function Section(props: { title: string, description?: string, children: React.R
   );
 }
 
-function ProfileSection() {
+function PageLayout(props: { children: React.ReactNode }) {
+  return (
+    <div className='flex flex-col gap-6'>
+      <Separator/>
+      {React.Children.map(props.children, (child) => (
+        child && (
+          <>
+            {child}
+            <Separator/>
+          </>
+        )
+      ))}
+    </div>
+  );
+}
+
+function ProfilePage() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
 
   return (
-    <div className='flex flex-col gap-6'>
-      <Separator/>
+    <PageLayout>
       <Section
-        title="User name"
-        description="This is a display name and is not used for authentication"
+        title={t("User name")}
+        description={t("This is a display name and is not used for authentication")}
       >
         <EditableText
           value={user.displayName || ''}
@@ -157,10 +159,9 @@ function ProfileSection() {
             await user.update({ displayName: newDisplayName });
           }}/>
       </Section>
-      <Separator/>
       <Section
-        title="Profile image"
-        description="Upload your own image as your avatar"
+        title={t("Profile image")}
+        description={t("Upload your own image as your avatar")}
       >
         <ProfileImageEditor
           user={user}
@@ -169,12 +170,37 @@ function ProfileSection() {
           }}
         />
       </Section>
-      <Separator/>
-    </div>
+    </PageLayout>
   );
 }
 
-function EmailVerificationSection() {
+function SecurityPage() {
+  const emailVerificationSection = useEmailVerificationSection();
+  const passwordSection = usePasswordSection();
+  const mfaSection = useMfaSection();
+
+  return (
+    <PageLayout>
+      {emailVerificationSection}
+      {passwordSection}
+      {mfaSection}
+    </PageLayout>
+  );
+}
+
+function SettingsPage() {
+  const deleteAccountSection = useDeleteAccountSection();
+  const signOutSection = useSignOutSection();
+
+  return (
+    <PageLayout>
+      {deleteAccountSection}
+      {signOutSection}
+    </PageLayout>
+  );
+}
+
+function useEmailVerificationSection() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const [emailSent, setEmailSent] = useState(false);
@@ -211,7 +237,7 @@ function EmailVerificationSection() {
   );
 }
 
-function PasswordSection() {
+function usePasswordSection() {
   const { t } = useTranslation();
 
   const passwordSchema = yupObject({
@@ -319,7 +345,7 @@ function PasswordSection() {
   );
 }
 
-function MfaSection() {
+function useMfaSection() {
   const { t } = useTranslation();
   const project = useStackApp().useProject();
   const user = useUser({ or: "throw" });
@@ -349,62 +375,72 @@ function MfaSection() {
   }, [mfaCode, generatedSecret, handleSubmit]);
 
   return (
-    <div>
-      <div>
-        <Label>{t("Multi-factor Authentication")}</Label>
-
-        <div>
-          {isEnabled ? (
-            <Typography variant="success">{t("Multi-factor authentication is currently enabled.")}</Typography>
-          ) : (
-            generatedSecret ? (
-              <div className='flex flex-col gap-4 items-center'>
-                <Typography>{t("Scan this QR code with your authenticator app:")}</Typography>
-                <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt={t("TOTP multi-factor authentication QR code")} />
-                <Typography>{t("Then, enter your six-digit MFA code:")}</Typography>
-                <Input
-                  value={mfaCode}
-                  onChange={(e) => {
+    <Section
+      title={t("Multi-factor Authentication")}
+      description={isEnabled
+        ? t("Multi-factor authentication is currently enabled.")
+        : t("Multi-factor authentication is currently disabled.")}
+    >
+      <div className='flex flex-col gap-4'>
+        {!isEnabled && generatedSecret && (
+          <>
+            <Typography>{t("Scan this QR code with your authenticator app:")}</Typography>
+            <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt={t("TOTP multi-factor authentication QR code")} />
+            <Typography>{t("Then, enter your six-digit MFA code:")}</Typography>
+            <Input
+              value={mfaCode}
+              onChange={(e) => {
                 setIsMaybeWrong(false);
                 setMfaCode(e.target.value);
-                  }}
-                  placeholder="123456"
-                  maxLength={6}
-                  disabled={isLoading}
-                />
-                {isMaybeWrong && mfaCode.length === 6 && (
-                  <Typography variant="destructive">{t("Incorrect code. Please try again.")}</Typography>
-                )}
-              </div>
-            ) : (
-              <Typography variant="destructive">{t("Multi-factor authentication is currently disabled.")}</Typography>
-            )
-          )}
-
-          <Button
-            className="mt-4"
-            variant={isEnabled ? 'secondary' : 'default'}
-            onClick={async () => {
-              if (isEnabled) {
+              }}
+              placeholder="123456"
+              maxLength={6}
+              disabled={isLoading}
+            />
+            {isMaybeWrong && mfaCode.length === 6 && (
+              <Typography variant="destructive">{t("Incorrect code. Please try again.")}</Typography>
+            )}
+            <div className='flex'>
+              <Button
+                variant='secondary'
+                onClick={() => {
+                  setGeneratedSecret(null);
+                  setQrCodeUrl(null);
+                  setMfaCode("");
+                }}
+              >
+                {t("Cancel")}
+              </Button>
+            </div>
+          </>
+        )}
+        <div className='flex gap-2'>
+          {isEnabled ? (
+            <Button
+              variant='secondary'
+              onClick={async () => {
                 await user.update({
                   totpMultiFactorSecret: null,
                 });
-              } else if (!generatedSecret) {
+              }}
+            >
+              {t("Disable")}
+            </Button>
+          ) : !generatedSecret && (
+            <Button
+              variant='default'
+              onClick={async () => {
                 const secret = generateRandomValues(new Uint8Array(20));
                 setQrCodeUrl(await generateTotpQrCode(project, user, secret));
                 setGeneratedSecret(secret);
-              } else {
-                setGeneratedSecret(null);
-                setQrCodeUrl(null);
-                setMfaCode("");
-              }
-            }}
-          >
-            {isEnabled ? t("Disable") : (generatedSecret ? t("Cancel") : t("Enable"))}
-          </Button>
+              }}
+            >
+              {t("Enable")}
+            </Button>
+          )}
         </div>
       </div>
-    </div>
+    </Section>
   );
 }
 
@@ -413,9 +449,10 @@ async function generateTotpQrCode(project: Project, user: CurrentUser, secret: U
   return await QRCode.toDataURL(uri) as any;
 }
 
-function SignOutSection() {
+function useSignOutSection() {
   const { t } = useTranslation();
   const user = useUser({ or: "throw" });
+
   return (
     <div className='flex flex-col gap-2'>
       <div>
@@ -665,11 +702,15 @@ export function TeamCreation() {
   );
 }
 
-export function PrivacySection() {
+export function useDeleteAccountSection() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const app = useStackApp();
   const project = app.useProject();
+
+  if (!project.config.clientUserDeletionEnabled) {
+    return null;
+  }
 
   return (
     <div className='stack-scope flex flex-col items-stretch'>
