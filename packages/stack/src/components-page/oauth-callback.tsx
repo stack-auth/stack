@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useRef, useEffect, useState } from "react";
 import { useStackApp } from "..";
@@ -15,27 +15,20 @@ export function OAuthCallback(props: { fullPage?: boolean }) {
   const [error, setError] = useState<unknown>(null);
   const [showRedirectLink, setShowRedirectLink] = useState(false);
 
-  useEffect(
-    () =>
-      runAsynchronously(async () => {
-        if (called.current) return;
-        called.current = true;
-        let hasRedirected = false;
-        try {
-          hasRedirected = await app.callOAuthCallback();
-        } catch (e: any) {
-          captureError("<OAuthCallback />", e);
-          setError(e);
-        }
-        if (
-          !hasRedirected &&
-          (!error || process.env.NODE_ENV === "production")
-        ) {
-          await app.redirectToSignIn({ noRedirectBack: true });
-        }
-      }),
-    []
-  );
+  useEffect(() => runAsynchronously(async () => {
+    if (called.current) return;
+    called.current = true;
+    let hasRedirected = false;
+    try {
+      hasRedirected = await app.callOAuthCallback();
+    } catch (e: any) {
+      captureError("<OAuthCallback />", e);
+      setError(e);
+    }
+    if (!hasRedirected && (!error || process.env.NODE_ENV === 'production')) {
+      await app.redirectToSignIn({ noRedirectBack: true });
+    }
+  }), []);
 
   useEffect(() => {
     setTimeout(() => setShowRedirectLink(true), 3000);
