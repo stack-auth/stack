@@ -76,13 +76,15 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
 
         <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
       </div>
-      <div className="flex-1 flex flex-col gap-4 py-2 px-4">
-        <div className='mb-4'>
-          <Typography type='h4'>{selectedItem.title}</Typography>
-          {selectedItem.description && <Typography variant='secondary' type='label'>{selectedItem.description}</Typography>}
-        </div>
-        <div className='flex-1'>
-          {selectedItem.content}
+      <div className="flex-1 flex flex-col items-center gap-4 py-2 px-4">
+        <div className='flex flex-col max-w-[800px] w-[800px]'>
+          <div className='mb-4'>
+            <Typography type='h4'>{selectedItem.title}</Typography>
+            {selectedItem.description && <Typography variant='secondary' type='label'>{selectedItem.description}</Typography>}
+          </div>
+          <div className='flex-1'>
+            {selectedItem.content}
+          </div>
         </div>
       </div>
     </div>
