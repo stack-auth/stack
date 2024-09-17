@@ -8,7 +8,7 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon } from 'lucide-react';
+import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon, Database } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -64,6 +64,13 @@ export function AccountSettings(props: {
                 </div>
               ),
             },
+            ...project.config.clientUserDeletionEnabled ? [{
+              title: t('Privacy'),
+              type: 'item',
+              subpath: '/privacy',
+              icon: Database,
+              content: <PrivacySection />,
+            }] as const : [],
             {
               title: t('Sign Out'),
               subpath: '/sign-out',
@@ -631,10 +638,11 @@ export function TeamCreation() {
   );
 }
 
-export function PrivacySettings() {
+export function PrivacySection() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const app = useStackApp();
+  const project = app.useProject();
 
   return (
     <div className='stack-scope flex flex-col items-stretch'>

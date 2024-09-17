@@ -947,6 +947,10 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     });
   },
   async onDelete({ auth }) {
+    if (auth.type === 'client' && !auth.project.config.client_user_deletion_enabled) {
+      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this project");
+    }
+
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
