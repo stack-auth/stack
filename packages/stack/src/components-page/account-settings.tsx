@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, LogOut, ShieldCheck, LucideIcon, Database } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -122,27 +122,54 @@ export function AccountSettings(props: {
   );
 }
 
+function Section(props: { title: string, description?: string, children: React.ReactNode }) {
+  return (
+    <div className='flex'>
+      <div className='flex-1 flex flex-col justify-center'>
+        <Typography className='font-medium'>
+          {props.title}
+        </Typography>
+        {props.description && <Typography variant='secondary' type='footnote'>
+          {props.description}
+        </Typography>}
+      </div>
+      <div className='flex-1 flex flex-col gap-2'>
+        {props.children}
+      </div>
+    </div>
+  );
+}
+
 function ProfileSection() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
 
   return (
-    <div className='flex flex-col gap-8'>
-      <div className='flex flex-col items-start'>
-        <Label className="mb-2">{t("Profile image")}</Label>
+    <div className='flex flex-col gap-6'>
+      <Separator/>
+      <Section
+        title="User name"
+        description="This is a display name and is not used for authentication"
+      >
+        <EditableText
+          value={user.displayName || ''}
+          onSave={async (newDisplayName) => {
+            await user.update({ displayName: newDisplayName });
+          }}/>
+      </Section>
+      <Separator/>
+      <Section
+        title="Profile image"
+        description="Upload your own image as your avatar"
+      >
         <ProfileImageEditor
           user={user}
           onProfileImageUrlChange={async (profileImageUrl) => {
             await user.update({ profileImageUrl });
           }}
         />
-      </div>
-      <div className='flex flex-col'>
-        <Label>{t("Display name")}</Label>
-        <EditableText value={user.displayName || ''} onSave={async (newDisplayName) => {
-          await user.update({ displayName: newDisplayName });
-        }}/>
-      </div>
+      </Section>
+      <Separator/>
     </div>
   );
 }

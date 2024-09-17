@@ -78,8 +78,8 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
       </div>
       <div className="flex-1 flex flex-col items-center gap-4 py-2 px-4">
         <div className='flex flex-col max-w-[800px] w-[800px]'>
-          <div className='mb-4'>
-            <Typography type='h4'>{selectedItem.title}</Typography>
+          <div className='mt-4 mb-6'>
+            <Typography type='h4' className='font-semibold'>{selectedItem.title}</Typography>
             {selectedItem.description && <Typography variant='secondary' type='label'>{selectedItem.description}</Typography>}
           </div>
           <div className='flex-1'>
@@ -111,9 +111,11 @@ function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selected
         <div className='flex flex-col'>
           <div className='flex justify-between'>
             <Typography type='h4'>{selectedItem.title}</Typography>
-            <Button variant='ghost' size='icon' onClick={() => {
-              router.push(props.basePath);
-            }}>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => { router.push(props.basePath); }}
+            >
               <XIcon className='h-5 w-5' />
             </Button>
           </div>
