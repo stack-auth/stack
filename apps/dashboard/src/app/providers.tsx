@@ -1,11 +1,13 @@
 'use client';
 import { useStackApp, useUser } from '@stackframe/stack';
+import { env } from "next-runtime-env";
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { Suspense, useEffect, useState } from 'react';
 
 if (typeof window !== 'undefined') {
-  const postHogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k";
+  const postHogKey = env("NEXT_PUBLIC_POSTHOG_KEY") ?? "phc_vIUFi0HzHo7oV26OsaZbUASqxvs8qOmap1UBYAutU4k";
+
   if (postHogKey.length > 5) {
     posthog.init(postHogKey, {
       api_host: "/consume",

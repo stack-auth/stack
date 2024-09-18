@@ -1,0 +1,124 @@
+services:
+  # ================= stack =================
+
+  dashboard:
+    container_name: stack-dashboard
+    build:
+      context: .
+      dockerfile: ./deploy/docker/dashboard/Dockerfile
+    env_file:
+      - apps/dashboard/.env.docker
+    ports:
+      - 8101:8101
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  backend:
+    container_name: stack-backend
+    build:
+      context: .
+      dockerfile: ./deploy/docker/backend/Dockerfile
+    env_file:
+      - apps/dashboard/.env.docker # used for ensuring matching shared API keys between dashboard and backend seed script
+      - apps/backend/.env.docker
+    ports:
+      - 8102:8102
+    depends_on:
+      - db
+      - inbucket
+      - svix-server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ================= PostgreSQL =================
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stackframe
+      POSTGRES_DELAY_MS: ${POSTGRES_DELAY_MS:-0}
+    ports:
+      - 54320:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+
+  # ================= Inbucket =================
+
+  inbucket:
+    image: inbucket/inbucket:latest
+    ports:
+      - 2500:2500
+      - 8105:9000
+      - 1100:1100
+    volumes:
+      - inbucket-data:/data
+
+  # ================= OpenTelemetry & Jaeger =================
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - 8107:16686  # Jaeger UI
+      - 4318:4318    # OTLP Endpoint
+    restart: always
+
+  # ================= svix =================
+
+  svix-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: svix
+    volumes:
+      - svix-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+
+  svix-redis:
+    image: docker.io/redis:7-alpine
+    command: --save 60 500 --appendonly yes --appendfsync everysec
+    volumes:
+      - svix-redis-data:/data
+
+  svix-server:
+    image: svix/svix-server
+    environment:
+      WAIT_FOR: 'true'
+      SVIX_REDIS_DSN: redis://svix-redis:6379
+      SVIX_DB_DSN: postgres://postgres:password@svix-db:5432/svix
+      SVIX_CACHE_TYPE: memory
+      SVIX_JWT_SECRET: secret
+      SVIX_LOG_LEVEL: trace
+      SVIX_QUEUE_TYPE: redis
+    ports:
+      - 8113:8071
+    depends_on:
+    - svix-redis
+    - svix-db
+
+# ================= volumes =================
+
+volumes:
+  postgres-data:
+    name: stack-postgres
+  inbucket-data:
+    name: stack-inbucket
+  svix-redis-data:
+    name: svix-redis
+  svix-postgres-data:
+    name: svix-postgres

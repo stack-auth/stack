@@ -1,6 +1,7 @@
 import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
+import { env } from "./env";
 
 type SetCookieOptions = { maxAge?: number };
 
@@ -42,19 +43,23 @@ export function deleteCookie(name: string) {
 }
 
 export function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
-  const isProd = process.env.NODE_ENV === "production";
+  // If the NEXT_PUBLIC_INSECURE_COOKIE environment variable is set to "true", we allow cookies to be set over HTTP regardless of NODE_ENV.
+  // This is useful for local testing of Docker builds as the built app runs in production mode within the container, but will
+  // not have SSL certs available on localhost to enforce HTTPS. Note that NEXT_PUBLIC_INSECURE_COOKIE should NEVER be used in production.
+  const secure = process.env.NODE_ENV === "production" && env("NEXT_PUBLIC_INSECURE_COOKIE") !== "true";
+
   try {
     rscCookies().set(name, value, {
-      secure: isProd,
+      secure,
       maxAge: options.maxAge,
     });
   } catch (e: any) {
     if (isRscCookieUnavailableError(e)) {
-      if (window.location.protocol !== "https:" && isProd) {
+      if (window.location.protocol !== "https:" && secure) {
         throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
       }
       Cookies.set(name, value, {
-        secure: isProd,
+        secure,
         expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
       });
     } else {
