@@ -58,11 +58,11 @@ export function ProfileImageEditor(props: {
     return <div className='flex flex-col'>
       <div className='cursor-pointer relative' onClick={upload}>
         <UserAvatar
-          size={100}
+          size={60}
           user={props.user}
           border
         />
-        <div className='absolute top-0 left-0 h-[100px] w-[100px] bg-gray-500/20 backdrop-blur-sm items-center justify-center rounded-full flex opacity-0 hover:opacity-100 transition-opacity'>
+        <div className='absolute top-0 left-0 h-[60px] w-[60px] bg-gray-500/20 backdrop-blur-sm items-center justify-center rounded-full flex opacity-0 hover:opacity-100 transition-opacity'>
           <div className='bg-background p-2 rounded-full'>
             <Upload className='h-5 w-5' />
           </div>

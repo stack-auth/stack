@@ -36,14 +36,14 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
 // TODO: next-release: make required
 const serverReadSchema = usersCrudServerReadSchema.nullable().defined();
 
-const serverDeleteSchema = usersCrudServerDeleteSchema;
+const clientDeleteSchema = usersCrudServerDeleteSchema;
 
 export const currentUserCrud = createCrud({
   clientReadSchema,
   serverReadSchema,
   clientUpdateSchema,
   serverUpdateSchema,
-  serverDeleteSchema,
+  clientDeleteSchema,
   docs: {
     clientRead: {
       summary: 'Get current user',

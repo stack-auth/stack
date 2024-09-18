@@ -695,6 +695,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
         clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
+        clientUserDeletionEnabled: crud.config.client_user_deletion_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
           id: p.id,
         })),
@@ -913,7 +914,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result);
-      }
+      },
+      async delete() {
+        await app._interface.deleteCurrentUser(session);
+        await app._signOut(session);
+      },
     };
   }
 
@@ -1994,6 +1999,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
         clientTeamCreationEnabled: data.config.client_team_creation_enabled,
+        clientUserDeletionEnabled: data.config.client_user_deletion_enabled,
         allowLocalhost: data.config.allow_localhost,
         oauthProviders: data.config.oauth_providers.map((p) => ((p.type === 'shared' ? {
           id: p.id,
@@ -2355,6 +2361,8 @@ type UserExtra = {
    */
   update(update: UserUpdateOptions): Promise<void>,
 
+  delete(): Promise<void>,
+
   getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
   getConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
   useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
@@ -2417,7 +2425,6 @@ type ServerBaseUser = {
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   update(user: ServerUserUpdateOptions): Promise<void>,
-  delete(): Promise<void>,
 
   grantPermission(scope: Team, permissionId: string): Promise<void>,
   revokePermission(scope: Team, permissionId: string): Promise<void>,
@@ -2560,6 +2567,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
       client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
+      client_user_deletion_enabled: options.config?.clientUserDeletionEnabled,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
     },
@@ -2583,6 +2591,7 @@ export type ProjectConfig = {
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
+  readonly clientUserDeletionEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
 };
 
@@ -2596,6 +2605,7 @@ export type AdminProjectConfig = {
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
+  readonly clientUserDeletionEnabled: boolean,
   readonly allowLocalhost: boolean,
   readonly oauthProviders: AdminOAuthProviderConfig[],
   readonly emailConfig?: AdminEmailConfig,
@@ -2649,6 +2659,7 @@ export type AdminProjectConfigUpdateOptions = {
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
   clientTeamCreationEnabled?: boolean,
+  clientUserDeletionEnabled?: boolean,
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
   emailConfig?: AdminEmailConfig,

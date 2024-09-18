@@ -1080,5 +1080,15 @@ export class StackClientInterface {
     );
     return await response.json();
   }
+
+  async deleteCurrentUser(session: InternalSession) {
+    await this.sendClientRequest(
+      "/users/me",
+      {
+        method: "DELETE",
+      },
+      session,
+    );
+  }
 }
 

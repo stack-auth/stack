@@ -1,6 +1,6 @@
 import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
-import { sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
+import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -876,8 +876,22 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.$transaction(async (tx) => {
+    const { teams } = await prismaClient.$transaction(async (tx) => {
       await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+
+      const teams = await tx.team.findMany({
+        where: {
+          projectId: auth.project.id,
+          teamMembers: {
+            some: {
+              projectUserId: params.user_id,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
 
       await tx.projectUser.delete({
         where: {
@@ -888,12 +902,25 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         },
         include: userFullInclude,
       });
+
+      return { teams };
     });
+
+    await Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
+      projectId: auth.project.id,
+      data: {
+        team_id: t.teamId,
+        user_id: params.user_id,
+      },
+    })));
 
     await sendUserDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.user_id,
+        teams: teams.map((t) => ({
+          id: t.teamId,
+        })),
       },
     });
   }
@@ -920,6 +947,10 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     });
   },
   async onDelete({ auth }) {
+    if (auth.type === 'client' && !auth.project.config.client_user_deletion_enabled) {
+      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this project");
+    }
+
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),

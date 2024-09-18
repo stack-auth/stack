@@ -130,7 +130,7 @@ export default function PageClient() {
           />;
         })}
       </SettingCard>
-      <SettingCard title="Settings">
+      <SettingCard title="Sign-up">
         <SettingSwitch
           label="Allow new user sign-ups"
           checked={project.config.signUpEnabled}
@@ -141,9 +141,27 @@ export default function PageClient() {
               setConfirmSignUpDisabled(true);
             }
           }}
-          hint='If disabled, only existing users can sign in. However, admins (like you) can still create new accounts manually by clicking "Create User" on the dashboard "Users" page.'
+          hint="Existing users can still sign in when sign-up is disabled. You can always create new accounts manually via the dashboard."
         />
       </SettingCard>
+
+      <SettingCard title="User deletion">
+        <SettingSwitch
+          label="Allow users to delete their own accounts on the client-side"
+          checked={project.config.clientUserDeletionEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                clientUserDeletionEnabled: checked,
+              },
+            });
+          }}
+        />
+        <Typography variant="secondary" type="footnote">
+          An delete button will also be added to the account settings page.
+        </Typography>
+      </SettingCard>
+
       <ConfirmSignUpEnabledDialog
         open={confirmSignUpEnabled}
         onOpenChange={setConfirmSignUpEnabled}

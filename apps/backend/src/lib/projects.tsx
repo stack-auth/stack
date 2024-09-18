@@ -125,6 +125,7 @@ export function projectPrismaToCrud(
       magic_link_enabled: !!otpAuth,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
+      client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
       domains: prisma.config.domains
         .map((domain) => ({
           domain: domain.domain,
