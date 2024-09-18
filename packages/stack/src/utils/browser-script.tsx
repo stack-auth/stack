@@ -57,13 +57,18 @@ const script = () => {
   };
 
   const copyFromVariables = () => {
-    const backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background');
+    let backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background');
     if (backgroundColor) {
-      // convert backgroundColor to hsl and check if it's dark
+      // shadcn by default uses the hsl values with the format "123 45% 6.5%"
+      if (/^\d+\s\d+%\s\d+(\.\d+)?%$/.test(backgroundColor)) {
+        backgroundColor = `hsl(${backgroundColor})`;
+      }
+
+      // convert backgroundColor to luma and check if it's dark
       const rgb = colorToRGB(backgroundColor);
+      console.log(rgb);
       if (rgb) {
         const luma = rgbToLuma(rgb);
-        console.log('luma', luma);
         if (luma < 128) {
           setTheme('dark');
         } else {
@@ -94,11 +99,11 @@ const script = () => {
       if (copyFromColorScheme()) {
         return;
       }
-      if (copyFromVariables()) {
+      if (mutation.attributeName && attributes.includes(mutation.attributeName) && copyFromAttributes()) {
         return;
       }
-      if (mutation.attributeName && attributes.includes(mutation.attributeName)) {
-        copyFromAttributes();
+      if (copyFromVariables()) {
+        return;
       }
     });
   });
@@ -110,8 +115,8 @@ const script = () => {
 
   // Initial check on page load
   if (!copyFromColorScheme()) {
-    if (!copyFromVariables()) {
-      copyFromAttributes();
+    if (!copyFromAttributes()) {
+      copyFromVariables();
     }
   }
 };

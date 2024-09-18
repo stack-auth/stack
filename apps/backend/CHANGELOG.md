@@ -1,5 +1,23 @@
 # @stackframe/stack-backend
 
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+- Updated dependencies
+  - @stackframe/stack-emails@2.5.36
+  - @stackframe/stack-shared@2.5.36
+
+## 2.5.35
+
+### Patch Changes
+
+- Doc improvements
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.35
+  - @stackframe/stack-emails@2.5.35
+
 ## 2.5.34
 
 ### Patch Changes

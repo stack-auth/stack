@@ -83,6 +83,7 @@ export const projectsCrudAdminReadSchema = yupObject({
     allow_localhost: schemaFields.projectAllowLocalhostSchema.required(),
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.required(),
 
     team_creator_default_permissions: yupArray(teamPermissionSchema.required()).required(),
@@ -112,8 +113,10 @@ export const projectsCrudClientReadSchema = yupObject({
   config: yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
 
-    // ==============
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
+
+    // ==============
     /* @deprecated */
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     /* @deprecated */
@@ -133,6 +136,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
     allow_localhost: schemaFields.projectAllowLocalhostSchema.optional(),
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.optional(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.optional(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.optional(),
     create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.optional(),
 
     team_creator_default_permissions: yupArray(teamPermissionSchema.required()).optional(),

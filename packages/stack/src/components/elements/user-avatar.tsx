@@ -18,7 +18,7 @@ export function UserAvatar(props: {
       <AvatarImage src={user?.profileImageUrl || ''} />
       <AvatarFallback>
         {user ?
-          <div className='font-medium' style={{ fontSize: (props.size || defaultSize) * 0.5 }}>
+          <div className='font-medium' style={{ fontSize: (props.size || defaultSize) * 0.4 }}>
             {(user.displayName || user.primaryEmail)?.slice(0, 2).toUpperCase()}
           </div> :
           <UserRound className="text-zinc-500" size={(props.size || defaultSize) * 0.6} />}

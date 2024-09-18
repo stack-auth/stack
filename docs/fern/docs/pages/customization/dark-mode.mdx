@@ -32,15 +32,14 @@ Here is an example of how to set up next-themes with Stack (find more details in
 
   ```jsx
   'use client';
-  import { Button } from '@stackframe/stack'
   import { useTheme } from 'next-themes'
 
   export default function ColorModeSwitcher() {
     const { theme, setTheme } = useTheme()
     return (
-      <Button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
         Toggle theme
-      </Button>
+      </button>
     )
   }
   ```

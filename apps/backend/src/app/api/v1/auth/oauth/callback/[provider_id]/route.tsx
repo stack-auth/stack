@@ -23,7 +23,7 @@ const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"][
   redirect(`${errorRedirectUrl}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`);
 };
 
-export const GET = createSmartRouteHandler({
+const handler = createSmartRouteHandler({
   metadata: {
     hidden: true,
   },
@@ -31,7 +31,8 @@ export const GET = createSmartRouteHandler({
     params: yupObject({
       provider_id: yupString().required(),
     }).required(),
-    query: yupMixed().required(),
+    query: yupMixed().optional(),
+    body: yupMixed().optional(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([302]).required(),
@@ -39,8 +40,8 @@ export const GET = createSmartRouteHandler({
     body: yupMixed().required(),
     headers: yupMixed().required(),
   }),
-  async handler({ params, query }, fullReq) {
-    const innerState = query.state ?? "";
+  async handler({ params, query, body }, fullReq) {
+    const innerState = query.state ?? (body as any)?.state ?? "";
     const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
     cookies().delete("stack-oauth-inner-" + innerState);
 
@@ -50,7 +51,7 @@ export const GET = createSmartRouteHandler({
 
     const outerInfoDB = await prismaClient.oAuthOuterInfo.findUnique({
       where: {
-        innerState: query.state,
+        innerState: innerState,
       },
     });
 
@@ -94,7 +95,10 @@ export const GET = createSmartRouteHandler({
       const { userInfo, tokenSet } = await providerObj.getCallback({
         codeVerifier: innerCodeVerifier,
         state: innerState,
-        callbackParams: query,
+        callbackParams: {
+          ...query,
+          ...body,
+        },
       });
 
       if (type === "link") {
@@ -295,3 +299,6 @@ export const GET = createSmartRouteHandler({
     }
   },
 });
+
+export const GET = handler;
+export const POST = handler;

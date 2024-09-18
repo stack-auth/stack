@@ -220,6 +220,7 @@ export function projectPrismaToCrud(
       sign_up_enabled: prisma.config.signUpEnabled,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
+      client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
       team_creator_default_permissions: getPermissions('creator'),
       team_member_default_permissions: getPermissions('member'),
       domains: domains,

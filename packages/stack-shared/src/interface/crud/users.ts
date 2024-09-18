@@ -72,7 +72,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   last_active_at_millis: fieldSchema.userLastActiveAtMillisSchema.required(),
 }).required();
 
-export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.concat(fieldSchema.yupObject({
+export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.omit(['selected_team_id']).concat(fieldSchema.yupObject({
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
     id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
@@ -139,6 +139,9 @@ export const userUpdatedWebhookEvent = {
 
 const webhookUserDeletedSchema = fieldSchema.yupObject({
   id: fieldSchema.userIdSchema.required(),
+  teams: fieldSchema.yupArray(fieldSchema.yupObject({
+    id: fieldSchema.yupString().required(),
+  })).required(),
 }).required();
 
 export const userDeletedWebhookEvent = {

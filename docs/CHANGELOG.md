@@ -1,5 +1,17 @@
 # @stackframe/docs
 
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+
+## 2.5.35
+
+### Patch Changes
+
+- Doc improvements
+
 ## 2.5.34
 
 ### Patch Changes

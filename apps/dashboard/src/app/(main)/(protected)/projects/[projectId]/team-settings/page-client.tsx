@@ -75,7 +75,7 @@ export default function PageClient() {
           }}
         />
         <Typography variant="secondary" type="footnote">
-          When enabled, users are allowed to create teams from the client-side. If disabled, teams can only be created on the dashboard/server.
+          {'When enabled, a "Create Team" button will be added to the account settings page and the team switcher.'}
         </Typography>
       </SettingCard>
 

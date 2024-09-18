@@ -62,7 +62,7 @@ export default function RootLayout({
   const headTags: TagConfigJson[] = JSON.parse(getEnvVariable('NEXT_PUBLIC_STACK_HEAD_TAGS'));
   const translationLocale = getEnvVariable('STACK_DEVELOPMENT_TRANSLATION_LOCALE', "") || undefined;
   if (translationLocale !== undefined && getNodeEnvironment() !== 'development') {
-    throw new Error('STACK_DEVELOPMENT_TRANSLATION_LOCALE can only be used in development mode');
+    throw new Error(`STACK_DEVELOPMENT_TRANSLATION_LOCALE can only be used in development mode (found: ${JSON.stringify(translationLocale)})`);
   }
 
   return (

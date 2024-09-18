@@ -46,6 +46,7 @@ model ProjectConfig {
   signUpEnabled             Boolean @default(true)
   createTeamOnSignUp        Boolean
   clientTeamCreationEnabled Boolean
+  clientUserDeletionEnabled Boolean @default(false)
 
   teamCreateDefaultSystemPermissions TeamSystemPermission[]
   teamMemberDefaultSystemPermissions TeamSystemPermission[]
@@ -565,6 +566,8 @@ enum StandardOAuthProviderType {
   DISCORD
   GITLAB
   BITBUCKET
+  LINKEDIN
+  APPLE
 }
 
 model OAuthToken {

@@ -8,6 +8,7 @@ export type TokenSet = {
   accessToken: string,
   refreshToken?: string,
   accessTokenExpiredAt: Date,
+  idToken?: string,
 };
 
 function processTokenSet(providerName: string, tokenSet: OIDCTokenSet, defaultAccessTokenExpiresInMillis?: number): TokenSet {
@@ -24,6 +25,7 @@ function processTokenSet(providerName: string, tokenSet: OIDCTokenSet, defaultAc
   }
 
   return {
+    idToken: tokenSet.id_token,
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
     accessTokenExpiredAt: tokenSet.expires_in ?
@@ -42,6 +44,8 @@ export abstract class OAuthBaseProvider {
     public readonly redirectUri: string,
     public readonly authorizationExtraParams?: Record<string, string>,
     public readonly defaultAccessTokenExpiresInMillis?: number,
+    public readonly noPKCE?: boolean,
+    public readonly openid?: boolean,
   ) {}
 
   protected static async createConstructorArgs(options:
@@ -52,16 +56,29 @@ export abstract class OAuthBaseProvider {
       baseScope: string,
       authorizationExtraParams?: Record<string, string>,
       defaultAccessTokenExpiresInMillis?: number,
+      tokenEndpointAuthMethod?: "client_secret_post" | "client_secret_basic",
+      noPKCE?: boolean,
     }
     & (
-      | {
+      | ({
         issuer: string,
         authorizationEndpoint: string,
         tokenEndpoint: string,
         userinfoEndpoint?: string,
       }
+      & (
+        | {
+          openid: true,
+          jwksUri: string,
+        }
+        | {
+          openid?: false,
+        }
+      )
+    )
       | {
         discoverFromUrl: string,
+        openid?: boolean,
       }
     )
   ) {
@@ -70,29 +87,25 @@ export abstract class OAuthBaseProvider {
       authorization_endpoint: options.authorizationEndpoint,
       token_endpoint: options.tokenEndpoint,
       userinfo_endpoint: options.userinfoEndpoint,
+      jwks_uri: options.openid ? options.jwksUri : undefined,
     });
     const oauthClient = new issuer.Client({
       client_id: options.clientId,
       client_secret: options.clientSecret,
       redirect_uri: options.redirectUri,
       response_types: ["code"],
+      token_endpoint_auth_method: options.tokenEndpointAuthMethod ?? "client_secret_basic",
     });
 
-    // facebook always return an id_token even in the OAuth2 flow, which is not supported by openid-client
-    const oldGrant = oauthClient.grant;
-    if (!(oldGrant as any)) {
-      // it seems that on Sentry, this was undefined in one scenario, so let's log some data to help debug if it happens again
-      // not sure if that is actually what was going on? the error log has very few details
-      // https://stackframe-pw.sentry.io/issues/5515577938
-      throw new StackAssertionError("oldGrant is undefined for some reason — that should never happen!", { options, oauthClient });
-    }
-    oauthClient.grant = async function (params) {
-      const grant = await oldGrant.call(this, params);
-      delete grant.id_token;
-      return grant;
-    };
-
-    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams, options.defaultAccessTokenExpiresInMillis] as const;
+    return [
+      oauthClient,
+      options.baseScope,
+      options.redirectUri,
+      options.authorizationExtraParams,
+      options.defaultAccessTokenExpiresInMillis,
+      options.noPKCE,
+      options.openid,
+    ] as const;
   }
 
   getAuthorizationUrl(options: {
@@ -102,8 +115,10 @@ export abstract class OAuthBaseProvider {
   }) {
     return this.oauthClient.authorizationUrl({
       scope: mergeScopeStrings(this.scope, options.extraScope || ""),
-      code_challenge: generators.codeChallenge(options.codeVerifier),
-      code_challenge_method: "S256",
+      ...(this.noPKCE ? {} : {
+        code_challenge_method: "S256",
+        code_challenge: generators.codeChallenge(options.codeVerifier),
+      }),
       state: options.state,
       response_type: "code",
       access_type: "offline",
@@ -117,12 +132,21 @@ export abstract class OAuthBaseProvider {
     state: string,
   }): Promise<{ userInfo: OAuthUserInfo, tokenSet: TokenSet }> {
     let tokenSet;
-    const params = {
-      code_verifier: options.codeVerifier,
-      state: options.state,
-    };
+    const params = [
+      this.redirectUri,
+      options.callbackParams,
+      {
+        code_verifier: this.noPKCE ? undefined : options.codeVerifier,
+        state: options.state,
+      },
+    ] as const;
+
     try {
-      tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
+      if (this.openid) {
+        tokenSet = await this.oauthClient.callback(...params);
+      } else {
+        tokenSet = await this.oauthClient.oauthCallback(...params);
+      }
     } catch (error: any) {
       if (error?.error === "invalid_grant") {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
