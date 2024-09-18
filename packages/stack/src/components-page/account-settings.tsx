@@ -464,18 +464,20 @@ function useSignOutSection() {
 
 function TeamPage(props: { team: Team }) {
   const teamUserProfileSection = useTeamUserProfileSection(props);
-  const teamManagementSection = useTeamManagementSection(props);
-  const userSettingsSection = useLeaveTeamSection(props);
+  const teamProfileImageSection = useTeamProfileImageSection(props);
+  const teamDisplayNameSection = useTeamDisplayNameSection(props);
+  const leaveTeamSection = useLeaveTeamSection(props);
   const memberInvitationSection = useMemberInvitationSection(props);
-  const membersSettingsSection = useMembersSettingsSection(props);
+  const memberListSection = useMemberListSection(props);
 
   return (
     <PageLayout>
       {teamUserProfileSection}
-      {teamManagementSection}
       {memberInvitationSection}
-      {membersSettingsSection}
-      {userSettingsSection}
+      {memberListSection}
+      {teamProfileImageSection}
+      {teamDisplayNameSection}
+      {leaveTeamSection}
     </PageLayout>
   );
 }
@@ -508,7 +510,7 @@ function useLeaveTeamSection(props: { team: Team }) {
   );
 }
 
-function useTeamManagementSection(props: { team: Team }) {
+function useTeamProfileImageSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const updateTeamPermission = user.usePermission(props.team, '$update_team');
@@ -518,25 +520,39 @@ function useTeamManagementSection(props: { team: Team }) {
   }
 
   return (
-    <>
-      <div className='flex flex-col'>
-        <Label>{t("Team display name")}</Label>
-        <ProfileImageEditor
-          user={props.team}
-          onProfileImageUrlChange={async (profileImageUrl) => {
-            await props.team.update({ profileImageUrl });
-          }}
-        />
-      </div>
+    <Section
+      title={t("Team profile image")}
+      description={t("Upload an image for your team")}
+    >
+      <ProfileImageEditor
+        user={props.team}
+        onProfileImageUrlChange={async (profileImageUrl) => {
+          await props.team.update({ profileImageUrl });
+        }}
+      />
+    </Section>
+  );
+}
 
-      <div className='flex flex-col'>
-        <Label>{t("Team display name")}</Label>
-        <EditableText
-          value={props.team.displayName}
-          onSave={async (newDisplayName) => await props.team.update({ displayName: newDisplayName })}
-        />
-      </div>
-    </>
+function useTeamDisplayNameSection(props: { team: Team }) {
+  const { t } = useTranslation();
+  const user = useUser({ or: 'redirect' });
+  const updateTeamPermission = user.usePermission(props.team, '$update_team');
+
+  if (!updateTeamPermission) {
+    return null;
+  }
+
+  return (
+    <Section
+      title={t("Team display name")}
+      description={t("Change the display name of your team")}
+    >
+      <EditableText
+        value={props.team.displayName}
+        onSave={async (newDisplayName) => await props.team.update({ displayName: newDisplayName })}
+      />
+    </Section>
   );
 }
 
@@ -619,7 +635,7 @@ function useMemberInvitationSection(props: { team: Team }) {
 }
 
 
-function useMembersSettingsSection(props: { team: Team }) {
+function useMemberListSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const readMemberPermission = user.usePermission(props.team, '$read_members');
