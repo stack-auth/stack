@@ -781,10 +781,7 @@ export function useDeleteAccountSection() {
               ) : (
                 <div className='flex flex-col gap-2'>
                   <Typography variant='destructive'>
-                    {t("Are you sure you want to delete your account?")}
-                  </Typography>
-                  <Typography>
-                    {t("This action is IRREVERSIBLE and will delete ALL associated data.")}
+                    {t("Are you sure you want to delete your account? This action is IRREVERSIBLE and will delete ALL associated data.")}
                   </Typography>
                   <div className='flex gap-2'>
                     <Button
