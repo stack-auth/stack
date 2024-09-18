@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Button, EditableText, Input, Label, PasswordInput, Separator, SimpleTooltip, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, EditableText, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -202,30 +202,28 @@ function useEmailVerificationSection() {
   }
 
   return (
-    <>
+    <Section
+      title={t("Email Verification")}
+      description={t("Verify your email address to secure your account")}
+    >
       <div>
-        <Label>{t("Email Verification")}</Label>
         {user.primaryEmailVerified ? (
           <Typography variant='success'>{t("Your email has been verified.")}</Typography>
         ) : (
-          <>
-            <Typography variant='destructive'>{t("Your email has not been verified.")}</Typography>
-            <div className='flex mt-4'>
-              <Button
-                disabled={emailSent}
-                onClick={async () => {
-                  await user.sendVerificationEmail();
+          <div className='flex'>
+            <Button
+              disabled={emailSent}
+              onClick={async () => {
+                await user.sendVerificationEmail();
                   setEmailSent(true);
-                }}
-              >
-                {emailSent ? t("Email sent!") : t("Send Verification Email")}
-              </Button>
-            </div>
-          </>
+              }}
+            >
+              {emailSent ? t("Email sent!") : t("Send Verification Email")}
+            </Button>
+          </div>
         )}
-
       </div>
-    </>
+    </Section>
   );
 }
 
@@ -447,7 +445,7 @@ function useSignOutSection() {
 
   return (
     <Section
-      title={t("Sign Out")}
+      title={t("Sign out")}
       description={t("End your current session")}
     >
       <div>
@@ -455,7 +453,7 @@ function useSignOutSection() {
           variant='secondary'
           onClick={() => user.signOut()}
         >
-          {t("Sign Out")}
+          {t("Sign out")}
         </Button>
       </div>
     </Section>
@@ -488,25 +486,44 @@ function useLeaveTeamSection(props: { team: Team }) {
   const [leaving, setLeaving] = useState(false);
 
   return (
-    <div className='flex flex-col gap-2'>
-      <div>
-        { !leaving ?
+    <Section
+      title={t("Leave Team")}
+      description={t("leave this team and remove your team profile")}
+    >
+      {!leaving ? (
+        <div>
           <Button
             variant='secondary'
-            onClick={async () => setLeaving(true)}
-          >{t("Leave team")}</Button> :
-          <div className=''>
-            <Typography variant='destructive'>{t("Are you sure you want to leave the team?")}</Typography>
-            <div className='flex gap-2'>
-              <Button variant='destructive' onClick={async () => {
+            onClick={() => setLeaving(true)}
+          >
+            {t("Leave team")}
+          </Button>
+        </div>
+      ) : (
+        <div className='flex flex-col gap-2'>
+          <Typography variant='destructive'>
+            {t("Are you sure you want to leave the team?")}
+          </Typography>
+          <div className='flex gap-2'>
+            <Button
+              variant='destructive'
+              onClick={async () => {
                 await user.leaveTeam(props.team);
                 window.location.reload();
-              }}>{t("Leave")}</Button>
-              <Button variant='secondary' onClick={() => setLeaving(false)}>{t("Cancel")}</Button>
-            </div>
-          </div>}
-      </div>
-    </div>
+              }}
+            >
+              {t("Leave")}
+            </Button>
+            <Button
+              variant='secondary'
+              onClick={() => setLeaving(false)}
+            >
+              {t("Cancel")}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Section>
   );
 }
 
@@ -737,7 +754,7 @@ export function useDeleteAccountSection() {
   const user = useUser({ or: 'redirect' });
   const app = useStackApp();
   const project = app.useProject();
-
+  const [deleting, setDeleting] = useState(false);
   if (!project.config.clientUserDeletionEnabled) {
     return null;
   }
@@ -752,24 +769,42 @@ export function useDeleteAccountSection() {
           <AccordionItem value="item-1">
             <AccordionTrigger>{t("Danger zone")}</AccordionTrigger>
             <AccordionContent>
-              <ActionDialog
-                trigger={<Button variant="destructive">{t("Delete Account")}</Button>}
-                title={t("Delete account")}
-                danger
-                okButton={{
-                  label: t("Delete Account"),
-                  onClick: async () => {
-                    await user.delete();
-                    await app.redirectToHome();
-                  }
-                }}
-                cancelButton
-                confirmText={t("I understand this action is IRREVERSIBLE and will delete ALL associated data.")}
-              >
-                <Typography>
-                  {t("Are you sure that you want to delete your account?")}
-                </Typography>
-              </ActionDialog>
+              {!deleting ? (
+                <div>
+                  <Button
+                    variant='destructive'
+                    onClick={() => setDeleting(true)}
+                  >
+                    {t("Delete account")}
+                  </Button>
+                </div>
+              ) : (
+                <div className='flex flex-col gap-2'>
+                  <Typography variant='destructive'>
+                    {t("Are you sure you want to delete your account?")}
+                  </Typography>
+                  <Typography>
+                    {t("This action is IRREVERSIBLE and will delete ALL associated data.")}
+                  </Typography>
+                  <div className='flex gap-2'>
+                    <Button
+                      variant='destructive'
+                      onClick={async () => {
+                        await user.delete();
+                        await app.redirectToHome();
+                      }}
+                    >
+                      {t("Delete Account")}
+                    </Button>
+                    <Button
+                      variant='secondary'
+                      onClick={() => setDeleting(false)}
+                    >
+                      {t("Cancel")}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
