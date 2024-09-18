@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+
 ## 2.5.35
 
 ## 2.5.34

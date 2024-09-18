@@ -14,11 +14,13 @@ export class LinkedInProvider extends OAuthBaseProvider {
   static async create(options: { clientId: string, clientSecret: string }) {
     return new LinkedInProvider(
       ...(await OAuthBaseProvider.createConstructorArgs({
-        issuer: "https://www.linkedin.com",
+        issuer: "https://www.linkedin.com/oauth",
         authorizationEndpoint: "https://www.linkedin.com/oauth/v2/authorization",
         tokenEndpoint: "https://www.linkedin.com/oauth/v2/accessToken",
         redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/linkedin",
         baseScope: "openid profile email",
+        openid: true,
+        jwksUri: "https://www.linkedin.com/oauth/openid/jwks",
         tokenEndpointAuthMethod: "client_secret_post",
         noPKCE: true,
         ...options,
