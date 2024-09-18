@@ -32,6 +32,7 @@ it("gets current project (internal)", async ({ expect }) => {
       "body": {
         "config": {
           "client_team_creation_enabled": true,
+          "client_user_deletion_enabled": false,
           "credential_enabled": true,
           "enabled_oauth_providers": [
             { "id": "github" },
@@ -65,6 +66,7 @@ it("creates and updates the basic project information of a project", async ({ ex
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -107,6 +109,7 @@ it("updates the basic project configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": false,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
@@ -149,6 +152,7 @@ it("updates the project domains configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -198,6 +202,7 @@ it("updates the project domains configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -278,6 +283,7 @@ it("updates the project email configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -330,6 +336,7 @@ it("updates the project email configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -376,6 +383,7 @@ it("updates the project email configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -414,6 +422,7 @@ it("updates the project email configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -458,6 +467,7 @@ it("updates the project email configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -561,6 +571,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -607,6 +618,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -655,6 +667,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -728,6 +741,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -789,6 +803,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
