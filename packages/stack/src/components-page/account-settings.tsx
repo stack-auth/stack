@@ -83,15 +83,7 @@ export function AccountSettings(props: {
               </div>,
               type: 'item',
               subpath: `/teams/${team.id}`,
-              content: (
-                <div className="flex flex-col gap-8">
-                  <ProfileSettings team={team}/>
-                  <ManagementSettings team={team}/>
-                  <MemberInvitation team={team}/>
-                  <MembersSettings team={team}/>
-                  <UserSettings team={team}/>
-                </div>
-              ),
+              content: <TeamPage team={team}/>,
             } as const)),
             ...project.config.clientTeamCreationEnabled ? [{
               title: t('Create a team'),
@@ -454,18 +446,41 @@ function useSignOutSection() {
   const user = useUser({ or: "throw" });
 
   return (
-    <div className='flex flex-col gap-2'>
+    <Section
+      title={t("Sign Out")}
+      description={t("End your current session")}
+    >
       <div>
         <Button
           variant='secondary'
           onClick={() => user.signOut()}
-        >{t("Sign Out")}</Button>
+        >
+          {t("Sign Out")}
+        </Button>
       </div>
-    </div>
+    </Section>
   );
 }
 
-function UserSettings(props: { team: Team }) {
+function TeamPage(props: { team: Team }) {
+  const teamUserProfileSection = useTeamUserProfileSection(props);
+  const teamManagementSection = useTeamManagementSection(props);
+  const userSettingsSection = useLeaveTeamSection(props);
+  const memberInvitationSection = useMemberInvitationSection(props);
+  const membersSettingsSection = useMembersSettingsSection(props);
+
+  return (
+    <PageLayout>
+      {teamUserProfileSection}
+      {teamManagementSection}
+      {memberInvitationSection}
+      {membersSettingsSection}
+      {userSettingsSection}
+    </PageLayout>
+  );
+}
+
+function useLeaveTeamSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const [leaving, setLeaving] = useState(false);
@@ -493,7 +508,7 @@ function UserSettings(props: { team: Team }) {
   );
 }
 
-function ManagementSettings(props: { team: Team }) {
+function useTeamManagementSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const updateTeamPermission = user.usePermission(props.team, '$update_team');
@@ -525,26 +540,27 @@ function ManagementSettings(props: { team: Team }) {
   );
 }
 
-function ProfileSettings(props: { team: Team }) {
+function useTeamUserProfileSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const profile = user.useTeamProfile(props.team);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-col">
-        <Label className="flex gap-2">{t("User display name")}<SimpleTooltip tooltip="This overwrites your user display name in the account setting" type='info'/></Label>
-        <EditableText
-          value={profile.displayName || ''}
-          onSave={async (newDisplayName) => {
-            await profile.update({ displayName: newDisplayName });
-          }}/>
-      </div>
-    </div>
+    <Section
+      title={t("Team user name")}
+      description={t("Overwrite your user display name in this team")}
+    >
+      <EditableText
+        value={profile.displayName || ''}
+        onSave={async (newDisplayName) => {
+          await profile.update({ displayName: newDisplayName });
+        }}
+      />
+    </Section>
   );
 }
 
-function MemberInvitation(props: { team: Team }) {
+function useMemberInvitationSection(props: { team: Team }) {
   const { t } = useTranslation();
 
   const invitationSchema = yupObject({
@@ -580,30 +596,30 @@ function MemberInvitation(props: { team: Team }) {
   }, [watch('email')]);
 
   return (
-    <div>
-      <Label>{t("Invite a user to team")}</Label>
+    <Section
+      title={t("Invite member")}
+      description={t("Invite a user to your team through email")}
+    >
       <form
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
         <div className="flex flex-col gap-4 md:flex-row">
-          <div>
-            <Input
-              placeholder={t("Email")}
-              {...register("email")}
-            />
-          </div>
+          <Input
+            placeholder={t("Email")}
+            {...register("email")}
+          />
           <Button type="submit" loading={loading}>{t("Invite User")}</Button>
         </div>
         <FormWarningText text={errors.email?.message?.toString()} />
         {invitedEmail && <Typography type='label' variant='secondary'>Invited {invitedEmail}</Typography>}
       </form>
-    </div>
+    </Section>
   );
 }
 
 
-function MembersSettings(props: { team: Team }) {
+function useMembersSettingsSection(props: { team: Team }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const readMemberPermission = user.usePermission(props.team, '$read_members');
@@ -621,27 +637,29 @@ function MembersSettings(props: { team: Team }) {
 
   return (
     <div>
-      <Label>{t("Members")}</Label>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">{t("User")}</TableHead>
-            <TableHead className="w-[200px]">{t("Name")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map(({ id, teamProfile }, i) => (
-            <TableRow key={id}>
-              <TableCell>
-                <UserAvatar user={teamProfile}/>
-              </TableCell>
-              <TableCell>
-                <Typography>{teamProfile.displayName}</Typography>
-              </TableCell>
+      <Typography className='font-medium mb-2'>{t("Members")}</Typography>
+      <div className='border rounded-md'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">{t("User")}</TableHead>
+              <TableHead className="w-[200px]">{t("Name")}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {users.map(({ id, teamProfile }, i) => (
+              <TableRow key={id}>
+                <TableCell>
+                  <UserAvatar user={teamProfile}/>
+                </TableCell>
+                <TableCell>
+                  <Typography>{teamProfile.displayName}</Typography>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
@@ -676,29 +694,25 @@ export function TeamCreation() {
   };
 
   return (
-    <div className='stack-scope flex flex-col items-stretch'>
-      <div className="mb-6">
+    <PageLayout>
+      <Section title={t("Create a Team")} description={t("Enter a display name for your new team")}>
         <form
-          className="flex flex-col items-stretch stack-scope"
           onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
           noValidate
+          className='flex gap-2'
         >
-          <div className="flex items-end gap-4">
-            <div>
-              <Label htmlFor="email" className="mb-1">{t("Display name")}</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("displayName")}
-              />
-            </div>
+          <div className='flex flex-col flex-1'>
+            <Input
+              id="displayName"
+              type="text"
+              {...register("displayName")}
+            />
             <FormWarningText text={errors.displayName?.message?.toString()} />
-
-            <Button type="submit" className="mt-6" loading={loading}>{t("Create")}</Button>
           </div>
+          <Button type="submit" loading={loading}>{t("Create")}</Button>
         </form>
-      </div>
-    </div>
+      </Section>
+    </PageLayout>
   );
 }
 
@@ -713,11 +727,14 @@ export function useDeleteAccountSection() {
   }
 
   return (
-    <div className='stack-scope flex flex-col items-stretch'>
-      <div className="mb-6">
+    <Section
+      title={t("Delete Account")}
+      description={t("Permanently remove your account and all associated data")}
+    >
+      <div className='stack-scope flex flex-col items-stretch'>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="item-1">
-            <AccordionTrigger>{t("Delete Account")}</AccordionTrigger>
+            <AccordionTrigger>{t("Danger zone")}</AccordionTrigger>
             <AccordionContent>
               <ActionDialog
                 trigger={<Button variant="destructive">{t("Delete Account")}</Button>}
@@ -741,6 +758,6 @@ export function useDeleteAccountSection() {
           </AccordionItem>
         </Accordion>
       </div>
-    </div>
+    </Section>
   );
 }
