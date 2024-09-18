@@ -2062,6 +2062,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
             return {
               id: p.id,
               type: p.type,
+              shared: p.shared,
               clientId: p.client_id,
               clientSecret: p.client_secret,
               facebookConfigId: p.facebook_config_id,

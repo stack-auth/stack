@@ -14,11 +14,11 @@ const oauthProviderConfigSharedFields = {
 const oauthProviderConfigSchema = schemaFields.yupUnion(
   yupObject({
     ...oauthProviderConfigSharedFields,
-    shared: schemaFields.yupBoolean().oneOf([true]).required(),
+    shared: schemaFields.yupBoolean().isTrue().required(),
   }).required(),
   yupObject({
     ...oauthProviderConfigSharedFields,
-    shared: schemaFields.yupBoolean().oneOf([false]).required(),
+    shared: schemaFields.yupBoolean().isFalse().required(),
     client_id: yupString().required(),
     client_secret: yupString().required(),
     facebook_config_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the configuration id for Facebook business login (for things like ads and marketing).' } }),
