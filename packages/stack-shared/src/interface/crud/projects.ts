@@ -106,7 +106,7 @@ export const projectsCrudAdminReadSchema = yupObject({
     connected_account_configs: yupArray(connectedAccountConfigSchema).required(),
     enabled_oauth_provider_configs: yupArray(clientOAuthProviderConfigSchema).required(),
     enabled_auth_method_configs: yupArray(clientAuthMethodConfigSchema).required(),
-    enabled_connected_accounts_configs: yupArray(clientConnectedAccountConfigSchema).required(),
+    enabled_connected_account_configs: yupArray(clientConnectedAccountConfigSchema).required(),
 
     // =============
     /* @deprecated */
@@ -130,7 +130,7 @@ export const projectsCrudClientReadSchema = yupObject({
 
     enabled_oauth_provider_configs: yupArray(clientOAuthProviderConfigSchema).required(),
     enabled_auth_method_configs: yupArray(clientAuthMethodConfigSchema).required(),
-    enabled_connected_accounts_configs: yupArray(clientConnectedAccountConfigSchema).required(),
+    enabled_connected_account_configs: yupArray(clientConnectedAccountConfigSchema).required(),
 
     // ==============
     /* @deprecated */

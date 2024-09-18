@@ -236,7 +236,7 @@ export function projectPrismaToCrud(
       connected_account_configs: connectedAccountConfigs,
       enabled_oauth_provider_configs: oauthProviderConfigs.filter(provider => enabledOAuthProviderIds.has(provider.id)),
       enabled_auth_method_configs: authMethodConfigs.filter(config => config.enabled),
-      enabled_connected_accounts_configs: connectedAccountConfigs.filter(config => config.enabled),
+      enabled_connected_account_configs: connectedAccountConfigs.filter(config => config.enabled),
 
       /* @deprecated */
       enabled_oauth_providers: enabledOauthProviders,

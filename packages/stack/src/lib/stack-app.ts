@@ -694,6 +694,40 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         signUpEnabled: crud.config.sign_up_enabled,
         clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
         clientUserDeletionEnabled: crud.config.client_user_deletion_enabled,
+        enabledOAuthProviderConfigs: crud.config.enabled_oauth_provider_configs.map((config) => ({
+          id: config.id,
+          type: config.type,
+        })),
+        enabledAuthMethodConfigs: crud.config.enabled_auth_method_configs.map((config) => {
+          switch (config.type) {
+            case 'password': {
+              return {
+                id: config.id,
+                type: 'password',
+                enabled: config.enabled,
+              };
+            }
+            case 'otp': {
+              return {
+                id: config.id,
+                type: 'otp',
+                enabled: config.enabled,
+              };
+            }
+            case 'oauth': {
+              return {
+                id: config.id,
+                type: 'oauth',
+                enabled: config.enabled,
+                providerConfigId: config.provider_config_id,
+              };
+            }
+          }
+        }),
+        enabledConnectedAccountConfigs: crud.config.enabled_connected_account_configs.map((config) => ({
+          id: config.id,
+          providerId: config.provider_id,
+        })),
       }
     };
   }
@@ -1978,6 +2012,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     if (data.id !== this.projectId) {
       throw new StackAssertionError(`The project ID of the provided project JSON (${data.id}) does not match the project ID of the app (${this.projectId})!`);
     }
+    const clientProject = this._clientProjectFromCrud(data);
 
     const app = this;
     return {
@@ -2011,6 +2046,60 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         createTeamOnSignUp: data.config.create_team_on_sign_up,
         teamCreatorDefaultPermissions: data.config.team_creator_default_permissions,
         teamMemberDefaultPermissions: data.config.team_member_default_permissions,
+
+        enabledOAuthProviderConfigs: clientProject.config.enabledAuthMethodConfigs,
+        enabledAuthMethodConfigs: clientProject.config.enabledAuthMethodConfigs,
+        enabledConnectedAccountConfigs: clientProject.config.enabledConnectedAccountConfigs,
+
+        oauthProviderConfigs: data.config.oauth_provider_configs.map((p) => {
+          if (p.shared) {
+            return {
+              id: p.id,
+              type: p.type,
+              shared: p.shared,
+            };
+          } else {
+            return {
+              id: p.id,
+              type: p.type,
+              clientId: p.client_id,
+              clientSecret: p.client_secret,
+              facebookConfigId: p.facebook_config_id,
+              microsoftTenantId: p.microsoft_tenant_id,
+            };
+          }
+        }),
+        authMethodConfigs: data.config.auth_method_configs.map((p) => {
+          switch (p.type) {
+            case 'password': {
+              return {
+                id: p.id,
+                enabled: p.enabled,
+                type: p.type,
+              };
+            }
+            case 'otp': {
+              return {
+                id: p.id,
+                enabled: p.enabled,
+                type: p.type,
+              };
+            }
+            case 'oauth': {
+              return {
+                id: p.id,
+                enabled: p.enabled,
+                type: p.type,
+                providerConfigId: p.provider_config_id,
+              };
+            }
+          }
+        }),
+        connectedAccountConfigs: data.config.connected_account_configs.map((c) => ({
+          id: c.id,
+          enabled: c.enabled,
+          providerId: c.provider_id,
+        })),
       },
 
       async update(update: AdminProjectUpdateOptions) {
@@ -2552,11 +2641,27 @@ export type ProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
+  readonly enabledOAuthProviderConfigs: OAuthProviderConfig[],
+  readonly enabledAuthMethodConfigs: AuthMethodConfig[],
+  readonly enabledConnectedAccountConfigs: ConnectedAccountConfig[],
 };
 
 export type OAuthProviderConfig = {
   readonly id: string,
 };
+
+export type AuthMethodConfig = {
+  readonly id: string,
+} & (
+  | { type: 'oauth', providerConfigId: string }
+  | { type: 'password' }
+  | { type: 'otp' }
+);
+
+export type ConnectedAccountConfig = {
+  readonly id: string,
+  readonly providerId: string,
+}
 
 export type AdminProjectConfig = {
   readonly id: string,
@@ -2569,6 +2674,9 @@ export type AdminProjectConfig = {
   readonly createTeamOnSignUp: boolean,
   readonly teamCreatorDefaultPermissions: AdminTeamPermission[],
   readonly teamMemberDefaultPermissions: AdminTeamPermission[],
+  readonly oauthProviderConfigs: AdminOAuthProviderConfig[],
+  readonly authMethodConfigs: AdminAuthMethodConfig[],
+  readonly connectedAccountConfigs: AdminConnectedAccountConfig[],
 };
 
 export type AdminEmailConfig = (
@@ -2593,17 +2701,25 @@ export type AdminDomainConfig = {
 
 export type AdminOAuthProviderConfig = {
   id: string,
-  enabled: boolean,
 } & (
-  | { type: 'shared' }
+  | { shared: true }
   | {
-    type: 'standard',
+    shared: false,
+    type: string,
     clientId: string,
     clientSecret: string,
     facebookConfigId?: string,
     microsoftTenantId?: string,
   }
 ) & OAuthProviderConfig;
+
+export type AdminAuthMethodConfig = {
+  enabled: boolean,
+} & AuthMethodConfig;
+
+export type AdminConnectedAccountConfig = {
+  enabled: boolean,
+} & ConnectedAccountConfig;
 
 export type AdminProjectConfigUpdateOptions = {
   domains?: {
