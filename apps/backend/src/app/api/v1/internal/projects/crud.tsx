@@ -169,7 +169,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
         },
         data: {
           connectedAccountConfigs: data.config?.connected_accounts ? {
-            create: data.config.connected_accounts?.map(item => ({
+            create: data.config.connected_accounts.map(item => ({
               enabled: item.enabled,
               oauthProviderConfig: {
                 connect: {

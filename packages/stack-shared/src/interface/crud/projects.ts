@@ -26,6 +26,11 @@ const oauthProviderConfigSchema = schemaFields.yupUnion(
   }).required(),
 );
 
+const clientOAuthProviderConfigSchema = yupObject({
+  id: yupString().required(),
+  type: yupString().oneOf(allProviders).required(),
+}).required();
+
 const authMethodSharedFields = {
   id: yupString().required(),
   enabled: schemaFields.yupBoolean().required(),
@@ -46,11 +51,15 @@ const authMethodConfigSchema = schemaFields.yupUnion(
   }).required(),
 );
 
-const connectedAccountSchema = yupObject({
+const clientAuthMethodConfigSchema = authMethodConfigSchema;
+
+const connectedAccountConfigSchema = yupObject({
   id: yupString().required(),
   enabled: schemaFields.yupBoolean().required(),
   provider_id: yupString().required(),
 });
+
+const clientConnectedAccountConfigSchema = connectedAccountConfigSchema;
 
 const enabledOAuthProviderSchema = yupObject({
   id: schemaFields.oauthIdSchema.required(),
@@ -94,7 +103,10 @@ export const projectsCrudAdminReadSchema = yupObject({
 
     oauth_provider_configs: yupArray(oauthProviderConfigSchema).required(),
     auth_method_configs: yupArray(authMethodConfigSchema).required(),
-    connected_accounts: yupArray(connectedAccountSchema).required(),
+    connected_account_configs: yupArray(connectedAccountConfigSchema).required(),
+    enabled_oauth_provider_configs: yupArray(clientOAuthProviderConfigSchema).required(),
+    enabled_auth_method_configs: yupArray(clientAuthMethodConfigSchema).required(),
+    enabled_connected_accounts_configs: yupArray(clientConnectedAccountConfigSchema).required(),
 
     // =============
     /* @deprecated */
@@ -115,6 +127,10 @@ export const projectsCrudClientReadSchema = yupObject({
 
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
+
+    enabled_oauth_provider_configs: yupArray(clientOAuthProviderConfigSchema).required(),
+    enabled_auth_method_configs: yupArray(clientAuthMethodConfigSchema).required(),
+    enabled_connected_accounts_configs: yupArray(clientConnectedAccountConfigSchema).required(),
 
     // ==============
     /* @deprecated */
@@ -147,7 +163,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
 
     oauth_provider_configs: yupArray(oauthProviderConfigSchema).optional().default(undefined),
     auth_method_configs: yupArray(authMethodConfigSchema).optional().default(undefined),
-    connected_accounts: yupArray(connectedAccountSchema).optional().default(undefined),
+    connected_accounts: yupArray(connectedAccountConfigSchema).optional().default(undefined),
   }).optional().default(undefined),
 }).required();
 
