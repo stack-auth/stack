@@ -7,4 +7,3 @@
 
 
 ALTER TYPE "StandardOAuthProviderType" ADD VALUE 'X';
-ALTER TYPE "StandardOAuthProviderType" ADD VALUE 'SLACK';

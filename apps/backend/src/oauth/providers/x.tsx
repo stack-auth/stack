@@ -32,12 +32,14 @@ export class XProvider extends OAuthBaseProvider {
       }
     ).then((res) => res.json());
 
+    console.log("userInfo", userInfo);
+
     return validateUserInfo({
       accountId: userInfo?.id?.toString(),
       displayName: userInfo.name || userInfo.username,
-      // email: undefined, // There is no way of getting email from X Oauth2.0 API
+      email: null, // There is no way of getting email from X Oauth2.0 API
       profileImageUrl: userInfo.profile_image_url as any,
       emailVerified: false,
-    });
+    }, { expectNoEmail: true });
   }
 }

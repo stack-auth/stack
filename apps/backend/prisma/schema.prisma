@@ -569,7 +569,6 @@ enum StandardOAuthProviderType {
   LINKEDIN
   APPLE
   X
-  SLACK
 }
 
 model OAuthToken {

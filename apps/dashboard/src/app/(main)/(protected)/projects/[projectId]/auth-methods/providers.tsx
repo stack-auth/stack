@@ -28,7 +28,6 @@ function toTitle(id: string) {
     bitbucket: "Bitbucket",
     linkedin: "LinkedIn",
     x: "X",
-    slack: "Slack",
   }[id];
 }
 
