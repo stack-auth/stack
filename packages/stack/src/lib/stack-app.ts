@@ -2649,6 +2649,7 @@ export type ProjectConfig = {
 
 export type OAuthProviderConfig = {
   readonly id: string,
+  readonly type: string,
 };
 
 export type AuthMethodConfig = {

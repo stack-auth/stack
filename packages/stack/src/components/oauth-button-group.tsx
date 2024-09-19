@@ -1,5 +1,6 @@
 'use client';
 
+import { MockProject } from "../components-page/auth-page";
 import { useStackApp } from "../lib/hooks";
 import { OAuthButton } from "./oauth-button";
 
@@ -8,20 +9,18 @@ export function OAuthButtonGroup({
   mockProject,
 }: {
   type: 'sign-in' | 'sign-up',
-  mockProject?: {
-    config: {
-      oauthProviders: {
-        id: string,
-      }[],
-    },
-  },
+  mockProject?: MockProject,
 }) {
   const stackApp = useStackApp();
   const project = mockProject || stackApp.useProject();
   return (
     <div className='gap-4 flex flex-col items-stretch stack-scope'>
-      {project.config.oauthProviders.map(p => (
-        <OAuthButton key={p.id} provider={p.id} type={type}/>
+      {project.config.enabledAuthMethodConfigs.map(p => (
+        p.type === 'oauth' ? <OAuthButton
+          key={(p as any).provider_config_id}
+          provider={(p as any).provider_config_id}
+          type={type}
+        /> : null
       ))}
     </div>
   );

@@ -5,6 +5,7 @@ import Color from 'color';
 import { useId } from 'react';
 import { useStackApp } from '..';
 import { useTranslation } from '../lib/translations';
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 
 const iconSize = 22;
 
@@ -156,7 +157,12 @@ export function OAuthButton({
 }) {
   const { t } = useTranslation();
   const stackApp = useStackApp();
+  const project = stackApp.useProject();
   const styleId = useId().replaceAll(':', '-');
+
+  if (provider.length >= 10) {
+    provider = project.config.enabledOAuthProviderConfigs.find(p => p.id === provider)?.type || throwErr('Invalid provider');
+  }
 
   let style : {
     backgroundColor?: string,
