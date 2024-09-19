@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.5.37
+
+### Patch Changes
+
+- client side account deletion; new account setting style;
+
 ## 2.5.36
 
 ### Patch Changes
