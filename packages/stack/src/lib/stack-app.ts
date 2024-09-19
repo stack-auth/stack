@@ -695,6 +695,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
         clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
+        clientUserDeletionEnabled: crud.config.client_user_deletion_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
           id: p.id,
         })),
@@ -913,7 +914,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result);
-      }
+      },
+      async delete() {
+        await app._interface.deleteCurrentUser(session);
+        session.markInvalid();
+      },
     };
   }
 
@@ -1208,6 +1213,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signInWithCredential(options: {
     email: string,
     password: string,
+    noRedirect?: boolean,
   }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
@@ -1224,7 +1230,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
-      return await this.redirectToAfterSignIn({ replace: true });
+      if (!options.noRedirect) {
+        return await this.redirectToAfterSignIn({ replace: true });
+      } else {
+        return;
+      }
     }
     return result;
   }
@@ -1232,6 +1242,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async signUpWithCredential(options: {
     email: string,
     password: string,
+    noRedirect?: boolean,
   }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | void> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
@@ -1244,7 +1255,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     );
     if (!(result instanceof KnownError)) {
       await this._signInToAccountWithTokens(result);
-      return await this.redirectToAfterSignUp({ replace: true });
+      if (!options.noRedirect) {
+        return await this.redirectToAfterSignUp({ replace: true });
+      } else {
+        return;
+      }
     }
     return result;
   }
@@ -1563,6 +1578,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     return {
       ...super._createBaseUser(crud),
+      lastActiveAt: new Date(crud.last_active_at_millis),
       serverMetadata: crud.server_metadata,
       async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
         await app._updateServerUser(crud.id, { primaryEmail: email, primaryEmailVerified: options?.verified });
@@ -1983,6 +1999,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
         clientTeamCreationEnabled: data.config.client_team_creation_enabled,
+        clientUserDeletionEnabled: data.config.client_user_deletion_enabled,
         allowLocalhost: data.config.allow_localhost,
         oauthProviders: data.config.oauth_providers.map((p) => ((p.type === 'shared' ? {
           id: p.id,
@@ -1995,6 +2012,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
           clientId: p.client_id ?? throwErr("Client ID is missing"),
           clientSecret: p.client_secret ?? throwErr("Client secret is missing"),
           facebookConfigId: p.facebook_config_id,
+          microsoftTenantId: p.microsoft_tenant_id,
         } as const))),
         emailConfig: data.config.email_config.type === 'shared' ? {
           type: 'shared'
@@ -2343,6 +2361,8 @@ type UserExtra = {
    */
   update(update: UserUpdateOptions): Promise<void>,
 
+  delete(): Promise<void>,
+
   getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
   getConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
   useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
@@ -2394,6 +2414,8 @@ type ___________server_user = never;  // this is a marker for VSCode's outline v
 type ServerBaseUser = {
   setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
 
+  readonly lastActiveAt: Date,
+
   readonly serverMetadata: any,
   setServerMetadata(metadata: any): Promise<void>,
   setClientReadOnlyMetadata(metadata: any): Promise<void>,
@@ -2401,7 +2423,6 @@ type ServerBaseUser = {
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   update(user: ServerUserUpdateOptions): Promise<void>,
-  delete(): Promise<void>,
 
   grantPermission(scope: Team, permissionId: string): Promise<void>,
   revokePermission(scope: Team, permissionId: string): Promise<void>,
@@ -2521,6 +2542,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
           client_id: p.clientId,
           client_secret: p.clientSecret,
           facebook_config_id: p.facebookConfigId,
+          microsoft_tenant_id: p.microsoftTenantId,
         }),
       })),
       email_config: options.config?.emailConfig && (
@@ -2542,6 +2564,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
       client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
+      client_user_deletion_enabled: options.config?.clientUserDeletionEnabled,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
     },
@@ -2565,6 +2588,7 @@ export type ProjectConfig = {
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
+  readonly clientUserDeletionEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
 };
 
@@ -2578,6 +2602,7 @@ export type AdminProjectConfig = {
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
+  readonly clientUserDeletionEnabled: boolean,
   readonly allowLocalhost: boolean,
   readonly oauthProviders: AdminOAuthProviderConfig[],
   readonly emailConfig?: AdminEmailConfig,
@@ -2617,6 +2642,7 @@ export type AdminOAuthProviderConfig = {
     clientId: string,
     clientSecret: string,
     facebookConfigId?: string,
+    microsoftTenantId?: string,
   }
 ) & OAuthProviderConfig;
 
@@ -2630,6 +2656,7 @@ export type AdminProjectConfigUpdateOptions = {
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
   clientTeamCreationEnabled?: boolean,
+  clientUserDeletionEnabled?: boolean,
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
   emailConfig?: AdminEmailConfig,
@@ -2845,8 +2872,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
-    signUpWithCredential(options: { email: string, password: string }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
+    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
     sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,

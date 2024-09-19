@@ -3,6 +3,7 @@ import { InputField, SwitchListField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { AuthPage, useUser } from "@stackframe/stack";
+import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { BrowserFrame, Button, Form, Separator, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -11,7 +12,7 @@ import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Display name is required").required(),
-  signInMethods: yup.array(yup.string().oneOf(["google", "github", "microsoft", "facebook", "credential", "magicLink", "discord", "gitlab"]).required()).required(),
+  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink"].concat(allProviders)).required()).required(),
 });
 
 export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
@@ -37,7 +38,7 @@ export default function PageClient () {
       signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
-      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "facebook"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
+      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
 
@@ -88,7 +89,7 @@ export default function PageClient () {
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },
-                  { value: "facebook", label: "Facebook" },
+                  { value: "spotify", label: "Spotify" },
                 ]}
               />
 

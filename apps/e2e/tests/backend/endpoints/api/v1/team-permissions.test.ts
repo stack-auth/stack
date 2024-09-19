@@ -45,7 +45,7 @@ it("is not allowed to grant non-existing permission to a user on the server", as
 
 it("can create a new permission and grant it to a user on the server", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
 
   // create a permission child
   await niceBackendFetch(`/api/v1/team-permission-definitions`, {
@@ -187,6 +187,7 @@ it("can customize default team permissions", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],

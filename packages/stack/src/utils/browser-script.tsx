@@ -16,12 +16,64 @@ const script = () => {
     return null;
   };
 
+  const setTheme = (mode: 'dark' | 'light') => {
+    document.documentElement.setAttribute('data-stack-theme', mode);
+  };
+
+  const colorToRGB = (color: string): [number, number, number] | null => {
+    // Create a temporary element to use for color conversion
+    const temp = document.createElement('div');
+    temp.style.color = color;
+    document.body.appendChild(temp);
+
+    // Get the computed style
+    const computedColor = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+
+    // Parse the RGB values
+    const match = computedColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (match) {
+      return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+    }
+
+    return null;
+  };
+
+  const rgbToLuma = (rgb: [number, number, number]) => {
+    return (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+  };
+
   const copyFromColorScheme = () => {
     const colorScheme = getComputedStyle(document.documentElement).getPropertyValue('color-scheme');
+
     if (colorScheme) {
       const mode = getColorMode(colorScheme);
       if (mode) {
-        document.documentElement.setAttribute('data-stack-theme', mode);
+        setTheme(mode);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const copyFromVariables = () => {
+    let backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background');
+    if (backgroundColor) {
+      // shadcn by default uses the hsl values with the format "123 45% 6.5%"
+      if (/^\d+\s\d+%\s\d+(\.\d+)?%$/.test(backgroundColor)) {
+        backgroundColor = `hsl(${backgroundColor})`;
+      }
+
+      // convert backgroundColor to luma and check if it's dark
+      const rgb = colorToRGB(backgroundColor);
+      console.log(rgb);
+      if (rgb) {
+        const luma = rgbToLuma(rgb);
+        if (luma < 128) {
+          setTheme('dark');
+        } else {
+          setTheme('light');
+        }
         return true;
       }
     }
@@ -34,7 +86,7 @@ const script = () => {
       if (colorTheme) {
         const mode = getColorMode(colorTheme);
         if (mode) {
-          document.documentElement.setAttribute('data-stack-theme', mode);
+          setTheme(mode);
           return true;
         }
       }
@@ -47,8 +99,11 @@ const script = () => {
       if (copyFromColorScheme()) {
         return;
       }
-      if (mutation.attributeName && attributes.includes(mutation.attributeName)) {
-        copyFromAttributes();
+      if (mutation.attributeName && attributes.includes(mutation.attributeName) && copyFromAttributes()) {
+        return;
+      }
+      if (copyFromVariables()) {
+        return;
       }
     });
   });
@@ -60,7 +115,9 @@ const script = () => {
 
   // Initial check on page load
   if (!copyFromColorScheme()) {
-    copyFromAttributes();
+    if (!copyFromAttributes()) {
+      copyFromVariables();
+    }
   }
 };
 

@@ -30,12 +30,13 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [🌱 Some community projects built with Stack](#-some-community-projects-built-with-stack)
   - [Templates](#templates)
   - [Examples](#examples)
-- [🏗️ Development & Contribution](#-development--contribution)
+- [🏗 Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Database migrations](#database-migrations)
+  - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
-- [❤️ Contributors](#-contributors)
+- [❤ Contributors](#-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -84,7 +85,7 @@ Have your own? Happy to feature it if you create a PR or message us on [Discord]
 - [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/demo)
 - [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/e-commerce)
 
-## 🏗️ Development & Contribution
+## 🏗 Development & Contribution
 
 This is for you if you want to contribute to the Stack project or run the Stack dashboard locally.
 
@@ -100,13 +101,7 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
 
-In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
-
-```sh
-docker compose -f dependencies.compose.yaml up
-```
-
-Then open a new terminal:
+In a new terminal:
 
 ```sh
 pnpm install
@@ -114,12 +109,10 @@ pnpm install
 # Run build to build everything once
 pnpm run build
 
-# initialize the database and seed it with some data
-pnpm prisma db push
-pnpm prisma db seed
-
-# Run code generation (repeat this after eg. changing the Prisma schema). This is part of the build script, but faster
-pnpm run codegen
+# reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
+pnpm run restart-deps
+# pnpm run start-deps
+# pnpm run stop-deps
 
 # Start the dev server
 pnpm run dev
@@ -145,6 +138,10 @@ If you make changes to the Prisma schema, you need to run the following command 
 ```sh
 pnpm run prisma migrate dev
 ```
+
+### Chat with the codebase
+
+Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that can answer questions about using and contributing to Stack.
 
 ### Architecture overview
 
@@ -194,7 +191,7 @@ pnpm run prisma migrate dev
 
 Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
 
-## ❤️ Contributors
+## ❤ Contributors
 
 <a href="https://github.com/stack-auth/stack/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" width="100%" />

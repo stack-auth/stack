@@ -1,18 +1,17 @@
-import Image from "next/image";
+import { Avatar, AvatarImage, Typography } from "@stackframe/stack-ui";
 import { Team } from "..";
-import { Typography } from "@stackframe/stack-ui";
 
 export function TeamIcon(props: { team: Team }) {
   if (props.team.profileImageUrl) {
     return (
-      <div className="w-6 h-6 rounded bg-gray-200 overflow-hidden">
-        <Image src={props.team.profileImageUrl} alt={props.team.displayName} className="w-6 h-6" />
-      </div>
+      <Avatar className="w-6 h-6 rounded">
+        <AvatarImage src={props.team.profileImageUrl} alt={props.team.displayName} />
+      </Avatar>
     );
   } else {
     return (
-      <div className="flex items-center justify-center w-6 h-6 rounded bg-gray-200">
-        <Typography>{props.team.displayName.slice(0, 1).toUpperCase()}</Typography>
+      <div className="flex items-center justify-center w-6 h-6 rounded bg-zinc-200">
+        <Typography className="text-zinc-800 dark:text-zinc-800">{props.team.displayName.slice(0, 1).toUpperCase()}</Typography>
       </div>
     );
   }

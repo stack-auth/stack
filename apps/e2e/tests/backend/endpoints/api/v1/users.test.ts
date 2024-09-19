@@ -1,7 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
   backendContext.set({
@@ -305,7 +305,14 @@ describe("with client access", () => {
     `);
   });
 
-  it("should not be able to delete own user", async ({ expect }) => {
+  it("should not be able to delete own user if project is not configured to allow it", async ({ expect }) => {
+    await Project.createAndSwitch({
+      config: {
+        client_user_deletion_enabled: false,
+        magic_link_enabled: true,
+      },
+    });
+
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "client",
@@ -313,22 +320,31 @@ describe("with client access", () => {
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 401,
-        "body": {
-          "code": "INSUFFICIENT_ACCESS_TYPE",
-          "details": {
-            "actual_access_type": "client",
-            "allowed_access_types": [
-              "server",
-              "admin",
-            ],
-          },
-          "error": "The x-stack-access-type header must be 'server' or 'admin', but was 'client'.",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
-          <some fields may have been hidden>,
-        },
+        "status": 400,
+        "body": "Client user deletion is not enabled for this project",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to delete own user if project is configured to allow it", async ({ expect }) => {
+    await Project.createAndSwitch({
+      config: {
+        client_user_deletion_enabled: true,
+        magic_link_enabled: true,
+      },
+    });
+
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "DELETE",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
@@ -634,6 +650,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -678,6 +695,7 @@ describe("with server access", () => {
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -742,6 +760,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -776,6 +795,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": null,
           "primary_email_verified": false,
@@ -822,6 +842,7 @@ describe("with server access", () => {
           "display_name": "John Dough",
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -854,15 +875,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -872,6 +893,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": true,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -963,6 +985,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -1019,6 +1042,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -1048,15 +1072,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1066,6 +1090,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": true,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -1110,15 +1135,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1128,6 +1153,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": true,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -1160,6 +1186,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
@@ -1224,6 +1251,7 @@ describe("with server access", () => {
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -1260,6 +1288,7 @@ describe("with server access", () => {
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -1305,6 +1334,7 @@ describe("with server access", () => {
           "display_name": "John Doe",
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -1336,15 +1366,15 @@ describe("with server access", () => {
         "body": {
           "auth_methods": [
             {
-              "identifier": "<stripped UUID>@stack-generated.example.com",
-              "type": "password",
-            },
-            {
               "contact_channel": {
                 "email": "<stripped UUID>@stack-generated.example.com",
                 "type": "email",
               },
               "type": "otp",
+            },
+            {
+              "identifier": "<stripped UUID>@stack-generated.example.com",
+              "type": "password",
             },
           ],
           "auth_with_email": true,
@@ -1354,6 +1384,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": true,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
@@ -1448,6 +1479,7 @@ describe("with server access", () => {
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,

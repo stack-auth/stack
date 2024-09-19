@@ -1,5 +1,122 @@
 # @stackframe/stack
 
+## 2.5.37
+
+### Patch Changes
+
+- client side account deletion; new account setting style;
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.37
+  - @stackframe/stack-ui@2.5.37
+  - @stackframe/stack-sc@2.5.37
+
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.36
+  - @stackframe/stack-sc@2.5.36
+  - @stackframe/stack-ui@2.5.36
+
+## 2.5.35
+
+### Patch Changes
+
+- Doc improvements
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.35
+  - @stackframe/stack-ui@2.5.35
+  - @stackframe/stack-sc@2.5.35
+
+## 2.5.34
+
+### Patch Changes
+
+- Internationalization
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.34
+  - @stackframe/stack-ui@2.5.34
+  - @stackframe/stack-sc@2.5.34
+
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.33
+  - @stackframe/stack-ui@2.5.33
+  - @stackframe/stack-sc@2.5.33
+
+## 2.5.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.32
+  - @stackframe/stack-ui@2.5.32
+  - @stackframe/stack-sc@2.5.32
+
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.31
+  - @stackframe/stack-ui@2.5.31
+  - @stackframe/stack-sc@2.5.31
+
+## 2.5.30
+
+### Patch Changes
+
+- More OAuth providers
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.30
+  - @stackframe/stack-ui@2.5.30
+  - @stackframe/stack-sc@2.5.30
+
+## 2.5.29
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.5.29
+- @stackframe/stack-shared@2.5.29
+- @stackframe/stack-ui@2.5.29
+
+## 2.5.28
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.28
+  - @stackframe/stack-ui@2.5.28
+  - @stackframe/stack-sc@2.5.28
+
+## 2.5.27
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.27
+  - @stackframe/stack-sc@2.5.27
+  - @stackframe/stack-ui@2.5.27
+
+## 2.5.26
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@2.5.26
+  - @stackframe/stack-shared@2.5.26
+  - @stackframe/stack-ui@2.5.26
+
 ## 2.5.25
 
 ### Patch Changes

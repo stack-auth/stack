@@ -16,6 +16,7 @@ import { PlusCircle, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { Team, useStackApp, useUser } from "..";
+import { useTranslation } from "../lib/translations";
 import { TeamIcon } from "./team-icon";
 
 type SelectedTeamSwitcherProps = {
@@ -25,6 +26,7 @@ type SelectedTeamSwitcherProps = {
 };
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+  const { t } = useTranslation();
   const app = useStackApp();
   const user = useUser();
   const project = app.useProject();
@@ -65,7 +67,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         {user?.selectedTeam ? <SelectGroup>
           <SelectLabel>
             <div className="flex items-center justify-between">
-              Current team
+              {t('Current team')}
               <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
                 <Settings className="h-4 w-4"/>
               </Button>
@@ -81,7 +83,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
 
         {teams?.length ?
           <SelectGroup>
-            <SelectLabel>Other teams</SelectLabel>
+            <SelectLabel>{t('Other teams')}</SelectLabel>
             {teams.filter(team => team.id !== user?.selectedTeam?.id)
               .map(team => (
                 <SelectItem value={team.id} key={team.id}>
@@ -93,7 +95,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
               ))}
           </SelectGroup> :
           <SelectGroup>
-            <SelectLabel>No teams yet</SelectLabel>
+            <SelectLabel>{t('No teams yet')}</SelectLabel>
           </SelectGroup>}
 
         {project.config.clientTeamCreationEnabled && <>
@@ -104,7 +106,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
               className="w-full"
               variant='ghost'
             >
-              <PlusCircle className="mr-2 h-4 w-4"/> Create a team
+              <PlusCircle className="mr-2 h-4 w-4"/> {t('Create a team')}
             </Button>
           </div>
         </>}

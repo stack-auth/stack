@@ -1,10 +1,10 @@
-import { EditorBlockSchema, TEditorConfiguration } from "@stackframe/stack-emails/dist/editor/documents/editor/core";
+import { EditorBlockSchema, TEditorConfiguration } from "./editor/documents/editor/core";
 import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { emailVerificationTemplate } from "./templates/email-verification";
 import { passwordResetTemplate } from "./templates/password-reset";
 import { magicLinkTemplate } from "./templates/magic-link";
 import { render } from "@react-email/render";
-import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
+import { Reader } from "./editor/email-builder/index";
 import { Body, Head, Html, Preview } from "@react-email/components";
 import * as Handlebars from 'handlebars/dist/handlebars.js';
 import _ from 'lodash';
@@ -21,6 +21,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
+  // TODO: rename this to userEmail
   { name: 'userPrimaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com' },
 ] as const;
 
@@ -184,7 +185,9 @@ export function renderEmailTemplate(
 
   const component = (
     <Html>
-      <Head />
+      <Head>
+        <meta name="color-scheme" content="only light" />
+      </Head>
       <Preview>{mergedSubject}</Preview>
       <Body>
         <Reader document={mergedTemplate} rootBlockId='root' />

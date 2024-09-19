@@ -21,15 +21,15 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
   expect(response.body.auth_methods).toMatchInlineSnapshot(`
     [
       {
-        "identifier": "<stripped UUID>@stack-generated.example.com",
-        "type": "password",
-      },
-      {
         "contact_channel": {
           "email": "<stripped UUID>@stack-generated.example.com",
           "type": "email",
         },
         "type": "otp",
+      },
+      {
+        "identifier": "<stripped UUID>@stack-generated.example.com",
+        "type": "password",
       },
     ]
   `);

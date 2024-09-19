@@ -13,6 +13,7 @@ const _serverMetaDataDescription = (identify: string) => `Server metadata. Used 
 const _atMillisDescription = (identify: string) => `(the number of milliseconds since epoch, January 1, 1970, UTC)`;
 const _createdAtMillisDescription = (identify: string) => `The time the ${identify} was created ${_atMillisDescription(identify)}`;
 const _signedUpAtMillisDescription = `The time the user signed up ${_atMillisDescription}`;
+const _lastActiveAtMillisDescription = `The time the user was last active ${_atMillisDescription}`;
 
 
 declare const StackAdaptSentinel: unique symbol;
@@ -157,6 +158,7 @@ export const projectAllowLocalhostSchema = yupBoolean().meta({ openapiField: { d
 export const projectCreateTeamOnSignUpSchema = yupBoolean().meta({ openapiField: { description: 'Whether a team should be created for each user that signs up', exampleValue: true } });
 export const projectMagicLinkEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether magic link authentication is enabled for this project', exampleValue: true } });
 export const projectClientTeamCreationEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether client users can create teams', exampleValue: true } });
+export const projectClientUserDeletionEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether client users can delete their own account from the client', exampleValue: true } });
 export const projectSignUpEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether users can sign up new accounts, or whether they are only allowed to sign in to existing accounts. Regardless of this option, the server API can always create new users with the `POST /users` endpoint.', exampleValue: true } });
 export const projectCredentialEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether email password authentication is enabled for this project', exampleValue: true } });
 // Project OAuth config
@@ -174,7 +176,7 @@ export const emailUsernameSchema = yupString().meta({ openapiField: { descriptio
 export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
 export const emailPasswordSchema = yupString().meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
 // Project domain config
-export const domainSchema = yupString().test('is-https', 'Domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'example.com' } });
+export const projectTrustedDomainSchema = yupString().test('is-https', 'Trusted domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'https://example.com' } });
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
 
 // Users
@@ -202,16 +204,18 @@ export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { descri
 export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userOAuthProviderSchema = yupObject({
-  type: yupString().required(),
+  id: yupString().required(),
+  type: yupString().oneOf(allProviders).required(),
   provider_user_id: yupString().required(),
 });
+export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
 export const emailOtpSignInCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct the magic link from. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/auth/otp/sign-in` endpoint.', exampleValue: 'https://example.com/handler/magic-link-callback' } });
 export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query argument `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
-export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJBMTO...diI4QT' } });
-export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8nsoaq2...14y' } });
+export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJB2TO...diI4QT' } });
+export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8ns3aq2...14y' } });
 export const signInResponseSchema = yupObject({
   refresh_token: refreshTokenResponseSchema.required(),
   access_token: accessTokenResponseSchema.required(),

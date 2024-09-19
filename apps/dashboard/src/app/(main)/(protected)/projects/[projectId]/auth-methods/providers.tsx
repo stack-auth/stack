@@ -24,6 +24,9 @@ function toTitle(id: string) {
     spotify: "Spotify",
     discord: "Discord",
     gitlab: "GitLab",
+    apple: "Apple",
+    bitbucket: "Bitbucket",
+    linkedin: "LinkedIn",
   }[id];
 }
 
@@ -42,6 +45,7 @@ export const providerFormSchema = yup.object({
       otherwise: (schema) => schema.optional()
     }),
   facebookConfigId: yup.string().optional(),
+  microsoftTenantId: yup.string().optional(),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -53,6 +57,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
     clientId: (props.provider as any)?.clientId ?? "",
     clientSecret: (props.provider as any)?.clientSecret ?? "",
     facebookConfigId: (props.provider as any)?.facebookConfigId ?? "",
+    microsoftTenantId: (props.provider as any)?.microsoftTenantId ?? "",
   };
 
   const onSubmit = async (values: ProviderFormValues) => {
@@ -66,6 +71,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
         clientId: values.clientId || "",
         clientSecret: values.clientSecret || "",
         facebookConfigId: values.facebookConfigId,
+        microsoftTenantId: values.microsoftTenantId,
       });
     }
   };
@@ -128,6 +134,15 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
                   name="facebookConfigId"
                   label="Configuration ID (only required for Facebook Business)"
                   placeholder="Facebook Config ID"
+                />
+              )}
+
+              {props.id === 'microsoft' && (
+                <InputField
+                  control={form.control}
+                  name="microsoftTenantId"
+                  label="Tenant ID (required if you are using the organizational directory)"
+                  placeholder="Tenant ID"
                 />
               )}
             </>

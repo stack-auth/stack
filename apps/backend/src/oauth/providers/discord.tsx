@@ -34,7 +34,8 @@ export class DiscordProvider extends OAuthBaseProvider {
       accountId: info.id,
       displayName: info.global_name ?? info.username,
       email: info.email,
-      profileImageUrl: `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.${info.avatar.startsWith("a_") ? "gif" : "png"}`,
+      profileImageUrl: info.avatar ? `https://cdn.discordapp.com/avatars/${info.id}/${info.avatar}.${info.avatar.startsWith("a_") ? "gif" : "png"}` : null,
+      emailVerified: info.verified,
     });
   }
 }

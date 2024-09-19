@@ -1,6 +1,6 @@
 import Provider, { Configuration } from 'oidc-provider';
 
-const port = Number.parseInt(process.env.PORT || "8107");
+const port = Number.parseInt(process.env.PORT || "8114");
 
 const mockedProviders = [
   "github",
@@ -10,6 +10,7 @@ const mockedProviders = [
   "spotify",
   "discord",
   "gitlab",
+  "bitbucket",
 ];
 
 const configuration: Configuration  = {

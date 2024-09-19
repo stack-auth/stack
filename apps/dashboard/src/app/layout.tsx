@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
 import { stackServerApp } from '@/stack';
 import { StackProvider, StackTheme } from '@stackframe/stack';
-import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
+import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { Toaster } from '@stackframe/stack-ui';
 import { Analytics } from "@vercel/analytics/react";
 import { GeistMono } from "geist/font/mono";
@@ -60,6 +60,10 @@ export default function RootLayout({
   children: React.ReactNode,
 }) {
   const headTags: TagConfigJson[] = JSON.parse(getEnvVariable('NEXT_PUBLIC_STACK_HEAD_TAGS'));
+  const translationLocale = getEnvVariable('STACK_DEVELOPMENT_TRANSLATION_LOCALE', "") || undefined;
+  if (translationLocale !== undefined && getNodeEnvironment() !== 'development') {
+    throw new Error(`STACK_DEVELOPMENT_TRANSLATION_LOCALE can only be used in development mode (found: ${JSON.stringify(translationLocale)})`);
+  }
 
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
@@ -89,7 +93,7 @@ export default function RootLayout({
           <PageView />
           <SpeedInsights />
           <ThemeProvider>
-            <StackProvider app={stackServerApp}>
+            <StackProvider app={stackServerApp} lang={translationLocale as any}>
               <StackTheme>
                 <ClientPolyfill />
                 <RouterProvider>

@@ -115,6 +115,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$update_team",
           errorType: 'required',
+          recursive: true,
         });
       }
 
@@ -155,6 +156,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
           permissionId: "$delete_team",
           errorType: 'required',
+          recursive: true,
         });
       }
       await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });

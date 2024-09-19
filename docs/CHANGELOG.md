@@ -1,5 +1,69 @@
 # @stackframe/docs
 
+## 2.5.37
+
+### Patch Changes
+
+- client side account deletion; new account setting style;
+
+## 2.5.36
+
+### Patch Changes
+
+- added apple oauth
+
+## 2.5.35
+
+### Patch Changes
+
+- Doc improvements
+
+## 2.5.34
+
+### Patch Changes
+
+- Internationalization
+
+## 2.5.33
+
+### Patch Changes
+
+- Team membership webhooks
+
+## 2.5.32
+
+## 2.5.31
+
+### Patch Changes
+
+- JWKS
+
+## 2.5.30
+
+### Patch Changes
+
+- More OAuth providers
+
+## 2.5.29
+
+## 2.5.28
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.5.27
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.5.26
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.5.25
 
 ### Patch Changes

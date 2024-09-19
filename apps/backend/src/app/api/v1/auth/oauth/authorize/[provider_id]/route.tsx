@@ -73,8 +73,11 @@ export const GET = createSmartRouteHandler({
     // If the authorization token is present, we are adding new scopes to the user instead of sign-in/sign-up
     let projectUserId: string | undefined;
     if (query.type === "link") {
-      const decodedAccessToken = await decodeAccessToken(query.token);
-      const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
+      const result = await decodeAccessToken(query.token);
+      if (result.status === "error") {
+        throw result.error;
+      }
+      const { userId, projectId: accessTokenProjectId } = result.data;
 
       if (accessTokenProjectId !== query.client_id) {
         throw new StatusError(StatusError.Forbidden, "The access token is not valid for this project");

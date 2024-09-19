@@ -1,20 +1,20 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
-import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
-import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { getUser } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
-import { getProject, whyNotProjectAdmin } from "@/lib/projects";
+import { getProject, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { CrudHandlerInvocationError } from "./crud-handler";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
+import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { NextRequest } from "next/server";
+import * as yup from "yup";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -170,6 +170,63 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
 
+  const extractUserFromAccessToken = async (options: { token: string, projectId: string }) => {
+    const result = await decodeAccessToken(options.token);
+    if (result.status === "error") {
+      throw result.error;
+    }
+
+    if (result.data.projectId !== options.projectId) {
+      throw new KnownErrors.InvalidProjectForAccessToken();
+    }
+
+    const user = await getUser({ projectId: options.projectId, userId: result.data.userId });
+    if (!user) {
+      // this is the case when access token is still valid, but the user is deleted from the database
+      throw new KnownErrors.AccessTokenExpired();
+    }
+
+    return user;
+  };
+
+  const extractUserFromAdminAccessToken = async (options: { token: string, projectId: string }) => {
+    const result = await decodeAccessToken(options.token);
+    if (result.status === "error") {
+      if (result.error instanceof KnownErrors.AccessTokenExpired) {
+        throw new KnownErrors.AdminAccessTokenExpired();
+      } else {
+        throw new KnownErrors.UnparsableAdminAccessToken();
+      }
+    }
+
+    if (result.data.projectId !== "internal") {
+      throw new KnownErrors.AdminAccessTokenIsNotAdmin();
+    }
+
+    const user = await getUser({ projectId: 'internal', userId: result.data.userId });
+    if (!user) {
+      // this is the case when access token is still valid, but the user is deleted from the database
+      throw new KnownErrors.AdminAccessTokenExpired();
+    }
+
+    const allProjects = listManagedProjectIds(user);
+    if (!allProjects.includes(options.projectId)) {
+      throw new KnownErrors.AdminAccessTokenIsNotAdmin();
+    }
+
+    return user;
+  };
+
+  // Do all the requests in parallel
+  const queries = {
+    project: projectId ? ignoreUnhandledRejection(getProject(projectId)) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { publishableClientKey })) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { secretServerKey })) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { superSecretAdminKey })) : Promise.resolve(false),
+    user: projectId && accessToken ? ignoreUnhandledRejection(extractUserFromAccessToken({ token: accessToken, projectId })) : Promise.resolve(null),
+    internalUser: projectId && adminAccessToken ? ignoreUnhandledRejection(extractUserFromAdminAccessToken({ token: adminAccessToken, projectId })) : Promise.resolve(null),
+  } as const;
+
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
   if (!requestType && eitherKeyOrToken) {
@@ -179,88 +236,47 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
   if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
-  let projectAccessType: "key" | "internal-user-token";
   if (adminAccessToken) {
-    const reason = await whyNotProjectAdmin(projectId, adminAccessToken);
-    switch (reason) {
-      case null: {
-        projectAccessType = "internal-user-token";
-        break;
-      }
-      case "unparsable-access-token": {
-        throw new KnownErrors.UnparsableAdminAccessToken();
-      }
-      case "not-admin": {
-        throw new KnownErrors.AdminAccessTokenIsNotAdmin();
-      }
-      case "wrong-token-project-id": {
+    if (await queries.internalUser) {
+      if (!await queries.project) {
+        // this happens if the project is still in the user's managedProjectIds, but has since been deleted
         throw new KnownErrors.InvalidProjectForAdminAccessToken();
       }
-      case "access-token-expired": {
-        throw new KnownErrors.AdminAccessTokenExpired();
-      }
-      default: {
-        throw new StackAssertionError(`Unexpected reason for lack of project admin: ${reason}`);
-      }
+    } else {
+      // This case should be prevented by checks inside extractUserFromAdminAccessToken, if this happens, something is wrong
+      throw new StackAssertionError("adminAccessToken exists but no internal user was found");
     }
   } else {
     switch (requestType) {
       case "client": {
         if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { publishableClientKey });
-        if (!isValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
-        projectAccessType = "key";
+        if (!await queries.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
         break;
       }
       case "server": {
         if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { secretServerKey });
-        if (!isValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
-        projectAccessType = "key";
+        if (!await queries.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
         break;
       }
       case "admin": {
         if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
-        const isValid = await checkApiKeySet(projectId, { superSecretAdminKey });
-        if (!isValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
-        projectAccessType = "key";
+        if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         break;
       }
       default: {
-        throw new StackAssertionError(`Unexpected request type: ${requestType}. We should've filtered this earlier`);
+        throw new StackAssertionError(`Unexpected request type: ${requestType}. This should never happen because we should've filtered this earlier`);
       }
     }
   }
 
-  const project = await getProject(projectId);
+  const project = await queries.project;
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because having a project ID should guarantee a project", { projectId });
-  }
-
-  let user = null;
-  if (accessToken) {
-    const decodedAccessToken = await decodeAccessToken(accessToken);
-    const { userId, projectId: accessTokenProjectId } = decodedAccessToken;
-
-    if (accessTokenProjectId !== projectId) {
-      throw new KnownErrors.InvalidProjectForAccessToken();
-    }
-
-    try {
-      user = await usersCrudHandlers.adminRead({
-        project,
-        user_id: userId,
-      });
-    } catch (e) {
-      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
-        user = null;
-      }
-    }
+    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
   }
 
   return {
     project,
-    user: user ?? undefined,
+    user: await queries.user ?? undefined,
     type: requestType,
   };
 }
