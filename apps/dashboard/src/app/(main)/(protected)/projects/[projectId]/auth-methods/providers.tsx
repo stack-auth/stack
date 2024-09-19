@@ -24,8 +24,6 @@ function toTitle(id: string) {
     spotify: "Spotify",
     discord: "Discord",
     gitlab: "GitLab",
-    x: "X",
-    slack: "Slack",
   }[id];
 }
 

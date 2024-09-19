@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
     images: [`${process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED}/open-graph-image.png`]
   },
-  x: {
+  twitter: {
     title: 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
     images: [`${process.env.NEXT_PUBLIC_STACK_URL_DEPRECATED}/open-graph-image.png`]

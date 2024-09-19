@@ -579,8 +579,6 @@ enum StandardOAuthProviderType {
   SPOTIFY
   DISCORD
   GITLAB
-  X
-  SLACK
 }
 
 //#endregion

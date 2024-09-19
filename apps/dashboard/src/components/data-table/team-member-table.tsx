@@ -61,7 +61,8 @@ function EditPermissionDialog(props: {
           {...innerProps}
           permissions={permissions}
           type="edit-user"
-          containedPermissionIds={props.user.permissions}
+          team={props.team}
+          user={props.user}
         />
       ),
     }),
@@ -164,7 +165,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
   useEffect(() => {
     async function load() {
       const promises = props.users.map(async user => {
-        const permissions = await user.listPermissions(props.team, { recursive: false });
+        const permissions = await user.listPermissions(props.team, { direct: true });
         return {
           user,
           permissions,

@@ -1,10 +1,12 @@
-import { sendEmailFromTemplate } from "@/lib/emails";
+import { yupObject, yupString, yupNumber, yupBoolean } from "@stackframe/stack-shared/dist/schema-fields";
+import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
+import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { sendEmailFromTemplate } from "@/lib/emails";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const resetPasswordVerificationCodeHandler = createVerificationCodeHandler({

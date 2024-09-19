@@ -127,7 +127,8 @@ export function PermissionListField<F extends FieldValues>(props: {
     selectedPermissionId: string,
   } | {
     type: 'edit-user',
-    containedPermissionIds: string[],
+    user: ServerUser,
+    team: ServerTeam,
   } | {
     type: 'select',
     selectedPermissionIds: string[],
@@ -140,7 +141,9 @@ export function PermissionListField<F extends FieldValues>(props: {
 
       switch (props.type) {
         case 'edit-user': {
-          setGraph((new PermissionGraph(props.permissions)).addPermission(props.containedPermissionIds));
+          setGraph((new PermissionGraph(props.permissions)).addPermission(
+            (await props.user.listPermissions(props.team, { direct: true })).map(permission => permission.id)
+          ));
           break;
         }
         case 'edit': {

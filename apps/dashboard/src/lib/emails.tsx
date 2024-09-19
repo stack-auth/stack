@@ -7,7 +7,6 @@ import { UserJson, ProjectJson } from '@/temporary-types';
 import { getClientUser } from '@/lib/users';
 import { getEmailTemplateWithDefault } from '@/lib/email-templates';
 import { renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
-import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 
 
 function getPortConfig(port: number | string) {
@@ -50,17 +49,13 @@ export async function sendEmail({
     },
   });
 
-  try {
-    return await transporter.sendMail({
-      from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-      to,
-      subject,
-      text,
-      html
-    });
-  } catch (error) {
-    throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
-  }
+  return await transporter.sendMail({
+    from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+    to,
+    subject,
+    text,
+    html
+  });
 }
 
 async function getDBInfo(projectId: string, projectUserId: string): Promise<{

@@ -26,20 +26,16 @@ export class GitlabProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const headers = { Authorization: `Bearer ${tokenSet.accessToken}`};
-    const [userInfo, emails] = await Promise.all([
-      fetch("https://gitlab.com/api/v4/user", { headers }).then(res => res.json()),
-      fetch("https://gitlab.com/api/v4/user/emails", { headers }).then(res => res.json())
-    ]);
-
-    const { confirmed_at } = emails.find((e: any) => e.email === userInfo.email);
-
+    const userInfo = await fetch("https://gitlab.com/api/v4/user", {
+      headers: {
+        Authorization: `Bearer ${tokenSet.accessToken}`
+      }
+    }).then(res=>res.json());
     return validateUserInfo({
       accountId: userInfo.id?.toString(),
       displayName: userInfo.name,
-      profileImageUrl: userInfo.avatar_url as any,
       email: userInfo.email,
-      emailVerified: !!confirmed_at,
+      profileImageUrl: userInfo.avatar_url as any,
     });
   }
 }

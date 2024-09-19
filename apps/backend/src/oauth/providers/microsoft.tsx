@@ -38,9 +38,6 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       displayName: rawUserInfo.displayName,
       email: rawUserInfo.mail || rawUserInfo.userPrincipalName,
       profileImageUrl: undefined, // Microsoft Graph API does not return profile image URL
-      // Microsoft does not make sure that the email is verified, so we cannot trust it
-      // https://learn.microsoft.com/en-us/entra/identity-platform/claims-validation#validate-the-subject
-      emailVerified: false,
     });
   }
 }

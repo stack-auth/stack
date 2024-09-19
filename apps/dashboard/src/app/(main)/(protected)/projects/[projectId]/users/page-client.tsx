@@ -10,7 +10,6 @@ import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 
 function CreateDialog(props: {
-  existingEmails: string[],
   open?: boolean,
   onOpenChange?: (open: boolean) => void,
   trigger?: React.ReactNode,
@@ -18,7 +17,7 @@ function CreateDialog(props: {
   const adminApp = useAdminApp();
   const formSchema = yup.object({
     displayName: yup.string().optional(),
-    primaryEmail: yup.string().email().notOneOf(props.existingEmails, "Email already exists").required(),
+    primaryEmail: yup.string().email().required(),
     primaryEmailVerified: yup.boolean().optional(),
     password: yup.string().required(),
   });
@@ -57,13 +56,7 @@ export default function PageClient() {
   const allUsers = stackAdminApp.useUsers();
 
   return (
-    <PageLayout
-      title="Users"
-      actions={<CreateDialog
-        trigger={<Button>Create User</Button>}
-        existingEmails={allUsers.map(u => u.primaryEmail).filter(e => e !== null) as string[]}
-      />}
-    >
+    <PageLayout title="Users" actions={<CreateDialog trigger={<Button>Create User</Button>} />}>
       {allUsers.length > 0 ? null : (
         <Alert variant='success'>
           Congratulations on starting your project! Check the <StyledLink href="https://docs.stack-auth.com">documentation</StyledLink> to add your first users.

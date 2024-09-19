@@ -5,7 +5,6 @@ import { usersCrudServerDeleteSchema, usersCrudServerReadSchema, usersCrudServer
 
 const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "display_name",
-  "profile_image_url",
   "client_metadata",
   "selected_team_id",
   "totp_secret_base64",

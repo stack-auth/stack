@@ -23,7 +23,7 @@ export function EditableText(props: { value: string, onSave?: (value: string) =>
             Save
           </Button>
           <Button
-            variant='secondary'
+            variant='outline'
             onClick={() => {
               setEditingValue(props.value);
               setEditing(false);

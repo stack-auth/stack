@@ -10,38 +10,19 @@ export type TokenSet = {
   accessTokenExpiredAt: Date,
 };
 
-type SlackAuthedUser = {
-  id: string,
-  access_token: string,
-  scope: string,
-  token_type: string,
-}
-
-
-function processTokenSet(providerName: string,
-tokenSet: OIDCTokenSet,
-defaultAccessTokenExpiresInMillis?: number): TokenSet {
+function processTokenSet(providerName: string, tokenSet: OIDCTokenSet): TokenSet {
   if (!tokenSet.access_token) {
     throw new StackAssertionError("No access token received", { tokenSet });
   }
 
-  // if expires_in or expires_at provided, use that
-  // otherwise, if defaultAccessTokenExpiresInMillis provided, use that
-  // otherwise, use 1h, and log an error
-
-  if (!tokenSet.expires_in && !tokenSet.expires_at && !defaultAccessTokenExpiresInMillis) {
-    captureError("processTokenSet", new StackAssertionError(`No expires_in or expires_at received from OAuth provider ${providerName}. Falling back to 1h`, { tokenSetKeys: Object.keys(tokenSet) }));
+  if (!tokenSet.expires_in) {
+    captureError("processTokenSet", new StackAssertionError(`No expires_in received from OAuth provider ${providerName}.`, { tokenSetKeys: Object.keys(tokenSet) }));
   }
 
   return {
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    accessTokenExpiredAt: tokenSet.expires_in ?
-      new Date(Date.now() + tokenSet.expires_in * 1000) :
-      tokenSet.expires_at ? new Date(tokenSet.expires_at * 1000) :
-        defaultAccessTokenExpiresInMillis ?
-          new Date(Date.now() + defaultAccessTokenExpiresInMillis) :
-          new Date(Date.now() + 3600 * 1000),
+    accessTokenExpiredAt: tokenSet.expires_in ? new Date(Date.now() + tokenSet.expires_in * 1000) : new Date(Date.now() + 3600 * 1000),
   };
 }
 
@@ -51,7 +32,6 @@ export abstract class OAuthBaseProvider {
     public readonly scope: string,
     public readonly redirectUri: string,
     public readonly authorizationExtraParams?: Record<string, string>,
-    public readonly defaultAccessTokenExpiresInMillis?: number,
   ) {}
 
   protected static async createConstructorArgs(options:
@@ -61,7 +41,6 @@ export abstract class OAuthBaseProvider {
       redirectUri: string,
       baseScope: string,
       authorizationExtraParams?: Record<string, string>,
-      defaultAccessTokenExpiresInMillis?: number,
     }
     & (
       | {
@@ -102,7 +81,7 @@ export abstract class OAuthBaseProvider {
       return grant;
     };
 
-    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams, options.defaultAccessTokenExpiresInMillis] as const;
+    return [oauthClient, options.baseScope, options.redirectUri, options.authorizationExtraParams] as const;
   }
 
   getAuthorizationUrl(options: {
@@ -133,18 +112,6 @@ export abstract class OAuthBaseProvider {
     };
     try {
       tokenSet = await this.oauthClient.oauthCallback(this.redirectUri, options.callbackParams, params);
-      /*
-      Slack has access token in authed_user
-      */
-      if (tokenSet.authed_user){
-        const authedUser = tokenSet.authed_user as SlackAuthedUser;
-        tokenSet = {
-          id_token: authedUser.id,
-          access_token: authedUser.access_token,
-          scope: authedUser.scope,
-          token_type: authedUser.token_type,
-        } as OIDCTokenSet;
-      }
     } catch (error: any) {
       if (error?.error === "invalid_grant") {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
@@ -153,9 +120,10 @@ export abstract class OAuthBaseProvider {
         throw new KnownErrors.InvalidAuthorizationCode();
       }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
+
     }
 
-    tokenSet = processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);
+    tokenSet = processTokenSet(this.constructor.name, tokenSet);
 
     return {
       userInfo: await this.postProcessUserInfo(tokenSet),
@@ -168,7 +136,7 @@ export abstract class OAuthBaseProvider {
     scope?: string,
   }): Promise<TokenSet> {
     const tokenSet = await this.oauthClient.refresh(options.refreshToken, { exchangeBody: { scope: options.scope } });
-    return processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);
+    return processTokenSet(this.constructor.name, tokenSet);
   }
 
   abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;

@@ -12,8 +12,6 @@ import { SpotifyProvider } from "./providers/spotify";
 import { MockProvider } from "./providers/mock";
 import { DiscordProvider } from "@/oauth/providers/discord";
 import { GitlabProvider } from "./providers/gitlab";
-import { XProvider } from "./providers/x";
-import { SlackProvider } from "./providers/slack";
 
 const _providers = {
   github: GithubProvider,
@@ -23,8 +21,6 @@ const _providers = {
   spotify: SpotifyProvider,
   discord: DiscordProvider,
   gitlab: GitlabProvider,
-  x: XProvider,
-  slack: SlackProvider,
 } as const;
 
 const mockProvider = MockProvider;

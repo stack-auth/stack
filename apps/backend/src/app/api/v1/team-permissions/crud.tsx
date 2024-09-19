@@ -41,7 +41,6 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
         userId: params.user_id,
         permissionId: params.permission_id,
         errorType: 'not-exist',
-        recursive: false,
       });
 
       return await revokeTeamPermission(tx, {
