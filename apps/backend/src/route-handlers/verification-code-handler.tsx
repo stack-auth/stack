@@ -115,6 +115,7 @@ export function createVerificationCodeHandler<
             projectId: auth.project.id,
             code,
           },
+          type: options.type,
         },
       });
 
