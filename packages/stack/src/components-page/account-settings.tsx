@@ -103,8 +103,8 @@ export function AccountSettings(props: {
 
 function Section(props: { title: string, description?: string, children: React.ReactNode }) {
   return (
-    <div className='flex'>
-      <div className='flex-1 flex flex-col justify-center'>
+    <div className='flex flex-col sm:flex-row gap-2'>
+      <div className='sm:flex-1 flex flex-col justify-center'>
         <Typography className='font-medium'>
           {props.title}
         </Typography>
@@ -112,7 +112,7 @@ function Section(props: { title: string, description?: string, children: React.R
           {props.description}
         </Typography>}
       </div>
-      <div className='flex-1 flex flex-col gap-2'>
+      <div className='sm:flex-1 flex flex-col gap-2'>
         {props.children}
       </div>
     </div>
