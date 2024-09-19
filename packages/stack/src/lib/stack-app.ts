@@ -917,7 +917,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async delete() {
         await app._interface.deleteCurrentUser(session);
-        await app._signOut(session);
+        session.markInvalid();
       },
     };
   }
