@@ -67,6 +67,7 @@ it("creates a new project", async ({ expect }) => {
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -112,6 +113,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
         "config": {
           "allow_localhost": false,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
@@ -162,6 +164,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -214,6 +217,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -259,6 +263,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [],
@@ -313,6 +318,7 @@ it("creates a new project with different configurations", async ({ expect }) => 
         "config": {
           "allow_localhost": true,
           "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
           "create_team_on_sign_up": false,
           "credential_enabled": true,
           "domains": [
@@ -360,6 +366,7 @@ it("lists the current projects after creating a new project", async ({ expect })
             "config": {
               "allow_localhost": true,
               "client_team_creation_enabled": false,
+              "client_user_deletion_enabled": false,
               "create_team_on_sign_up": false,
               "credential_enabled": true,
               "domains": [],

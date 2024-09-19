@@ -16,19 +16,23 @@ export function EditableText(props: { value: string, onSave?: (value: string) =>
             value={editingValue}
             onChange={(e) => setEditingValue(e.target.value)}
           />
-          <Button onClick={async () => {
-            await props.onSave?.(editingValue);
-            setEditing(false);
-          }}>
+          <Button
+            size='sm'
+            onClick={async () => {
+              await props.onSave?.(editingValue);
+              setEditing(false);
+            }}
+          >
             Save
           </Button>
           <Button
+            size='sm'
             variant='secondary'
             onClick={() => {
               setEditingValue(props.value);
               setEditing(false);
             }}>
-            Cancel
+              Cancel
           </Button>
         </>
       ) : (

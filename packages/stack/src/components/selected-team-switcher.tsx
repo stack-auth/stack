@@ -48,7 +48,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         runAsynchronouslyWithAlert(async () => {
           const team = teams?.find(team => team.id === value);
           if (!team) {
-            throw new Error(t('Team not found, this should not happen'));
+            throw new Error('Team not found, this should not happen');
           }
 
           if (!props.noUpdateSelectedTeam) {

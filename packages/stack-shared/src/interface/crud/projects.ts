@@ -51,6 +51,7 @@ export const projectsCrudAdminReadSchema = yupObject({
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
     domains: yupArray(domainSchema.required()).required(),
@@ -69,6 +70,7 @@ export const projectsCrudClientReadSchema = yupObject({
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
   }).required(),
 }).required();
@@ -83,6 +85,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
     credential_enabled: schemaFields.projectCredentialEnabledSchema.optional(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.optional(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.optional(),
+    client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.optional(),
     allow_localhost: schemaFields.projectAllowLocalhostSchema.optional(),
     email_config: emailConfigSchema.optional().default(undefined),
     domains: yupArray(domainSchema.required()).optional().default(undefined),
