@@ -11,20 +11,29 @@ export type TokenSet = {
   idToken?: string,
 };
 
-function processTokenSet(providerName: string, tokenSet: OIDCTokenSet): TokenSet {
+function processTokenSet(providerName: string, tokenSet: OIDCTokenSet, defaultAccessTokenExpiresInMillis?: number): TokenSet {
   if (!tokenSet.access_token) {
     throw new StackAssertionError("No access token received", { tokenSet });
   }
 
-  if (!tokenSet.expires_in) {
-    captureError("processTokenSet", new StackAssertionError(`No expires_in received from OAuth provider ${providerName}.`, { tokenSetKeys: Object.keys(tokenSet) }));
+  // if expires_in or expires_at provided, use that
+  // otherwise, if defaultAccessTokenExpiresInMillis provided, use that
+  // otherwise, use 1h, and log an error
+
+  if (!tokenSet.expires_in && !tokenSet.expires_at && !defaultAccessTokenExpiresInMillis) {
+    captureError("processTokenSet", new StackAssertionError(`No expires_in or expires_at received from OAuth provider ${providerName}. Falling back to 1h`, { tokenSetKeys: Object.keys(tokenSet) }));
   }
 
   return {
     idToken: tokenSet.id_token,
     accessToken: tokenSet.access_token,
     refreshToken: tokenSet.refresh_token,
-    accessTokenExpiredAt: tokenSet.expires_in ? new Date(Date.now() + tokenSet.expires_in * 1000) : new Date(Date.now() + 3600 * 1000),
+    accessTokenExpiredAt: tokenSet.expires_in ?
+      new Date(Date.now() + tokenSet.expires_in * 1000) :
+      tokenSet.expires_at ? new Date(tokenSet.expires_at * 1000) :
+        defaultAccessTokenExpiresInMillis ?
+          new Date(Date.now() + defaultAccessTokenExpiresInMillis) :
+          new Date(Date.now() + 3600 * 1000),
   };
 }
 
@@ -146,10 +155,9 @@ export abstract class OAuthBaseProvider {
         throw new KnownErrors.InvalidAuthorizationCode();
       }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
-
     }
 
-    tokenSet = processTokenSet(this.constructor.name, tokenSet);
+    tokenSet = processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);
 
     return {
       userInfo: await this.postProcessUserInfo(tokenSet),
@@ -162,7 +170,7 @@ export abstract class OAuthBaseProvider {
     scope?: string,
   }): Promise<TokenSet> {
     const tokenSet = await this.oauthClient.refresh(options.refreshToken, { exchangeBody: { scope: options.scope } });
-    return processTokenSet(this.constructor.name, tokenSet);
+    return processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);
   }
 
   abstract postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo>;

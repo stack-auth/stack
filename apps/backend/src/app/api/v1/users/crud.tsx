@@ -8,6 +8,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
@@ -934,10 +935,15 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     return auth.user;
   },
   async onUpdate({ auth, data }) {
+    if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+      throw new StatusError(400, "Invalid profile image URL");
+    }
+
     return await usersCrudHandlers.adminUpdate({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
+      allowedErrorTypes: [StatusError]
     });
   },
   async onDelete({ auth }) {
@@ -948,6 +954,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     return await usersCrudHandlers.adminDelete({
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
+      allowedErrorTypes: [StatusError]
     });
   },
 }));

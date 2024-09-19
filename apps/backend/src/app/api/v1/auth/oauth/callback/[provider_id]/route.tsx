@@ -260,7 +260,7 @@ const handler = createSmartRouteHandler({
                       display_name: userInfo.displayName,
                       profile_image_url: userInfo.profileImageUrl || undefined,
                       primary_email: userInfo.email,
-                      primary_email_verified: false, // TODO: check if email is verified with the provider
+                      primary_email_verified: userInfo.emailVerified,
                       primary_email_auth_enabled: false,
                       oauth_providers: [{
                         id: provider.id,

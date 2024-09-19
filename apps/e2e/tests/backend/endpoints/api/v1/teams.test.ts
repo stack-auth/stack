@@ -423,7 +423,7 @@ it("updates a team on the server", async ({ expect }) => {
     method: "PATCH",
     body: {
       display_name: "My Updated Team",
-      profile_image_url: "https://example.com/image.jpg",
+      profile_image_url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
       server_metadata: {
         "test": "test-value"
       },
@@ -438,7 +438,7 @@ it("updates a team on the server", async ({ expect }) => {
         "created_at_millis": <stripped field 'created_at_millis'>,
         "display_name": "My Updated Team",
         "id": "<stripped UUID>",
-        "profile_image_url": "https://example.com/image.jpg",
+        "profile_image_url": "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
         "server_metadata": { "test": "test-value" },
       },
       "headers": Headers { <some fields may have been hidden> },
@@ -458,7 +458,7 @@ it("updates a team on the server", async ({ expect }) => {
             "created_at_millis": <stripped field 'created_at_millis'>,
             "display_name": "My Updated Team",
             "id": "<stripped UUID>",
-            "profile_image_url": "https://example.com/image.jpg",
+            "profile_image_url": "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
             "server_metadata": { "test": "test-value" },
           },
         ],

@@ -33,6 +33,7 @@ export class GoogleProvider extends OAuthBaseProvider {
       displayName: rawUserInfo.name,
       email: rawUserInfo.email,
       profileImageUrl: rawUserInfo.picture,
+      emailVerified: rawUserInfo.email_verified,
     });
   }
 }
