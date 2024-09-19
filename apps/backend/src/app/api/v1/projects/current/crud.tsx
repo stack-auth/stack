@@ -1,6 +1,5 @@
 import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
-import { ensureSharedProvider } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -8,7 +7,6 @@ import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { ensureStandardProvider } from "../../../../../lib/request-checks";
 
 export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
@@ -131,277 +129,115 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       }
 
       // ======================= update oauth config =======================
-      // loop though all the items from crud.config.oauth_providers
-      // create the config if it is not already in the DB
-      // update the config if it is already in the DB
-      // update/create all auth methods and connected account configs
+      // 1. check if the old provider config ids is a subset of the new provider config ids
+      // 2. loop through the new provider config ids
+      //   - if the new provider config id is not in the old provider config ids, create it
+      //   - if the new provider config is in the old provider config ids, remove the proxied/standard oauth config
+      //   - create the new proxied/standard oauth config
 
-      const oldProviders = oldProject.config.oauth_providers;
-      const oauthProviderUpdates = data.config?.oauth_providers;
-      if (oauthProviderUpdates) {
-        const providerMap = new Map(oldProviders.map((provider) => [
-          provider.id,
-          {
-            providerUpdate: (() => {
-              const update = oauthProviderUpdates.find((p) => p.id === provider.id);
-              if (!update) {
-                throw new StatusError(StatusError.BadRequest, `Provider with id '${provider.id}' not found in the update`);
-              }
-              return update;
-            })(),
-            oldProvider: provider,
-          }
-        ]));
+      const oldProviderConfigIds = oldProject.config.enabled_oauth_provider_configs.map(p => p.id);
+      const newProviderConfigIds = data.config?.oauth_provider_configs?.map(p => p.id) ?? [];
 
-        const newProviders =  oauthProviderUpdates.map((providerUpdate) => ({
-          id: providerUpdate.id,
-          update: providerUpdate
-        })).filter(({ id }) => !providerMap.has(id));
+      if (!oldProviderConfigIds.every(id => newProviderConfigIds.includes(id))) {
+        throw new StatusError(StatusError.BadRequest, `Invalid OAuth provider configuration IDs. Removal of provider configurations is not allowed.`);
+      }
 
-        // Update existing proxied/standard providers
-        for (const [id, { providerUpdate, oldProvider }] of providerMap) {
-          // remove existing provider configs
-          switch (oldProvider.type) {
-            case 'shared': {
-              await tx.proxiedOAuthProviderConfig.deleteMany({
-                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
-              });
-              break;
-            }
-            case 'standard': {
-              await tx.standardOAuthProviderConfig.deleteMany({
-                where: { projectConfigId: oldProject.config.id, id: providerUpdate.id },
-              });
-              break;
-            }
-          }
-
-          // update provider configs with newly created proxied/standard provider configs
-          let providerConfigUpdate;
-          if (providerUpdate.type === 'shared') {
-            providerConfigUpdate = {
-              proxiedOAuthConfig: {
-                create: {
-                  type: typedToUppercase(ensureSharedProvider(providerUpdate.id)),
-                },
-              },
-            };
-          } else {
-            providerConfigUpdate = {
-              standardOAuthConfig: {
-                create: {
-                  type: typedToUppercase(ensureStandardProvider(providerUpdate.id)),
-                  clientId: providerUpdate.client_id ?? throwErr('client_id is required'),
-                  clientSecret: providerUpdate.client_secret ?? throwErr('client_secret is required'),
-                  facebookConfigId: providerUpdate.facebook_config_id,
-                  microsoftTenantId: providerUpdate.microsoft_tenant_id,
-                },
-              },
-            };
-          }
-
-          await tx.oAuthProviderConfig.update({
-            where: { projectConfigId_id: { projectConfigId: oldProject.config.id, id } },
-            data: {
-              ...providerConfigUpdate,
-            },
-          });
-        }
-
-        // Create new providers
-        for (const provider of newProviders) {
-          let providerConfigData;
-          if (provider.update.type === 'shared') {
-            providerConfigData = {
-              proxiedOAuthConfig: {
-                create: {
-                  type: typedToUppercase(ensureSharedProvider(provider.update.id)),
-                },
-              },
-            };
-          } else {
-            providerConfigData = {
-              standardOAuthConfig: {
-                create: {
-                  type: typedToUppercase(ensureStandardProvider(provider.update.id)),
-                  clientId: provider.update.client_id ?? throwErr('client_id is required'),
-                  clientSecret: provider.update.client_secret ?? throwErr('client_secret is required'),
-                  facebookConfigId: provider.update.facebook_config_id,
-                  microsoftTenantId: provider.update.microsoft_tenant_id,
-                },
-              },
-            };
-          }
-
-          await tx.oAuthProviderConfig.create({
-            data: {
-              id: provider.id,
-              projectConfigId: oldProject.config.id,
-              ...providerConfigData,
-            },
-          });
-        }
-
-        // Update/create auth methods and connected account configs
-        const providers = await tx.oAuthProviderConfig.findMany({
+      for (const newConfig of data.config?.oauth_provider_configs ?? []) {
+        const createdConfig = await tx.oAuthProviderConfig.upsert({
           where: {
+            projectConfigId_id: {
+              projectConfigId: oldProject.config.id,
+              id: newConfig.id,
+            }
+          },
+          create: {
+            id: newConfig.id,
             projectConfigId: oldProject.config.id,
           },
-          include: {
-            standardOAuthConfig: true,
-            proxiedOAuthConfig: true,
-          }
+          update: {
+            proxiedOAuthConfig: {
+              delete: true,
+            },
+            standardOAuthConfig: {
+              delete: true,
+            },
+          },
         });
-        for (const provider of providers) {
-          const enabled = oauthProviderUpdates.find((p) => p.id === provider.id)?.enabled ?? false;
 
-          const authMethod = await tx.authMethodConfig.findFirst({
-            where: {
-              projectConfigId: oldProject.config.id,
-              oauthProviderConfig: {
-                id: provider.id,
-              },
-            }
-          });
-
-          if (!authMethod) {
-            await tx.authMethodConfig.create({
-              data: {
-                projectConfigId: oldProject.config.id,
-                enabled,
-                oauthProviderConfig: {
-                  connect: {
-                    projectConfigId_id: {
-                      projectConfigId: oldProject.config.id,
-                      id: provider.id,
-                    }
-                  }
-                }
-              },
-            });
-          } else {
-            await tx.authMethodConfig.update({
-              where: {
-                projectConfigId_id: {
-                  projectConfigId: oldProject.config.id,
-                  id: authMethod.id,
-                }
-              },
-              data: {
-                enabled,
-              },
-            });
-          }
-
-          const connectedAccount = await tx.connectedAccountConfig.findFirst({
-            where: {
-              projectConfigId: oldProject.config.id,
-              oauthProviderConfig: {
-                id: provider.id,
-              },
-            }
-          });
-
-          if (!connectedAccount) {
-            if (provider.standardOAuthConfig) {
-              await tx.connectedAccountConfig.create({
-                data: {
-                  projectConfigId: oldProject.config.id,
-                  enabled,
-                  oauthProviderConfig: {
-                    connect: {
-                      projectConfigId_id: {
-                        projectConfigId: oldProject.config.id,
-                        id: provider.id,
-                      }
-                    }
-                  }
-                },
-              });
-            }
-          } else {
-            await tx.connectedAccountConfig.update({
-              where: {
-                projectConfigId_id: {
-                  projectConfigId: oldProject.config.id,
-                  id: connectedAccount.id,
-                }
-              },
-              data: {
-                enabled: provider.standardOAuthConfig ? enabled : false,
-              },
-            });
-          }
-        }
-      }
-
-      // ======================= update password auth method =======================
-      const passwordAuth = await tx.passwordAuthMethodConfig.findFirst({
-        where: {
-          projectConfigId: oldProject.config.id,
-          identifierType: "EMAIL",
-        },
-      });
-      if (data.config?.credential_enabled !== undefined) {
-        if (!passwordAuth) {
-          await tx.authMethodConfig.create({
+        if (newConfig.shared) {
+          await tx.proxiedOAuthProviderConfig.create({
             data: {
               projectConfigId: oldProject.config.id,
-              enabled: data.config.credential_enabled,
-              passwordConfig: {
-                create: {
-                  identifierType: "EMAIL",
-                },
-              },
+              id: createdConfig.id,
+              type: typedToUppercase(newConfig.type),
             },
           });
         } else {
-          await tx.authMethodConfig.update({
-            where: {
-              projectConfigId_id: {
-                projectConfigId: oldProject.config.id,
-                id: passwordAuth.authMethodConfigId,
-              },
-            },
+          await tx.standardOAuthProviderConfig.create({
             data: {
-              enabled: data.config.credential_enabled,
+              projectConfigId: oldProject.config.id,
+              id: createdConfig.id,
+              type: typedToUppercase(newConfig.type),
+              clientId: newConfig.client_id,
+              clientSecret: newConfig.client_secret,
+              facebookConfigId: newConfig.facebook_config_id,
+              microsoftTenantId: newConfig.microsoft_tenant_id,
             },
           });
         }
       }
 
-      // ======================= update OTP auth method =======================
-      const otpAuth = await tx.otpAuthMethodConfig.findFirst({
-        where: {
-          projectConfigId: oldProject.config.id,
-        },
-      });
-      if (data.config?.magic_link_enabled !== undefined) {
-        if (!otpAuth) {
-          await tx.authMethodConfig.create({
-            data: {
-              projectConfigId: oldProject.config.id,
-              enabled: data.config.magic_link_enabled,
-              otpConfig: {
-                create: {
-                  contactChannelType: "EMAIL",
-                },
-              },
-            },
-          });
-        } else {
-          await tx.authMethodConfig.update({
-            where: {
-              projectConfigId_id: {
-                projectConfigId: oldProject.config.id,
-                id: otpAuth.authMethodConfigId,
-              },
-            },
-            data: {
-              enabled: data.config.magic_link_enabled,
-            },
-          });
+      // ======================= auth methods =======================
+      // 1. check if the old auth method ids is a subset of the new auth method ids
+      // 2. check if the auth method types are still the same
+      // 3. loop through all the auth methods
+      //   - create/update the auth method
+
+      for (const oldAuthMethod of oldProject.config.auth_method_configs) {
+        const newAuthMethod = data.config?.auth_method_configs?.find(p => p.id === oldAuthMethod.id);
+        if (!newAuthMethod) {
+          throw new StatusError(StatusError.BadRequest, `Auth method config ID ${oldAuthMethod.id} not found`);
         }
+
+        if (newAuthMethod.type !== oldAuthMethod.type) {
+          throw new StatusError(StatusError.BadRequest, `Auth method type mismatch for ID ${oldAuthMethod.id}`);
+        }
+      }
+
+      for (const newAuthMethod of data.config?.auth_method_configs ?? []) {
+        await tx.authMethodConfig.upsert({
+          where: {
+            projectConfigId_id: {
+              projectConfigId: oldProject.config.id,
+              id: newAuthMethod.id,
+            }
+          },
+          create: {
+            id: newAuthMethod.id,
+            projectConfigId: oldProject.config.id,
+            ...(() => {
+              switch (newAuthMethod.type) {
+                case 'password': {
+                  return {
+                    type: 'password',
+                  };
+                }
+                case 'otp': {
+                  return {
+                    type: 'otp',
+                  };
+                }
+                case 'oauth': {
+                  return {
+                    type: 'oauth',
+                    providerConfigId: newAuthMethod.provider_config_id,
+                  };
+                }
+              }
+            })()
+          },
+          update: {},
+        });
       }
 
       // ======================= update the rest =======================

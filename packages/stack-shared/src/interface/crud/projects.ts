@@ -1,23 +1,20 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
 import { yupArray, yupObject, yupRequiredWhen, yupString } from "../../schema-fields";
-import { allProviders } from "../../utils/oauth";
+import { allProviders, sharedProviders, standardProviders } from "../../utils/oauth";
 
 const teamPermissionSchema = yupObject({
   id: yupString().required(),
 }).required();
-
-const oauthProviderConfigSharedFields = {
-  id: yupString().required(),
-  type: yupString().oneOf(allProviders).required(),
-};
 const oauthProviderConfigSchema = schemaFields.yupUnion(
   yupObject({
-    ...oauthProviderConfigSharedFields,
+    id: yupString().uuid().required(),
+    type: yupString().oneOf(sharedProviders).required(),
     shared: schemaFields.yupBoolean().isTrue().required(),
   }).required(),
   yupObject({
-    ...oauthProviderConfigSharedFields,
+    id: yupString().uuid().required(),
+    type: yupString().oneOf(standardProviders).required(),
     shared: schemaFields.yupBoolean().isFalse().required(),
     client_id: yupString().required(),
     client_secret: yupString().required(),
@@ -27,12 +24,12 @@ const oauthProviderConfigSchema = schemaFields.yupUnion(
 );
 
 const clientOAuthProviderConfigSchema = yupObject({
-  id: yupString().required(),
+  id: yupString().uuid().required(),
   type: yupString().oneOf(allProviders).required(),
 }).required();
 
 const authMethodSharedFields = {
-  id: yupString().required(),
+  id: yupString().uuid().required(),
   enabled: schemaFields.yupBoolean().required(),
 };
 const authMethodConfigSchema = schemaFields.yupUnion(
@@ -54,7 +51,7 @@ const authMethodConfigSchema = schemaFields.yupUnion(
 const clientAuthMethodConfigSchema = authMethodConfigSchema;
 
 const connectedAccountConfigSchema = yupObject({
-  id: yupString().required(),
+  id: yupString().uuid().required(),
   enabled: schemaFields.yupBoolean().required(),
   provider_id: yupString().required(),
 });
