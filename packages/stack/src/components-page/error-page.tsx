@@ -18,8 +18,6 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
 
   const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={!!props.fullPage} />;
 
-  console.log(errorCode, message, details);
-
   if (!errorCode || !message) {
     return unknownErrorCard;
   }
@@ -52,9 +50,9 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
     // TODO: add "Connect again" button
     return (
       <MessageCard
-        title="Failed to connect account"
+        title={t("Failed to connect account")}
         fullPage={!!props.fullPage}
-        primaryButtonText="Go to Home"
+        primaryButtonText={t("Go to Home")}
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
@@ -67,15 +65,15 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
   if (error instanceof KnownErrors.OAuthProviderAccessDenied) {
     return (
       <MessageCard
-        title="OAuth provider access denied"
+        title={t("OAuth provider access denied")}
         fullPage={!!props.fullPage}
-        primaryButtonText="Sign in again"
+        primaryButtonText={t("Sign in again")}
         primaryAction={() => stackApp.redirectToSignIn()}
-        secondaryButtonText="Go to Home"
+        secondaryButtonText={t("Go to Home")}
         secondaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
-          {t("Did you maybe pressed cancel on the OAuth provider's page?")}
+          {t("The sign-in operation has been cancelled. Please try again. [access_denied]")}
         </Typography>
       </MessageCard>
     );
