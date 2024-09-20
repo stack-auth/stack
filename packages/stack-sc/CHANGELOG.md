@@ -1,5 +1,7 @@
 # @stackframe/stack-sc
 
+## 2.5.37
+
 ## 2.5.36
 
 ### Patch Changes

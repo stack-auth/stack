@@ -1,5 +1,13 @@
 # e2e-tests
 
+## 2.5.37
+
+### Patch Changes
+
+- client side account deletion; new account setting style;
+- Updated dependencies
+  - @stackframe/stack-shared@2.5.37
+
 ## 2.5.36
 
 ### Patch Changes

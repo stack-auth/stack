@@ -84,8 +84,8 @@ export function createVerificationCodeHandler<
     user: UsersCrud["Admin"]["Read"] | undefined
   ) => Promise<DetailsResponse>) : undefined,
 }): VerificationCodeHandler<Data, SendCodeExtraOptions, DetailsResponse extends SmartResponse ? true : false, Method> {
-  const createHandler = (type: 'post' | 'check' | 'details') => createSmartRouteHandler({
-    metadata: options.metadata?.[type],
+  const createHandler = (handlerType: 'post' | 'check' | 'details') => createSmartRouteHandler({
+    metadata: options.metadata?.[handlerType],
     request: yupObject({
       auth: yupObject({
         project: adaptSchema.required(),
@@ -95,9 +95,9 @@ export function createVerificationCodeHandler<
         code: yupString().required(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      }).concat((type === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
+      }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
     }),
-    response: type === 'check' ?
+    response: handlerType === 'check' ?
       yupObject({
         statusCode: yupNumber().oneOf([200]).required(),
         bodyType: yupString().oneOf(["json"]).required(),
@@ -105,7 +105,7 @@ export function createVerificationCodeHandler<
           "is_code_valid": yupBoolean().oneOf([true]).required(),
         }).required(),
       }).required() as yup.ObjectSchema<any> :
-      type === 'details' ?
+      handlerType === 'details' ?
         options.detailsResponse || throwErr('detailsResponse is required') :
         options.response,
     async handler({ body: { code, ...requestBody }, auth }) {
@@ -115,6 +115,7 @@ export function createVerificationCodeHandler<
             projectId: auth.project.id,
             code,
           },
+          type: options.type,
         },
       });
 
@@ -133,7 +134,7 @@ export function createVerificationCodeHandler<
         await options.validate(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any);
       }
 
-      switch (type) {
+      switch (handlerType) {
         case 'post': {
           await prismaClient.verificationCode.update({
             where: {
@@ -141,6 +142,7 @@ export function createVerificationCodeHandler<
                 projectId: auth.project.id,
                 code,
               },
+              type: options.type,
             },
             data: {
               usedAt: new Date(),

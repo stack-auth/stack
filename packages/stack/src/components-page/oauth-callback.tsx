@@ -35,7 +35,7 @@ export function OAuthCallback(props: { fullPage?: boolean }) {
   }, []);
 
   return <MessageCard title='Redirecting...' fullPage={props.fullPage}>
-    {showRedirectLink ? <p>{t('If you are not redirected automatically, ')}<StyledLink href={app.urls.home}>t('click here')</StyledLink></p> : null}
+    {showRedirectLink ? <p>{t('If you are not redirected automatically, ')}<StyledLink href={app.urls.home}>{t("click here")}</StyledLink></p> : null}
     {error ? <div>
       <p>{t("Something went wrong while processing the OAuth callback:")}</p>
       <pre>{JSON.stringify(error, null, 2)}</pre>

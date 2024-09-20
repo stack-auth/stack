@@ -59,3 +59,59 @@ it("each verification code that was already requested can be used exactly once",
     `);
   }
 });
+
+it("should not allow verify a code that doesn't exist", async ({ expect }) => {
+  await Auth.Password.signUpWithEmail();
+  const response = await niceBackendFetch("/api/v1/contact-channels/verify", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: "nonexistentcode",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 404,
+      "body": {
+        "code": "VERIFICATION_CODE_NOT_FOUND",
+        "error": "The verification code does not exist for this project.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "VERIFICATION_CODE_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("should not allow verification of a code that is sent from a different endpoint", async ({ expect }) => {
+  await Auth.Otp.sendSignInCode();
+  const mailbox = backendContext.value.mailbox;
+  const messages = await mailbox.fetchMessages();
+  const verifyMessage = messages.find((message) => message.subject.includes("Sign in"));
+  const verificationCode = verifyMessage?.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Verification code not found");
+
+  // Try to verify the magic link code using the contact channels verification endpoint
+  const verifyResponse = await niceBackendFetch("/api/v1/contact-channels/verify", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: verificationCode,
+    },
+  });
+
+  // Expect the verification to fail
+  expect(verifyResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 404,
+      "body": {
+        "code": "VERIFICATION_CODE_NOT_FOUND",
+        "error": "The verification code does not exist for this project.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "VERIFICATION_CODE_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
