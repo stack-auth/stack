@@ -1119,6 +1119,16 @@ const InvalidAuthorizationCode = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthProviderAccessDenied = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_PROVIDER_ACCESS_DENIED",
+  () => [
+    400,
+    "The OAuth provider denied access to the user.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1209,6 +1219,7 @@ export const KnownErrors = {
   InvalidStandardOAuthProviderId,
   InvalidAuthorizationCode,
   TeamPermissionNotFound,
+  OAuthProviderAccessDenied,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 
