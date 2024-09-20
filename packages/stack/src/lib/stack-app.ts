@@ -1680,7 +1680,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
       },
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
-        return await app._checkFeatureSupport("updatePassword() on ServerUser", {});
+        return await this.update({ password: options.newPassword });
       },
       async getTeamProfile(team: Team) {
         const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
