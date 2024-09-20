@@ -43,6 +43,8 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       email: createOptions.method.email,
       templateType: "magic_link",
       extraVariables: {
+        userDisplayName: sendOptions.user.display_name,
+        userPrimaryEmail: sendOptions.user.primary_email,
         magicLink: codeObj.link.toString(),
       },
     });

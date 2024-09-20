@@ -56,14 +56,11 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.SignUpNotEnabled();
     }
 
-    let userObj: { projectUserId: string, displayName: string | null } | null = authMethod ? {
-      projectUserId: authMethod.projectUser.projectUserId,
-      displayName: authMethod.projectUser.displayName,
-    } : null;
+    let user;
 
-    if (!userObj) {
+    if (!authMethod) {
       // TODO this should be in the same transaction as the read above
-      const createdUser = await usersCrudHandlers.adminCreate({
+      user = await usersCrudHandlers.adminCreate({
         project,
         data: {
           primary_email_auth_enabled: true,
@@ -72,36 +69,25 @@ export const POST = createSmartRouteHandler({
         },
         allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });
-
-      userObj = {
-        projectUserId: createdUser.id,
-        displayName: createdUser.display_name,
-      };
+    } else {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: authMethod.projectUser.projectUserId,
+      });
     }
 
-    const { link } = await signInVerificationCodeHandler.createCode({
-      project,
-      method: { email },
-      data: {
-        user_id: userObj.projectUserId,
-        is_new_user: isNewUser,
+    await signInVerificationCodeHandler.sendCode(
+      {
+        project,
+        callbackUrl,
+        method: { email },
+        data: {
+          user_id: user.id,
+          is_new_user: isNewUser,
+        },
       },
-      callbackUrl,
-    });
-
-    // TODO use signInVerificationCodeHandler.sendCode instead of .createCode and then sending the code manually
-    await sendEmailFromTemplate({
-      project,
-      // TODO fill user object instead of specifying the extra variables below manually (signInVerificationCodeHandler.sendCode would do this already)
-      user: null,
-      email,
-      templateType: "magic_link",
-      extraVariables: {
-        userDisplayName: userObj.displayName,
-        userPrimaryEmail: email,
-        magicLink: link.toString(),
-      },
-    });
+      { user }
+    );
 
     return {
       statusCode: 200,
