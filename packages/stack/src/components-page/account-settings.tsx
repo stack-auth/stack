@@ -9,6 +9,7 @@ import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, EditableText, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
+import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import React, { useEffect, useState } from "react";
@@ -103,8 +104,8 @@ export function AccountSettings(props: {
 
 function Section(props: { title: string, description?: string, children: React.ReactNode }) {
   return (
-    <div className='flex'>
-      <div className='flex-1 flex flex-col justify-center'>
+    <div className='flex flex-col sm:flex-row gap-2'>
+      <div className='sm:flex-1 flex flex-col justify-center'>
         <Typography className='font-medium'>
           {props.title}
         </Typography>
@@ -112,7 +113,7 @@ function Section(props: { title: string, description?: string, children: React.R
           {props.description}
         </Typography>}
       </div>
-      <div className='flex-1 flex flex-col gap-2'>
+      <div className='sm:flex-1 flex flex-col gap-2'>
         {props.children}
       </div>
     </div>
@@ -710,6 +711,7 @@ export function TeamCreation() {
   const app = useStackApp();
   const project = app.useProject();
   const user = useUser({ or: 'redirect' });
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   if (!project.config.clientTeamCreationEnabled) {
@@ -719,11 +721,14 @@ export function TeamCreation() {
   const onSubmit = async (data: yup.InferType<typeof teamCreationSchema>) => {
     setLoading(true);
 
+    let team;
     try {
-      const team = await user.createTeam({ displayName: data.displayName });
+      team = await user.createTeam({ displayName: data.displayName });
     } finally {
       setLoading(false);
     }
+
+    router.push(app.urls.accountSettings + `/teams/${team.id}`);
   };
 
   return (

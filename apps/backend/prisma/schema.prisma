@@ -568,6 +568,7 @@ enum StandardOAuthProviderType {
   BITBUCKET
   LINKEDIN
   APPLE
+  X
 }
 
 model OAuthToken {

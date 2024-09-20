@@ -11,6 +11,7 @@ const mockedProviders = [
   "discord",
   "gitlab",
   "bitbucket",
+  "x",
 ];
 
 const configuration: Configuration  = {
