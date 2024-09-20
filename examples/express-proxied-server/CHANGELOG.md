@@ -1,5 +1,7 @@
 # @stackframe/proxied-server-example
 
+## 2.5.37
+
 ## 2.5.36
 
 ### Patch Changes
