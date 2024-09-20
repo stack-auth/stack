@@ -23,7 +23,7 @@ const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"][
   const url = new URL(errorRedirectUrl);
   url.searchParams.set("errorCode", error.errorCode);
   url.searchParams.set("message", error.message);
-  url.searchParams.set("details", error.details ? JSON.stringify(error.details) : "{}");
+  url.searchParams.set("details", error.details ? JSON.stringify(error.details) : JSON.stringify({}));
   redirect(url.toString());
 };
 
