@@ -20,6 +20,11 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       description: "Check if a team invitation code is valid without using it",
       tags: ["Teams"],
     },
+    details: {
+      summary: "Get team invitation details",
+      description: "Get additional information about a team invitation code",
+      tags: ["Teams"],
+    },
   },
   type: VerificationCodeType.TEAM_INVITATION,
   data: yupObject({
