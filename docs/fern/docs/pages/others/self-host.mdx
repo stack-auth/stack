@@ -87,43 +87,45 @@ Deploy these services with your preferred platform. Copy the URLs/API keys—you
 
 ### API backend
 
-Clone the repository and check out the backend directory:
+Clone the repository and check out the root directory:
 
 ```sh
 git clone git@github.com:stack-auth/stack.git
-cd stack/apps/backend
+cd stack
 ```
 
-Copy the `.env` file to `.env.local` and fill in the variables. Note that `STACK_BASE_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/backend/.env`). Note that `STACK_BASE_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
 ```sh
-pnpm build
-pnpm start
+pnpm install
+pnpm build:backend
+pnpm start:backend
 ```
 
 ### Dashboard
 
-Clone the repository and check out the dashboard directory:
+Clone the repository (if you are running it on a separate server, or skip this step if you are using the same server as the API backend) and check out the dashboard directory:
 
 ```sh
 git clone git@github.com:stack-auth/stack.git
-cd stack/apps/dashboard
+cd stack
 ```
 
-Copy the `.env` file to `.env.local` and fill in the variables. Note that `NEXT_PUBLIC_STACK_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/dashboard/.env`). Note that `NEXT_PUBLIC_STACK_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
 ```sh
-pnpm build
-pnpm start
+pnpm install
+pnpm build:dashboard
+pnpm start:dashboard
 ```
 
 ### Initialize the database
 
-You need to initialize the database with the following command:
+You need to initialize the database with the following command with the backend environment variables set:
 
 ```sh
 pnpm prisma migrate deploy
