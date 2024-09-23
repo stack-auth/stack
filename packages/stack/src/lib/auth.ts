@@ -2,6 +2,7 @@ import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
+import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { constructRedirectUrl } from "../utils/url";
 import { consumeVerifierAndStateCookie, saveVerifierAndState } from "./cookie";
@@ -117,18 +118,18 @@ export async function callOAuthCallback(
   // to be synchronous, to prevent race conditions when
   // callOAuthCallback is called multiple times in parallel
   const consumed = consumeOAuthCallbackQueryParams();
-  if (!consumed) return null;
+  if (!consumed) return Result.ok(undefined);
 
   // the rest can be asynchronous (we now know that we are the
   // intended recipient of the callback, and the only instance
   // of callOAuthCallback that's running)
   try {
-    return await iface.callOAuthCallback({
+    return Result.ok(await iface.callOAuthCallback({
       oauthParams: consumed.originalUrl.searchParams,
       redirectUri: constructRedirectUrl(redirectUrl),
       codeVerifier: consumed.codeVerifier,
       state: consumed.state,
-    });
+    }));
   } catch (e) {
     if (e instanceof KnownError) {
       throw e;

@@ -30,11 +30,13 @@ export function CredentialSignIn() {
 
     try {
       const { email, password } = data;
-      const error = await app.signInWithCredential({
+      const result = await app.signInWithCredential({
         email,
         password,
       });
-      setError('email', { type: 'manual', message: error?.message });
+      if (result.status === 'error') {
+        setError('email', { type: 'manual', message: result.error.message });
+      }
     } finally {
       setLoading(false);
     }

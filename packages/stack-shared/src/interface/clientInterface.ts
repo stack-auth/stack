@@ -636,7 +636,7 @@ export class StackClientInterface {
     email: string,
     password: string,
     session: InternalSession
-  ): Promise<KnownErrors["EmailPasswordMismatch"] | { accessToken: string, refreshToken: string }> {
+  ): Promise<Result<{ accessToken: string, refreshToken: string }, KnownErrors["EmailPasswordMismatch"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/sign-in",
       {
@@ -654,14 +654,14 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
     }
 
     const result = await res.data.json();
-    return {
+    return Result.ok({
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
-    };
+    });
   }
 
   async signUpWithCredential(
@@ -669,7 +669,7 @@ export class StackClientInterface {
     password: string,
     emailVerificationRedirectUrl: string,
     session: InternalSession,
-  ): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | { accessToken: string, refreshToken: string }> {
+  ): Promise<Result<{ accessToken: string, refreshToken: string }, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/sign-up",
       {
@@ -688,17 +688,17 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
     }
 
     const result = await res.data.json();
-    return {
+    return Result.ok({
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
-    };
+    });
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | { newUser: boolean, accessToken: string, refreshToken: string }> {
+  async signInWithMagicLink(code: string): Promise<Result<{ newUser: boolean, accessToken: string, refreshToken: string }, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/otp/sign-in",
       {
@@ -715,15 +715,15 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
     }
 
     const result = await res.data.json();
-    return {
+    return Result.ok({
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
       newUser: result.is_new_user,
-    };
+    });
   }
 
   async getOAuthUrl(

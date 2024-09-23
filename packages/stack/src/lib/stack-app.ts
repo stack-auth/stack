@@ -1,5 +1,5 @@
 import { isReactServer } from "@stackframe/stack-sc";
-import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
@@ -1192,12 +1192,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
    * @deprecated
    * TODO remove
    */
-  protected async _catchMfaRequiredError<T>(callback: () => Promise<T>) {
+  protected async _catchMfaRequiredError<T, E>(callback: () => Promise<Result<T, E>>): Promise<Result<T | { accessToken: string, refreshToken: string, newUser: boolean }, E>> {
     try {
       return await callback();
     } catch (e) {
       if (e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
-        return await this._experimentalMfa(e, this._getSession());
+        return Result.ok(await this._experimentalMfa(e, this._getSession()));
       }
       throw e;
     }
@@ -1207,7 +1207,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     email: string,
     password: string,
     noRedirect?: boolean,
-  }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void> {
+  }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     let result;
@@ -1217,26 +1217,27 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     } catch (e) {
       if (e instanceof KnownErrors.InvalidTotpCode) {
-        return e;
+        return Result.error(e);
       }
       throw e;
     }
-    if (!(result instanceof KnownError)) {
-      await this._signInToAccountWithTokens(result);
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
       if (!options.noRedirect) {
-        return await this.redirectToAfterSignIn({ replace: true });
-      } else {
-        return;
+        await this.redirectToAfterSignIn({ replace: true });
       }
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
     }
-    return result;
   }
 
   async signUpWithCredential(options: {
     email: string,
     password: string,
     noRedirect?: boolean,
-  }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | void> {
+  }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet']>> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
@@ -1246,15 +1247,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       emailVerificationRedirectUrl,
       session
     );
-    if (!(result instanceof KnownError)) {
-      await this._signInToAccountWithTokens(result);
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
       if (!options.noRedirect) {
-        return await this.redirectToAfterSignUp({ replace: true });
-      } else {
-        return;
+        await this.redirectToAfterSignUp({ replace: true });
       }
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
     }
-    return result;
   }
 
   async signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>> {
@@ -1270,16 +1271,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
       throw e;
     }
-    if (result instanceof KnownError) {
-      return Result.error(result);
-    }
-    await this._signInToAccountWithTokens(result);
-    if (result.newUser) {
-      await this.redirectToAfterSignUp({ replace: true });
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
+      if (result.data.newUser) {
+        await this.redirectToAfterSignUp({ replace: true });
+      } else {
+        await this.redirectToAfterSignIn({ replace: true });
+      }
+      return Result.ok(undefined);
     } else {
-      await this.redirectToAfterSignIn({ replace: true });
+      return Result.error(result.error);
     }
-    return Result.ok(undefined);
   }
 
   async callOAuthCallback() {
@@ -1295,15 +1298,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
       throw e;
     }
-    if (result) {
+    if (result.status === 'ok' && result.data) {
       console.log("OAuth callback result", result);
-      await this._signInToAccountWithTokens(result);
+      await this._signInToAccountWithTokens(result.data);
       // TODO fix afterCallbackRedirectUrl for MFA (currently not passed because /mfa/sign-in doesn't return it)
       // or just get rid of afterCallbackRedirectUrl entirely tbh
-      if ("afterCallbackRedirectUrl" in result && result.afterCallbackRedirectUrl) {
-        await _redirectTo(result.afterCallbackRedirectUrl, { replace: true });
+      if ("afterCallbackRedirectUrl" in result.data && result.data.afterCallbackRedirectUrl) {
+        await _redirectTo(result.data.afterCallbackRedirectUrl, { replace: true });
         return true;
-      } else if (result.newUser) {
+      } else if (result.data.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
         return true;
       } else {
@@ -2880,8 +2883,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
-    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>>,
+    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
     sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
