@@ -58,7 +58,7 @@ export function MagicLinkSignIn(props: { onSuccess?: (data: { nonce: string }) =
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Button disabled={sent} type="submit" className="mt-6" loading={loading}>
-        {sent ? t('Email sent!') : t('Send magic link')}
+        {sent ? t('Email sent!') : t('Send email')}
       </Button>
     </form>
   );
