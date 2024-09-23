@@ -46,7 +46,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       team_display_name: yupString().required(),
     }).required(),
   }),
-  async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+  async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }){
     const team = await teamsCrudHandlers.adminRead({
       project: createOptions.project,
       team_id: createOptions.data.team_id,
@@ -62,8 +62,6 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
         teamDisplayName: team.display_name,
       },
     });
-
-    return codeObj;
   },
   async handler(project, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired();

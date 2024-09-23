@@ -1,9 +1,9 @@
-import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import semver from "semver";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
@@ -22,12 +22,15 @@ export const POST = createSmartRouteHandler({
       email: signInEmailSchema.required(),
       callback_url: emailOtpSignInCallbackUrlSchema.required(),
     }).required(),
+    clientVersion: yupObject({
+      version: yupString().optional(),
+    }).optional(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
     if (!project.config.magic_link_enabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
@@ -76,11 +79,18 @@ export const POST = createSmartRouteHandler({
       });
     }
 
+    let type: "legacy" | "standard";
+    if (clientVersion?.version && semver.valid(clientVersion.version) && semver.lte(clientVersion.version, "2.5.37")) {
+      type = "legacy";
+    } else {
+      type = "standard";
+    }
+
     await signInVerificationCodeHandler.sendCode(
       {
         project,
         callbackUrl,
-        method: { email },
+        method: { email, type },
         data: {
           user_id: user.id,
           is_new_user: isNewUser,

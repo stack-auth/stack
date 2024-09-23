@@ -1,6 +1,6 @@
 import { TEditorConfiguration } from "../editor/documents/editor/core";
 
-export const magicLinkTemplate: TEditorConfiguration = {
+export const magicLinkTemplateOld: TEditorConfiguration = {
   "root": {
     "type": "EmailLayout",
     "data": {
@@ -11,8 +11,7 @@ export const magicLinkTemplate: TEditorConfiguration = {
       "childrenIds": [
         "block_BjpQ7DGTtvaEuYRMd7VE7w",
         "block_xyg4GWmgGbJJEDRQc76bC",
-        "block-1727062582681",
-        "block-1727062622114",
+        "block_76VptLCZ47t3EkAarUufEJ",
         "block_Gtk3kDYwsJqEmQf2XGWPRc",
         "block_LACDCzUS2bsvEbmnq1KHuW"
       ]
@@ -36,7 +35,34 @@ export const magicLinkTemplate: TEditorConfiguration = {
         }
       },
       "props": {
-        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! This is your one-time-password for signing in: "
+        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to sign in."
+      }
+    }
+  },
+  "block_76VptLCZ47t3EkAarUufEJ": {
+    "type": "Button",
+    "data": {
+      "style": {
+        "backgroundColor": null,
+        "fontSize": 14,
+        "fontFamily": null,
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "padding": {
+          "top": 12,
+          "bottom": 12,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "buttonBackgroundColor": "#f0f0f0",
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#000000",
+        "fullWidth": false,
+        "size": "medium",
+        "text": "Sign in",
+        "url": "{{ magicLink }}"
       }
     }
   },
@@ -99,88 +125,6 @@ export const magicLinkTemplate: TEditorConfiguration = {
       },
       "props": {
         "text": "If you were not expecting this email, you can safely ignore it."
-      }
-    }
-  },
-  "block-1727053976677": {
-    "type": "Text",
-    "data": {
-      "style": {
-        "color": "#000000",
-        "fontSize": 36,
-        "fontFamily": "MONOSPACE",
-        "fontWeight": "bold",
-        "textAlign": "center",
-        "padding": {
-          "top": 16,
-          "bottom": 16,
-          "right": 24,
-          "left": 24
-        }
-      },
-      "props": {
-        "text": "{{ otp }}"
-      }
-    }
-  },
-  "block-1727054013149": {
-    "type": "Text",
-    "data": {
-      "style": {
-        "color": "#000000",
-        "fontSize": 14,
-        "fontWeight": "normal",
-        "textAlign": "center",
-        "padding": {
-          "top": 16,
-          "bottom": 16,
-          "right": 24,
-          "left": 24
-        }
-      },
-      "props": {
-        "text": "Or you can click on [this link]({{ magicLink }}) to login"
-      }
-    }
-  },
-  "block-1727062582681": {
-    "type": "Text",
-    "data": {
-      "style": {
-        "color": "#000000",
-        "fontSize": 35,
-        "fontFamily": "MONOSPACE",
-        "fontWeight": "bold",
-        "textAlign": "center",
-        "padding": {
-          "top": 16,
-          "bottom": 16,
-          "right": 24,
-          "left": 24
-        }
-      },
-      "props": {
-        "text": "{{ otp }}"
-      }
-    }
-  },
-  "block-1727062622114": {
-    "type": "Text",
-    "data": {
-      "style": {
-        "color": "#000000",
-        "fontSize": 14,
-        "fontWeight": "normal",
-        "textAlign": "center",
-        "padding": {
-          "top": 16,
-          "bottom": 16,
-          "right": 24,
-          "left": 24
-        }
-      },
-      "props": {
-        "text": "Or you can click on [this link]({{ magicLink }}) to sign in"
       }
     }
   }
