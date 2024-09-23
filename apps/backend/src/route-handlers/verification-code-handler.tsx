@@ -13,6 +13,8 @@ import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 
+const MAX_ATTEMPTS_PER_CODE = 20;
+
 type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = {
   project: ProjectsCrud["Admin"]["Read"],
   method: Method,
@@ -124,9 +126,23 @@ export function createVerificationCodeHandler<
         },
       });
 
+      // Increment the attempt count for all codes that match except for the first 6 characters
+      await prismaClient.verificationCode.updateMany({
+        where: {
+          projectId: auth.project.id,
+          code: {
+            endsWith: code.slice(6),
+          }
+        },
+        data: {
+          attemptCount: { increment: 1 },
+        },
+      });
+
       if (!verificationCode) throw new KnownErrors.VerificationCodeNotFound();
       if (verificationCode.expiresAt < new Date()) throw new KnownErrors.VerificationCodeExpired();
       if (verificationCode.usedAt) throw new KnownErrors.VerificationCodeAlreadyUsed();
+      if (verificationCode.attemptCount >= MAX_ATTEMPTS_PER_CODE) throw new KnownErrors.VerificationCodeMaxAttemptsReached;
 
       const validatedMethod = await options.method.validate(verificationCode.method, {
         strict: true,
