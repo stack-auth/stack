@@ -791,7 +791,7 @@ const VerificationCodeMaxAttemptsReached = createKnownErrorConstructor(
   "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
   () => [
     400,
-    "The verification code nonce has reached the maximum number of attempts.",
+    "The verification code nonce has reached the maximum number of attempts. This code is not valid anymore.",
   ] as const,
   () => [] as const,
 );
