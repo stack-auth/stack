@@ -457,9 +457,7 @@ export class StackClientInterface {
     if (res.status === "error") {
       return Result.error(res.error);
     } else {
-      return Result.ok({
-        nonce: (await res.data.json()).nonce,
-      });
+      return Result.ok(await res.data.json());
     }
   }
 

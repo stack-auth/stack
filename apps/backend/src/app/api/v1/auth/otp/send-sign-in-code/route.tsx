@@ -28,7 +28,10 @@ export const POST = createSmartRouteHandler({
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupObject({
+      nonce: yupString().required(),
+    }).required(),
   }),
   async handler({ auth: { project }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
     if (!project.config.magic_link_enabled) {
@@ -86,7 +89,7 @@ export const POST = createSmartRouteHandler({
       type = "standard";
     }
 
-    await signInVerificationCodeHandler.sendCode(
+    const { nonce } = await signInVerificationCodeHandler.sendCode(
       {
         project,
         callbackUrl,
@@ -101,7 +104,8 @@ export const POST = createSmartRouteHandler({
 
     return {
       statusCode: 200,
-      bodyType: "success",
+      bodyType: "json",
+      body: { nonce },
     };
   },
 });

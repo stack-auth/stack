@@ -1,7 +1,7 @@
 'use client';
 
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { InputOTP, InputOTPGroup, InputOTPSlot, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
+import { Button, InputOTP, InputOTPGroup, InputOTPSlot, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
 import { useStackApp, useUser } from '..';
 import { CredentialSignIn } from '../components/credential-sign-in';
@@ -13,9 +13,10 @@ import { PredefinedMessageCard } from '../components/message-cards/predefined-me
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
-function OTPPage(props: {}) {
-  const stackApp = useStackApp();
-  const user = useUser();
+function OTPPage(props: {
+  onBack?: () => void,
+  onSubmit: (otp: string) => void,
+}) {
   const { t } = useTranslation();
   const [otp, setOtp] = useState<string>('');
 
@@ -25,7 +26,7 @@ function OTPPage(props: {}) {
       subtitle={<Typography>{t("You will receive an email with the code")}</Typography>}
       fullPage={true}
     >
-      <form className='w-full flex flex-col items-center'>
+      <form className='w-full flex flex-col items-center mb-4'>
         <InputOTP
           maxLength={6}
           pattern={"^[a-zA-Z0-9]+$"}
@@ -39,6 +40,7 @@ function OTPPage(props: {}) {
           </InputOTPGroup>
         </InputOTP>
       </form>
+      <Button variant='link' onClick={props.onBack} className='underline'>Go back</Button>
     </PageFrame>
   );
 }
@@ -113,7 +115,9 @@ export function AuthPage(props: {
 
   switch (currentPage) {
     case 'otp': {
-      return <OTPPage/>;
+      return <OTPPage
+        onBack={() => setCurrentPage('main')}
+      />;
     }
     case 'main': {
       return (
