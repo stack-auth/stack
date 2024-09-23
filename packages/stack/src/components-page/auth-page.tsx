@@ -23,7 +23,7 @@ function OTPPage(props: {
   const [otp, setOtp] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const stackApp = useStackApp();
-  const [error, setError] = useState<KnownErrors["VerificationCodeError"] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (otp.length === 6 && !submitting) {
@@ -32,7 +32,9 @@ function OTPPage(props: {
         .then(result => {
           if (result.status === 'error') {
             if (result.error instanceof KnownErrors.VerificationCodeError) {
-              setError(result.error);
+              setError(t("Invalid code"));
+            } else if (result.error instanceof KnownErrors.InvalidTotpCode) {
+              setError(t("Invalid TOTP code"));
             } else {
               throw result.error;
             }
@@ -69,7 +71,7 @@ function OTPPage(props: {
             ))}
           </InputOTPGroup>
         </InputOTP>
-        {error && <FormWarningText text={t('Invalid code')} />}
+        {error && <FormWarningText text={error} />}
       </form>
       <Button variant='link' onClick={props.onBack} className='underline'>Go back</Button>
     </PageFrame>
