@@ -1043,10 +1043,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return error;
   }
 
-  async sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void> {
+  async sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
     const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
-    const error = await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
-    return error;
+    return await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["VerificationCodeError"] | void> {
@@ -2892,7 +2891,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
-    sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
+    sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
     resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
     verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,

@@ -11,8 +11,11 @@ import { useStackApp } from "..";
 import { useTranslation } from "../lib/translations";
 import { FormWarningText } from "./elements/form-warning";
 
-export function MagicLinkSignIn() {
+export function MagicLinkSignIn(props: { onSuccess?: (data: { nonce: string }) => void }) {
   const { t } = useTranslation();
+  const [sent, setSent] = useState(false);
+  const app = useStackApp();
+  const [loading, setLoading] = useState(false);
 
   const schema = yupObject({
     email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email'))
@@ -21,20 +24,19 @@ export function MagicLinkSignIn() {
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
     resolver: yupResolver(schema)
   });
-  const [sent, setSent] = useState(false);
-  const app = useStackApp();
-  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
     setLoading(true);
     try {
       const { email } = data;
-      const error = await app.sendMagicLinkEmail(email);
-      if (error) {
-        setError('email', { type: 'manual', message: error.message });
+      const result = await app.sendMagicLinkEmail(email);
+      if (result.status === 'error') {
+        setError('email', { type: 'manual', message: result.error.message });
         return;
+      } else {
+        setSent(true);
+        props.onSuccess?.(result.data);
       }
-    setSent(true);
     } finally {
       setLoading(false);
     }

@@ -13,12 +13,11 @@ import { PredefinedMessageCard } from '../components/message-cards/predefined-me
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
-function OTPPage(props: {
-  nonce: string,
-}) {
+function OTPPage(props: {}) {
   const stackApp = useStackApp();
   const user = useUser();
   const { t } = useTranslation();
+  const [otp, setOtp] = useState<string>('');
 
   return (
     <PageFrame
@@ -30,6 +29,8 @@ function OTPPage(props: {
         <InputOTP
           maxLength={6}
           pattern={"^[a-zA-Z0-9]+$"}
+          value={otp}
+          onChange={value => setOtp(value.toUpperCase())}
         >
           <InputOTPGroup>
             {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -84,8 +85,8 @@ export function AuthPage(props: {
   const projectFromHook = stackApp.useProject();
   const project = props.mockProject || projectFromHook;
   const { t } = useTranslation();
-  const [currentPage, setCurrentPage] = useState<'otp' | 'main'>('otp');
-  const [otpNonce, setOtpNonce] = useState<string | null>('asdf');
+  const [currentPage, setCurrentPage] = useState<'otp' | 'main'>('main');
+  const [otpNonce, setOtpNonce] = useState<string | null>(null);
 
   useEffect(() => {
     if (props.automaticRedirect) {
@@ -105,59 +106,77 @@ export function AuthPage(props: {
 
   const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
-  if (currentPage === 'otp' && otpNonce) {
-    return <OTPPage nonce={otpNonce} />;
-  } else {
-    return (
-      <PageFrame
-        title={props.type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
-        subtitle={props.type === 'sign-in' ? (
-          project.config.signUpEnabled && (
-            <Typography>
-              {t("Don't have an account?")}{" "}
-              <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
+  const onMagicLinkSuccess = (data: { nonce: string }) => {
+    setOtpNonce(data.nonce);
+    setCurrentPage('otp');
+  };
+
+  switch (currentPage) {
+    case 'otp': {
+      return <OTPPage/>;
+    }
+    case 'main': {
+      return (
+        <PageFrame
+          title={props.type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
+          subtitle={props.type === 'sign-in' ? (
+            project.config.signUpEnabled && (
+              <Typography>
+                {t("Don't have an account?")}{" "}
+                <StyledLink
+                  href={stackApp.urls.signUp}
+                  onClick={(e) => {
                   runAsynchronously(stackApp.redirectToSignUp());
                   e.preventDefault();
-              }}>{t("Sign up")}</StyledLink>
+                  }}
+                >
+                  {t("Sign up")}
+                </StyledLink>
+              </Typography>
+            )
+          ) : (
+            <Typography>
+              {t("Already have an account?")}{" "}
+              <StyledLink
+                href={stackApp.urls.signIn}
+                onClick={(e) => {
+                  runAsynchronously(stackApp.redirectToSignIn());
+                  e.preventDefault();
+                }}
+              >
+                {t("Sign in")}
+              </StyledLink>
             </Typography>
-          )
-        ) : (
-          <Typography>
-            {t("Already have an account?")}{" "}
-            <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
-                runAsynchronously(stackApp.redirectToSignIn());
-                e.preventDefault();
-            }}>{t("Sign in")}</StyledLink>
-          </Typography>
-        )}
-        fullPage={!!props.fullPage}
-      >
-        <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
-        {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
-        {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
-          <Tabs defaultValue='magic-link'>
-            <TabsList className='w-full mb-2'>
-              <TabsTrigger value='magic-link' className='flex-1'>{t("Magic Link")}</TabsTrigger>
-              <TabsTrigger value='password' className='flex-1'>{t("Password")}</TabsTrigger>
-            </TabsList>
-            <TabsContent value='magic-link'>
-              <MagicLinkSignIn/>
-            </TabsContent>
-            <TabsContent value='password'>
-              {props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
-            </TabsContent>
-          </Tabs>
-        ) : project.config.credentialEnabled ? (
-          props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
-        ) : project.config.magicLinkEnabled ? (
-          <MagicLinkSignIn/>
-        ) : null}
-        {props.extraInfo && (
-          <div className='flex flex-col items-center text-center text-sm text-gray-500 mt-2'>
-            <div>{props.extraInfo}</div>
-          </div>
-        )}
-      </PageFrame>
-    );
+          )}
+          fullPage={!!props.fullPage}
+        >
+          <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
+          {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
+          {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
+            <Tabs defaultValue='magic-link'>
+              <TabsList className='w-full mb-2'>
+                <TabsTrigger value='magic-link' className='flex-1'>{t("Magic Link")}</TabsTrigger>
+                <TabsTrigger value='password' className='flex-1'>{t("Password")}</TabsTrigger>
+              </TabsList>
+              <TabsContent value='magic-link'>
+                <MagicLinkSignIn onSuccess={onMagicLinkSuccess} />
+              </TabsContent>
+              <TabsContent value='password'>
+                {props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+              </TabsContent>
+            </Tabs>
+          ) : project.config.credentialEnabled ? (
+            props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+          ) : project.config.magicLinkEnabled ? (
+            <MagicLinkSignIn onSuccess={onMagicLinkSuccess} />
+          ) : null}
+          {props.extraInfo && (
+            <div className='flex flex-col items-center text-center text-sm text-gray-500 mt-2'>
+              <div>{props.extraInfo}</div>
+            </div>
+          )}
+        </PageFrame>
+      );
+    }
   }
 }

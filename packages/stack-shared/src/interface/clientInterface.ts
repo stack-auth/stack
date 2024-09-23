@@ -437,7 +437,7 @@ export class StackClientInterface {
   async sendMagicLinkEmail(
     email: string,
     callbackUrl: string,
-  ): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | undefined> {
+  ): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/otp/send-sign-in-code",
       {
@@ -455,7 +455,11 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
+    } else {
+      return Result.ok({
+        nonce: (await res.data.json()).nonce,
+      });
     }
   }
 
