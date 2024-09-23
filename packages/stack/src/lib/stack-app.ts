@@ -1299,7 +1299,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       throw e;
     }
     if (result.status === 'ok' && result.data) {
-      console.log("OAuth callback result", result);
       await this._signInToAccountWithTokens(result.data);
       // TODO fix afterCallbackRedirectUrl for MFA (currently not passed because /mfa/sign-in doesn't return it)
       // or just get rid of afterCallbackRedirectUrl entirely tbh
