@@ -1,5 +1,6 @@
 'use client';
 
+import { KnownErrors } from '@stackframe/stack-shared';
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
 import { Button, InputOTP, InputOTPGroup, InputOTPSlot, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
@@ -12,13 +13,41 @@ import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
+import { FormWarningText } from '../components/elements/form-warning';
 
 function OTPPage(props: {
   onBack?: () => void,
-  onSubmit: (otp: string) => void,
+  nonce: string,
 }) {
   const { t } = useTranslation();
   const [otp, setOtp] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const stackApp = useStackApp();
+  const [error, setError] = useState<KnownErrors["VerificationCodeError"] | null>(null);
+
+  useEffect(() => {
+    if (otp.length === 6 && !submitting) {
+      setSubmitting(true);
+      stackApp.signInWithMagicLink(otp + props.nonce)
+        .then(result => {
+          if (result.status === 'error') {
+            if (result.error instanceof KnownErrors.VerificationCodeError) {
+              setError(result.error);
+            } else {
+              throw result.error;
+            }
+          }
+        })
+        .catch(e => console.error(e))
+        .finally(() => {
+          setSubmitting(false);
+          setOtp('');
+        });
+    }
+    if (otp.length !== 0 && otp.length !== 6) {
+      setError(null);
+    }
+  }, [otp, submitting]);
 
   return (
     <PageFrame
@@ -32,6 +61,7 @@ function OTPPage(props: {
           pattern={"^[a-zA-Z0-9]+$"}
           value={otp}
           onChange={value => setOtp(value.toUpperCase())}
+          disabled={submitting}
         >
           <InputOTPGroup>
             {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -39,6 +69,7 @@ function OTPPage(props: {
             ))}
           </InputOTPGroup>
         </InputOTP>
+        {error && <FormWarningText text={t('Invalid code')} />}
       </form>
       <Button variant='link' onClick={props.onBack} className='underline'>Go back</Button>
     </PageFrame>
@@ -117,6 +148,7 @@ export function AuthPage(props: {
     case 'otp': {
       return <OTPPage
         onBack={() => setCurrentPage('main')}
+        nonce={otpNonce ?? ''}
       />;
     }
     case 'main': {
@@ -130,8 +162,8 @@ export function AuthPage(props: {
                 <StyledLink
                   href={stackApp.urls.signUp}
                   onClick={(e) => {
-                  runAsynchronously(stackApp.redirectToSignUp());
-                  e.preventDefault();
+                    runAsynchronously(stackApp.redirectToSignUp());
+                    e.preventDefault();
                   }}
                 >
                   {t("Sign up")}

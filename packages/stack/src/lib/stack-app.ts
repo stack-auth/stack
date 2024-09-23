@@ -1265,7 +1265,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return result;
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] |  void> {
+  async signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>> {
     this._ensurePersistentTokenStore();
     let result;
     try {
@@ -1274,12 +1274,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     } catch (e) {
       if (e instanceof KnownErrors.InvalidTotpCode) {
-        return e;
+        return Result.error(e);
       }
       throw e;
     }
     if (result instanceof KnownError) {
-      return result;
+      return Result.error(result);
     }
     await this._signInToAccountWithTokens(result);
     if (result.newUser) {
@@ -1287,6 +1287,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } else {
       await this.redirectToAfterSignIn({ replace: true });
     }
+    return Result.ok(undefined);
   }
 
   async callOAuthCallback() {
@@ -2898,7 +2899,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
-    signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] | void>,
+    signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
