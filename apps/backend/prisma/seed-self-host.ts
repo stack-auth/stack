@@ -171,8 +171,7 @@ async function seed() {
           }
         });
 
-        console.log('Admin user created');
-        console.log(JSON.stringify(user, null, 2));
+        console.log('Initial admin user created');
       }
     });
   }
