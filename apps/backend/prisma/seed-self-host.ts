@@ -53,7 +53,7 @@ async function seed() {
                 }
               },
               createTeamOnSignUp: false,
-              clientTeamCreationEnabled: true,
+              clientTeamCreationEnabled: false,
               authMethodConfigs: {
                 create: [
                   {
