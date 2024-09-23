@@ -2,20 +2,20 @@ import { TEditorConfiguration } from "../editor/documents/editor/core";
 
 export const emailVerificationTemplate: TEditorConfiguration = {
   "root": {
+    "type": "EmailLayout",
     "data": {
-      "textColor": "#242424",
-      "fontFamily": "MODERN_SANS",
+      "backdropColor": "#ffffff",
       "canvasColor": "#FFFFFF",
+      "textColor": "#242424",
+      "fontFamily": null,
       "childrenIds": [
         "block_BjpQ7DGTtvaEuYRMd7VE7w",
         "block_xyg4GWmgGbJJEDRQc76bC",
         "block_76VptLCZ47t3EkAarUufEJ",
         "block_Gtk3kDYwsJqEmQf2XGWPRc",
         "block_LACDCzUS2bsvEbmnq1KHuW"
-      ],
-      "backdropColor": "#F2F5F7"
-    },
-    "type": "EmailLayout"
+      ]
+    }
   },
   "block_xyg4GWmgGbJJEDRQc76bC": {
     "type": "Text",
@@ -26,7 +26,7 @@ export const emailVerificationTemplate: TEditorConfiguration = {
         "fontSize": 14,
         "fontFamily": null,
         "fontWeight": "normal",
-        "textAlign": "left",
+        "textAlign": "center",
         "padding": {
           "top": 8,
           "bottom": 16,
@@ -40,31 +40,31 @@ export const emailVerificationTemplate: TEditorConfiguration = {
     }
   },
   "block_76VptLCZ47t3EkAarUufEJ": {
+    "type": "Button",
     "data": {
-      "props": {
-        "url": "{{ emailVerificationLink }}",
-        "size": "medium",
-        "text": "Verify my email",
-        "fullWidth": false,
-        "buttonStyle": "rounded",
-        "buttonTextColor": "#FFFFFF",
-        "buttonBackgroundColor": "#000000"
-      },
       "style": {
-        "padding": {
-          "top": 12,
-          "left": 24,
-          "right": 24,
-          "bottom": 12
-        },
+        "backgroundColor": null,
         "fontSize": 14,
-        "textAlign": "left",
         "fontFamily": null,
         "fontWeight": "bold",
-        "backgroundColor": null
+        "textAlign": "center",
+        "padding": {
+          "top": 12,
+          "bottom": 12,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "buttonBackgroundColor": "#f0f0f0",
+        "buttonStyle": "rounded",
+        "buttonTextColor": "#000000",
+        "fullWidth": false,
+        "size": "medium",
+        "text": "Verify my email",
+        "url": "{{ emailVerificationLink }}"
       }
-    },
-    "type": "Button"
+    }
   },
   "block_BjpQ7DGTtvaEuYRMd7VE7w": {
     "type": "Heading",
@@ -78,10 +78,10 @@ export const emailVerificationTemplate: TEditorConfiguration = {
         "backgroundColor": null,
         "fontFamily": null,
         "fontWeight": "bold",
-        "textAlign": "left",
+        "textAlign": "center",
         "padding": {
-          "top": 32,
-          "bottom": 0,
+          "top": 16,
+          "bottom": 16,
           "right": 24,
           "left": 24
         }
@@ -107,25 +107,25 @@ export const emailVerificationTemplate: TEditorConfiguration = {
     "type": "Divider"
   },
   "block_LACDCzUS2bsvEbmnq1KHuW": {
+    "type": "Text",
     "data": {
-      "props": {
-        "text": "If you were not expecting this email, you can safely ignore it."
-      },
       "style": {
         "color": "#474849",
-        "padding": {
-          "top": 4,
-          "left": 24,
-          "right": 24,
-          "bottom": 24
-        },
+        "backgroundColor": null,
         "fontSize": 12,
-        "textAlign": "left",
         "fontFamily": null,
         "fontWeight": "normal",
-        "backgroundColor": null
+        "textAlign": "center",
+        "padding": {
+          "top": 4,
+          "bottom": 24,
+          "right": 24,
+          "left": 24
+        }
+      },
+      "props": {
+        "text": "If you were not expecting this email, you can safely ignore it."
       }
-    },
-    "type": "Text"
+    }
   }
 };
