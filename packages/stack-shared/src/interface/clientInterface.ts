@@ -386,7 +386,7 @@ export class StackClientInterface {
   async sendForgotPasswordEmail(
     email: string,
     callbackUrl: string,
-  ): Promise<KnownErrors["UserNotFound"] | undefined> {
+  ): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/password/send-reset-code",
       {
@@ -404,7 +404,9 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
     }
   }
 
@@ -463,7 +465,7 @@ export class StackClientInterface {
 
   async resetPassword(
     options: { code: string } & ({ password: string } | { onlyVerifyCode: true })
-  ): Promise<KnownErrors["VerificationCodeError"] | undefined> {
+  ): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "onlyVerifyCode" in options ? "/auth/password/reset/check-code" : "/auth/password/reset",
       {
@@ -481,7 +483,9 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
     }
   }
 
@@ -510,15 +514,16 @@ export class StackClientInterface {
     }
   }
 
-  async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
+  async verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.resetPassword({ code, onlyVerifyCode: true });
-    if (res && !(res instanceof KnownErrors.VerificationCodeError)) {
-      throw res;
+    if (res.status === "error") {
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
     }
-    return res;
   }
 
-  async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | undefined> {
+  async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/contact-channels/verify",
       {
@@ -535,7 +540,9 @@ export class StackClientInterface {
     );
 
     if (res.status === "error") {
-      return res.error;
+      return Result.error(res.error);
+    } else {
+      return Result.ok(undefined);
     }
   }
 

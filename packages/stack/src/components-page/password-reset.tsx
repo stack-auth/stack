@@ -50,8 +50,8 @@ export default function PasswordResetForm(props: {
     setLoading(true);
     try {
       const { password } = data;
-      const errorCode = await stackApp.resetPassword({ password, code: props.code });
-      if (errorCode) {
+      const result = await stackApp.resetPassword({ password, code: props.code });
+      if (result.status === 'error') {
         setResetError(true);
         return;
       }
@@ -153,16 +153,18 @@ export function PasswordReset({
     return invalidJsx;
   }
 
-  const error = React.use(cachedVerifyPasswordResetCode(stackApp, code));
+  const result = React.use(cachedVerifyPasswordResetCode(stackApp, code));
 
-  if (error instanceof KnownErrors.VerificationCodeNotFound) {
-    return invalidJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
-    return expiredJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
-    return usedJsx;
-  } else if (error) {
-    throw error;
+  if (result.status === 'error') {
+    if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
+      return invalidJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
+      return expiredJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
+      return usedJsx;
+    } else {
+      throw result.error;
+    }
   }
 
   return <PasswordResetForm code={code} fullPage={fullPage} />;

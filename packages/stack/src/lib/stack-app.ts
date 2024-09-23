@@ -1037,10 +1037,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
-  async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
+  async sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    const error = await this._interface.sendForgotPasswordEmail(email, redirectUrl);
-    return error;
+    return await this._interface.sendForgotPasswordEmail(email, redirectUrl);
   }
 
   async sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
@@ -1048,27 +1047,20 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["VerificationCodeError"] | void> {
-    const error = await this._interface.resetPassword(options);
-    return error;
+  async resetPassword(options: { password: string, code: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
+    return await this._interface.resetPassword(options);
   }
 
-  async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
+  async verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     return await this._interface.verifyPasswordResetCode(code);
   }
 
   async verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
-    const result = await this._interface.acceptTeamInvitation({
+    return await this._interface.acceptTeamInvitation({
       type: 'check',
       code,
       session: this._getSession(),
     });
-
-    if (result.status === 'ok') {
-      return Result.ok(undefined);
-    } else {
-      return Result.error(result.error);
-    }
   }
 
   async acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
@@ -1099,7 +1091,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
+  async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     return await this._interface.verifyEmail(code);
   }
 
@@ -2891,14 +2883,14 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
     callOAuthCallback(): Promise<boolean>,
-    sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
+    sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
     sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
-    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
-    verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    resetPassword(options: { code: string, password: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
-    verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>>,
 
     redirectToOAuthCallback(): Promise<void>,

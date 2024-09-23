@@ -70,10 +70,10 @@ export default function CustomCredentialSignIn() {
       return;
     }
     // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
-    const errorCode = await app.signInWithCredential({ email, password });
+    const resullt = await app.signInWithCredential({ email, password });
     // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
-    if (errorCode) {
-      setError(errorCode.message);
+    if (result.status === 'error') {
+      setError(result.error.message);
     }
   };
   
@@ -104,10 +104,10 @@ export default function CustomCredentialSignIn() {
 
   const onSubmit = async () => {
     // this will redirect to app.urls.afterSignIn if successful, you can customize it in the StackServerApp constructor
-    const errorCode = await app.sendMagicLinkEmail(email);
+    const result = await app.sendMagicLinkEmail(email);
     // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
-    if (errorCode) {
-      setError(errorCode.message);
+    if (result.status === 'error') {
+      setError(result.error.message);
     } else {
       setMessage('Magic link sent! Please check your email.');
     }
