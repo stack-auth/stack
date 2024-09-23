@@ -62,6 +62,8 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
         teamDisplayName: team.display_name,
       },
     });
+
+    return codeObj;
   },
   async handler(project, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired();

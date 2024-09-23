@@ -21,7 +21,6 @@ export const POST = createSmartRouteHandler({
       team_id: teamIdSchema.required(),
       email: teamInvitationEmailSchema.required(),
       callback_url: teamInvitationCallbackUrlSchema.required(),
-      type: yupString().oneOf(["magic_link", "otp", "otp_and_magic_link"]).default("otp_and_magic_link").required(),
     }).required(),
     version: semverSchema.optional(),
   }),
@@ -34,7 +33,7 @@ export const POST = createSmartRouteHandler({
     if (version && semver.lte(version, "2.5.37")) {
       type = "magic_link";
     } else {
-      type = body.type;
+      type = "";
     }
 
     await prismaClient.$transaction(async (tx) => {

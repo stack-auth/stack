@@ -45,6 +45,7 @@ export function createVerificationCodeHandler<
   DetailsResponse extends SmartResponse | undefined,
   SendCodeExtraOptions extends {},
   Method extends {},
+  SendResponse,
 >(options: {
   metadata?: {
     post?: SmartRouteHandlerOverloadMetadata,
@@ -61,7 +62,7 @@ export function createVerificationCodeHandler<
     codeObject: CodeObject<string | URL>,
     createOptions: CreateCodeOptions<Data, Method, string | URL>,
     sendOptions: SendCodeExtraOptions,
-  ): Promise<void>,
+  ): Promise<SendResponse>,
   validate?(
     project: ProjectsCrud["Admin"]["Read"],
     method: Method,
