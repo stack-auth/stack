@@ -1,8 +1,8 @@
 'use client';
 
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
-import { useEffect } from 'react';
+import { InputOTP, InputOTPGroup, InputOTPSlot, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
+import { useEffect, useState } from 'react';
 import { useStackApp, useUser } from '..';
 import { CredentialSignIn } from '../components/credential-sign-in';
 import { CredentialSignUp } from '../components/credential-sign-up';
@@ -12,6 +12,56 @@ import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
+
+function OTPPage(props: {
+  nonce: string,
+}) {
+  const stackApp = useStackApp();
+  const user = useUser();
+  const { t } = useTranslation();
+
+  return (
+    <PageFrame
+      title={t("Enter OTP code")}
+      subtitle={<Typography>{t("You will receive an email with the code")}</Typography>}
+      fullPage={true}
+    >
+      <form className='w-full flex flex-col items-center'>
+        <InputOTP
+          maxLength={6}
+          pattern={"^[a-zA-Z0-9]+$"}
+        >
+          <InputOTPGroup>
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <InputOTPSlot key={index} index={index} />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+      </form>
+    </PageFrame>
+  );
+}
+
+function PageFrame(props: {
+  subtitle?: React.ReactNode,
+  title: string,
+  fullPage: boolean,
+  children: React.ReactNode,
+}) {
+  return (
+    <MaybeFullPage fullPage={props.fullPage}>
+      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
+        <div className="text-center mb-6">
+          <Typography type='h2'>
+            {props.title}
+          </Typography>
+          {props.subtitle}
+        </div>
+        {props.children}
+      </div>
+    </MaybeFullPage>
+  );
+}
 
 export function AuthPage(props: {
   fullPage?: boolean,
@@ -34,6 +84,8 @@ export function AuthPage(props: {
   const projectFromHook = stackApp.useProject();
   const project = props.mockProject || projectFromHook;
   const { t } = useTranslation();
+  const [currentPage, setCurrentPage] = useState<'otp' | 'main'>('otp');
+  const [otpNonce, setOtpNonce] = useState<string | null>('asdf');
 
   useEffect(() => {
     if (props.automaticRedirect) {
@@ -53,33 +105,33 @@ export function AuthPage(props: {
 
   const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
 
-  return (
-    <MaybeFullPage fullPage={!!props.fullPage}>
-      <div className='stack-scope flex flex-col items-stretch' style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
-        <div className="text-center mb-6">
-          <Typography type='h2'>
-            {props.type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
-          </Typography>
-          {props.type === 'sign-in' ? (
-            project.config.signUpEnabled && (
-              <Typography>
-                {t("Don't have an account?")}{" "}
-                <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
+  if (currentPage === 'otp' && otpNonce) {
+    return <OTPPage nonce={otpNonce} />;
+  } else {
+    return (
+      <PageFrame
+        title={props.type === 'sign-in' ? t("Sign in to your account") : t("Create a new account")}
+        subtitle={props.type === 'sign-in' ? (
+          project.config.signUpEnabled && (
+            <Typography>
+              {t("Don't have an account?")}{" "}
+              <StyledLink href={stackApp.urls.signUp} onClick={(e) => {
                   runAsynchronously(stackApp.redirectToSignUp());
                   e.preventDefault();
-                }}>{t("Sign up")}</StyledLink>
-              </Typography>
-            )
-          ) : (
-            <Typography>
-              {t("Already have an account?")}{" "}
-              <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
+              }}>{t("Sign up")}</StyledLink>
+            </Typography>
+          )
+        ) : (
+          <Typography>
+            {t("Already have an account?")}{" "}
+            <StyledLink href={stackApp.urls.signIn} onClick={(e) => {
                 runAsynchronously(stackApp.redirectToSignIn());
                 e.preventDefault();
-              }}>{t("Sign in")}</StyledLink>
-            </Typography>
-          )}
-        </div>
+            }}>{t("Sign in")}</StyledLink>
+          </Typography>
+        )}
+        fullPage={!!props.fullPage}
+      >
         <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
         {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
@@ -105,7 +157,7 @@ export function AuthPage(props: {
             <div>{props.extraInfo}</div>
           </div>
         )}
-      </div>
-    </MaybeFullPage>
-  );
+      </PageFrame>
+    );
+  }
 }
