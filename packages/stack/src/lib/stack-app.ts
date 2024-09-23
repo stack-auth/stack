@@ -726,6 +726,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       id: crud.id,
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
+      clientMetadata: crud.client_metadata,
+      clientReadOnlyMetadata: crud.client_read_only_metadata,
       async inviteUser(options: { email: string }) {
         return await app._interface.sendTeamInvitation({
           teamId: crud.id,
@@ -1723,6 +1725,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       displayName: crud.display_name,
       profileImageUrl: crud.profile_image_url,
       createdAt: new Date(crud.created_at_millis),
+      clientMetadata: crud.client_metadata,
+      clientReadOnlyMetadata: crud.client_read_only_metadata,
+      serverMetadata: crud.server_metadata,
       async update(update: Partial<ServerTeamUpdateOptions>) {
         await app._interface.updateServerTeam(crud.id, serverTeamUpdateOptionsToCrud(update));
         await app._serverTeamsCache.refresh([undefined]);
@@ -2744,7 +2749,8 @@ export type Team = {
   id: string,
   displayName: string,
   profileImageUrl: string | null,
-
+  clientMetadata: any,
+  clientReadOnlyMetadata: any,
   inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
@@ -2754,11 +2760,13 @@ export type Team = {
 export type TeamUpdateOptions = {
   displayName?: string,
   profileImageUrl?: string | null,
+  clientMetadata?: ReadonlyJson,
 };
 function teamUpdateOptionsToCrud(options: TeamUpdateOptions): TeamsCrud["Client"]["Update"] {
   return {
     display_name: options.displayName,
-    profile_image_url: options.profileImageUrl
+    profile_image_url: options.profileImageUrl,
+    client_metadata: options.clientMetadata,
   };
 }
 
@@ -2783,6 +2791,7 @@ export type ServerTeamUser = ServerUser & {
 
 export type ServerTeam = {
   createdAt: Date,
+  serverMetadata: any,
   listUsers(): Promise<ServerTeamUser[]>,
   useUsers(): ServerUser[],
   update(update: ServerTeamUpdateOptions): Promise<void>,
@@ -2797,14 +2806,18 @@ function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsC
   return teamCreateOptionsToCrud(options);
 }
 
-export type ServerTeamUpdateOptions = {
-  displayName?: string,
-  profileImageUrl?: string | null,
+export type ServerTeamUpdateOptions = TeamUpdateOptions & {
+
+  clientReadOnlyMetadata?: ReadonlyJson,
+  serverMetadata?: ReadonlyJson,
 };
 function serverTeamUpdateOptionsToCrud(options: ServerTeamUpdateOptions): TeamsCrud["Server"]["Update"] {
   return {
     display_name: options.displayName,
     profile_image_url: options.profileImageUrl,
+    client_metadata: options.clientMetadata,
+    client_read_only_metadata: options.clientReadOnlyMetadata,
+    server_metadata: options.serverMetadata,
   };
 }
 

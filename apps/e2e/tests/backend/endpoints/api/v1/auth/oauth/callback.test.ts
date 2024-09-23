@@ -128,7 +128,7 @@ it("should redirect to error callback url when inner callback has invalid author
     NiceResponse {
       "status": 307,
       "headers": Headers {
-        "location": "http://stack-test.localhost/some-callback-url/callback-error?errorCode=INVALID_AUTHORIZATION_CODE&message=The%20given%20authorization%20code%20is%20invalid.&details=undefined",
+        "location": "http://stack-test.localhost/some-callback-url/callback-error?errorCode=INVALID_AUTHORIZATION_CODE&message=The+given+authorization+code+is+invalid.&details=%7B%7D",
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,
       },

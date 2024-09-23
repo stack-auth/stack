@@ -154,6 +154,9 @@ export abstract class OAuthBaseProvider {
         captureError("inner-oauth-callback", error);
         throw new KnownErrors.InvalidAuthorizationCode();
       }
+      if (error?.error === 'access_denied') {
+        throw new KnownErrors.OAuthProviderAccessDenied();
+      }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
     }
 

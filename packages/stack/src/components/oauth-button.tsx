@@ -307,7 +307,10 @@ export function OAuthButton({
         <div className='flex items-center w-full gap-4'>
           {style.icon}
           <span className='flex-1'>
-            {type === 'sign-up' ? t('Sign up with ') : t('Sign in with ')}{style.name}
+            {type === 'sign-up' ?
+              t('Sign up with {provider}', { provider: style.name }) :
+              t('Sign in with {provider}', { provider: style.name })
+            }
           </span>
         </div>
       </Button>

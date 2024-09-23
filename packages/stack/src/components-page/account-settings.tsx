@@ -42,7 +42,7 @@ export function AccountSettings(props: {
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
-      <div style={{ alignSelf: 'stretch', flexGrow: 1 }}>
+      <div style={{ alignSelf: 'stretch', flexGrow: 1, width: 0 }}>
         <SidebarLayout
           items={([
             {
@@ -113,7 +113,7 @@ function Section(props: { title: string, description?: string, children: React.R
           {props.description}
         </Typography>}
       </div>
-      <div className='sm:flex-1 flex flex-col gap-2'>
+      <div className='sm:flex-1 sm:items-end flex flex-col gap-2 '>
         {props.children}
       </div>
     </div>
@@ -637,8 +637,9 @@ function useMemberInvitationSection(props: { team: Team }) {
       <form
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
+        className='w-full'
       >
-        <div className="flex flex-col gap-4 md:flex-row">
+        <div className="flex flex-col gap-4 sm:flex-row w-full">
           <Input
             placeholder={t("Email")}
             {...register("email")}
@@ -737,7 +738,7 @@ export function TeamCreation() {
         <form
           onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
           noValidate
-          className='flex gap-2'
+          className='flex gap-2 flex-col sm:flex-row'
         >
           <div className='flex flex-col flex-1'>
             <Input

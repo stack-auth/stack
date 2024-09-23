@@ -18,13 +18,14 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
 
   const unknownErrorCard = <PredefinedMessageCard type='unknownError' fullPage={!!props.fullPage} />;
 
-  if (!errorCode || !message || !details) {
+  if (!errorCode || !message) {
     return unknownErrorCard;
   }
 
   let error;
   try {
-    error = KnownError.fromJson({ code: errorCode, message, details });
+    const detailJson = details ? JSON.parse(details) : {};
+    error = KnownError.fromJson({ code: errorCode, message, details: detailJson });
   } catch (e) {
     return unknownErrorCard;
   }
@@ -49,13 +50,30 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
     // TODO: add "Connect again" button
     return (
       <MessageCard
-        title="Failed to connect account"
+        title={t("Failed to connect account")}
         fullPage={!!props.fullPage}
-        primaryButtonText="Go to Home"
+        primaryButtonText={t("Go to Home")}
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
           {t("The user is already connected to another OAuth account. Did you maybe selected the wrong account on the OAuth provider page?")}
+        </Typography>
+      </MessageCard>
+    );
+  }
+
+  if (error instanceof KnownErrors.OAuthProviderAccessDenied) {
+    return (
+      <MessageCard
+        title={t("OAuth provider access denied")}
+        fullPage={!!props.fullPage}
+        primaryButtonText={t("Sign in again")}
+        primaryAction={() => stackApp.redirectToSignIn()}
+        secondaryButtonText={t("Go to Home")}
+        secondaryAction={() => stackApp.redirectToHome()}
+      >
+        <Typography>
+          {t("The sign-in operation has been cancelled. Please try again. [access_denied]")}
         </Typography>
       </MessageCard>
     );

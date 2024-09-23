@@ -68,15 +68,15 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
   const selectedItem = props.items[props.selectedIndex === -1 ? 0 : props.selectedIndex];
 
   return (
-    <div className="stack-scope flex w-full h-full">
-      <div className="flex w-[200px] border-r flex-col items-stretch gap-2 p-2">
+    <div className="stack-scope flex w-full h-full max-w-full relative">
+      <div className="flex max-w-[200px] min-w-[200px] border-r flex-col items-stretch gap-2 p-2 overflow-y-auto">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
         <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
       </div>
-      <div className="flex-1 flex flex-col items-center gap-4 py-2 px-4">
+      <div className="ml-[200px] flex-1 w-0 flex justify-center gap-4 py-2 px-4">
         <div className='flex flex-col max-w-[800px] w-[800px]'>
           <div className='mt-4 mb-6'>
             <Typography type='h4' className='font-semibold'>{selectedItem.title}</Typography>
@@ -110,7 +110,7 @@ function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selected
       <div className="flex-1 flex flex-col gap-4 py-2 px-4">
         <div className='flex flex-col'>
           <div className='flex justify-between'>
-            <Typography type='h4'>{selectedItem.title}</Typography>
+            <Typography type='h4' className='font-semibold'>{selectedItem.title}</Typography>
             <Button
               variant='ghost'
               size='icon'
