@@ -36,6 +36,7 @@ export type SmartRequest = {
   headers: Record<string, string[] | undefined>,
   query: Record<string, string | undefined>,
   params: Record<string, string | undefined>,
+  version: string | undefined,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
@@ -294,6 +295,7 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
     auth: await parseAuth(req),
+    version: req.headers.get("x-stack-client-version") ?? undefined,
   } satisfies SmartRequest;
 }
 

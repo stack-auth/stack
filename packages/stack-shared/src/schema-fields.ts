@@ -1,3 +1,4 @@
+import semver from "semver";
 import * as yup from "yup";
 import { isBase64 } from "./utils/bytes";
 import { StackAssertionError } from "./utils/errors";
@@ -138,6 +139,10 @@ export const emailSchema = yupString().email();
 export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
   if (value == null) return true;
   return isBase64(value);
+});
+export const semverSchema = yupString().test("is-semver", "Invalid semver format", (value) => {
+  if (value == null) return true;
+  return !!semver.valid(value);
 });
 
 // Request auth

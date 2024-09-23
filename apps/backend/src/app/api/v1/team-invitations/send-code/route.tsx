@@ -1,7 +1,8 @@
 import { ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, semverSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import semver from "semver";
 import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -20,13 +21,22 @@ export const POST = createSmartRouteHandler({
       team_id: teamIdSchema.required(),
       email: teamInvitationEmailSchema.required(),
       callback_url: teamInvitationCallbackUrlSchema.required(),
+      type: yupString().oneOf(["magic_link", "otp", "otp_and_magic_link"]).default("otp_and_magic_link").required(),
     }).required(),
+    version: semverSchema.optional(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth, body }) {
+  async handler({ auth, body, version }) {
+    let type;
+    if (version && semver.lte(version, "2.5.37")) {
+      type = "magic_link";
+    } else {
+      type = body.type;
+    }
+
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === "client") {
         await ensureUserTeamPermissionExists(tx, {
