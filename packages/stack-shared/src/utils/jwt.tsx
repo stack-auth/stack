@@ -1,9 +1,8 @@
-import * as jose from "jose";
-import { getEnvVariable } from "./env";
 import elliptic from "elliptic";
-import { Json } from "./json";
-import { globalVar } from "./globals";
+import * as jose from "jose";
 import { encodeBase64 } from "./bytes";
+import { getEnvVariable } from "./env";
+import { globalVar } from "./globals";
 import { pick } from "./objects";
 
 const STACK_SERVER_SECRET = jose.base64url.decode(getEnvVariable("STACK_SERVER_SECRET"));
