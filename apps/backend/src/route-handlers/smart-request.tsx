@@ -36,6 +36,11 @@ export type SmartRequest = {
   headers: Record<string, string[] | undefined>,
   query: Record<string, string | undefined>,
   params: Record<string, string | undefined>,
+  clientVersion: {
+    platform: string,
+    sdk: string,
+    version: string,
+  } | undefined,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
@@ -283,6 +288,8 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
 export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
   const urlObject = new URL(req.url);
+  const clientVersionMatch = req.headers.get("x-stack-client-version")?.match(/^(\w+)\s+(@[\w\/]+)@([\d.]+)$/);
+
   return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
@@ -294,6 +301,11 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
     auth: await parseAuth(req),
+    clientVersion: clientVersionMatch ? {
+      platform: clientVersionMatch[1],
+      sdk: clientVersionMatch[2],
+      version: clientVersionMatch[3],
+    } : undefined,
   } satisfies SmartRequest;
 }
 

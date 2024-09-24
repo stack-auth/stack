@@ -68,7 +68,7 @@ it("should reject invalid attempt codes", async ({ expect }) => {
     accessType: "client",
     method: "POST",
     body: {
-      code: "invalid-attempt-code",
+      code: "invalid-attempt-code-123123123123123123123123",
       type: "totp",
       totp,
     },

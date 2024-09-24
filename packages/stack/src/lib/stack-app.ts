@@ -1,5 +1,5 @@
 import { isReactServer } from "@stackframe/stack-sc";
-import { KnownError, KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
+import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
@@ -1038,39 +1038,30 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
-  async sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void> {
+  async sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
     const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    const error = await this._interface.sendForgotPasswordEmail(email, redirectUrl);
-    return error;
+    return await this._interface.sendForgotPasswordEmail(email, redirectUrl);
   }
 
-  async sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void> {
+  async sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
     const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
-    const error = await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
-    return error;
+    return await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
   }
 
-  async resetPassword(options: { password: string, code: string }): Promise<KnownErrors["VerificationCodeError"] | void> {
-    const error = await this._interface.resetPassword(options);
-    return error;
+  async resetPassword(options: { password: string, code: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
+    return await this._interface.resetPassword(options);
   }
 
-  async verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
+  async verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     return await this._interface.verifyPasswordResetCode(code);
   }
 
   async verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
-    const result = await this._interface.acceptTeamInvitation({
+    return await this._interface.acceptTeamInvitation({
       type: 'check',
       code,
       session: this._getSession(),
     });
-
-    if (result.status === 'ok') {
-      return Result.ok(undefined);
-    } else {
-      return Result.error(result.error);
-    }
   }
 
   async acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
@@ -1101,7 +1092,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  async verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void> {
+  async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     return await this._interface.verifyEmail(code);
   }
 
@@ -1202,12 +1193,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
    * @deprecated
    * TODO remove
    */
-  protected async _catchMfaRequiredError<T>(callback: () => Promise<T>) {
+  protected async _catchMfaRequiredError<T, E>(callback: () => Promise<Result<T, E>>): Promise<Result<T | { accessToken: string, refreshToken: string, newUser: boolean }, E>> {
     try {
       return await callback();
     } catch (e) {
       if (e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
-        return await this._experimentalMfa(e, this._getSession());
+        return Result.ok(await this._experimentalMfa(e, this._getSession()));
       }
       throw e;
     }
@@ -1217,7 +1208,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     email: string,
     password: string,
     noRedirect?: boolean,
-  }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void> {
+  }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     let result;
@@ -1227,26 +1218,27 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     } catch (e) {
       if (e instanceof KnownErrors.InvalidTotpCode) {
-        return e;
+        return Result.error(e);
       }
       throw e;
     }
-    if (!(result instanceof KnownError)) {
-      await this._signInToAccountWithTokens(result);
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
       if (!options.noRedirect) {
-        return await this.redirectToAfterSignIn({ replace: true });
-      } else {
-        return;
+        await this.redirectToAfterSignIn({ replace: true });
       }
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
     }
-    return result;
   }
 
   async signUpWithCredential(options: {
     email: string,
     password: string,
     noRedirect?: boolean,
-  }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet'] | void> {
+  }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet']>> {
     this._ensurePersistentTokenStore();
     const session = this._getSession();
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
@@ -1256,18 +1248,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       emailVerificationRedirectUrl,
       session
     );
-    if (!(result instanceof KnownError)) {
-      await this._signInToAccountWithTokens(result);
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
       if (!options.noRedirect) {
-        return await this.redirectToAfterSignUp({ replace: true });
-      } else {
-        return;
+        await this.redirectToAfterSignUp({ replace: true });
       }
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
     }
-    return result;
   }
 
-  async signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] |  void> {
+  async signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>> {
     this._ensurePersistentTokenStore();
     let result;
     try {
@@ -1276,18 +1268,21 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     } catch (e) {
       if (e instanceof KnownErrors.InvalidTotpCode) {
-        return e;
+        return Result.error(e);
       }
       throw e;
     }
-    if (result instanceof KnownError) {
-      return result;
-    }
-    await this._signInToAccountWithTokens(result);
-    if (result.newUser) {
-      await this.redirectToAfterSignUp({ replace: true });
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
+      if (result.data.newUser) {
+        await this.redirectToAfterSignUp({ replace: true });
+      } else {
+        await this.redirectToAfterSignIn({ replace: true });
+      }
+      return Result.ok(undefined);
     } else {
-      await this.redirectToAfterSignIn({ replace: true });
+      return Result.error(result.error);
     }
   }
 
@@ -1304,15 +1299,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }
       throw e;
     }
-    if (result) {
-      console.log("OAuth callback result", result);
-      await this._signInToAccountWithTokens(result);
+    if (result.status === 'ok' && result.data) {
+      await this._signInToAccountWithTokens(result.data);
       // TODO fix afterCallbackRedirectUrl for MFA (currently not passed because /mfa/sign-in doesn't return it)
       // or just get rid of afterCallbackRedirectUrl entirely tbh
-      if ("afterCallbackRedirectUrl" in result && result.afterCallbackRedirectUrl) {
-        await _redirectTo(result.afterCallbackRedirectUrl, { replace: true });
+      if ("afterCallbackRedirectUrl" in result.data && result.data.afterCallbackRedirectUrl) {
+        await _redirectTo(result.data.afterCallbackRedirectUrl, { replace: true });
         return true;
-      } else if (result.newUser) {
+      } else if (result.data.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
         return true;
       } else {
@@ -2889,18 +2883,18 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     readonly urls: Readonly<HandlerUrls>,
 
     signInWithOAuth(provider: string): Promise<void>,
-    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"] | void>,
-    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+    signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>>,
+    signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
     callOAuthCallback(): Promise<boolean>,
-    sendForgotPasswordEmail(email: string): Promise<KnownErrors["UserNotFound"] | void>,
-    sendMagicLinkEmail(email: string): Promise<KnownErrors["RedirectUrlNotWhitelisted"] | void>,
-    resetPassword(options: { code: string, password: string }): Promise<KnownErrors["VerificationCodeError"] | void>,
-    verifyPasswordResetCode(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
+    sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
+    sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
+    resetPassword(options: { code: string, password: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     acceptTeamInvitation(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
-    verifyEmail(code: string): Promise<KnownErrors["VerificationCodeError"] | void>,
-    signInWithMagicLink(code: string): Promise<KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"] | void>,
+    verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
+    signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
