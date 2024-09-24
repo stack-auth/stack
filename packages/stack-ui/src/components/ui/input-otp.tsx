@@ -26,14 +26,14 @@ const InputOTPGroup = React.forwardRef<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex items-center", className)} {...props} />
+  <div ref={ref} className={cn("flex items-center gap-1", className)} {...props} />
 ));
 InputOTPGroup.displayName = "InputOTPGroup";
 
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"div"> & { index: number, size?: 'default' | 'lg' }
+>(({ index, className, size = 'default', ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext);
   const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
 
@@ -41,7 +41,8 @@ const InputOTPSlot = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-sm first:rounded-l-md first:border-l last:rounded-r-md",
+        "relative flex h-9 w-9 items-center justify-center border border-input text-sm rounded-md",
+        size === 'lg' ? 'h-10 w-10 text-lg font-medium' : '',
         isActive && "z-10 ring-1 ring-ring",
         className
       )}
