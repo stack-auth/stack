@@ -25,7 +25,7 @@ const editorStateStore = create<TValue>(() => ({
     label: '',
     description: '',
     defaultSubject: '',
-    defaultContent: emptyEmailTemplate,
+    defaultContent: { 1: emptyEmailTemplate, 2: emptyEmailTemplate },
     variables: [],
   },
 

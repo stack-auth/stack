@@ -66,7 +66,6 @@ const script = () => {
 
       // convert backgroundColor to luma and check if it's dark
       const rgb = colorToRGB(backgroundColor);
-      console.log(rgb);
       if (rgb) {
         const luma = rgbToLuma(rgb);
         if (luma < 128) {

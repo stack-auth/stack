@@ -31,14 +31,14 @@ export async function getEmailTemplate(projectId: string, type: keyof typeof EMA
   } : null;
 }
 
-export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
+export async function getEmailTemplateWithDefault(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA, version: 1 | 2 = 2) {
   const template = await getEmailTemplate(projectId, type);
   if (template) {
     return template;
   }
   return {
     type,
-    content: EMAIL_TEMPLATES_METADATA[type].defaultContent,
+    content: EMAIL_TEMPLATES_METADATA[type].defaultContent[version],
     subject: EMAIL_TEMPLATES_METADATA[type].defaultSubject,
     default: true,
   };
@@ -104,13 +104,13 @@ export async function sendEmailFromTemplate(options: {
   email: string,
   templateType: keyof typeof EMAIL_TEMPLATES_METADATA,
   extraVariables: Record<string, string | null>,
+  version?: 1 | 2,
 }) {
-  const template = await getEmailTemplateWithDefault(options.project.id, options.templateType);
+  const template = await getEmailTemplateWithDefault(options.project.id, options.templateType, options.version);
 
   const variables = filterUndefined({
     projectDisplayName: options.project.display_name,
     userDisplayName: options.user?.display_name || undefined,
-    userPrimaryEmail: options.user?.primary_email || undefined,
     ...filterUndefined(options.extraVariables),
   });
   const { subject, html, text } = renderEmailTemplate(template.subject, template.content, variables);

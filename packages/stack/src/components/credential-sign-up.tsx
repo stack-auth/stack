@@ -41,8 +41,10 @@ export function CredentialSignUp() {
     setLoading(true);
     try {
       const { email, password } = data;
-      const error = await app.signUpWithCredential({ email, password });
-      setError('email', { type: 'manual', message: error?.message });
+      const result = await app.signUpWithCredential({ email, password });
+      if (result.status === 'error') {
+        setError('email', { type: 'manual', message: result.error.message });
+      }
     } finally {
       setLoading(false);
     }

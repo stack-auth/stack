@@ -41,6 +41,7 @@ const stripFields = [
   "secret_server_key",
   "super_secret_admin_key",
   "attempt_code",
+  "nonce",
 ] as const;
 
 const keyedCookieNamePrefixes = [

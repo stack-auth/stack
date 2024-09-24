@@ -47,16 +47,17 @@ export function MagicLinkCallback(props: {
     return invalidJsx;
   }
 
-  const error = React.use(cacheSignInWithMagicLink(stackApp, props.searchParams.code));
-
-  if (error instanceof KnownErrors.VerificationCodeNotFound) {
-    return invalidJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
-    return expiredJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
-    return alreadyUsedJsx;
-  } else if (error) {
-    throw error;
+  const result = React.use(cacheSignInWithMagicLink(stackApp, props.searchParams.code));
+  if (result.status === 'error') {
+    if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
+      return invalidJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
+      return expiredJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
+      return alreadyUsedJsx;
+    } else {
+      throw result.error;
+    }
   }
 
   React.use(neverResolve());
