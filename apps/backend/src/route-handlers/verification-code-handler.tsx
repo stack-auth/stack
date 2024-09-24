@@ -95,7 +95,7 @@ export function createVerificationCodeHandler<
         user: adaptSchema,
       }).required(),
       body: yupObject({
-        code: yupString().required(),
+        code: yupString().length(28).required(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
