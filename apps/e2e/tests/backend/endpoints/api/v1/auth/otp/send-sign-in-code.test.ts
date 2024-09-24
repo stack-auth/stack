@@ -98,11 +98,31 @@ it("should send otp code to user", async ({ expect }) => {
     },
   });
 
-  const emails = await backendContext.value.mailbox.fetchMessages();
-  const match = emails[0].body?.text.match(/^[A-Z0-9]{6}$/sm);
+  const email = (await backendContext.value.mailbox.fetchMessages()).findLast((email) => email.subject.includes("Sign in"));
+  const match = email?.body?.text.match(/^[A-Z0-9]{6}$/sm);
   expect(match).toHaveLength(1);
   const code = match?.[0];
   expect(code).toHaveLength(6);
+});
+
+it("should not send otp code to user if client version is older equal to 2.5.37", async ({ expect }) => {
+  await Auth.Otp.sendSignInCode();
+  const mailbox = backendContext.value.mailbox;
+  await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: mailbox.emailAddress,
+      callback_url: "http://localhost:12345/some-callback-url",
+    },
+    headers: {
+      "X-Stack-Client-Version": "js @stackframe/stack@2.5.37",
+    },
+  });
+
+  const email = (await backendContext.value.mailbox.fetchMessages()).findLast((email) => email.subject.includes("Sign in"));
+  const match = email?.body?.text.match(/^[A-Z0-9]{6}$/sm);
+  expect(match).toBeNull();
 });
 
 it.todo("should create a team for newly created users if configured as such");

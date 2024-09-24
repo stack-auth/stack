@@ -24,6 +24,7 @@ export const POST = createSmartRouteHandler({
     }).required(),
     clientVersion: yupObject({
       version: yupString().optional(),
+      sdk: yupString().optional(),
     }).optional(),
   }),
   response: yupObject({
@@ -83,7 +84,7 @@ export const POST = createSmartRouteHandler({
     }
 
     let type: "legacy" | "standard";
-    if (clientVersion?.version && semver.valid(clientVersion.version) && semver.lte(clientVersion.version, "2.5.37")) {
+    if (clientVersion?.sdk === "@stackframe/stack" && semver.valid(clientVersion.version) && semver.lte(clientVersion.version, "2.5.37")) {
       type = "legacy";
     } else {
       type = "standard";
