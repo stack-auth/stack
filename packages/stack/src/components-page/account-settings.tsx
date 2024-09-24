@@ -78,9 +78,9 @@ export function AccountSettings(props: {
               type: 'divider',
             }] as const : [],
             ...teams.map(team => ({
-              title: <div className='flex gap-2 items-center'>
+              title: <div className='flex gap-2 items-center w-full'>
                 <TeamIcon team={team}/>
-                {team.displayName}
+                <Typography className="max-w-[320px] md:w-[90%] truncate">{team.displayName}</Typography>
               </div>,
               type: 'item',
               subpath: `/teams/${team.id}`,

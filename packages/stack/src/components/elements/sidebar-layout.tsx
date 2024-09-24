@@ -46,7 +46,7 @@ function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: n
         size='sm'
         className={cn(
           props.selectedIndex === index && "bg-muted",
-          "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+          "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2 text-left",
         )}
         onClick={() => {
           if (item.subpath) {
