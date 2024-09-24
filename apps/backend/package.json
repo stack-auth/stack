@@ -42,8 +42,8 @@
     "@opentelemetry/sdk-trace-base": "^1.26.0",
     "@opentelemetry/sdk-trace-node": "^1.26.0",
     "@opentelemetry/semantic-conventions": "^1.27.0",
-    "@prisma/client": "^5.19.1",
-    "@prisma/instrumentation": "^5.19.1",
+    "@prisma/client": "^5.20.0",
+    "@prisma/instrumentation": "^5.20.0",
     "@sentry/nextjs": "^7.105.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
@@ -74,7 +74,7 @@
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",
-    "prisma": "^5.19.1",
+    "prisma": "^5.20.0",
     "rimraf": "^5.0.5",
     "tsx": "^4.7.2"
   }
