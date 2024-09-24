@@ -86,7 +86,7 @@ export function AuthPage(props: {
           <Tabs defaultValue='magic-link'>
             <TabsList className='w-full mb-2'>
               <TabsTrigger value='magic-link' className='flex-1'>{t("Email")}</TabsTrigger>
-              <TabsTrigger value='password' className='flex-1'>{t("Password")}</TabsTrigger>
+              <TabsTrigger value='password' className='flex-1'>{t("Email & Password")}</TabsTrigger>
             </TabsList>
             <TabsContent value='magic-link'>
               <MagicLinkSignIn/>
