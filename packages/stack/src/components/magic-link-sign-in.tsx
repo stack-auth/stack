@@ -111,7 +111,7 @@ export function MagicLinkSignIn() {
         onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
         noValidate
       >
-        <Label htmlFor="email" className="mb-1">Email</Label>
+        <Label htmlFor="email" className="mb-1">{t('Email')}</Label>
         <Input
           id="email"
           type="email"

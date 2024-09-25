@@ -76,7 +76,7 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
 
         <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
       </div>
-      <div className="ml-[200px] flex-1 w-0 flex justify-center gap-4 py-2 px-4">
+      <div className="flex-1 w-0 flex justify-center gap-4 py-2 px-4">
         <div className='flex flex-col max-w-[800px] w-[800px]'>
           <div className='mt-4 mb-6'>
             <Typography type='h4' className='font-semibold'>{selectedItem.title}</Typography>
