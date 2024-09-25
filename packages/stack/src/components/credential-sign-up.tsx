@@ -28,7 +28,9 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
         }
       }
     }),
+    ...(!props.noPasswordRepeat && {
     passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+    })
   });
 
   const { register, handleSubmit, setError, formState: { errors }, clearErrors } = useForm({
