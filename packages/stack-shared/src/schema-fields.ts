@@ -147,7 +147,7 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<
       }
     }
     return context.createError({
-      message: `${context.path} is not matched by any of the provided schemas. \nInner errors on each schema: \n${errors.map((e: any, i) => '\tSchema ' + i + ": \n\t\t" + e.errors.join('\n\t\t')).join('\n')}`,
+      message: `${context.path} is not matched by any of the provided schemas:\n${errors.map((e: any, i) => '\tSchema ' + i + ": \n\t\t" + e.errors.join('\n\t\t')).join('\n')}`,
       path: context.path,
     });
   });
