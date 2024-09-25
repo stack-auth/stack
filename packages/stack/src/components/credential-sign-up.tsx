@@ -12,7 +12,7 @@ import { useStackApp } from "..";
 import { useTranslation } from "../lib/translations";
 import { FormWarningText } from "./elements/form-warning";
 
-export function CredentialSignUp() {
+export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
@@ -72,18 +72,23 @@ export function CredentialSignUp() {
         }}
       />
       <FormWarningText text={errors.password?.message?.toString()} />
-
-      <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
-      <PasswordInput
-        id="repeat-password"
-        {...registerPasswordRepeat}
-        onChange={(e) => {
-          clearErrors('password');
-          clearErrors('passwordRepeat');
-          runAsynchronously(registerPasswordRepeat.onChange(e));
-        }}
-      />
-      <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
+      {
+        !props.noPasswordRepeat && (
+          <>
+          <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
+          <PasswordInput
+            id="repeat-password"
+            {...registerPasswordRepeat}
+            onChange={(e) => {
+              clearErrors('password');
+              clearErrors('passwordRepeat');
+              runAsynchronously(registerPasswordRepeat.onChange(e));
+            }}
+          />
+          <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
+          </>
+        )
+      }
 
       <Button type="submit" className="mt-6" loading={loading}>
         Sign Up

@@ -34,6 +34,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   params?: { stack?: string[] },
   searchParams?: Record<string, string>,
   fullPage: boolean,
+  noPasswordRepeat?: boolean,
   componentProps?: {
     [K in keyof Components]?: Parameters<Components[K]>;
   },
@@ -99,6 +100,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
       return <SignUp
         fullPage={props.fullPage}
         automaticRedirect
+        noPasswordRepeat={props.noPasswordRepeat}
         {...filterUndefinedINU(props.componentProps?.SignUp)}
       />;
     }
