@@ -40,7 +40,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: stackframe
-      POSTGRES_DELAY_MS: ${POSTGRES_DELAY_MS:-0}
     ports:
       - 54320:5432
     volumes:
@@ -56,9 +55,7 @@ services:
   inbucket:
     image: inbucket/inbucket:latest
     ports:
-      - 2500:2500
       - 8105:9000
-      - 1100:1100
     volumes:
       - inbucket-data:/data
 
@@ -99,12 +96,12 @@ services:
     image: svix/svix-server
     environment:
       WAIT_FOR: 'true'
-      SVIX_REDIS_DSN: redis://svix-redis:6379
       SVIX_DB_DSN: postgres://postgres:password@svix-db:5432/svix
-      SVIX_CACHE_TYPE: memory
+      SVIX_REDIS_DSN: redis://svix-redis:6379
+      SVIX_QUEUE_TYPE: redis
+      SVIX_CACHE_TYPE: redis
       SVIX_JWT_SECRET: secret
       SVIX_LOG_LEVEL: trace
-      SVIX_QUEUE_TYPE: redis
     ports:
       - 8113:8071
     depends_on:
