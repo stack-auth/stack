@@ -195,9 +195,9 @@ export class StackServerInterface extends StackClientInterface {
   }
 
   /* when passing a session, the user will be added to the team */
-  async createServerTeam(data: TeamsCrud['Server']['Create'], options?: { creatorUserId?: string }): Promise<TeamsCrud['Server']['Read']> {
+  async createServerTeam(data: TeamsCrud['Server']['Create']): Promise<TeamsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      "/teams" + (options?.creatorUserId ? `?creator_user_id=${options.creatorUserId}` : ""),
+      "/teams",
       {
         method: "POST",
         headers: {
