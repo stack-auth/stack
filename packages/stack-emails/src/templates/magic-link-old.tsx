@@ -1,6 +1,6 @@
 import { TEditorConfiguration } from "../editor/documents/editor/core";
 
-export const teamInvitationTemplate: TEditorConfiguration = {
+export const magicLinkTemplateOld: TEditorConfiguration = {
   "root": {
     "type": "EmailLayout",
     "data": {
@@ -35,7 +35,7 @@ export const teamInvitationTemplate: TEditorConfiguration = {
         }
       },
       "props": {
-        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to join the team {{ teamDisplayName }}\n"
+        "text": "Hi{{#if userDisplayName}}, {{ userDisplayName }}{{/if}}! Please click on the following button to sign in."
       }
     }
   },
@@ -61,8 +61,8 @@ export const teamInvitationTemplate: TEditorConfiguration = {
         "buttonTextColor": "#000000",
         "fullWidth": false,
         "size": "medium",
-        "text": "Join team",
-        "url": "{{ teamInvitationLink }}"
+        "text": "Sign in",
+        "url": "{{ magicLink }}"
       }
     }
   },
@@ -70,7 +70,7 @@ export const teamInvitationTemplate: TEditorConfiguration = {
     "type": "Heading",
     "data": {
       "props": {
-        "text": "You are invited to {{ teamDisplayName }}",
+        "text": "Sign in to {{ projectDisplayName }}",
         "level": "h3"
       },
       "style": {
@@ -80,8 +80,8 @@ export const teamInvitationTemplate: TEditorConfiguration = {
         "fontWeight": "bold",
         "textAlign": "center",
         "padding": {
-          "top": 32,
-          "bottom": 0,
+          "top": 16,
+          "bottom": 16,
           "right": 24,
           "left": 24
         }

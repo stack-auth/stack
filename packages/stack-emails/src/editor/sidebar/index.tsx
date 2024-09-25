@@ -1,5 +1,4 @@
-import { Button, Tabs, TabsList, TabsTrigger } from '@stackframe/stack-ui';
-import { cn } from '../../utils';
+import { Button, Tabs, TabsList, TabsTrigger, cn } from '@stackframe/stack-ui';
 import { TEditorConfiguration } from '../documents/editor/core';
 import { setSidebarTab, useDocument, useInspectorDrawerOpen, useSelectedSidebarTab, useSubject } from '../documents/editor/editor-context';
 import ConfigurationPanel from './configuration-panel';

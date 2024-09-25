@@ -32,8 +32,6 @@ export class XProvider extends OAuthBaseProvider {
       }
     ).then((res) => res.json());
 
-    console.log("userInfo", userInfo);
-
     return validateUserInfo({
       accountId: userInfo?.id?.toString(),
       displayName: userInfo.name || userInfo.username,

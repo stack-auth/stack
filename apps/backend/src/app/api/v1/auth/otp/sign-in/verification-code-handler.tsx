@@ -28,6 +28,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   }),
   method: yupObject({
     email: yupString().email().required(),
+    type: yupString().oneOf(["legacy", "standard"]).required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
@@ -35,17 +36,23 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     body: signInResponseSchema.required(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
-    // note: the /auth/otp/send-sign-in-code endpoint doesn't call this, instead it calls createCode and then manually sends the e-mail
-    // (we should change that at some point)
     await sendEmailFromTemplate({
       project: createOptions.project,
       user: sendOptions.user,
       email: createOptions.method.email,
       templateType: "magic_link",
       extraVariables: {
+        userDisplayName: sendOptions.user.display_name,
+        userPrimaryEmail: sendOptions.user.primary_email,
         magicLink: codeObj.link.toString(),
+        otp: codeObj.code.slice(0, 6).toUpperCase(),
       },
+      version: createOptions.method.type === "legacy" ? 1 : undefined,
     });
+
+    return {
+      nonce: codeObj.code.slice(6),
+    };
   },
   async handler(project, { email }, data) {
     const authMethods = await prismaClient.otpAuthMethod.findMany({

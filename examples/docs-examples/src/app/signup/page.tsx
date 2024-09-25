@@ -25,10 +25,10 @@ export default function CustomCredentialSignUp() {
       return;
     }
     // this will redirect to app.urls.afterSignUp if successful, you can customize it in the StackServerApp constructor
-    const errorCode = await app.signUpWithCredential({ email, password });
+    const result = await app.signUpWithCredential({ email, password });
     // It is better to handle each error code separately, but we will just show the error code directly for simplicity here
-    if (errorCode) {
-      setError(errorCode.message);
+    if (result.status === 'error') {
+      setError(result.error.message);
     }
   };
 

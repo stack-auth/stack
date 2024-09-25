@@ -1,22 +1,14 @@
-import { EditorBlockSchema, TEditorConfiguration } from "./editor/documents/editor/core";
-import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
-import { emailVerificationTemplate } from "./templates/email-verification";
-import { passwordResetTemplate } from "./templates/password-reset";
-import { magicLinkTemplate } from "./templates/magic-link";
-import { render } from "@react-email/render";
-import { Reader } from "./editor/email-builder/index";
 import { Body, Head, Html, Preview } from "@react-email/components";
+import { render } from "@react-email/render";
+import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import * as Handlebars from 'handlebars/dist/handlebars.js';
-import _ from 'lodash';
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { EditorBlockSchema, TEditorConfiguration } from "./editor/documents/editor/core";
+import { Reader } from "./editor/email-builder/index";
+import { emailVerificationTemplate } from "./templates/email-verification";
+import { magicLinkTemplate } from "./templates/magic-link";
+import { magicLinkTemplateOld } from "./templates/magic-link-old";
+import { passwordResetTemplate } from "./templates/password-reset";
 import { teamInvitationTemplate } from "./templates/team-invitation";
-
-
-// TODO remove this one
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 
 const userVars = [
@@ -39,7 +31,7 @@ export type EmailTemplateVariable = {
 export type EmailTemplateMetadata = {
   label: string,
   description: string,
-  defaultContent: TEditorConfiguration,
+  defaultContent: { 1: TEditorConfiguration, 2: TEditorConfiguration },
   defaultSubject: string,
   variables: EmailTemplateVariable[],
 };
@@ -48,7 +40,7 @@ export const EMAIL_TEMPLATES_METADATA = {
   'email_verification': {
     label: "Email Verification",
     description: "Will be sent to the user when they sign-up with email/password",
-    defaultContent: emailVerificationTemplate,
+    defaultContent: { 1: emailVerificationTemplate, 2: emailVerificationTemplate },
     defaultSubject: "Verify your email at {{ projectDisplayName }}",
     variables: [
       ...userVars,
@@ -59,7 +51,7 @@ export const EMAIL_TEMPLATES_METADATA = {
   'password_reset': {
     label: "Password Reset",
     description: "Will be sent to the user when they request to reset their password (forgot password)",
-    defaultContent: passwordResetTemplate,
+    defaultContent: { 1: passwordResetTemplate, 2: passwordResetTemplate },
     defaultSubject: "Reset your password at {{ projectDisplayName }}",
     variables: [
       ...userVars,
@@ -68,20 +60,21 @@ export const EMAIL_TEMPLATES_METADATA = {
     ],
   } satisfies EmailTemplateMetadata,
   'magic_link': {
-    label: "Magic Link",
+    label: "Magic Link/OTP",
     description: "Will be sent to the user when they try to sign-up with magic link",
-    defaultContent: magicLinkTemplate,
+    defaultContent: { 1: magicLinkTemplateOld, 2: magicLinkTemplate },
     defaultSubject: "Sign in to {{ projectDisplayName }}",
     variables: [
       ...userVars,
       ...projectVars,
       { name: 'magicLink', label: 'Magic Link', defined: true, example: '<magic link>' },
+      { name: 'otp', label: 'OTP', defined: true, example: '3SLSWZ' },
     ],
   } satisfies EmailTemplateMetadata,
   'team_invitation': {
     label: "Team Invitation",
     description: "Will be sent to the user when they are invited to a team",
-    defaultContent: teamInvitationTemplate,
+    defaultContent: { 1: teamInvitationTemplate, 2: teamInvitationTemplate },
     defaultSubject: "You have been invited to join {{ teamDisplayName }}",
     variables: [
       ...userVars,
@@ -185,9 +178,7 @@ export function renderEmailTemplate(
 
   const component = (
     <Html>
-      <Head>
-        <meta name="color-scheme" content="only light" />
-      </Head>
+      <Head></Head>
       <Preview>{mergedSubject}</Preview>
       <Body>
         <Reader document={mergedTemplate} rootBlockId='root' />

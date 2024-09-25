@@ -35,16 +35,18 @@ export function EmailVerification(props: {
     return invalidJsx;
   }
 
-  const error = React.use(cacheVerifyEmail(stackApp, props.searchParams.code));
+  const result = React.use(cacheVerifyEmail(stackApp, props.searchParams.code));
 
-  if (error instanceof KnownErrors.VerificationCodeNotFound) {
-    return invalidJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeExpired) {
-    return expiredJsx;
-  } else if (error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
-    // everything fine, continue
-  } else if (error) {
-    throw error;
+  if (result.status === 'error') {
+    if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
+      return invalidJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
+      return expiredJsx;
+    } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
+      // everything fine, continue
+    } else {
+      throw result.error;
+    }
   }
 
   return <PredefinedMessageCard type='emailVerified' fullPage={!!props.fullPage} />;

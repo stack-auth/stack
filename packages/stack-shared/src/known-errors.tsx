@@ -786,6 +786,16 @@ const VerificationCodeAlreadyUsed = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const VerificationCodeMaxAttemptsReached = createKnownErrorConstructor(
+  VerificationCodeError,
+  "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
+  () => [
+    400,
+    "The verification code nonce has reached the maximum number of attempts. This code is not valid anymore.",
+  ] as const,
+  () => [] as const,
+);
+
 const PasswordConfirmationMismatch = createKnownErrorConstructor(
   KnownError,
   "PASSWORD_CONFIRMATION_MISMATCH",
@@ -1191,6 +1201,7 @@ export const KnownErrors = {
   VerificationCodeNotFound,
   VerificationCodeExpired,
   VerificationCodeAlreadyUsed,
+  VerificationCodeMaxAttemptsReached,
   PasswordConfirmationMismatch,
   EmailAlreadyVerified,
   EmailNotAssociatedWithUser,

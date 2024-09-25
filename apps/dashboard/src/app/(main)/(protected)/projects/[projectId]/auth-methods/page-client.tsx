@@ -98,7 +98,7 @@ export default function PageClient() {
           }}
         />
         <SettingSwitch
-          label="Magic link (email with login link)"
+          label="Magic link/OTP"
           checked={project.config.magicLinkEnabled}
           onCheckedChange={async (checked) => {
             await project.update({

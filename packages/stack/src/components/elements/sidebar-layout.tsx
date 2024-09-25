@@ -46,7 +46,7 @@ function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: n
         size='sm'
         className={cn(
           props.selectedIndex === index && "bg-muted",
-          "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+          "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2 text-left",
         )}
         onClick={() => {
           if (item.subpath) {
@@ -68,8 +68,8 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
   const selectedItem = props.items[props.selectedIndex === -1 ? 0 : props.selectedIndex];
 
   return (
-    <div className="stack-scope flex w-full h-full max-w-full">
-      <div className="fixed top-0 left-0 bottom-0 flex max-w-[200px] min-w-[200px] border-r flex-col items-stretch gap-2 p-2 overflow-y-auto">
+    <div className="stack-scope flex w-full h-full max-w-full relative">
+      <div className="flex max-w-[200px] min-w-[200px] border-r flex-col items-stretch gap-2 p-2 overflow-y-auto">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
