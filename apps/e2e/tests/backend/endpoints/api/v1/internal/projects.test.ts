@@ -66,16 +66,21 @@ it("creates a new project", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -92,36 +97,68 @@ it("creates a new project", async ({ expect }) => {
   `);
 });
 
-it("creates a new project with different configurations", async ({ expect }) => {
+it("creates a new project with auth method configs", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectClientKeys });
   await Auth.Otp.signIn();
-  const { createProjectResponse: response1 } = await Project.create({
+  const { createProjectResponse: response } = await Project.create({
     display_name: "Test Project",
     description: "Test description",
     is_production_mode: true,
     config: {
       allow_localhost: false,
       sign_up_enabled: false,
-      credential_enabled: false,
-      magic_link_enabled: true,
+      auth_method_configs: [
+        {
+          id: crypto.randomUUID(),
+          type: 'otp',
+          enabled: true,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'password',
+          enabled: false,
+        }
+      ]
     },
   });
-  expect(response1).toMatchInlineSnapshot(`
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "config": {
           "allow_localhost": false,
+          "auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+            {
+              "enabled": false,
+              "id": "<stripped UUID>",
+              "type": "password",
+            },
+          ],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
           "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+          ],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": true,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": false,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -136,54 +173,62 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
 
-  // create with oauth providers
-  const { createProjectResponse: response2 } = await Project.create({
+it("creates a new project with oauth providers", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectClientKeys });
+  await Auth.Otp.signIn();
+  const { createProjectResponse: response } = await Project.create({
     display_name: "Test Project",
     config: {
-      oauth_providers: [
+      oauth_provider_configs: [
         {
-          id: "google",
-          type: "shared",
-          enabled: true,
+          id: crypto.randomUUID(),
+          shared: true,
+          type: "google",
         },
         {
-          id: "spotify",
-          type: "standard",
-          enabled: false,
+          id: crypto.randomUUID(),
+          shared: false,
+          type: "spotify",
           client_id: "client_id",
           client_secret: "client_secret",
         }
       ]
     },
   });
-  expect(response2).toMatchInlineSnapshot(`
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [{ "id": "google" }],
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
+          "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [
+          "oauth_provider_configs": [
             {
-              "enabled": true,
-              "id": "google",
-              "type": "shared",
+              "id": "<stripped UUID>",
+              "shared": true,
+              "type": "google",
             },
             {
               "client_id": "client_id",
               "client_secret": "client_secret",
-              "enabled": false,
-              "id": "spotify",
-              "type": "standard",
+              "id": "<stripped UUID>",
+              "shared": false,
+              "type": "spotify",
             },
           ],
           "sign_up_enabled": true,
@@ -200,9 +245,12 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
 
-  // create with shared email config
-  const { createProjectResponse: response3 } = await Project.create({
+it("creates a new project with shared email config", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectClientKeys });
+  await Auth.Otp.signIn();
+  const { createProjectResponse: response } = await Project.create({
     display_name: "Test Project",
     config: {
       email_config: {
@@ -210,22 +258,27 @@ it("creates a new project with different configurations", async ({ expect }) => 
       },
     },
   });
-  expect(response3).toMatchInlineSnapshot(`
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -240,9 +293,12 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
 
-  // create with standard email config
-  const { createProjectResponse: response4 } = await Project.create({
+it("creates a new project with standard email config", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectClientKeys });
+  await Auth.Otp.signIn();
+  const { createProjectResponse: response } = await Project.create({
     display_name: "Test Project",
     config: {
       email_config: {
@@ -256,16 +312,18 @@ it("creates a new project with different configurations", async ({ expect }) => 
       },
     },
   });
-  expect(response4).toMatchInlineSnapshot(`
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": {
             "host": "smtp.example.com",
@@ -276,10 +334,13 @@ it("creates a new project with different configurations", async ({ expect }) => 
             "type": "standard",
             "username": "test username",
           },
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -294,9 +355,12 @@ it("creates a new project with different configurations", async ({ expect }) => 
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
 
-  // create with domains
-  const { createProjectResponse: response5 } = await Project.create({
+it("creates a new project with domains", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectClientKeys });
+  await Auth.Otp.signIn();
+  const { createProjectResponse: response } = await Project.create({
     display_name: "Test Project",
     config: {
       domains: [
@@ -311,16 +375,18 @@ it("creates a new project with different configurations", async ({ expect }) => 
       ]
     },
   });
-  expect(response5).toMatchInlineSnapshot(`
+  expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [
             {
               "domain": "https://domain1.com",
@@ -332,10 +398,13 @@ it("creates a new project with different configurations", async ({ expect }) => 
             },
           ],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -365,16 +434,21 @@ it("lists the current projects after creating a new project", async ({ expect })
           {
             "config": {
               "allow_localhost": true,
+              "auth_method_configs": [],
               "client_team_creation_enabled": false,
               "client_user_deletion_enabled": false,
+              "connected_account_configs": [],
               "create_team_on_sign_up": false,
-              "credential_enabled": true,
+              "credential_enabled": false,
               "domains": [],
               "email_config": { "type": "shared" },
+              "enabled_auth_method_configs": [],
+              "enabled_connected_account_configs": [],
+              "enabled_oauth_provider_configs": [],
               "enabled_oauth_providers": [],
               "id": "<stripped UUID>",
               "magic_link_enabled": false,
-              "oauth_providers": [],
+              "oauth_provider_configs": [],
               "sign_up_enabled": true,
               "team_creator_default_permissions": [{ "id": "admin" }],
               "team_member_default_permissions": [{ "id": "member" }],
