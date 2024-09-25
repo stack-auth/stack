@@ -1640,7 +1640,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => teams.map((t) => app._serverTeamFromCrud(t)), [teams]);
       },
       createTeam: async (data: ServerTeamCreateOptions) => {
-        const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), app._getSession());
+        const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), { creatorUserId: crud.id });
         await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
       },

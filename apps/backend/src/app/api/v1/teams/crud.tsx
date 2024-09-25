@@ -28,7 +28,9 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
 export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
     user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'], description: 'Filter for the teams that the user is a member of. Can be either `me` or an ID. Must be `me` in the client API', exampleValue: 'me' } }),
-    add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], description: "If to add the current user to the team. If this is not `true`, the newly created team will have no members. Notice that if you didn't specify `add_current_user=true` on the client side, the user cannot join the team again without re-adding them on the server side.", exampleValue: 'true' } }),
+    /* deprecated, use creator_user_id instead */
+    add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], hidden: true } }),
+    creator_user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['Create'], description: 'Add a user to the team as the creator. on the client side, this can only be "me" or undefined.' } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().required(),
@@ -58,15 +60,24 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         },
       });
 
-      if (query.add_current_user === 'true') {
+      let addUserId: string | undefined;
+      if (query.creator_user_id) {
+        addUserId = getIdFromUserIdOrMe(query.creator_user_id, auth.user);
+        if (auth.type === 'client' && addUserId !== auth.user?.id) {
+          throw new StatusError(StatusError.Forbidden, "You cannot add a user to the team as the creator that is not yourself on the client.");
+        }
+      } else if (query.add_current_user === 'true') {
         if (!auth.user) {
           throw new StatusError(StatusError.Unauthorized, "You must be logged in to create a team with the current user as a member.");
         }
+        addUserId = auth.user.id;
+      }
 
+      if (addUserId) {
         await addUserToTeam(tx, {
           project: auth.project,
           teamId: db.teamId,
-          userId: auth.user.id,
+          userId: addUserId,
           type: 'creator',
         });
       }
