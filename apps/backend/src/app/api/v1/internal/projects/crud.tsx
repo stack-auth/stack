@@ -76,8 +76,8 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                   standardOAuthConfig: !item.shared ? {
                     create: {
                       type: typedToUppercase(ensureStandardProvider(item.type)),
-                      clientId: item.client_id ?? throwErr('client_id is required'),
-                      clientSecret: item.client_secret ?? throwErr('client_secret is required'),
+                      clientId: item.client_id,
+                      clientSecret: item.client_secret,
                       facebookConfigId: item.facebook_config_id,
                       microsoftTenantId: item.microsoft_tenant_id,
                     }
