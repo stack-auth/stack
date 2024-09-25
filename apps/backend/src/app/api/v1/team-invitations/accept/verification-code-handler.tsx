@@ -20,6 +20,11 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       description: "Check if a team invitation code is valid without using it",
       tags: ["Teams"],
     },
+    details: {
+      summary: "Get team invitation details",
+      description: "Get additional information about a team invitation code",
+      tags: ["Teams"],
+    },
   },
   type: VerificationCodeType.TEAM_INVITATION,
   data: yupObject({
@@ -41,7 +46,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       team_display_name: yupString().required(),
     }).required(),
   }),
-  async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+  async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }){
     const team = await teamsCrudHandlers.adminRead({
       project: createOptions.project,
       team_id: createOptions.data.team_id,

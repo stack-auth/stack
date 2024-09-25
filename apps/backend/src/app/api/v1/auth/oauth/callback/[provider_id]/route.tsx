@@ -20,7 +20,11 @@ const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"][
     throw error;
   }
 
-  redirect(`${errorRedirectUrl}?errorCode=${error.errorCode}&message=${error.message}&details=${error.details}`);
+  const url = new URL(errorRedirectUrl);
+  url.searchParams.set("errorCode", error.errorCode);
+  url.searchParams.set("message", error.message);
+  url.searchParams.set("details", error.details ? JSON.stringify(error.details) : JSON.stringify({}));
+  redirect(url.toString());
 };
 
 const handler = createSmartRouteHandler({
@@ -92,14 +96,24 @@ const handler = createSmartRouteHandler({
       }
 
       const providerObj = await getProvider(provider);
-      const { userInfo, tokenSet } = await providerObj.getCallback({
-        codeVerifier: innerCodeVerifier,
-        state: innerState,
-        callbackParams: {
-          ...query,
-          ...body,
-        },
-      });
+      let callbackResult: Awaited<ReturnType<typeof providerObj.getCallback>>;
+      try {
+        callbackResult = await providerObj.getCallback({
+          codeVerifier: innerCodeVerifier,
+          state: innerState,
+          callbackParams: {
+            ...query,
+            ...body,
+          },
+        });
+      } catch (error) {
+        if (error instanceof KnownErrors['OAuthProviderAccessDenied']) {
+          redirectOrThrowError(error, project, errorRedirectUrl);
+        }
+        throw error;
+      }
+
+      const { userInfo, tokenSet } = callbackResult;
 
       if (type === "link") {
         if (!projectUserId) {

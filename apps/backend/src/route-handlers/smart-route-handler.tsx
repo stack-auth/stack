@@ -16,7 +16,7 @@ class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${error}` : `Something went wrong. Please make sure the data you entered is correct.`,
+      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${(error as any)?.stack ?? error}` : `Something went wrong. Please make sure the data you entered is correct.`,
     );
   }
 }

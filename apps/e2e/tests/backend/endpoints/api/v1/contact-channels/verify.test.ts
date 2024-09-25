@@ -66,7 +66,7 @@ it("should not allow verify a code that doesn't exist", async ({ expect }) => {
     method: "POST",
     accessType: "client",
     body: {
-      code: "nonexistentcode",
+      code: "invalid-attempt-code-123123123123123123123123",
     },
   });
   expect(response).toMatchInlineSnapshot(`

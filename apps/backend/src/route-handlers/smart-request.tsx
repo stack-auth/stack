@@ -7,7 +7,7 @@ import { decodeAccessToken } from "@/lib/tokens";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel } from "@stackframe/stack-shared/dist/schema-fields";
+import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
@@ -36,6 +36,11 @@ export type SmartRequest = {
   headers: Record<string, string[] | undefined>,
   query: Record<string, string | undefined>,
   params: Record<string, string | undefined>,
+  clientVersion: {
+    platform: string,
+    sdk: string,
+    version: string,
+  } | undefined,
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
@@ -46,43 +51,15 @@ export type MergeSmartRequest<T, MSQ = SmartRequest> =
 
 async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
   try {
-    return await schema.validate(obj, {
+    return await yupValidate(schema, obj, {
       abortEarly: false,
       context: {
         noUnknownPathPrefixes: ["body", "query", "params"],
       },
+      currentUserId: obj.auth?.user?.id ?? null,
     });
   } catch (error) {
-    if (error instanceof ReplaceFieldWithOwnUserId) {
-      // parse yup path
-      let pathRemaining = error.path;
-      const fieldPath = [];
-      while (pathRemaining.length > 0) {
-        if (pathRemaining.startsWith("[")) {
-          const index = pathRemaining.indexOf("]");
-          if (index < 0) throw new StackAssertionError("Invalid path");
-          fieldPath.push(JSON.parse(pathRemaining.slice(1, index)));
-          pathRemaining = pathRemaining.slice(index + 1);
-        } else {
-          let dotIndex = pathRemaining.indexOf(".");
-          if (dotIndex === -1) dotIndex = pathRemaining.length;
-          fieldPath.push(pathRemaining.slice(0, dotIndex));
-          pathRemaining = pathRemaining.slice(dotIndex + 1);
-        }
-      }
-
-      const newObj = deepPlainClone(obj);
-      let it = newObj;
-      for (const field of fieldPath.slice(0, -1)) {
-        if (!Object.prototype.hasOwnProperty.call(it, field)) {
-          throw new StackAssertionError(`Segment ${field} of path ${error.path} not found in object`);
-        }
-        it = (it as any)[field];
-      }
-      (it as any)[fieldPath[fieldPath.length - 1]] = obj.auth?.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
-
-      return await validate(newObj, schema, req);
-    } else if (error instanceof yup.ValidationError) {
+    if (error instanceof yup.ValidationError) {
       if (req === null) {
         // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
         throw new StackAssertionError("Request validation failed", {}, { cause: error });
@@ -283,6 +260,8 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
 export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
   const urlObject = new URL(req.url);
+  const clientVersionMatch = req.headers.get("x-stack-client-version")?.match(/^(\w+)\s+(@[\w\/]+)@([\d.]+)$/);
+
   return {
     url: req.url,
     method: typedIncludes(allowedMethods, req.method) ? req.method : throwErr(new StatusError(405, "Method not allowed")),
@@ -294,6 +273,11 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
     query: Object.fromEntries(urlObject.searchParams.entries()),
     params: options?.params ?? {},
     auth: await parseAuth(req),
+    clientVersion: clientVersionMatch ? {
+      platform: clientVersionMatch[1],
+      sdk: clientVersionMatch[2],
+      version: clientVersionMatch[3],
+    } : undefined,
   } satisfies SmartRequest;
 }
 

@@ -786,6 +786,16 @@ const VerificationCodeAlreadyUsed = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const VerificationCodeMaxAttemptsReached = createKnownErrorConstructor(
+  VerificationCodeError,
+  "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
+  () => [
+    400,
+    "The verification code nonce has reached the maximum number of attempts. This code is not valid anymore.",
+  ] as const,
+  () => [] as const,
+);
+
 const PasswordConfirmationMismatch = createKnownErrorConstructor(
   KnownError,
   "PASSWORD_CONFIRMATION_MISMATCH",
@@ -1119,6 +1129,16 @@ const InvalidAuthorizationCode = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const OAuthProviderAccessDenied = createKnownErrorConstructor(
+  KnownError,
+  "OAUTH_PROVIDER_ACCESS_DENIED",
+  () => [
+    400,
+    "The OAuth provider denied access to the user.",
+  ] as const,
+  () => [] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1181,6 +1201,7 @@ export const KnownErrors = {
   VerificationCodeNotFound,
   VerificationCodeExpired,
   VerificationCodeAlreadyUsed,
+  VerificationCodeMaxAttemptsReached,
   PasswordConfirmationMismatch,
   EmailAlreadyVerified,
   EmailNotAssociatedWithUser,
@@ -1209,6 +1230,7 @@ export const KnownErrors = {
   InvalidStandardOAuthProviderId,
   InvalidAuthorizationCode,
   TeamPermissionNotFound,
+  OAuthProviderAccessDenied,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

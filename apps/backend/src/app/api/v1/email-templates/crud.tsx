@@ -10,6 +10,7 @@ import { typedEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
+const CURRENT_VERSION = 2;
 
 function prismaToCrud(prisma: Prisma.EmailTemplateGetPayload<{}>, isDefault: boolean) {
   return {
@@ -40,7 +41,7 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
     } else {
       return {
         type: params.type,
-        content: EMAIL_TEMPLATES_METADATA[params.type].defaultContent,
+        content: EMAIL_TEMPLATES_METADATA[params.type].defaultContent[CURRENT_VERSION],
         subject: EMAIL_TEMPLATES_METADATA[params.type].defaultSubject,
         is_default: true,
       };
@@ -60,7 +61,7 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
       },
     });
 
-    const content = data.content || oldTemplate?.content || EMAIL_TEMPLATES_METADATA[params.type].defaultContent;
+    const content = data.content || oldTemplate?.content || EMAIL_TEMPLATES_METADATA[params.type].defaultContent[CURRENT_VERSION];
     const subject = data.subject || oldTemplate?.subject || EMAIL_TEMPLATES_METADATA[params.type].defaultSubject;
 
     const db = await prismaClient.emailTemplate.upsert({
@@ -113,7 +114,7 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
       } else {
         result.push({
           type: typedToLowercase(type),
-          content: metadata.defaultContent,
+          content: metadata.defaultContent[CURRENT_VERSION],
           subject: metadata.defaultSubject,
           is_default: true,
         });

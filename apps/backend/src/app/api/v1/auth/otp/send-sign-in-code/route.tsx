@@ -1,9 +1,9 @@
-import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import semver from "semver";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
@@ -22,12 +22,19 @@ export const POST = createSmartRouteHandler({
       email: signInEmailSchema.required(),
       callback_url: emailOtpSignInCallbackUrlSchema.required(),
     }).required(),
+    clientVersion: yupObject({
+      version: yupString().optional(),
+      sdk: yupString().optional(),
+    }).optional(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    bodyType: yupString().oneOf(["json"]).required(),
+    body: yupObject({
+      nonce: yupString().required(),
+    }).required(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
+  async handler({ auth: { project }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
     if (!project.config.magic_link_enabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
@@ -56,14 +63,11 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.SignUpNotEnabled();
     }
 
-    let userObj: { projectUserId: string, displayName: string | null } | null = authMethod ? {
-      projectUserId: authMethod.projectUser.projectUserId,
-      displayName: authMethod.projectUser.displayName,
-    } : null;
+    let user;
 
-    if (!userObj) {
+    if (!authMethod) {
       // TODO this should be in the same transaction as the read above
-      const createdUser = await usersCrudHandlers.adminCreate({
+      user = await usersCrudHandlers.adminCreate({
         project,
         data: {
           primary_email_auth_enabled: true,
@@ -72,40 +76,37 @@ export const POST = createSmartRouteHandler({
         },
         allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });
-
-      userObj = {
-        projectUserId: createdUser.id,
-        displayName: createdUser.display_name,
-      };
+    } else {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: authMethod.projectUser.projectUserId,
+      });
     }
 
-    const { link } = await signInVerificationCodeHandler.createCode({
-      project,
-      method: { email },
-      data: {
-        user_id: userObj.projectUserId,
-        is_new_user: isNewUser,
-      },
-      callbackUrl,
-    });
+    let type: "legacy" | "standard";
+    if (clientVersion?.sdk === "@stackframe/stack" && semver.valid(clientVersion.version) && semver.lte(clientVersion.version, "2.5.37")) {
+      type = "legacy";
+    } else {
+      type = "standard";
+    }
 
-    // TODO use signInVerificationCodeHandler.sendCode instead of .createCode and then sending the code manually
-    await sendEmailFromTemplate({
-      project,
-      // TODO fill user object instead of specifying the extra variables below manually (signInVerificationCodeHandler.sendCode would do this already)
-      user: null,
-      email,
-      templateType: "magic_link",
-      extraVariables: {
-        userDisplayName: userObj.displayName,
-        userPrimaryEmail: email,
-        magicLink: link.toString(),
+    const { nonce } = await signInVerificationCodeHandler.sendCode(
+      {
+        project,
+        callbackUrl,
+        method: { email, type },
+        data: {
+          user_id: user.id,
+          is_new_user: isNewUser,
+        },
       },
-    });
+      { user }
+    );
 
     return {
       statusCode: 200,
-      bodyType: "success",
+      bodyType: "json",
+      body: { nonce },
     };
   },
 });

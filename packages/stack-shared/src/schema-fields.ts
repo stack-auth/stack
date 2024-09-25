@@ -1,8 +1,61 @@
 import * as yup from "yup";
+import { KnownErrors } from ".";
 import { isBase64 } from "./utils/bytes";
 import { StackAssertionError } from "./utils/errors";
 import { allProviders } from "./utils/oauth";
+import { deepPlainClone, omit } from "./utils/objects";
 import { isUuid } from "./utils/uuids";
+
+export async function yupValidate<S extends yup.ISchema<any>>(
+  schema: S,
+  obj: unknown,
+  options?: yup.ValidateOptions & { currentUserId?: string | null }
+): Promise<yup.InferType<S>> {
+  try {
+    return await schema.validate(obj, {
+      ...omit(options ?? {}, ['currentUserId']),
+      context: {
+        ...options?.context,
+        stackAllowUserIdMe: options?.currentUserId !== undefined,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ReplaceFieldWithOwnUserId) {
+      const currentUserId = options?.currentUserId;
+      if (!currentUserId) throw new KnownErrors.CannotGetOwnUserWithoutUser();
+
+      // parse yup path
+      let pathRemaining = error.path;
+      const fieldPath = [];
+      while (pathRemaining.length > 0) {
+        if (pathRemaining.startsWith("[")) {
+          const index = pathRemaining.indexOf("]");
+          if (index < 0) throw new StackAssertionError("Invalid path");
+          fieldPath.push(JSON.parse(pathRemaining.slice(1, index)));
+          pathRemaining = pathRemaining.slice(index + 1);
+        } else {
+          let dotIndex = pathRemaining.indexOf(".");
+          if (dotIndex === -1) dotIndex = pathRemaining.length;
+          fieldPath.push(pathRemaining.slice(0, dotIndex));
+          pathRemaining = pathRemaining.slice(dotIndex + 1);
+        }
+      }
+
+      const newObj = deepPlainClone(obj);
+      let it = newObj;
+      for (const field of fieldPath.slice(0, -1)) {
+        if (!Object.prototype.hasOwnProperty.call(it, field)) {
+          throw new StackAssertionError(`Segment ${field} of path ${error.path} not found in object`);
+        }
+        it = (it as any)[field];
+      }
+      (it as any)[fieldPath[fieldPath.length - 1]] = currentUserId;
+
+      return await yupValidate(schema, newObj, options);
+    }
+    throw error;
+  }
+}
 
 const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name. This is not a unique identifier.`;
@@ -190,6 +243,8 @@ export const userIdOrMeSchema = yupString().uuid().transform(v => {
   if (v === "me") return userIdMeSentinelUuid;
   else return v;
 }).test((v, context) => {
+  if (!("stackAllowUserIdMe" in (context.options.context ?? {}))) throw new StackAssertionError('userIdOrMeSchema is not allowed in this context. Make sure you\'re using yupValidate from schema-fields.ts to validate, instead of schema.validate(...).');
+  if (!context.options.context?.stackAllowUserIdMe) throw new StackAssertionError('userIdOrMeSchema is not allowed in this context. Make sure you\'re passing in the currentUserId option in yupValidate.');
   if (v === userIdMeSentinelUuid) throw new ReplaceFieldWithOwnUserId(context.path);
   return true;
 }).meta({ openapiField: { description: 'The ID of the user, or the special value `me` for the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });

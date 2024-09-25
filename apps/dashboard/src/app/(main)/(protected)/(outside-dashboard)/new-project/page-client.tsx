@@ -85,7 +85,7 @@ export default function PageClient () {
                 label="Sign-In Methods"
                 options={[
                   { value: "credential", label: "Email password" },
-                  { value: "magicLink", label: "Magic link" },
+                  { value: "magicLink", label: "Magic link/OTP" },
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },

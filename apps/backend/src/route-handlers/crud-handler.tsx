@@ -9,7 +9,7 @@ import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { SmartRequestAuth } from "./smart-request";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudlOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
@@ -155,9 +155,8 @@ export function createCrudHandlers<
               adminSchemas,
               invoke: async (options: { params: yup.InferType<PS> | Partial<yup.InferType<PS>>, query: yup.InferType<QS>, data: any, auth: SmartRequestAuth }) => {
                 const actualParamsSchema = typedIncludes(["List", "Create"], crudOperation) ? paramsSchema.partial() : paramsSchema;
-                const paramsValidated = await validate(options.params, actualParamsSchema, "Params validation");
-
-                const adminData = await validate(options.data, adminSchemas.input, "Input validation");
+                const paramsValidated = await validate(options.params, actualParamsSchema, options.auth.user ?? null, "Params validation");
+                const adminData = await validate(options.data, adminSchemas.input, options.auth.user ?? null, "Input validation");
 
                 await optionsAsPartial.onPrepare?.({
                   params: paramsValidated,
@@ -172,8 +171,8 @@ export function createCrudHandlers<
                   query: options.query,
                 });
 
-                const resultAdminValidated = await validate(result, adminSchemas.output, "Result admin validation");
-                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, `Result ${accessType} validation`);
+                const resultAdminValidated = await validate(result, adminSchemas.output, options.auth.user ?? null, "Result admin validation");
+                const resultAccessValidated = await validate(resultAdminValidated, accessSchemas.output, options.auth.user ?? null, `Result ${accessType} validation`);
 
                 return resultAccessValidated;
               },
@@ -270,17 +269,18 @@ export class CrudHandlerInvocationError extends Error {
   }
 }
 
-async function validate<T>(obj: unknown, schema: yup.ISchema<T>, name: string): Promise<T> {
+async function validate<T>(obj: unknown, schema: yup.ISchema<T>, currentUser: UsersCrud["Admin"]["Read"] | null, validationDescription: string): Promise<T> {
   try {
-    return await schema.validate(obj, {
+    return await yupValidate(schema, obj, {
       abortEarly: false,
       stripUnknown: true,
+      currentUserId: currentUser?.id ?? null,
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
       throw new StackAssertionError(
         deindent`
-          ${name} failed in CRUD handler.
+          ${validationDescription} failed in CRUD handler.
           
           Errors:
             ${error.errors.join("\n")}
