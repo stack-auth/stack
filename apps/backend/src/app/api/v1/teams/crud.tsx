@@ -35,6 +35,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     team_id: yupString().uuid().required(),
   }),
   onCreate: async ({ query, auth, data }) => {
+    if (data.creator_user_id && query.add_current_user) {
+      throw new StatusError(StatusError.BadRequest, "Cannot use both creator_user_id and add_current_user. add_current_user is deprecated, please only use creator_user_id in the body.");
+    }
+
     if (auth.type === 'client' && !auth.user) {
       throw new KnownErrors.UserAuthenticationRequired();
     }
