@@ -1,7 +1,7 @@
 'use client';
 
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography } from '@stackframe/stack-ui';
+import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography, cn } from '@stackframe/stack-ui';
 import { useEffect } from 'react';
 import { useStackApp, useUser } from '..';
 import { CredentialSignIn } from '../components/credential-sign-in';
@@ -14,6 +14,8 @@ import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
 export function AuthPage(props: {
+  noPasswordRepeat?: boolean;
+  reverseOrder?: boolean;
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   automaticRedirect?: boolean,
@@ -83,8 +85,10 @@ export function AuthPage(props: {
         <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
         {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
-          <Tabs defaultValue='magic-link'>
-            <TabsList className='w-full mb-2'>
+          <Tabs defaultValue={props.reverseOrder ? 'password' : 'magic-link'}>
+            <TabsList className={cn('w-full mb-2', {
+              'flex-row-reverse': props.reverseOrder,
+            })}>
               <TabsTrigger value='magic-link' className='flex-1'>{t("Email")}</TabsTrigger>
               <TabsTrigger value='password' className='flex-1'>{t("Email & Password")}</TabsTrigger>
             </TabsList>
@@ -92,11 +96,11 @@ export function AuthPage(props: {
               <MagicLinkSignIn/>
             </TabsContent>
             <TabsContent value='password'>
-              {props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+              {props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>}
             </TabsContent>
           </Tabs>
         ) : project.config.credentialEnabled ? (
-          props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+          props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
         ) : null}
