@@ -14,7 +14,7 @@ import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
 export function AuthPage(props: {
-  noPasswordRepeat?: boolean;
+  noPasswordRepeat?: boolean,
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   automaticRedirect?: boolean,

@@ -29,7 +29,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       }
     }),
     ...(!props.noPasswordRepeat && {
-    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+      passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
     })
   });
 
@@ -79,17 +79,17 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       {
         !props.noPasswordRepeat && (
           <>
-          <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
-          <PasswordInput
-            id="repeat-password"
-            {...registerPasswordRepeat}
-            onChange={(e) => {
+            <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
+            <PasswordInput
+              id="repeat-password"
+              {...registerPasswordRepeat}
+              onChange={(e) => {
               clearErrors('password');
               clearErrors('passwordRepeat');
               runAsynchronously(registerPasswordRepeat.onChange(e));
-            }}
-          />
-          <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
+              }}
+            />
+            <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
           </>
         )
       }
