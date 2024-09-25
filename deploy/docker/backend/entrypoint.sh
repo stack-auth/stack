@@ -4,7 +4,7 @@ set -e
 
 if [ "$STACK_SKIP_MIGRATIONS" != "true" ]; then
   echo "Running migrations..."
-  pnpm dlx prisma migrate deploy
+  pnpm prisma migrate deploy
 else
   echo "Skipping migrations."
 fi
