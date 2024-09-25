@@ -2,15 +2,14 @@ import { ensureTeamExist, ensureTeamMembershipExists, ensureUserTeamPermissionEx
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { addUserToTeam } from "../team-memberships/crud";
-import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -65,10 +64,13 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
       let addUserId: string | undefined;
       if (data.creator_user_id) {
-        addUserId = getIdFromUserIdOrMe(data.creator_user_id, auth.user);
-        if (auth.type === 'client' && addUserId !== auth.user?.id) {
-          throw new StatusError(StatusError.Forbidden, "You cannot add a user to the team as the creator that is not yourself on the client.");
+        if (auth.type === 'client') {
+          const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+          if (data.creator_user_id !== currentUserId) {
+            throw new StatusError(StatusError.Forbidden, "You cannot add a user to the team as the creator that is not yourself on the client.");
+          }
         }
+        addUserId = data.creator_user_id;
       } else if (query.add_current_user === 'true') {
         if (!auth.user) {
           throw new StatusError(StatusError.Unauthorized, "You must be logged in to create a team with the current user as a member.");
@@ -202,11 +204,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     });
   },
   onList: async ({ query, auth }) => {
-    const userId = getIdFromUserIdOrMe(query.user_id, auth.user);
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
 
-      if (userId !== currentUserId) {
+      if (query.user_id !== currentUserId) {
         throw new StatusError(StatusError.Forbidden, 'Client can only list teams for their own user. user_id must be either "me" or the ID of the current user');
       }
     }
@@ -214,10 +215,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     const db = await prismaClient.team.findMany({
       where: {
         projectId: auth.project.id,
-        ...userId ? {
+        ...query.user_id ? {
           teamMembers: {
             some: {
-              projectUserId: userId,
+              projectUserId: query.user_id,
             },
           },
         } : {},
