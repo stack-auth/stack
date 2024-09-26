@@ -14,6 +14,7 @@ import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
 export function AuthPage(props: {
+  noPasswordRepeat?: boolean,
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   automaticRedirect?: boolean,
@@ -92,11 +93,11 @@ export function AuthPage(props: {
               <MagicLinkSignIn/>
             </TabsContent>
             <TabsContent value='password'>
-              {props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>}
+              {props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>}
             </TabsContent>
           </Tabs>
         ) : project.config.credentialEnabled ? (
-          props.type === 'sign-up' ? <CredentialSignUp/> : <CredentialSignIn/>
+          props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
         ) : null}
