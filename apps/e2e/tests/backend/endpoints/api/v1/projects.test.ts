@@ -98,8 +98,18 @@ it("updates the basic project configuration", async ({ expect }) => {
     config: {
       allow_localhost: false,
       sign_up_enabled: false,
-      credential_enabled: false,
-      magic_link_enabled: true,
+      auth_method_configs: [
+        {
+          id: crypto.randomUUID(),
+          type: 'password',
+          enabled: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'otp',
+          enabled: true,
+        },
+      ],
     },
   });
   expect(response).toMatchInlineSnapshot(`
@@ -108,16 +118,43 @@ it("updates the basic project configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": false,
+          "auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "password",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+          ],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": false,
+          "credential_enabled": true,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "password",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+          ],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": true,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": false,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
