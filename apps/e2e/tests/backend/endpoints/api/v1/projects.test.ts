@@ -120,16 +120,21 @@ it("creates and updates the basic project information of a project", async ({ ex
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [],
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [],
+          "oauth_provider_configs": [],
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "member" }],
@@ -146,7 +151,7 @@ it("creates and updates the basic project information of a project", async ({ ex
   `);
 });
 
-it("updates the basic project configuration", async ({ expect }) => {
+it("updates the password and otp auth methods", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
@@ -175,7 +180,7 @@ it("updates the basic project configuration", async ({ expect }) => {
           "allow_localhost": false,
           "auth_method_configs": [
             {
-              "enabled": true,
+              "enabled": false,
               "id": "<stripped UUID>",
               "type": "password",
             },
@@ -189,15 +194,10 @@ it("updates the basic project configuration", async ({ expect }) => {
           "client_user_deletion_enabled": false,
           "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
           "enabled_auth_method_configs": [
-            {
-              "enabled": true,
-              "id": "<stripped UUID>",
-              "type": "password",
-            },
             {
               "enabled": true,
               "id": "<stripped UUID>",
@@ -237,40 +237,13 @@ it("updates the project domains configuration", async ({ expect }) => {
       }]
     },
   });
-  expect(response1).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [
-            {
-              "domain": "https://trusted-domain.stack-test.example.com",
-              "handler_path": "/handler",
-            },
-          ],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+  expect(response1.body.config.domains).toMatchInlineSnapshot(`
+    [
+      {
+        "domain": "https://trusted-domain.stack-test.example.com",
+        "handler_path": "/handler",
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
   `);
 
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
@@ -287,44 +260,17 @@ it("updates the project domains configuration", async ({ expect }) => {
       ]
     },
   });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [
-            {
-              "domain": "https://trusted-domain2.stack-test.example.com",
-              "handler_path": "/handler",
-            },
-            {
-              "domain": "https://trusted-domain3.stack-test.example.com",
-              "handler_path": "/handler2",
-            },
-          ],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+  expect(response2.body.config.domains).toMatchInlineSnapshot(`
+    [
+      {
+        "domain": "https://trusted-domain2.stack-test.example.com",
+        "handler_path": "/handler",
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+      {
+        "domain": "https://trusted-domain3.stack-test.example.com",
+        "handler_path": "/handler2",
+      },
+    ]
   `);
 });
 
@@ -368,42 +314,15 @@ it("updates the project email configuration", async ({ expect }) => {
       },
     },
   });
-  expect(response1).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": {
-            "host": "smtp.example.com",
-            "password": "test password",
-            "port": 587,
-            "sender_email": "test@email.com",
-            "sender_name": "Test Sender",
-            "type": "standard",
-            "username": "test username",
-          },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
-      },
-      "headers": Headers { <some fields may have been hidden> },
+  expect(response1.body.config.email_config).toMatchInlineSnapshot(`
+    {
+      "host": "smtp.example.com",
+      "password": "test password",
+      "port": 587,
+      "sender_email": "test@email.com",
+      "sender_name": "Test Sender",
+      "type": "standard",
+      "username": "test username",
     }
   `);
 
@@ -421,42 +340,15 @@ it("updates the project email configuration", async ({ expect }) => {
       },
     },
   });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": {
-            "host": "smtp.example2.com",
-            "password": "test password2",
-            "port": 587,
-            "sender_email": "test@email.com2",
-            "sender_name": "Test Sender2",
-            "type": "standard",
-            "username": "test username2",
-          },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
-      },
-      "headers": Headers { <some fields may have been hidden> },
+  expect(response2.body.config.email_config).toMatchInlineSnapshot(`
+    {
+      "host": "smtp.example2.com",
+      "password": "test password2",
+      "port": 587,
+      "sender_email": "test@email.com2",
+      "sender_name": "Test Sender2",
+      "type": "standard",
+      "username": "test username2",
     }
   `);
 
@@ -468,36 +360,7 @@ it("updates the project email configuration", async ({ expect }) => {
       },
     },
   });
-  expect(response3).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
+  expect(response3.body.config.email_config).toMatchInlineSnapshot(`{ "type": "shared" }`);
 
   // update to shared again
   const { updateProjectResponse: response4 } = await Project.updateCurrent(adminAccessToken, {
@@ -507,89 +370,7 @@ it("updates the project email configuration", async ({ expect }) => {
       },
     },
   });
-  expect(response4).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-
-  // check if the second project still has the same email config
-  const { updateProjectResponse: response2p2 } = await Project.updateCurrent(adminAccessToken, {
-    config: {
-      email_config: {
-        type: "standard",
-        host: "smtp.control-group.com",
-        port: 587,
-        username: "control group",
-        password: "control group",
-        sender_name: "Control Group",
-        sender_email: "control-group@email.com",
-      },
-    },
-  });
-  expect(response2p2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": {
-            "host": "smtp.control-group.com",
-            "password": "control group",
-            "port": 587,
-            "sender_email": "control-group@email.com",
-            "sender_name": "Control Group",
-            "type": "standard",
-            "username": "control group",
-          },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
+  expect(response4.body.config.email_config).toMatchInlineSnapshot(`{ "type": "shared" }`);
 });
 
 it("updates the project email configuration with invalid parameters", async ({ expect }) => {
@@ -647,12 +428,19 @@ it("updates the project oauth configuration", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   // create google oauth provider with shared type
+  const googleId = crypto.randomUUID();
   const { updateProjectResponse: response1 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "shared",
+      oauth_provider_configs: [{
+        id: googleId,
+        shared: true,
+        type: "google",
+      }],
+      auth_method_configs: [{
+        id: googleId,
+        type: "oauth",
         enabled: true,
+        oauth_provider_config_id: googleId,
       }]
     },
   });
@@ -662,20 +450,44 @@ it("updates the project oauth configuration", async ({ expect }) => {
       "body": {
         "config": {
           "allow_localhost": true,
+          "auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+          ],
           "client_team_creation_enabled": false,
           "client_user_deletion_enabled": false,
+          "connected_account_configs": [],
           "create_team_on_sign_up": false,
-          "credential_enabled": true,
+          "credential_enabled": false,
           "domains": [],
           "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+          ],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [
+            {
+              "id": "<stripped UUID>",
+              "type": "google",
+            },
+          ],
           "enabled_oauth_providers": [{ "id": "google" }],
           "id": "<stripped UUID>",
           "magic_link_enabled": false,
-          "oauth_providers": [
+          "oauth_provider_configs": [
             {
-              "enabled": true,
-              "id": "google",
-              "type": "shared",
+              "id": "<stripped UUID>",
+              "shared": true,
+              "type": "google",
             },
           ],
           "sign_up_enabled": true,

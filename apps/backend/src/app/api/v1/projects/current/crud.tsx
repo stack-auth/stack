@@ -219,6 +219,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
               switch (newAuthMethod.type) {
                 case 'password': {
                   return {
+                    enabled: newAuthMethod.enabled,
                     passwordConfig: {
                       create: {
                         identifierType: 'EMAIL',
@@ -228,6 +229,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                 }
                 case 'otp': {
                   return {
+                    enabled: newAuthMethod.enabled,
                     otpConfig: {
                       create: {
                         contactChannelType: 'EMAIL',
@@ -237,7 +239,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                 }
                 case 'oauth': {
                   return {
-                    type: 'OAUTH',
+                    enabled: newAuthMethod.enabled,
                     oauthProviderConfig: {
                       connect: {
                         projectConfigId_id: {
