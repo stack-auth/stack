@@ -164,5 +164,5 @@ seed().catch(async (e) => {
   console.error(e);
   await prisma.$disconnect();
   process.exit(1);
-// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/return-await
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 }).finally(async () => await prisma.$disconnect());
