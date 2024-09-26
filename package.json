@@ -26,7 +26,6 @@
     "docker:up": "docker compose up -d && docker compose logs -f dashboard backend",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose kill && docker compose rm -f && docker volume rm stack-postgres stack-inbucket svix-redis svix-postgres",
-    "seed-self-host": "pnpm run --filter=@stackframe/stack-backend seed-self-host",
     "start": "only-allow pnpm && turbo run start --concurrency 99999",
     "start:backend": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-backend",
     "start:dashboard": "only-allow pnpm && turbo run start --concurrency 99999 --filter=@stackframe/stack-dashboard",
