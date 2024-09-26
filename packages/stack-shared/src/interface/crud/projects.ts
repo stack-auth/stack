@@ -44,7 +44,7 @@ const authMethodConfigSchema = schemaFields.yupUnion(
   yupObject({
     ...authMethodSharedFields,
     type: yupString().oneOf(['oauth']).required(),
-    provider_config_id: yupString().required(),
+    oauth_provider_config_id: yupString().required(),
   }).required(),
 );
 
@@ -53,7 +53,7 @@ const clientAuthMethodConfigSchema = authMethodConfigSchema;
 const connectedAccountConfigSchema = yupObject({
   id: yupString().uuid().required(),
   enabled: schemaFields.yupBoolean().required(),
-  provider_id: yupString().required(),
+  oauth_provider_config_id: yupString().required(),
 });
 
 const clientConnectedAccountConfigSchema = connectedAccountConfigSchema;
@@ -160,7 +160,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
 
     oauth_provider_configs: yupArray(oauthProviderConfigSchema).optional().default(undefined),
     auth_method_configs: yupArray(authMethodConfigSchema).optional().default(undefined),
-    connected_accounts: yupArray(connectedAccountConfigSchema).optional().default(undefined),
+    connected_account_configs: yupArray(connectedAccountConfigSchema).optional().default(undefined),
   }).optional().default(undefined),
 }).required();
 

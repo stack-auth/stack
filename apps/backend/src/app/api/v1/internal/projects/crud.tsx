@@ -126,10 +126,12 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                   return {
                     id: item.id,
                     enabled: item.enabled,
-                    oauthConfig: {
+                    oauthProviderConfig: {
                       connect: {
-                        id: item.provider_config_id,
-                        projectConfigId: project.config.id,
+                        projectConfigId_id: {
+                          id: item.oauth_provider_config_id,
+                          projectConfigId: project.config.id,
+                        }
                       }
                     }
                   };
@@ -168,14 +170,14 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
           id: project.config.id,
         },
         data: {
-          connectedAccountConfigs: data.config?.connected_accounts ? {
-            create: data.config.connected_accounts.map(item => ({
+          connectedAccountConfigs: data.config?.connected_account_configs ? {
+            create: data.config.connected_account_configs.map(item => ({
               enabled: item.enabled,
               oauthProviderConfig: {
                 connect: {
                   projectConfigId_id: {
                     projectConfigId: project.config.id,
-                    id: item.id,
+                    id: item.oauth_provider_config_id,
                   }
                 }
               }

@@ -247,6 +247,165 @@ it("creates a new project with oauth providers", async ({ expect }) => {
   `);
 });
 
+it("creates a new project with oauth providers, auth method configs, and connected account configs", async ({ expect }) => {
+  backendContext.set({ projectKeys: InternalProjectClientKeys });
+  await Auth.Otp.signIn();
+  const googleId = crypto.randomUUID();
+  const spotifyId = crypto.randomUUID();
+  const { createProjectResponse: response } = await Project.create({
+    display_name: "Test Project",
+    config: {
+      oauth_provider_configs: [
+        {
+          id: googleId,
+          shared: true,
+          type: "google",
+        },
+        {
+          id: spotifyId,
+          shared: false,
+          type: "spotify",
+          client_id: "client_id",
+          client_secret: "client_secret",
+        }
+      ],
+      auth_method_configs: [
+        {
+          id: crypto.randomUUID(),
+          type: 'otp',
+          enabled: true,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'password',
+          enabled: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'oauth',
+          enabled: true,
+          oauth_provider_config_id: googleId,
+        }
+      ],
+      connected_account_configs: [
+        {
+          id: crypto.randomUUID(),
+          enabled: true,
+          oauth_provider_config_id: spotifyId,
+        },
+        {
+          id: crypto.randomUUID(),
+          enabled: false,
+          oauth_provider_config_id: googleId,
+        }
+      ]
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "config": {
+          "allow_localhost": true,
+          "auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+            {
+              "enabled": false,
+              "id": "<stripped UUID>",
+              "type": "password",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+          ],
+          "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
+          "connected_account_configs": [
+            {
+              "enabled": false,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+            },
+          ],
+          "create_team_on_sign_up": false,
+          "credential_enabled": false,
+          "domains": [],
+          "email_config": { "type": "shared" },
+          "enabled_auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+          ],
+          "enabled_connected_account_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+            },
+          ],
+          "enabled_oauth_provider_configs": [
+            {
+              "id": "<stripped UUID>",
+              "type": "google",
+            },
+            {
+              "id": "<stripped UUID>",
+              "type": "spotify",
+            },
+          ],
+          "enabled_oauth_providers": [{ "id": "google" }],
+          "id": "<stripped UUID>",
+          "magic_link_enabled": true,
+          "oauth_provider_configs": [
+            {
+              "id": "<stripped UUID>",
+              "shared": true,
+              "type": "google",
+            },
+            {
+              "client_id": "client_id",
+              "client_secret": "client_secret",
+              "id": "<stripped UUID>",
+              "shared": false,
+              "type": "spotify",
+            },
+          ],
+          "sign_up_enabled": true,
+          "team_creator_default_permissions": [{ "id": "admin" }],
+          "team_member_default_permissions": [{ "id": "member" }],
+        },
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "description": "",
+        "display_name": "Test Project",
+        "id": "<stripped UUID>",
+        "is_production_mode": false,
+        "user_count": 0,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("creates a new project with shared email config", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectClientKeys });
   await Auth.Otp.signIn();

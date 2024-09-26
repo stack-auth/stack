@@ -20,7 +20,7 @@ export type MockProject = {
       type: 'password' | 'otp',
     } | {
       type: 'oauth',
-      provider_config_id: string,
+      oauth_provider_config_id: string,
     })[],
   },
 };

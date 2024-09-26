@@ -17,8 +17,8 @@ export function OAuthButtonGroup({
     <div className='gap-4 flex flex-col items-stretch stack-scope'>
       {project.config.enabledAuthMethodConfigs.map(p => (
         p.type === 'oauth' ? <OAuthButton
-          key={(p as any).provider_config_id}
-          provider={(p as any).provider_config_id}
+          key={(p as any).oauth_provider_config_id}
+          provider={(p as any).oauth_provider_config_id}
           type={type}
         /> : null
       ))}

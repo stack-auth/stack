@@ -230,7 +230,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
                 case 'oauth': {
                   return {
                     type: 'oauth',
-                    providerConfigId: newAuthMethod.provider_config_id,
+                    providerConfigId: newAuthMethod.oauth_provider_config_id,
                   };
                 }
               }

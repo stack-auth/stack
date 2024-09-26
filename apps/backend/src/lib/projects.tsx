@@ -147,7 +147,7 @@ export function projectPrismaToCrud(
         id: config.id,
         type: "oauth",
         enabled: config.enabled,
-        provider_config_id: config.oauthProviderConfig.id,
+        oauth_provider_config_id: config.oauthProviderConfig.id,
       } as const;
     }
     throw new StackAssertionError(`DB union violation: auth method config '${config.id}' of project '${prisma.id}' is neither password nor otp`, { prisma });
@@ -160,7 +160,7 @@ export function projectPrismaToCrud(
     return {
       id: config.id,
       enabled: config.enabled,
-      provider_id: config.oauthProviderConfig.id,
+      oauth_provider_config_id: config.oauthProviderConfig.id,
     } as const;
   });
 
@@ -207,8 +207,8 @@ export function projectPrismaToCrud(
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
   const enabledOAuthProviderIds = new Set(
-    authMethodConfigs.filter(config => config.enabled).map(config => config.provider_config_id)
-      .concat(connectedAccountConfigs.filter(config => config.enabled).map(config => config.provider_id))
+    authMethodConfigs.filter(config => config.enabled).map(config => config.oauth_provider_config_id)
+      .concat(connectedAccountConfigs.filter(config => config.enabled).map(config => config.oauth_provider_config_id))
   );
 
   return {

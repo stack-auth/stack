@@ -719,14 +719,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
                 id: config.id,
                 type: 'oauth',
                 enabled: config.enabled,
-                providerConfigId: config.provider_config_id,
+                oauthProviderConfigId: config.oauth_provider_config_id,
               };
             }
           }
         }),
         enabledConnectedAccountConfigs: crud.config.enabled_connected_account_configs.map((config) => ({
           id: config.id,
-          providerId: config.provider_id,
+          oauthProviderConfigId: config.oauth_provider_config_id,
         })),
       }
     };
@@ -2090,7 +2090,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
                 id: p.id,
                 enabled: p.enabled,
                 type: p.type,
-                providerConfigId: p.provider_config_id,
+                oauthProviderConfigId: p.oauth_provider_config_id,
               };
             }
           }
@@ -2098,7 +2098,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         connectedAccountConfigs: data.config.connected_account_configs.map((c) => ({
           id: c.id,
           enabled: c.enabled,
-          providerId: c.provider_id,
+          oauthProviderConfigId: c.oauth_provider_config_id,
         })),
       },
 
@@ -2654,14 +2654,14 @@ export type OAuthProviderConfig = {
 export type AuthMethodConfig = {
   readonly id: string,
 } & (
-  | { type: 'oauth', providerConfigId: string }
+  | { type: 'oauth', oauthProviderConfigId: string }
   | { type: 'password' }
   | { type: 'otp' }
 );
 
 export type ConnectedAccountConfig = {
   readonly id: string,
-  readonly providerId: string,
+  readonly oauthProviderConfigId: string,
 }
 
 export type AdminProjectConfig = {
