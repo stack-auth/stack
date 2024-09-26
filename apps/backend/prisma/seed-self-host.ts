@@ -112,7 +112,6 @@ async function seed() {
         }
       });
 
-
       await tx.authMethod.create({
         data: {
           projectId: 'internal',
@@ -154,7 +153,7 @@ async function seed() {
         }
       });
 
-      console.log('Initial admin user created');
+      console.log('Initial admin user created: ', adminEmail);
     }
   });
 
