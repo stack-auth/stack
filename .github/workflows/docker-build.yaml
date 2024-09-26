@@ -3,7 +3,9 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - "**"
+      - dev
+      - main
+      - docker-build # remove me before PR merge
     tags:
       - "*.*.*"
 
