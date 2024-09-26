@@ -26,9 +26,12 @@ services:
     ports:
       - 8102:8102
     depends_on:
-      - postgres
-      - inbucket
-      - svix-server
+      postgres:
+        condition: service_healthy
+      inbucket:
+        condition: service_started
+      svix-server:
+        condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
