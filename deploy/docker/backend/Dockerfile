@@ -29,21 +29,28 @@ RUN turbo prune --scope=@stackframe/stack-backend --docker
 # Build stage
 FROM base AS builder
 
-# copy over pruned files and install dependencies
-COPY .gitignore .
+# copy over package.json files and install dependencies
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml .
+COPY .gitignore .
 COPY pnpm-workspace.yaml .
 COPY turbo.json .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
+# copy over the rest of the code for the build
 COPY --from=pruner /app/out/full/ .
+
+# docs are currently required for the NextJS backend build, but won't exist in the final image
 COPY docs ./docs
 
 # Required for NextJS build. Should be overridden at runtime.
 ENV STACK_SERVER_SECRET=secret
 
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
+ENV NEXT_CONFIG_OUTPUT=standalone
+
 RUN pnpm turbo run build --filter=@stackframe/stack-backend...
+RUN cd apps/backend && pnpm build:self-host-seed-script
 
 # Final stage
 FROM node:${NODE_VERSION}-slim
@@ -61,10 +68,16 @@ ENV PATH=$PNPM_HOME:$PATH
 
 RUN corepack enable
 RUN corepack prepare pnpm --activate
-RUN pnpm add -g turbo
+
+# Install prisma globally so we can run migrations on startup
+RUN pnpm add -g prisma
 
 # Copy built application
-COPY --from=builder --chown=node:node /app .
+# COPY --from=builder --chown=node:node /app .
+COPY --from=builder --chown=node:node /app/apps/backend/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/backend/.next/static ./apps/backend/.next/static
+COPY --from=builder --chown=node:node /app/apps/backend/prisma ./apps/backend/prisma
+COPY --from=builder --chown=node:node /app/apps/backend/dist/seed-self-host.js ./apps/backend
 
 WORKDIR /app/apps/backend
 
@@ -79,4 +92,4 @@ USER node
 
 ENTRYPOINT ["./entrypoint.sh"]
 
-CMD ["pnpm", "start"]
+CMD ["node", "server.js"]
