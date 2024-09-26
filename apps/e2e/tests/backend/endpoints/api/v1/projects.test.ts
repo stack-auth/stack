@@ -34,6 +34,61 @@ it("gets current project (internal)", async ({ expect }) => {
           "client_team_creation_enabled": true,
           "client_user_deletion_enabled": false,
           "credential_enabled": true,
+          "enabled_auth_method_configs": [
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "otp",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "type": "password",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+            {
+              "enabled": true,
+              "id": "<stripped UUID>",
+              "oauth_provider_config_id": "<stripped UUID>",
+              "type": "oauth",
+            },
+          ],
+          "enabled_connected_account_configs": [],
+          "enabled_oauth_provider_configs": [
+            {
+              "id": "<stripped UUID>",
+              "type": "microsoft",
+            },
+            {
+              "id": "<stripped UUID>",
+              "type": "google",
+            },
+            {
+              "id": "<stripped UUID>",
+              "type": "spotify",
+            },
+            {
+              "id": "<stripped UUID>",
+              "type": "github",
+            },
+          ],
           "enabled_oauth_providers": [
             { "id": "github" },
             { "id": "google" },
