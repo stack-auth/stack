@@ -51,10 +51,11 @@ ENV STACK_SECRET_SERVER_KEY=this-secret-server-key-is-for-local-development-only
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV NEXT_CONFIG_OUTPUT=standalone
 
+# Build the dashboard NextJS app
 RUN pnpm turbo run build --filter=@stackframe/stack-dashboard...
 
 
-# Final stage
+# Final image
 FROM node:${NODE_VERSION}-slim
 
 WORKDIR /app

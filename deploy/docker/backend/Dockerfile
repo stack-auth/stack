@@ -49,10 +49,13 @@ ENV STACK_SERVER_SECRET=secret
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV NEXT_CONFIG_OUTPUT=standalone
 
+# Build the backend NextJS app
 RUN pnpm turbo run build --filter=@stackframe/stack-backend...
+
+# Build the self-hosting seed script
 RUN cd apps/backend && pnpm build:self-host-seed-script
 
-# Final stage
+# Final image
 FROM node:${NODE_VERSION}-slim
 
 WORKDIR /app
@@ -69,11 +72,10 @@ ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
 RUN corepack prepare pnpm --activate
 
-# Install prisma globally so we can run migrations on startup
+# Install Prisma CLI globally so we can run migrations on startup
 RUN pnpm add -g prisma
 
 # Copy built application
-# COPY --from=builder --chown=node:node /app .
 COPY --from=builder --chown=node:node /app/apps/backend/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/backend/.next/static ./apps/backend/.next/static
 COPY --from=builder --chown=node:node /app/apps/backend/prisma ./apps/backend/prisma
