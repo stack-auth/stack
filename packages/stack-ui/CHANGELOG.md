@@ -1,5 +1,16 @@
 # @stackframe/stack-ui
 
+## 2.6.0
+
+### Minor Changes
+
+- OTP login, more providers, and styling improvements
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.0
+
 ## 2.5.37
 
 ### Patch Changes
