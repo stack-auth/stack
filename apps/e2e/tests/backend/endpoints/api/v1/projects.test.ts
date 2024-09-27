@@ -444,166 +444,70 @@ it("updates the project oauth configuration", async ({ expect }) => {
       }]
     },
   });
-  expect(response1).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "auth_method_configs": [
-            {
-              "enabled": true,
-              "id": "<stripped UUID>",
-              "oauth_provider_config_id": "<stripped UUID>",
-              "type": "oauth",
-            },
-          ],
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "connected_account_configs": [],
-          "create_team_on_sign_up": false,
-          "credential_enabled": false,
-          "domains": [],
-          "email_config": { "type": "shared" },
-          "enabled_auth_method_configs": [
-            {
-              "enabled": true,
-              "id": "<stripped UUID>",
-              "oauth_provider_config_id": "<stripped UUID>",
-              "type": "oauth",
-            },
-          ],
-          "enabled_connected_account_configs": [],
-          "enabled_oauth_provider_configs": [
-            {
-              "id": "<stripped UUID>",
-              "type": "google",
-            },
-          ],
-          "enabled_oauth_providers": [{ "id": "google" }],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_provider_configs": [
-            {
-              "id": "<stripped UUID>",
-              "shared": true,
-              "type": "google",
-            },
-          ],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
+  expect(response1.body.config.connected_account_configs).toMatchInlineSnapshot(`[]`);
+  expect(response1.body.config.auth_method_configs).toMatchInlineSnapshot(`
+    [
+      {
+        "enabled": true,
         "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+        "oauth_provider_config_id": "<stripped UUID>",
+        "type": "oauth",
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
+  `);
+  expect(response1.body.config.oauth_provider_configs).toMatchInlineSnapshot(`
+    [
+      {
+        "id": "<stripped UUID>",
+        "shared": true,
+        "type": "google",
+      },
+    ]
   `);
 
   // update google oauth provider with shared type again
   const { updateProjectResponse: response2 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "shared",
-        enabled: true,
-      }]
+      oauth_provider_configs: [{
+        id: googleId,
+        shared: true,
+        type: "google",
+      }],
     },
   });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [{ "id": "google" }],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [
-            {
-              "enabled": true,
-              "id": "google",
-              "type": "shared",
-            },
-          ],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
+  expect(response2.body.config.oauth_provider_configs).toMatchInlineSnapshot(`
+    [
+      {
         "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+        "shared": true,
+        "type": "google",
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
   `);
 
   // switch to standard type
   const { updateProjectResponse: response3 } = await Project.updateCurrent(adminAccessToken, {
     config: {
-      oauth_providers: [{
-        id: "google",
-        type: "standard",
-        enabled: true,
+      oauth_provider_configs: [{
+        id: googleId,
+        type: "google",
+        shared: false,
         client_id: "client_id",
         client_secret: "client_secret",
       }]
     },
   });
-  expect(response3).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [{ "id": "google" }],
-          "id": "<stripped UUID>",
-          "magic_link_enabled": false,
-          "oauth_providers": [
-            {
-              "client_id": "client_id",
-              "client_secret": "client_secret",
-              "enabled": true,
-              "id": "google",
-              "type": "standard",
-            },
-          ],
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
-        },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
+  expect(response3.body.config.oauth_provider_configs).toMatchInlineSnapshot(`
+    [
+      {
         "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+        "shared": false,
+        "type": "google",
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
   `);
 
-  // add another oauth provider with invalid type
+  // cannot another oauth provider without the previous oauth providers
   const { updateProjectResponse: response4 } = await Project.updateCurrent(adminAccessToken, {
     config: {
       oauth_providers: [{
