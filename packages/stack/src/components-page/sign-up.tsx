@@ -6,6 +6,7 @@ export function SignUp(props: {
   automaticRedirect?: boolean,
   noPasswordRepeat?: boolean,
   extraInfo?: React.ReactNode,
+  firstTab?: 'magic-link' | 'password',
 }) {
   return <AuthPage
     fullPage={!!props.fullPage}
@@ -13,5 +14,6 @@ export function SignUp(props: {
     automaticRedirect={!!props.automaticRedirect}
     noPasswordRepeat={props.noPasswordRepeat}
     extraInfo={props.extraInfo}
+    firstTab={props.firstTab}
   />;
 }
