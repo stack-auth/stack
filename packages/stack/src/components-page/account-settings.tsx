@@ -344,7 +344,7 @@ function useMfaSection() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState<string>("");
   const [isMaybeWrong, setIsMaybeWrong] = useState(false);
-  const isEnabled = user.isMultiFactorRequired;
+  const enabled = user.isMultiFactorRequired;
 
   const [handleSubmit, isLoading] = useAsyncCallback(async () => {
     await user.update({
@@ -368,12 +368,12 @@ function useMfaSection() {
   return (
     <Section
       title={t("Multi-factor Authentication")}
-      description={isEnabled
+      description={enabled
         ? t("Multi-factor authentication is currently enabled.")
         : t("Multi-factor authentication is currently disabled.")}
     >
       <div className='flex flex-col gap-4'>
-        {!isEnabled && generatedSecret && (
+        {!enabled && generatedSecret && (
           <>
             <Typography>{t("Scan this QR code with your authenticator app:")}</Typography>
             <img width={200} height={200} src={qrCodeUrl ?? throwErr("TOTP QR code failed to generate")} alt={t("TOTP multi-factor authentication QR code")} />
@@ -406,7 +406,7 @@ function useMfaSection() {
           </>
         )}
         <div className='flex gap-2'>
-          {isEnabled ? (
+          {enabled ? (
             <Button
               variant='secondary'
               onClick={async () => {

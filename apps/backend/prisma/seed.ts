@@ -1,5 +1,6 @@
 import { prismaClient } from '@/prisma-client';
 import { PrismaClient } from '@prisma/client';
+import { typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
 const prisma = new PrismaClient();
 
 
@@ -15,6 +16,7 @@ async function seed() {
   if (oldProject) {
     console.log('Internal project already exists, skipping its creation');
   } else {
+    const oauthConfigs = typedFromEntries((['github', 'spotify', 'google', 'microsoft'] as const).map((id) => [id, crypto.randomUUID()]));
     await prismaClient.$transaction(async (tx) => {
       const createdProject = await prisma.project.upsert({
         where: {
@@ -39,7 +41,7 @@ async function seed() {
               allowLocalhost: true,
               oauthProviderConfigs: {
                 create: (['github', 'spotify', 'google', 'microsoft'] as const).map((id) => ({
-                  id,
+                  id: oauthConfigs[id],
                   proxiedOAuthConfig: {
                     create: {
                       type: id.toUpperCase() as any,
@@ -90,7 +92,7 @@ async function seed() {
                 oauthProviderConfig: {
                   connect: {
                     projectConfigId_id: {
-                      id,
+                      id: oauthConfigs[id],
                       projectConfigId: createdProject.configId,
                     }
                   }
@@ -127,7 +129,7 @@ async function seed() {
             create: [{
               providerAccountId: adminGithubId,
               projectConfigId: createdProject.configId,
-              oauthProviderConfigId: 'github',
+              oauthProviderConfigId: oauthConfigs.github,
             }],
           },
         },

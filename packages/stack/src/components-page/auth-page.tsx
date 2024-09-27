@@ -13,22 +13,25 @@ import { PredefinedMessageCard } from '../components/message-cards/predefined-me
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
 
+export type MockProject = {
+  config: {
+    signUpEnabled: boolean,
+    enabledAuthMethodConfigs: ({
+      type: 'password' | 'otp',
+    } | {
+      type: 'oauth',
+      oauth_provider_config_id: string,
+    })[],
+  },
+};
+
 export function AuthPage(props: {
   noPasswordRepeat?: boolean,
   fullPage?: boolean,
   type: 'sign-in' | 'sign-up',
   automaticRedirect?: boolean,
   extraInfo?: React.ReactNode,
-  mockProject?: {
-    config: {
-      signUpEnabled: boolean,
-      credentialEnabled: boolean,
-      magicLinkEnabled: boolean,
-      oauthProviders: {
-        id: string,
-      }[],
-    },
-  },
+  mockProject?: MockProject,
 }) {
   const stackApp = useStackApp();
   const user = useUser();
@@ -52,7 +55,9 @@ export function AuthPage(props: {
     return <PredefinedMessageCard type='signUpDisabled' fullPage={props.fullPage} />;
   }
 
-  const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && project.config.oauthProviders.length > 0;
+  const credentialEnabled = project.config.enabledAuthMethodConfigs.some((x) => x.type === 'password');
+  const magicLinkEnabled = project.config.enabledAuthMethodConfigs.some((x) => x.type === 'otp');
+  const oauthEnabled = project.config.enabledAuthMethodConfigs.filter((x) => x.type === 'oauth').length > 0;
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
@@ -82,8 +87,8 @@ export function AuthPage(props: {
           )}
         </div>
         <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
-        {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
-        {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
+        {(credentialEnabled || magicLinkEnabled) && oauthEnabled && <SeparatorWithText text={'Or continue with'} />}
+        {credentialEnabled && magicLinkEnabled ? (
           <Tabs defaultValue='magic-link'>
             <TabsList className='w-full mb-2'>
               <TabsTrigger value='magic-link' className='flex-1'>{t("Email")}</TabsTrigger>
@@ -96,9 +101,9 @@ export function AuthPage(props: {
               {props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>}
             </TabsContent>
           </Tabs>
-        ) : project.config.credentialEnabled ? (
+        ) : credentialEnabled ? (
           props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
-        ) : project.config.magicLinkEnabled ? (
+        ) : magicLinkEnabled ? (
           <MagicLinkSignIn/>
         ) : null}
         {props.extraInfo && (

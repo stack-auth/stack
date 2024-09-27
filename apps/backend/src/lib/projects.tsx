@@ -1,12 +1,10 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
-import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
-import { decodeAccessToken } from "./tokens";
 
 export const fullProjectInclude = {
   config: {
@@ -79,7 +77,8 @@ export type ProjectDB = Prisma.ProjectGetPayload<{ include: typeof fullProjectIn
 export function projectPrismaToCrud(
   prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
 ): ProjectsCrud["Admin"]["Read"] {
-  const oauthProviders = prisma.config.authMethodConfigs
+  /* @deprecated */
+  const enabledOauthProviders = prisma.config.authMethodConfigs
     .map((config) => {
       if (config.oauthProviderConfig) {
         const providerConfig = config.oauthProviderConfig;
@@ -100,15 +99,117 @@ export function projectPrismaToCrud(
             microsoft_tenant_id: providerConfig.standardOAuthConfig.microsoftTenantId ?? undefined,
           } as const;
         } else {
-          throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
+          throw new StackAssertionError(`DB union violation: provider config '${config.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
         }
       }
     })
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
+    .filter(provider => provider.enabled)
     .sort((a, b) => a.id.localeCompare(b.id));
+
+  const oauthProviderConfigs = prisma.config.oauthProviderConfigs.map(provider => {
+    if (provider.proxiedOAuthConfig) {
+      return {
+        id: provider.id,
+        shared: true,
+        type: typedToLowercase(provider.proxiedOAuthConfig.type),
+      } as const;
+    } else if (provider.standardOAuthConfig) {
+      return {
+        id: provider.id,
+        shared: false,
+        type: typedToLowercase(provider.standardOAuthConfig.type),
+        client_id: provider.standardOAuthConfig.clientId,
+        client_secret: provider.standardOAuthConfig.clientSecret,
+        facebook_config_id: provider.standardOAuthConfig.facebookConfigId ?? undefined,
+        microsoft_tenant_id: provider.standardOAuthConfig.microsoftTenantId ?? undefined,
+      } as const;
+    } else {
+      throw new StackAssertionError(`DB union violation: provider config '${provider.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
+    }
+  });
+
+  const authMethodConfigs = prisma.config.authMethodConfigs.map(config => {
+    if (config.passwordConfig) {
+      return {
+        id: config.id,
+        enabled: config.enabled,
+        type: "password",
+      } as const;
+    } else if (config.otpConfig) {
+      return {
+        id: config.id,
+        enabled: config.enabled,
+        type: "otp",
+      } as const;
+    } else if (config.oauthProviderConfig) {
+      return {
+        id: config.id,
+        type: "oauth",
+        enabled: config.enabled,
+        oauth_provider_config_id: config.oauthProviderConfig.id,
+      } as const;
+    }
+    throw new StackAssertionError(`DB union violation: auth method config '${config.id}' of project '${prisma.id}' is neither password nor otp`, { prisma });
+  });
+
+  const connectedAccountConfigs = prisma.config.connectedAccountConfigs.map(config => {
+    if (!config.oauthProviderConfig) {
+      throw new StackAssertionError(`DB non-nullable violation: connected account config '${config.id}' of project '${prisma.id}' is not connected to an oauth provider`, { prisma });
+    }
+    return {
+      id: config.id,
+      enabled: config.enabled,
+      oauth_provider_config_id: config.oauthProviderConfig.id,
+    } as const;
+  });
+
+  const emailConfig = (() => {
+    const emailServiceConfig = prisma.config.emailServiceConfig;
+    if (!emailServiceConfig) {
+      throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
+    }
+    if (emailServiceConfig.proxiedEmailServiceConfig) {
+      return {
+        type: "shared"
+      } as const;
+    } else if (emailServiceConfig.standardEmailServiceConfig) {
+      const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
+      return {
+        type: "standard",
+        host: standardEmailConfig.host,
+        port: standardEmailConfig.port,
+        username: standardEmailConfig.username,
+        password: standardEmailConfig.password,
+        sender_email: standardEmailConfig.senderEmail,
+        sender_name: standardEmailConfig.senderName,
+      } as const;
+    } else {
+      throw new StackAssertionError(`DB union violation: email service config '${prisma.id}' of project '${prisma.id}' is neither proxied nor standard`, { prisma });
+    }
+  })();
+
+  const domains = prisma.config.domains
+    .map((domain) => ({
+      domain: domain.domain,
+      handler_path: domain.handlerPath,
+    }))
+    .sort((a, b) => a.domain.localeCompare(b.domain));
+
+  const getPermissions = (type: 'creator' | 'member') => {
+    return prisma.config.permissions.filter(perm => type === 'creator' ? perm.isDefaultTeamCreatorPermission : perm.isDefaultTeamMemberPermission)
+      .map(teamPermissionDefinitionJsonFromDbType)
+      .concat((type === 'creator' ? prisma.config.teamCreateDefaultSystemPermissions : prisma.config.teamMemberDefaultSystemPermissions ).map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+      .map(perm => ({ id: perm.id }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  };
 
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
+  const enabledOAuthProviderIds = new Set(
+    authMethodConfigs.filter(config => config.enabled).map(config => config.oauth_provider_config_id)
+      .concat(connectedAccountConfigs.filter(config => config.enabled).map(config => config.oauth_provider_config_id))
+  );
 
   return {
     id: prisma.id,
@@ -121,53 +222,28 @@ export function projectPrismaToCrud(
       id: prisma.config.id,
       allow_localhost: prisma.config.allowLocalhost,
       sign_up_enabled: prisma.config.signUpEnabled,
-      credential_enabled: !!passwordAuth,
-      magic_link_enabled: !!otpAuth,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
-      domains: prisma.config.domains
-        .map((domain) => ({
-          domain: domain.domain,
-          handler_path: domain.handlerPath,
-        }))
-        .sort((a, b) => a.domain.localeCompare(b.domain)),
-      oauth_providers: oauthProviders,
-      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
-      email_config: (() => {
-        const emailServiceConfig = prisma.config.emailServiceConfig;
-        if (!emailServiceConfig) {
-          throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
-        }
-        if (emailServiceConfig.proxiedEmailServiceConfig) {
-          return {
-            type: "shared"
-          } as const;
-        } else if (emailServiceConfig.standardEmailServiceConfig) {
-          const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
-          return {
-            type: "standard",
-            host: standardEmailConfig.host,
-            port: standardEmailConfig.port,
-            username: standardEmailConfig.username,
-            password: standardEmailConfig.password,
-            sender_email: standardEmailConfig.senderEmail,
-            sender_name: standardEmailConfig.senderName,
-          } as const;
-        } else {
-          throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
-        }
-      })(),
-      team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-      team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
+      team_creator_default_permissions: getPermissions('creator'),
+      team_member_default_permissions: getPermissions('member'),
+
+      domains: domains,
+      email_config: emailConfig,
+
+      oauth_provider_configs: oauthProviderConfigs,
+      auth_method_configs: authMethodConfigs,
+      connected_account_configs: connectedAccountConfigs,
+      enabled_oauth_provider_configs: oauthProviderConfigs.filter(provider => enabledOAuthProviderIds.has(provider.id)),
+      enabled_auth_method_configs: authMethodConfigs.filter(config => config.enabled),
+      enabled_connected_account_configs: connectedAccountConfigs.filter(config => config.enabled),
+
+      /* @deprecated */
+      enabled_oauth_providers: enabledOauthProviders,
+      /* @deprecated */
+      credential_enabled: !!passwordAuth,
+      /* @deprecated */
+      magic_link_enabled: !!otpAuth,
     }
   };
 }
