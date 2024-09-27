@@ -4,7 +4,7 @@ export function SignIn(props: {
   fullPage?: boolean,
   automaticRedirect?: boolean,
   extraInfo?: React.ReactNode,
-  swapOrder?: boolean,
+  firstTab?: 'magic-link' | 'password',
 }) {
   return (
     <AuthPage
@@ -12,7 +12,7 @@ export function SignIn(props: {
       type="sign-in"
       automaticRedirect={!!props.automaticRedirect}
       extraInfo={props.extraInfo}
-      swapOrder={props.swapOrder}
+      firstTab={props.firstTab}
     />
   );
 }
